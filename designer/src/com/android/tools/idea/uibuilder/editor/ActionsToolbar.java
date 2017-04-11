@@ -43,7 +43,7 @@ import java.util.List;
  * The actions toolbar updates dynamically based on the component selection, their
  * parents (and if no selection, the root layout)
  */
-final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelListener, PanZoomListener {
+public final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelListener, PanZoomListener {
   private final DesignSurface mySurface;
   private NlModel myModel;
   private JComponent myToolbarComponent;

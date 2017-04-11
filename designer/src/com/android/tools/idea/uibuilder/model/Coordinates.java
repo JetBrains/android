@@ -122,8 +122,18 @@ public class Coordinates {
    * system) of the given dimension in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static int getSwingDimensionDip(@NotNull SceneView view, @AndroidCoordinate int androidDpDimension) {
+  public static int getSwingDimensionDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpDimension) {
     return getSwingDimension(view, dpToPx(view, androidDpDimension));
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link NlDesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static Rectangle getSwingRectDip(@NotNull SceneContext context, @AndroidDpCoordinate Rectangle rect) {
+    return new Rectangle(context.getSwingX(rect.x), context.getSwingY(rect.y),
+                         context.getSwingDimension(rect.width), context.getSwingDimension(rect.height));
   }
 
   /**

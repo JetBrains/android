@@ -204,4 +204,7 @@ public abstract class SceneView {
   public void setToolTip(String toolTip) {
      mySurface.setDesignToolTip(toolTip);
   }
+
+  @NotNull
+  public abstract Color getBgColor();
 }
