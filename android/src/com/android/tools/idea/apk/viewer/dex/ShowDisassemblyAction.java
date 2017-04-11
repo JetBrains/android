@@ -47,12 +47,10 @@ import java.nio.file.Path;
 
 public class ShowDisassemblyAction extends AnAction implements DumbAware {
   private final Tree myTree;
-  @NotNull private final Path myDexPath;
 
-  public ShowDisassemblyAction(@NotNull Tree tree, @NotNull Path dex) {
+  public ShowDisassemblyAction(@NotNull Tree tree) {
     super("Show Bytecode", "Show Bytecode", AllIcons.Toolwindows.Documentation);
     myTree = tree;
-    myDexPath = dex;
   }
 
   @Override
@@ -78,7 +76,11 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
       return false;
     }
 
-    if (node.getDefinedMethodsCount() == 0) {
+    if (!node.isDefined()) {
+      return false;
+    }
+
+    if (!(node.getUserObject() instanceof Path)){
       return false;
     }
 
@@ -100,7 +102,8 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
     Project project = getEventProject(e);
     assert project != null;
     ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
-    ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(myDexPath));
+    Path dexPath = (Path)node.getUserObject();
+    ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(dexPath));
     Futures.addCallback(dexFileFuture, new FutureCallback<DexBackedDexFile>() {
       @Override
       public void onSuccess(@Nullable DexBackedDexFile dexBackedDexFile) {
