@@ -48,7 +48,7 @@ public final class MemoryCaptureView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
 
     myExportButton = new FlatButton(AllIcons.Actions.Export);
-    myExportButton.setToolTipText("Exports the currently selected capture to file.");
+    myExportButton.setToolTipText("Export heap dump to HPROF file");
     myExportButton.addActionListener(e -> ideProfilerComponents.openExportDialog(
                                                () -> "Export As",
                                                this::getFileExtension,
