@@ -146,7 +146,7 @@ public class LayoutTestUtilities {
     SelectionModel selectionModel = model.getSelectionModel();  // Mockito requires this to be a separate variable
     when(screenView.getSelectionModel()).thenReturn(selectionModel);
     when(screenView.getSize()).thenReturn(new Dimension());
-    NlDesignSurface surface = model.getSurface();
+    DesignSurface surface = model.getSurface();
     when(screenView.getSurface()).thenReturn(surface);
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);
@@ -162,9 +162,9 @@ public class LayoutTestUtilities {
     return screenView;
   }
 
-  public static NlDesignSurface createSurface() {
+  public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
     JComponent layeredPane = new JPanel();
-    NlDesignSurface surface = mock(NlDesignSurface.class);
+    DesignSurface surface = mock(surfaceClass);
     when(surface.getLayeredPane()).thenReturn(layeredPane);
     when(surface.getSelectionModel()).thenReturn(new SelectionModel());
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));

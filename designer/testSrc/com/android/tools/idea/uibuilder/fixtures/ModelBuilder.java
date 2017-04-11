@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -60,6 +60,7 @@ public class ModelBuilder {
   private final Function<? super SyncNlModel, ? extends SceneManager> myManagerFactory;
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
+  private final Class<? extends DesignSurface> mySurfaceClass;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
                       @NotNull JavaCodeInsightTestFixture fixture,
@@ -67,7 +68,8 @@ public class ModelBuilder {
                       @NotNull ComponentDescriptor root,
                       @NotNull Function<? super SyncNlModel, ? extends SceneManager> managerFactory,
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
-                      @NotNull String path) {
+                      @NotNull String path,
+                      @NotNull Class<? extends DesignSurface> surfaceClass) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
     myFixture = fixture;
@@ -76,6 +78,7 @@ public class ModelBuilder {
     myManagerFactory = managerFactory;
     myModelUpdater = modelUpdater;
     myPath = path;
+    mySurfaceClass = surfaceClass;
   }
 
   public ModelBuilder name(@NotNull String name) {
@@ -144,9 +147,9 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      SyncNlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
+      SyncNlModel model = SyncNlModel.create(createSurface(mySurfaceClass), myFixture.getProject(), myFacet, xmlFile);
       SceneManager sceneManager = myManagerFactory.apply(model);
-      NlDesignSurface surface = model.getSurface();
+      DesignSurface surface = model.getSurface();
       SelectionModel selectionModel = model.getSelectionModel();
       when(surface.getSelectionModel()).thenReturn(selectionModel);
       when(surface.getModel()).thenReturn(model);

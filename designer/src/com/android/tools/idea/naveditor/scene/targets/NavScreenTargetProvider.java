@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.naveditor.model.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -34,9 +34,11 @@ import java.util.List;
  */
 public class NavScreenTargetProvider implements TargetProvider {
   private final NavSceneLayoutAlgorithm myLayoutAlgorithm;
+  private final NavigationSchema mySchema;
 
-  public NavScreenTargetProvider(NavSceneLayoutAlgorithm algorithm) {
+  public NavScreenTargetProvider(@NotNull NavSceneLayoutAlgorithm algorithm, @NotNull NavigationSchema schema) {
     myLayoutAlgorithm = algorithm;
+    mySchema = schema;
   }
 
   @NotNull
@@ -44,11 +46,11 @@ public class NavScreenTargetProvider implements TargetProvider {
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     List<Target> result = new ArrayList<>();
     for (NlComponent nlChild : sceneComponent.getNlComponent().getChildren()) {
-      if (nlChild.getTagName().equals(NavSceneManager.TAG_ACTION)) {
+      if (nlChild.getTagName().equals(NavigationSchema.TAG_ACTION)) {
         result.add(new ActionTarget(sceneComponent, nlChild));
       }
     }
-    if (sceneComponent.getNlComponent().getTagName().equals(NavSceneManager.TAG_FRAGMENT)) {
+    if (mySchema.getDestinationType(sceneComponent.getNlComponent().getTagName()) == NavigationSchema.DestinationType.FRAGMENT) {
       if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
         result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
       }

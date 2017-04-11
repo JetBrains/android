@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
+import com.android.tools.idea.naveditor.model.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.DummyAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.ui.UIUtil;
@@ -42,21 +43,19 @@ import java.util.Set;
  * {@link SceneManager} for the navigation editor.
  */
 public class NavSceneManager extends SceneManager {
-  public static final String TAG_FRAGMENT = "fragment";
-  public static final String ATTR_DESTINATION = "destination";
-  public static final String TAG_ACTION = "action";
-  public static final String TAG_NAVIGATION = "navigation";
   public final NavScreenTargetProvider myScreenTargetProvider;
   private NavSceneLayoutAlgorithm myLayoutAlgorithm;
 
-  private static final SceneDecoratorFactory DECORATOR_FACTORY = new NavSceneDecoratorFactory();
+  private final SceneDecoratorFactory myDecoratorFactory;
   private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
 
-  public NavSceneManager(@NotNull NlModel model, @NotNull DesignSurface surface) {
+  public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
     super(model, surface);
-    myLayoutAlgorithm = new ManualLayoutAlgorithm(new DummyAlgorithm());
+    NavigationSchema schema = surface.getSchema();
+    myLayoutAlgorithm = new ManualLayoutAlgorithm(new DummyAlgorithm(schema), schema);
     surface.zoomActual();
-    myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm);
+    myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm, schema);
+    myDecoratorFactory = new NavSceneDecoratorFactory(schema);
   }
 
   public static boolean enableNavigationEditor() {
@@ -80,18 +79,33 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
+  @NotNull
+  public NavDesignSurface getDesignSurface() {
+    return (NavDesignSurface)super.getDesignSurface();
+  }
+
+  @Override
   protected void updateFromComponent(@NotNull NlComponent component, @NotNull SceneComponent sceneComponent) {
-    if (component.getTagName().equals(TAG_NAVIGATION)) {
-      SceneView view = getDesignSurface().getCurrentSceneView();
-      if (view != null) {
-        Dimension viewDimension = view.getPreferredSize();
-        sceneComponent.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.width),
-                               Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.height), true);
+    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(component.getTagName());
+    if (type != null) {
+      switch (type) {
+        case NAVIGATION:
+          // TODO: support nested navigation elements (subflows)
+          SceneView view = getDesignSurface().getCurrentSceneView();
+          if (view != null) {
+            Dimension viewDimension = view.getPreferredSize();
+            sceneComponent.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.width),
+                                   Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.height), true);
+          }
+          break;
+        case FRAGMENT:
+        case ACTIVITY:
+          sceneComponent.setSize(50, 50, true);
+          sceneComponent.setTargetProvider(myScreenTargetProvider, false);
+          break;
+        default:
+          // nothing
       }
-    }
-    else if (component.getTagName().equals(TAG_FRAGMENT)) {
-      sceneComponent.setSize(50, 50, true);
-      sceneComponent.setTargetProvider(myScreenTargetProvider, false);
     }
   }
 
@@ -106,12 +120,16 @@ public class NavSceneManager extends SceneManager {
   @Override
   @Nullable
   protected SceneComponent updateFromComponent(@NotNull NlComponent component, @NotNull Set<SceneComponent> seenComponents) {
-    switch (component.getTagName()) {
-      case "navigation":
-      case TAG_FRAGMENT:
-        return super.updateFromComponent(component, seenComponents);
-      default:
-        //nothing
+    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(component.getTagName());
+    if (type != null) {
+      switch (type) {
+        case NAVIGATION:
+        case FRAGMENT:
+        case ACTIVITY:
+          return super.updateFromComponent(component, seenComponents);
+        default:
+          //nothing
+      }
     }
     return null;
   }
@@ -151,7 +169,7 @@ public class NavSceneManager extends SceneManager {
   @NotNull
   @Override
   public SceneDecoratorFactory getSceneDecoratorFactory() {
-    return DECORATOR_FACTORY;
+    return myDecoratorFactory;
   }
 
   private class ModelChangeListener implements ModelListener {

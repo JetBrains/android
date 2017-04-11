@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.surface;
 
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.naveditor.model.NavigationSchema;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -35,10 +36,17 @@ import java.awt.*;
  */
 public class NavDesignSurface extends DesignSurface {
   private NavView myNavView;
+  private final NavigationSchema mySchema;
 
   public NavDesignSurface(@NotNull Project project) {
     super(project);
+    mySchema = new NavigationSchema(project);
     zoomActual();
+  }
+
+  @NotNull
+  public NavigationSchema getSchema() {
+    return mySchema;
   }
 
   @Override

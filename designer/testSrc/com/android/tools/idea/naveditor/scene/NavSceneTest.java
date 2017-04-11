@@ -16,33 +16,33 @@
 package com.android.tools.idea.naveditor.scene;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.SceneTest;
+import com.android.tools.idea.naveditor.model.NavigationSchema;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 
 /**
  * Tests for the nav editor Scene.
  */
-public class NavSceneTest extends SceneTest {
-
-  @Override
-  public ModelBuilder createModel() {
-    return navModel("nav.xml", component(NavSceneManager.TAG_NAVIGATION)
-      .unboundedChildren(
-        component(NavSceneManager.TAG_FRAGMENT)
-          .id("@+id/fragment1")
-          .unboundedChildren(
-            component(NavSceneManager.TAG_ACTION)
-              .withAttribute(SdkConstants.AUTO_URI, NavSceneManager.ATTR_DESTINATION, "@+id/fragment2")
-          ),
-        component(NavSceneManager.TAG_FRAGMENT)
-          .id("@+id/fragment2"))
-    );
-  }
+public class NavSceneTest extends LayoutTestCase {
 
   public void testDisplayList() {
+    SyncNlModel model = navModel("nav.xml", component(NavigationSchema.TAG_NAVIGATION.tag)
+      .unboundedChildren(
+        component(NavigationSchema.TAG_FRAGMENT.tag)
+          .id("@+id/fragment1")
+          .unboundedChildren(
+            component(NavigationSchema.TAG_ACTION)
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
+          ),
+        component(NavigationSchema.TAG_FRAGMENT.tag)
+          .id("@+id/fragment2"))
+    ).build();
+    Scene scene = model.getSurface().getScene();
+
     DisplayList list = new DisplayList();
-    myScene.buildDisplayList(list, 0);
+    scene.buildDisplayList(list, 0);
     assertEquals("Clip,0,0,0,0\n" +
                  "DrawComponentBackground,50,50,50,50,1\n" +
                  "DrawNavScreen,50,50,50,50,fragment1\n" +

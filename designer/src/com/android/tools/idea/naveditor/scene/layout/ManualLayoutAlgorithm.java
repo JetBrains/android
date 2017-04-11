@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
+import com.android.tools.idea.naveditor.model.NavigationSchema;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
@@ -28,7 +29,6 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.naveditor.scene.NavSceneManager.TAG_FRAGMENT;
 
 /**
  * {@link NavSceneLayoutAlgorithm} that puts screens in locations specified in the model, falling back to some other method if none is
@@ -38,14 +38,17 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
   static final String ATTR_X = "manual_x";
   static final String ATTR_Y = "manual_y";
   private final NavSceneLayoutAlgorithm myFallback;
+  private final NavigationSchema mySchema;
 
-  public ManualLayoutAlgorithm(@NotNull NavSceneLayoutAlgorithm fallback) {
+  public ManualLayoutAlgorithm(@NotNull NavSceneLayoutAlgorithm fallback, @NotNull NavigationSchema schema) {
     myFallback = fallback;
+    mySchema = schema;
   }
 
   @Override
   public void layout(@NotNull SceneComponent component) {
-    if (!component.getNlComponent().getTagName().equals(TAG_FRAGMENT)) {
+    // TODO: support other destination types
+    if (mySchema.getDestinationType(component.getNlComponent().getTagName()) != NavigationSchema.DestinationType.FRAGMENT) {
       return;
     }
     NlComponent nlComponent = component.getNlComponent();

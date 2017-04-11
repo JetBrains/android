@@ -158,7 +158,7 @@ public class InteractionManagerTest extends LayoutTestCase {
           .wrapContentWidth()
           .wrapContentHeight())).build();
 
-    NlDesignSurface surface = model.getSurface();
+    NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
 
     ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
@@ -222,7 +222,7 @@ public class InteractionManagerTest extends LayoutTestCase {
           .wrapContentWidth()
           .wrapContentHeight())).build();
 
-    NlDesignSurface surface = model.getSurface();
+    NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
 
     ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);

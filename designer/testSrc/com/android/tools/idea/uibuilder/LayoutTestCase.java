@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.naveditor.model.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
@@ -25,6 +27,8 @@ import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.SceneManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.PathManager;
@@ -38,8 +42,10 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Function;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
 
@@ -77,12 +83,17 @@ public abstract class LayoutTestCase extends AndroidTestCase {
                             (model, newModel) ->
                               LayoutlibSceneManager
                                 .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
-                                                 model), "layout");
+                                                 model), "layout", NlDesignSurface.class);
   }
 
   protected ModelBuilder navModel(@NotNull String name, @NotNull ComponentDescriptor root) {
-    return new ModelBuilder(myFacet, myFixture, name, root, model -> new NavSceneManager(model, model.getSurface()),
-                            (model, newModel) -> {}, "nav");
+    Function<? super SyncNlModel, ? extends SceneManager> managerFactory = model -> {
+      when(((NavDesignSurface)model.getSurface()).getSchema()).thenReturn(new NavigationSchema(null));
+      return new NavSceneManager(model, (NavDesignSurface)model.getSurface());
+    };
+
+    return new ModelBuilder(myFacet, myFixture, name, root, managerFactory,
+                            (model, newModel) -> {}, "nav", NavDesignSurface.class);
   }
 
   private List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {
@@ -113,9 +124,9 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   protected ViewEditor editor(ScreenView screenView) {
     ViewEditor editor = Mockito.mock(ViewEditor.class);
     NlModel model = screenView.getModel();
-    Mockito.when(editor.getModel()).thenReturn(model);
-    Mockito.when(editor.dpToPx(Mockito.anyInt())).thenAnswer(i -> Coordinates.dpToPx(screenView, (Integer)i.getArguments()[0]));
-    Mockito.when(editor.pxToDp(Mockito.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
+    when(editor.getModel()).thenReturn(model);
+    when(editor.dpToPx(Mockito.anyInt())).thenAnswer(i -> Coordinates.dpToPx(screenView, (Integer)i.getArguments()[0]));
+    when(editor.pxToDp(Mockito.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
 
     return editor;
   }
