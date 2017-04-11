@@ -20,6 +20,7 @@ import com.android.tools.proguard.ProguardSeedsMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.immutable.reference.ImmutableReference;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -30,17 +31,16 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
 
   @NotNull private final String myName;
   @Nullable private final Reference myReference;
-
-  protected int myMethodReferencesCount = 0;
-  protected int myDefinedMethodsCount = 0;
-  protected boolean removed = true;
-  protected boolean hasClassDefinition;
+  private boolean myIsDefined;
+  private boolean myIsRemoved;
+  private int myMethodReferencesCount;
+  private int myMethodDefinitionsCount;
 
   DexElementNode(@NotNull String name, boolean allowsChildren) {
     this(name, allowsChildren, null);
   }
 
-  DexElementNode(@NotNull String name, boolean allowsChildren, @Nullable Reference reference) {
+  DexElementNode(@NotNull String name, boolean allowsChildren, @Nullable ImmutableReference reference) {
     super(null, allowsChildren);
     myName = name;
     myReference = reference;
@@ -74,7 +74,8 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
     
   }
 
-  @Nullable protected <T extends DexElementNode> T getChildByType(@NotNull String name, Class<T> type) {
+  @Nullable
+  public <T extends DexElementNode> T getChildByType(@NotNull String name, Class<T> type) {
     for (int i = 0; i < getChildCount(); i++) {
       DexElementNode node = getChildAt(i);
       if (name.equals(node.getName()) && type.equals(node.getClass())) {
@@ -85,24 +86,6 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
     return null;
   }
 
-  public int getMethodRefCount() {
-    return myMethodReferencesCount;
-  }
-
-  public int getDefinedMethodsCount() {
-    return myDefinedMethodsCount;
-  }
-
-  public boolean isRemoved() {
-    return removed;
-  }
-
-  public boolean hasClassDefinition() {
-    return hasClassDefinition;
-  }
-
-  //TODO: does this belong here?
-  //Or should it be ProguardSeedsMap::isSeed(Reference reference, ProguardMap map)
   public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map, boolean checkChildren) {
     if (seedsMap != null && checkChildren) {
       for (int i = 0, n = getChildCount(); i < n; i++) {
@@ -118,5 +101,48 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
   @Override
   public DexElementNode getParent() {
     return (DexElementNode) super.getParent();
+  }
+
+  public void update(){
+    for (int i = 0, n = getChildCount(); i < n; i++){
+      DexElementNode node = getChildAt(i);
+      node.update();
+    }
+  }
+
+  protected static String combine(@NotNull String parentPackage, @NotNull String childName) {
+    return parentPackage.isEmpty() ? childName : parentPackage + "." + childName;
+  }
+
+  public boolean isDefined() {
+    return myIsDefined;
+  }
+
+  public void setDefined(boolean defined) {
+    myIsDefined = defined;
+  }
+
+  public boolean isRemoved() {
+    return myIsRemoved;
+  }
+
+  public void setRemoved(boolean removed) {
+    myIsRemoved = removed;
+  }
+
+  public int getMethodReferencesCount() {
+    return myMethodReferencesCount;
+  }
+
+  protected void setMethodReferencesCount(int methodReferencesCount) {
+    myMethodReferencesCount = methodReferencesCount;
+  }
+
+  public int getMethodDefinitionsCount() {
+    return myMethodDefinitionsCount;
+  }
+
+  protected void setMethodDefinitionsCount(int methodDefinitionsCount) {
+    myMethodDefinitionsCount = methodDefinitionsCount;
   }
 }
