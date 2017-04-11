@@ -18,6 +18,7 @@ package org.jetbrains.android.inspections;
 import com.android.tools.idea.lint.LintIdeUtils;
 import com.intellij.psi.PsiFile;
 import com.siyeh.ig.migration.TryWithIdenticalCatchesInspection;
+import org.jetbrains.annotations.NotNull;
 
 /** Subclass which makes the parent inspection only apply for API level 19 or higher */
 public class AndroidTryWithIdenticalCatchesInspection extends TryWithIdenticalCatchesInspection {
@@ -25,5 +26,15 @@ public class AndroidTryWithIdenticalCatchesInspection extends TryWithIdenticalCa
   public boolean shouldInspect(PsiFile file) {
     // Default true: plain Java module: use IDE language level instead
     return LintIdeUtils.isApiLevelAtLeast(file, 19, true) && super.shouldInspect(file);
+  }
+
+  /**
+   * Override the short name registration since it can't be deduced from the classname anymore
+   * (we've added the prefix Android)
+   */
+  @NotNull
+  @Override
+  public String getShortName() {
+    return "TryWithIdenticalCatches";
   }
 }
