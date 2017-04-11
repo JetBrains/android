@@ -13,35 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.annotations.Nullable;
 import com.android.builder.model.SigningConfig;
+import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link SigningConfig}.
- */
-public final class IdeSigningConfig implements SigningConfig, Serializable {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public final class SigningConfigStub implements SigningConfig {
   @NotNull private final String myName;
   @Nullable private final File myStoreFile;
   @Nullable private final String myStorePassword;
   @Nullable private final String myKeyAlias;
   private final boolean myV1SigningEnabled;
 
-  public IdeSigningConfig(@NotNull SigningConfig config) {
-    myName = config.getName();
-    myStoreFile = config.getStoreFile();
-    myStorePassword = config.getStorePassword();
-    myKeyAlias = config.getKeyAlias();
-    myV1SigningEnabled = config.isV1SigningEnabled();
+  public SigningConfigStub(@NotNull String name,
+                           @Nullable File storeFile,
+                           @Nullable String storePassword,
+                           @Nullable String keyAlias,
+                           boolean v1SigningEnabled) {
+    myName = name;
+    myStoreFile = storeFile;
+    myStorePassword = storePassword;
+    myKeyAlias = keyAlias;
+    myV1SigningEnabled = v1SigningEnabled;
   }
 
   @Override
@@ -93,37 +90,5 @@ public final class IdeSigningConfig implements SigningConfig, Serializable {
   @Override
   public boolean isSigningReady() {
     throw new UnusedModelMethodException("isSigningReady");
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof IdeSigningConfig)) {
-      return false;
-    }
-    IdeSigningConfig config = (IdeSigningConfig)o;
-    return myV1SigningEnabled == config.myV1SigningEnabled &&
-           Objects.equals(myName, config.myName) &&
-           Objects.equals(myStoreFile, config.myStoreFile) &&
-           Objects.equals(myStorePassword, config.myStorePassword) &&
-           Objects.equals(myKeyAlias, config.myKeyAlias);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(myName, myStoreFile, myStorePassword, myKeyAlias, myV1SigningEnabled);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeSigningConfig{" +
-           "myName='" + myName + '\'' +
-           ", myStoreFile=" + myStoreFile +
-           ", myStorePassword='" + myStorePassword + '\'' +
-           ", myKeyAlias='" + myKeyAlias + '\'' +
-           ", myV1SigningEnabled=" + myV1SigningEnabled +
-           '}';
   }
 }

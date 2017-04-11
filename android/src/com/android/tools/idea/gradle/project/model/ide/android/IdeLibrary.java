@@ -15,49 +15,38 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.Library;
-import com.android.builder.model.MavenCoordinates;
-import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link Library}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link Library}.
  */
-public class IdeLibrary implements Library, Serializable {
-  @NotNull private final MavenCoordinates myResolvedCoordinates;
+public abstract class IdeLibrary implements Library, Serializable {
+  @NotNull private final IdeMavenCoordinates myResolvedCoordinates;
   @Nullable private final String myProject;
   @Nullable private final String myName;
-  @Nullable private final MavenCoordinates myRequestedCoordinates;
-  private final boolean mySkipped;
   private final boolean myProvided;
 
-  public IdeLibrary(@NotNull Library library, @NotNull GradleVersion gradleVersion) {
-    myResolvedCoordinates = new IdeMavenCoordinates(library.getResolvedCoordinates(), gradleVersion);
-
+  protected IdeLibrary(@NotNull Library library) {
+    myResolvedCoordinates = new IdeMavenCoordinates(library.getResolvedCoordinates());
     myProject = library.getProject();
     myName = library.getName();
-
-    MavenCoordinates liRequestedCoordinate = library.getRequestedCoordinates();
-    myRequestedCoordinates = liRequestedCoordinate == null ? null :new IdeMavenCoordinates(liRequestedCoordinate, gradleVersion);
-
-    mySkipped = library.isSkipped();
     myProvided = library.isProvided();
   }
 
   @Override
   @Nullable
-  public MavenCoordinates getRequestedCoordinates() {
-    return myRequestedCoordinates;
+  public IdeMavenCoordinates getRequestedCoordinates() {
+    throw new UnusedModelMethodException("getRequestedCoordinates");
   }
 
   @Override
   @NotNull
-  public MavenCoordinates getResolvedCoordinates() {
+  public IdeMavenCoordinates getResolvedCoordinates() {
     return myResolvedCoordinates;
   }
 
@@ -75,7 +64,7 @@ public class IdeLibrary implements Library, Serializable {
 
   @Override
   public boolean isSkipped() {
-    return mySkipped;
+    throw new UnusedModelMethodException("isSkipped");
   }
 
   @Override
@@ -83,4 +72,37 @@ public class IdeLibrary implements Library, Serializable {
     return myProvided;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeLibrary)) {
+      return false;
+    }
+    IdeLibrary library = (IdeLibrary)o;
+    return library.canEqual(this) &&
+           myProvided == library.myProvided &&
+           Objects.equals(myResolvedCoordinates, library.myResolvedCoordinates) &&
+           Objects.equals(myProject, library.myProject) &&
+           Objects.equals(myName, library.myName);
+  }
+
+  public boolean canEqual(Object other) {
+    // See: http://www.artima.com/lejava/articles/equality.html
+    return other instanceof IdeLibrary;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myResolvedCoordinates, myProject, myName, myProvided);
+  }
+
+  @Override
+  public String toString() {
+    return "myResolvedCoordinates=" + myResolvedCoordinates +
+           ", myProject='" + myProject + '\'' +
+           ", myName='" + myName + '\'' +
+           ", myProvided=" + myProvided;
+  }
 }

@@ -21,44 +21,36 @@ import com.android.builder.model.SigningConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link BuildType}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link BuildType}.
  */
-public class IdeBuildType extends IdeBaseConfig implements BuildType, Serializable {
-  @Nullable private final SigningConfig mySigningConfig;
+public final class IdeBuildType extends IdeBaseConfig implements BuildType, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   private final boolean myDebuggable;
-  private final boolean myTestCoverageEnabled;
-  private final boolean myPseudoLocalesEnabled;
   private final boolean myJniDebuggable;
   private final boolean myRenderscriptDebuggable;
   private final int myRenderscriptOptimLevel;
   private final boolean myMinifyEnabled;
   private final boolean myZipAlignEnabled;
-  private final boolean myEmbedMicroApp;
 
-  public IdeBuildType(@NotNull BuildType type) {
-    super(type);
-    SigningConfig tySigningConfig = type.getSigningConfig();
-    mySigningConfig = tySigningConfig == null ? null : new IdeSigningConfig(tySigningConfig);
-
-    myDebuggable = type.isDebuggable();
-    myTestCoverageEnabled = type.isTestCoverageEnabled();
-    myPseudoLocalesEnabled = type.isPseudoLocalesEnabled();
-    myJniDebuggable = type.isJniDebuggable();
-    myRenderscriptDebuggable = type.isRenderscriptDebuggable();
-    myRenderscriptOptimLevel = type.getRenderscriptOptimLevel();
-    myMinifyEnabled = type.isMinifyEnabled();
-    myZipAlignEnabled = type.isZipAlignEnabled();
-    myEmbedMicroApp = type.isEmbedMicroApp();
+  public IdeBuildType(@NotNull BuildType buildType) {
+    super(buildType);
+    myDebuggable = buildType.isDebuggable();
+    myJniDebuggable = buildType.isJniDebuggable();
+    myRenderscriptDebuggable = buildType.isRenderscriptDebuggable();
+    myRenderscriptOptimLevel = buildType.getRenderscriptOptimLevel();
+    myMinifyEnabled = buildType.isMinifyEnabled();
+    myZipAlignEnabled = buildType.isZipAlignEnabled();
   }
 
   @Override
   @Nullable
   public SigningConfig getSigningConfig() {
-    return mySigningConfig;
+    throw new UnusedModelMethodException("getSigningConfig");
   }
 
   @Override
@@ -68,12 +60,12 @@ public class IdeBuildType extends IdeBaseConfig implements BuildType, Serializab
 
   @Override
   public boolean isTestCoverageEnabled() {
-    return myTestCoverageEnabled;
+    throw new UnusedModelMethodException("isTestCoverageEnabled");
   }
 
   @Override
   public boolean isPseudoLocalesEnabled() {
-    return myPseudoLocalesEnabled;
+    throw new UnusedModelMethodException("isPseudoLocalesEnabled");
   }
 
   @Override
@@ -103,6 +95,51 @@ public class IdeBuildType extends IdeBaseConfig implements BuildType, Serializab
 
   @Override
   public boolean isEmbedMicroApp() {
-    return myEmbedMicroApp;
+    throw new UnusedModelMethodException("isEmbedMicroApp");
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeBuildType)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    IdeBuildType type = (IdeBuildType)o;
+    return type.canEqual(this) &&
+           myDebuggable == type.myDebuggable &&
+           myJniDebuggable == type.myJniDebuggable &&
+           myRenderscriptDebuggable == type.myRenderscriptDebuggable &&
+           myRenderscriptOptimLevel == type.myRenderscriptOptimLevel &&
+           myMinifyEnabled == type.myMinifyEnabled &&
+           myZipAlignEnabled == type.myZipAlignEnabled;
+  }
+
+  @Override
+  public boolean canEqual(Object other) {
+    return other instanceof IdeBuildType;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), myDebuggable, myJniDebuggable, myRenderscriptDebuggable, myRenderscriptOptimLevel,
+                        myMinifyEnabled, myZipAlignEnabled);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeBuildType{" +
+           super.toString() +
+           ", myDebuggable=" + myDebuggable +
+           ", myJniDebuggable=" + myJniDebuggable +
+           ", myRenderscriptDebuggable=" + myRenderscriptDebuggable +
+           ", myRenderscriptOptimLevel=" + myRenderscriptOptimLevel +
+           ", myMinifyEnabled=" + myMinifyEnabled +
+           ", myZipAlignEnabled=" + myZipAlignEnabled +
+           "}";
   }
 }

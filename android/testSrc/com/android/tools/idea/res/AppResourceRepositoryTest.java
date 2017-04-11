@@ -22,7 +22,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeClassField;
+import com.android.tools.idea.gradle.stubs.android.ClassFieldStub;
 import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -320,11 +320,11 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
 
     BiFunction<String, String, DynamicResourceValueRepository> makeDynamicRepo = (namespace, value) -> {
-      IdeClassField field = new IdeClassField("string",
-                                              "model_value",
-                                              value,
-                                              "value from model",
-                                              Collections.emptySet());
+      ClassFieldStub field = new ClassFieldStub("string",
+                                                "model_value",
+                                                value,
+                                                "value from model",
+                                                Collections.emptySet());
       return DynamicResourceValueRepository.createForTest(myFacet, namespace, Collections.singletonMap("model_value", field));
     };
 
@@ -423,7 +423,6 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
 
     assertThat(resourceValue.getValue()).named(fullName).isEqualTo(value);
   }
-
 
   static AppResourceRepository createTestAppResourceRepository(AndroidFacet facet) throws IOException {
     final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(facet, Collections.emptyList());

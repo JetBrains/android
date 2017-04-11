@@ -13,42 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.ClassField;
+import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Creates a deep copy of a {@link ClassField}.
- */
-public final class IdeClassField implements ClassField, Serializable {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public final class ClassFieldStub implements ClassField {
   @NotNull private final String myName;
   @NotNull private final String myType;
   @NotNull private final String myValue;
 
-  public IdeClassField(@NotNull ClassField classField) {
-    myName = classField.getName();
-    myType = classField.getType();
-    myValue = classField.getValue();
+  public ClassFieldStub() {
+    this("name", "type", "value");
   }
 
-  @Override
-  @NotNull
-  public String getType() {
-    return myType;
+  public ClassFieldStub(@NotNull String name, @NotNull String type, @NotNull String value) {
+    myName = name;
+    myType = type;
+    myValue = value;
   }
 
   @Override
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @Override
+  @NotNull
+  public String getType() {
+    return myType;
   }
 
   @Override
@@ -74,26 +72,17 @@ public final class IdeClassField implements ClassField, Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeClassField)) {
+    if (!(o instanceof ClassField)) {
       return false;
     }
-    IdeClassField field = (IdeClassField)o;
-    return Objects.equals(myName, field.myName) &&
-           Objects.equals(myType, field.myType) &&
-           Objects.equals(myValue, field.myValue);
+    ClassField stub = (ClassField)o;
+    return Objects.equals(getName(), stub.getName()) &&
+           Objects.equals(getType(), stub.getType()) &&
+           Objects.equals(getValue(), stub.getValue());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myName, myType, myValue);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeClassField{" +
-           "myName='" + myName + '\'' +
-           ", myType='" + myType + '\'' +
-           ", myValue='" + myValue + '\'' +
-           '}';
+    return Objects.hash(getName(), getType(), getValue());
   }
 }

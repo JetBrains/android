@@ -38,7 +38,7 @@ public class IdeVariant implements Variant, Serializable {
   @NotNull private final ProductFlavor myMergedFlavor;
   @NotNull private final Collection<TestedTargetVariant> myTestedTargetVariants;
 
-  public IdeVariant(@NotNull Variant variant, @NotNull Map<Library, Library> seen, @NotNull GradleVersion gradleVersion) {
+  public IdeVariant(@NotNull Variant variant, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
     myName = variant.getName();
     myDisplayName = variant.getDisplayName();
     myMainArtifact = new IdeAndroidArtifact(variant.getMainArtifact(), seen, gradleVersion);

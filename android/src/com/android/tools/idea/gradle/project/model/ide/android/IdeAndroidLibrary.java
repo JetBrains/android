@@ -16,15 +16,12 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.Library;
-import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Collection;
 
 /**
  * Creates a deep copy of {@link AndroidLibrary}.
@@ -43,9 +40,8 @@ public class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrar
   @NotNull private final File mySymbolFile;
   private final boolean myOptional;
 
-  @SuppressWarnings("deprecation")
-  public IdeAndroidLibrary(@NotNull AndroidLibrary library, @NotNull Map<Library, Library> seen, @NotNull GradleVersion gradleVersion) {
-    super(library, seen, gradleVersion);
+  public IdeAndroidLibrary(@NotNull AndroidLibrary library, @NotNull ModelCache modelCache) {
+    super(library, modelCache);
     myLocalJars = new ArrayList<>(library.getLocalJars());
     myJniFolder = library.getJniFolder();
     myAidlFolder = library.getAidlFolder();
@@ -55,6 +51,7 @@ public class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrar
     myExternalAnnotations = library.getExternalAnnotations();
     myPublicResources = library.getPublicResources();
     mySymbolFile = library.getSymbolFile();
+    //noinspection deprecation
     myOptional = library.isOptional();
   }
 
