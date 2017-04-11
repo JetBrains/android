@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.resources.NightMode;
-import com.android.resources.ScreenOrientation;
-import com.android.resources.ScreenSize;
-import com.android.resources.UiMode;
 import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
