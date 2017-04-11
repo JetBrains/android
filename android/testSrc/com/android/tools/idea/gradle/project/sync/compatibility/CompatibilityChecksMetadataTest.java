@@ -20,13 +20,12 @@ import org.intellij.lang.annotations.Language;
 import org.jdom.Document;
 import org.junit.Test;
 
-import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.project.sync.compatibility.version.VersionRangeSubject.versionRange;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.ANDROID_GRADLE_PLUGIN;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.GRADLE;
+import static com.android.tools.idea.gradle.project.sync.compatibility.version.VersionRangeSubject.versionRange;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -54,7 +53,7 @@ public class CompatibilityChecksMetadataTest {
                           "    </component>\n" +
                           "  </check>\n" +
                           "</compatibility>";
-    Document document = loadDocument(new StringReader(metadataText));
+    Document document = loadDocument(metadataText);
     CompatibilityChecksMetadata metadata = CompatibilityChecksMetadata.load(document.getRootElement());
 
     List<CompatibilityCheck> compatibilityChecks = metadata.getCompatibilityChecks();

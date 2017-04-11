@@ -21,7 +21,7 @@
     running the ant tests.
   -->
   <name>Android Tests</name>
-  <id>org.jetbrains.android.tests</id>
+  <id>org.jetbrains.android</id>
 
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
