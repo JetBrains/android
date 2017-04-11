@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -43,7 +42,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
@@ -57,16 +57,25 @@ public class ModelBuilder {
   private final AndroidFacet myFacet;
   private final JavaCodeInsightTestFixture myFixture;
   private String myName;
+  private final Function<? super SyncNlModel, ? extends SceneManager> myManagerFactory;
+  private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
+  private final String myPath;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
                       @NotNull JavaCodeInsightTestFixture fixture,
                       @NotNull String name,
-                      @NotNull ComponentDescriptor root) {
+                      @NotNull ComponentDescriptor root,
+                      @NotNull Function<? super SyncNlModel, ? extends SceneManager> managerFactory,
+                      @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
+                      @NotNull String path) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
     myFixture = fixture;
     myRoot = root;
     myName = name;
+    myManagerFactory = managerFactory;
+    myModelUpdater = modelUpdater;
+    myPath = path;
   }
 
   public ModelBuilder name(@NotNull String name) {
@@ -115,7 +124,7 @@ public class ModelBuilder {
       catch (Exception e) {
         fail("Invalid XML created for the model (" + xml + ")");
       }
-      String relativePath = "res/layout/" + myName;
+      String relativePath = "res/" + myPath + "/" + myName;
       VirtualFile root = LocalFileSystem.getInstance().findFileByIoFile(new File(myFixture.getTempDirPath()));
       assertThat(root).isNotNull();
       VirtualFile virtualFile = root.findFileByRelativePath(relativePath);
@@ -136,36 +145,25 @@ public class ModelBuilder {
       assertNotNull(document);
 
       SyncNlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
-      LayoutlibSceneManager.updateHierarchy(buildViewInfos(model), model);
+      SceneManager sceneManager = myManagerFactory.apply(model);
       NlDesignSurface surface = model.getSurface();
       SelectionModel selectionModel = model.getSelectionModel();
       when(surface.getSelectionModel()).thenReturn(selectionModel);
       when(surface.getModel()).thenReturn(model);
-      SyncLayoutlibSceneManager sceneManager = new SyncLayoutlibSceneManager(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
       Scene scene = sceneManager.build();
       when(surface.getScene()).thenReturn(scene);
 
-      assertSame(NlLayoutType.LAYOUT, model.getType());
       return model;
     });
   }
 
-  private List<ViewInfo> buildViewInfos(@NotNull NlModel model) {
-    List<ViewInfo> infos = Lists.newArrayList();
-    XmlFile file = model.getFile();
-    assertThat(file).isNotNull();
-    assertThat(file.getRootTag()).isNotNull();
-    infos.add(myRoot.createViewInfo(null, file.getRootTag()));
-    return infos;
-  }
-
   /** Update the given model to reflect the component hierarchy in the given builder */
-  public void updateModel(NlModel model, boolean preserveXmlTags) {
+  public void updateModel(NlModel model) {
     assertThat(model).isNotNull();
     name("linear2.xml"); // temporary workaround: replacing contents not working
-    NlModel newModel = preserveXmlTags ? model : build();
-    LayoutlibSceneManager.updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel), model);
+    NlModel newModel = build();
+    myModelUpdater.accept(model, newModel);
     for (NlComponent component : newModel.getComponents()) {
       checkStructure(component);
     }

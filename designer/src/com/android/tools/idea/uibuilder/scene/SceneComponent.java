@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
@@ -493,6 +494,13 @@ public class SceneComponent {
 
   public SceneComponent getChild(int i) {
     return myChildren.get(i);
+  }
+
+  @NotNull
+  public Stream<SceneComponent> flatten() {
+    return Stream.concat(
+      Stream.of(this),
+      getChildren().stream().flatMap(SceneComponent::flatten));
   }
 
   public void setDrawState(@NotNull DrawState drawState) {
