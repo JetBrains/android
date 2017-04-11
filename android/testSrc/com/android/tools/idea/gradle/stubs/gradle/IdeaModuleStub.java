@@ -121,4 +121,9 @@ public class IdeaModuleStub implements IdeaModule {
 
   @Override
   public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException { throw new UnsupportedOperationException(); }
+
+  @Override
+  public String getJdkName() throws UnsupportedMethodException {
+    throw new UnsupportedOperationException();
+  }
 }
