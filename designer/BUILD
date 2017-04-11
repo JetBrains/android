@@ -51,6 +51,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/bazel:offline_repo_repo.zip",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
@@ -83,5 +84,6 @@ iml_module(
         "//tools/adt/idea/adt-branding[module, test]",
         "//tools/adt/idea/sdk-updates[module, test]",
         "//tools/base/layoutinspector:studio.layoutinspector[test]",
+        "//tools/idea/.idea/libraries:Gradle[test]",
     ],
 )

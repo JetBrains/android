@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea;
 
+import com.android.repository.io.FileOpUtils;
+import com.android.repository.testframework.FakeProgressIndicator;
+import com.android.repository.util.InstallerUtil;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.uibuilder.structure.NlComponentTreeTest;
-import com.android.tools.idea.uibuilder.surface.InteractionManagerTest;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.annotations.NotNull;
 import org.junit.AfterClass;
 import org.junit.runner.RunWith;
@@ -56,6 +58,7 @@ public class DesignerTestSuite {
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
 
     provideRealJdkPathForGradle("prebuilts/studio/jdk");
+    setUpOfflineMavenRepos();
   }
 
   /**
@@ -99,9 +102,35 @@ public class DesignerTestSuite {
     }
   }
 
+  private static void setUpOfflineMavenRepos() {
+    // Adds embedded Maven repo directory for tests, see EmbeddedDistributionPaths for details.
+    createTmpDir("prebuilts/tools/common/offline-m2");
+
+    // If present, also adds the offline repo we built from the source tree.
+    File offlineRepoZip = TestUtils.getWorkspaceFile("tools/base/bazel/offline_repo_repo.zip");
+    if (offlineRepoZip.exists()) {
+      try {
+        InstallerUtil.unzip(
+          offlineRepoZip,
+          createTmpDir("out/studio/repo").toFile(),
+          FileOpUtils.create(),
+          offlineRepoZip.length(),
+          new FakeProgressIndicator());
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
   @AfterClass
   public static void leakChecker() throws Exception {
     Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
     leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
+  }
+
+  @AfterClass
+  public static void killGradleDaemons() {
+    DefaultGradleConnector.close();
   }
 }
