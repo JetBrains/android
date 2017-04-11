@@ -16,6 +16,8 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.layoutinspector.model.ViewNode;
+import com.android.layoutinspector.model.ViewProperty;
+import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.editors.strings.FontUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -25,9 +27,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
-  private static Icon DEFAULT_VIEW_ICON = AndroidDomElementDescriptorProvider.getIconForViewTag("View");
+  private static final Icon DEFAULT_VIEW_ICON = AndroidDomElementDescriptorProvider.getIconForViewTag("View");
+  private static final String ID_KEY = "mID";
+  private static final String EMPTY_ID = "NO_ID";
+  private static final int ID_START_INDEX = 3; // ids have "id/" prefix we want to strip before displaying
+
+  private String myHighlight;
 
   @Override
   public void customizeCellRenderer(JTree tree, Object nodeValue, boolean selected,
@@ -36,23 +44,51 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
       return;
     }
 
+    StringBuilder cellTextBuilder = new StringBuilder();
     ViewNode node = (ViewNode)nodeValue;
+    SimpleTextAttributes attr = node.isDrawn() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES;
+
+    boolean hasID = false;
+    ViewProperty id = node.getProperty(ID_KEY);
+    if (id != null && !id.getValue().equals(EMPTY_ID)) {
+      hasID = true;
+      cellTextBuilder.append(id.getValue().substring(ID_START_INDEX) + " ");
+    }
+
     String[] name = node.name.split("\\.");
     String elementName = name[name.length - 1];
-    append(elementName + " ",
-           node.isDrawn() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    cellTextBuilder.append(hasID ? "(" + elementName + ") " : elementName + " ");
     setIcon(findIconForNode(elementName));
+
+    displayText(attr, cellTextBuilder.toString());
+
     if (node.displayInfo.contentDesc != null) {
       Font currentFont = getFont();
       Font f = FontUtil.getFontAbleToDisplay(node.displayInfo.contentDesc, currentFont);
       if (f != null && f != currentFont) {
         setFont(f);
       }
-      append(node.displayInfo.contentDesc,
-             node.isDrawn() ? SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES : SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
+      displayText(node.isDrawn() ? new SimpleTextAttributes(Font.PLAIN, Color.GRAY) : attr, "- \"" + node.displayInfo.contentDesc + "\"");
     }
   }
 
+  private void displayText(SimpleTextAttributes attr, String cellText) {
+    if (myHighlight == null || myHighlight.isEmpty()) {
+      append(cellText, attr);
+    }
+    else { // we want to highlight text that matches by changing the attribute to use a foreground colour
+      List<String> outputs = AndroidTextUtils.splitKeepDelimiter(cellText, myHighlight);
+      SimpleTextAttributes highlightAttr = SimpleTextAttributes.SYNTHETIC_ATTRIBUTES;
+      for (String s : outputs) {
+        if (s.equals(myHighlight)) {
+          append(s, highlightAttr);
+        }
+        else {
+          append(s, attr);
+        }
+      }
+    }
+  }
 
   /**
    * Determine the icon to use given a node. First try full element name.
@@ -62,7 +98,7 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
    * @return Icon for the node
    */
   @Nullable
-  private Icon findIconForNode(@NotNull String elementName) {
+  private static Icon findIconForNode(@NotNull String elementName) {
     Icon icon = null;
     String[] words = elementName.split("(?=\\p{Upper})");
 
@@ -78,5 +114,14 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
     }
 
     return icon != null ? icon : DEFAULT_VIEW_ICON;
+  }
+
+  public void setHighlight(@Nullable String highlight) {
+    myHighlight = highlight;
+  }
+
+  @Nullable
+  public String getHighlight() {
+    return myHighlight;
   }
 }
