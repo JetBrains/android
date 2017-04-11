@@ -24,10 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.junit.Assert.fail;
 
 public class NativeDebuggerGuiTestRule extends GuiTestRule {
   /** Environment variable containing the full path to an NDK install */

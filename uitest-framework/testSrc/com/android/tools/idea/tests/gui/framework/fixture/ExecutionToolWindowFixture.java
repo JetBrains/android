@@ -16,13 +16,17 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.testframework.TestTreeView;
 import com.intellij.execution.ui.layout.impl.GridImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
@@ -35,16 +39,16 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
-import java.awt.IllegalComponentStateException;
+import java.awt.*;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
@@ -106,21 +110,31 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return new UnitTestTreeFixture(this, myRobot.finder().findByType(myContent.getComponent(), TestTreeView.class));
     }
 
-    // Returns the root of the debugger tree or null.
+    // Returns the debugger tree or null.
     @Nullable
-    public XDebuggerTreeNode getDebuggerTreeRoot() {
+    public XDebuggerTree getDebuggerTree() {
       try {
         JComponent debuggerComponent = getTabComponent("Debugger");
         if (debuggerComponent != null) {
           myRobot.click(debuggerComponent);
         }
         ThreeComponentsSplitter threeComponentsSplitter =
-          myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
+            myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
         JComponent innerComponent = threeComponentsSplitter.getInnerComponent();
-        return myRobot.finder().findByType(innerComponent, XDebuggerTree.class, false).getRoot();
+        return myRobot.finder().findByType(innerComponent, XDebuggerTree.class, false);
       } catch (ComponentLookupException | IllegalComponentStateException e) {
         return null;
       }
+    }
+
+    // Returns the root of the debugger tree or null.
+    @Nullable
+    public XDebuggerTreeNode getDebuggerTreeRoot() {
+      XDebuggerTree debuggerTree = getDebuggerTree();
+      if (debuggerTree == null) {
+        return null;
+      }
+      return debuggerTree.getRoot();
     }
 
     @NotNull
@@ -148,6 +162,40 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
         JComponent debuggerComponent = getTabComponent("Debugger");
         myRobot.click(debuggerComponent);
       } catch (ComponentLookupException e) { }
+    }
+
+    public JBPopupMenu rightClickVariableInDebuggerVariables(@NotNull IdeFrameFixture ideFrame, @NotNull String variableName) {
+      Wait.seconds(5).expecting("Debugger tree present").until(() -> getDebuggerTree() != null);
+      JTree tree = (JTree)getDebuggerTree();
+
+      JTreeFixture jTreeFixture = new JTreeFixture(myRobot, tree);
+      int index = -1;
+      int rowCount = tree.getRowCount();
+      for (int i = 0; i < rowCount; i++) {
+        String value = jTreeFixture.valueAt(i);
+        if (variableName.equals(value)) {
+          index = i;
+          break;
+        }
+      }
+      assertThat(index > -1).isTrue();
+
+      Wait.seconds(5).expecting("debugger tree to be enabled").until(() -> tree.isEnabled());
+      jTreeFixture.rightClickRow(index);
+      return GuiTests.waitUntilShowingAndEnabled(myRobot, ideFrame.target(), Matchers.byType(JBPopupMenu.class));
+    }
+
+    public void addWatchpoint(@NotNull IdeFrameFixture ideFrame, @Nullable Container popupMenu) {
+      Component addWatchpoint = GuiTests.waitUntilShowingAndEnabled(
+          myRobot,
+          popupMenu,
+          Matchers.byText(ActionMenuItem.class, "Add Watchpoint"));
+      myRobot.click(addWatchpoint);
+
+      //TODO: Need to a new fixture for watchpoint configuration dialog.
+      //Here, we directly click on "Done" button to finish creating an default one with write type.
+      Component doneButton = GuiTests.waitUntilShowingAndEnabled(myRobot, ideFrame.target(), Matchers.byText(JButton.class, "Done"));
+      myRobot.click(doneButton);
     }
 
     @NotNull
