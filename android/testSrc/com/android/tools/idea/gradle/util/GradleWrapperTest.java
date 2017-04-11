@@ -140,6 +140,7 @@ public class GradleWrapperTest extends IdeaTestCase {
     assertWrapperCreated(projectWrapperDirPath, SdkConstants.GRADLE_LATEST_VERSION);
   }
 
+  // See https://code.google.com/p/android/issues/detail?id=357944
   private static void assertWrapperCreated(@NotNull File projectWrapperFolderPath, @NotNull String gradleVersion) throws IOException {
     assertTrue(projectWrapperFolderPath.isDirectory());
     File[] wrapperFiles = notNullize(projectWrapperFolderPath.listFiles());
@@ -150,4 +151,23 @@ public class GradleWrapperTest extends IdeaTestCase {
     assertEquals("https://services.gradle.org/distributions/gradle-" + gradleVersion + "-all.zip", distributionUrl);
   }
 
+  public void testGetDistributionUrlWithBinReleaseVersion() {
+    String url = GradleWrapper.getDistributionUrl("4.0", true /* bin only */);
+    assertEquals("https://services.gradle.org/distributions/gradle-4.0-bin.zip", url);
+  }
+
+  public void testGetDistributionUrlWithAllReleaseVersion() {
+    String url = GradleWrapper.getDistributionUrl("4.0", false /* all */);
+    assertEquals("https://services.gradle.org/distributions/gradle-4.0-all.zip", url);
+  }
+
+  public void testGetDistributionUrlWithBinSnapshotVersion() {
+    String url = GradleWrapper.getDistributionUrl("4.0-20170406000015+0000", true /* bin only */);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-4.0-20170406000015+0000-bin.zip", url);
+  }
+
+  public void testGetDistributionUrlWithAllSnapshotVersion() {
+    String url = GradleWrapper.getDistributionUrl("4.0-20170406000015+0000", false /* all */);
+    assertEquals("https://services.gradle.org/distributions-snapshots/gradle-4.0-20170406000015+0000-all.zip", url);
+  }
 }
