@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.junit.Test;
 
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -262,9 +261,9 @@ public class FilteredTreeModelTest {
     sb.append(StringUtil.repeatSymbol(' ', depth * 2));
     sb.append(node.getName());
     sb.append(": ");
-    sb.append(node.getDefinedMethodsCount());
+    sb.append(node.getMethodDefinitionsCount());
     sb.append(',');
-    sb.append(node.getMethodRefCount());
+    sb.append(node.getMethodReferencesCount());
     sb.append('\n');
 
     int count = model.getChildCount(node);

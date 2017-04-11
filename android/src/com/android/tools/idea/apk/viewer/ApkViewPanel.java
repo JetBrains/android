@@ -52,6 +52,7 @@ import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
@@ -73,7 +74,7 @@ public class ApkViewPanel implements TreeSelectionListener {
   private Listener myListener;
 
   public interface Listener {
-    void selectionChanged(@NotNull Archive archive, @Nullable ArchiveTreeNode entry);
+    void selectionChanged(@NotNull Archive archive, @Nullable ArchiveTreeNode[] entry);
     void selectApkAndCompare();
   }
 
@@ -287,8 +288,16 @@ public class ApkViewPanel implements TreeSelectionListener {
   @Override
   public void valueChanged(TreeSelectionEvent e) {
     if (myListener != null) {
-      Object component = e.getPath().getLastPathComponent();
-      myListener.selectionChanged(myArchive, component instanceof ArchiveTreeNode ? (ArchiveTreeNode)component : null);
+      TreePath[] paths = ((Tree)e.getSource()).getSelectionPaths();
+      ArchiveTreeNode[] components = new ArchiveTreeNode[paths.length];
+      for (int i = 0; i < paths.length; i++) {
+        if (!(paths[i].getLastPathComponent() instanceof ArchiveTreeNode)){
+          myListener.selectionChanged(myArchive, null);
+          return;
+        }
+        components[i] = (ArchiveTreeNode)paths[i].getLastPathComponent();
+      }
+      myListener.selectionChanged(myArchive, components);
     }
   }
 

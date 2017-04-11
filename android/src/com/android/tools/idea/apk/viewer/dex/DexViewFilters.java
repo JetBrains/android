@@ -63,7 +63,7 @@ public class DexViewFilters implements Predicate<DexElementNode> {
   public boolean test(DexElementNode node) {
     return ((myShowFields || !(node instanceof DexFieldNode))
             && (myShowMethods || !(node instanceof DexMethodNode))
-            && (myShowReferencedNodes || node.hasClassDefinition())
+            && (myShowReferencedNodes || node.isDefined())
             && (myShowRemovedNodes || !node.isRemoved()));
   }
 }
