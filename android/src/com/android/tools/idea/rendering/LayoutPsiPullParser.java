@@ -550,7 +550,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
               fragmentId = currentNode.getAttribute(ATTR_ID, ANDROID_URI);
             }
           }
-          myLogger.warning(RenderLogger.TAG_MISSING_FRAGMENT, "Missing fragment association", fragmentId);
+          myLogger.warning(RenderLogger.TAG_MISSING_FRAGMENT, "Missing fragment association", null, fragmentId);
         }
       } else if (name.endsWith("Compat") && name.indexOf('.') == -1) {
         return name.substring(0, name.length() - "Compat".length());
