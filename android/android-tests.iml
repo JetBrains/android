@@ -101,5 +101,6 @@
     <orderEntry type="library" scope="TEST" name="google-analytics-library" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-profiler-grpc-1.0-jarjar" level="project" />
+    <orderEntry type="module" module-name="designer" scope="RUNTIME" />
   </component>
 </module>
