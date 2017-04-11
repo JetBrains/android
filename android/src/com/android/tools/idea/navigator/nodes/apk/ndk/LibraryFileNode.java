@@ -53,11 +53,16 @@ public class LibraryFileNode extends LibraryNode {
   protected void update(PresentationData presentation) {
     presentation.setIcon(JavaClass);
     boolean hasDebugSymbols = myLibrary.hasDebugSymbols;
-    SimpleTextAttributes attributes = hasDebugSymbols ? REGULAR_ATTRIBUTES : new SimpleTextAttributes(STYLE_WAVED, null, GRAY);
+    boolean missingPathMappings = myLibrary.isMissingPathMappings();
+    SimpleTextAttributes attributes =
+      (!hasDebugSymbols | missingPathMappings) ? new SimpleTextAttributes(STYLE_WAVED, null, GRAY) : REGULAR_ATTRIBUTES;
     presentation.addText(myLibrary.name, attributes);
 
     if (!hasDebugSymbols) {
       presentation.setTooltip("Library does not have debug symbols");
+    }
+    if (missingPathMappings) {
+      presentation.setTooltip("Library is missing path mappings");
     }
   }
 
