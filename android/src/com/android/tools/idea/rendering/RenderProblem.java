@@ -229,7 +229,6 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
 
   /** Render error message whose actual status is computed lazily */
   public static class Deferred extends RenderProblem {
-    protected final String myTag;
     protected final String myText;
 
     protected Deferred(@NotNull HighlightSeverity severity,
@@ -238,8 +237,8 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
                        @Nullable Throwable throwable) {
       //noinspection AssignmentToStaticFieldFromInstanceMethod
       super(severity, ourNextOrdinal++);
-      myTag = tag;
       myText = text;
+      tag(tag);
       throwable(throwable);
     }
 
