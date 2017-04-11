@@ -36,7 +36,7 @@ import java.util.List;
  * The menu font file is usually a smaller font file (~4k).
  */
 public class FontDownloadService {
-  private final DownloadableFontCacheServiceImpl myService;
+  private final File myFontPath;
   private final List<FontFamily> myFontsToDownload;
   private final boolean myDownloadMenuFontsOnly;
   private final Runnable mySuccess;
@@ -54,7 +54,7 @@ public class FontDownloadService {
                               boolean menuFontsOnly,
                               @NotNull Runnable success,
                               @Nullable Runnable failure) {
-    myService = DownloadableFontCacheServiceImpl.getInstance();
+    myFontPath = DownloadableFontCacheServiceImpl.getInstance().getFontPath();
     myFontsToDownload = fontsToDownload;
     myDownloadMenuFontsOnly = menuFontsOnly;
     mySuccess = success;
@@ -70,20 +70,19 @@ public class FontDownloadService {
     for (FontFamily fontFamily : myFontsToDownload) {
       addFontFamily(files, fontFamily);
     }
-    File fontPath = myService.getFontPath();
-    if (fontPath == null) {
+    if (myFontPath == null) {
       myFailure.run();
       return;
     }
     FileDownloader downloader = DownloadableFileService.getInstance().createDownloader(files, "Download Fonts");
     try {
-      downloader.download(fontPath);
+      downloader.download(myFontPath);
       mySuccess.run();
     }
     catch (Exception ex) {
       // The multiple file download failed.
       // Attempt to download the files one by one.
-      if (performSingleFileDownloads(fontPath, files)) {
+      if (performSingleFileDownloads(myFontPath, files)) {
         mySuccess.run();
       }
       else if (myFailure != null) {
@@ -107,9 +106,14 @@ public class FontDownloadService {
     return success;
   }
 
+  private boolean cachedFileExists(@NotNull File relativeCachedFile) {
+    File file = new File(myFontPath, relativeCachedFile.getPath());
+    return file.exists();
+  }
+
   private void addFontFamily(@NotNull List<DownloadableFileDescription> files, @NotNull FontFamily fontFamily) {
-    File file = fontFamily.getCachedMenuFile();
-    if (!file.exists()) {
+    File file = fontFamily.getRelativeCachedMenuFile();
+    if (file != null && !cachedFileExists(file)) {
       files.add(createFileDescription(fontFamily.getMenu(), file));
     }
     if (!myDownloadMenuFontsOnly) {
@@ -119,25 +123,15 @@ public class FontDownloadService {
     }
   }
 
-  private static void addFont(@NotNull List<DownloadableFileDescription> files, @NotNull FontDetail font) {
-    File file = font.getCachedFontFile();
-    if (!file.exists()) {
+  private void addFont(@NotNull List<DownloadableFileDescription> files, @NotNull FontDetail font) {
+    File file = font.getRelativeCachedFontFile();
+    if (file != null && !cachedFileExists(file)) {
       files.add(createFileDescription(font.getFontUrl(), file));
     }
   }
 
   @NotNull
-  private static DownloadableFileDescription createFileDescription(@NotNull String url, @NotNull File file) {
-    File familyPath = file.getParentFile();
-    File fontsPath = familyPath.getParentFile();
-    File providerPath = fontsPath.getParentFile();
-    String fileName = providerPath.getName() +
-                      File.separator +
-                      fontsPath.getName() +
-                      File.separator +
-                      familyPath.getName() +
-                      File.separator +
-                      file.getName();
-    return DownloadableFileService.getInstance().createFileDescription(url, fileName);
+  private static DownloadableFileDescription createFileDescription(@NotNull String url, @NotNull File relativeFile) {
+    return DownloadableFileService.getInstance().createFileDescription(url, relativeFile.getPath());
   }
 }

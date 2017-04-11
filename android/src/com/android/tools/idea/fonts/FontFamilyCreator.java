@@ -44,11 +44,11 @@ public class FontFamilyCreator {
 
   @NotNull
   public String createFontFamily(@NotNull FontDetail font, @NotNull String fontName, boolean downloadable) throws IOException {
-    VirtualFile fontFolder = getTargetFontFolder();
     Project project = myFacet.getModule().getProject();
     TransactionGuard.submitTransaction(project, () -> new WriteCommandAction.Simple(project, "Create new font file") {
       @Override
       protected void run() throws Throwable {
+        VirtualFile fontFolder = getTargetFontFolder();
         if (downloadable) {
           String content = createFontFamilyContent(font);
           fontFolder.createChildData(this, fontName + ".xml")
@@ -56,8 +56,10 @@ public class FontFamilyCreator {
         }
         else {
           File cachedFile = font.getCachedFontFile();
-          fontFolder.createChildData(this, fontName + "." + FileUtilRt.getExtension(cachedFile.getName()))
-            .setBinaryContent(FileUtil.loadFileBytes(cachedFile));
+          if (cachedFile != null) {
+            fontFolder.createChildData(this, fontName + "." + FileUtilRt.getExtension(cachedFile.getName()))
+              .setBinaryContent(FileUtil.loadFileBytes(cachedFile));
+          }
         }
       }
     }.execute());
@@ -95,11 +97,12 @@ public class FontFamilyCreator {
   private static String createFontFamilyContent(@NotNull FontDetail font) {
     FontFamily family = font.getFamily();
     FontProvider provider = family.getProvider();
-    return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-           "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-           "        android:fontProviderAuthority=\"" + escape(provider.getAuthority()) + "\"\n" +
-           "        android:fontProviderQuery=\"" + escape(getQuery(font)) + "\">\n" +
-           "</font-family>\n";
+    return String.format(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
+      "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
+      "        android:fontProviderAuthority=\"" + escape(provider.getAuthority()) + "\"%n" +
+      "        android:fontProviderQuery=\"" + escape(getQuery(font)) + "\">%n" +
+      "</font-family>%n");
   }
 
   @NotNull
@@ -111,6 +114,9 @@ public class FontFamilyCreator {
     FontFamily family = font.getFamily();
     assert family.getName().indexOf('&') < 0 : "Font name: " + family.getName() + " contains &";
 
+    if (font.getWeight() == FontDetail.DEFAULT_WEIGHT && font.getWidth() == FontDetail.DEFAULT_WIDTH && !font.isItalics()) {
+      return family.getName();
+    }
     StringBuilder query = new StringBuilder()
       .append("name=").append(escape(family.getName()));
     if (font.getWeight() != FontDetail.DEFAULT_WEIGHT) {

@@ -32,6 +32,7 @@ import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WEIGHT;
 import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WIDTH;
 import static com.android.tools.idea.fonts.FontFamily.FontSource.LOOKUP;
 import static com.android.tools.idea.fonts.FontFamily.FontSource.PROJECT;
+import static com.android.tools.idea.fonts.SystemFonts.findBestMatch;
 
 /**
  * This class will find all the project level font definitions by iterating
@@ -194,24 +195,8 @@ public class ProjectFonts {
       best = new FontDetail(best, wanted);
       fonts.add(best);
     }
+    fonts.sort(Comparator.comparing(font -> font.getFamily().getName()));
     return createCompoundFamily(name, fonts);
-  }
-
-  @Nullable
-  private static FontDetail findBestMatch(@NotNull List<FontDetail> fonts, @NotNull FontDetail.Builder wanted) {
-    FontDetail best = null;
-    int bestMatch = Integer.MAX_VALUE;
-    for (FontDetail detail : fonts) {
-      int match = detail.match(wanted);
-      if (match < bestMatch) {
-        bestMatch = match;
-        best = detail;
-        if (match == 0) {
-          break;
-        }
-      }
-    }
-    return best;
   }
 
   /**
@@ -311,7 +296,7 @@ public class ProjectFonts {
     FontFamily original = detail.getFamily();
     FontDetail.Builder synonym = new FontDetail.Builder(detail);
     FontFamily family =
-      new FontFamily(original.getProvider(), PROJECT, fontName, original.getMenu(), null, Collections.singletonList(synonym));
+      new FontFamily(original.getProvider(), PROJECT, fontName, detail.getFontUrl(), null, Collections.singletonList(synonym));
     myProjectFonts.put(name, family);
     return family;
   }
