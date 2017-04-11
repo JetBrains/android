@@ -75,6 +75,11 @@ public class NativeLibraryTest extends IdeaTestCase {
     assertThat(library.getFilePaths()).containsAllIn(getPaths(files));
   }
 
+  @NotNull
+  private static List<String> getPaths(@NotNull List<VirtualFile> files) {
+    return files.stream().map(VirtualFile::getPath).collect(Collectors.toList());
+  }
+
   public void testCopyFrom() throws IOException {
     List<VirtualFile> files = createLibraryFiles("x86", "arm65-v8a");
     NativeLibrary library1 = new NativeLibrary("library1");
@@ -115,8 +120,38 @@ public class NativeLibraryTest extends IdeaTestCase {
     });
   }
 
-  @NotNull
-  private static List<String> getPaths(@NotNull List<VirtualFile> files) {
-    return files.stream().map(VirtualFile::getPath).collect(Collectors.toList());
+  public void testIsMissingPathMappingsWithLocalPaths() {
+    NativeLibrary library = new NativeLibrary("library");
+    assertFalse(library.isMissingPathMappings()); // The map is empty
+  }
+
+  public void testIsMissingPathMappingsWithNonEmptyMappings() {
+    NativeLibrary library = new NativeLibrary("library");
+    library.pathMappings.put("abc.so", "abc.so");
+    assertFalse(library.isMissingPathMappings()); // The all values in the map are not empty
+  }
+
+  public void testIsMissingPathMappingsWithEmptyMappings() {
+    NativeLibrary library = new NativeLibrary("library");
+    library.pathMappings.put("abc.so", "");
+    assertTrue(library.isMissingPathMappings());
+  }
+
+  public void testSetDebuggableFile() throws IOException {
+    NativeLibrary library = new NativeLibrary("library");
+    library.hasDebugSymbols = false;
+    library.pathMappings.put("abc.so", "");
+
+    VirtualFile debuggableFile = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
+      @Override
+      public VirtualFile compute() throws IOException {
+        return getProject().getBaseDir().createChildData(this, "debuggable.so");
+      }
+    });
+
+    library.setDebuggableFile(debuggableFile);
+    assertTrue(library.hasDebugSymbols);
+    assertThat(library.pathMappings).isEmpty();
+    assertEquals(debuggableFile.getPath(), library.debuggableFilePath);
   }
 }
