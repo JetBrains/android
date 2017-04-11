@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.Immutable;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,7 @@ import java.io.File;
 import java.util.Objects;
 
 import static com.android.tools.idea.fonts.FontFamily.FILE_PROTOCOL_START;
+import static com.android.tools.idea.fonts.FontFamily.HTTPS_PROTOCOL_START;
 
 /**
  * A {@link FontDetail} is a reference to a specific font with weight, width, and italics attributes.
@@ -52,6 +54,9 @@ public class FontDetail {
     myStyleName = StringUtil.isEmpty(builder.myStyleName) ? generateStyleName(builder.myWeight, builder.myItalics) : builder.myStyleName;
   }
 
+  /**
+   * Special use for creating synonyms in font-family files with references to other fonts.
+   */
   public FontDetail(@NotNull FontDetail detail, @NotNull Builder withStyle) {
     myFamily = detail.myFamily;
     myWeight = withStyle.myWeight;
@@ -90,17 +95,34 @@ public class FontDetail {
     return myStyleName;
   }
 
-  @NotNull
+  @Nullable
   public File getCachedFontFile() {
+    if (myFontUrl.isEmpty()) {
+      return null;
+    }
     if (myFontUrl.startsWith(FILE_PROTOCOL_START)) {
       return new File(myFontUrl.substring(FILE_PROTOCOL_START.length()));
     }
     DownloadableFontCacheServiceImpl service = DownloadableFontCacheServiceImpl.getInstance();
-    return service.getCachedFont(myFamily.getProvider().getAuthority(), myFamily.getFontFolderName(), myFontUrl);
+    return service.getCachedFont(myFamily.getProvider().getAuthority(), myFontUrl);
+  }
+
+  /**
+   * Returns a file relative to the font cache path.
+   * Or <code>null</code> if this is not a valid downloadable file.
+   */
+  @Nullable
+  public File getRelativeCachedFontFile() {
+    if (!myFontUrl.startsWith(HTTPS_PROTOCOL_START)) {
+      return null;
+    }
+    DownloadableFontCacheServiceImpl service = DownloadableFontCacheServiceImpl.getInstance();
+    return service.getRelativeCachedFont(myFamily.getProvider().getAuthority(), myFontUrl);
   }
 
   @NotNull
-  private static String generateStyleName(int weight, boolean italics) {
+  @VisibleForTesting
+  static String generateStyleName(int weight, boolean italics) {
     return getWeightStyleName(weight) + getItalicStyleName(italics);
   }
 
