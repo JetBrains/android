@@ -1,0 +1,143 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.tests.gui.debugger;
+
+import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.ndk.MiscUtils;
+import com.google.common.collect.Lists;
+import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
+import org.fest.swing.timing.Wait;
+import org.fest.swing.util.PatternTextMatcher;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.tree.TreeNode;
+import java.util.List;
+import java.util.regex.Pattern;
+
+public class DebuggerTestBase extends TestWithEmulator {
+
+  protected static final String DEBUG_CONFIG_NAME = "app";
+  protected static final Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);
+
+  /**
+   * Toggles breakpoints at {@code lines} of the source file {@code fileName}.
+   */
+  void openAndToggleBreakPoints(IdeFrameFixture ideFrame, String fileName, String... lines) {
+    EditorFixture editor = ideFrame.getEditor().open(fileName);
+
+    for (String line : lines) {
+      editor.moveBetween("", line);
+      editor.invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
+    }
+  }
+
+  void waitForSessionStart(DebugToolWindowFixture debugToolWindowFixture) {
+    // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 70);
+  }
+
+  void checkBreakPointsAreHit(IdeFrameFixture ideFrame, String[][] expectedPatterns) {
+    // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns
+    for (String[] patterns : expectedPatterns) {
+      checkAppIsPaused(ideFrame, patterns, true);
+    }
+  }
+
+  void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern, boolean resumeProgram) {
+    Wait.seconds(5).expecting("the debugger tree to appear")
+        .until(() -> verifyVariablesAtBreakpoint(ideFrame, expectedPattern, DEBUG_CONFIG_NAME));
+    if (resumeProgram) {
+      MiscUtils.invokeMenuPathOnRobotIdle(ideFrame, "Run", "Resume Program");
+    }
+  }
+
+  private boolean verifyVariablesAtBreakpoint(IdeFrameFixture ideFrame, String[] expectedVariablePatterns, String debugConfigName) {
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
+
+    contentFixture.clickDebuggerTreeRoot();
+    Wait.seconds(5).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
+
+    // Get the debugger tree and print it.
+    XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();
+    if (debuggerTreeRoot == null) {
+      return false;
+    }
+
+    List<String> unmatchedPatterns = getUnmatchedTerminalVariableValues(expectedVariablePatterns, debuggerTreeRoot);
+    return unmatchedPatterns.isEmpty();
+  }
+
+  @NotNull
+  static String variableToSearchPattern(String name, String type, String value) {
+    return String.format("%s = \\{%s\\} %s", name, type, value);
+  }
+
+  /**
+   * Returns the appropriate pattern to look for a variable named {@code name} with the type {@code type} and value {@code value} appearing
+   * in the Variables window in Android Studio.
+   */
+  @NotNull
+  static String variableToSearchPattern(String name, String value) {
+    return String.format("%s = %s", name, value);
+  }
+
+  void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
+    contentFixture.waitForStopClick();
+    contentFixture.waitForExecutionToFinish();
+  }
+
+  /**
+   * Returns the subset of {@code expectedPatterns} which do not match any of the children (just the first level children, not recursive) of
+   * {@code treeRoot} .
+   */
+  @NotNull
+  private static List<String> getUnmatchedTerminalVariableValues(String[] expectedPatterns, XDebuggerTreeNode treeRoot) {
+    String[] childrenTexts = debuggerTreeRootToChildrenTexts(treeRoot);
+    List<String> unmatchedPatterns = Lists.newArrayList();
+    for (String expectedPattern : expectedPatterns) {
+      boolean matched = false;
+      for (String childText : childrenTexts) {
+        if (childText.matches(expectedPattern)) {
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        unmatchedPatterns.add(expectedPattern);
+      }
+    }
+    return unmatchedPatterns;
+  }
+
+  @NotNull
+  private static String[] debuggerTreeRootToChildrenTexts(XDebuggerTreeNode treeRoot) {
+    List<? extends TreeNode> children = treeRoot.getChildren();
+    String[] childrenTexts = new String[children.size()];
+    int i = 0;
+    for (TreeNode child : children) {
+      childrenTexts[i] = ((XDebuggerTreeNode)child).getText().toString();
+      ++i;
+    }
+    return childrenTexts;
+  }
+}
