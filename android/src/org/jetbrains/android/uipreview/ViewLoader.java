@@ -603,7 +603,7 @@ public class ViewLoader {
       loadAndParseRClass(rClassName);
     }
     catch (ClassNotFoundException | NoClassDefFoundError e) {
-      myLogger.setMissingResourceClass(true);
+      myLogger.setMissingResourceClass();
     }
     catch (InconvertibleClassError e) {
       assert rClassName != null;
@@ -657,7 +657,7 @@ public class ViewLoader {
 
         assert myLogger != null;
         myLoadedClasses.put(className, aClass);
-        myLogger.setHasLoadedClasses(true);
+        myLogger.setHasLoadedClasses();
       }
     }
 

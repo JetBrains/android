@@ -66,6 +66,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      RenderLogger.resetFidelityErrorsFilters();
       waitForRenderTaskDisposeToFinish();
     } finally {
       super.tearDown();
