@@ -148,7 +148,8 @@ public class GradleWrapperTest extends IdeaTestCase {
 
     Properties gradleProperties = getProperties(new File(projectWrapperFolderPath, FN_GRADLE_WRAPPER_PROPERTIES));
     String distributionUrl = gradleProperties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    assertEquals("https://services.gradle.org/distributions/gradle-" + gradleVersion + "-all.zip", distributionUrl);
+    String folderName = GradleWrapper.isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
+    assertEquals("https://services.gradle.org/" + folderName + "/gradle-" + gradleVersion + "-all.zip", distributionUrl);
   }
 
   public void testGetDistributionUrlWithBinReleaseVersion() {
