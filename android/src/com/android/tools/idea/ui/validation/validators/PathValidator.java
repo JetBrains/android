@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import net.jcip.annotations.Immutable;
@@ -290,16 +291,21 @@ public final class PathValidator implements Validator<File> {
   @NotNull
   @Override
   public Result validate(@NotNull File file) {
-    Result result = validate(file, Severity.ERROR);
-    if (result != Result.OK) {
-      return result;
-    }
+    try {
+      Result result = validate(file, Severity.ERROR);
+      if (result != Result.OK) {
+        return result;
+      }
 
-    result = validate(file, Severity.WARNING);
-    if (result != Result.OK) {
-      return result;
+      result = validate(file, Severity.WARNING);
+      if (result != Result.OK) {
+        return result;
+      }
     }
-
+    catch (Exception ex) {
+      getLogger().warn(ex);
+      return new Result(Severity.ERROR, String.format("Invalid file, see Help -> Show Log for more details: %1$s", file));
+    }
     return Result.OK;
   }
 
@@ -347,10 +353,12 @@ public final class PathValidator implements Validator<File> {
      */
     @NotNull
     public Builder withAllRules(@NotNull Severity pathNotWritable) {
+      // Note: Order of rules is important, we want to check for invalid slashes, chars, etc before checking if we can write
+      withCommonRules();
       withRule(IS_EMPTY, Severity.ERROR);
       withRule(PATH_NOT_WRITABLE, pathNotWritable);
       withRule(NON_EMPTY_DIRECTORY, Severity.WARNING);
-      return withCommonRules();
+      return this;
     }
 
     /**
@@ -433,6 +441,10 @@ public final class PathValidator implements Validator<File> {
     }
 
     protected abstract boolean matches(@NotNull FileOp fileOp, @NotNull File file);
+  }
+
+  private static Logger getLogger() {
+    return Logger.getInstance(PathValidator.class);
   }
 }
 
