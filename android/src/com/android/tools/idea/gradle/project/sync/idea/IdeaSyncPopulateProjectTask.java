@@ -118,7 +118,7 @@ public class IdeaSyncPopulateProjectTask {
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
                               @NotNull Collection<DataNode<ModuleData>> activeModules,
                               @Nullable PostSyncProjectSetup.Request setupRequest) {
-    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeProjectMessages());
+    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       populate(projectInfo, activeModules, new EmptyProgressIndicator(), setupRequest);

@@ -159,8 +159,7 @@ public class ConflictSet {
    */
   public void showSelectionConflicts() {
     GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
-    String groupName = VARIANT_SELECTION_CONFLICTS;
-    messages.removeMessages(groupName);
+    messages.removeMessages();
 
     for (Conflict conflict : mySelectionConflicts) {
       // Creates the "Select in 'Build Variants' window" hyperlink.
@@ -186,7 +185,7 @@ public class ConflictSet {
         }
       };
 
-      SyncMessage msg = new SyncMessage(groupName, MessageType.WARNING, conflict.toString());
+      SyncMessage msg = new SyncMessage(VARIANT_SELECTION_CONFLICTS, MessageType.WARNING, conflict.toString());
       msg.add(selectInBuildVariantsWindowHyperlink);
       msg.add(quickFixHyperlink);
 
