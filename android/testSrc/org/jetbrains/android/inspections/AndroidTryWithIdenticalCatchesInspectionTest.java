@@ -70,12 +70,6 @@ public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspect
   @Override
   protected InspectionProfileEntry getInspection() {
     return new AndroidTryWithIdenticalCatchesInspection() {
-      @NotNull
-      @Override
-      public String getShortName() {
-        return "TryWithIdenticalCatches";
-      }
-
       @Nls
       @NotNull
       @Override
