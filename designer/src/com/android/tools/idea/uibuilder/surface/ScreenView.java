@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.BLUEPRINT_BG_COLOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
 /**
@@ -133,6 +134,12 @@ public class ScreenView extends SceneView {
   @Override
   public LayoutlibSceneManager getSceneManager() {
     return (LayoutlibSceneManager)super.getSceneManager();
+  }
+
+  @NotNull
+  @Override
+  public Color getBgColor() {
+    return getScreenViewType() == ScreenViewType.BLUEPRINT ? BLUEPRINT_BG_COLOR : Color.WHITE;
   }
 
   @Nullable

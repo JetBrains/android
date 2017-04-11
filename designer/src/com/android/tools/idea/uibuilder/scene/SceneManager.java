@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.List;
@@ -92,7 +93,8 @@ abstract public class SceneManager implements Disposable {
    * @param seenComponents Collector of components that were seen during NlComponent tree traversal.
    * @return the SceneComponent paired with the given NlComponent
    */
-  protected SceneComponent updateFromComponent(@NotNull NlComponent component, Set<SceneComponent> seenComponents) {
+  @Nullable
+  protected SceneComponent updateFromComponent(@NotNull NlComponent component, @NotNull Set<SceneComponent> seenComponents) {
     SceneComponent sceneComponent = getScene().getSceneComponent(component);
     if (sceneComponent == null) {
       sceneComponent = new SceneComponent(getScene(), component);
@@ -103,7 +105,7 @@ abstract public class SceneManager implements Disposable {
 
     for (NlComponent nlChild : component.getChildren()) {
       SceneComponent child = updateFromComponent(nlChild, seenComponents);
-      if (child.getParent() != sceneComponent) {
+      if (child != null && child.getParent() != sceneComponent) {
         sceneComponent.addChild(child);
       }
     }
