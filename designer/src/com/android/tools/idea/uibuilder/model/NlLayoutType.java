@@ -86,7 +86,7 @@ public enum NlLayoutType {
   NAV(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return NavSceneManager.enableNavigationEditor() && file.getName().equals("mobile_navigation.xml");
+      return NavSceneManager.enableNavigationEditor() && file.getParent().getName().equals("nav");
     }
 
     @NotNull
