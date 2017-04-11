@@ -94,6 +94,18 @@ public class ProfilerColors {
 
   public static final Color THREAD_LABEL_BORDER = new JBColor(new Color(0x0C000000, true), new Color(0x0CFFFFFF, true));
 
+  public static final Color CPU_TREECHART_VENDOR = new JBColor(0xA2DEFF, 0x7EB1CC);
+
+  public static final Color CPU_TREECHART_VENDOR_BORDER = new JBColor(0x62BDEB, 0x7EB1CC);
+
+  public static final Color CPU_TREECHART_APP = new JBColor(0x9FEAAD, 0x92D09F);
+
+  public static final Color CPU_TREECHART_APP_BORDER = new JBColor(0x80BFAE, 0x92D09F);
+
+  public static final Color CPU_TREECHART_PLATFORM = new JBColor(0xFECC82, 0xD0AA6F);
+
+  public static final Color CPU_TREECHART_PLATFORM_BORDER = new JBColor(0xD5963C, 0xD0AA6F);
+
   public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
 
   public static final Color DEFAULT_STAGE_BACKGROUND = new JBColor(0xFFFFFF, 0x2B2D2E);
