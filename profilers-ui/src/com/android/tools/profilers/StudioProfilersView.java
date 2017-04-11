@@ -154,7 +154,7 @@ public class StudioProfilersView extends AspectObserver {
       timeline.zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
-    zoomOut.setToolTipText("zoom out");
+    zoomOut.setToolTipText("Zoom out");
     rightToolbar.add(zoomOut);
 
     FlatButton zoomIn = new FlatButton(ProfilerIcons.ZOOM_IN);
@@ -163,7 +163,7 @@ public class StudioProfilersView extends AspectObserver {
       timeline.zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
-    zoomIn.setToolTipText("zoom in");
+    zoomIn.setToolTipText("Zoom in");
     rightToolbar.add(zoomIn);
 
     FlatButton resetZoom = new FlatButton(ProfilerIcons.RESET_ZOOM);
@@ -172,12 +172,13 @@ public class StudioProfilersView extends AspectObserver {
       timeline.resetZoom();
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
-    resetZoom.setToolTipText("reset zoom");
+    resetZoom.setToolTipText("Reset zoom");
     rightToolbar.add(resetZoom);
     rightToolbar.add(new FlatSeparator());
 
-    myGoLive = new FlatToggleButton("Go Live", ProfilerIcons.GOTO_LIVE);
+    myGoLive = new FlatToggleButton("Go live", ProfilerIcons.GOTO_LIVE);
     myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.GOTO_LIVE));
+    myGoLive.setToolTipText("See realtime profiler data");
     myGoLive.addActionListener(event -> {
       timeline.toggleStreaming();
       myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
@@ -239,7 +240,7 @@ public class StudioProfilersView extends AspectObserver {
   public static class DeviceComboBoxRenderer extends ColoredListCellRenderer<Profiler.Device> {
 
     @NotNull
-    private final String myEmptyText = "No Connected Devices";
+    private final String myEmptyText = "No connected devices";
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, Profiler.Device value, int index,
@@ -284,7 +285,7 @@ public class StudioProfilersView extends AspectObserver {
   public static class ProcessComboBoxRenderer extends ColoredListCellRenderer<Profiler.Process> {
 
     @NotNull
-    private final String myEmptyText = "No Debuggable Processes";
+    private final String myEmptyText = "No debuggable processes";
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, Profiler.Process value, int index,
