@@ -469,7 +469,7 @@ public class ViewLoader {
               myLogger.warning("wrongconstructor", //$NON-NLS-1$
                                String.format(
                                 "Custom view %1$s is not using the 2- or 3-argument View constructors; XML attributes will not work",
-                                clazz.getSimpleName()), null /*data*/);
+                                clazz.getSimpleName()), null, null);
 
             }
             break;

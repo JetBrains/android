@@ -221,7 +221,7 @@ public class RenderLogger extends LayoutLog {
   }
 
   @Override
-  public void error(@Nullable String tag, @Nullable String message, @Nullable Object data) {
+  public void error(@Nullable String tag, @Nullable String message, @Nullable Object viewCookie, @Nullable Object data) {
     String description = describe(message, null);
 
     if (LOG_ALL) {
@@ -256,7 +256,11 @@ public class RenderLogger extends LayoutLog {
   }
 
   @Override
-  public void error(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
+  public void error(@Nullable String tag,
+                    @Nullable String message,
+                    @Nullable Throwable throwable,
+                    @Nullable Object viewCookie,
+                    @Nullable Object data) {
     String description = describe(message, throwable);
     if (LOG_ALL) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
@@ -437,7 +441,7 @@ public class RenderLogger extends LayoutLog {
   }
 
   @Override
-  public void warning(@Nullable String tag, @NotNull String message, @Nullable Object data) {
+  public void warning(@Nullable String tag, @NotNull String message, @Nullable Object viewCookie, @Nullable Object data) {
     String description = describe(message, null);
 
     if (TAG_INFO.equals(tag)) {
@@ -509,7 +513,11 @@ public class RenderLogger extends LayoutLog {
   }
 
   @Override
-  public void fidelityWarning(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
+  public void fidelityWarning(@Nullable String tag,
+                              @Nullable String message,
+                              @Nullable Throwable throwable,
+                              @Nullable Object viewCookie,
+                              @Nullable Object data) {
     if (ourIgnoreAllFidelityWarnings || ourIgnoredFidelityWarnings != null && ourIgnoredFidelityWarnings.contains(message)) {
       return;
     }

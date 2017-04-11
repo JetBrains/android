@@ -32,9 +32,9 @@ public class RenderLoggerTest {
     final String TEXT = "Test fidelity warning";
 
     RenderLogger logger = new RenderLogger(null, null);
-    logger.fidelityWarning(TAG, TEXT, null, null);
+    logger.fidelityWarning(TAG, TEXT, null, null, null);
     // Check that duplicates are ignored
-    logger.fidelityWarning(TAG, TEXT, null, null);
+    logger.fidelityWarning(TAG, TEXT, null, null, null);
     assertEquals(1, logger.getFidelityWarnings().size());
     assertEquals(TAG, logger.getFidelityWarnings().get(0).getTag());
     assertEquals(TEXT, logger.getFidelityWarnings().get(0).getClientData());
@@ -42,17 +42,17 @@ public class RenderLoggerTest {
     // Test ignoring a single message
     logger = new RenderLogger(null, null);
     RenderLogger.ignoreFidelityWarning(TEXT);
-    logger.fidelityWarning(TAG, TEXT, null, null);
+    logger.fidelityWarning(TAG, TEXT, null, null, null);
     assertEquals(0, logger.getFidelityWarnings().size());
-    logger.fidelityWarning(TAG, "This should't be ignored", null, null);
+    logger.fidelityWarning(TAG, "This should't be ignored", null, null, null);
     assertEquals("This should't be ignored", logger.getFidelityWarnings().get(0).getClientData());
 
     // Test ignore all
     logger = new RenderLogger(null, null);
     RenderLogger.ignoreAllFidelityWarnings();
-    logger.fidelityWarning(TAG, TEXT, null, null);
-    logger.fidelityWarning(TAG, "This should be ignored", null, null);
-    logger.fidelityWarning(TAG, "And this", new Throwable("Test"), null);
+    logger.fidelityWarning(TAG, TEXT, null, null, null);
+    logger.fidelityWarning(TAG, "This should be ignored", null, null, null);
+    logger.fidelityWarning(TAG, "And this", new Throwable("Test"), null, null);
     assertEquals(0, logger.getFidelityWarnings().size());
   }
 }
