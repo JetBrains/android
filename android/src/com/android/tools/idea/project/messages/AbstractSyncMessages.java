@@ -70,10 +70,8 @@ public abstract class AbstractSyncMessages {
     return myNotificationManager.getMessageCount(NOTIFICATION_SOURCE, category, getProjectSystemId());
   }
 
-  public void removeMessages(@NotNull String... groupNames) {
-    for (String groupName : groupNames) {
-      myNotificationManager.clearNotifications(groupName, NOTIFICATION_SOURCE, getProjectSystemId());
-    }
+  public void removeMessages() {
+    myNotificationManager.clearNotifications(null, NOTIFICATION_SOURCE, getProjectSystemId());
 
     ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(MESSAGES_WINDOW);
     if (toolWindow != null) {
