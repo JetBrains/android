@@ -522,6 +522,9 @@ public class SceneComponent {
     else {
       setDrawState(DrawState.NORMAL);
     }
+    for (Target target : myTargets) {
+      target.setComponentSelection(myIsSelected);
+    }
   }
 
   public void setDragging(boolean dragging) {

@@ -95,4 +95,8 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget() {
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR, SdkConstants.NEW_ID_PREFIX + myComponent.nlComponent.ensureLiveId())
     applyAndCommit(myComponent.nlComponent.model, asList(attributes), "Set gravity")
   }
+
+  override fun setComponentSelection(selection: Boolean) {
+
+  }
 }
