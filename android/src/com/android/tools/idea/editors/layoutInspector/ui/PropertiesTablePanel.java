@@ -64,6 +64,8 @@ public class PropertiesTablePanel extends JScrollPane implements ToolContent<Lay
 
   @Override
   public void setFilter(@NotNull String filter) {
-    mySorter.setRowFilter(RowFilter.regexFilter(filter));
+    if (mySorter != null) {
+      mySorter.setRowFilter(RowFilter.regexFilter(filter));
+    }
   }
 }
