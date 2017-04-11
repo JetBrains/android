@@ -167,6 +167,7 @@ public class LayoutTestUtilities {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayeredPane()).thenReturn(layeredPane);
     when(surface.getSelectionModel()).thenReturn(new SelectionModel());
+    when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     return surface;
   }
 

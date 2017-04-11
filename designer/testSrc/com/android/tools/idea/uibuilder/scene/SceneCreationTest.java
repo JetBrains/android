@@ -63,7 +63,7 @@ public class SceneCreationTest extends SceneTest {
                                                      .withBounds(220, 440, 400, 60)
                                                      .width("200dp")
                                                      .height("30dp"), textView);
-    builder.updateModel(model, false);
+    builder.updateModel(model);
     sceneBuilder.update();
     assertEquals(2, scene.getRoot().getChildren().size());
     List<SceneComponent> children = scene.getRoot().getChildren();
@@ -78,7 +78,7 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(200, sceneEditText.getDrawWidth());
     assertEquals(30, sceneEditText.getDrawHeight());
     parent.removeChild(textView);
-    builder.updateModel(model, false);
+    builder.updateModel(model);
     sceneBuilder.update();
     assertEquals(1, scene.getRoot().getChildren().size());
     sceneTextView = scene.getRoot().getChildren().get(0);
@@ -101,7 +101,7 @@ public class SceneCreationTest extends SceneTest {
                       .withBounds(200, 300, 200, 200)
                       .width("200dp")
                       .height("200dp"), null);
-    builder.updateModel(model, false);
+    builder.updateModel(model);
     sceneBuilder.update();
     assertEquals(2, scene.getRoot().getChildren().size());
 
