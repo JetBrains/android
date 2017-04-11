@@ -73,7 +73,7 @@ public class SceneLayer extends Layer {
       }
 
       if (myShowAlways) {
-        g.setColor(BLUEPRINT_BG_COLOR);
+        g.setColor(getSceneView().getBgColor());
         g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
       }
 

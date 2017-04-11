@@ -62,10 +62,12 @@ public class DrawComponentFrame extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     Color[] colorFrame = {colorSet.getSubduedFrames(), colorSet.getFrames(), colorSet.getHighlightedFrames(), colorSet.getSelectedFrames(), colorSet.getDragReceiverFrames()};
     Stroke previousStroke = g.getStroke();
+    Color previousColor = g.getColor();
     g.setStroke(myNormalStroke);
     g.setColor(colorFrame[myMode]);
     g.drawRect(x, y, width, height);
     g.setStroke(previousStroke);
+    g.setColor(previousColor);
   }
 
   @Override

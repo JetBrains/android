@@ -28,7 +28,6 @@ import java.util.Map;
  * A {@link SceneDecoratorFactory} for layout editor components.
  */
 public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
-  private static final SceneDecorator BASIC_DECORATOR = new SceneDecorator();
   private static final NlSceneFrameFactory FRAME_FRACTORY = new NlSceneFrameFactory();
 
   private static Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();

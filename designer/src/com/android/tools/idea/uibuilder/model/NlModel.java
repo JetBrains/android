@@ -23,6 +23,7 @@ import com.android.resources.ResourceUrl;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -220,10 +221,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // we know only the warnings layer cares about this change and can be
     // updated by a single repaint
   }
-  
+
   @NotNull
   Set<String> getPendingIds() {
     return myPendingIds;
+  }
+
+  public void syncWithPsi(@NotNull List<TagSnapshotTreeNode> roots) {
+    syncWithPsi(AndroidPsiUtils.getRootTagSafely(getFile()), roots);
   }
 
   public void syncWithPsi(@NotNull XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
