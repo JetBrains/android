@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
+import com.android.tools.profilers.ProfilerColors;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -39,26 +40,26 @@ public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
   @Override
   protected Color getFillColor(MethodModel m) {
     if (isMethodVendor(m)) {
-      return fillVendorColor;
+      return ProfilerColors.CPU_TREECHART_VENDOR;
     }
     else if (isMethodPlatform(m)) {
-      return fillPlatformColor;
+      return ProfilerColors.CPU_TREECHART_PLATFORM;
     }
     else {
-      return fillAppColor;
+      return ProfilerColors.CPU_TREECHART_APP;
     }
   }
 
   @Override
   protected Color getBordColor(MethodModel m) {
     if (isMethodVendor(m)) {
-      return bordVendorColor;
+      return ProfilerColors.CPU_TREECHART_VENDOR_BORDER;
     }
     else if (isMethodPlatform(m)) {
-      return bordPlatformColor;
+      return ProfilerColors.CPU_TREECHART_PLATFORM_BORDER;
     }
     else {
-      return bordAppColor;
+      return ProfilerColors.CPU_TREECHART_APP_BORDER;
     }
   }
 
