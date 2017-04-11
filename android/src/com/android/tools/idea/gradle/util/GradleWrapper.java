@@ -212,9 +212,13 @@ public final class GradleWrapper {
   @NotNull
   static String getDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
     // See https://code.google.com/p/android/issues/detail?id=357944
-    boolean isSnapshot = gradleVersion.indexOf('-') != -1 && gradleVersion.endsWith("+0000");
-    String folderName = isSnapshot ? "distributions-snapshots" : "distributions";
+    String folderName = isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
     String suffix = binOnly ? "bin" : "all";
     return String.format("https://services.gradle.org/%1$s/gradle-%2$s-%3$s.zip", folderName, gradleVersion, suffix);
+  }
+
+  @VisibleForTesting
+  static boolean isSnapshot(@NotNull String gradleVersion) {
+    return gradleVersion.indexOf('-') != -1 && gradleVersion.endsWith("+0000");
   }
 }
