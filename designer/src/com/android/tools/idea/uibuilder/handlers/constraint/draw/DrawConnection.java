@@ -257,20 +257,12 @@ public class DrawConnection implements DrawCommand {
                              int modeFrom,
                              int modeTo,
                              long stateChange) {
-    if (connectionType == TYPE_BASELINE) {
-      drawBaseLine(g, source, dest);
-    }
-    int startx = getConnectionX(sourceDirection, source);
-    int starty = getConnectionY(sourceDirection, source);
-    int endx = getConnectionX(destDirection, dest);
-    int endy = getConnectionY(destDirection, dest);
-    int dx = getDestinationDX(destDirection);
-    int dy = getDestinationDY(destDirection);
     boolean animate = false;
+    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     Color constraintColor = modeGetConstraintsColor(modeTo, color);
     Color marginColor = modeGetMarginColor(modeTo, color);
     long timeSince = System.nanoTime() - stateChange;
-    if (timeSince < TRANSITION_TIME ) {
+    if (timeSince < TRANSITION_TIME) {
       float t = (float)((timeSince) / (double)TRANSITION_TIME);
       Color fromColor = modeGetConstraintsColor(modeFrom, color);
       Color toColor = modeGetConstraintsColor(modeTo, color);
@@ -278,6 +270,17 @@ public class DrawConnection implements DrawCommand {
       constraintColor = interpolate(fromColor, toColor, t);
       animate = true;
     }
+
+    if (connectionType == TYPE_BASELINE) {
+      drawBaseLine(g, source, dest, constraintColor);
+      return animate;
+    }
+    int startx = getConnectionX(sourceDirection, source);
+    int starty = getConnectionY(sourceDirection, source);
+    int endx = getConnectionX(destDirection, dest);
+    int endy = getConnectionY(destDirection, dest);
+    int dx = getDestinationDX(destDirection);
+    int dy = getDestinationDY(destDirection);
 
     int manhattanDistance = Math.abs(startx - endx) + Math.abs(starty - endy);
     int scale_source = Math.min(90, manhattanDistance);
@@ -586,7 +589,8 @@ public class DrawConnection implements DrawCommand {
 
   private static void drawBaseLine(Graphics2D g,
                                    @SwingCoordinate Rectangle source,
-                                   @SwingCoordinate Rectangle dest) {
+                                   @SwingCoordinate Rectangle dest, Color color) {
+    g.setColor(color);
     ourPath.reset();
     ourPath.moveTo(source.x + source.width / 2, source.y);
     ourPath.curveTo(source.x + source.width / 2, source.y - 40,
