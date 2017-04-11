@@ -289,13 +289,18 @@ public class ApkViewPanel implements TreeSelectionListener {
   public void valueChanged(TreeSelectionEvent e) {
     if (myListener != null) {
       TreePath[] paths = ((Tree)e.getSource()).getSelectionPaths();
-      ArchiveTreeNode[] components = new ArchiveTreeNode[paths.length];
-      for (int i = 0; i < paths.length; i++) {
-        if (!(paths[i].getLastPathComponent() instanceof ArchiveTreeNode)){
-          myListener.selectionChanged(myArchive, null);
-          return;
+      ArchiveTreeNode[] components;
+      if (paths == null){
+        components = null;
+      } else {
+        components = new ArchiveTreeNode[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+          if (!(paths[i].getLastPathComponent() instanceof ArchiveTreeNode)) {
+            myListener.selectionChanged(myArchive, null);
+            return;
+          }
+          components[i] = (ArchiveTreeNode)paths[i].getLastPathComponent();
         }
-        components[i] = (ArchiveTreeNode)paths[i].getLastPathComponent();
       }
       myListener.selectionChanged(myArchive, components);
     }
