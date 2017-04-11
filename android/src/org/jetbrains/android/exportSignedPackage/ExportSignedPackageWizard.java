@@ -38,6 +38,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -63,6 +64,7 @@ import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -183,10 +185,12 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V1_ENABLED, Boolean.toString(myV1Signature)));
         projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_V2_ENABLED, Boolean.toString(myV2Signature)));
 
+        Map<Module, File> appModulesToOutputs = Collections.singletonMap(myFacet.getModule(), new File(myApkPath));
+
         assert myProject != null;
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
-        gradleBuildInvoker.add(new GoToApkLocationTask(myFacet.getModule(), "Generate Signed APK", myApkPath));
+        gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, "Generate Signed APK"));
         gradleBuildInvoker.executeTasks(assembleTasks, projectProperties);
 
         LOG.info("Export APK command: " +
