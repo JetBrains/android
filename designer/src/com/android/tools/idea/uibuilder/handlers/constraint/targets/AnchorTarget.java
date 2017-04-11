@@ -112,11 +112,67 @@ public class AnchorTarget extends BaseTarget {
   @Override
   public void setOver(boolean over) {
     if (over != mIsOver) {
+      changeState(mIsOver, over);
       mIsOver = over;
       myComponent.getScene().needsRebuildList();
       myComponent.getScene().repaint();
     }
   }
+
+  private void changeState(boolean prevOver, boolean currentOver) {
+    String dir;
+    switch (myType) {
+
+      case LEFT:
+        dir = DecoratorUtilities.LEFT_CONNECTION;
+        break;
+      case TOP:
+        dir = DecoratorUtilities.TOP_CONNECTION;
+        break;
+      case RIGHT:
+        dir = DecoratorUtilities.RIGHT_CONNECTION;
+        break;
+      case BOTTOM:
+        dir = DecoratorUtilities.BOTTOM_CONNECTION;
+        break;
+      default:
+        dir = DecoratorUtilities.BASELINE_CONNECTION;
+        break;
+    }
+    DecoratorUtilities.ViewStates mode = DecoratorUtilities.ViewStates.SELECTED;
+    if (currentOver & !myThisIsTheTarget) {
+      mode = DecoratorUtilities.ViewStates.WILL_DESTROY;
+    }
+    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
+
+  }
+
+  @Override
+  public void setComponentSelection(boolean selection) {
+    String dir;
+    switch (myType) {
+
+      case LEFT:
+        dir = DecoratorUtilities.LEFT_CONNECTION;
+        break;
+      case TOP:
+        dir = DecoratorUtilities.TOP_CONNECTION;
+        break;
+      case RIGHT:
+        dir = DecoratorUtilities.RIGHT_CONNECTION;
+        break;
+      case BOTTOM:
+        dir = DecoratorUtilities.BOTTOM_CONNECTION;
+        break;
+      default:
+        dir = DecoratorUtilities.BASELINE_CONNECTION;
+        break;
+    }
+    DecoratorUtilities.ViewStates mode = (selection) ? DecoratorUtilities.ViewStates.SELECTED : DecoratorUtilities.ViewStates.NORMAL;
+
+    DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
+  }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -279,33 +335,6 @@ public class AnchorTarget extends BaseTarget {
     DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
                    myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, isConnected() && !myThisIsTheTarget,
                    mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
-    if (isConnected()) {
-
-      String dir;
-      switch (myType) {
-
-        case LEFT:
-          dir = DecoratorUtilities.LEFT_CONNECTION;
-          break;
-        case TOP:
-          dir = DecoratorUtilities.TOP_CONNECTION;
-          break;
-        case RIGHT:
-          dir = DecoratorUtilities.RIGHT_CONNECTION;
-          break;
-        case BOTTOM:
-          dir = DecoratorUtilities.BOTTOM_CONNECTION;
-          break;
-        default:
-          dir = DecoratorUtilities.BASELINE_CONNECTION;
-          break;
-      }
-      DecoratorUtilities.ViewStates mode = DecoratorUtilities.ViewStates.SELECTED;
-      if (mIsOver & !myThisIsTheTarget) {
-        mode = DecoratorUtilities.ViewStates.WILL_DESTROY;
-      }
-      DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
-    }
 
     if (myLastX != -1 && myLastY != -1) {
       if ((myConnectedX == -1 && myConnectedY == -1)

@@ -1218,7 +1218,7 @@ public final class ConstraintComponentUtilities {
       case TOP: str = DecoratorUtilities.TOP_CONNECTION; break;
     }
     if (str != null) {
-      DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.NORMAL, DecoratorUtilities.ViewStates.SELECTED);
+      DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.INFERRED, DecoratorUtilities.ViewStates.SELECTED);
     }
   }
 }

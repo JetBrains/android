@@ -147,5 +147,10 @@ public abstract class BaseTarget implements Target {
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
   }
 
+  @Override
+  public void setComponentSelection(boolean selection) {
+
+  }
+
   //endregion
 }
