@@ -27,6 +27,7 @@ import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -68,7 +69,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   private final Tree myTree;
   private final JPanel myTopPanel;
 
-  @NotNull private final Path myDexFile;
+  @NotNull private final Path[] myDexFiles;
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myApkFolder;
   @NotNull private final DexViewFilters myDexFilters;
@@ -79,8 +80,8 @@ public class DexFileViewer implements ApkFileEditorComponent {
   private ListenableFuture<DexReferences> myDexReferences;
 
 
-  public DexFileViewer(@NotNull Project project, @NotNull Path dexFile, @NotNull VirtualFile apkFolder) {
-    myDexFile = dexFile;
+  public DexFileViewer(@NotNull Project project, @NotNull Path[] dexFiles, @NotNull VirtualFile apkFolder) {
+    myDexFiles = dexFiles;
     myProject = project;
     myApkFolder = apkFolder;
 
@@ -121,13 +122,13 @@ public class DexFileViewer implements ApkFileEditorComponent {
                    .setName("Defined Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setComparator(Comparator.comparing(DexElementNode::getDefinedMethodsCount))
+                   .setComparator(Comparator.comparing(DexElementNode::getMethodDefinitionsCount))
                    .setRenderer(new MethodCountRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Referenced Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setComparator(Comparator.comparing(DexElementNode::getMethodRefCount))
+                   .setComparator(Comparator.comparing(DexElementNode::getMethodReferencesCount))
                    .setRenderer(new MethodCountRenderer(false)));
 
     builder.setTreeSorter((Comparator<DexElementNode> comparator, SortOrder order) -> {
@@ -167,7 +168,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
     myTopPanel.add(toolbar.getComponent(), BorderLayout.WEST);
 
-    ActionGroup group = createPopupActionGroup(myTree, myDexFile);
+    ActionGroup group = createPopupActionGroup(myTree);
     PopupHandler
       .installPopupHandler(myTree, group, ActionPlaces.UNKNOWN, ActionManager.getInstance());
 
@@ -175,9 +176,9 @@ public class DexFileViewer implements ApkFileEditorComponent {
   }
 
   @NotNull
-  private ActionGroup createPopupActionGroup(@NotNull Tree tree, @NotNull Path dexFile) {
+  private ActionGroup createPopupActionGroup(@NotNull Tree tree) {
     final DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new ShowDisassemblyAction(tree, dexFile));
+    group.add(new ShowDisassemblyAction(tree));
     group.add(new ShowReferencesAction(tree, this));
     return group;
   }
@@ -256,17 +257,24 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
   public void initDex() {
     ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
-    ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(myDexFile));
-
-    ListenableFuture<DexPackageNode> treeNodeFuture = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, DexPackageNode>() {
-      @Nullable
-      @Override
-      public DexPackageNode apply(@Nullable DexBackedDexFile input) {
-        assert input != null;
-        PackageTreeCreator treeCreator = new PackageTreeCreator(myProguardMappings, myDeobfuscateNames);
-        return treeCreator.constructPackageTree(input);
+    ListenableFuture<Map<Path, DexBackedDexFile>> dexFileFuture = pooledThreadExecutor.submit(() -> {
+      Map<Path, DexBackedDexFile> dexFiles = Maps.newHashMapWithExpectedSize(myDexFiles.length);
+      for (int i = 0; i < myDexFiles.length; i++) {
+        dexFiles.put(myDexFiles[i], DexFiles.getDexFile(myDexFiles[i]));
       }
-    }, pooledThreadExecutor);
+      return dexFiles;
+    });
+
+    ListenableFuture<DexPackageNode> treeNodeFuture =
+      Futures.transform(dexFileFuture, new Function<Map<Path, DexBackedDexFile>, DexPackageNode>() {
+        @Nullable
+        @Override
+        public DexPackageNode apply(@Nullable Map<Path, DexBackedDexFile> input) {
+          assert input != null;
+          PackageTreeCreator treeCreator = new PackageTreeCreator(myProguardMappings, myDeobfuscateNames);
+          return treeCreator.constructPackageTree(input);
+        }
+      }, pooledThreadExecutor);
 
     Futures.addCallback(treeNodeFuture, new FutureCallback<DexPackageNode>() {
       @Override
@@ -282,7 +290,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
           @Override
           protected void process(TreeModelEvent event, EventType type) {
             Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
-            if (expanded == null){
+            if (expanded == null) {
               return;
             }
             // Schedule a runnable to expand the gathered paths later,
@@ -302,12 +310,12 @@ public class DexFileViewer implements ApkFileEditorComponent {
       }
     }, EdtExecutor.INSTANCE);
 
-    ListenableFuture<DexFileStats> dexStatsFuture = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, DexFileStats>() {
+    ListenableFuture<DexFileStats> dexStatsFuture = Futures.transform(dexFileFuture, new Function<Map<Path, DexBackedDexFile>, DexFileStats>() {
       @Nullable
       @Override
-      public DexFileStats apply(@Nullable DexBackedDexFile input) {
+      public DexFileStats apply(@Nullable Map<Path, DexBackedDexFile> input) {
         assert input != null;
-        return DexFileStats.create(input);
+        return DexFileStats.create(input.values());
       }
     }, pooledThreadExecutor);
 
@@ -319,7 +327,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
         @Override
         public void onSuccess(DexFileStats result) {
           titleComponent.setIcon(AllIcons.General.Information);
-          titleComponent.append("This dex file defines ");
+          titleComponent.append(myDexFiles.length == 1 ? "This dex file defines " : "These dex files define ");
           titleComponent.append(Integer.toString(result.classCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
           titleComponent.append(" classes with ");
           titleComponent.append(Integer.toString(result.definedMethodCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
@@ -362,12 +370,18 @@ public class DexFileViewer implements ApkFileEditorComponent {
   @Nullable ListenableFuture<DexReferences> getDexReferences(){
     if (myDexReferences == null) {
       ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
-      ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(myDexFile));
-      myDexReferences = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, DexReferences>() {
+      ListenableFuture<DexBackedDexFile[]> dexFileFuture = pooledThreadExecutor.submit(() -> {
+        DexBackedDexFile[] files = new DexBackedDexFile[myDexFiles.length];
+        for (int i = 0; i < files.length; i++) {
+          files[i] = DexFiles.getDexFile(myDexFiles[i]);
+        }
+        return files;
+      });
+      myDexReferences = Futures.transform(dexFileFuture, new Function<DexBackedDexFile[], DexReferences>() {
         @Override
-        public DexReferences apply(@Nullable DexBackedDexFile input) {
-          assert input != null;
-          return new DexReferences(input);
+        public DexReferences apply(@Nullable DexBackedDexFile[] inputs) {
+          assert inputs != null;
+          return new DexReferences(inputs);
         }
       }, pooledThreadExecutor);
     }
@@ -403,7 +417,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
       else if (node.isRemoved()) {
         append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_STRIKEOUT | SimpleTextAttributes.STYLE_ITALIC, null));
       }
-      else if (!node.hasClassDefinition()) {
+      else if (!node.isDefined()) {
         append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_ITALIC, null));
       }
       else {
@@ -429,10 +443,12 @@ public class DexFileViewer implements ApkFileEditorComponent {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      if (value instanceof DexElementNode && !(value instanceof DexFieldNode)) {
+      if (value instanceof DexElementNode) {
         DexElementNode node = (DexElementNode)value;
-        int count = myShowDefinedCount ? node.getDefinedMethodsCount() : node.getMethodRefCount();
-        append(Integer.toString(count));
+        int count = myShowDefinedCount ? node.getMethodDefinitionsCount() : node.getMethodReferencesCount();
+        if (count != 0) {
+          append(Integer.toString(count));
+        }
       }
     }
   }

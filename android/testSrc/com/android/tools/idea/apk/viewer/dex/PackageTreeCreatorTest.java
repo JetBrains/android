@@ -32,6 +32,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 import static org.junit.Assert.assertEquals;
@@ -39,12 +41,12 @@ import static org.junit.Assert.assertEquals;
 public class PackageTreeCreatorTest {
   @Test
   public void simpleMethodReferenceTree() throws IOException {
-    DexBackedDexFile dexFile = getTestDexFile("Test.dex");
-    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
+    Map<Path,DexBackedDexFile> dexMap = getDexMap("Test.dex");
+    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexMap);
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, packageTreeNode, 0, null, null);
-    assertEquals("X-root: 3,6\n" +
+    assertEquals("root: 3,6\n" +
                  "  Test: 3,3\n" +
                  "    void <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
@@ -58,17 +60,28 @@ public class PackageTreeCreatorTest {
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n", sb.toString());
-    assertEquals(6, dexFile.getMethodCount());
+  }
+
+  public static Map<Path, DexBackedDexFile> getDexMap(String s) throws IOException{
+    Path path = getDexPath(s);
+    DexBackedDexFile dexFile = getTestDexFile(path);
+    HashMap<Path, DexBackedDexFile> map = new HashMap<>();
+    map.put(path, dexFile);
+    return map;
+  }
+
+  public static Path getDexPath(String s) {
+    return Paths.get(AndroidTestBase.getTestDataPath(), "apk/" + s);
   }
 
   @Test
   public void fieldsAndMethodReferenceTree() throws IOException {
-    DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
+    Map<Path,DexBackedDexFile> dexMap = getDexMap("Test2.dex");
+    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexMap);
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, packageTreeNode, 0, null, null);
-    assertEquals("X-root: 6,11\n" +
+    assertEquals("root: 6,11\n" +
                  "  ~java: 0,4\n" +
                  "    ~lang: 0,3\n" +
                  "      ~Integer: 0,1\n" +
@@ -92,12 +105,51 @@ public class PackageTreeCreatorTest {
                  "    ~java.util.List getList(): 0,1\n" +
                  "  a: 1,1\n" +
                  "    void <init>(): 1,1\n", sb.toString());
-    assertEquals(11, dexFile.getMethodCount());
+  }
+
+  @Test
+  public void multiDexReferenceTree() throws IOException {
+    Map<Path,DexBackedDexFile> dexMap = getDexMap("Test2.dex");
+    Path path = getDexPath("Test.dex");
+    DexBackedDexFile file = getDexFile(path);
+    dexMap.put(path, file);
+    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexMap);
+
+    StringBuffer sb = new StringBuffer(100);
+    dumpTree(sb, packageTreeNode, 0, null, null);
+    assertEquals("root: 9,14\n" +
+                 "  ~java: 0,4\n" +
+                 "    ~lang: 0,3\n" +
+                 "      ~Integer: 0,1\n" +
+                 "        ~java.lang.Integer valueOf(int): 0,1\n" +
+                 "      ~Object: 0,1\n" +
+                 "        ~void <init>(): 0,1\n" +
+                 "      ~Boolean: 0,1\n" +
+                 "        ~java.lang.Boolean valueOf(boolean): 0,1\n" +
+                 "    ~util: 0,1\n" +
+                 "      ~Collections: 0,1\n" +
+                 "        ~java.util.List emptyList(): 0,1\n" +
+                 "  Test2: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
+                 "    a aClassField: 0,0\n" +
+                 "    int aField: 0,0\n" +
+                 "  TestSubclass: 2,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.util.List getAnotherList(): 1,1\n" +
+                 "    ~java.util.List getList(): 0,1\n" +
+                 "  Test: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
+                 "  a: 1,1\n" +
+                 "    void <init>(): 1,1\n", sb.toString());
   }
 
   @Test
   public void proguardedReferenceTree() throws IOException, ParseException {
-    DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
+    Map<Path,DexBackedDexFile> dexMap = getDexMap("Test2.dex");
     Path mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test2_mapping.txt");
     ProguardMap map = new ProguardMap();
     map.readFromReader(Files.newBufferedReader(mapPath));
@@ -110,11 +162,11 @@ public class PackageTreeCreatorTest {
 
 
     ProguardMappings proguardMappings = new ProguardMappings(map, seedsMap, usageMap);
-    DexPackageNode packageTreeNode = new PackageTreeCreator(proguardMappings, true).constructPackageTree(dexFile);
+    DexPackageNode packageTreeNode = new PackageTreeCreator(proguardMappings, true).constructPackageTree(dexMap);
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, packageTreeNode, 0, seedsMap, map);
-    assertEquals("X-root: 6,11\n" +
+    assertEquals("O-root: 6,11\n" +
                  "  ~java: 0,4\n" +
                  "    ~lang: 0,3\n" +
                  "      ~Integer: 0,1\n" +
@@ -140,18 +192,17 @@ public class PackageTreeCreatorTest {
                  "    void <init>(): 1,1\n" +
                  "    X-AnotherClass(int,TestSubclass): 0,0\n" +
                  "  X-RemovedSubclass: 0,0\n", sb.toString());
-    assertEquals(11, dexFile.getMethodCount());
   }
 
   @Test
   public void sortReferenceTree() throws IOException {
-    DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
+    Map<Path,DexBackedDexFile> dexMap = getDexMap("Test2.dex");
+    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexMap);
 
     StringBuffer sb = new StringBuffer(100);
-    packageTreeNode.sort(Comparator.comparing(DexElementNode::getDefinedMethodsCount));
+    packageTreeNode.sort(Comparator.comparing(DexElementNode::getMethodDefinitionsCount));
     dumpTree(sb, packageTreeNode, 0, null, null);
-    assertEquals("X-root: 6,11\n" +
+    assertEquals("root: 6,11\n" +
                  "  ~java: 0,4\n" +
                  "    ~lang: 0,3\n" +
                  "      ~Integer: 0,1\n" +
@@ -179,7 +230,7 @@ public class PackageTreeCreatorTest {
     sb.setLength(0);
     packageTreeNode.sort(Comparator.comparing(DexElementNode::getName));
     dumpTree(sb, packageTreeNode, 0, null, null);
-    assertEquals("X-root: 6,11\n" +
+    assertEquals("root: 6,11\n" +
                  "  Test2: 3,3\n" +
                  "    a aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
@@ -204,9 +255,9 @@ public class PackageTreeCreatorTest {
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n", sb.toString());
     sb.setLength(0);
-    packageTreeNode.sort(Comparator.comparing(DexElementNode::getMethodRefCount));
+    packageTreeNode.sort(Comparator.comparing(DexElementNode::getMethodReferencesCount));
     dumpTree(sb, packageTreeNode, 0, null, null);
-    assertEquals("X-root: 6,11\n" +
+    assertEquals("root: 6,11\n" +
                  "  a: 1,1\n" +
                  "    void <init>(): 1,1\n" +
                  "  Test2: 3,3\n" +
@@ -233,8 +284,7 @@ public class PackageTreeCreatorTest {
   }
 
   @NotNull
-  public static DexBackedDexFile getTestDexFile(@NotNull String filename) throws IOException {
-    Path dexPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/" + filename);
+  public static DexBackedDexFile getTestDexFile(@NotNull Path dexPath) throws IOException {
     return getDexFile(Files.readAllBytes(dexPath));
   }
 
@@ -244,14 +294,14 @@ public class PackageTreeCreatorTest {
       sb.append("X-");
     } else if (node.isSeed(seeds, map, true)){
       sb.append("O-");
-    } else if (!node.hasClassDefinition()){
+    } else if (!node.isDefined()){
       sb.append("~");
     }
     sb.append(node.getName());
     sb.append(": ");
-    sb.append(node.getDefinedMethodsCount());
+    sb.append(node.getMethodDefinitionsCount());
     sb.append(',');
-    sb.append(node.getMethodRefCount());
+    sb.append(node.getMethodReferencesCount());
     sb.append('\n');
 
     for (int i = 0; i < node.getChildCount(); i++) {
