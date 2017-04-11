@@ -88,6 +88,7 @@ public class ScoutArrangeTest extends SceneTest {
                         "DrawNlComponentFrame,450,640,150,15,1,40,40\n" +
                         "DrawConnection,2,450x640x150x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,450x640x150x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,3,450x640x150x15,2,450x490x100x20,3,0,true,0,0,false,0.5,2,0,0\n" +
                         "DrawConnection,2,450x640x150x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "UNClip\n";
 
