@@ -31,7 +31,7 @@ public class FancyStroke implements Stroke {
   Stroke myBasicStroke;
 
   public enum Type {
-    SINE, SPRING, ROPE, CHAIN,
+    SINE, SPRING, ROPE, CHAIN, HALF_CHAIN1, HALF_CHAIN2
   }
 
   Type myType;
@@ -73,7 +73,11 @@ public class FancyStroke implements Stroke {
       case ROPE:
         return createRope(shape);
       case CHAIN:
-        return createChain(shape);
+        return createChain(shape, 2);
+      case HALF_CHAIN1:
+        return createChain(shape, 0);
+      case HALF_CHAIN2:
+        return createChain(shape, 1);
     }
     return shape;
   }
@@ -255,10 +259,18 @@ public class FancyStroke implements Stroke {
     return myBasicStroke.createStrokedShape(result);
   }
 
-  public Shape createChain(Shape shape) {
+  /**
+   * You can create a whole or half (left or right) chain
+   * @param shape
+   * @param sides 0 = left half, 1 = right half, 2 = both sides
+   * @return
+   */
+  public Shape createChain(Shape shape, int sides) {
     GeneralPath result = new GeneralPath();
     result.reset();
-    for (int flip = -1; flip < 2; flip += 2) {
+    int start = (sides == 1) ? 1 : -1;
+    int end = (sides == 0) ? 1 : 2;
+    for (int flip = start; flip < end; flip += 2) {
       PathIterator it = new FlatteningPathIterator(shape.getPathIterator(null), FLATNESS);
       float dist = 0;
       float x1 = 0, x2 = 0, y1 = 0, y2 = 0;

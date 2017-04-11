@@ -109,7 +109,7 @@ public class SceneDecoratorTest extends SceneTest {
     //noinspection UndesirableClassUsage
     BufferedImage img = new BufferedImage(1000, 1000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
-    assertEquals(42, disp.getCommands().size());
+    assertEquals(44, disp.getCommands().size());
     disp.clear();
   }
 }

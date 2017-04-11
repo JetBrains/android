@@ -55,7 +55,7 @@ public class DrawConnection implements DrawCommand {
   public static final int DIR_TOP = 2;
   public static final int DIR_BOTTOM = 3;
   private static final int OVER_HANG = 20;
-  private static final long TRANSITION_TIME = 100 * MILISECONDS;
+  private static final long TRANSITION_TIME = 1000 * MILISECONDS;
   static GeneralPath ourPath = new GeneralPath();
   final static int[] dirDeltaX = {-1, +1, 0, 0};
   final static int[] dirDeltaY = {0, 0, -1, 1};
@@ -81,11 +81,12 @@ public class DrawConnection implements DrawCommand {
   static Stroke myBackgroundStroke = new BasicStroke(8);
   static Stroke myDashStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
   static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
-  static Stroke myChainStroke = new FancyStroke(FancyStroke.Type.CHAIN, 2.5f, 9, 1);
+  static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, 2.5f, 9, 1);
+  static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, 2.5f, 9, 1);
 
   @Override
   public int getLevel() {
-    return CONNECTION_LEVEL;
+    return (MODE_WILL_DESTROY == myModeTo) ? TARGET_LEVEL : CONNECTION_LEVEL;
   }
 
   @Override
@@ -216,7 +217,7 @@ public class DrawConnection implements DrawCommand {
       case MODE_SELECTED:
         return color.getSelectedConstraints();
       case MODE_COMPUTED:
-        return color.getHighlightedConstraints();
+        return  color.getCreatedConstraints();
       case MODE_WILL_DESTROY:
         return color.getAnchorDisconnectionCircle();
 
@@ -237,14 +238,12 @@ public class DrawConnection implements DrawCommand {
   }
 
   static Color interpolate(Color fromColor, Color toColor, float percent) {
-    float[] hsb = new float[3];
-    Color.RGBtoHSB(fromColor.getRed(), fromColor.getGreen(), fromColor.getBlue(), hsb);
-    float fromH = hsb[0], fromS = hsb[1], fromB = hsb[2];
-    Color.RGBtoHSB(toColor.getRed(), toColor.getGreen(), toColor.getBlue(), hsb);
-    float toH = hsb[0], toS = hsb[1], toB = hsb[2];
-    return Color.getHSBColor(fromH * (1 - percent) + toH * percent,
-                             fromS * (1 - percent) + toS * percent,
-                             fromB * (1 - percent) + toB * percent);
+    int col1 = fromColor.getRGB();
+    int col2 = toColor.getRGB();
+    int c1 = (int) (((col1>>0)&0xFF) * (1 - percent) + ((col2>>0)&0xFF) * percent);
+    int c2 = (int) (((col1>>8)&0xFF) * (1 - percent) + ((col2>>8)&0xFF) * percent);
+    int c3 = (int) (((col1>>16)&0xFF) * (1 - percent) + ((col2>>16)&0xFF) * percent);
+    return new Color(c3,c2,c1);
   }
 
   public static void draw(Graphics2D g,
@@ -281,8 +280,9 @@ public class DrawConnection implements DrawCommand {
       constraintColor = interpolate(fromColor, toColor, t);
     }
 
-    int scale_source = 40;
-    int scale_dest = (myDestType == DEST_PARENT) ? -40 : 40;
+    int manhattanDistance = Math.abs(startx - endx) + Math.abs(starty - endy);
+    int scale_source = Math.min(90, manhattanDistance);
+    int scale_dest = (myDestType == DEST_PARENT) ? -scale_source : scale_source;
     boolean flip_arrow = false;
     if (myDestType != DEST_NORMAL) {
       switch (destDirection) {
@@ -337,17 +337,34 @@ public class DrawConnection implements DrawCommand {
     ourPath.reset();
     ourPath.moveTo(startx, starty);
     Stroke defaultStroke;
+    if (manhattanDistance == 0) {
+      g.setColor(constraintColor);
+      DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
+      g.fillPolygon(xPoints, yPoints, 3);
+      g.draw(ourPath);
+    }
+
     switch (connectionType) {
       case TYPE_CHAIN:
-        ourPath.moveTo(startx, starty);
-        ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection],
-                        starty + scale_source * dirDeltaY[sourceDirection],
-                        endx + scale_dest * dirDeltaX[destDirection],
-                        endy + scale_dest * dirDeltaY[destDirection],
-                        endx, endy);
+        boolean flip_chain =  (endx +endy > startx+starty);
+    if(flip_chain) {
+      ourPath.moveTo(startx, starty);
+      ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection],
+                      starty + scale_source * dirDeltaY[sourceDirection],
+                      endx + scale_dest * dirDeltaX[destDirection],
+                      endy + scale_dest * dirDeltaY[destDirection],
+                      endx, endy);
+    } else {
+      ourPath.moveTo(endx, endy);
+      ourPath.curveTo(endx + scale_source * dirDeltaX[destDirection],
+                      endy + scale_source * dirDeltaY[destDirection],
+                      startx + scale_dest * dirDeltaX[sourceDirection],
+                      starty + scale_dest * dirDeltaY[sourceDirection],
+                      startx, starty);
+    }
         defaultStroke = g.getStroke();
         g.setColor(constraintColor);
-        g.setStroke(myChainStroke);
+        g.setStroke(flip_chain?myChainStroke1:myChainStroke2);
         g.draw(ourPath);
         g.setStroke(defaultStroke);
         break;
