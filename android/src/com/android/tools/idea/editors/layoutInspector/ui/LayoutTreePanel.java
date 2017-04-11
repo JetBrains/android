@@ -24,6 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class LayoutTreePanel extends JScrollPane implements ToolContent<LayoutInspectorContext> {
+  private RollOverTree myTree;
+  private ViewNodeTreeRenderer myTreeCellRenderer;
+
   @Override
   public void dispose() {
 
@@ -33,7 +36,9 @@ public class LayoutTreePanel extends JScrollPane implements ToolContent<LayoutIn
   public void setToolContext(@Nullable LayoutInspectorContext toolContext) {
     if (toolContext != null) {
       this.viewport.setBackground(JBColor.background());
-      this.setViewportView(toolContext.getNodeTree());
+      myTree = toolContext.getNodeTree();
+      myTreeCellRenderer = (ViewNodeTreeRenderer)myTree.getCellRenderer();
+      this.setViewportView(myTree);
     }
   }
 
@@ -41,5 +46,18 @@ public class LayoutTreePanel extends JScrollPane implements ToolContent<LayoutIn
   @Override
   public JComponent getComponent() {
     return this;
+  }
+
+  @Override
+  public boolean supportsFiltering() {
+    return true;
+  }
+
+  @Override
+  public void setFilter(@Nullable String filter) {
+    if (myTreeCellRenderer != null) {
+      myTreeCellRenderer.setHighlight(filter);
+      myTree.repaint();
+    }
   }
 }
