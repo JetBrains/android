@@ -30,6 +30,9 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities.ViewStates.INFERRED;
+import static com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities.ViewStates.INFERRED_VALUE;
+
 /**
  * This defines the decorator
  * TODO: move to the ConstraintLayout handler
@@ -248,6 +251,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           }
         }
         prev = DecoratorUtilities.getTimedChange_prev(c, type);
+
         current = DecoratorUtilities.getTimedChange_value(c, type);
         Long event = DecoratorUtilities.getTimedChange_time(c, type);
         if (event != null) {
@@ -369,22 +373,6 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           if (sc.myCache.containsKey(ourChainDirections[ourOppositeDirection[i]])) {
             continue; // no need to add element to display list chains only have to go one way
           }
-          {
-            ConnectionStatus otherConnection = new ConnectionStatus();
-            otherConnection.getConnectionInfo(sc.getNlComponent(),selection.contains(sc.getNlComponent()));
-            int other = ourOppositeDirection[i];
-            otherChangeStart = otherConnection.getTime(other);
-            otherPreviousMode = otherConnection.getPreviousMode(other);
-            otherCurrentMode = otherConnection.getCurrentMode(other);
-
-            if (otherCurrentMode <  connectStatus.getCurrentMode(i)) {
-              otherChangeStart = null;
-            }
-
-          }
-
-
-          child.myCache.put(ourChainDirections[i], "drawn");
         }
         int margin = 0;
         int marginDistance = 0;
@@ -429,11 +417,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         changeStart = connectStatus.getTime(i);
         int previousMode = connectStatus.getPreviousMode(i);
         int currentMode = connectStatus.getCurrentMode(i);
-        if (otherChangeStart != null) {
-          changeStart = otherChangeStart;
-          previousMode =  otherPreviousMode;
-          currentMode = otherCurrentMode;
-        }
+
         DrawConnection
           .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
                             isMarginReference, bias, previousMode, currentMode, changeStart);

@@ -141,4 +141,10 @@ public interface Target {
   float getCenterY();
 
   boolean canChangeSelection();
+
+  /**
+   * Notified when the underlying component changes selection
+   * @param selection
+   */
+  public void setComponentSelection(boolean selection);
 }

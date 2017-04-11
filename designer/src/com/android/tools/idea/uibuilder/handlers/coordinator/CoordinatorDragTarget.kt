@@ -150,4 +150,9 @@ class CoordinatorDragTarget : BaseTarget() {
     }
     myComponent.scene.needsLayout(ANIMATED_LAYOUT)
   }
+
+  override fun setComponentSelection(selection: Boolean) {
+
+  }
+
 }

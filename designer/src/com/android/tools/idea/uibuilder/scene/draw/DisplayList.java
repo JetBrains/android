@@ -102,7 +102,7 @@ public class DisplayList {
 
     @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
-      g.setColor(sceneContext.getColorSet().getFrames());
+      g.setColor(sceneContext.getColorSet().getAnchorConnectionCircle());
       int start_dx = 0;
       int start_dy = 0;
       int end_dx = 0;
