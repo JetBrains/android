@@ -19,12 +19,14 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.intellij.reference.SoftReference;
 import org.jetbrains.annotations.Nullable;
 
@@ -114,9 +116,17 @@ public class SceneContext {
       }
     }
     SceneViewTransform sceneViewTransform = new SceneViewTransform(sceneView);
-    // TODO(jbakermalone): don't require instanceof
-    sceneViewTransform.myColorSet =
-      (sceneView instanceof ScreenView && ((ScreenView)sceneView).getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) ? new BlueprintColorSet() : new AndroidColorSet();
+    ColorSet colorSet;
+    if (sceneView.getModel().getType() == NlLayoutType.NAV) {
+      colorSet = new NavColorSet();
+    }
+    else if (sceneView instanceof ScreenView && ((ScreenView)sceneView).getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) {
+      colorSet = new BlueprintColorSet();
+    }
+    else {
+      colorSet = new AndroidColorSet();
+    }
+    sceneViewTransform.myColorSet = colorSet;
 
     cache.put(sceneView, new SoftReference<>(sceneViewTransform));
     return sceneViewTransform;

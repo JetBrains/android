@@ -61,10 +61,5 @@ public class DrawRegion extends Rectangle implements DrawCommand {
     g.drawRect(x, y, width, height);
   }
 
-  @Override
-  public int compareTo(@NotNull Object o) {
-    return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
-  }
-
 }
 
