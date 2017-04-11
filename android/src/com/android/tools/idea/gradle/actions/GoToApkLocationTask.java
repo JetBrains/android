@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -24,9 +25,16 @@ import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -40,36 +48,22 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
 public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvocationTask {
+  public static final String ANALYZE = "analyze:";
+  public static final String MODULE = "module:";
   @NotNull private final Project myProject;
-  @NotNull private final List<Pair<Module, String>> myModulesAndApkPaths;
-  @NotNull private final ApkPathFinder myApkPathFinder;
+  @NotNull private final Map<Module, File> myModulesAndApkPaths;
   @NotNull private final String myNotificationTitle;
 
-  GoToApkLocationTask(@NotNull List<Module> modules, @NotNull String notificationTitle) {
-    this(modules.get(0).getProject(), createModulesAndApkPaths(modules), new ApkPathFinder(), notificationTitle);
-  }
-
-  @NotNull
-  private static List<Pair<Module, String>> createModulesAndApkPaths(@NotNull List<Module> modules) {
-    List<Pair<Module, String>> modulesAndApkPaths = new ArrayList<>(modules.size());
-    for (Module module : modules) {
-      modulesAndApkPaths.add(Pair.create(module, null));
-    }
-    return modulesAndApkPaths;
-  }
-
-  public GoToApkLocationTask(@NotNull Module module, @NotNull String notificationTitle, @Nullable String apkPathValue) {
-    this(module.getProject(), Collections.singletonList(Pair.create(module, apkPathValue)), new ApkPathFinder(), notificationTitle);
+  public GoToApkLocationTask(@NotNull Map<Module, File> modulesAndPaths, @NotNull String notificationTitle) {
+    this(modulesAndPaths.entrySet().iterator().next().getKey().getProject(), modulesAndPaths, notificationTitle);
   }
 
   @VisibleForTesting
   GoToApkLocationTask(@NotNull Project project,
-                      @NotNull List<Pair<Module, String>> modulesAndApkPaths,
-                      @NotNull ApkPathFinder apkPathFinder,
+                      @NotNull Map<Module, File> modulesAndPaths,
                       @NotNull String notificationTitle) {
     myProject = project;
-    myModulesAndApkPaths = modulesAndApkPaths;
-    myApkPathFinder = apkPathFinder;
+    myModulesAndApkPaths = modulesAndPaths;
     myNotificationTitle = notificationTitle;
   }
 
@@ -78,9 +72,9 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
     try {
       List<String> moduleNames = new ArrayList<>();
       Map<String, File> apkPathsByModule = new HashMap<>();
-      for (Pair<Module, String> moduleAndApkPath : myModulesAndApkPaths) {
-        Module module = moduleAndApkPath.getFirst();
-        File apkPath = myApkPathFinder.findExistingApkPath(module, moduleAndApkPath.getSecond());
+      for (Map.Entry<Module, File> moduleAndApkPath : myModulesAndApkPaths.entrySet()) {
+        Module module = moduleAndApkPath.getKey();
+        File apkPath = moduleAndApkPath.getValue();
         if (apkPath != null) {
           String moduleName = module.getName();
           moduleNames.add(moduleName);
@@ -98,14 +92,15 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
           int moduleCount = moduleNames.size();
           for (int i = 0; i < moduleCount; i++) {
             String moduleName = moduleNames.get(i);
-            buffer.append("<a href=\"").append(moduleName).append("\">").append(moduleName).append("</a>");
+            buffer.append("<a href=\"").append(MODULE).append(moduleName).append("\">").append(moduleName).append("</a> ");
+            buffer.append("<a href=\"").append(ANALYZE).append(moduleName).append("\">(analyze)</a>");
             if (i < moduleCount - 1) {
               buffer.append(", ");
             }
           }
           buffer.append(".");
           String text = buffer.toString();
-          notification.showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(apkPathsByModule));
+          notification.showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(apkPathsByModule, myProject));
         }
         else {
           // Platform does not support showing the location of a file.
@@ -142,17 +137,39 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
   @VisibleForTesting
   static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Map<String, File> myApkPathsPerModule;
+    @NotNull private final Project myProject;
 
-    OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule) {
+    OpenFolderNotificationListener(@NotNull Map<String, File> apkPathsPerModule, @NotNull Project project) {
       myApkPathsPerModule = apkPathsPerModule;
+      myProject = project;
     }
 
     @Override
     protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent e) {
-      String moduleName = e.getDescription();
-      File apkPath = myApkPathsPerModule.get(moduleName);
-      assert apkPath != null;
-      ShowFilePathAction.openDirectory(apkPath);
+      String description = e.getDescription();
+      if (description.startsWith(ANALYZE)){
+        File apkPath = myApkPathsPerModule.get(description.substring(ANALYZE.length()));
+        VirtualFile apk;
+        if (apkPath.isFile()) {
+          apk = LocalFileSystem.getInstance().findFileByIoFile(apkPath);
+        } else {
+          FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
+            .withDescription("Select APK to analyze")
+            .withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
+          apk = FileChooser.chooseFile(descriptor, myProject, LocalFileSystem.getInstance().findFileByIoFile(apkPath));
+        }
+        if (apk != null) {
+          OpenFileDescriptor fd = new OpenFileDescriptor(myProject, apk);
+          FileEditorManager.getInstance(myProject).openEditor(fd, true);
+        }
+      } else if (description.startsWith(MODULE)){
+        File apkPath = myApkPathsPerModule.get(description.substring(MODULE.length()));
+        assert apkPath != null;
+        if (apkPath.isFile()){
+          apkPath = apkPath.getParentFile();
+        }
+        ShowFilePathAction.openDirectory(apkPath);
+      }
     }
 
     @Override
