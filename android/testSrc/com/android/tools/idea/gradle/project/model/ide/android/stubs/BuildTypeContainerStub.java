@@ -13,43 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
-import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.BuildType;
+import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.ArrayList;
 
-/**
- * Creates a deep copy of {@link ProductFlavorContainer}.
- *
- * @see IdeAndroidProject
- */
-public class IdeProductFlavorContainer implements ProductFlavorContainer, Serializable {
-  @NotNull private final ProductFlavor myProductFlavor;
+public final class BuildTypeContainerStub implements BuildTypeContainer {
+  @NotNull private final BuildType myBuildType;
   @NotNull private final SourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
 
-  public IdeProductFlavorContainer(@NotNull ProductFlavorContainer original) {
-    myProductFlavor = new IdeProductFlavor(original.getProductFlavor());
-    mySourceProvider = new IdeSourceProvider(original.getSourceProvider());
+  public BuildTypeContainerStub() {
+    this(new BuildTypeStub(), new SourceProviderStub(), Lists.newArrayList(new SourceProviderContainerStub()));
+  }
 
-    Collection<SourceProviderContainer> orExtraSourceProvider = original.getExtraSourceProviders();
-    myExtraSourceProviders = new ArrayList<>();
-    for (SourceProviderContainer container : orExtraSourceProvider) {
-      myExtraSourceProviders.add(new IdeSourceProviderContainer(container));
-    }
+  public BuildTypeContainerStub(@NotNull BuildType type,
+                                @NotNull SourceProvider sourceProvider,
+                                @NotNull Collection<SourceProviderContainer> extraSourceProviders) {
+    myBuildType = type;
+    mySourceProvider = sourceProvider;
+    myExtraSourceProviders = extraSourceProviders;
   }
 
   @Override
   @NotNull
-  public ProductFlavor getProductFlavor() {
-    return myProductFlavor;
+  public BuildType getBuildType() {
+    return myBuildType;
   }
 
   @Override

@@ -22,13 +22,15 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link SourceProvider}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link SourceProvider}.
  */
-public class IdeSourceProvider implements SourceProvider, Serializable {
+public final class IdeSourceProvider implements SourceProvider, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myName;
   @NotNull private final File myManifestFile;
   @NotNull private final Collection<File> myJavaDirectories;
@@ -127,5 +129,53 @@ public class IdeSourceProvider implements SourceProvider, Serializable {
   @NotNull
   public Collection<File> getShadersDirectories() {
     return myShadersDirectories;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeSourceProvider)) {
+      return false;
+    }
+    IdeSourceProvider provider = (IdeSourceProvider)o;
+    return Objects.equals(myName, provider.myName) &&
+           Objects.equals(myManifestFile, provider.myManifestFile) &&
+           Objects.equals(myJavaDirectories, provider.myJavaDirectories) &&
+           Objects.equals(myResourcesDirectories, provider.myResourcesDirectories) &&
+           Objects.equals(myAidlDirectories, provider.myAidlDirectories) &&
+           Objects.equals(myRenderscriptDirectories, provider.myRenderscriptDirectories) &&
+           Objects.equals(myCDirectories, provider.myCDirectories) &&
+           Objects.equals(myCppDirectories, provider.myCppDirectories) &&
+           Objects.equals(myResDirectories, provider.myResDirectories) &&
+           Objects.equals(myAssetsDirectories, provider.myAssetsDirectories) &&
+           Objects.equals(myJniLibsDirectories, provider.myJniLibsDirectories) &&
+           Objects.equals(myShadersDirectories, provider.myShadersDirectories);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myName, myManifestFile, myJavaDirectories, myResourcesDirectories, myAidlDirectories, myRenderscriptDirectories,
+                        myCDirectories, myCppDirectories, myResDirectories, myAssetsDirectories, myJniLibsDirectories,
+                        myShadersDirectories);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeSourceProvider{" +
+           "myName='" + myName + '\'' +
+           ", myManifestFile=" + myManifestFile +
+           ", myJavaDirectories=" + myJavaDirectories +
+           ", myResourcesDirectories=" + myResourcesDirectories +
+           ", myAidlDirectories=" + myAidlDirectories +
+           ", myRenderscriptDirectories=" + myRenderscriptDirectories +
+           ", myCDirectories=" + myCDirectories +
+           ", myCppDirectories=" + myCppDirectories +
+           ", myResDirectories=" + myResDirectories +
+           ", myAssetsDirectories=" + myAssetsDirectories +
+           ", myJniLibsDirectories=" + myJniLibsDirectories +
+           ", myShadersDirectories=" + myShadersDirectories +
+           '}';
   }
 }

@@ -19,57 +19,62 @@ import com.android.annotations.NonNull;
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifactOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 
 public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
-
-  @NonNull
+  @NotNull
   private final Collection<OutputFile> myOutputs;
+
+  public AndroidArtifactOutputStub(@NotNull OutputFile output) {
+    this(Collections.singletonList(output));
+  }
 
   public AndroidArtifactOutputStub(@NonNull Collection<OutputFile> outputs) {
     myOutputs = outputs;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public String getAssembleTaskName() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getGeneratedManifest() {
     throw new UnsupportedOperationException();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public String getOutputType() {
     return getMainOutputFile().getOutputType();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<String> getFilterTypes() {
     return getMainOutputFile().getFilterTypes();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<FilterData> getFilters() {
     return getMainOutputFile().getFilters();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public OutputFile getMainOutputFile() {
     return myOutputs.iterator().next();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<? extends OutputFile> getOutputs() {
     return myOutputs;
   }
@@ -79,8 +84,8 @@ public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
     return getMainOutputFile().getVersionCode();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getOutputFile() {
     return getMainOutputFile().getOutputFile();
   }

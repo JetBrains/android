@@ -39,12 +39,9 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   @NotNull private final Collection<SyncIssue> mySyncIssues;
   @NotNull private final Collection<Variant> myVariants;
   @NotNull private final Collection<String> myFlavorDimensions;
-  @NotNull private final Collection<ArtifactMetaData> myExtraArtifacts;
   @NotNull private final String myCompileTarget;
   @NotNull private final Collection<String> myBootClassPath;
-  @NotNull private final Collection<File> myFrameworkSources;
   @NotNull private final Collection<NativeToolchain> myNativeToolchains;
-  @NotNull private final AaptOptions myAaptOptions;
   @NotNull private final Collection<SigningConfig> mySigningConfigs;
   @NotNull private final LintOptions myLintOptions;
   @NotNull private final Collection<String> myUnresolvedDependencies;
@@ -57,11 +54,11 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   private final int myPluginGeneration;
 
   public IdeAndroidProject(@NotNull AndroidProject project) {
-    this(project, new HashMap<>());
+    this(project, new ModelCache());
   }
 
   @SuppressWarnings("deprecation")
-  public IdeAndroidProject(@NotNull AndroidProject project, @NotNull Map<Library, Library> seenDependencies) {
+  private IdeAndroidProject(@NotNull AndroidProject project, @NotNull ModelCache modelCache) {
 
     myModelVersion = project.getModelVersion();
     GradleVersion modelGradleVersion = GradleVersion.parse(myModelVersion);
@@ -88,26 +85,18 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
 
     myVariants = new ArrayList<>();
     for (Variant variant : project.getVariants()) {
-      myVariants.add(new IdeVariant(variant, seenDependencies, modelGradleVersion));
+      myVariants.add(new IdeVariant(variant, modelCache, modelGradleVersion));
     }
 
     myFlavorDimensions = new ArrayList<>(project.getFlavorDimensions());
 
-    myExtraArtifacts = new ArrayList<>();
-    for (ArtifactMetaData artifact : project.getExtraArtifacts()) {
-      myExtraArtifacts.add(new IdeArtifactMetaData(artifact));
-    }
-
     myCompileTarget = project.getCompileTarget();
     myBootClassPath = new ArrayList<>(project.getBootClasspath());
-    myFrameworkSources = new ArrayList<>(project.getFrameworkSources());
 
     myNativeToolchains = new ArrayList<>();
     for (NativeToolchain toolchain : project.getNativeToolchains()) {
       myNativeToolchains.add(new IdeNativeToolchain(toolchain));
     }
-
-    myAaptOptions = new IdeAaptOptions(project.getAaptOptions());
 
     mySigningConfigs = new ArrayList<>();
     for (SigningConfig config : project.getSigningConfigs()) {
@@ -189,7 +178,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   @Override
   @NotNull
   public Collection<ArtifactMetaData> getExtraArtifacts() {
-    return myExtraArtifacts;
+    throw new UnusedModelMethodException("getExtraArtifacts");
   }
 
   @Override
@@ -207,7 +196,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   @Override
   @NotNull
   public Collection<File> getFrameworkSources() {
-    return myFrameworkSources;
+    throw new UnusedModelMethodException("getFrameworkSources");
   }
 
   @Override
@@ -219,7 +208,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
-    return myAaptOptions;
+    throw new UnusedModelMethodException("getAaptOptions");
   }
 
   @Override
@@ -234,6 +223,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
     return myLintOptions;
   }
 
+  @Deprecated
   @Override
   @NotNull
   public Collection<String> getUnresolvedDependencies() {
@@ -263,6 +253,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
     return myApiVersion;
   }
 
+  @Deprecated
   @Override
   public boolean isLibrary() {
     return myLibrary;

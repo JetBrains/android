@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Creates a deep copy of a {@link SourceProviderContainer}.
  */
-public final class IdeSourceProviderContainer implements SourceProviderContainer, Serializable {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public final class SourceProviderContainerStub implements SourceProviderContainer {
   @NotNull private final String myArtifactName;
-  @NotNull private final IdeSourceProvider mySourceProvider;
+  @NotNull private final SourceProvider mySourceProvider;
 
-  public IdeSourceProviderContainer(@NotNull SourceProviderContainer container) {
-    myArtifactName = container.getArtifactName();
-    mySourceProvider = new IdeSourceProvider(container.getSourceProvider());
+  public SourceProviderContainerStub() {
+    this("name", new SourceProviderStub());
+  }
+
+  public SourceProviderContainerStub(@NotNull String name, @NotNull SourceProvider sourceProvider) {
+    myArtifactName = name;
+    mySourceProvider = sourceProvider;
   }
 
   @Override
@@ -45,7 +45,7 @@ public final class IdeSourceProviderContainer implements SourceProviderContainer
 
   @Override
   @NotNull
-  public IdeSourceProvider getSourceProvider() {
+  public SourceProvider getSourceProvider() {
     return mySourceProvider;
   }
 
@@ -54,24 +54,16 @@ public final class IdeSourceProviderContainer implements SourceProviderContainer
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeSourceProviderContainer)) {
+    if (!(o instanceof SourceProviderContainer)) {
       return false;
     }
-    IdeSourceProviderContainer container = (IdeSourceProviderContainer)o;
-    return Objects.equals(myArtifactName, container.myArtifactName) &&
-           Objects.equals(mySourceProvider, container.mySourceProvider);
+    SourceProviderContainer stub = (SourceProviderContainer)o;
+    return Objects.equals(getArtifactName(), stub.getArtifactName()) &&
+           Objects.equals(getSourceProvider(), stub.getSourceProvider());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myArtifactName, mySourceProvider);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeSourceProviderContainer{" +
-           "myArtifactName='" + myArtifactName + '\'' +
-           ", mySourceProvider=" + mySourceProvider +
-           '}';
+    return Objects.hash(getArtifactName(), getSourceProvider());
   }
 }

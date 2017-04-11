@@ -23,61 +23,48 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Creates a deep copy of {@link AndroidArtifact}.
- *
- * @see IdeAndroidProject
  */
 public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifact, Serializable {
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final String myApplicationId;
   @NotNull private final String mySourceGenTaskName;
-  @NotNull private final Collection<File> myGeneratedResourceFolders;
-  @NotNull private final Map<String,ClassField> myBuildConfigFields;
-  @NotNull private final Map<String,ClassField> myResValues;
+  @NotNull private final Collection<File> myGeneratedResourceFolders = new ArrayList<>();
+  @NotNull private final Map<String, ClassField> myBuildConfigFields = new HashMap<>();
+  @NotNull private final Map<String, ClassField> myResValues = new HashMap<>();
   @NotNull private final InstantRun myInstantRun;
   @Nullable private final String mySigningConfigName;
   @Nullable private final Set<String> myAbiFilters;
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
   private final boolean mySigned;
 
-  public IdeAndroidArtifact(@NotNull AndroidArtifact artifact, @NotNull Map<Library, Library> seen, @NotNull GradleVersion gradleVersion) {
+  public IdeAndroidArtifact(@NotNull AndroidArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
     super(artifact, seen, gradleVersion);
 
-    myOutputs = new HashSet<>();
-    for (AndroidArtifactOutput output : artifact.getOutputs()) {
-      myOutputs.add(new IdeAndroidArtifactOutput(output));
-    }
+    myOutputs = artifact.getOutputs().stream().map(IdeAndroidArtifactOutput::new).collect(Collectors.toList());
 
     myApplicationId = artifact.getApplicationId();
     mySourceGenTaskName = artifact.getSourceGenTaskName();
-    myGeneratedResourceFolders = new ArrayList<>(artifact.getGeneratedResourceFolders());
+    myGeneratedResourceFolders.addAll(artifact.getGeneratedResourceFolders());
 
-    Map<String, ClassField> arBuildConfigFields = artifact.getBuildConfigFields();
-    myBuildConfigFields = new HashMap<>();
-    for (String key : arBuildConfigFields.keySet()) {
-      myBuildConfigFields.put(key, new IdeClassField(arBuildConfigFields.get(key)));
-    }
+    Map<String, ClassField> buildConfigFields = artifact.getBuildConfigFields();
+    buildConfigFields.forEach((name, classField) -> myBuildConfigFields.put(name, new IdeClassField(classField)));
 
-    Map<String, ClassField> arResValues = artifact.getResValues();
-    myResValues = new HashMap<>();
-    for (String key : arResValues.keySet()) {
-      myResValues.put(key, new IdeClassField(arResValues.get(key)));
-    }
+    Map<String, ClassField> resValues = artifact.getResValues();
+    resValues.forEach((name, classField) -> myResValues.put(name, new IdeClassField(classField)));
 
     myInstantRun = new IdeInstantRun(artifact.getInstantRun());
     mySigningConfigName = artifact.getSigningConfigName();
 
-    Set<String> arAbiFilters = artifact.getAbiFilters();
-    myAbiFilters = arAbiFilters == null ? null : new HashSet<>(arAbiFilters);
+    Set<String> abiFilters = artifact.getAbiFilters();
+    myAbiFilters = abiFilters != null ? new HashSet<>(abiFilters) : null;
 
-    Collection<NativeLibrary> arNativeLibraries =artifact.getNativeLibraries();
-    if (arNativeLibraries != null) {
-      myNativeLibraries = new ArrayList<>();
-      for (NativeLibrary library : arNativeLibraries) {
-        myNativeLibraries.add(new IdeNativeLibrary(library));
-      }
+    Collection<NativeLibrary> nativeLibraries = artifact.getNativeLibraries();
+    if (nativeLibraries != null) {
+      myNativeLibraries = nativeLibraries.stream().map(IdeNativeLibrary::new).collect(Collectors.toList());
     }
     else {
       myNativeLibraries = null;
@@ -149,5 +136,50 @@ public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifa
   @Override
   public boolean isSigned() {
     return mySigned;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    IdeAndroidArtifact artifact = (IdeAndroidArtifact)o;
+    return mySigned == artifact.mySigned &&
+           Objects.equals(myOutputs, artifact.myOutputs) &&
+           Objects.equals(myApplicationId, artifact.myApplicationId) &&
+           Objects.equals(mySourceGenTaskName, artifact.mySourceGenTaskName) &&
+           Objects.equals(myGeneratedResourceFolders, artifact.myGeneratedResourceFolders) &&
+           Objects.equals(myBuildConfigFields, artifact.myBuildConfigFields) &&
+           Objects.equals(myResValues, artifact.myResValues) &&
+           Objects.equals(myInstantRun, artifact.myInstantRun) &&
+           Objects.equals(mySigningConfigName, artifact.mySigningConfigName) &&
+           Objects.equals(myAbiFilters, artifact.myAbiFilters) &&
+           Objects.equals(myNativeLibraries, artifact.myNativeLibraries);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myOutputs, myApplicationId, mySourceGenTaskName, myGeneratedResourceFolders, myBuildConfigFields, myResValues,
+                        myInstantRun, mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeAndroidArtifact{" +
+           "myOutputs=" + myOutputs +
+           ", myApplicationId='" + myApplicationId + '\'' +
+           ", mySourceGenTaskName='" + mySourceGenTaskName + '\'' +
+           ", myGeneratedResourceFolders=" + myGeneratedResourceFolders +
+           ", myBuildConfigFields=" + myBuildConfigFields +
+           ", myResValues=" + myResValues +
+           ", myInstantRun=" + myInstantRun +
+           ", mySigningConfigName='" + mySigningConfigName + '\'' +
+           ", myAbiFilters=" + myAbiFilters +
+           ", myNativeLibraries=" + myNativeLibraries +
+           ", mySigned=" + mySigned +
+           '}';
   }
 }

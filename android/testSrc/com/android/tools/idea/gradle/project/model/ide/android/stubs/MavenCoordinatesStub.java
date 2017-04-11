@@ -13,30 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.MavenCoordinates;
+import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link MavenCoordinates}.
- */
-public final class IdeMavenCoordinates implements MavenCoordinates, Serializable {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public class MavenCoordinatesStub implements MavenCoordinates {
   @NotNull private final String myGroupId;
   @NotNull private final String myArtifactId;
   @NotNull private final String myVersion;
 
-  public IdeMavenCoordinates(@NotNull MavenCoordinates coordinates) {
-    myGroupId = coordinates.getGroupId();
-    myArtifactId = coordinates.getArtifactId();
-    myVersion = coordinates.getVersion();
+  public MavenCoordinatesStub() {
+    this("com.android.tools", "test", "2.1");
+  }
+
+  public MavenCoordinatesStub(@NotNull String groupId, @NotNull String artifactId, @NotNull String version) {
+    myGroupId = groupId;
+    myArtifactId = artifactId;
+    myVersion = version;
   }
 
   @Override
@@ -80,26 +78,17 @@ public final class IdeMavenCoordinates implements MavenCoordinates, Serializable
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeMavenCoordinates)) {
+    if (!(o instanceof MavenCoordinates)) {
       return false;
     }
-    IdeMavenCoordinates that = (IdeMavenCoordinates)o;
-    return Objects.equals(myGroupId, that.myGroupId) &&
-           Objects.equals(myArtifactId, that.myArtifactId) &&
-           Objects.equals(myVersion, that.myVersion);
+    MavenCoordinates coordinates = (MavenCoordinates)o;
+    return Objects.equals(getGroupId(), coordinates.getGroupId()) &&
+           Objects.equals(getArtifactId(), coordinates.getArtifactId()) &&
+           Objects.equals(getVersion(), coordinates.getVersion());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myGroupId, myArtifactId, myVersion);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeMavenCoordinates{" +
-           "myGroupId='" + myGroupId + '\'' +
-           ", myArtifactId='" + myArtifactId + '\'' +
-           ", myVersion='" + myVersion + '\'' +
-           '}';
+    return Objects.hash(getGroupId(), getArtifactId(), getVersion());
   }
 }

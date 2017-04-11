@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Dependencies;
-import com.android.builder.model.Library;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Creates a deep copy of {@link BaseArtifact}.
  *
  * @see IdeAndroidProject
  */
-public class IdeBaseArtifact implements BaseArtifact, Serializable {
+public abstract class IdeBaseArtifact implements BaseArtifact, Serializable {
   @NotNull private final String myName;
   @NotNull private final String myCompileTaskName;
   @NotNull private final String myAssembleTaskName;
@@ -44,17 +46,17 @@ public class IdeBaseArtifact implements BaseArtifact, Serializable {
   @NotNull private final DependencyGraphs myDependencyGraphs;
   @NotNull private final Set<String> myIdeSetupTaskNames;
   @NotNull private final Collection<File> myGeneratedSourceFolders;
-  @Nullable private final SourceProvider myVariantSourceProvider;
-  @Nullable private final SourceProvider myMultiFlavorSourceProvider;
+  @Nullable private final IdeSourceProvider myVariantSourceProvider;
+  @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
 
-  @SuppressWarnings("deprecation")
-  public IdeBaseArtifact(@NotNull BaseArtifact artifact, @NotNull Map<Library, Library> seen, @NotNull GradleVersion gradleVersion) {
+  public IdeBaseArtifact(@NotNull BaseArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
     myName = artifact.getName();
     myCompileTaskName = artifact.getCompileTaskName();
     myAssembleTaskName = artifact.getAssembleTaskName();
     myClassesFolder = artifact.getClassesFolder();
     myJavaResourcesFolder = artifact.getJavaResourcesFolder();
     myDependencies = new IdeDependencies(artifact.getDependencies(), seen, gradleVersion);
+    //noinspection deprecation
     myCompileDependencies = new IdeDependencies(artifact.getCompileDependencies(), seen, gradleVersion);
 
     if (gradleVersion.isAtLeast(2, 3, 0)) {
@@ -63,15 +65,15 @@ public class IdeBaseArtifact implements BaseArtifact, Serializable {
     else {
       myDependencyGraphs = new IdeDependencyGraphs(null);
     }
-
     myIdeSetupTaskNames = new HashSet<>(artifact.getIdeSetupTaskNames());
     myGeneratedSourceFolders = new ArrayList<>(artifact.getGeneratedSourceFolders());
+    myVariantSourceProvider = createSourceProvider(artifact.getVariantSourceProvider());
+    myMultiFlavorSourceProvider = createSourceProvider(artifact.getMultiFlavorSourceProvider());
+  }
 
-    SourceProvider arVariantSourceProvider = artifact.getVariantSourceProvider();
-    myVariantSourceProvider = arVariantSourceProvider != null ? new IdeSourceProvider(arVariantSourceProvider) : null;
-
-    SourceProvider arMultiFlavorSourceProvider = artifact.getMultiFlavorSourceProvider();
-    myMultiFlavorSourceProvider = arMultiFlavorSourceProvider != null ? new IdeSourceProvider(arMultiFlavorSourceProvider) : null;
+  @Nullable
+  private static IdeSourceProvider createSourceProvider(@Nullable SourceProvider original) {
+    return original != null ? new IdeSourceProvider(original) : null;
   }
 
   @Override
@@ -136,13 +138,13 @@ public class IdeBaseArtifact implements BaseArtifact, Serializable {
 
   @Override
   @Nullable
-  public SourceProvider getVariantSourceProvider() {
+  public IdeSourceProvider getVariantSourceProvider() {
     return myVariantSourceProvider;
   }
 
   @Override
   @Nullable
-  public SourceProvider getMultiFlavorSourceProvider() {
+  public IdeSourceProvider getMultiFlavorSourceProvider() {
     return myMultiFlavorSourceProvider;
   }
 }

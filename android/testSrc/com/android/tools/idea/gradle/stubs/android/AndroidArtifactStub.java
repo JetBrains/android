@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
-import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.ClassField;
-import com.android.builder.model.NativeLibrary;
-import com.android.builder.model.InstantRun;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,12 +35,14 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
 
   private InstantRun myInstantRun;
 
-  AndroidArtifactStub(@NotNull String name, String dirName, @NotNull String buildType, @NotNull FileStructure fileStructure) {
-    super(name, dirName, new DependenciesStub(), buildType, fileStructure);
+  AndroidArtifactStub(@NotNull String name,
+                      @NotNull String folderName,
+                      @NonNls @NotNull String buildType,
+                      @NotNull FileStructure fileStructure) {
+    super(name, folderName, new DependenciesStub(), buildType, fileStructure);
     myApplicationId = "app." + buildType.toLowerCase();
-    myOutputs = Arrays.<AndroidArtifactOutput>asList(
-      new AndroidArtifactOutputStub(Arrays.<OutputFile>asList(
-        new OutputFileStub(new File(name + "-" + buildType + ".apk")))));
+    AndroidArtifactOutputStub output = new AndroidArtifactOutputStub(new OutputFileStub(new File(name + "-" + buildType + ".apk")));
+    myOutputs = Collections.singletonList(output);
   }
 
   @Override
@@ -71,7 +68,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
     return myApplicationId;
   }
 
-  public AndroidArtifactStub setApplicationId(String applicationId) {
+  public AndroidArtifactStub setApplicationId(@NotNull String applicationId) {
     myApplicationId = applicationId;
     return this;
   }
@@ -95,7 +92,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   }
 
   @Override
-  @Nullable
+  @NotNull
   public Collection<NativeLibrary> getNativeLibraries() {
     return myNativeLibraries;
   }
@@ -113,6 +110,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   }
 
   @Override
+  @NotNull
   public InstantRun getInstantRun() {
     return myInstantRun;
   }

@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.BaseConfig;
 import com.android.builder.model.ClassField;
+import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.*;
 
 /**
  * Creates a deep copy of a {@link BaseConfig}.
  */
-public abstract class IdeBaseConfig implements BaseConfig, Serializable {
+public class BaseConfigStub implements BaseConfig {
   @NotNull private final String myName;
   @NotNull private final Map<String, ClassField> myResValues;
   @NotNull private final Collection<File> myProguardFiles;
@@ -36,18 +36,20 @@ public abstract class IdeBaseConfig implements BaseConfig, Serializable {
   @Nullable private final String myApplicationIdSuffix;
   @Nullable private final String myVersionNameSuffix;
 
-  protected IdeBaseConfig(@NotNull BaseConfig config) {
-    myName = config.getName();
-
-    Map<String, ClassField> resValues = config.getResValues();
-    myResValues = new HashMap<>(resValues.size());
-    resValues.forEach((name, classField) -> myResValues.put(name, new IdeClassField(classField)));
-
-    myProguardFiles = new ArrayList<>(config.getProguardFiles());
-    myConsumerProguardFiles = new ArrayList<>(config.getConsumerProguardFiles());
-    myManifestPlaceholders = new HashMap<>(config.getManifestPlaceholders());
-    myApplicationIdSuffix = config.getApplicationIdSuffix();
-    myVersionNameSuffix = config.getVersionNameSuffix();
+  public BaseConfigStub(@NotNull String name,
+                        @NotNull Map<String, ClassField> values,
+                        @NotNull Collection<File> proguardFiles,
+                        @NotNull Collection<File> consumerProguardFiles,
+                        @NotNull Map<String, Object> placeholders,
+                        @Nullable String applicationIdSuffix,
+                        @Nullable String versionNameSuffix) {
+    myName = name;
+    myResValues = values;
+    myProguardFiles = proguardFiles;
+    myConsumerProguardFiles = consumerProguardFiles;
+    myManifestPlaceholders = placeholders;
+    myApplicationIdSuffix = applicationIdSuffix;
+    myVersionNameSuffix = versionNameSuffix;
   }
 
   @Override
@@ -126,46 +128,5 @@ public abstract class IdeBaseConfig implements BaseConfig, Serializable {
   @Nullable
   public File getMultiDexKeepProguard() {
     throw new UnusedModelMethodException("getMultiDexKeepProguard");
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof IdeBaseConfig)) {
-      return false;
-    }
-    IdeBaseConfig config = (IdeBaseConfig)o;
-    return config.canEqual(this) &&
-           Objects.equals(myName, config.myName) &&
-           Objects.deepEquals(myResValues, config.myResValues) &&
-           Objects.deepEquals(myProguardFiles, config.myProguardFiles) &&
-           Objects.deepEquals(myConsumerProguardFiles, config.myConsumerProguardFiles) &&
-           Objects.deepEquals(myManifestPlaceholders, config.myManifestPlaceholders) &&
-           Objects.equals(myApplicationIdSuffix, config.myApplicationIdSuffix) &&
-           Objects.equals(myVersionNameSuffix, config.myVersionNameSuffix);
-  }
-
-  public boolean canEqual(Object other) {
-    // See: http://www.artima.com/lejava/articles/equality.html
-    return other instanceof IdeBaseConfig;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(myName, myResValues, myProguardFiles, myConsumerProguardFiles, myManifestPlaceholders, myApplicationIdSuffix,
-                        myVersionNameSuffix);
-  }
-
-  @Override
-  public String toString() {
-    return "myName='" + myName + '\'' +
-           ", myResValues=" + myResValues +
-           ", myProguardFiles=" + myProguardFiles +
-           ", myConsumerProguardFiles=" + myConsumerProguardFiles +
-           ", myManifestPlaceholders=" + myManifestPlaceholders +
-           ", myApplicationIdSuffix='" + myApplicationIdSuffix + '\'' +
-           ", myVersionNameSuffix='" + myVersionNameSuffix + '\'';
   }
 }

@@ -15,45 +15,46 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link BuildTypeContainer}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link BuildTypeContainer}.
  */
-public class IdeBuildTypeContainer implements BuildTypeContainer, Serializable {
-  @NotNull private final BuildType myBuildType;
-  @NotNull private final SourceProvider mySourceProvider;
+public final class IdeBuildTypeContainer implements BuildTypeContainer, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
+  @NotNull private final IdeBuildType myBuildType;
+  @NotNull private final IdeSourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
 
   public IdeBuildTypeContainer(@NotNull BuildTypeContainer container) {
     myBuildType = new IdeBuildType(container.getBuildType());
     mySourceProvider = new IdeSourceProvider(container.getSourceProvider());
 
-    myExtraSourceProviders = new ArrayList<>();
-    for (SourceProviderContainer sourceProviderContainer : container.getExtraSourceProviders()) {
+    Collection<SourceProviderContainer> sourceProviders = container.getExtraSourceProviders();
+    myExtraSourceProviders = new ArrayList<>(sourceProviders.size());
+    for (SourceProviderContainer sourceProviderContainer : sourceProviders) {
       myExtraSourceProviders.add(new IdeSourceProviderContainer(sourceProviderContainer));
     }
   }
 
   @Override
   @NotNull
-  public BuildType getBuildType() {
+  public IdeBuildType getBuildType() {
     return myBuildType;
   }
 
   @Override
   @NotNull
-  public SourceProvider getSourceProvider() {
+  public IdeSourceProvider getSourceProvider() {
     return mySourceProvider;
   }
 
@@ -61,5 +62,33 @@ public class IdeBuildTypeContainer implements BuildTypeContainer, Serializable {
   @NotNull
   public Collection<SourceProviderContainer> getExtraSourceProviders() {
     return myExtraSourceProviders;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeBuildTypeContainer)) {
+      return false;
+    }
+    IdeBuildTypeContainer container = (IdeBuildTypeContainer)o;
+    return Objects.equals(myBuildType, container.myBuildType) &&
+           Objects.equals(mySourceProvider, container.mySourceProvider) &&
+           Objects.equals(myExtraSourceProviders, container.myExtraSourceProviders);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myBuildType, mySourceProvider, myExtraSourceProviders);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeBuildTypeContainer{" +
+           "myBuildType=" + myBuildType +
+           ", mySourceProvider=" + mySourceProvider +
+           ", myExtraSourceProviders=" + myExtraSourceProviders +
+           '}';
   }
 }
