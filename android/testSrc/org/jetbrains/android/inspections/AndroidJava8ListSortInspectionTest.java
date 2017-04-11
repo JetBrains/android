@@ -64,12 +64,6 @@ public class AndroidJava8ListSortInspectionTest extends AndroidInspectionTestCas
   @Override
   protected InspectionProfileEntry getInspection() {
     return new AndroidJava8ListSortInspection() {
-      @NotNull
-      @Override
-      public String getShortName() {
-        return "Java8ListSort";
-      }
-
       @Nls
       @NotNull
       @Override
