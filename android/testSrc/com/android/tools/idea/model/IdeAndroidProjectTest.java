@@ -17,6 +17,7 @@ package com.android.tools.idea.model;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.intellij.testFramework.UsefulTestCase;
 
