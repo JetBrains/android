@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
@@ -73,7 +74,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myTabLayout;
   protected NlComponent myRelativeLayout;
   protected SyncNlModel myModel;
-  protected NlDesignSurface myDesignSurface;
+  protected DesignSurface myDesignSurface;
   protected ScreenView myScreenView;
   protected NlPropertiesManager myPropertiesManager;
   protected NlUsageTracker myUsageTracker;

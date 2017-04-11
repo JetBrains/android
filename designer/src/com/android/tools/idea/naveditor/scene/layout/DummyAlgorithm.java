@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
+import com.android.tools.idea.naveditor.model.NavigationSchema;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,23 +23,29 @@ import java.awt.*;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.naveditor.scene.NavSceneManager.TAG_FRAGMENT;
-
 /**
  * A dumb way of laying out screens in the navigation editor.
  *
  * TODO: implement a better way
  */
 public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
+  private final NavigationSchema mySchema;
+
+  public DummyAlgorithm(NavigationSchema schema) {
+    mySchema = schema;
+  }
+
   @Override
   public void layout(@NotNull SceneComponent component) {
-    if (!component.getNlComponent().getTagName().equals(TAG_FRAGMENT)) {
+    NavigationSchema.DestinationType type = mySchema.getDestinationType(component.getNlComponent().getTagName());
+    // TODO: support other destinations
+    if (type != NavigationSchema.DestinationType.FRAGMENT) {
       return;
     }
     SceneComponent root = component.getScene().getRoot();
     Map<SceneComponent, Rectangle> bounds =
       root.flatten()
-        .filter(c -> c.getNlComponent().getTagName().equals(TAG_FRAGMENT))
+        .filter(c -> mySchema.getDestinationType(c.getNlComponent().getTagName()) == NavigationSchema.DestinationType.FRAGMENT)
         .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(null, 0)));
 
     int xOffset = 50;

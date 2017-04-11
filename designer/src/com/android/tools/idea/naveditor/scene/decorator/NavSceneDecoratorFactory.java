@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator;
 
+import com.android.tools.idea.naveditor.model.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
@@ -31,13 +32,23 @@ import java.util.Map;
 public class NavSceneDecoratorFactory extends SceneDecoratorFactory {
   private static final Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();
 
-  static {
-    try {
-      ourConstructorMap.put(NavSceneManager.TAG_FRAGMENT, NavScreenDecorator.class.getConstructor());
-      ourConstructorMap.put(NavSceneManager.TAG_NAVIGATION, NavigationDecorator.class.getConstructor());
-    }
-    catch (NoSuchMethodException e) {
-      // shouldn't happen
+  public NavSceneDecoratorFactory(@NotNull NavigationSchema schema) {
+    for (NavigationSchema.DestinationTag tag : schema.getDestinationTags()) {
+      try {
+        switch (tag.type) {
+          case NAVIGATION:
+            ourConstructorMap.put(tag.tag, NavigationDecorator.class.getConstructor());
+            break;
+          case FRAGMENT:
+            ourConstructorMap.put(tag.tag, NavScreenDecorator.class.getConstructor());
+            break;
+          default:
+            // TODO
+        }
+      }
+      catch (NoSuchMethodException e) {
+        // shouldn't happen, ignore
+      }
     }
   }
 

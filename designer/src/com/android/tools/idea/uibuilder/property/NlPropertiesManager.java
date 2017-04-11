@@ -74,7 +74,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   private boolean myLoading;
   private int myUpdateCount;
 
-  public NlPropertiesManager(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
+  public NlPropertiesManager(@NotNull Project project, @Nullable DesignSurface designSurface) {
     myProject = project;
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
     myEditors = NlPropertyEditors.getInstance(project);
