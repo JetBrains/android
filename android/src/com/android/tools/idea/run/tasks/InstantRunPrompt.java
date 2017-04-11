@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.fd.actions.HotswapAction;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -36,17 +38,21 @@ import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
-public class InstantRunAdvertisement {
+public class InstantRunPrompt {
   private final Project myProject;
 
-  public InstantRunAdvertisement(@NotNull Project project) {
+  public InstantRunPrompt(@NotNull Project project) {
     myProject = project;
   }
 
   public void show() {
     ApplicationManager.getApplication().invokeLater(() -> {
+      UsageTracker.getInstance()
+        .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.INSTANT_RUN_PROMPT_FOR_APPLY_CHANGES_SHOWN));
+
       GotItMessage message =
-        GotItMessage.createMessage("Instant Run: Apply Changes", AndroidBundle.message("instant.run.notification.ir.advertisement"));
+        GotItMessage.createMessage(AndroidBundle.message("instant.run.prompt.title"),
+                                   AndroidBundle.message("instant.run.prompt.body"));
       message.setShowCallout(true);
       message.setHyperlinkListener((e) -> {
         if (HyperlinkEvent.EventType.ACTIVATED == e.getEventType() && "learnmore".equals(e.getDescription())) {
@@ -90,7 +96,7 @@ public class InstantRunAdvertisement {
       }
     }
     catch (IllegalAccessException | NoSuchFieldException e) {
-      Logger.getInstance("InstantRunAdvertisement").debug("Error finding Apply Changes Button: ", e);
+      Logger.getInstance("InstantRunPrompt").debug("Error finding Apply Changes Button: ", e);
     }
 
     return null;
