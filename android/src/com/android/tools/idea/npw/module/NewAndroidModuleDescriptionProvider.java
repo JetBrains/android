@@ -155,6 +155,11 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
       return myDescription;
     }
 
+    @Override
+    public String toString() {
+      return getName();
+    }
+
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
