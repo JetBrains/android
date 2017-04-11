@@ -15,10 +15,13 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -39,20 +42,20 @@ final class ThreadsView {
   private static final int CELL_HEIGHT_PADDING = JBUI.scale(6);
 
   @NotNull
-  private final JList<List<HttpData>> myList;
+  private final JList<List<HttpData>> myThreadsList;
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
-    myList = new JBList<>(new ThreadListModel(stageView.getStage()));
-    myList.setCellRenderer(new ThreadCellRenderer(myList, stageView.getTimeline().getSelectionRange()));
-    myList.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myList.setFont(AdtUiUtils.DEFAULT_FONT);
-    int fontHeight = myList.getFontMetrics(myList.getFont()).getHeight();
-    myList.setFixedCellHeight(fontHeight + CELL_HEIGHT_PADDING);
+    myThreadsList = new JBList<>(new ThreadListModel(stageView.getStage()));
+    myThreadsList.setCellRenderer(new ThreadCellRenderer(myThreadsList, stageView.getTimeline()));
+    myThreadsList.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    myThreadsList.setFont(AdtUiUtils.DEFAULT_FONT);
+    int fontHeight = myThreadsList.getFontMetrics(myThreadsList.getFont()).getHeight();
+    myThreadsList.setFixedCellHeight(fontHeight + CELL_HEIGHT_PADDING);
   }
 
   @NotNull
   JComponent getComponent() {
-    return myList;
+    return myThreadsList;
   }
 
   private static final class ThreadListModel extends DefaultListModel<List<HttpData>> {
@@ -75,7 +78,7 @@ final class ThreadsView {
       }
       List<HttpData> dataList = myStage.getConnectionsModel().getData(selection);
       Map<Long, List<HttpData>> threads = new HashMap<>();
-      for (HttpData data: dataList) {
+      for (HttpData data : dataList) {
         if (!threads.containsKey(data.getJavaThread().getId())) {
           threads.put(data.getJavaThread().getId(), new ArrayList<>());
         }
@@ -95,13 +98,15 @@ final class ThreadsView {
 
   private static final class ThreadCellRenderer implements ListCellRenderer<List<HttpData>> {
     @NotNull private final JList<List<HttpData>> myList;
-    @NotNull private final Range myRange;
     @NotNull private final List<JComponent> myRows;
+    @NotNull private final ProfilerTimeline myTimeline;
+    private AxisComponent myAxis;
+
     private int myHoveredIndex = -1;
 
-    ThreadCellRenderer(@NotNull JList<List<HttpData>> list, @NotNull Range range) {
+    ThreadCellRenderer(@NotNull JList<List<HttpData>> list, @NotNull ProfilerTimeline timeline) {
       myList = list;
-      myRange = range;
+      myTimeline = timeline;
       myRows = new ArrayList<>();
 
       list.getModel().addListDataListener(new ListDataListener() {
@@ -142,6 +147,8 @@ final class ThreadsView {
       };
       myList.addMouseMotionListener(mouseAdapter);
       myList.addMouseListener(mouseAdapter);
+
+      modelChanged();
     }
 
     private void modelChanged() {
@@ -150,7 +157,7 @@ final class ThreadsView {
         List<HttpData> data = myList.getModel().getElementAt(i);
         assert !data.isEmpty();
 
-        ConnectionsStateChart chart = new ConnectionsStateChart(data, myRange);
+        ConnectionsStateChart chart = new ConnectionsStateChart(data, myTimeline.getSelectionRange());
         chart.setHeightGap(0.4f);
 
         JLabel label = new JLabel(data.get(0).getJavaThread().getName());
@@ -163,6 +170,7 @@ final class ThreadsView {
 
         myRows.add(panel);
       }
+      myAxis = createAxis();
     }
 
     @Override
@@ -173,7 +181,29 @@ final class ThreadsView {
                                                   boolean cellHasFocus) {
       Component comp = myRows.get(index);
       comp.setBackground(index == myHoveredIndex ? ProfilerColors.NETWORK_TABLE_HOVER_COLOR : list.getBackground());
-      return comp;
+
+      myAxis.setMarkerLengths(list.getFixedCellHeight(), 0);
+      // If it is the first row show labels.
+      myAxis.setShowLabels(index == 0);
+
+      JPanel panel = new JPanel(new TabularLayout("*", "*"));
+      panel.add(myAxis, new TabularLayout.Constraint(0, 0));
+      panel.add(comp, new TabularLayout.Constraint(0, 0));
+      return panel;
+    }
+
+    @NotNull
+    private AxisComponent createAxis() {
+      AxisComponentModel model = new AxisComponentModel(myTimeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1));
+      model.setClampToMajorTicks(false);
+      model.setGlobalRange(myTimeline.getDataRange());
+
+      AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
+      axis.setShowAxisLine(false);
+      axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
+      axis.setForeground(ProfilerColors.NETWORK_TABLE_AXIS);
+      model.update(1);
+      return axis;
     }
   }
 }

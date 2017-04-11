@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.*;
@@ -25,6 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -91,6 +94,16 @@ public class ThreadsViewTest {
     assertThat(list.getModel().getSize(), is(2));
     assertThat(list.getModel().getElementAt(0), is(Collections.singletonList(FAKE_DATA.get(5))));
     assertThat(list.getModel().getElementAt(1), is(Collections.singletonList(FAKE_DATA.get(6))));
+  }
+
+  @Test
+  public void ensureAxisInList() {
+    JList<List<HttpData>> list = this.getList();
+    Range selection = myStageView.getTimeline().getSelectionRange();
+    selection.set(0, TimeUnit.SECONDS.toMicros(22));
+
+    Component rendered = list.getCellRenderer().getListCellRendererComponent(list, list.getModel().getElementAt(0), 0, false, false);
+    assertTrue(new TreeWalker(rendered).descendantStream().anyMatch(c -> c instanceof AxisComponent));
   }
 
   @NotNull
