@@ -82,7 +82,7 @@ public class FileResourceRepositoryTest extends TestCase {
   public void testLibraryNameIsMaintained() throws IOException {
     FileResourceRepository repository = getTestRepository();
     assertThat(repository.getLibraryName()).isEqualTo(LIBRARY_NAME);
-    for (ListMultimap<String, ResourceItem> multimap : repository.getMap().values()) {
+    for (ListMultimap<String, ResourceItem> multimap : repository.getItems().values()) {
       for (ResourceItem item : multimap.values()) {
         assertThat(item.getLibraryName()).isEqualTo(LIBRARY_NAME);
       }

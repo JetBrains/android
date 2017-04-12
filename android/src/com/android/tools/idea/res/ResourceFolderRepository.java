@@ -93,7 +93,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private final AndroidFacet myFacet;
   private final PsiListener myListener;
   private final VirtualFile myResourceDir;
-  private final Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
+  private final String myNamespace;
+  private final ResourceTable myFullTable = new ResourceTable();
   private final Map<VirtualFile, ResourceFile> myResourceFiles = Maps.newHashMap();
   // qualifiedName -> PsiResourceFile
   private Map<String, DataBindingInfo> myDataBindingResourceFiles = Maps.newHashMap();
@@ -105,12 +106,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @VisibleForTesting
   static int ourFullRescans;
 
-  private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir) {
+  private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir, @Nullable String namespace) {
     super(resourceDir.getName());
     myFacet = facet;
     myModule = facet.getModule();
     myListener = new PsiListener();
     myResourceDir = resourceDir;
+    myNamespace = namespace;
 
     ResourceMerger merger = loadPreviousStateIfExists();
     myInitialScanState = new InitialScanState(merger, VfsUtilCore.virtualToIoFile(myResourceDir));
@@ -145,8 +147,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   /** NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method. */
   @NotNull
-  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir) {
-    return new ResourceFolderRepository(facet, dir);
+  // TODO: namespaces
+  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir, @Nullable String namespace) {
+    return new ResourceFolderRepository(facet, dir, namespace);
   }
 
   /**
@@ -241,7 +244,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           resourceFiles.add(file);
           myResourceFiles.put(vFile, file);
         }
-        ListMultimap<String, ResourceItem> map = getMap(item.getType(), true);
+        ListMultimap<String, ResourceItem> map = getMap(myNamespace, item.getType(), true);
         map.put(item.getName(), item);
       } else {
         // Cannot handle this item, mark it ignored to that it doesn't persist.
@@ -253,7 +256,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   private ResourceMerger createFreshResourceMerger() {
     ResourceMerger merger = new ResourceMerger(0 /* minSdk */);
-    ResourceSet myData = new ResourceSet(myResourceDir.getName(), null, getLibraryName(), false /* validateEnabled */);
+    ResourceSet myData = new ResourceSet(myResourceDir.getName(), myNamespace, getLibraryName(), false /* validateEnabled */);
     File resourceDir = VfsUtilCore.virtualToIoFile(myResourceDir);
     myData.addSource(resourceDir);
     merger.addDataSet(myData);
@@ -404,7 +407,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(fileResource.folderType);
         assert resourceTypes.size() >= 1 : fileResource.folderType;
         ResourceType type = resourceTypes.get(0);
-        ListMultimap<String, ResourceItem> map = getMap(type, true);
+        ListMultimap<String, ResourceItem> map = getMap(myNamespace, type, true);
         scanFileResourceFileAsPsi(fileResource.qualifiers, fileResource.folderType, fileResource.folderConfiguration,
                                   type, true, map, file);
       }
@@ -464,7 +467,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
     boolean idGeneratingFolder = FolderTypeRelationship.isIdGeneratingFolderType(folderType);
 
-    ListMultimap<String, ResourceItem> map = getMap(type, true);
+    ListMultimap<String, ResourceItem> map = getMap(myNamespace, type, true);
 
     for (VirtualFile file : directory.getChildren()) {
       if (file.isValid() && !file.isDirectory()) {
@@ -486,7 +489,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                                          PsiFile file) {
     // XML or Image
     String name = ResourceHelper.getResourceName(file);
-    ResourceItem item = new PsiResourceItem(name, type, null, file);
+    ResourceItem item = new PsiResourceItem(name, type, myNamespace, null, file);
 
     if (idGenerating) {
       List<ResourceItem> items = Lists.newArrayList();
@@ -526,7 +529,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             new PsiFileResourceQueueEntry(file, qualifiers, folderType, folderConfiguration));
           return;
         }
-        ListMultimap<String, ResourceItem> idMap = getMap(ResourceType.ID, true);
+        ListMultimap<String, ResourceItem> idMap = getMap(myNamespace, ResourceType.ID, true);
         boolean isDensityBasedResource = folderType == DRAWABLE || folderType == MIPMAP;
         // We skip caching density-based resources, so don't count those against cache statistics.
         if (!isDensityBasedResource) {
@@ -560,7 +563,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       // We create the items without adding it to the resource set / resource merger.
       // No need to write these out to blob files, as the item is easily reconstructed from the filename.
       String name = ResourceHelper.getResourceName(file);
-      ResourceItem item = new ResourceItem(name, getNamespace(), type, null, getLibraryName());
+      ResourceItem item = new ResourceItem(name, myNamespace, type, null, getLibraryName());
       map.put(name, item);
       resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, qualifiers, folderConfiguration);
       item.setIgnoredFromDiskMerge(true);
@@ -740,26 +743,26 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   @NonNull
   @Override
-  protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-    return myItems;
+  protected ResourceTable getFullTable() {
+    return myFullTable;
   }
 
   @Nullable
   @Override
-  @Contract("_, true -> !null")
-  protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-    ListMultimap<String, ResourceItem> multimap = myItems.get(type);
+  @Contract("_, _, true -> !null")
+  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NotNull ResourceType type, boolean create) {
+    ListMultimap<String, ResourceItem> multimap = myFullTable.get(namespace, type);
     if (multimap == null && create) {
       multimap = LinkedListMultimap.create(); // use LinkedListMultimap to preserve ordering for editors that show original order.
-      myItems.put(type, multimap);
+      myFullTable.put(namespace, type, multimap);
     }
     return multimap;
   }
 
   @Override
-  public void clear() {
-    super.clear();
-    myResourceFiles.clear();
+  @NotNull
+  public Set<String> getNamespaces() {
+    return Collections.singleton(myNamespace);
   }
 
   private void addIds(List<ResourceItem> items, PsiFile file) {
@@ -780,10 +783,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     }
     // Add any remaining ids.
     if (!pendingResourceIds.isEmpty()) {
-      ListMultimap<String, ResourceItem> map = getMap(ResourceType.ID, true);
+      ListMultimap<String, ResourceItem> map = getMap(myNamespace, ResourceType.ID, true);
       for (Map.Entry<String, XmlTag> entry : pendingResourceIds.entrySet()) {
         String id = entry.getKey();
-        PsiResourceItem remainderItem = new PsiResourceItem(id, ResourceType.ID, entry.getValue(), file);
+        PsiResourceItem remainderItem = new PsiResourceItem(id, ResourceType.ID, myNamespace, entry.getValue(), file);
         items.add(remainderItem);
         map.put(id, remainderItem);
       }
@@ -799,7 +802,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         // the list of pending ids.
         String value = attribute.getValue();
         if (value != null && value.startsWith(NEW_ID_PREFIX) && !ATTR_ID.equals(attribute.getLocalName())) {
-          ListMultimap<String, ResourceItem> map = myItems.get(ResourceType.ID);
+          ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, ResourceType.ID);
           String id = value.substring(NEW_ID_PREFIX.length());
           if (map != null && !map.containsKey(id) && !pendingResourceIds.containsKey(id)) {
             pendingResourceIds.put(id, tag);
@@ -823,10 +826,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         return;
       }
       pendingResourceIds.remove(id);
-      PsiResourceItem item = new PsiResourceItem(id, ResourceType.ID, tag, file);
+      PsiResourceItem item = new PsiResourceItem(id, ResourceType.ID, myNamespace, tag, file);
       items.add(item);
 
-      getMap(ResourceType.ID, true).put(id, item);
+      getMap(myNamespace, ResourceType.ID).put(id, item);
     }
   }
 
@@ -863,8 +866,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (name != null) {
             ResourceType type = AndroidResourceUtil.getType(tag);
             if (type != null) {
-              ListMultimap<String, ResourceItem> map = getMap(type, true);
-              ResourceItem item = new PsiResourceItem(name, type, tag, file);
+              ListMultimap<String, ResourceItem> map = getMap(myNamespace, type, true);
+              ResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, file);
               map.put(name, item);
               items.add(item);
               added = true;
@@ -873,7 +876,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 // for declare styleables we also need to create attr items for its children
                 XmlTag[] attrs = tag.getSubTags();
                 if (attrs.length > 0) {
-                  map = getMap(ResourceType.ATTR, true);
+                  map = getMap(myNamespace, ResourceType.ATTR, true);
 
                   for (XmlTag child : attrs) {
                     String attrName = child.getAttributeValue(ATTR_NAME);
@@ -881,7 +884,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         // Only add attr nodes for elements that specify a format or have flag/enum children; otherwise
                         // it's just a reference to an existing attr
                         && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
-                      ResourceItem attrItem = new PsiResourceItem(attrName, ResourceType.ATTR, child, file);
+                      ResourceItem attrItem = new PsiResourceItem(attrName, ResourceType.ATTR, myNamespace, child, file);
                       items.add(attrItem);
                       map.put(attrName, attrItem);
                     }
@@ -916,7 +919,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           return;
         }
         for (ResourceItem item : resourceFile.getItems()) {
-          ListMultimap<String, ResourceItem> map = getMap(item.getType(), true);
+          ListMultimap<String, ResourceItem> map = getMap(myNamespace, item.getType(), true);
           map.put(item.getName(), item);
         }
         myInitialScanState.countCacheMiss();
@@ -1076,7 +1079,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         // TODO: Consider doing a deeper diff of the changes to the resource items
         // to determine if the removed and added items actually differ
         myGeneration = ourModificationCounter.incrementAndGet();
-        invalidateItemCaches();
+        invalidateParentCaches();
       }
     } else {
       ResourceFile resFile = myResourceFiles.get(file.getVirtualFile());
@@ -1096,7 +1099,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           // to update the id's:
           Set<String> idsBefore = Sets.newHashSet();
           Set<String> idsAfter = Sets.newHashSet();
-          ListMultimap<String, ResourceItem> map = myItems.get(ResourceType.ID);
+          ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, ResourceType.ID);
           if (map != null) {
             List<ResourceItem> idItems = Lists.newArrayList();
             for (ResourceItem item : resourceFile) {
@@ -1143,7 +1146,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           }
           scanDataBinding(resourceFile, myGeneration);
           // Identities may have changed even if the ids are the same, so update maps
-          invalidateItemCaches(ResourceType.ID);
+          invalidateParentCaches(myNamespace, ResourceType.ID);
         }
       } else {
         // Remove old items first, if switching to Psi. Rescan below to add back, but with a possibly different multimap list order.
@@ -1165,7 +1168,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
         boolean idGeneratingFolder = FolderTypeRelationship.isIdGeneratingFolderType(folderType);
 
-        ListMultimap<String, ResourceItem> map = getMap(type, true);
+        ListMultimap<String, ResourceItem> map = getMap(myNamespace, type, true);
 
         file = ensureValid(file);
         if (file != null) {
@@ -1178,7 +1181,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             }
           }
           myGeneration = ourModificationCounter.incrementAndGet();
-          invalidateItemCaches();
+          invalidateParentCaches();
         }
       }
     }
@@ -1191,7 +1194,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     // We CAN'T just remove items found in ResourceFile.getItems() because that map
     // flattens everything down to a single item for a given name (it's using a flat
     // map rather than a multimap) so instead we have to look up from the map instead
-    ListMultimap<String, ResourceItem> map = myItems.get(type);
+    ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
     if (map != null) {
       List<ResourceItem> mapItems = map.get(name);
       if (mapItems != null) {
@@ -1290,12 +1293,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       return;
                     }
                     if (type != null) {
-                      ListMultimap<String, ResourceItem> map = getMap(type, true);
-                      ResourceItem item = new PsiResourceItem(name, type, tag, psiFile);
+                      ListMultimap<String, ResourceItem> map = getMap(myNamespace, type, true);
+                      ResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, psiFile);
                       map.put(name, item);
                       resourceFile.addItems(Collections.singletonList(item));
                       myGeneration = ourModificationCounter.incrementAndGet();
-                      invalidateItemCaches(type);
+                      invalidateParentCaches(myNamespace, type);
                       return;
                     }
                   }
@@ -1358,7 +1361,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     PsiResourceFile resourceFile = (PsiResourceFile)resFile;
                     resourceFile.addItems(ids);
                     myGeneration = ourModificationCounter.incrementAndGet();
-                    invalidateItemCaches(ResourceType.ID);
+                    invalidateParentCaches(myNamespace, ResourceType.ID);
                   }
                 }
                 return;
@@ -1500,13 +1503,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   if (name != null) {
                     ResourceType type = AndroidResourceUtil.getType(tag);
                     if (type != null) {
-                      ListMultimap<String, ResourceItem> map = myItems.get(type);
+                      ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
                       if (map == null) {
                         return;
                       }
                       if (removeItems(resourceFile, type, name, true)) {
                         myGeneration = ourModificationCounter.incrementAndGet();
-                        invalidateItemCaches(type);
+                        invalidateParentCaches(myNamespace, type);
                       }
                     }
                   }
@@ -1556,7 +1559,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
 
       myGeneration = ourModificationCounter.incrementAndGet();
-      invalidateItemCaches();
+      invalidateParentCaches();
 
       ResourceFolderType folderType = ResourceHelper.getFolderType(resourceFile);
       // Check if there may be multiple items to remove.
@@ -1584,7 +1587,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
       myResourceFiles.remove(psiFile.getVirtualFile());
       myGeneration = ourModificationCounter.incrementAndGet();
-      invalidateItemCaches();
+      invalidateParentCaches();
 
       ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
       // Check if there may be multiple items to remove.
@@ -1678,15 +1681,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         PsiResourceFile resourceFile = (PsiResourceFile)resFile;
                         ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
                         if (item != null) {
-                          ListMultimap<String, ResourceItem> map = myItems.get(item.getType());
+                          ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, item.getType());
                           if (map != null) {
                             // Found the relevant item: delete it and create a new one in a new location
                             map.remove(oldName, item);
-                            ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, xmlTag, psiFile);
+                            ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
                             map.put(newName, newItem);
                             resourceFile.replace(item, newItem);
                             myGeneration = ourModificationCounter.incrementAndGet();
-                            invalidateItemCaches(ResourceType.ID);
+                            invalidateParentCaches(myNamespace, ResourceType.ID);
                             return;
                           }
                         }
@@ -1723,15 +1726,15 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       PsiResourceFile resourceFile = (PsiResourceFile)resFile;
                       ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
                       if (item != null) {
-                        ListMultimap<String, ResourceItem> map = myItems.get(item.getType());
+                        ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, item.getType());
                         if (map != null) {
                           // Found the relevant item: delete it and create a new one in a new location
                           map.remove(oldName, item);
-                          ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, xmlTag, psiFile);
+                          ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
                           map.put(newName, newItem);
                           resourceFile.replace(item, newItem);
                           myGeneration = ourModificationCounter.incrementAndGet();
-                          invalidateItemCaches(ResourceType.ID);
+                          invalidateParentCaches(myNamespace, ResourceType.ID);
                           return;
                         }
                       }
@@ -1838,11 +1841,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     }
                     ResourceItem item = findResourceItem(type, psiFile, oldName, xmlTag);
                     if (item != null) {
-                      ListMultimap<String, ResourceItem> map = myItems.get(item.getType());
+                      ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, item.getType());
                       if (map != null) {
                         // Found the relevant item: delete it and create a new one in a new location
                         map.remove(oldName, item);
-                        ResourceItem newItem = new PsiResourceItem(newName, type, xmlTag, psiFile);
+                        ResourceItem newItem = new PsiResourceItem(newName, type, myNamespace, xmlTag, psiFile);
                         map.put(newName, newItem);
                         ResourceFile resFile = myResourceFiles.get(psiFile.getVirtualFile());
                         if (resFile != null) {
@@ -1853,7 +1856,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                           assert false : item;
                         }
                         myGeneration = ourModificationCounter.incrementAndGet();
-                        invalidateItemCaches(type);
+                        invalidateParentCaches(myNamespace, type);
 
                         // Invalidate surrounding declare styleable if any
                         if (type == ResourceType.ATTR) {
@@ -2072,7 +2075,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     ((PsiResourceItem)item).recomputeValue();
                   }
                 }
-                invalidateItemCaches();
+                invalidateParentCaches();
               }
             } else {
               // Couldn't find previous file; just add new file
@@ -2275,7 +2278,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @Nullable
   private ResourceItem findResourceItem(@Nullable ResourceType type, @NotNull PsiFile file, @Nullable String name, @Nullable XmlTag tag) {
     if (type != null && name != null) {
-      ListMultimap<String, ResourceItem> map = myItems.get(type);
+      ListMultimap<String, ResourceItem> map = myFullTable.get(myNamespace, type);
       if (map != null) {
         List<ResourceItem> items = map.get(name);
         assert items != null;
@@ -2342,15 +2345,30 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
     }
 
-    if (myItems.size() != other.myItems.size()) {
+    ResourceTable otherResourceTable = other.getItems();
+    if (myFullTable.size() != otherResourceTable.size()) {
       return false;
     }
-    for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : myItems.entrySet()) {
-      ListMultimap<String, ResourceItem> ownEntries = entry.getValue();
-      ListMultimap<String, ResourceItem> otherEntries = other.myItems.get(entry.getKey());
-      if (otherEntries == null || otherEntries.size() != ownEntries.size()) {
+
+    for (Table.Cell<String, ResourceType, ListMultimap<String, ResourceItem>> cell : myFullTable.cellSet()) {
+      assert cell.getColumnKey() != null; // We don't store null as the ResourceType.
+
+      ListMultimap<String, ResourceItem> ownEntries = cell.getValue();
+      ListMultimap<String, ResourceItem> otherEntries = otherResourceTable.get(cell.getRowKey(), cell.getColumnKey());
+
+      if ((otherEntries == null) != (ownEntries == null)) {
         return false;
       }
+
+      if (ownEntries == null) {
+        // This means they're both null.
+        continue;
+      }
+
+      if (otherEntries.size() != ownEntries.size()) {
+        return false;
+      }
+
       for (Map.Entry<String, ResourceItem> itemEntry : ownEntries.entries()) {
         List<ResourceItem> otherItemsList = otherEntries.get(itemEntry.getKey());
         if (otherItemsList == null) {
