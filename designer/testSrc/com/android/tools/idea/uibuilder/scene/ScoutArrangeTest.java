@@ -67,9 +67,9 @@ public class ScoutArrangeTest extends SceneTest {
                  "    android:id=\"@+id/textview1\"\n" +
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                 "      app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "      app:layout_constraintBottom_toTopOf=\"@+id/textview2\" />");
 
@@ -110,9 +110,9 @@ public class ScoutArrangeTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "      tools:layout_editor_absoluteX=\"450dp\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                 "      app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "      tools:layout_editor_absoluteY=\"490dp\"\n" +
                  "      app:layout_constraintBottom_toBottomOf=\"parent\" />");
@@ -153,8 +153,8 @@ public class ScoutArrangeTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "      tools:layout_editor_absoluteX=\"462dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"@+id/textview2\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"@+id/textview2\" />");
+                 "      app:layout_constraintStart_toStartOf=\"@+id/textview2\"\n" +
+                 "      app:layout_constraintEnd_toEndOf=\"@+id/textview2\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
