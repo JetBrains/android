@@ -68,7 +68,14 @@ public class FullApkInstaller {
       return false;
     }
 
-    RetryingInstaller.Installer installer = new ApkInstaller(myPrinter, remotePath, myLaunchOptions.getPmInstallOptions());
+    String pmInstallOptions = myLaunchOptions.getPmInstallOptions();
+    // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user interaction/display.
+    // However, regular installation will not grant some permissions until the next device reboot. Installing with "-g" guarantees that
+    // the permissions are properly granted at install time.
+    if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
+      pmInstallOptions = StringUtil.trimLeading(pmInstallOptions + " -g");
+    }
+    RetryingInstaller.Installer installer = new ApkInstaller(myPrinter, remotePath, pmInstallOptions);
     RetryingInstaller retryingInstaller = new RetryingInstaller(myProject, device, installer, packageName, myPrinter, launchStatus);
 
     boolean installed = retryingInstaller.install();
