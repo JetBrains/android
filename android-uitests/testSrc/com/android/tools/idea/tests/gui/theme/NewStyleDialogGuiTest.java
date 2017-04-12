@@ -30,7 +30,6 @@ import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NewStyleDialogGuiTest {
 
