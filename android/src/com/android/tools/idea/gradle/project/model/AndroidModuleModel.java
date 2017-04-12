@@ -139,7 +139,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       myCopyAndroidProjectLatch = new CountDownLatch(1);
       try {
         //myCopyAndroidProject = new IdeAndroidProject(myAndroidProject);
-        myCopyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
+        //myCopyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
       } finally {
         myCopyAndroidProjectLatch.countDown();
       }
