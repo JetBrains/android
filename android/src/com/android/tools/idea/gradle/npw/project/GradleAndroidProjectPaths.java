@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -123,7 +122,7 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
     GradleAndroidProjectPaths paths = new GradleAndroidProjectPaths();
     paths.myModuleRoot = moduleRoot;
     paths.mySrcRoot = new File(baseFlavourDir, FD_JAVA);
-    paths.myTestRoot = Paths.get(baseSrcDir.getPath(), FD_TEST, FD_JAVA).toFile();
+    paths.myTestRoot = new File(baseSrcDir.getPath(), FD_TEST + File.separatorChar + FD_JAVA);
     paths.myResDirectory = new File(baseFlavourDir, FD_RESOURCES);
     paths.myAidlRoot = new File(baseFlavourDir, FD_AIDL);
     paths.myManifestDirectory = baseFlavourDir;
