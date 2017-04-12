@@ -27,10 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Path2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.awt.geom.Rectangle2D;
+import java.util.*;
 import java.util.List;
 
 import static com.android.tools.adtui.common.AdtUiUtils.getFittedString;
@@ -38,19 +36,19 @@ import static com.android.tools.adtui.common.AdtUiUtils.getFittedString;
 /**
  * A chart component that renders lines with a title that have the ability to stack.
  */
-public class StackedEventComponent extends AnimatedComponent {
+public class StackedEventComponent extends MouseAdapterComponent {
 
   private static final Color DISABLED_ACTION = new JBColor(0xDBDFE2, 0X5E5F60);
   private static final Color ENABLED_ACTION = new JBColor(0x64D8B6, 0x12B0A1);
-  private static final Color FONT_COLOR = new JBColor(0x545454, 0xCACACA);
   private static final int CHARACTERS_TO_SHRINK_BY = 1;
   private static final int SEGMENT_SPACING = 5;
+
+  private static final float DEFAULT_LINE_THICKNESS = .5f;
+  private static final float EXPANDED_LINE_THICKNESS = 1.2f;
   private static final float FONT_PADDING = 10;
 
   @NotNull
   private final EventModel<StackedEventType> myModel;
-
-  private float myLineThickness = 6.0f;
 
   /**
    * This map is used to pair actions, to their draw location. This is used primarily to store the
@@ -61,6 +59,7 @@ public class StackedEventComponent extends AnimatedComponent {
   private boolean myRender;
 
   public StackedEventComponent(@NotNull EventModel<StackedEventType> model) {
+    super(DEFAULT_LINE_THICKNESS, EXPANDED_LINE_THICKNESS);
     myModel = model;
     setFont(AdtUiUtils.FONT_DEFAULT);
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
@@ -72,7 +71,7 @@ public class StackedEventComponent extends AnimatedComponent {
     opaqueRepaint();
   }
 
-  protected void render() {
+  private void renderActivity() {
     double min = myModel.getRangedSeries().getXRange().getMin();
     double max = myModel.getRangedSeries().getXRange().getMax();
 
@@ -93,16 +92,18 @@ public class StackedEventComponent extends AnimatedComponent {
     // cache off a path to draw.
     for (int i = 0; i < size; i++) {
       SeriesData<EventAction<StackedEventType>> seriesData = series.get(i);
-      EventAction<StackedEventType> data = seriesData.value;
-      Path2D.Float path = new Path2D.Float();
+      ActivityAction data = (ActivityAction)seriesData.value;
       // Here we normalize the position to a value between 0 and 1. This allows us to scale the width of the line based on the
       // width of our chart.
       double endTime = data.getEndUs() == 0 ? max : data.getEndUs();
       double normalizedEndPosition = ((endTime - min) / (max - min));
-      double normalizedstartPosition = ((data.getStartUs() - min) / (max - min));
-      path.moveTo(normalizedEndPosition, 1);
-      path.lineTo(normalizedstartPosition, 1);
-      myActivities.add(new EventRenderData(data, path));
+      double normalizedStartPosition = ((data.getStartUs() - min) / (max - min));
+      if (normalizedStartPosition < 0) {
+        normalizedStartPosition = 0;
+      }
+      //updateRect(rectangle, (previousX - minX) / (maxX - minX), rectY,(currentX - previousX) / (maxX - minX), gap);
+      Rectangle2D.Float rect = setRectangleData(data, data.getStartUs(), endTime , min, max, 0.3f, .2f);
+      myActivities.add(new EventRenderData(data, rect));
     }
 
     myActivities.sort((erd1, erd2) -> {
@@ -124,34 +125,27 @@ public class StackedEventComponent extends AnimatedComponent {
     // Set Antialiasing, before we draw anything.
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     if (myRender) {
-      render();
+      renderActivity();
       myRender = false;
     }
+    g2d.setFont(AdtUiUtils.FONT_DEFAULT);
+    drawActivity(g2d, dim);
+  }
 
+  private void drawActivity(Graphics2D g2d, Dimension dim) {
     int scaleFactor = dim.width;
+    AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, dim.height - SEGMENT_SPACING);
     double min = myModel.getRangedSeries().getXRange().getMin();
     double max = myModel.getRangedSeries().getXRange().getMax();
     FontMetrics metrics = g2d.getFontMetrics();
-    Stroke current = g2d.getStroke();
-    BasicStroke str = new BasicStroke(myLineThickness);
-    AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, dim.height - SEGMENT_SPACING);
-    Iterator<EventRenderData> itor = myActivities.iterator();
-    g2d.setFont(getFont());
-
+    ListIterator<EventRenderData> itor = myActivities.listIterator();
     while (itor.hasNext()) {
-      g2d.setStroke(str);
       EventRenderData renderData = itor.next();
       EventAction<StackedEventType> event = renderData.getAction();
-      if (event.getEndUs() != 0) {
-        g2d.setColor(DISABLED_ACTION);
-      }
-      else {
-        g2d.setColor(ENABLED_ACTION);
-      }
+      g2d.setColor(event.getEndUs() == 0 ? ENABLED_ACTION : DISABLED_ACTION);
       Shape shape = scale.createTransformedShape(renderData.getPath());
-      g2d.draw(shape);
+      g2d.fill(shape);
 
-      g2d.setStroke(current);
       String text = "";
       if (event.getType() != StackedEventType.NONE) {
         text = ((ActivityAction)event).getData();
@@ -179,28 +173,25 @@ public class StackedEventComponent extends AnimatedComponent {
       }
 
       g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
-      g2d.drawString(text, startPosition, (myLineThickness + SEGMENT_SPACING));
+      float normalizedLineHeight = getRectangle(event).height - DEFAULT_LINE_THICKNESS;
+      g2d.drawString(text, startPosition, (SEGMENT_SPACING * 2) - normalizedLineHeight * (float)dim.getHeight());
     }
-  }
-
-  public void setLineThickness(float lineThickness) {
-    myLineThickness = lineThickness;
   }
 
   private static class EventRenderData {
 
     private final EventAction<StackedEventType> mAction;
-    private final Path2D mPath;
+    private final Rectangle2D mPath;
 
     public EventAction<StackedEventType> getAction() {
       return mAction;
     }
 
-    public Path2D getPath() {
+    public Rectangle2D getPath() {
       return mPath;
     }
 
-    public EventRenderData(EventAction<StackedEventType> action, Path2D path) {
+    public EventRenderData(EventAction<StackedEventType> action, Rectangle2D path) {
       mAction = action;
       mPath = path;
     }

@@ -17,6 +17,7 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -59,7 +60,7 @@ public class StateChartReducerVisualTest extends VisualTest {
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
     StateChartModel<ColorState> model = new StateChartModel<>();
-    myColorChart = new StateChart<>(model, COLOR_STATE_COLORS, (rectangles, values) -> {});
+    myColorChart = new StateChart<>(model, COLOR_STATE_COLORS, new StateChartConfig<>((rectangles, values) -> {}));
     model.addSeries(series);
 
     StateChartModel<ColorState> optimizedModel = new StateChartModel<>();
@@ -102,8 +103,6 @@ public class StateChartReducerVisualTest extends VisualTest {
 
   @Override
   protected void populateUi(@NotNull JPanel panel) {
-    myColorChart.setHeightGap(0.5f);
-    myOptimizedColorChart.setHeightGap(0.5f);
     myColorChart.setPreferredSize(new Dimension(0, 20));
     myOptimizedColorChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
     myColorChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
