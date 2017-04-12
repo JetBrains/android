@@ -64,7 +64,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final int myProcessId;
   @Nullable
   private final Common.Session mySessionData;
-  private DurationDataModel<GcDurationData> myGcCount;
+  private DurationDataModel<GcDurationData> myGcStats;
 
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
@@ -118,8 +118,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     myLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
 
-    myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
-    myGcCount.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
+    myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
+    myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
 
     myEventMonitor = new EventMonitor(profilers);
 
@@ -152,7 +152,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myMemoryAxis);
     getStudioProfilers().getUpdater().register(myObjectsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
-    getStudioProfilers().getUpdater().register(myGcCount);
+    getStudioProfilers().getUpdater().register(myGcStats);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -167,7 +167,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myMemoryAxis);
     getStudioProfilers().getUpdater().unregister(myObjectsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
-    getStudioProfilers().getUpdater().unregister(myGcCount);
+    getStudioProfilers().getUpdater().unregister(myGcStats);
     selectCaptureObject(null, null);
     myLoader.stop();
 
@@ -438,8 +438,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return myEventMonitor;
   }
 
-  public DurationDataModel<GcDurationData> getGcCount() {
-    return myGcCount;
+  public DurationDataModel<GcDurationData> getGcStats() {
+    return myGcStats;
   }
 
   public String getName() {
