@@ -17,7 +17,7 @@
 package com.android.tools.adtui.chart.statechart;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.MouseAdapterComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.RangedSeries;
@@ -29,14 +29,13 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A chart component that renders series of state change events as rectangles.
  */
-public class StateChart<E extends Enum<E>> extends AnimatedComponent {
+public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
 
   public enum RenderMode {
     BAR,  // Each state is rendered as a filled rectangle until the next state changed.
@@ -53,16 +52,13 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   private float mHeightGap;
 
   @NotNull
-  private final ArrayList<Rectangle2D.Float> mRectangles;
-
-  @NotNull
-  private final List<E> mValues;
+  private final HashMap<Rectangle2D.Float, E> mValues;
 
   @NotNull
   private RenderMode mRenderMode;
 
   @NotNull
-  private StateChartReducer<E> myReducer;
+  private StateChartConfig<E> myConfig;
 
   private boolean myRender;
 
@@ -74,24 +70,25 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   }
 
   public StateChart(@NotNull StateChartModel<E> model, @NotNull EnumColors<E> enumColors) {
-    this(model, enumColors, new DefaultStateChartReducer<>());
+    this(model, enumColors, new StateChartConfig(new DefaultStateChartReducer<>()));
   }
 
   @VisibleForTesting
-  public StateChart(@NotNull StateChartModel<E> model, @NotNull Map<E, Color> colors, @NotNull StateChartReducer<E> reducer) {
-    this(model, new EnumColors<>(colors), reducer);
+  public StateChart(@NotNull StateChartModel<E> model, @NotNull Map<E, Color> colors, @NotNull StateChartConfig<E> config) {
+    this(model, new EnumColors<>(colors), config);
   }
 
   @VisibleForTesting
-  public StateChart(@NotNull StateChartModel<E> model, @NotNull EnumColors<E> enumColors, @NotNull StateChartReducer<E> reducer) {
+  public StateChart(@NotNull StateChartModel<E> model, @NotNull EnumColors<E> enumColors, @NotNull StateChartConfig<E> config) {
+    super(config.getRectangleHeightRatio(), config.getRectangleMouseOverHeightRatio());
     mColors = enumColors;
-    mRectangles = new ArrayList<>();
-    mValues = new ArrayList<>();
+    mValues = new HashMap<>();
     mRenderMode = RenderMode.BAR;
-    myReducer = reducer;
+    myConfig = config;
     myRender = true;
     setFont(AdtUiUtils.FONT_DEFAULT);
     setModel(model);
+    setHeightGap(myConfig.getHeightGap());
   }
 
   public void setModel(@NotNull StateChartModel<E> model) {
@@ -138,9 +135,12 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     // TODO support adding series on the fly and interpolation.
     float height = 1f / seriesSize;
     float gap = height * mHeightGap;
+    setHeightFactor(height);
     mValues.clear();
 
-    int seriesIndex = 0, rectCount = 0;
+    int seriesIndex = 0;
+    long rectCount = 0;
+    Set<Long> pastRectangleKeys = getRectangleKeys();
     for (RangedSeries<E> data : series) {
       double min = data.getXRange().getMin();
       double max = data.getXRange().getMax();
@@ -161,14 +161,15 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
         // Don't draw if this block doesn't intersect with [min..max]
         if (previousValue != null && x >= min) {
           // Draw the previous block.
-          setRectangleAndValueData(rectCount,
+          Rectangle2D.Float rect = setRectangleData(rectCount,
                                    Math.max(min, previousX),
                                    Math.min(max, x),
                                    min,
                                    max,
-                                   previousValue,
                                    startHeight + gap * 0.5f,
-                                   height - gap);
+                                   gap);
+          pastRectangleKeys.remove(rectCount);
+          mValues.put(rect, previousValue);
           rectCount++;
         }
 
@@ -183,22 +184,23 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
       }
       // The last data point continues till max
       if (previousX < max && previousValue != null) {
-        setRectangleAndValueData(rectCount,
+        Rectangle2D.Float rect = setRectangleData(rectCount,
                                  Math.max(min, previousX),
                                  max,
                                  min,
                                  max,
-                                 previousValue,
                                  startHeight + gap * 0.5f,
-                                 height - gap);
+                                 gap);
+        pastRectangleKeys.remove(rectCount);
+        mValues.put(rect, previousValue);
         rectCount++;
       }
-
       seriesIndex++;
     }
 
-    if (rectCount < mRectangles.size()) {
-      mRectangles.subList(rectCount, mRectangles.size()).clear();
+    for(Long key : pastRectangleKeys) {
+      mValues.remove(getRectangle(key));
+      removeRectangle(key);
     }
 
     addDebugInfo("Render time: %.2fms", (System.nanoTime() - renderTime) / 1000000.f);
@@ -215,16 +217,16 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     g2d.setFont(getFont());
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    assert mRectangles.size() == mValues.size();
+    assert getRectangleCount() == mValues.size();
 
-    List<Shape> transformedShapes = new ArrayList<>(mRectangles.size());
-    List<E> transformedValues = new ArrayList<>(mRectangles.size());
+    List<Shape> transformedShapes = new ArrayList<>(getRectangleCount());
+    List<E> transformedValues = new ArrayList<>(getRectangleCount());
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
-    for (int i = 0; i < mRectangles.size(); ++i) {
-      transformedShapes.add(scale.createTransformedShape(mRectangles.get(i)));
-      transformedValues.add(mValues.get(i));
+    for (Long key : getRectangleKeys()) {
+      transformedShapes.add(scale.createTransformedShape(getRectangle(key)));
+      transformedValues.add(mValues.get(getRectangle(key)));
     }
-    myReducer.reduce(transformedShapes, transformedValues);
+    myConfig.getReducer().reduce(transformedShapes, transformedValues);
     assert transformedShapes.size() == transformedValues.size();
 
     for (int i = 0; i < transformedShapes.size(); i++) {
@@ -253,30 +255,6 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
 
     addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawTime) / 1000000.f);
     addDebugInfo("# of drawn rects: %d", transformedShapes.size());
-  }
-
-  private void setRectangleAndValueData(int rectCount,
-                                        double previousX,
-                                        double currentX,
-                                        double minX,
-                                        double maxX,
-                                        E previousValue,
-                                        float rectY,
-                                        float rectHeight) {
-    Rectangle2D.Float rect;
-
-    //Reuse existing Rectangle objects when possible to avoid unnecessary allocations.
-    if (rectCount == mRectangles.size()) {
-      rect = new Rectangle2D.Float();
-      mRectangles.add(rect);
-    } else {
-      rect = mRectangles.get(rectCount);
-    }
-
-    mValues.add(previousValue);
-
-    rect.setRect((previousX - minX) / (maxX - minX), rectY,
-                 (currentX - previousX) / (maxX - minX), rectHeight);
   }
 }
 
