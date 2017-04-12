@@ -17,10 +17,12 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -30,18 +32,21 @@ import org.junit.Test;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.function.Supplier;
 
 import static com.android.tools.profilers.memory.MemoryClassSetView.InstanceTreeNode;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.*;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
 import static org.junit.Assert.*;
 
 public class MemoryClassSetViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   @NotNull private final FakeMemoryService myMemoryService = new FakeMemoryService();
+  @NotNull private final FakeIdeProfilerComponents myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
   @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", myMemoryService);
 
   private MemoryProfilerStage myStage;
@@ -60,7 +65,7 @@ public class MemoryClassSetViewTest {
   @Before
   public void before() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
+    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
@@ -129,7 +134,7 @@ public class MemoryClassSetViewTest {
     // Verify the ordering is based on retain size.
     assertEquals(myInstanceObjects.get(2), firstNode.getAdapter());
     myClassSetTree.setSelectionPath(new TreePath(firstNode));
-    observer.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1);
+    observer.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1, 0);
     assertEquals(firstNode, myClassSetTree.getSelectionPath().getLastPathComponent());
   }
 
@@ -157,6 +162,95 @@ public class MemoryClassSetViewTest {
                                     new String[]{Integer.toString(instance.getShallowSize())},
                                     new String[]{Long.toString(instance.getRetainedSize())});
     }
+  }
+
+  @Test
+  public void fieldSelectionAndNavigationTest() {
+    final String TEST_CLASS_NAME = "com.Foo";
+    final String TEST_FIELD_NAME = "com.Field";
+
+    MemoryAspectObserver aspectObserver = new MemoryAspectObserver(myStage.getAspect());
+
+    CodeLocation codeLocationFoo = new CodeLocation.Builder("Foo").setMethodName("fooMethod1").setLineNumber(5).build();
+    CodeLocation codeLocationBar = new CodeLocation.Builder("Bar").setMethodName("barMethod1").setLineNumber(20).build();
+
+    //noinspection ConstantConditions
+    AllocationStack callstackFoo = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocationFoo.getClassName())
+          .setMethodName(codeLocationFoo.getMethodName())
+          .setLineNumber(codeLocationFoo.getLineNumber() + 1))
+      .build();
+    //noinspection ConstantConditions
+    AllocationStack callstackBar = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocationBar.getClassName())
+          .setMethodName(codeLocationBar.getMethodName())
+          .setLineNumber(codeLocationBar.getLineNumber() + 1))
+      .build();
+
+    FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
+    FakeInstanceObject instanceFooField =
+      new FakeInstanceObject.Builder(captureObject, TEST_FIELD_NAME).setName("instanceFooField").build();
+    FakeInstanceObject instanceBarField =
+      new FakeInstanceObject.Builder(captureObject, TEST_FIELD_NAME).setName("instanceBarField").build();
+    FakeFieldObject fieldFoo = new FakeFieldObject("fieldFoo", OBJECT, instanceFooField);
+    FakeFieldObject fieldBar = new FakeFieldObject("fieldBar", OBJECT, instanceBarField);
+
+    FakeInstanceObject instanceFoo =
+      new FakeInstanceObject.Builder(captureObject, TEST_CLASS_NAME).setName("instanceFoo").setAllocationStack(callstackFoo)
+        .setFields(Collections.singletonList(fieldFoo.getFieldName())).build();
+    instanceFoo.setFieldValue(fieldFoo.getFieldName(), fieldFoo.getValueType(), instanceFooField);
+    FakeInstanceObject instanceBar =
+      new FakeInstanceObject.Builder(captureObject, TEST_CLASS_NAME).setName("instanceBar").setAllocationStack(callstackBar)
+        .setFields(Collections.singletonList(fieldBar.getFieldName())).build();
+    instanceBar.setFieldValue(fieldBar.getFieldName(), fieldBar.getValueType(), instanceBarField);
+
+    Set<InstanceObject> instanceObjects = new HashSet<>(Arrays.asList(instanceFoo, instanceBar, instanceFooField, instanceBarField));
+    captureObject.addInstanceObjects(instanceObjects);
+    myStage.selectCaptureObject(captureObject, MoreExecutors.directExecutor());
+
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
+    assertNotNull(myStage.getSelectedHeapSet());
+    assertEquals(FakeCaptureObject.DEFAULT_HEAP_ID, myStage.getSelectedHeapSet().getId());
+    myStage.selectClassSet(findChildClassSetWithName(myStage.getSelectedHeapSet(), TEST_CLASS_NAME));
+    myStage.selectInstanceObject(instanceFoo);
+    myStage.selectFieldObjectPath(Collections.singletonList(fieldFoo));
+    aspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 2, 1, 1);
+
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    aspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 2, 2);
+    assertEquals(instanceFoo, myStage.getSelectedInstanceObject());
+    assertEquals(Collections.singletonList(fieldFoo), myStage.getSelectedFieldObjectPath());
+
+    myClassSetTree = myClassSetView.getTree();
+    assertNotNull(myClassSetTree);
+    Object classSetRoot = myClassSetTree.getModel().getRoot();
+    assertTrue(classSetRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classSetRoot).getAdapter() instanceof ClassSet);
+    //noinspection unchecked
+    myClassSetRootNode = (MemoryObjectTreeNode<MemoryObject>)classSetRoot;
+    findChildWithPredicate(findChildWithPredicate(myClassSetRootNode, instance -> instance == instanceFoo),
+                           field -> Objects.equals(field, fieldFoo));
+
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    aspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 2, 2);
+    assertEquals(instanceFoo, myStage.getSelectedInstanceObject());
+    assertEquals(Collections.singletonList(fieldFoo), myStage.getSelectedFieldObjectPath());
+
+    Supplier<CodeLocation> codeLocationSupplier = myFakeIdeProfilerComponents.getCodeLocationSupplier(myClassSetTree);
+
+    assertNotNull(codeLocationSupplier);
+    CodeLocation codeLocation = codeLocationSupplier.get();
+    assertNotNull(codeLocation);
+    String codeLocationClassName = codeLocation.getClassName();
+    assertEquals(TEST_FIELD_NAME, codeLocationClassName);
+
+    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().addListener(myStage); // manually add, since we didn't enter stage
+    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
+    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(myStage);
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
   }
 
   @Test

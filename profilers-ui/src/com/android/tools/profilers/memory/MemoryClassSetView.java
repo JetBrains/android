@@ -36,11 +36,10 @@ import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 final class MemoryClassSetView extends AspectObserver {
@@ -71,6 +70,8 @@ final class MemoryClassSetView extends AspectObserver {
 
   @Nullable private InstanceObject myInstanceObject;
 
+  @Nullable private List<FieldObject> myFieldObjectPath;
+
   public MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myIdeProfilerComponents = ideProfilerComponents;
@@ -78,7 +79,8 @@ final class MemoryClassSetView extends AspectObserver {
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::refreshInstance);
+      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::refreshInstance)
+      .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::refreshFieldPath);
 
     myAttributeColumns.put(
       InstanceAttribute.LABEL,
@@ -162,6 +164,7 @@ final class MemoryClassSetView extends AspectObserver {
     myTreeModel = null;
     myClassSet = null;
     myInstanceObject = null;
+    myFieldObjectPath = null;
     myInstancesPanel.setVisible(false);
     myStage.selectInstanceObject(null);
   }
@@ -194,6 +197,7 @@ final class MemoryClassSetView extends AspectObserver {
     myTree = new Tree();
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
+    myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
     myTree.addTreeSelectionListener(e -> {
       TreePath path = e.getPath();
@@ -202,15 +206,36 @@ final class MemoryClassSetView extends AspectObserver {
       }
 
       assert path.getLastPathComponent() instanceof MemoryObjectTreeNode;
-      MemoryObjectTreeNode instanceNode = (MemoryObjectTreeNode)path.getLastPathComponent();
-      instanceNode.select();
-      MemoryObject memoryObject = instanceNode.getAdapter();
+      //noinspection unchecked
+      MemoryObjectTreeNode<MemoryObject> valueNode = (MemoryObjectTreeNode<MemoryObject>)path.getLastPathComponent();
+      valueNode.select();
+      MemoryObject memoryObject = valueNode.getAdapter();
       if (memoryObject instanceof InstanceObject) {
-        myInstanceObject = (InstanceObject)instanceNode.getAdapter();
+        myInstanceObject = (InstanceObject)valueNode.getAdapter();
+        myStage.selectFieldObjectPath(Collections.emptyList());
         myStage.selectInstanceObject(myInstanceObject);
       }
-      // don't change the instance selection if the user selects a field object
+      else if (memoryObject instanceof FieldObject) {
+        assert path.getPathCount() > 2;
+        MemoryObjectTreeNode instanceNode = (MemoryObjectTreeNode)path.getPathComponent(1);
+        assert instanceNode.getAdapter() instanceof InstanceObject;
+        myInstanceObject = (InstanceObject)instanceNode.getAdapter();
+        myStage.selectInstanceObject(myInstanceObject);
+
+        Object[] fieldNodePath = Arrays.copyOfRange(path.getPath(), 2, path.getPathCount());
+        ArrayList<FieldObject> fieldObjectPath = new ArrayList<>(fieldNodePath.length);
+        for (Object fieldNode : fieldNodePath) {
+          if (!(fieldNode instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)fieldNode).getAdapter() instanceof FieldObject)) {
+            return;
+          }
+          //noinspection unchecked
+          fieldObjectPath.add(((MemoryObjectTreeNode<FieldObject>)fieldNode).getAdapter());
+        }
+        myFieldObjectPath = fieldObjectPath;
+        myStage.selectFieldObjectPath(fieldObjectPath);
+      }
     });
+
     // Not all nodes have been populated during buildTree. Here we capture the TreeExpansionEvent to check whether any children
     // under the expanded node need to be populated.
     myTree.addTreeExpansionListener(new TreeExpansionListener() {
@@ -253,6 +278,7 @@ final class MemoryClassSetView extends AspectObserver {
         TreePath selectionPath = myTree.getSelectionPath();
         myTreeRoot.sort(comparator);
         myTreeModel.nodeStructureChanged(myTreeRoot);
+        myTree.expandPath(selectionPath.getParentPath());
         myTree.setSelectionPath(selectionPath);
         myTree.scrollPathToVisible(selectionPath);
       }
@@ -300,21 +326,32 @@ final class MemoryClassSetView extends AspectObserver {
 
       @Override
       public boolean isEnabled() {
-        return myInstanceObject != null && myInstanceObject.getValueType() != ValueObject.ValueType.NULL;
+        return myInstanceObject != null && myFieldObjectPath != null && !myFieldObjectPath.isEmpty();
       }
 
       @Override
       public void run() {
-        if (myInstanceObject == null || myCaptureObject == null) {
+        if (myCaptureObject == null || myInstanceObject == null || myFieldObjectPath == null || myFieldObjectPath.isEmpty()) {
           return;
         }
-        HeapSet heapSet = myCaptureObject.getHeapSet(myInstanceObject.getHeapId());
+
+        FieldObject selectedField = myFieldObjectPath.get(myFieldObjectPath.size() - 1);
+        if (selectedField.getValueType().getIsPrimitive() || selectedField.getValueType() == ValueObject.ValueType.NULL) {
+          return;
+        }
+
+        InstanceObject selectedObject = selectedField.getAsInstance();
+        assert selectedObject != null;
+
+        HeapSet heapSet = myCaptureObject.getHeapSet(selectedObject.getHeapId());
         assert heapSet != null;
         myStage.selectHeapSet(heapSet);
-        ClassifierSet classifierSet = heapSet.findContainingClassifierSet(myInstanceObject);
+
+        ClassifierSet classifierSet = heapSet.findContainingClassifierSet(selectedObject);
         assert classifierSet != null && classifierSet instanceof ClassSet;
-        myClassSet = (ClassSet)classifierSet;
-        myStage.selectClassSet(myClassSet);
+        myStage.selectClassSet((ClassSet)classifierSet);
+        myStage.selectInstanceObject(selectedObject);
+        myStage.selectFieldObjectPath(Collections.emptyList());
       }
     });
   }
@@ -393,21 +430,106 @@ final class MemoryClassSetView extends AspectObserver {
       return;
     }
 
-    if (instanceObject == null) {
-      myInstanceObject = null;
+    assert myTree != null;
+    myInstanceObject = instanceObject;
+    if (myInstanceObject == null) {
+      myTree.clearSelection();
       return;
     }
 
-    assert myTreeRoot != null && myTreeModel != null && myTree != null;
-    myInstanceObject = instanceObject;
+    assert myTreeRoot != null && myTreeModel != null;
     for (MemoryObjectTreeNode<MemoryObject> node : myTreeRoot.getChildren()) {
       if (node.getAdapter() == myInstanceObject) {
-        TreePath path = new TreePath(myTreeModel.getPathToRoot(node));
-        myTree.scrollPathToVisible(path);
-        myTree.setSelectionPath(path);
+        selectPath(node);
         break;
       }
     }
+  }
+
+  private void refreshFieldPath() {
+    List<FieldObject> fieldPath = myStage.getSelectedFieldObjectPath();
+    if (Objects.equals(myFieldObjectPath, fieldPath)) {
+      if (myFieldObjectPath != null && !myFieldObjectPath.isEmpty()) {
+        assert myTree != null;
+        myTree.scrollPathToVisible(myTree.getSelectionPath());
+      }
+      return;
+    }
+
+    myFieldObjectPath = fieldPath;
+    if (myFieldObjectPath.isEmpty()) {
+      if (myInstanceObject != null) {
+        // If we have an instance node selected when the field path is unselected, we should reselect the instance node.
+        assert myTreeRoot != null && myTreeModel != null && myTree != null;
+        MemoryObjectTreeNode<MemoryObject> instanceNode = findSelectedInstanceNode();
+        // We may be resetting myInstanceObject, so this might not find a relevant instanceNode.
+        if (instanceNode != null) {
+          selectPath(instanceNode);
+        }
+      }
+      return;
+    }
+
+    // Since this is an memory dump that flattens the classes with no private/public division,
+    // we could certainly have duplicate field names clashing within the same object.
+    // Therefore, we actually need to perform a search, not just blindly find the first instance.
+    assert myTreeRoot != null && myTreeModel != null && myTree != null && myInstanceObject != null;
+    MemoryObjectTreeNode<MemoryObject> instanceNode = findSelectedInstanceNode();
+    assert instanceNode != null;
+    List<MemoryObjectTreeNode<MemoryObject>> fields = findLeafNodesForFieldPath(instanceNode, myFieldObjectPath);
+    if (!fields.isEmpty()) {
+      selectPath(fields.get(0));
+    }
+  }
+
+  @Nullable
+  private MemoryObjectTreeNode<MemoryObject> findSelectedInstanceNode() {
+    assert myTree != null && myTreeModel != null && myTreeRoot != null && myInstanceObject != null;
+    for (MemoryObjectTreeNode<MemoryObject> node : myTreeRoot.getChildren()) {
+      if (node.getAdapter() == myInstanceObject) {
+        return node;
+      }
+    }
+    return null;
+  }
+
+  private void selectPath(@NotNull MemoryObjectTreeNode<MemoryObject> targetNode) {
+    assert myTree != null && myTreeModel != null;
+    TreePath path = new TreePath(myTreeModel.getPathToRoot(targetNode));
+    // Refresh the expanded state of the parent path (not including last field node, since we don't want to expand that).
+    myTree.expandPath(path.getParentPath());
+    myTree.setSelectionPath(path);
+    myTree.scrollPathToVisible(path);
+  }
+
+  /**
+   * Finds the matching leaf node in {@code myTree} of the path given by {@code fieldPath}, starting from the given {@code parentNode}.
+   * Note that since we could have private fields in various inheriting classes, it is possible to have multiple fields of the same name
+   * pointing to the same value. In other words, we could have multiple leaf nodes corresponding to the given fieldPath.
+   *
+   * @param parentNode root from where to start the search
+   * @param fieldPath  the path to look for
+   * @return a list of leaf {@link MemoryObjectTreeNode}s matching the given {@code fieldPath}
+   */
+  @NotNull
+  private static List<MemoryObjectTreeNode<MemoryObject>> findLeafNodesForFieldPath(@NotNull MemoryObjectTreeNode<MemoryObject> parentNode,
+                                                                                    @NotNull List<FieldObject> fieldPath) {
+    assert fieldPath.size() > 0;
+    FieldObject currentField = fieldPath.get(0);
+
+    List<MemoryObjectTreeNode<MemoryObject>> results = new ArrayList<>(1);
+    if (fieldPath.size() == 1) {
+      // We reached the leaf node. Just find all children nodes with adapters matching the leaf FieldObject.
+      //noinspection ArraysAsListWithZeroOrOneArgument
+      parentNode.getChildren().stream().filter(child -> child.getAdapter().equals(currentField)).forEach(results::add);
+    }
+    else {
+      // We're not at the leaf, so just add all the results of the recursive call.
+      List<FieldObject> slice = fieldPath.subList(1, fieldPath.size());
+      parentNode.getChildren().stream().filter(child -> child.getAdapter().equals(currentField))
+        .forEach(child -> results.addAll(findLeafNodesForFieldPath(child, slice)));
+    }
+    return results;
   }
 
   static class InstanceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {

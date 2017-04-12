@@ -199,7 +199,8 @@ public final class FakeInstanceObject implements InstanceObject {
 
     @NotNull
     public Builder setFields(@NotNull List<String> fields) {
-      myFields = fields;
+      myFields.clear();
+      myFields.addAll(fields);
       return this;
     }
 
