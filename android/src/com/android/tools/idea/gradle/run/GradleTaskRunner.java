@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.Semaphore;
+import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,37 +35,55 @@ public interface GradleTaskRunner {
     throws InvocationTargetException, InterruptedException;
 
   static GradleTaskRunner newRunner(@NotNull Project project) {
-    return new GradleTaskRunner() {
-      @Override
-      public boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
-        throws InvocationTargetException, InterruptedException {
-        assert !ApplicationManager.getApplication().isDispatchThread();
+    return new DefaultGradleTaskRunner(project);
+  }
 
-        final GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
+  static GradleTaskRunner newBuildActionRunner(@NotNull Project project, @Nullable BuildAction buildAction) {
+    return new DefaultGradleTaskRunner(project, buildAction);
+  }
 
-        final AtomicBoolean success = new AtomicBoolean();
-        final Semaphore done = new Semaphore();
-        done.down();
+  class DefaultGradleTaskRunner implements GradleTaskRunner {
+    @NotNull final Project myProject;
+    @Nullable final BuildAction myBuildAction;
 
-        final GradleBuildInvoker.AfterGradleInvocationTask afterTask = new GradleBuildInvoker.AfterGradleInvocationTask() {
-          @Override
-          public void execute(@NotNull GradleInvocationResult result) {
-            success.set(result.isBuildSuccessful());
-            gradleBuildInvoker.remove(this);
-            done.up();
-          }
-        };
+    DefaultGradleTaskRunner(@NotNull Project project) {
+      this(project, null);
+    }
 
-        // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use TransactionGuard.submitTransaction.
-        // IDEA also uses TransactionGuard.submitTransaction in this scenario (see CompileStepBeforeRun.)
-        TransactionGuard.submitTransaction(project, () -> {
-          gradleBuildInvoker.add(afterTask);
-          gradleBuildInvoker.executeTasks(tasks, buildMode, commandLineArguments);
-        });
+    DefaultGradleTaskRunner(@NotNull Project project, @Nullable BuildAction buildAction) {
+      myProject = project;
+      myBuildAction = buildAction;
+    }
 
-        done.waitFor();
-        return success.get();
-      }
-    };
+    @Override
+    public boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
+      throws InvocationTargetException, InterruptedException {
+      assert !ApplicationManager.getApplication().isDispatchThread();
+
+      final GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
+
+      final AtomicBoolean success = new AtomicBoolean();
+      final Semaphore done = new Semaphore();
+      done.down();
+
+      final GradleBuildInvoker.AfterGradleInvocationTask afterTask = new GradleBuildInvoker.AfterGradleInvocationTask() {
+        @Override
+        public void execute(@NotNull GradleInvocationResult result) {
+          success.set(result.isBuildSuccessful());
+          gradleBuildInvoker.remove(this);
+          done.up();
+        }
+      };
+
+      // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use TransactionGuard.submitTransaction.
+      // IDEA also uses TransactionGuard.submitTransaction in this scenario (see CompileStepBeforeRun.)
+      TransactionGuard.submitTransaction(myProject, () -> {
+        gradleBuildInvoker.add(afterTask);
+        gradleBuildInvoker.executeTasks(tasks, buildMode, commandLineArguments, myBuildAction);
+      });
+
+      done.waitFor();
+      return success.get();
+    }
   }
 }
