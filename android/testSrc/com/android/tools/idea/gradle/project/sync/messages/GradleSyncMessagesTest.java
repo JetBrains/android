@@ -20,10 +20,8 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -47,11 +45,7 @@ public class GradleSyncMessagesTest extends IdeaTestCase {
   }
 
   public void testRemoveProjectMessages() {
-    mySyncMessages.removeProjectMessages();
-    verify(myNotificationManager).clearNotifications("Project Structure Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Missing Dependencies", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Variant Selection Conflicts", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Generated Sources", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Gradle Sync Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+    mySyncMessages.removeMessages();
+    verify(myNotificationManager).clearNotifications(null, PROJECT_SYNC, GRADLE_SYSTEM_ID);
   }
 }
