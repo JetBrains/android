@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +43,7 @@ public enum FormFactor {
   TV("TV", "TV", 21, SdkVersionInfo.LOWEST_ACTIVE_API_TV, SdkVersionInfo.HIGHEST_KNOWN_API_TV,
      null, Lists.newArrayList(SystemImage.TV_TAG), null, FormFactors.Tv_64, FormFactors.Tv_128),
   CAR("Car", "Android Auto", 21, 21, 21, null, null, MOBILE, FormFactors.Car_64, FormFactors.Car_128),
+  THINGS("Things", "Android Things", 24, 24, SdkVersionInfo.HIGHEST_KNOWN_API, null, null, null, FormFactors.Things_64, FormFactors.Things_128),
   GLASS("Glass", "Glass", 19, -1, -1, null, Lists.newArrayList(SystemImage.GLASS_TAG), null, FormFactors.Glass_64, FormFactors.Glass_128);
 
   private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
@@ -51,6 +51,7 @@ public enum FormFactor {
     .put(WEAR.id, WEAR)
     .put(TV.id, TV)
     .put(CAR.id, CAR)
+    .put(THINGS.id, THINGS)
     .put(GLASS.id, GLASS).build();
 
   public final String id;
@@ -93,7 +94,9 @@ public enum FormFactor {
     else if (HardwareConfigHelper.isTv(device)) {
       return TV;
     }
-    // Glass, Car not yet in the device list
+    else if (HardwareConfigHelper.isThings(device)) {
+      return THINGS;
+    }    // Glass, Car not yet in the device list
 
     return MOBILE;
   }

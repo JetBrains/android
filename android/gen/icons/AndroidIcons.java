@@ -88,24 +88,28 @@ public class AndroidIcons {
     public static final Icon Glass_16 = load("/icons/glass.png");                        // 16x16
     public static final Icon Mobile_16 = load("/icons/mobile.png");                      // 16x16
     public static final Icon Tv_16 = load("/icons/tv.png");                              // 16x16
+    public static final Icon Things_16 = load("/icons/things.png");                      // 16x16
 
     public static final Icon Wear_32 = load("/icons/formfactors/wear_32.png");           // 32x32
     public static final Icon Car_32 = load("/icons/formfactors/car_32.png");             // 32x32
     public static final Icon Glass_32 = load("/icons/formfactors/glass_32.png");         // 32x32
     public static final Icon Mobile_32 = load("/icons/formfactors/phone_tablet_32.png"); // 32x32
     public static final Icon Tv_32 = load("/icons/formfactors/tv_32.png");               // 32x32
+    public static final Icon Things_32 = load("/icons/formfactors/things_32.png");       // 32x32
 
     public static final Icon Wear_64 = load("/icons/formfactors/64/wear.png");           // 64x64
     public static final Icon Car_64 = load("/icons/formfactors/64/car.png");             // 64x64
     public static final Icon Glass_64 = load("/icons/formfactors/64/glass.png");         // 64x64
     public static final Icon Mobile_64 = load("/icons/formfactors/64/phone_tablet.png"); // 64x64
     public static final Icon Tv_64 = load("/icons/formfactors/64/tv.png");               // 64x64
+    public static final Icon Things_64 = load("/icons/formfactors/64/things.png");       // 64x64
 
     public static final Icon Wear_128 = load("/icons/formfactors/128/wear.png");         // 128x128
     public static final Icon Car_128 = load("/icons/formfactors/128/car.png");           // 128x128
     public static final Icon Glass_128 = load("/icons/formfactors/128/glass.png");       // 128x128
     public static final Icon Mobile_128 = load("/icons/formfactors/128/mobile.png");     // 128x128
     public static final Icon Tv_128 = load("/icons/formfactors/128/tv.png");             // 128x128
+    public static final Icon Things_128 = load("/icons/formfactors/128/things.png");     // 128x128
   }
 
   public static class Configs {
@@ -562,6 +566,7 @@ public class AndroidIcons {
   public static class ModuleTemplates {
     public static final Icon Wear = load("/icons/module_templates/wear_module.png"); // 512x512
     public static final Icon Car = load("/icons/module_templates/car_module.png"); // 512x512
+    public static final Icon Things = load("/icons/module_templates/things_module.png"); // 512x512
     public static final Icon Glass = load("/icons/module_templates/glass_module.png"); // 512x512
     public static final Icon Mobile = load("/icons/module_templates/mobile_module.png"); // 512x512
     public static final Icon Tv = load("/icons/module_templates/tv_module.png"); // 512x512
