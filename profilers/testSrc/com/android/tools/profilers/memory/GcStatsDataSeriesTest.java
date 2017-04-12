@@ -39,11 +39,13 @@ public class GcStatsDataSeriesTest {
     MemoryProfiler.MemoryData memoryData =
       MemoryProfiler.MemoryData.newBuilder()
         .setEndTimestamp(1)
-        .addVmStatsSamples(
-          MemoryProfiler.MemoryData.VmStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(3)).setGcCount(13))
-        .addVmStatsSamples(
-          MemoryProfiler.MemoryData.VmStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(14)).setGcCount(4))
-        .build();
+        .addGcStatsSamples(
+          MemoryProfiler.MemoryData.GcStatsSample.newBuilder().setStartTime(TimeUnit.MICROSECONDS.toNanos(3))
+            .setEndTime(TimeUnit.MICROSECONDS.toNanos(7)))
+        .addGcStatsSamples(
+          MemoryProfiler.MemoryData.GcStatsSample.newBuilder().setStartTime(TimeUnit.MICROSECONDS.toNanos(14))
+            .setEndTime(TimeUnit.MICROSECONDS.toNanos(17)))
+            .build();
     myService.setMemoryData(memoryData);
 
     GcStatsDataSeries series = new GcStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA);
@@ -52,12 +54,10 @@ public class GcStatsDataSeriesTest {
     assertEquals(2, dataList.size());
     SeriesData<GcDurationData> data1 = dataList.get(0);
     assertEquals(3, data1.x);
-    assertEquals(0, data1.value.getDuration());
-    assertEquals("GC Count: 13", data1.value.toString());
+    assertEquals(4, data1.value.getDuration());
 
     SeriesData<GcDurationData> data2 = dataList.get(1);
     assertEquals(14, data2.x);
-    assertEquals(0, data2.value.getDuration());
-    assertEquals("GC Count: 4", data2.value.toString());
+    assertEquals(3, data2.value.getDuration());
   }
 }

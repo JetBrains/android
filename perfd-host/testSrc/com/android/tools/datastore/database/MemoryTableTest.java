@@ -72,25 +72,28 @@ public class MemoryTableTest {
   public void testInsertAndGetData() throws Exception {
     /**
      * Insert a cascading sequence of sample data into the database:
-     * Timestamp:     0 1 2 3 4 5 6 7 8
+     * Timestamp:     0 1 2 3 4 5 6 7 8 9
      * mem              |
-     * vmStats            |
+     * allocStats         |
      * ongoing heap         |---------->
      * finished heap          |-|
      * ongoing alloc              |---->
-     * finished alloc               |--|
+     * finished alloc               |-|
+     * gcStats                        |-|
      */
     MemoryData.MemorySample memSample = MemoryData.MemorySample.newBuilder().setTimestamp(1).build();
-    MemoryData.VmStatsSample vmStatsSample = MemoryData.VmStatsSample.newBuilder().setTimestamp(2).build();
+    MemoryData.AllocStatsSample allocStatsSample = MemoryData.AllocStatsSample.newBuilder().setTimestamp(2).build();
     HeapDumpInfo ongoingHeapSample =
       HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
     HeapDumpInfo finishedHeapSample = HeapDumpInfo.newBuilder().setStartTime(4).setEndTime(5).build();
     AllocationsInfo ongoingAllocSample =
       AllocationsInfo.newBuilder().setStartTime(6).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
     AllocationsInfo finishedAllocSample = AllocationsInfo.newBuilder().setStartTime(7).setEndTime(8).build();
+    MemoryData.GcStatsSample gcStatsSample = MemoryData.GcStatsSample.newBuilder().setStartTime(8).setEndTime(9).build();
 
     myTable.insertMemory(VALID_PID, VALID_SESSION, Collections.singletonList(memSample));
-    myTable.insertVmStats(VALID_PID, VALID_SESSION, Collections.singletonList(vmStatsSample));
+    myTable.insertAllocStats(VALID_PID, VALID_SESSION, Collections.singletonList(allocStatsSample));
+    myTable.insertGcStats(VALID_PID, VALID_SESSION, Collections.singletonList(gcStatsSample));
     myTable.insertOrReplaceHeapInfo(VALID_PID, VALID_SESSION, finishedHeapSample);
     myTable.insertOrReplaceHeapInfo(VALID_PID, VALID_SESSION, ongoingHeapSample);
     myTable.insertOrReplaceAllocationsInfo(VALID_PID, VALID_SESSION, ongoingAllocSample);
@@ -98,59 +101,60 @@ public class MemoryTableTest {
 
     // Perform a sequence of queries to ensure we are getting startTime-exclusive and endTime-inclusive data.
     MemoryData result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(-1).setEndTime(0).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(0).setEndTime(1).build());
-    verifyMemoryDataResultCounts(result, 1, 0, 0, 0);
+    verifyMemoryDataResultCounts(result, 1, 0, 0, 0, 0);
     assertEquals(memSample, result.getMemSamples(0));
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(1).setEndTime(2).build());
-    verifyMemoryDataResultCounts(result, 0, 1, 0, 0);
-    assertEquals(vmStatsSample, result.getVmStatsSamples(0));
+    verifyMemoryDataResultCounts(result, 0, 1, 0, 0, 0);
+    assertEquals(allocStatsSample, result.getAllocStatsSamples(0));
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(2).setEndTime(3).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 1, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 0);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(3).setEndTime(4).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 2, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 2, 0);
     assertTrue(result.getHeapDumpInfosList().contains(ongoingHeapSample));
     assertTrue(result.getHeapDumpInfosList().contains(finishedHeapSample));
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(4).setEndTime(5).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 2, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 2, 0);
     assertTrue(result.getHeapDumpInfosList().contains(ongoingHeapSample));
     assertTrue(result.getHeapDumpInfosList().contains(finishedHeapSample));
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(5).setEndTime(6).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 1, 1);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 1);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertEquals(ongoingAllocSample, result.getAllocationsInfo(0));
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(6).setEndTime(7).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 1, 2);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 2);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertTrue(result.getAllocationsInfoList().contains(ongoingAllocSample));
     assertTrue(result.getAllocationsInfoList().contains(finishedAllocSample));
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(7).setEndTime(8).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 1, 2);
+    verifyMemoryDataResultCounts(result, 0, 0, 1, 1, 2);
+    assertEquals(gcStatsSample, result.getGcStatsSamples(0));
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertTrue(result.getAllocationsInfoList().contains(ongoingAllocSample));
     assertTrue(result.getAllocationsInfoList().contains(finishedAllocSample));
 
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(8).setEndTime(9).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 1, 1);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 1);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertEquals(ongoingAllocSample, result.getAllocationsInfo(0));
 
     // Test that querying for the invalid app id returns no data
     result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(INVALID_PID).setStartTime(0).setEndTime(9).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
 
     // Test that querying for an invalid session returns no data.
     result = myTable.getData(MemoryRequest.newBuilder().setSession(INVALID_SESSION).setProcessId(VALID_PID).setStartTime(0).setEndTime(9).build());
-    verifyMemoryDataResultCounts(result, 0, 0, 0, 0);
+    verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
   }
 
   @Test
@@ -253,11 +257,13 @@ public class MemoryTableTest {
 
   private static void verifyMemoryDataResultCounts(@NotNull MemoryData result,
                                                    int numMemSample,
-                                                   int numVmStatsSample,
+                                                   int numAllocStatsSample,
+                                                   int numGcStatsSample,
                                                    int numHeapInfoSample,
                                                    int numAllocInfoSample) {
     assertEquals(numMemSample, result.getMemSamplesCount());
-    assertEquals(numVmStatsSample, result.getVmStatsSamplesCount());
+    assertEquals(numAllocStatsSample, result.getAllocStatsSamplesCount());
+    assertEquals(numGcStatsSample, result.getGcStatsSamplesCount());
     assertEquals(numHeapInfoSample, result.getHeapDumpInfosCount());
     assertEquals(numAllocInfoSample, result.getAllocationsInfoCount());
   }

@@ -28,27 +28,27 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
-public class VmStatsDataSeriesTest {
+public class AllocStatsDataSeriesTest {
 
   private final FakeMemoryService myService = new FakeMemoryService();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("VmStatsDataSeriesTest", myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myService);
 
   @Test
   public void testGetDataForXRange() throws Exception {
     MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder()
       .setEndTimestamp(1)
-      .addVmStatsSamples(
-        MemoryProfiler.MemoryData.VmStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(3)).setJavaAllocationCount(1000)
+      .addAllocStatsSamples(
+        MemoryProfiler.MemoryData.AllocStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(3)).setJavaAllocationCount(1000)
           .setJavaFreeCount(2000))
-      .addVmStatsSamples(
-        MemoryProfiler.MemoryData.VmStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(14)).setJavaAllocationCount(1500)
+      .addAllocStatsSamples(
+        MemoryProfiler.MemoryData.AllocStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(14)).setJavaAllocationCount(1500)
           .setJavaFreeCount(2500))
       .build();
     myService.setMemoryData(memoryData);
 
-    VmStatsDataSeries series =
-      new VmStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA, sample -> (long)sample.getJavaAllocationCount());
+    AllocStatsDataSeries series =
+      new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA, sample -> (long)sample.getJavaAllocationCount());
     List<SeriesData<Long>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
     assertEquals(3, dataList.get(0).x);
@@ -56,7 +56,7 @@ public class VmStatsDataSeriesTest {
     assertEquals(14, dataList.get(1).x);
     assertEquals(1500, dataList.get(1).value.longValue());
 
-    series = new VmStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA, sample -> (long)sample.getJavaFreeCount());
+    series = new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA, sample -> (long)sample.getJavaFreeCount());
     dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
     assertEquals(3, dataList.get(0).x);

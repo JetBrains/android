@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-public final class VmStatsDataSeries implements DataSeries<Long> {
+public final class AllocStatsDataSeries implements DataSeries<Long> {
   @NotNull
   private MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
 
@@ -36,10 +36,10 @@ public final class VmStatsDataSeries implements DataSeries<Long> {
   private final Common.Session mySession;
 
   @NotNull
-  private Function<MemoryProfiler.MemoryData.VmStatsSample, Long> myFilter;
+  private Function<MemoryProfiler.MemoryData.AllocStatsSample, Long> myFilter;
 
-  public VmStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, Common.Session session,
-                           @NotNull Function<MemoryProfiler.MemoryData.VmStatsSample, Long> filter) {
+  public AllocStatsDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, Common.Session session,
+                              @NotNull Function<MemoryProfiler.MemoryData.AllocStatsSample, Long> filter) {
     myClient = client;
     myProcessId = id;
     mySession = session;
@@ -58,7 +58,7 @@ public final class VmStatsDataSeries implements DataSeries<Long> {
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
 
     List<SeriesData<Long>> seriesData = new ArrayList<>();
-    for (MemoryProfiler.MemoryData.VmStatsSample sample : response.getVmStatsSamplesList()) {
+    for (MemoryProfiler.MemoryData.AllocStatsSample sample : response.getAllocStatsSamplesList()) {
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
       seriesData.add(new SeriesData<>(dataTimestamp, myFilter.apply(sample)));
     }
