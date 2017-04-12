@@ -23,14 +23,12 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
+import com.android.tools.idea.testing.Modules;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
@@ -54,7 +52,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
@@ -193,9 +190,10 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     Collection<VirtualFile> originalDirs = resources.getResourceDirs();
     assertNotEmpty(originalDirs);
 
-    Map<String, Module> rootToModules = rootToModuleMap();
+    Modules modules = new Modules(getProject());
     // Now remove one of the modules, which should automatically cause the repo to have different roots.
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> removeModuleDependency(myModule, rootToModules.get("plib2").getName()));
+    WriteCommandAction.runWriteCommandAction(
+      getProject(), () -> removeModuleDependency(myModule, modules.getModule("plib2").getName()));
     DumbService.getInstance(getProject()).runWhenSmart(() -> {
       assertEquals(originalChildren.size() - 1, resources.getChildren().size());
       assertEquals(originalDirs.size() - 1, resources.getResourceDirs().size());
@@ -278,7 +276,6 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       addModuleWithAndroidFacet(projectBuilder, modules, "sharedlib", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "lib1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "lib2", PROJECT_TYPE_LIBRARY);
-      addModuleWithAndroidFacet(projectBuilder, modules, "app", PROJECT_TYPE_APP);
     }
     else if (testName.equals("rootChangeListener")) {
       addModuleWithAndroidFacet(projectBuilder, modules, "plib1", PROJECT_TYPE_LIBRARY);
@@ -290,21 +287,16 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   public void testDependencies() throws Exception {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
 
-    Map<String, Module> rootToModuleMap = rootToModuleMap();
-    Module lib1 = rootToModuleMap.get("lib1");
-    Module lib2 = rootToModuleMap.get("lib2");
-    Module sharedLib = rootToModuleMap.get("sharedlib");
-    Module app = rootToModuleMap.get("app");
+    Modules modules = new Modules(getProject());
+    Module lib1 = modules.getModule("lib1");
+    Module lib2 = modules.getModule("lib2");
+    Module sharedLib = modules.getModule("sharedlib");
+    Module app = modules.getAppModule();
 
     assertNotNull(lib1);
     assertNotNull(lib2);
     assertNotNull(sharedLib);
     assertNotNull(app);
-
-    renameModule(lib1, "lib1");
-    renameModule(lib2, "lib2");
-    renameModule(sharedLib, "sharedLib");
-    renameModule(app, "app");
 
     AndroidFacet lib1Facet = AndroidFacet.getInstance(lib1);
     AndroidFacet lib2Facet = AndroidFacet.getInstance(lib2);
@@ -392,26 +384,6 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     final ModifiableRootModel model = ModuleRootManager.getInstance(from).getModifiableModel();
     model.addModuleOrderEntry(to);
     ApplicationManager.getApplication().runWriteAction(model::commit);
-  }
-
-  private static void renameModule(Module from, String name) throws ModuleWithNameAlreadyExists {
-    final ModifiableModuleModel model = ModuleManager.getInstance(from.getProject()).getModifiableModel();
-    model.renameModule(from, name);
-    ApplicationManager.getApplication().runWriteAction(model::commit);
-  }
-
-  // The modules have names that may be hard to guess, but the roots we know from configureAdditionalModules.
-  // This map helps us find the module by root.
-  private Map<String, Module> rootToModuleMap() {
-    Map<String, Module> map = new HashMap<>();
-    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
-      if (module != myModule) {
-        VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-        assertEquals(1, contentRoots.length);
-        map.put(contentRoots[0].getName(), module);
-      }
-    }
-    return map;
   }
 
   private static void removeModuleDependency(Module from, String name) {
