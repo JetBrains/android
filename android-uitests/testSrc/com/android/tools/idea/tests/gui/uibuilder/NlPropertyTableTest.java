@@ -109,7 +109,6 @@ public class NlPropertyTableTest {
       .assertPropertyShowing("visibility", null);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Until this test has proven itself reliable
   @Test
   public void testSimpleKeyboardEditingInTable() throws Exception {
     // If this UI test should fail, this is the intention with the test.
@@ -148,7 +147,6 @@ public class NlPropertyTableTest {
     assertThat(table.cell(new TableCellInSelectedRow.TableCellBuilder().column(0)).value()).isEqualTo("@android:accessibilityLiveRegion");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Until this test has proven itself reliable
   @Test
   public void testSelectCompletionFinishesEditingOfCell() throws Exception {
     // If this UI test should fail, this is the intention with the test.
@@ -184,7 +182,6 @@ public class NlPropertyTableTest {
     assertThat(table.target()).isEqualTo(getFocusOwner());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Until this test has proven itself reliable
   @Test
   public void testSimpleKeyboardNavigationInTable() throws Exception {
     IdeFrameFixture frame = guiTest.importSimpleApplication();

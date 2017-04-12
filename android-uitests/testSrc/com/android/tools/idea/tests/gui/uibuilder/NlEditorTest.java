@@ -157,7 +157,6 @@ public class NlEditorTest {
     assertThat(nele.getScale()).isLessThan(oldScale);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testAddDesignLibrary() throws Exception {
     guiTest.importSimpleApplication()
