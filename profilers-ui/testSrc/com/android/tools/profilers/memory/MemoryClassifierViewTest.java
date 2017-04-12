@@ -109,7 +109,7 @@ public class MemoryClassifierViewTest {
     assertNotNull(heapSet);
     myStage.selectHeapSet(heapSet);
 
-    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNotNull(myClassifierView.getTree());
     JTree classifierTree = myClassifierView.getTree();
 
@@ -236,7 +236,7 @@ public class MemoryClassifierViewTest {
     assertNotNull(heapSet);
     myStage.selectHeapSet(heapSet);
 
-    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClassSet());
     assertNotNull(myClassifierView.getTree());
 
@@ -358,7 +358,7 @@ public class MemoryClassifierViewTest {
     assertNotNull(heapSet);
     myStage.selectHeapSet(heapSet);
 
-    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClassSet());
 
     JTree classifierTree = myClassifierView.getTree();
@@ -471,7 +471,7 @@ public class MemoryClassifierViewTest {
     assertNotNull(heapSet);
     myStage.selectHeapSet(heapSet);
 
-    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNull(myStage.getSelectedClassSet());
 
     JTree classifierTree = myClassifierView.getTree();
@@ -491,39 +491,40 @@ public class MemoryClassifierViewTest {
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertEquals(3, rootNode.getChildCount());
 
-    MemoryObjectTreeNode<? extends ClassifierSet> codeLocation1Node = findChildWithPredicate(
+    MemoryObjectTreeNode<? extends MemoryObject> codeLocation1Node = findChildWithPredicate(
       rootNode,
       classifierSet -> classifierSet instanceof MethodSet && codeLocation1.equals(((MethodSet)classifierSet).getCodeLocation()));
     assertEquals(2, codeLocation1Node.getChildCount());
 
-    MemoryObjectTreeNode<? extends ClassifierSet> codeLocation2Node = findChildWithPredicate(
+    MemoryObjectTreeNode<? extends MemoryObject> codeLocation2Node = findChildWithPredicate(
       codeLocation1Node,
       classifierSet -> classifierSet instanceof MethodSet && codeLocation2.equals(((MethodSet)classifierSet).getCodeLocation()));
-    ClassSet callstack1FooClassSet = findChildClassSetWithName(codeLocation2Node.getAdapter(), CLASS_NAME_0);
+    ClassSet callstack1FooClassSet = findChildClassSetWithName((ClassifierSet)codeLocation2Node.getAdapter(), CLASS_NAME_0);
     assertEquals(callstack1FooClassSet, callstack1FooClassSet.findContainingClassifierSet(instance1));
     assertEquals(callstack1FooClassSet, callstack1FooClassSet.findContainingClassifierSet(instance2));
     assertEquals(callstack1FooClassSet, callstack1FooClassSet.findContainingClassifierSet(instance3));
 
-    MemoryObjectTreeNode<? extends ClassifierSet> codeLocation3Node = findChildWithPredicate(
+    MemoryObjectTreeNode<? extends MemoryObject> codeLocation3Node = findChildWithPredicate(
       codeLocation1Node,
       classifierSet -> classifierSet instanceof MethodSet && codeLocation3.equals(((MethodSet)classifierSet).getCodeLocation()));
-    ClassSet callstack2FooClassSet = findChildClassSetWithName(codeLocation3Node.getAdapter(), CLASS_NAME_0);
+    ClassSet callstack2FooClassSet = findChildClassSetWithName((ClassifierSet)codeLocation3Node.getAdapter(), CLASS_NAME_0);
     assertEquals(callstack2FooClassSet, callstack2FooClassSet.findContainingClassifierSet(instance4));
     assertEquals(callstack2FooClassSet, callstack2FooClassSet.findContainingClassifierSet(instance5));
 
-    MemoryObjectTreeNode<? extends ClassifierSet> codeLocation4Node = findChildWithPredicate(
+    MemoryObjectTreeNode<? extends MemoryObject> codeLocation4Node = findChildWithPredicate(
       rootNode,
       classifierSet -> classifierSet instanceof MethodSet && codeLocation4.equals(((MethodSet)classifierSet).getCodeLocation()));
     assertEquals(2, codeLocation4Node.getChildCount());
-    ClassSet callstack3FooClassSet = findChildClassSetWithName(codeLocation4Node.getAdapter(), CLASS_NAME_0);
+    ClassSet callstack3FooClassSet = findChildClassSetWithName((ClassifierSet)codeLocation4Node.getAdapter(), CLASS_NAME_0);
     assertEquals(callstack3FooClassSet, callstack3FooClassSet.findContainingClassifierSet(instance6));
-    ClassSet callstack3BarClassSet = findChildClassSetWithName(codeLocation4Node.getAdapter(), CLASS_NAME_1);
+    ClassSet callstack3BarClassSet = findChildClassSetWithName((ClassifierSet)codeLocation4Node.getAdapter(), CLASS_NAME_1);
     assertEquals(callstack3BarClassSet, callstack3BarClassSet.findContainingClassifierSet(instance7));
 
     ClassSet noStackIntArrayClassSet = findChildClassSetWithName(rootNode.getAdapter(), CLASS_NAME_2);
     assertEquals(1, noStackIntArrayClassSet.getCount());
 
-    MemoryObjectTreeNode<? extends ClassifierSet> nodeToSelect = findChildClassSetNodeWithClassName(codeLocation4Node, CLASS_NAME_0);
+    //noinspection unchecked
+    MemoryObjectTreeNode<? extends ClassifierSet> nodeToSelect = findChildClassSetNodeWithClassName((MemoryObjectTreeNode<ClassifierSet>)codeLocation4Node, CLASS_NAME_0);
     classifierTree.setSelectionPath(new TreePath(new Object[]{root, codeLocation4Node, nodeToSelect}));
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
     assertEquals(3, rootNode.getChildCount());
@@ -552,7 +553,7 @@ public class MemoryClassifierViewTest {
     assertNotNull(heapSet);
     myStage.selectHeapSet(heapSet);
 
-    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
+    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
 
     JTree classifierTree = myClassifierView.getTree();
     assertNotNull(classifierTree);

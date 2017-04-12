@@ -18,10 +18,13 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.ClassInstance.FieldValue;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.hash.HashCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
 
@@ -44,8 +47,9 @@ final class HeapDumpFieldObject implements FieldObject {
   private final int myShallowSize;
   private final long myRetainedSize;
 
+  private final int myHashCode;
+
   public HeapDumpFieldObject(@NotNull HeapDumpCaptureObject captureObject, @NotNull Instance parentInstance, @NotNull FieldValue field) {
-    // TODO - is the ClassObj logic correct here? Should a ClassObj instance not have the "java.lang.Class" as its ClassObj?
     myField = field;
     Type type = myField.getField().getType();
     if (type == Type.OBJECT) {
@@ -61,6 +65,9 @@ final class HeapDumpFieldObject implements FieldObject {
         myInstanceObject = captureObject.findInstanceObject(instance);
         if (instance instanceof ClassObj) {
           myValueType = CLASS;
+        }
+        else if (instance instanceof ArrayInstance) {
+          myValueType = ARRAY;
         }
         else if (instance instanceof ClassInstance && instance.getClassObj().getClassName().equals(ClassDb.JAVA_LANG_STRING)) {
           myValueType = STRING;
@@ -81,6 +88,26 @@ final class HeapDumpFieldObject implements FieldObject {
       myRetainedSize = type.getSize();
       myDepth = parentInstance.getDistanceToGcRoot();
     }
+
+    myHashCode = Arrays.hashCode(new Object[]{myInstanceObject, getFieldName(), getValueType(), myField.getValue()});
+  }
+
+  @Override
+  public int hashCode() {
+    return myHashCode;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HeapDumpFieldObject)) {
+      return false;
+    }
+
+    HeapDumpFieldObject other = (HeapDumpFieldObject)obj;
+    return other.myInstanceObject == myInstanceObject &&
+           getFieldName().equals(other.getFieldName()) &&
+           getValueType() == other.getValueType() &&
+           (getAsInstance() == other.getAsInstance() || Objects.equals(myField.getValue(), other.myField.getValue()));
   }
 
   @NotNull

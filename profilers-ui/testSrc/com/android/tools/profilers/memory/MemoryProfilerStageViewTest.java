@@ -97,7 +97,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     myStage.selectCaptureObject(fakeCapture1, null);
     assertView(fakeCapture1, null, null, null, true);
-    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
 
     JTree classifierTree = classifierView.getTree();
@@ -105,7 +105,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     HeapSet selectedHeap = myStage.getSelectedHeapSet();
     assertTrue(selectedHeap != null);
     assertView(fakeCapture1, selectedHeap, null, null, false);
-    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
 
     // Tests selecting a capture which loads immediately.
     myMockLoader.setReturnImmediateFuture(true);
@@ -115,22 +115,22 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     selectedHeap = myStage.getSelectedHeapSet();
     // 2 heap changes: 1 from changing the capture, the other from the auto-selection after the capture is loaded.
     assertView(fakeCapture2, selectedHeap, null, null, false);
-    myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0, 0);
 
     stageView.getHeapView().getComponent().setSelectedItem(fakeCapture2.getHeapSet(0));
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), null, null);
-    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
     ClassSet selectedClassSet = findDescendantClassSetNodeWithInstance(getRootClassifierSet(classifierTree).getAdapter(), fakeInstance3);
     assertNotNull(selectedClassSet);
     myStage.selectClassSet(selectedClassSet);
     assertView(fakeCapture2, fakeCapture2.getHeapSet(0), selectedClassSet, null, false);
-    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0, 0);
 
     assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
     assertEquals(ARRANGE_BY_PACKAGE, stageView.getClassGrouping().getComponent().getSelectedItem());
-    myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 2, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 0, 0);
 
     //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> memoryClassRoot = getRootClassifierSet(classifierTree);
@@ -162,15 +162,15 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     myStage.selectCaptureObject(fakeCapture1, null);
     assertView(fakeCapture1, null, null, null, true);
-    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     // Select a new capture before the first is loaded.
     myStage.selectCaptureObject(fakeCapture2, null);
     assertView(fakeCapture2, null, null, null, true);
-    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
     assertView(fakeCapture2, fakeCapture2.getHeapSet(0), null, null, false);
-    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
   }
 
   private void assertSelection(@Nullable CaptureObject expectedCaptureObject,

@@ -15,12 +15,13 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassSet;
-import com.android.tools.profilers.memory.adapters.HeapSet;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 public final class MemoryProfilerSelection {
   @NotNull private final MemoryProfilerStage myStage;
@@ -29,6 +30,7 @@ public final class MemoryProfilerSelection {
   @Nullable private HeapSet myHeapSet;
   @Nullable private ClassSet myClassSet;
   @Nullable private InstanceObject myInstanceObject;
+  @NotNull private List<FieldObject> myFieldObjectPath = Collections.emptyList();
 
   public MemoryProfilerSelection(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
@@ -54,6 +56,11 @@ public final class MemoryProfilerSelection {
     return myInstanceObject;
   }
 
+  @NotNull
+  public List<FieldObject> getFieldObjectPath() {
+    return myFieldObjectPath;
+  }
+
   /**
    * @return true if the internal state changed, otherwise false
    */
@@ -62,9 +69,10 @@ public final class MemoryProfilerSelection {
       return false;
     }
 
-    selectInstanceObject(null);
-    selectClassSet(null);
-    selectHeapSet(null);
+    setFieldObjectPath(Collections.emptyList());
+    setInstanceObject(null);
+    setClassSet(null);
+    setHeapSet(null);
     myCaptureObject = captureObject;
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE);
     return true;
@@ -90,6 +98,7 @@ public final class MemoryProfilerSelection {
       return false;
     }
 
+    setFieldObjectPath(Collections.emptyList());
     setInstanceObject(null);
     setClassSet(null);
     setHeapSet(heapSet);
@@ -105,6 +114,7 @@ public final class MemoryProfilerSelection {
       return false;
     }
 
+    setFieldObjectPath(Collections.emptyList());
     setInstanceObject(null);
     setClassSet(classSet);
     return true;
@@ -119,7 +129,18 @@ public final class MemoryProfilerSelection {
       return false;
     }
 
+    setFieldObjectPath(Collections.emptyList());
     setInstanceObject(instanceObject);
+    return true;
+  }
+
+  public boolean selectFieldObjectPath(@NotNull List<FieldObject> fieldObjectPath) {
+    assert fieldObjectPath.isEmpty() || (myCaptureObject != null && myInstanceObject != null);
+    if (Objects.equals(myFieldObjectPath, fieldObjectPath)) {
+      return false;
+    }
+
+    setFieldObjectPath(fieldObjectPath);
     return true;
   }
 
@@ -141,6 +162,13 @@ public final class MemoryProfilerSelection {
     if (myInstanceObject != instanceObject) {
       myInstanceObject = instanceObject;
       myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_INSTANCE);
+    }
+  }
+
+  public void setFieldObjectPath(@NotNull List<FieldObject> fieldObjectPath) {
+    if (myFieldObjectPath != fieldObjectPath) {
+      myFieldObjectPath = fieldObjectPath;
+      myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_FIELD_PATH);
     }
   }
 }

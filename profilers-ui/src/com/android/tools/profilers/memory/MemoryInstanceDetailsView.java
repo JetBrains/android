@@ -38,6 +38,7 @@ import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -74,7 +75,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
+      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged)
+      .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
     myIdeProfilerComponents = ideProfilerComponents;
 
     myTabsPanel = ideProfilerComponents.createTabsPanel();
@@ -181,6 +183,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   private void instanceChanged() {
     CaptureObject capture = myStage.getSelectedCapture();
     InstanceObject instance = myStage.getSelectedInstanceObject();
+    List<FieldObject> fieldPath = myStage.getSelectedFieldObjectPath();
+
     if (capture == null || instance == null) {
       myReferenceTree = null;
       myReferenceColumnTree = null;
@@ -190,6 +194,13 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
     myTabsPanel.removeAll();
     boolean hasContent = false;
+
+    if (fieldPath != null && fieldPath.size() > 0) {
+      InstanceObject fieldInstance = fieldPath.get(fieldPath.size() - 1).getAsInstance();
+      if (fieldInstance != null) {
+        instance = fieldInstance;
+      }
+    }
 
     // Populate references
     myReferenceColumnTree = buildReferenceColumnTree(capture, instance);
@@ -264,6 +275,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     final JTree tree = new Tree(treeModel);
     tree.setRootVisible(true);
     tree.setShowsRootHandles(true);
+    tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
     // Not all nodes have been populated during buildReferenceColumnTree. Here we capture the TreeExpansionEvent to check whether any children
     // under the expanded node need to be populated.

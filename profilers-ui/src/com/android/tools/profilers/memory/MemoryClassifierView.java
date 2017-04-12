@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -170,6 +171,7 @@ final class MemoryClassifierView extends AspectObserver {
     myTree = new Tree();
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
+    myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
     myTree.addTreeSelectionListener(e -> {
       TreePath path = e.getPath();
@@ -216,6 +218,7 @@ final class MemoryClassifierView extends AspectObserver {
         TreePath selectionPath = myTree.getSelectionPath();
         myTreeRoot.sort(comparator);
         myTreeModel.nodeStructureChanged(myTreeRoot);
+        myTree.expandPath(selectionPath.getParentPath());
         myTree.setSelectionPath(selectionPath);
         myTree.scrollPathToVisible(selectionPath);
       }
@@ -260,10 +263,11 @@ final class MemoryClassifierView extends AspectObserver {
     myTreeModel = new DefaultTreeModel(myTreeRoot);
     myTree.setModel(myTreeModel);
 
-    // Find the previously selected ClassifierSet node.
+    // Attempt to reselect the previously selected ClassSet node or FieldPath.
     ClassSet selectedClassSet = myStage.getSelectedClassSet();
     InstanceObject selectedInstance = myStage.getSelectedInstanceObject();
-    myStage.selectClassSet(null);
+    List<FieldObject> fieldPath = myStage.getSelectedFieldObjectPath();
+
     if (selectedClassSet == null) {
       return;
     }
@@ -277,16 +281,19 @@ final class MemoryClassifierView extends AspectObserver {
     }
 
     if (nodeToSelect == null || !(nodeToSelect.getAdapter() instanceof ClassSet)) {
+      myStage.selectClassSet(null);
       return;
     }
 
     assert myTree != null;
     TreePath treePath = new TreePath(nodeToSelect.getPathToRoot().toArray());
+    myClassSet = (ClassSet)nodeToSelect.getAdapter();
+    myTree.expandPath(treePath.getParentPath());
     myTree.setSelectionPath(treePath);
     myTree.scrollPathToVisible(treePath);
-    myClassSet = (ClassSet)nodeToSelect.getAdapter();
     myStage.selectClassSet(myClassSet);
     myStage.selectInstanceObject(selectedInstance);
+    myStage.selectFieldObjectPath(fieldPath);
   }
 
   /**
@@ -326,6 +333,7 @@ final class MemoryClassifierView extends AspectObserver {
       MemoryObjectTreeNode<ClassifierSet> node = findSmallestSuperSetNode(myTreeRoot, myClassSet);
       if (node != null) {
         TreePath treePath = new TreePath(node.getPathToRoot().toArray());
+        myTree.expandPath(treePath.getParentPath());
         myTree.setSelectionPath(treePath);
         myTree.scrollPathToVisible(treePath);
       }
