@@ -38,9 +38,12 @@ public class ChainChecker {
     if (isInChain(ourRightAttributes, ourLeftAttributes, component)
         || isInChain(ourLeftAttributes, ourRightAttributes, component)) {
       myIsInHorizontalChain = true;
-    }
-    if (myIsInHorizontalChain) {
       myHorizontalChainHead = findChainHead(component, ourLeftAttributes, ourRightAttributes);
+    }
+    if (isInChain(ourStartAttributes, ourEndAttributes, component)
+        || isInChain(ourEndAttributes, ourStartAttributes, component)) {
+      myIsInHorizontalChain = true;
+      myHorizontalChainHead = findChainHead(component, ourStartAttributes, ourEndAttributes);
     }
 
     if (isInChain(ourBottomAttributes, ourTopAttributes, component)

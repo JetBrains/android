@@ -74,9 +74,9 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "      app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
                  "      tools:layout_editor_absoluteY=\"494dp\"\n" +
                  "      app:layout_constraintBottom_toBottomOf=\"@+id/textview1\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\" />");
+                 "      app:layout_constraintEnd_toEndOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -120,9 +120,9 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:id=\"@+id/textview2\"\n" +
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\"\n" +
+                 "      app:layout_constraintEnd_toEndOf=\"parent\"\n" +
                  "      tools:layout_editor_absoluteY=\"525dp\"\n" +
                  "      app:layout_constraintBottom_toBottomOf=\"@+id/textview1\" />");
 
@@ -168,9 +168,9 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "      app:layout_constraintTop_toTopOf=\"@+id/textview1\"\n" +
                  "      tools:layout_editor_absoluteY=\"525dp\"\n" +
                  "      tools:layout_editor_absoluteX=\"200dp\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\" />");
+                 "      app:layout_constraintEnd_toEndOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
@@ -212,8 +212,8 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"\n" +
                  "      tools:layout_editor_absoluteX=\"191dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"@+id/textview1\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"@+id/textview1\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
+                 "      app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
                  "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\" />");
@@ -261,7 +261,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_height=\"30dp\"\n" +
                  "      tools:layout_editor_absoluteY=\"525dp\"\n" +
                  "      tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"@+id/textview1\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"@+id/textview1\"\n" +
                  "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\" />");
@@ -307,7 +307,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_height=\"30dp\"\n" +
                  "      tools:layout_editor_absoluteY=\"525dp\"\n" +
                  "      tools:layout_editor_absoluteX=\"200dp\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"@+id/textview1\"\n" +
+                 "      app:layout_constraintEnd_toEndOf=\"@+id/textview1\"\n" +
                  "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "      app:layout_constraintHorizontal_bias=\"0.5\" />");
