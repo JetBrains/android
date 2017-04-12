@@ -84,7 +84,7 @@
     <orderEntry type="module" module-name="execution-impl" scope="TEST" />
     <orderEntry type="module" module-name="profilers" scope="TEST" />
     <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/jsr305-1.3.9.jar!/" />
