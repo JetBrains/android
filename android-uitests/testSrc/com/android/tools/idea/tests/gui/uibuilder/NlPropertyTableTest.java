@@ -51,6 +51,7 @@ public class NlPropertyTableTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // seems to interact with the other test methods after http://ag/2097736
   @Test
   public void testScrollInViewDuringKeyboardNavigation() throws Exception {
     NlEditorFixture layout = guiTest.importSimpleApplication()
