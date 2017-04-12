@@ -20,7 +20,11 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.intellij.ide.util.PropertiesComponent;
+import org.jetbrains.android.AndroidTestCase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,17 +40,19 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-@RunWith(JUnit4.class)
-public class FontEnumSupportTest {
+public class FontEnumSupportTest extends AndroidTestCase {
   @Mock
   private NlProperty myProperty;
   @Mock
   private ResourceResolver myResolver;
+  @Mock
+  private NlModel myModel;
 
   private FontEnumSupport mySupport;
 
-  @Before
-  public void setUp() {
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     ResourceValueMap fonts = ResourceValueMap.create();
     fonts.put("Lobster", new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "Lobster"), "/very/long/filename/do/not/use"));
     fonts.put("DancingScript", new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "DancingScript"), "/very/long/filename/do/not/use"));
@@ -54,14 +60,17 @@ public class FontEnumSupportTest {
     projectResources.put(ResourceType.FONT, fonts);
     initMocks(this);
     when(myProperty.getResolver()).thenReturn(myResolver);
+    when(myProperty.getModel()).thenReturn(myModel);
     when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
     when(myProperty.resolveValue(eq("@font/Lobster"))).thenReturn("Lobster");
     when(myProperty.resolveValue(eq("@font/DancingScript"))).thenReturn("DancingScript");
     when(myResolver.getProjectResources()).thenReturn(projectResources);
+    when(myModel.getFacet()).thenReturn(myFacet);
+    PropertiesComponent propertiesComponent = new PropertiesComponentMock();
+    registerApplicationComponent(PropertiesComponent.class, propertiesComponent);
     mySupport = new FontEnumSupport(myProperty);
   }
 
-  @Test
   public void testFindPossibleValues() {
     assertThat(mySupport.getAllValues()).containsExactly(
       new ValueWithDisplayString("sans-serif", "sans-serif"),
@@ -76,19 +85,16 @@ public class FontEnumSupportTest {
       new ValueWithDisplayString("DancingScript", "@font/DancingScript")).inOrder();
   }
 
-  @Test
   public void testCreateDefaultValue() {
     assertThat(mySupport.createValue(""))
       .isEqualTo(ValueWithDisplayString.UNSET);
   }
 
-  @Test
   public void testCreateValueWithPrefix() {
     assertThat(mySupport.createValue("@font/Lobster"))
       .isEqualTo(new ValueWithDisplayString("Lobster", "@font/Lobster"));
   }
 
-  @Test
   public void testCreateValueWithoutPrefix() {
     assertThat(mySupport.createValue("serif"))
       .isEqualTo(new ValueWithDisplayString("serif", "serif"));
