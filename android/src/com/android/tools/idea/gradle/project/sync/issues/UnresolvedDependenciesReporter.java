@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.api.ProgressIndicator;
@@ -173,9 +174,11 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     return packages.getRemotePackages().values();
   }
 
-  private static boolean canGetConstraintLayoutFromSdkManager(@NotNull Module module) {
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-    return gradleModel != null && gradleModel.getFeatures().isConstraintLayoutSdkLocationSupported();
+  @VisibleForTesting
+  static boolean canGetConstraintLayoutFromSdkManager(@NotNull Module module) {
+    AndroidModuleModel model = AndroidModuleModel.get(module);
+    // see https://code.google.com/p/android/issues/detail?id=360563
+    return model == null /* 'null' means this is a brand-new project */ || model.getFeatures().isConstraintLayoutSdkLocationSupported();
   }
 
   @Nullable
