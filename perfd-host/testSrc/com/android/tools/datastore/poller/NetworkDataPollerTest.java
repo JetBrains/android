@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -94,22 +95,33 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
-  private NetworkService myNetworkDataPoller = new NetworkService(myDataStoreService, getPollTicker()::run);
+  private NetworkService myNetworkService = new NetworkService(myDataStoreService, getPollTicker()::run);
 
+  private final FakeNetworkService myFakeNetworkService = new FakeNetworkService();
   @Rule
-  public TestGrpcService<FakeNetworkService> myService = new TestGrpcService<>(myNetworkDataPoller, new FakeNetworkService());
+  public TestGrpcService<FakeNetworkService> myService = new TestGrpcService<>(myNetworkService, myFakeNetworkService);
 
   @Before
   public void setUp() throws Exception {
     when(myDataStoreService.getNetworkClient(any())).thenReturn(NetworkServiceGrpc.newBlockingStub(myService.getChannel()));
-    myNetworkDataPoller.startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+    myNetworkService
+      .startMonitoringApp(NetworkProfiler.NetworkStartRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
   }
 
   @After
   public void tearDown() throws Exception {
     // Not strictly necessary to do this but it ensures we run all code paths
-    myNetworkDataPoller
+    myNetworkService
       .stopMonitoringApp(NetworkProfiler.NetworkStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+  }
+
+  @Test
+  public void testPollFetchesDataOnce() {
+    // onSetup we initialized the app and triggered one poll. Let's check
+    // that everything was polled according to plan.
+    assertEquals(1, myFakeNetworkService.getDataRequested());
+    // request + response + body
+    assertEquals(3, myFakeNetworkService.getDetailsRequested());
   }
 
   @Test
@@ -133,7 +145,6 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     getHttpDetails(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY, body);
   }
 
-
   @Test
   public void testGetHttpRangeInvalidAppId() {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
@@ -143,7 +154,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .build();
 
     StreamObserver<NetworkProfiler.HttpRangeResponse> observer = mock(StreamObserver.class);
-    myNetworkDataPoller.getHttpRange(request, observer);
+    myNetworkService.getHttpRange(request, observer);
     validateResponse(observer, NetworkProfiler.HttpRangeResponse.getDefaultInstance());
   }
 
@@ -156,7 +167,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .build();
 
     StreamObserver<NetworkProfiler.HttpRangeResponse> observer = mock(StreamObserver.class);
-    myNetworkDataPoller.getHttpRange(request, observer);
+    myNetworkService.getHttpRange(request, observer);
     validateResponse(observer, HTTP_RANGE_RESPONSE);
   }
 
@@ -169,7 +180,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .build();
 
     StreamObserver<NetworkProfiler.HttpRangeResponse> observer = mock(StreamObserver.class);
-    myNetworkDataPoller.getHttpRange(request, observer);
+    myNetworkService.getHttpRange(request, observer);
     validateResponse(observer, NetworkProfiler.HttpRangeResponse.getDefaultInstance());
   }
 
@@ -182,7 +193,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .build();
 
     StreamObserver<NetworkProfiler.HttpRangeResponse> observer = mock(StreamObserver.class);
-    myNetworkDataPoller.getHttpRange(request, observer);
+    myNetworkService.getHttpRange(request, observer);
     validateResponse(observer, NetworkProfiler.HttpRangeResponse.getDefaultInstance());
   }
 
@@ -235,7 +246,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .setType(NetworkProfiler.NetworkDataRequest.Type.ALL)
       .build();
     StreamObserver<NetworkProfiler.NetworkDataResponse> observer = mock(StreamObserver.class);
-    myNetworkDataPoller.getData(request, observer);
+    myNetworkService.getData(request, observer);
     validateResponse(observer, NetworkProfiler.NetworkDataResponse.getDefaultInstance());
   }
 
@@ -258,7 +269,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .build();
 
     StreamObserver<NetworkProfiler.NetworkDataResponse> observer = mock(StreamObserver.class);
-    myNetworkDataPoller.getData(request, observer);
+    myNetworkService.getData(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -274,7 +285,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .setType(type)
       .build();
     StreamObserver<NetworkProfiler.NetworkDataResponse> observer = mock(StreamObserver.class);
-    myNetworkDataPoller.getData(request, observer);
+    myNetworkService.getData(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -285,14 +296,18 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       .setType(type)
       .build();
     StreamObserver<NetworkProfiler.HttpDetailsResponse> observer = mock(StreamObserver.class);
-    myNetworkDataPoller.getHttpDetails(request, observer);
+    myNetworkService.getHttpDetails(request, observer);
     validateResponse(observer, expectedResponse);
   }
 
   private static class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
 
+    private int myDetailsRequested;
+    private int myDataRequested;
+
     @Override
     public void getData(NetworkProfiler.NetworkDataRequest request, StreamObserver<NetworkProfiler.NetworkDataResponse> responseObserver) {
+      myDataRequested++;
       responseObserver.onNext(NETWORK_DATA_RESPONSE);
       responseObserver.onCompleted();
     }
@@ -320,6 +335,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     @Override
     public void getHttpDetails(NetworkProfiler.HttpDetailsRequest request,
                                StreamObserver<NetworkProfiler.HttpDetailsResponse> responseObserver) {
+      myDetailsRequested++;
       NetworkProfiler.HttpDetailsRequest.Type type = request.getType();
       NetworkProfiler.HttpDetailsResponse.Builder response = NetworkProfiler.HttpDetailsResponse.newBuilder();
       if (type == NetworkProfiler.HttpDetailsRequest.Type.REQUEST) {
@@ -333,6 +349,14 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
       }
       responseObserver.onNext(response.build());
       responseObserver.onCompleted();
+    }
+
+    public int getDataRequested() {
+      return myDataRequested;
+    }
+
+    public int getDetailsRequested() {
+      return myDetailsRequested;
     }
   }
 }
