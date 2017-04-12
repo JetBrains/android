@@ -97,6 +97,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.gradle.project.build.BuildStatus.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
@@ -335,10 +336,15 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       Project project = myRequest.getProject();
       GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project);
 
+      AtomicReference<Object> model = new AtomicReference<>(null);
+
       Function<ProjectConnection, Void> executeTasksFunction = connection -> {
         Stopwatch stopwatch = Stopwatch.createStarted();
 
         myConsoleView.clear();
+
+        BuildAction<?> buildAction = myRequest.getBuildAction();
+        boolean isRunBuildAction = buildAction != null;
 
         List<String> gradleTasks = myRequest.getGradleTasks();
         addMessage(new Message(Message.Kind.INFO, "Gradle tasks " + gradleTasks, SourceFilePosition.UNKNOWN), null);
@@ -395,16 +401,24 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           getLogger().info(logMessage);
 
           List<String> jvmArguments = new ArrayList<>(myRequest.getJvmArguments());
-          BuildLauncher launcher = connection.newBuild();
-          prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArguments, commandLineArguments, connection);
+
+          LongRunningOperation operation = isRunBuildAction ? connection.action(buildAction) : connection.newBuild();
+
+          prepare(operation, id, executionSettings, GRADLE_LISTENER, jvmArguments, commandLineArguments, connection);
 
           File javaHome = myIdeSdks.getJdkPath();
           if (javaHome != null) {
-            launcher.setJavaHome(javaHome);
+            operation.setJavaHome(javaHome);
           }
 
-          launcher.forTasks(toStringArray(gradleTasks));
-          launcher.withCancellationToken(cancellationTokenSource.token());
+          if (isRunBuildAction) {
+            ((BuildActionExecuter)operation).forTasks(toStringArray(gradleTasks));
+          }
+          else {
+            ((BuildLauncher)operation).forTasks(toStringArray(gradleTasks));
+          }
+
+          operation.withCancellationToken(cancellationTokenSource.token());
 
           GradleOutputForwarder.Listener outputListener = null;
           ExternalSystemTaskNotificationListener taskListener = myRequest.getTaskListener();
@@ -415,10 +429,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
               }
             };
           }
-          output.attachTo(launcher, outputListener);
+          output.attachTo(operation, outputListener);
 
           if (taskListener != null) {
-            launcher.addProgressListener((ProgressListener)event -> {
+            operation.addProgressListener((ProgressListener)event -> {
               if (myBuildStopper.contains(id)) {
                 taskListener.onStatusChange(GradleProgressEventConverter.convert(id, event));
               }
@@ -427,11 +441,18 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
           if (InstantRunSettings.isInstantRunEnabled() && InstantRunSettings.isRecorderEnabled()) {
             instantRunProgressListener = new InstantRunBuildProgressListener();
-            launcher.addProgressListener(instantRunProgressListener);
+            operation.addProgressListener(instantRunProgressListener);
           }
 
           myBuildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
-          launcher.run();
+
+          if (isRunBuildAction) {
+            model.set(((BuildActionExecuter)operation).run());
+          }
+          else {
+            ((BuildLauncher)operation).run();
+          }
+
           myBuildState.buildFinished(SUCCESS);
         }
         catch (BuildException e) {
@@ -464,7 +485,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
               application.putUserData(GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null);
             }
           }
-          showGradleOutput(gradleOutput, output, stopwatch, buildError);
+          showGradleOutput(gradleOutput, output, stopwatch, buildError, model.get());
         }
         return null;
       };
@@ -488,7 +509,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private void showGradleOutput(@NotNull String gradleOutput,
                                   @NotNull GradleOutputForwarder output,
                                   @NotNull Stopwatch stopwatch,
-                                  @Nullable Throwable buildError) {
+                                  @Nullable Throwable buildError,
+                                  @Nullable Object model) {
       Application application = ApplicationManager.getApplication();
 
       List<Message> buildMessages = new ArrayList<>();
@@ -525,7 +547,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           return;
         }
 
-        GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError);
+        GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model);
         for (AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
           task.execute(result);
         }
