@@ -175,11 +175,7 @@ public class EditorFixture {
    * @param text the text to type at the current editor position
    */
   public EditorFixture enterText(@NotNull final String text) {
-    Component component = getFocusedEditor();
-    if (component != null) {
-      robot.enterText(text, component);
-    }
-
+    robot.enterText(text, getFocusedEditor());
     return this;
   }
 
@@ -219,6 +215,7 @@ public class EditorFixture {
   public EditorFixture select(String regex) {
     Matcher matcher = Pattern.compile(regex).matcher(getCurrentFileContents());
     checkArgument(matcher.groupCount() == 1, "must have exactly one capturing group: %s", regex);
+    // noinspection ResultOfMethodCallIgnored
     matcher.find();
     int start = matcher.start(1);
     int end = matcher.end(1);
@@ -319,6 +316,8 @@ public class EditorFixture {
       }
 
       FileEditor fileEditor = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditor(file);
+      assert fileEditor != null;
+
       JComponent editorComponent = fileEditor.getComponent();
       if (editorComponent instanceof JBLoadingPanel) {
         return !((JBLoadingPanel)editorComponent).isLoading();
@@ -377,7 +376,7 @@ public class EditorFixture {
       KeyStroke firstKeyStroke = cs.getFirstKeyStroke();
       Component component = getFocusedEditor();
       if (component != null) {
-        ComponentDriver driver = new ComponentDriver(robot);
+        ComponentDriver<Component> driver = new ComponentDriver<>(robot);
         driver.pressAndReleaseKey(component, firstKeyStroke.getKeyCode(), new int[]{firstKeyStroke.getModifiers()});
         KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
         if (secondKeyStroke != null) {
@@ -635,19 +634,20 @@ public class EditorFixture {
    * Common editor actions, invokable via {@link #invokeAction(EditorAction)}
    */
   public enum EditorAction {
-    SHOW_INTENTION_ACTIONS("ShowIntentionActions"),
-    FORMAT("ReformatCode"),
-    SAVE("SaveAll"),
-    UNDO("$Undo"),
     BACK_SPACE("EditorBackSpace"),
     COMPLETE_CURRENT_STATEMENT("EditorCompleteStatement"),
     DELETE_LINE("EditorDeleteLine"),
-    GOTO_DECLARATION("GotoDeclaration"),
-    RUN_FROM_CONTEXT("RunClass"),
-    ESCAPE("EditorEscape"),
     DOWN("EditorDown"),
-    TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
+    ESCAPE("EditorEscape"),
+    FORMAT("ReformatCode"),
+    GOTO_DECLARATION("GotoDeclaration"),
     GOTO_IMPLEMENTATION("GotoImplementation"),
+    RUN_FROM_CONTEXT("RunClass"),
+    SAVE("SaveAll"),
+    SELECT_ALL("$SelectAll"),
+    SHOW_INTENTION_ACTIONS("ShowIntentionActions"),
+    TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
+    UNDO("$Undo"),
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */
