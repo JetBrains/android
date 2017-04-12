@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Creates a deep copy of {@link ClassField}.
+ * POJO implementation of {@link ClassField}.
  *
  * @see IdeAndroidProject
  */
@@ -40,6 +40,18 @@ public class IdeClassField implements ClassField, Serializable {
     myValue = classField.getValue();
     myDocumentation = classField.getDocumentation();
     myAnnotations = new HashSet<>(classField.getAnnotations());
+  }
+
+  public IdeClassField(@NotNull String type,
+                       @NotNull String name,
+                       @NotNull String value,
+                       @NotNull String documentation,
+                       @NotNull Set<String> annotations) {
+    myType = type;
+    myName = name;
+    myValue = value;
+    myDocumentation = documentation;
+    myAnnotations = annotations;
   }
 
   @Override
