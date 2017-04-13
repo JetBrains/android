@@ -115,8 +115,8 @@ public class RpcNetworkConnectionsModelTest {
       assertEquals(FAKE_DATA.get((int)id).getJavaThread().getName(), data.getJavaThread().getName());
       ImmutableMap<String, String> requestHeaders = data.getRequestHeaders();
       assertEquals(2, requestHeaders.size());
-      assertEquals("Customized", requestHeaders.get("User-Agent"));
-      assertEquals("text/plain", requestHeaders.get("Accept"));
+      assertEquals("Customized", requestHeaders.get("user-agent"));
+      assertEquals("text/plain", requestHeaders.get("accept"));
     }
   }
 }
