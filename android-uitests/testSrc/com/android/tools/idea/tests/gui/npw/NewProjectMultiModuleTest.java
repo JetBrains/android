@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.uibuilder;
+package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
