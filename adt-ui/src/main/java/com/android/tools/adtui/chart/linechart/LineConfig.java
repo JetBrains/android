@@ -39,10 +39,10 @@ public class LineConfig {
    */
   public static final BasicStroke DEFAULT_DASH_STROKE =
     new BasicStroke(2.0f,
-                    BasicStroke.CAP_BUTT,
-                    BasicStroke.JOIN_BEVEL,
+                    BasicStroke.CAP_SQUARE,
+                    BasicStroke.JOIN_MITER,
                     10.0f,  // Miter limit, Swing's default
-                    new float[]{8.0f, 5.0f},  // Dash pattern in pixel
+                    new float[]{4.0f, 6.0f},  // Dash pattern in pixel
                     0.0f);  // Dash phase - just starts at zero.
 
   //TODO Move colors out of LineConfig

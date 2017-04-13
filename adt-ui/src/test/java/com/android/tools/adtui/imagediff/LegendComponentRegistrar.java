@@ -49,6 +49,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
         addLine("", new LineConfig(Color.YELLOW).setLegendIconType(LegendConfig.IconType.NONE), MEMORY_AXIS_FORMATTER);
         addLine("L", new LineConfig(Color.BLUE).setLegendIconType(LegendConfig.IconType.LINE), MEMORY_AXIS_FORMATTER);
         addLine("B", new LineConfig(Color.RED).setLegendIconType(LegendConfig.IconType.BOX), NETWORK_AXIS_FORMATTER);
+        addLine("Z", new LineConfig(Color.GREEN).setLegendIconType(LegendConfig.IconType.DASHED_LINE), NETWORK_AXIS_FORMATTER);
       }
     });
   }
@@ -57,7 +58,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int COMPONENT_HEIGHT_PX = 25;
 
-    private static final int COMPONENT_WIDTH_PX = 150;
+    private static final int COMPONENT_WIDTH_PX = 250;
 
     private LegendComponent myLegend;
 
