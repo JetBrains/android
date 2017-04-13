@@ -61,9 +61,9 @@ public class ScoutTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\" />");
+                 "      app:layout_constraintEnd_toEndOf=\"parent\" />");
 
     buildScene();
     String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +

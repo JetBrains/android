@@ -281,20 +281,23 @@ public class WidgetConstraintPanel extends JPanel {
     boolean showHorizontalSlider = left != UNCONNECTED && right != UNCONNECTED;
 
     if (showHorizontalSlider) {
-      if (NlComponentUtils.isHorizontalChain(mComponent)) {
-        NlComponent ctl = NlComponentUtils.getLeftMostInChain(mComponent);
-        horizontalBias = ctl.getLiveAttribute(sherpaNamespace, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
+      NlComponent source = findInHorizontalChain(mComponent);
+      if (source == null) {
+        source = mComponent;
       }
+      horizontalBias = source.getLiveAttribute(sherpaNamespace, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
+
       float bias = parseFloat(horizontalBias, 0.5f);
       mHorizontalSlider.setValue((int)(bias * 100));
     }
 
     if (showVerticalSlider) {
-
-      if (NlComponentUtils.isVerticalChain(mComponent)) {
-        NlComponent ctl = NlComponentUtils.getTopMostInChain(mComponent);
-        verticalBias = ctl.getLiveAttribute(sherpaNamespace, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
+      NlComponent source = findInVerticalChain(mComponent);
+      if (source == null) {
+        source = mComponent;
       }
+      verticalBias = source.getLiveAttribute(sherpaNamespace, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
+
       float bias = parseFloat(verticalBias, 0.5f);
       mVerticalSlider.setValue(100 - (int)(bias * 100));
     }
@@ -358,11 +361,15 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private void setAttribute(String nameSpace, String attribute, String value) {
+    setAttribute(mComponent, nameSpace, attribute, value);
+  }
+
+  private void setAttribute(NlComponent component, String nameSpace, String attribute, String value) {
     if (mConfiguringUI) {
       return;
     }
-    NlModel model = mComponent.getModel();
-    AttributesTransaction transaction = mComponent.startAttributeTransaction();
+    NlModel model = component.getModel();
+    AttributesTransaction transaction = component.startAttributeTransaction();
     transaction.setAttribute(nameSpace, attribute, value);
     transaction.apply();
     model.notifyLiveUpdate(false);
@@ -375,7 +382,7 @@ public class WidgetConstraintPanel extends JPanel {
     myWriteAction = new WriteCommandAction(project, label, file) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
-        AttributesTransaction transaction = mComponent.startAttributeTransaction();
+        AttributesTransaction transaction = component.startAttributeTransaction();
         transaction.setAttribute(nameSpace, attribute, value);
         transaction.commit();
       }
@@ -493,13 +500,57 @@ public class WidgetConstraintPanel extends JPanel {
 
   public void setHorizontalBias() {
     float bias = (mHorizontalSlider.getValue() / 100f);
+    NlComponent chain = findInHorizontalChain(mComponent);
+    if (chain != null && chain != mComponent) {
+      setAttribute(chain, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(bias));
+    }
+    else {
+      setSherpaAttribute(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(bias));
+    }
+  }
 
-    setSherpaAttribute(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(bias));
+  private NlComponent findInHorizontalChain(NlComponent component) {
+    if (ConstraintComponentUtilities
+          .isInChain(ConstraintComponentUtilities.ourRightAttributes, ConstraintComponentUtilities.ourLeftAttributes, component)
+        ||
+        ConstraintComponentUtilities
+          .isInChain(ConstraintComponentUtilities.ourLeftAttributes, ConstraintComponentUtilities.ourRightAttributes, component)) {
+      return ConstraintComponentUtilities
+        .findChainHead(component, ConstraintComponentUtilities.ourLeftAttributes, ConstraintComponentUtilities.ourRightAttributes);
+    }
+    if (ConstraintComponentUtilities
+          .isInChain(ConstraintComponentUtilities.ourStartAttributes, ConstraintComponentUtilities.ourEndAttributes, component)
+        ||
+        ConstraintComponentUtilities
+          .isInChain(ConstraintComponentUtilities.ourEndAttributes, ConstraintComponentUtilities.ourStartAttributes, component)) {
+
+      return ConstraintComponentUtilities
+        .findChainHead(component, ConstraintComponentUtilities.ourStartAttributes, ConstraintComponentUtilities.ourEndAttributes);
+    }
+    return null;
+  }
+
+  private NlComponent findInVerticalChain(NlComponent component) {
+    if (ConstraintComponentUtilities
+          .isInChain(ConstraintComponentUtilities.ourBottomAttributes, ConstraintComponentUtilities.ourTopAttributes, component)
+        ||
+        ConstraintComponentUtilities
+          .isInChain(ConstraintComponentUtilities.ourTopAttributes, ConstraintComponentUtilities.ourBottomAttributes, component)) {
+      return ConstraintComponentUtilities
+        .findChainHead(component, ConstraintComponentUtilities.ourTopAttributes, ConstraintComponentUtilities.ourBottomAttributes);
+    }
+    return null;
   }
 
   public void setVerticalBias() {
     float bias = 1f - (mVerticalSlider.getValue() / 100f);
-    setSherpaAttribute(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(bias));
+    NlComponent chain = findInVerticalChain(mComponent);
+    if (chain != null && chain != mComponent) {
+      setAttribute(chain, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(bias));
+    }
+    else {
+      setSherpaAttribute(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(bias));
+    }
   }
 
   public void setTopMargin(int margin) {

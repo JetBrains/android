@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.Float;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.*;
@@ -940,6 +941,57 @@ public final class ConstraintComponentUtilities {
     return false;
   }
 
+  public static NlComponent findChainHead(NlComponent component, ArrayList<String> sideA, ArrayList<String> sideB) {
+    while (true) {
+      String attributeA = getConnectionId(component, SHERPA_URI, sideA);
+      if (attributeA == null) {
+        return component;
+      }
+      List<NlComponent> list = component.getParent().getChildren();
+
+      NlComponent target = getComponent(list, attributeA);
+      if (target == null) {
+        return component;
+      }
+      String attributeB = getConnectionId(target, SHERPA_URI, sideB);
+      if (attributeB == null) {
+        return component;
+      }
+      if (attributeB.equalsIgnoreCase(component.getId())) {
+        component = target;
+      }
+      else {
+        return component;
+      }
+    }
+  }
+
+  public static NlComponent getComponent(List<NlComponent> list, String id) {
+    for (NlComponent nlComponent : list) {
+      if (id.equals(nlComponent.getId())) {
+        return nlComponent;
+      }
+    }
+    return null;
+  }
+
+  public static boolean isInChain(ArrayList<String> sideA, ArrayList<String> sideB, NlComponent component) {
+    String attributeA = getConnectionId(component, SHERPA_URI, sideA);
+    if (attributeA != null) {
+      List<NlComponent> list = component.getParent().getChildren();
+      NlComponent target = getComponent(list, attributeA);
+      if (target != null) {
+        String attributeB = getConnectionId(target, SHERPA_URI, sideB);
+        if (attributeB != null) {
+          if (attributeB.equalsIgnoreCase(component.getId())) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   public static void cycleChainStyle(@NotNull SceneComponent chainHeadComponent,
                                      @NotNull String orientationStyle,
                                      @NotNull SceneComponent component) {
@@ -1163,8 +1215,8 @@ public final class ConstraintComponentUtilities {
   public static String[][] ATTRIB_MATRIX = {
     {ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null, null, null},
     {ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null, null, null},
-    {null, null, ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null},
-    {null, null, ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null},
+    {null, null, ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_START_TO_END_OF, null},
+    {null, null, ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF, null},
     {null, null, null, null, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
   public static String[][] ATTRIB_CLEAR = {
