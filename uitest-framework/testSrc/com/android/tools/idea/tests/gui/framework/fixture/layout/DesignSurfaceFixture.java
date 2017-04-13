@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
+import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -101,13 +103,17 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
    * type is by visual order, first vertically, then horizontally (and finally by XML source offset, if they exactly overlap
    * as for example would happen in a {@code <merge>}
    *
-   * @param tag the view tag to search for, e.g. "Button" or "TextView"
+   * @param tag        the view tag to search for, e.g. "Button" or "TextView"
    * @param occurrence the index of the occurrence of the tag, e.g. 0 for the first TextView in the layout
    */
   @NotNull
   public NlComponentFixture findView(@NotNull final String tag, int occurrence) {
     waitForRenderToFinish(Wait.seconds(5));
-    final NlModel model = target().getCurrentSceneView().getModel();
+
+    ScreenView view = target().getCurrentSceneView();
+    assert view != null;
+
+    final NlModel model = view.getModel();
     final java.util.List<NlComponent> components = Lists.newArrayList();
 
     model.getComponents().forEach(component -> addComponents(tag, component, components));
@@ -146,7 +152,9 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
     }
   }
 
-  /** Returns the views and all the children */
+  /**
+   * Returns the views and all the children
+   */
   @NotNull
   public List<NlComponentFixture> getAllComponents() {
     ScreenView screenView = target().getCurrentSceneView();
@@ -159,12 +167,13 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
       .collect(Collectors.toList());
   }
 
-  /** Returns a list of the selected views */
+  /**
+   * Returns a list of the selected views
+   */
   @NotNull
   public List<NlComponent> getSelection() {
-    return (target().getCurrentSceneView() == null)
-           ? Collections.emptyList()
-           : target().getCurrentSceneView().getModel().getSelectionModel().getSelection();
+    ScreenView view = target().getCurrentSceneView();
+    return view == null ? Collections.emptyList() : view.getModel().getSelectionModel().getSelection();
   }
 
   public double getScale() {
@@ -174,5 +183,9 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   // Only applicable to NlDesignSurface
   public boolean isInScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     return target().getScreenMode() == mode;
+  }
+
+  public void drop(@NotNull Point point) {
+    new ComponentDragAndDrop(robot()).drop(target(), point);
   }
 }
