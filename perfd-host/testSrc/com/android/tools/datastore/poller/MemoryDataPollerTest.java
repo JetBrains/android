@@ -20,7 +20,6 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.MemoryService;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
@@ -47,9 +46,13 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .setTimestamp(BASE_TIME_NS)
     .build();
 
-  private static final MemoryData.VmStatsSample DEFAULT_VM_STATS = MemoryData.VmStatsSample.newBuilder()
+  private static final MemoryData.AllocStatsSample DEFAULT_ALLOC_STATS = MemoryData.AllocStatsSample.newBuilder()
     .setTimestamp(BASE_TIME_NS)
-    .setGcCount(1)
+    .build();
+
+  private static final MemoryData.GcStatsSample DEFAULT_GC_STATS = MemoryData.GcStatsSample.newBuilder()
+    .setStartTime(BASE_TIME_NS)
+    .setEndTime(delayTimeFromBase(1))
     .build();
 
   private static final AllocationsInfo FINISHED_ALLOCATION_INFO = AllocationsInfo.newBuilder()
@@ -122,7 +125,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataInRange() throws Exception {
     myFakeMemoryService.addMemorySample(DEFAULT_MEMORY_SAMPLE);
-    myFakeMemoryService.addVmStatsSample(DEFAULT_VM_STATS);
+    myFakeMemoryService.addAllocStatsSample(DEFAULT_ALLOC_STATS);
+    myFakeMemoryService.addGcStatsSample(DEFAULT_GC_STATS);
     myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
     myFakeMemoryService.addAllocationInfo(IN_PROGRESS_ALLOCATION_INFO);
     myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
@@ -137,7 +141,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .build();
     MemoryData expected = MemoryData.newBuilder()
       .addMemSamples(DEFAULT_MEMORY_SAMPLE)
-      .addVmStatsSamples(DEFAULT_VM_STATS)
+      .addAllocStatsSamples(DEFAULT_ALLOC_STATS)
+      .addGcStatsSamples(DEFAULT_GC_STATS)
       .addAllocationsInfo(FINISHED_ALLOCATION_INFO)
       .addAllocationsInfo(IN_PROGRESS_ALLOCATION_INFO)
       .addHeapDumpInfos(DEFAULT_DUMP_INFO)
@@ -152,7 +157,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   @Test
   public void testGetDataOutOfRange() throws Exception {
     myFakeMemoryService.addMemorySample(DEFAULT_MEMORY_SAMPLE);
-    myFakeMemoryService.addVmStatsSample(DEFAULT_VM_STATS);
+    myFakeMemoryService.addAllocStatsSample(DEFAULT_ALLOC_STATS);
+    myFakeMemoryService.addGcStatsSample(DEFAULT_GC_STATS);
     myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
     myFakeMemoryService.addAllocationInfo(IN_PROGRESS_ALLOCATION_INFO);
     myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
@@ -509,8 +515,12 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       myResponseBuilder.addMemSamples(sample);
     }
 
-    public void addVmStatsSample(@NotNull MemoryData.VmStatsSample sample) {
-      myResponseBuilder.addVmStatsSamples(sample);
+    public void addAllocStatsSample(@NotNull MemoryData.AllocStatsSample sample) {
+      myResponseBuilder.addAllocStatsSamples(sample);
+    }
+
+    public void addGcStatsSample(@NotNull MemoryData.GcStatsSample sample) {
+      myResponseBuilder.addGcStatsSamples(sample);
     }
 
     public void addAllocationInfo(@NotNull AllocationsInfo info) {
