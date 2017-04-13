@@ -62,11 +62,11 @@ public class NetworkDataPoller extends PollRunner {
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
       myDataRequestStartTimestampNs = Math.max(myDataRequestStartTimestampNs, data.getBasicInfo().getEndTimestamp());
       myNetworkTable.insert(data.getBasicInfo().getProcessId(), data);
-      pollHttpRange(dataRequestBuilder.getSession());
     }
+    pollHttpRange();
   }
 
-  private void pollHttpRange(Common.Session session) {
+  private void pollHttpRange() {
     NetworkProfiler.HttpRangeRequest.Builder requestBuilder = NetworkProfiler.HttpRangeRequest.newBuilder()
       .setProcessId(myProcessId)
       .setStartTimestamp(myHttpRangeRequestStartTimeNs)
@@ -99,7 +99,6 @@ public class NetworkDataPoller extends PollRunner {
       .setConnId(id)
       .setType(type)
       .build();
-    NetworkProfiler.HttpDetailsResponse response = myPollingService.getHttpDetails(request);
-    return response;
+    return myPollingService.getHttpDetails(request);
   }
 }
