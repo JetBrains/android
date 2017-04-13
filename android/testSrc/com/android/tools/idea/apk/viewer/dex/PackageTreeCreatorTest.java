@@ -49,7 +49,7 @@ public class PackageTreeCreatorTest {
     dumpTree(sb, packageTreeNode, 0, null, null);
     assertEquals("root: 3,6\n" +
                  "  Test: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "  ~java: 0,3\n" +
@@ -57,7 +57,7 @@ public class PackageTreeCreatorTest {
                  "      ~Integer: 0,1\n" +
                  "        ~java.lang.Integer valueOf(int): 0,1\n" +
                  "      ~Object: 0,1\n" +
-                 "        ~void <init>(): 0,1\n" +
+                 "        ~<init>(): 0,1\n" +
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n", sb.toString());
@@ -88,24 +88,24 @@ public class PackageTreeCreatorTest {
                  "      ~Integer: 0,1\n" +
                  "        ~java.lang.Integer valueOf(int): 0,1\n" +
                  "      ~Object: 0,1\n" +
-                 "        ~void <init>(): 0,1\n" +
+                 "        ~<init>(): 0,1\n" +
                  "      ~Boolean: 0,1\n" +
                  "        ~java.lang.Boolean valueOf(boolean): 0,1\n" +
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n" +
                  "  Test2: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "    a aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
                  "  TestSubclass: 2,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    ~java.util.List getList(): 0,1\n" +
                  "  a: 1,1\n" +
-                 "    void <init>(): 1,1\n", sb.toString());
+                 "    <init>(): 1,1\n", sb.toString());
   }
 
   @Test
@@ -124,28 +124,28 @@ public class PackageTreeCreatorTest {
                  "      ~Integer: 0,1\n" +
                  "        ~java.lang.Integer valueOf(int): 0,1\n" +
                  "      ~Object: 0,1\n" +
-                 "        ~void <init>(): 0,1\n" +
+                 "        ~<init>(): 0,1\n" +
                  "      ~Boolean: 0,1\n" +
                  "        ~java.lang.Boolean valueOf(boolean): 0,1\n" +
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n" +
                  "  Test: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "  Test2: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "    a aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
                  "  TestSubclass: 2,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    ~java.util.List getList(): 0,1\n" +
                  "  a: 1,1\n" +
-                 "    void <init>(): 1,1\n", sb.toString());
+                 "    <init>(): 1,1\n", sb.toString());
   }
 
   @Test
@@ -173,24 +173,24 @@ public class PackageTreeCreatorTest {
                  "      ~Integer: 0,1\n" +
                  "        ~java.lang.Integer valueOf(int): 0,1\n" +
                  "      ~Object: 0,1\n" +
-                 "        ~void <init>(): 0,1\n" +
+                 "        ~<init>(): 0,1\n" +
                  "      ~Boolean: 0,1\n" +
                  "        ~java.lang.Boolean valueOf(boolean): 0,1\n" +
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n" +
                  "  O-Test2: 3,3\n" +
-                 "    O-void <init>(): 1,1\n" +
+                 "    O-<init>(): 1,1\n" +
                  "    O-java.lang.Integer get(): 1,1\n" +
                  "    O-java.util.List getList(): 1,1\n" +
                  "    O-AnotherClass aClassField: 0,0\n" +
                  "    O-int aField: 0,0\n" +
                  "  O-TestSubclass: 2,3\n" +
-                 "    O-void <init>(): 1,1\n" +
+                 "    O-<init>(): 1,1\n" +
                  "    O-java.util.List getAnotherList(): 1,1\n" +
                  "    ~java.util.List getList(): 0,1\n" +
                  "  AnotherClass: 1,1\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    X-AnotherClass(int,TestSubclass): 0,0\n" +
                  "  X-RemovedSubclass: 0,0\n", sb.toString());
   }
@@ -209,22 +209,22 @@ public class PackageTreeCreatorTest {
                  "      ~Integer: 0,1\n" +
                  "        ~java.lang.Integer valueOf(int): 0,1\n" +
                  "      ~Object: 0,1\n" +
-                 "        ~void <init>(): 0,1\n" +
+                 "        ~<init>(): 0,1\n" +
                  "      ~Boolean: 0,1\n" +
                  "        ~java.lang.Boolean valueOf(boolean): 0,1\n" +
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n" +
                  "  a: 1,1\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "  TestSubclass: 2,3\n" +
                  "    ~java.util.List getList(): 0,1\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "  Test2: 3,3\n" +
                  "    a aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n", sb.toString());
 
@@ -233,17 +233,17 @@ public class PackageTreeCreatorTest {
     dumpTree(sb, packageTreeNode, 0, null, null);
     assertEquals("root: 6,11\n" +
                  "  Test2: 3,3\n" +
+                 "    <init>(): 1,1\n" +
                  "    a aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
-                 "    void <init>(): 1,1\n" +
                  "  TestSubclass: 2,3\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    ~java.util.List getList(): 0,1\n" +
-                 "    void <init>(): 1,1\n" +
                  "  a: 1,1\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "  ~java: 0,4\n" +
                  "    ~lang: 0,3\n" +
                  "      ~Boolean: 0,1\n" +
@@ -251,7 +251,7 @@ public class PackageTreeCreatorTest {
                  "      ~Integer: 0,1\n" +
                  "        ~java.lang.Integer valueOf(int): 0,1\n" +
                  "      ~Object: 0,1\n" +
-                 "        ~void <init>(): 0,1\n" +
+                 "        ~<init>(): 0,1\n" +
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n", sb.toString());
@@ -260,17 +260,17 @@ public class PackageTreeCreatorTest {
     dumpTree(sb, packageTreeNode, 0, null, null);
     assertEquals("root: 6,11\n" +
                  "  a: 1,1\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "  Test2: 3,3\n" +
                  "    a aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
-                 "    void <init>(): 1,1\n" +
                  "  TestSubclass: 2,3\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    ~java.util.List getList(): 0,1\n" +
-                 "    void <init>(): 1,1\n" +
                  "  ~java: 0,4\n" +
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
@@ -281,7 +281,7 @@ public class PackageTreeCreatorTest {
                  "      ~Integer: 0,1\n" +
                  "        ~java.lang.Integer valueOf(int): 0,1\n" +
                  "      ~Object: 0,1\n" +
-                 "        ~void <init>(): 0,1\n", sb.toString());
+                 "        ~<init>(): 0,1\n", sb.toString());
   }
 
   @NotNull

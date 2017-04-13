@@ -180,6 +180,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     final DefaultActionGroup group = new DefaultActionGroup();
     group.add(new ShowDisassemblyAction(tree));
     group.add(new ShowReferencesAction(tree, this));
+    group.add(new GenerateProguardKeepRuleAction(tree));
     return group;
   }
 
