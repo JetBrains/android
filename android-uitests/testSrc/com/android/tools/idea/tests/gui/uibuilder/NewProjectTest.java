@@ -228,7 +228,6 @@ public class NewProjectTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)
   public void testGradleWrapperIsExecutable() throws Exception {
     Assume.assumeTrue("Is Unix", SystemInfo.isUnix);
     newProject("Test Application").withBriefNames().create();
