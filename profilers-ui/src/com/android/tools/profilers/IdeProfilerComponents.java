@@ -19,6 +19,7 @@ import com.android.tools.profilers.stacktrace.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -65,5 +66,8 @@ public interface IdeProfilerComponents {
                         @NotNull Consumer<File> saveToFile);
 
   @NotNull
-  FileViewer createFileViewer(@NotNull File file);
+  DataViewer createFileViewer(@NotNull File file);
+
+  @NotNull
+  JComponent createResizableImageComponent(@NotNull BufferedImage image);
 }

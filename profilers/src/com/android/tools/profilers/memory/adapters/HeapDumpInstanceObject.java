@@ -19,10 +19,14 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.ClassInstance.FieldValue;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.DOUBLE;
 
 /**
  * A UI representation of a {@link ClassInstance}.
@@ -32,6 +36,17 @@ class HeapDumpInstanceObject implements InstanceObject {
   private static final int MAX_VALUE_TEXT_LENGTH = 1024;
   private static final Comparator<Instance> DEPTH_COMPARATOR = Comparator.comparingInt(Instance::getDistanceToGcRoot);
   private static final String INVALID_STRING_VALUE = " ...<invalid string value>...";
+  private static final Map<Type, ValueType> VALUE_TYPE_MAP = ImmutableMap.<Type, ValueObject.ValueType>builder()
+    .put(Type.BOOLEAN, BOOLEAN)
+    .put(Type.BYTE, BYTE)
+    .put(Type.CHAR, CHAR)
+    .put(Type.SHORT, SHORT)
+    .put(Type.INT, INT)
+    .put(Type.LONG, LONG)
+    .put(Type.FLOAT, FLOAT)
+    .put(Type.DOUBLE, DOUBLE)
+    .put(Type.OBJECT, OBJECT)
+    .build();
 
   @NotNull protected ValueType myValueType;
 
@@ -61,16 +76,16 @@ class HeapDumpInstanceObject implements InstanceObject {
 
     ClassObj classObj = instance.getClassObj();
     if (instance instanceof ClassObj) {
-      myValueType = ValueType.CLASS;
+      myValueType = CLASS;
     }
     else if (instance instanceof ClassInstance && classObj.getClassName().equals(ClassDb.JAVA_LANG_STRING)) {
-      myValueType = ValueType.STRING;
+      myValueType = STRING;
     }
     else if (classObj.getClassName().endsWith("[]")) {
-      myValueType = ValueType.ARRAY;
+      myValueType = ARRAY;
     }
     else {
-      myValueType = ValueType.OBJECT;
+      myValueType = OBJECT;
     }
   }
 
@@ -105,7 +120,7 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull
   @Override
   public String getToStringText() {
-    if (myValueType == ValueType.STRING) {
+    if (myValueType == STRING) {
       char[] stringChars = ((ClassInstance)myInstance).getStringChars(MAX_VALUE_TEXT_LENGTH);
       if (stringChars != null) {
         int charLength = stringChars.length;
@@ -205,6 +220,52 @@ class HeapDumpInstanceObject implements InstanceObject {
     }
 
     return fields;
+  }
+
+  @Nullable
+  @Override
+  public ArrayObject getArrayObject() {
+    if (!(myInstance instanceof ArrayInstance)) {
+      return null;
+    }
+
+    ArrayInstance arrayInstance = (ArrayInstance)myInstance;
+    return new ArrayObject() {
+      @NotNull
+      @Override
+      public ValueType getArrayElementType() {
+        return VALUE_TYPE_MAP.get(arrayInstance.getArrayType());
+      }
+
+      @Nullable
+      @Override
+      public byte[] getAsByteArray() {
+        if (getArrayElementType() == BYTE) {
+          return arrayInstance.asRawByteArray(0, arrayInstance.getLength());
+        }
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public char[] getAsCharArray() {
+        if (getArrayElementType() == CHAR) {
+          return arrayInstance.asCharArray(0, arrayInstance.getLength());
+        }
+        return null;
+      }
+
+      @NotNull
+      @Override
+      public Object[] getAsArray() {
+        return arrayInstance.getValues();
+      }
+
+      @Override
+      public int getArrayLength() {
+        return arrayInstance.getLength();
+      }
+    };
   }
 
   @Override
