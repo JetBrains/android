@@ -25,18 +25,15 @@ import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.StringProperty;
-import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -57,6 +54,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleModel> {
   @NotNull private final StudioWizardStepPanel myRootPanel;
+  @NotNull private ValidatorPanel myValidatorPanel;
   @NotNull private final FormFactor myFormFactor;
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
@@ -103,9 +101,9 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     myBindings.bindTwoWay(new TextProperty(myAppName), model.applicationName());
 
-    ValidatorPanel validatorPanel = new ValidatorPanel(this, myPanel);
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
 
-    validatorPanel.registerValidator(model.applicationName(), value -> {
+    myValidatorPanel.registerValidator(model.applicationName(), value -> {
       if (value.isEmpty()) {
         return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.validate.empty.application.name"));
       }
@@ -115,10 +113,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
       return Validator.Result.OK;
     });
 
-    Expression<File> locationFile = model.moduleName().transform((String str) -> new File(project.getBasePath(), str));
-    validatorPanel.registerValidator(locationFile, PathValidator.createDefault("module location"));
-
-    validatorPanel.registerValidator(model.packageName(),
+    myValidatorPanel.registerValidator(model.moduleName(), new ModuleValidator(project));
+    myValidatorPanel.registerValidator(model.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     AndroidSourceSet dummySourceSet = GradleAndroidProjectPaths.createDummySourceSet();
@@ -135,7 +131,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
 
-    myRootPanel = new StudioWizardStepPanel(validatorPanel, message("android.wizard.module.config.title"));
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.wizard.module.config.title"));
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
@@ -161,6 +157,12 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     androidVersionsInfo.load();
 
     androidVersionsInfo.loadTargetVersions(myFormFactor, myMinSdkLevel, items -> mySdkControls.init(myFormFactor, items));
+  }
+
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
   }
 
   @Override
