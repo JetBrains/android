@@ -868,6 +868,18 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   /**
+   * Removes an element from the cache
+   *  A cache for use by system to reduce recalculating information
+   * The cache may be destroyed at any time as the system rebuilds the components
+   *
+   * @param key
+   * @return
+   */
+  public final Object removeClientProperty(Object key) {
+    return myClientProperties.remove(key);
+  }
+
+  /**
    * You can add listeners to track interactive updates
    * Listeners should look at the liveUpdates for changes
    *

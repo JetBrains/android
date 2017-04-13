@@ -34,7 +34,9 @@ public class DrawAnchor extends DrawRegion {
   public static final int TYPE_BASELINE = 1;
   public static final int NORMAL = 0;
   public static final int OVER = 1;
-  int myMode;
+  public static final int CAN_CONNECT = 2; // used during connection to say you CANNOT connect to me
+
+  private int myMode; // NORMAL, OVER, CAN_CONNECT
   boolean myIsConnected;
   int myType = TYPE_NORMAL;
 
@@ -101,6 +103,17 @@ public class DrawAnchor extends DrawRegion {
       g.fillRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
       g.drawRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
     }
+
+    if (myMode == CAN_CONNECT) {
+      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
+      Composite comp = g.getComposite();
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
+      g.setColor(colorSet.getAnchorConnectionCircle().darker());
+      g.fillRoundRect(x, y, width, height, width, height);
+      sceneContext.repaint();
+      g.setComposite(comp);
+    }
+
     if (myMode == OVER) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
@@ -133,8 +146,18 @@ public class DrawAnchor extends DrawRegion {
     int delta = 3;
     int delta2 = delta * 2;
     if (myIsConnected) {
-      g.fillRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height -delta2);
-      g.drawRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height -delta2);
+      g.fillRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
+      g.drawRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
+    }
+    if (myMode == CAN_CONNECT) {
+      int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
+      Composite comp = g.getComposite();
+      g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
+      g.setColor(colorSet.getAnchorConnectionCircle());
+      g.fillRoundRect(ovalX, y, ovalW, height, height, height);
+      g.drawRoundRect(ovalX, y, ovalW, height, height, height);
+      sceneContext.repaint();
+      g.setComposite(comp);
     }
     if (myMode == OVER) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
