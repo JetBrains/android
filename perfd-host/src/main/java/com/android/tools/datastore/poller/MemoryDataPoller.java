@@ -67,7 +67,8 @@ public class MemoryDataPoller extends PollRunner {
     // TODO: A UI request may come in while mid way through the poll, this can cause us to have partial data
     // returned to the UI. This can be solved using transactions in the DB when this class is moved fully over.
     myMemoryTable.insertMemory(myProcessId, mySession, response.getMemSamplesList());
-    myMemoryTable.insertVmStats(myProcessId, mySession, response.getVmStatsSamplesList());
+    myMemoryTable.insertAllocStats(myProcessId, mySession, response.getAllocStatsSamplesList());
+    myMemoryTable.insertGcStats(myProcessId, mySession, response.getGcStatsSamplesList());
 
     List<AllocationsInfo> allocDumpsToFetch = new ArrayList<>();
     for (int i = 0; i < response.getAllocationsInfoCount(); i++) {
