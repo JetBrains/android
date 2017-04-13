@@ -29,22 +29,26 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface GradleTaskRunner {
   boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
     throws InvocationTargetException, InterruptedException;
 
-  static GradleTaskRunner newRunner(@NotNull Project project) {
+  @NotNull
+  static DefaultGradleTaskRunner newRunner(@NotNull Project project) {
     return new DefaultGradleTaskRunner(project);
   }
 
-  static GradleTaskRunner newBuildActionRunner(@NotNull Project project, @Nullable BuildAction buildAction) {
+  @NotNull
+  static DefaultGradleTaskRunner newBuildActionRunner(@NotNull Project project, @Nullable BuildAction buildAction) {
     return new DefaultGradleTaskRunner(project, buildAction);
   }
 
   class DefaultGradleTaskRunner implements GradleTaskRunner {
     @NotNull final Project myProject;
     @Nullable final BuildAction myBuildAction;
+    @NotNull AtomicReference<Object> model = new AtomicReference<>(null);
 
     DefaultGradleTaskRunner(@NotNull Project project) {
       this(project, null);
@@ -70,6 +74,7 @@ public interface GradleTaskRunner {
         @Override
         public void execute(@NotNull GradleInvocationResult result) {
           success.set(result.isBuildSuccessful());
+          model.set(result.getModel());
           gradleBuildInvoker.remove(this);
           done.up();
         }
@@ -84,6 +89,11 @@ public interface GradleTaskRunner {
 
       done.waitFor();
       return success.get();
+    }
+
+    @Nullable
+    public Object getModel() {
+      return model.get();
     }
   }
 }
