@@ -309,6 +309,15 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return myAllocationDurations;
   }
 
+  public void selectFieldObjectPath(@NotNull List<FieldObject> fieldObjectPath) {
+    mySelection.selectFieldObjectPath(fieldObjectPath);
+  }
+
+  @NotNull
+  public List<FieldObject> getSelectedFieldObjectPath() {
+    return mySelection.getFieldObjectPath();
+  }
+
   public void selectInstanceObject(@Nullable InstanceObject instanceObject) {
     mySelection.selectInstanceObject(instanceObject);
   }
