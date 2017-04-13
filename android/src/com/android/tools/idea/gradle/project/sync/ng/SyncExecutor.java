@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
@@ -40,7 +39,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
@@ -64,8 +62,6 @@ class SyncExecutor {
 
   @NotNull
   SyncExecutionCallback syncProject(@NotNull ProgressIndicator indicator) {
-    // Remove messages from last sync.
-    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeMessages());
     SyncExecutionCallback callback = new SyncExecutionCallback();
 
     if (myProject.isDisposed()) {
