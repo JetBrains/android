@@ -91,7 +91,7 @@ public class ProfilerServiceProxyTest {
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getSerialNumber()).thenReturn("Serial");
     when(mockDevice.getName()).thenReturn("Device");
-    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(1, "API"));
+    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE, "API"));
     when(mockDevice.isOnline()).thenReturn(true);
     when(mockDevice.getClients()).thenReturn(new Client[0]);
     when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);

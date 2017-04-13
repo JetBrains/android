@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.perfd;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -78,7 +79,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
     myTrackerSupplier = legacyTrackerSupplier;
     myUpdatingDataLock = new Object();
 
-    if (!ENABLE_JVMTI_PROFILING || myDevice.getVersion().getFeatureLevel() < 26) {
+    if (!ENABLE_JVMTI_PROFILING || myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
       myUseLegacyTracking = true;
       myLegacyTrackers = new TIntObjectHashMap<>();
       myTrackingData = new TIntObjectHashMap<>();

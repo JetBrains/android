@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import static org.junit.Assert.assertEquals;
 
 public class MemoryAspectObserver extends AspectObserver {
-  protected int myLegacyAllocationAspectCount;
+  protected int myAllocationAspectCount;
   protected int myCurrentLoadedCaptureAspectCount;
   protected int myCurrentLoadingCaptureAspectCount;
   protected int myCurrentGroupingAspectCount;
@@ -35,7 +35,7 @@ public class MemoryAspectObserver extends AspectObserver {
     resetCounts();
 
     model.addDependency(this)
-      .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, () -> ++myLegacyAllocationAspectCount)
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, () -> ++myAllocationAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, () -> ++myCurrentLoadingCaptureAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, () -> ++myCurrentLoadedCaptureAspectCount)
       .onChange(MemoryProfilerAspect.CLASS_GROUPING, () -> ++myCurrentGroupingAspectCount)
@@ -53,7 +53,7 @@ public class MemoryAspectObserver extends AspectObserver {
                                    int currentClassAspectCount,
                                    int currentInstanceAspectCount,
                                    int currentFieldPathAspectCount) {
-    assertEquals(legacyAllocationAspect, myLegacyAllocationAspectCount);
+    assertEquals(legacyAllocationAspect, myAllocationAspectCount);
     assertEquals(currentLoadingCaptureAspectCount, myCurrentLoadingCaptureAspectCount);
     assertEquals(currentLoadedCaptureAspect, myCurrentLoadedCaptureAspectCount);
     assertEquals(currentGroupingAspectCount, myCurrentGroupingAspectCount);
@@ -65,7 +65,7 @@ public class MemoryAspectObserver extends AspectObserver {
   }
 
   public void resetCounts() {
-    myLegacyAllocationAspectCount = 0;
+    myAllocationAspectCount = 0;
     myCurrentLoadingCaptureAspectCount = 0;
     myCurrentLoadedCaptureAspectCount = 0;
     myCurrentGroupingAspectCount = 0;
