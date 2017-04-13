@@ -265,7 +265,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
           .format("Allocation Record (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .build();
-    DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcCount(), Color.BLACK)
+    DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
       .setIcon(ProfilerIcons.GARBAGE_EVENT)
       .build();
 
