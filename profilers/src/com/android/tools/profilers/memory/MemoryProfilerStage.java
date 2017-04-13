@@ -71,7 +71,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> myHeapDumpDurations;
-  private final DurationDataModel<CaptureDurationData<AllocationsCaptureObject>> myAllocationDurations;
+  private final DurationDataModel<CaptureDurationData<LegacyAllocationCaptureObject>> myAllocationDurations;
   private final CaptureObjectLoader myLoader;
   private final MemoryProfilerSelection mySelection;
   private final MemoryProfilerConfiguration myConfiguration;
@@ -206,9 +206,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       }
     }
 
-    List<SeriesData<CaptureDurationData<AllocationsCaptureObject>>>
+    List<SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>>>
       allocs = getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(range);
-    for (SeriesData<CaptureDurationData<AllocationsCaptureObject>> data : allocs) {
+    for (SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>> data : allocs) {
       Range c = new Range(data.x, data.x + data.value.getDuration());
       Range intersection = c.getIntersection(range);
       if (!intersection.isEmpty() && intersection.getLength() > overlap) {
@@ -280,9 +280,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       case SUCCESS:
         myTrackingAllocations = enabled;
         if (!myTrackingAllocations) {
-          selectCaptureObject(new AllocationsCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(),
-                                                           getStudioProfilers().getRelativeTimeConverter(),
-                                                           getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
+          selectCaptureObject(new LegacyAllocationCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(),
+                                                                getStudioProfilers().getRelativeTimeConverter(),
+                                                                getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
         }
         break;
       case IN_PROGRESS:
@@ -305,7 +305,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  public DurationDataModel<CaptureDurationData<AllocationsCaptureObject>> getAllocationInfosDurations() {
+  public DurationDataModel<CaptureDurationData<LegacyAllocationCaptureObject>> getAllocationInfosDurations() {
     return myAllocationDurations;
   }
 

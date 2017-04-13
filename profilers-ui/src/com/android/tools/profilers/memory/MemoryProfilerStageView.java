@@ -257,7 +257,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
           data -> String.format("Dump (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .build();
-    DurationDataRenderer<CaptureDurationData<AllocationsCaptureObject>> allocationRenderer =
+    DurationDataRenderer<CaptureDurationData<LegacyAllocationCaptureObject>> allocationRenderer =
       new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))

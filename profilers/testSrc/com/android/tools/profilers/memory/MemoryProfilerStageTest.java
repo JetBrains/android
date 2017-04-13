@@ -101,11 +101,11 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
       myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
                                            infoStart, infoEnd, true);
-      myService.setExplicitAllocationEvents(MemoryProfiler.AllocationEventsResponse.Status.NOT_READY, Collections.emptyList());
+      myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.NOT_READY, Collections.emptyList());
       myStage.trackAllocations(false, null);
       assertEquals(false, myStage.isTrackingAllocations());
-      assertTrue(myStage.getSelectedCapture() instanceof AllocationsCaptureObject);
-      AllocationsCaptureObject capture = (AllocationsCaptureObject)myStage.getSelectedCapture();
+      assertTrue(myStage.getSelectedCapture() instanceof LegacyAllocationCaptureObject);
+      LegacyAllocationCaptureObject capture = (LegacyAllocationCaptureObject)myStage.getSelectedCapture();
       assertEquals(infoStart, capture.getStartTimeNs());
       assertEquals(infoEnd, capture.getEndTimeNs());
       assertFalse(capture.isDoneLoading());
@@ -122,9 +122,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     }
 
     // Manually mark the current allocation session as complete, which will trigger the CaptureObject to finish loading
-    assertTrue(myStage.getSelectedCapture() instanceof AllocationsCaptureObject);
-    AllocationsCaptureObject capture = (AllocationsCaptureObject)myStage.getSelectedCapture();
-    myService.setExplicitAllocationEvents(MemoryProfiler.AllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
+    assertTrue(myStage.getSelectedCapture() instanceof LegacyAllocationCaptureObject);
+    LegacyAllocationCaptureObject capture = (LegacyAllocationCaptureObject)myStage.getSelectedCapture();
+    myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
     // Run the CaptureObject.load task
     myMockLoader.runTask();
     assertTrue(capture.isDoneLoading());

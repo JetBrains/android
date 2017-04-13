@@ -49,8 +49,8 @@ public class MemoryServiceProxy extends PerfdProxyService {
     return Logger.getInstance(MemoryServiceProxy.class);
   }
 
-  static final AllocationEventsResponse NOT_FOUND_RESPONSE =
-    AllocationEventsResponse.newBuilder().setStatus(AllocationEventsResponse.Status.NOT_FOUND).build();
+  static final LegacyAllocationEventsResponse NOT_FOUND_RESPONSE =
+    LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.NOT_FOUND).build();
 
   @NotNull private Executor myFetchExecutor;
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myServiceStub;
@@ -174,92 +174,84 @@ public class MemoryServiceProxy extends PerfdProxyService {
   /**
    * Note: this call is blocking if there is an existing completed AllocationsInfo sample that is in the parsing stage.
    */
-  public void getAllocationEvents(AllocationEventsRequest request,
-                                  StreamObserver<AllocationEventsResponse> responseObserver) {
-    if (myUseLegacyTracking) {
-      TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(request.getProcessId());
-      if (datas == null || !datas.containsKey(request.getStartTime()) || datas.get(request.getStartTime()).myDataParsingLatch == null) {
-        responseObserver.onNext(NOT_FOUND_RESPONSE);
-      }
-      else {
-        AllocationTrackingData data = datas.get(request.getStartTime());
-        try {
-          assert data.myDataParsingLatch != null;
-          data.myDataParsingLatch.await();
-          synchronized (myUpdatingDataLock) {
-            assert data.myEventsResponse != null;
-            responseObserver.onNext(data.myEventsResponse);
-          }
-        }
-        catch (InterruptedException e) {
-          getLogger().error("Exception while waiting for Allocation Tracking parsing results: " + e);
-        }
-      }
+  public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
+                                        StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
+    assert myUseLegacyTracking;
+
+    TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(request.getProcessId());
+    if (datas == null || !datas.containsKey(request.getStartTime()) || datas.get(request.getStartTime()).myDataParsingLatch == null) {
+      responseObserver.onNext(NOT_FOUND_RESPONSE);
     }
     else {
-      // Post-O tracking - goes straight to perfd.
-      responseObserver.onNext(myServiceStub.getAllocationEvents(request));
+      AllocationTrackingData data = datas.get(request.getStartTime());
+      try {
+        assert data.myDataParsingLatch != null;
+        data.myDataParsingLatch.await();
+        synchronized (myUpdatingDataLock) {
+          assert data.myEventsResponse != null;
+          responseObserver.onNext(data.myEventsResponse);
+        }
+      }
+      catch (InterruptedException e) {
+        getLogger().error("Exception while waiting for Allocation Tracking parsing results: " + e);
+      }
     }
+
     responseObserver.onCompleted();
   }
 
   /**
    * Note: this call is blocking if there is an existing completed AllocationsInfo sample that is in the parsing stage.
    */
-  public void getAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    if (myUseLegacyTracking) {
-      TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(request.getProcessId());
-      if (datas == null || !datas.containsKey(request.getDumpTime()) || datas.get(request.getDumpTime()).myDataParsingLatch == null) {
-        responseObserver.onNext(DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.NOT_FOUND).build());
-      }
-      else {
-        AllocationTrackingData data = datas.get(request.getDumpTime());
-        try {
-          assert data.myDataParsingLatch != null;
-          data.myDataParsingLatch.await();
-          synchronized (myUpdatingDataLock) {
-            assert data.myDumpDataResponse != null;
-            responseObserver.onNext(data.myDumpDataResponse);
-          }
-        }
-        catch (InterruptedException e) {
-          getLogger().error("Exception while waiting for Allocation Tracking parsing results: " + e);
-        }
-      }
+  public void getLegacyAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
+    assert myUseLegacyTracking;
+
+    TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(request.getProcessId());
+    if (datas == null || !datas.containsKey(request.getDumpTime()) || datas.get(request.getDumpTime()).myDataParsingLatch == null) {
+      responseObserver.onNext(DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.NOT_FOUND).build());
     }
     else {
-      // Post-O tracking - goes straight to perfd.
-      responseObserver.onNext(myServiceStub.getAllocationDump(request));
+      AllocationTrackingData data = datas.get(request.getDumpTime());
+      try {
+        assert data.myDataParsingLatch != null;
+        data.myDataParsingLatch.await();
+        synchronized (myUpdatingDataLock) {
+          assert data.myDumpDataResponse != null;
+          responseObserver.onNext(data.myDumpDataResponse);
+        }
+      }
+      catch (InterruptedException e) {
+        getLogger().error("Exception while waiting for Allocation Tracking parsing results: " + e);
+      }
     }
+
     responseObserver.onCompleted();
   }
 
-  public void listAllocationContexts(AllocationContextsRequest request,
-                                     StreamObserver<AllocationContextsResponse> responseObserver) {
-    if (myUseLegacyTracking) {
-      AllocationContextsResponse.Builder builder = AllocationContextsResponse.newBuilder();
-      request.getClassIdsList().forEach(id -> {
-        if (myAllocatedClasses.contains(id)) {
-          builder.addAllocatedClasses(myAllocatedClasses.get(id));
-        }
-        else {
-          getLogger().debug("Class data cannot be found for id: " + id);
-        }
-      });
-      request.getStackIdsList().forEach(id -> {
-        if (myAllocationStacks.containsKey(id)) {
-          builder.addAllocationStacks(myAllocationStacks.get(id));
-        }
-        else {
-          getLogger().debug("Stack data cannot be found for id: " + id);
-        }
-      });
-      responseObserver.onNext(builder.build());
-    }
-    else {
-      // Post-O tracking - goes straight to perfd.
-      responseObserver.onNext(myServiceStub.listAllocationContexts(request));
-    }
+  public void listLegacyAllocationContexts(LegacyAllocationContextsRequest request,
+                                           StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
+    assert myUseLegacyTracking;
+
+    LegacyAllocationContextsResponse.Builder builder = LegacyAllocationContextsResponse.newBuilder();
+    request.getClassIdsList().forEach(id -> {
+      if (myAllocatedClasses.contains(id)) {
+        builder.addAllocatedClasses(myAllocatedClasses.get(id));
+      }
+      else {
+        getLogger().debug("Class data cannot be found for id: " + id);
+      }
+    });
+    request.getStackIdsList().forEach(id -> {
+      if (myAllocationStacks.containsKey(id)) {
+        builder.addAllocationStacks(myAllocationStacks.get(id));
+      }
+      else {
+        getLogger().debug("Stack data cannot be found for id: " + id);
+      }
+    });
+    responseObserver.onNext(builder.build());
+
+
     responseObserver.onCompleted();
   }
 
@@ -336,19 +328,19 @@ public class MemoryServiceProxy extends PerfdProxyService {
                                   @Nullable byte[] rawBytes,
                                   @NotNull List<MemoryProfiler.AllocatedClass> classes,
                                   @NotNull List<MemoryProfiler.AllocationStack> stacks,
-                                  @NotNull List<MemoryProfiler.AllocationEvent> events) {
+                                  @NotNull List<MemoryProfiler.LegacyAllocationEvent> events) {
     synchronized (myUpdatingDataLock) {
       TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(processId);
       assert datas.contains(infoId);
-      AllocationEventsResponse.Builder eventResponseBuilder = AllocationEventsResponse.newBuilder();
+      LegacyAllocationEventsResponse.Builder eventResponseBuilder = LegacyAllocationEventsResponse.newBuilder();
       DumpDataResponse.Builder dumpResponseBuilder = DumpDataResponse.newBuilder();
       try {
         if (rawBytes == null) {
-          eventResponseBuilder.setStatus(AllocationEventsResponse.Status.FAILURE_UNKNOWN);
+          eventResponseBuilder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
           dumpResponseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
         }
         else {
-          eventResponseBuilder.addAllEvents(events).setStatus(AllocationEventsResponse.Status.SUCCESS);
+          eventResponseBuilder.addAllEvents(events).setStatus(LegacyAllocationEventsResponse.Status.SUCCESS);
           dumpResponseBuilder.setData(ByteString.copyFrom(rawBytes)).setStatus(DumpDataResponse.Status.SUCCESS);
         }
 
@@ -398,17 +390,17 @@ public class MemoryServiceProxy extends PerfdProxyService {
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     trackAllocations((TrackAllocationsRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_GET_ALLOCATION_EVENTS,
+    overrides.put(MemoryServiceGrpc.METHOD_GET_LEGACY_ALLOCATION_EVENTS,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
-                    getAllocationEvents((AllocationEventsRequest)request, (StreamObserver)observer);
+                    getLegacyAllocationEvents((LegacyAllocationEventsRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_LIST_ALLOCATION_CONTEXTS,
+    overrides.put(MemoryServiceGrpc.METHOD_LIST_LEGACY_ALLOCATION_CONTEXTS,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
-                    listAllocationContexts((AllocationContextsRequest)request, (StreamObserver)observer);
+                    listLegacyAllocationContexts((LegacyAllocationContextsRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_GET_ALLOCATION_DUMP,
+    overrides.put(MemoryServiceGrpc.METHOD_GET_LEGACY_ALLOCATION_DUMP,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
-                    getAllocationDump((DumpDataRequest)request, (StreamObserver)observer);
+                    getLegacyAllocationDump((DumpDataRequest)request, (StreamObserver)observer);
                   }));
     overrides.put(MemoryServiceGrpc.METHOD_FORCE_GARBAGE_COLLECTION,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
@@ -420,7 +412,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
 
   private static class AllocationTrackingData {
     @NotNull AllocationsInfo myInfo;
-    AllocationEventsResponse myEventsResponse;
+    LegacyAllocationEventsResponse myEventsResponse;
     DumpDataResponse myDumpDataResponse;
     CountDownLatch myDataParsingLatch;
   }
