@@ -51,7 +51,7 @@ import java.util.List;
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorPanel> {
   private final DesignSurfaceFixture myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
-  private ComponentDragAndDrop myDragAndDrop;
+  private final ComponentDragAndDrop myDragAndDrop;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
@@ -107,21 +107,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return fixture;
   }
 
-  @Nullable
-  public JListFixture getSelectedItemList() {
-    Robot robot = robot();
-
-    @SuppressWarnings("unchecked")
-    TreeGrid<Palette.Item> grid = (TreeGrid<Palette.Item>)robot.finder().findByName(target(), "itemTreeGrid");
-
-    JList<Palette.Item> selectedList = grid.getSelectedList();
-    if (selectedList == null) {
-      return null;
-    }
-    JListFixture fixture = new JListFixture(robot, selectedList);
-    fixture.replaceCellReader((list, listIndex) -> ((Palette.Item)list.getModel().getElementAt(listIndex)).getTitle());
-
-    return fixture;
+  @NotNull
+  public DesignSurfaceFixture getSurface() {
+    return myDesignSurfaceFixture;
   }
 
   @NotNull
@@ -165,6 +153,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     new JListFixture(robot(), list).drag(item);
     NlDesignSurface target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getCurrentSceneView();
+    assert sceneView != null;
+
     myDragAndDrop
       .drop(target, new Point(sceneView.getX() + sceneView.getSize().width / 2, sceneView.getY() + sceneView.getSize().height / 2));
     return this;
