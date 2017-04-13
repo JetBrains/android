@@ -17,9 +17,11 @@ package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.TimeoutUtil;
@@ -65,6 +67,27 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     completed = buildInvoker.complete(new GradleInvocationResult(Collections.emptyList(), Collections.emptyList(), null));
     assertEquals(1, completed);
     countDownLatch.await(5, TimeUnit.SECONDS);
+  }
+
+  public void testBuildActionRunner() throws Exception {
+    loadSimpleApplication();
+
+    GradleTaskRunner.DefaultGradleTaskRunner runner = new GradleTaskRunner.DefaultGradleTaskRunner(getProject(), new TestBuildAction());
+
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+    ForkJoinPool.commonPool().execute(() -> {
+      try {
+        runner.run(Lists.newArrayList("assembleDebug"), BuildMode.ASSEMBLE, Collections.emptyList());
+        countDownLatch.countDown();
+      }
+      catch (InvocationTargetException | InterruptedException e) {
+        e.printStackTrace();
+      }
+    });
+    UIUtil.dispatchAllInvocationEvents();
+
+    countDownLatch.await(1, TimeUnit.MINUTES);
+    assertEquals("test", runner.getModel());
   }
 
   private static class GradleBuildInvokerStub extends GradleBuildInvoker {

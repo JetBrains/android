@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.build.OutputFile;
+import com.android.builder.model.ProjectBuildOutput;
+import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.run.ProjectBuildOutputProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +35,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link GradleApkProvider}.
@@ -102,6 +109,43 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
 
         assertThat(mainApk).isNotNull();
       }
+    }
+  }
+
+  public void testOutputModel() throws Exception {
+    loadProject(RUN_CONFIG_ACTIVITY);
+    File apk = mock(File.class);
+    ProjectBuildOutputProviderStub outputProvider = new ProjectBuildOutputProviderStub();
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, false);
+    outputProvider.setProjectBuildOutput(createMock("debug", apk));
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    assertSize(1, apks);
+    assertEquals(apk, apks.iterator().next().getFile());
+  }
+
+  private static ProjectBuildOutput createMock(String variant, File file) {
+    ProjectBuildOutput projectBuildOutput = mock(ProjectBuildOutput.class);
+    VariantBuildOutput variantBuildOutput = mock(VariantBuildOutput.class);
+    OutputFile outputFile = mock(OutputFile.class);
+    when(projectBuildOutput.getVariantsBuildOutput()).thenReturn(Collections.singleton(variantBuildOutput));
+    when(variantBuildOutput.getName()).thenReturn(variant);
+    when(variantBuildOutput.getOutputs()).thenReturn(Collections.singleton(outputFile));
+    when(outputFile.getOutputFile()).thenReturn(file);
+    return projectBuildOutput;
+  }
+
+  private static class ProjectBuildOutputProviderStub implements ProjectBuildOutputProvider {
+    @Nullable
+    private ProjectBuildOutput myProjectBuildOutput = null;
+
+    void setProjectBuildOutput(@Nullable ProjectBuildOutput projectBuildOutput) {
+      myProjectBuildOutput = projectBuildOutput;
+    }
+
+    @Nullable
+    @Override
+    public ProjectBuildOutput getOutputModel() {
+      return myProjectBuildOutput;
     }
   }
 }

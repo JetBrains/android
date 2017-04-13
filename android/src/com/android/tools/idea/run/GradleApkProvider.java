@@ -16,13 +16,11 @@
 package com.android.tools.idea.run;
 
 import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.TestedTargetVariant;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.SplitOutputMatcher;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.run.ProjectBuildOutputProvider;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
@@ -57,13 +55,23 @@ public class GradleApkProvider implements ApkProvider {
   private final AndroidFacet myFacet;
   @NotNull
   private final ApplicationIdProvider myApplicationIdProvider;
+  @NotNull
+  private final ProjectBuildOutputProvider myOutputModelProvider;
   private final boolean myTest;
 
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            boolean test) {
+    this(facet, applicationIdProvider, () -> null, test);
+  }
+
+  public GradleApkProvider(@NotNull AndroidFacet facet,
+                           @NotNull ApplicationIdProvider applicationIdProvider,
+                           @NotNull ProjectBuildOutputProvider outputModelProvider,
+                           boolean test) {
     myFacet = facet;
     myApplicationIdProvider = applicationIdProvider;
+    myOutputModelProvider = outputModelProvider;
     myTest = test;
   }
 
@@ -82,6 +90,7 @@ public class GradleApkProvider implements ApkProvider {
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
     int projectType = androidModel.getProjectType();
     if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
+      // The apk file for instant apps is actually a zip file
       File apk = getApk(selectedVariant, device);
       apkList.add(new ApkInfo(apk, myApplicationIdProvider.getPackageName()));
     }
@@ -105,9 +114,24 @@ public class GradleApkProvider implements ApkProvider {
 
 
   @NotNull
-  private static File getApk(@NotNull Variant variant, @NotNull IDevice device) throws ApkProvisionException {
+  private File getApk(@NotNull Variant variant, @NotNull IDevice device) throws ApkProvisionException {
     AndroidArtifact mainArtifact = variant.getMainArtifact();
-    List<AndroidArtifactOutput> outputs = Lists.newArrayList(mainArtifact.getOutputs());
+
+    List<OutputFile> outputs = Lists.newArrayList();
+
+    ProjectBuildOutput outputModel = myOutputModelProvider.getOutputModel();
+    if (outputModel != null) {
+      for (VariantBuildOutput variantBuildOutput : outputModel.getVariantsBuildOutput()) {
+        if (variantBuildOutput.getName().equals(variant.getName())) {
+          outputs.addAll(variantBuildOutput.getOutputs());
+        }
+      }
+    }
+    if (outputs.isEmpty()) {
+      // This should be reached only in case the ProjectBuildOutput is not correctly filled or it's an old version of the plugin.
+      outputs.addAll(mainArtifact.getOutputs());
+    }
+
     if (outputs.isEmpty()) {
       throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
     }
@@ -186,7 +210,7 @@ public class GradleApkProvider implements ApkProvider {
   public List<ValidationError> validate() {
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
     assert androidModuleModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
-    if (androidModuleModel.getMainArtifact().isSigned()) {
+    if (androidModuleModel.getProjectType() == PROJECT_TYPE_INSTANTAPP || androidModuleModel.getMainArtifact().isSigned()) {
       return ImmutableList.of();
     }
 

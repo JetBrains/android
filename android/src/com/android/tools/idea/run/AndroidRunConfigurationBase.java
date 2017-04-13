@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.run;
 
+import com.android.builder.model.ProjectBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -26,6 +27,7 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
+import com.android.tools.idea.gradle.run.ProjectBuildOutputProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
@@ -59,6 +61,7 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.util.xmlb.annotations.Transient;
 import org.jdom.Element;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -100,6 +103,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private final DeployTargetContext myDeployTargetContext = new DeployTargetContext();
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
+
+  @NotNull
+  @Transient
+  // This is needed instead of having the output model directly because the apk providers can be created before getting the model.
+  protected DefaultProjectBuildOutputProvider myOutputProvider = new DefaultProjectBuildOutputProvider();
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -627,6 +635,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return TARGET_PLATFORM_NOT_INSTALLED;
   }
 
+  public void setOutputModel(@NotNull ProjectBuildOutput outputModel) {
+    myOutputProvider.setOutputModel(outputModel);
+  }
+
   @Override
   public void readExternal(Element element) throws InvalidDataException {
     super.readExternal(element);
@@ -711,6 +723,22 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     @Override
     public String getDoNotShowMessage() {
       return "Do not ask again";
+    }
+  }
+
+  private static class DefaultProjectBuildOutputProvider implements ProjectBuildOutputProvider {
+    @Nullable
+    @Transient
+    private ProjectBuildOutput myBuildOutput = null;
+
+    public void setOutputModel(@Nullable ProjectBuildOutput buildOutput) {
+      myBuildOutput = buildOutput;
+    }
+
+    @Nullable
+    @Override
+    public ProjectBuildOutput getOutputModel() {
+      return myBuildOutput;
     }
   }
 }

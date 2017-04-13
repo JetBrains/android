@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.builder.model.ProjectBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
@@ -29,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -70,6 +72,7 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
 import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_JVMTI_PROFILING;
@@ -262,8 +265,29 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     BeforeRunBuilder builder =
       createBuilder(env, getModules(myProject, context, configuration), configuration, runConfigContext, task.getGoal());
 
+    GradleTaskRunner.DefaultGradleTaskRunner runner;
+    if (configuration instanceof AndroidRunConfigurationBase) {
+      Module selectedModule = ((AndroidRunConfigurationBase)configuration).getConfigurationModule().getModule();
+      String gradlePath = selectedModule == null ? null : getGradlePath(selectedModule);
+      runner = GradleTaskRunner.newBuildActionRunner(myProject, new OutputBuildAction(gradlePath));
+    }
+    else {
+      runner = GradleTaskRunner.newRunner(myProject);
+    }
+
     try {
-      boolean success = builder.build(GradleTaskRunner.newRunner(myProject), cmdLineArgs);
+      boolean success = builder.build(runner, cmdLineArgs);
+
+      if (configuration instanceof AndroidRunConfigurationBase) {
+        ProjectBuildOutput outputModel = (ProjectBuildOutput)runner.getModel();
+        if (outputModel != null) {
+          ((AndroidRunConfigurationBase)configuration).setOutputModel(outputModel);
+        }
+        else {
+          getLog().info("Couldn't get ProjectBuildOutput.");
+        }
+      }
+
       getLog().info("Gradle invocation complete, success = " + success);
       return success;
     }
