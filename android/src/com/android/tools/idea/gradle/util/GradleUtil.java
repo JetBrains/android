@@ -111,7 +111,9 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
+  @Deprecated
   @NotNull
+  // TODO replace with IdeBaseArtifact#getGeneratedSourceFolders
   public static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
     try {
       Collection<File> folders = artifact.getGeneratedSourceFolders();

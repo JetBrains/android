@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.ApiVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link ApiVersion}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of an {@link ApiVersion}.
  */
-public class IdeApiVersion implements ApiVersion, Serializable {
+public final class IdeApiVersion implements ApiVersion, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myApiString;
   @Nullable private final String myCodename;
   private final int myApiLevel;
@@ -36,12 +37,6 @@ public class IdeApiVersion implements ApiVersion, Serializable {
     myApiString = version.getApiString();
     myCodename = version.getCodename();
     myApiLevel = version.getApiLevel();
-  }
-
-  public IdeApiVersion(@NotNull String apiString, @Nullable String codename, int apiLevel) {
-    myApiString = apiString;
-    myCodename = codename;
-    myApiLevel = apiLevel;
   }
 
   @Override
@@ -63,11 +58,29 @@ public class IdeApiVersion implements ApiVersion, Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof ApiVersion)) return false;
-    ApiVersion version = (ApiVersion)o;
-    return Objects.equals(getApiString(), version.getApiString()) &&
-           Objects.equals(getCodename(), version.getCodename()) &&
-           getApiLevel() == version.getApiLevel();
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeApiVersion)) {
+      return false;
+    }
+    IdeApiVersion version = (IdeApiVersion)o;
+    return myApiLevel == version.myApiLevel &&
+           Objects.equals(myApiString, version.myApiString) &&
+           Objects.equals(myCodename, version.myCodename);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myApiString, myCodename, myApiLevel);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeApiVersion{" +
+           "myApiString='" + myApiString + '\'' +
+           ", myCodename='" + myCodename + '\'' +
+           ", myApiLevel=" + myApiLevel +
+           '}';
   }
 }

@@ -13,37 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.level2.GraphItem;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Creates a deep copy of a {@link GraphItem}.
+ * Creates a deep copy of {@link GraphItem}.
+ *
+ * @see IdeAndroidProject
  */
-public final class IdeGraphItem implements GraphItem, Serializable {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public final class GraphItemStub implements GraphItem {
   @NotNull private final String myArtifactAddress;
   @NotNull private final List<GraphItem> myDependencies;
   @Nullable private final String myRequestedCoordinates;
 
-  public IdeGraphItem(@NotNull GraphItem item) {
-    myArtifactAddress = item.getArtifactAddress();
+  public GraphItemStub(@NotNull GraphItem... dependencies) {
+    this("address", Lists.newArrayList(dependencies), "coordinates");
+  }
 
-    myDependencies = new ArrayList<>();
-    for (GraphItem dependency : item.getDependencies()) {
-      myDependencies.add(new IdeGraphItem(dependency));
-    }
-
-    myRequestedCoordinates = item.getRequestedCoordinates();
+  public GraphItemStub(@NotNull String artifactAddress, @NotNull List<GraphItem> dependencies, @Nullable String requestedCoordinates) {
+    myArtifactAddress = artifactAddress;
+    myDependencies = dependencies;
+    myRequestedCoordinates = requestedCoordinates;
   }
 
   @Override
@@ -69,26 +67,17 @@ public final class IdeGraphItem implements GraphItem, Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeGraphItem)) {
+    if (!(o instanceof GraphItem)) {
       return false;
     }
-    IdeGraphItem item = (IdeGraphItem)o;
-    return Objects.equals(myArtifactAddress, item.myArtifactAddress) &&
-           Objects.equals(myDependencies, item.myDependencies) &&
-           Objects.equals(myRequestedCoordinates, item.myRequestedCoordinates);
+    GraphItem graphItem = (GraphItem)o;
+    return Objects.equals(getArtifactAddress(), graphItem.getArtifactAddress()) &&
+           Objects.equals(getDependencies(), graphItem.getDependencies()) &&
+           Objects.equals(getRequestedCoordinates(), graphItem.getRequestedCoordinates());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myArtifactAddress, myDependencies, myRequestedCoordinates);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeGraphItem{" +
-           "myArtifactAddress='" + myArtifactAddress + '\'' +
-           ", myDependencies=" + myDependencies +
-           ", myRequestedCoordinates='" + myRequestedCoordinates + '\'' +
-           '}';
+    return Objects.hash(getArtifactAddress(), getDependencies(), getRequestedCoordinates());
   }
 }
