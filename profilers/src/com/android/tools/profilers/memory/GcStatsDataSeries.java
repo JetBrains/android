@@ -53,11 +53,10 @@ public final class GcStatsDataSeries implements DataSeries<GcDurationData> {
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
 
     List<SeriesData<GcDurationData>> seriesData = new ArrayList<>();
-    for (MemoryProfiler.MemoryData.VmStatsSample sample : response.getVmStatsSamplesList()) {
-      if (sample.getGcCount() > 0) {
-        long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
-        seriesData.add(new SeriesData<>(dataTimestamp, new GcDurationData(0, sample.getGcCount())));
-      }
+    for (MemoryProfiler.MemoryData.GcStatsSample sample : response.getGcStatsSamplesList()) {
+      long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getStartTime());
+      long duration = TimeUnit.NANOSECONDS.toMicros(sample.getEndTime() - sample.getStartTime());
+      seriesData.add(new SeriesData<>(dataTimestamp, new GcDurationData(duration)));
     }
     return seriesData;
   }
