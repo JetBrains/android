@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
+import com.android.tools.idea.apk.viewer.dex.tree.DexPackageNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
@@ -27,12 +28,11 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getDexMap;
 import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getDexPath;
 import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getTestDexFile;
 import static com.google.common.truth.Truth.assertThat;
 
-public class ShowDisassemblyActionTest {
+public class GenerateProguardKeepRuleActionTest {
   private DexElementNode myPackageTree;
   private Map<Path, DexBackedDexFile> myDexMap;
   private DexBackedDexFile myDexFile;
@@ -46,41 +46,54 @@ public class ShowDisassemblyActionTest {
     myPackageTree = new PackageTreeCreator(null, false).constructPackageTree(myDexMap);
   }
 
+
   @Test
-  public void canDisassemble_package() {
-    assertThat(ShowDisassemblyAction.canDisassemble(myPackageTree)).isFalse();
+  public void canGenerateRule_package_nofqn() {
+    assertThat(GenerateProguardKeepRuleAction.canGenerateRule(new DexPackageNode("root", null))).isFalse();
   }
 
   @Test
-  public void canDisassemble_class() {
+  public void canGenerateRule_package() {
+    assertThat(GenerateProguardKeepRuleAction.canGenerateRule(myPackageTree)).isFalse();
+  }
+
+  @Test
+  public void canGenerateRule_class() {
     DexElementNode node = getNode(myPackageTree, "Test");
     assertThat(node).isNotNull();
-    assertThat(ShowDisassemblyAction.canDisassemble(node)).isTrue();
+    assertThat(GenerateProguardKeepRuleAction.canGenerateRule(node)).isTrue();
   }
 
   @Test
-  public void canDisassemble_method() {
+  public void canGenerateRule_method() {
     DexElementNode node = getNode(myPackageTree, "Test.<init>()");
     assertThat(node).isNotNull();
-    assertThat(ShowDisassemblyAction.canDisassemble(node)).isTrue();
+    assertThat(GenerateProguardKeepRuleAction.canGenerateRule(node)).isTrue();
   }
 
   @Test
-  public void getByteCode_class() {
+  public void getKeepRule_class() {
     DexElementNode node = getNode(myPackageTree, "Test.<init>()");
     assertThat(node).isNotNull();
-    String code = ShowDisassemblyAction.getByteCode(myDexFile, node);
+    String code = GenerateProguardKeepRuleAction.getKeepRule(node);
 
     // the expected data may change if baksmali is updated
-    String expected = ".method public constructor <init>()V\n" +
-                      "    .registers 1\n" +
+    String expected = "# Add *one* of the following rules to your Proguard configuration file.\n" +
+                      "# Alternatively, you can annotate classes and class members with @android.support.annotation.Keep\n" +
                       "\n" +
-                      "    .prologue\n" +
-                      "    .line 5\n" +
-                      "    invoke-direct {p0}, Ljava/lang/Object;-><init>()V\n" +
+                      "# keep the class and specified members from being removed or renamed\n" +
+                      "-keep class Test { <init>(); }\n" +
                       "\n" +
-                      "    return-void\n" +
-                      ".end method\n";
+                      "# keep the specified class members from being removed or renamed \n" +
+                      "# only if the class is preserved\n" +
+                      "-keepclassmembers class Test { <init>(); }\n" +
+                      "\n" +
+                      "# keep the class and specified members from being renamed only\n" +
+                      "-keepnames class Test { <init>(); }\n" +
+                      "\n" +
+                      "# keep the specified class members from being renamed only\n" +
+                      "-keepclassmembernames class Test { <init>(); }\n" +
+                      "\n";
     assertThat(code).isEqualTo(expected);
   }
 

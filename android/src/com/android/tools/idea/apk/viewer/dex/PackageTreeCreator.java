@@ -90,7 +90,7 @@ public class PackageTreeCreator {
 
   @NotNull
   public DexPackageNode constructPackageTree(@NotNull Map<Path, DexBackedDexFile> dexFiles) {
-    DexPackageNode root = new DexPackageNode("root");
+    DexPackageNode root = new DexPackageNode("root", null);
     for (Map.Entry<Path, DexBackedDexFile> dexFile : dexFiles.entrySet()) {
       constructPackageTree(root, dexFile.getKey(), dexFile.getValue());
     }
@@ -99,7 +99,7 @@ public class PackageTreeCreator {
 
   @NotNull
   public DexPackageNode constructPackageTree(@NotNull DexBackedDexFile dexFile) {
-    DexPackageNode root = new DexPackageNode("root");
+    DexPackageNode root = new DexPackageNode("root", null);
     constructPackageTree(root, null, dexFile);
     return root;
   }
@@ -189,6 +189,9 @@ public class PackageTreeCreator {
       String returnType = decodeClassName(methodRef.getReturnType(), myProguardMap);
       String params = decodeMethodParams(methodRef, myProguardMap);
       String methodSig = returnType + " " + methodName + params;
+      if (methodSig.startsWith("void <init>") || methodSig.startsWith("void <clinit>")){
+        methodSig = methodName + params;
+      }
       DexMethodNode methodNode = classNode.getChildByType(methodSig, DexMethodNode.class);
       if (methodNode == null){
         methodNode = new DexMethodNode(methodSig, ImmutableMethodReference.of(methodRef));
