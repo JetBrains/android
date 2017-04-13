@@ -99,8 +99,9 @@ public class CanvasResizeInteraction extends Interaction {
     ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(config.getModule());
     assert resourceRepository != null;
 
+    // TODO: namespaces
     List<ResourceItem> layouts =
-      resourceRepository.getItems().get(ResourceType.LAYOUT).get(layoutName);
+      resourceRepository.getItems().get(null, ResourceType.LAYOUT).get(layoutName);
     myFolderConfigurations =
       layouts.stream().map(ResourceItem::getConfiguration).sorted(Collections.reverseOrder()).collect(Collectors.toList());
 

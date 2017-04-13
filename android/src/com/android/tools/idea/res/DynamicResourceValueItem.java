@@ -33,10 +33,12 @@ import org.jetbrains.annotations.Nullable;
  * file.
  */
 public class DynamicResourceValueItem extends SourcelessResourceItem {
-  public DynamicResourceValueItem(@NonNull ResourceType type, @NonNull ClassField field) {
+  public DynamicResourceValueItem(@Nullable String namespace,
+                                  @NonNull ResourceType type,
+                                  @NonNull ClassField field) {
     // Dynamic values are always in the "current module", so they don't live in a namespace.
-    super(field.getName(), null, type, null, null);
-    mResourceValue = new ResourceValue(ResourceUrl.create(null, type, field.getName()), field.getValue());
+    super(field.getName(), namespace, type, null, null);
+    mResourceValue = new ResourceValue(ResourceUrl.create(namespace, type, field.getName()), field.getValue());
   }
 
   @NonNull
