@@ -60,16 +60,19 @@ public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor 
 
   private static final Logger LOGGER = Logger.getInstance(AndroidMoveWithResourcesProcessor.class);
 
-  private final PsiElement[] myClasses;
+  private final PsiElement[] myRoots;
+  private final Set<PsiClass> myClasses;
   private final Set<ResourceItem> myResources;
   private final Set<PsiElement> myManifestEntries;
   private Module myTargetModule;
 
   protected AndroidMoveWithResourcesProcessor(@NotNull Project project,
-                                              @NotNull PsiElement[] classes,
+                                              @NotNull PsiElement[] roots,
+                                              @NotNull Set<PsiClass> classes,
                                               @NotNull Set<ResourceItem> resources,
                                               @NotNull Set<PsiElement> manifestEntries) {
     super(project);
+    myRoots = roots;
     myClasses = classes;
     myResources = resources;
     myManifestEntries = manifestEntries;
@@ -332,7 +335,7 @@ public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor 
   @NotNull
   @Override
   protected String getCommandName() {
-    return "Moving " + RefactoringUIUtil.calculatePsiElementDescriptionList(myClasses);
+    return "Moving " + RefactoringUIUtil.calculatePsiElementDescriptionList(myRoots);
   }
 
 
