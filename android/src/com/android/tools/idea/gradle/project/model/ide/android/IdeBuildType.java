@@ -20,13 +20,12 @@ import com.android.builder.model.BuildType;
 import com.android.builder.model.SigningConfig;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Creates a deep copy of a {@link BuildType}.
  */
-public final class IdeBuildType extends IdeBaseConfig implements BuildType, Serializable {
+public final class IdeBuildType extends IdeBaseConfig implements BuildType {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -37,12 +36,13 @@ public final class IdeBuildType extends IdeBaseConfig implements BuildType, Seri
   private final boolean myMinifyEnabled;
   private final boolean myZipAlignEnabled;
 
-  public IdeBuildType(@NotNull BuildType buildType) {
-    super(buildType);
+  public IdeBuildType(@NotNull BuildType buildType, @NotNull ModelCache modelCache) {
+    super(buildType, modelCache);
     myDebuggable = buildType.isDebuggable();
     myJniDebuggable = buildType.isJniDebuggable();
     myRenderscriptDebuggable = buildType.isRenderscriptDebuggable();
     myRenderscriptOptimLevel = buildType.getRenderscriptOptimLevel();
+    //noinspection deprecation
     myMinifyEnabled = buildType.isMinifyEnabled();
     myZipAlignEnabled = buildType.isZipAlignEnabled();
   }

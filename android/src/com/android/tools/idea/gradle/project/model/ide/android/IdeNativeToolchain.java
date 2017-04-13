@@ -20,14 +20,13 @@ import com.android.builder.model.NativeToolchain;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 
 /**
  * Creates a deep copy of {@link NativeToolchain}.
  *
  * @see IdeAndroidProject
  */
-public class IdeNativeToolchain implements NativeToolchain, Serializable {
+public class IdeNativeToolchain extends IdeModel implements NativeToolchain {
   @NotNull private String myName;
   @Nullable private File myCCompilerExecutable;
   @Nullable private File myCppCompilerExecutable;

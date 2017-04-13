@@ -19,15 +19,13 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Creates a deep copy of a {@link BuildTypeContainer}.
  */
-public final class IdeBuildTypeContainer implements BuildTypeContainer, Serializable {
+public final class IdeBuildTypeContainer extends IdeModel implements BuildTypeContainer {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -35,12 +33,10 @@ public final class IdeBuildTypeContainer implements BuildTypeContainer, Serializ
   @NotNull private final IdeSourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
 
-  public IdeBuildTypeContainer(@NotNull BuildTypeContainer container) {
-    myBuildType = new IdeBuildType(container.getBuildType());
+  public IdeBuildTypeContainer(@NotNull BuildTypeContainer container, @NotNull ModelCache modelCache) {
+    myBuildType = new IdeBuildType(container.getBuildType(), modelCache);
     mySourceProvider = new IdeSourceProvider(container.getSourceProvider());
-
-    Collection<SourceProviderContainer> sourceProviders = container.getExtraSourceProviders();
-    myExtraSourceProviders = sourceProviders.stream().map(IdeSourceProviderContainer::new).collect(Collectors.toList());
+    myExtraSourceProviders = copy(container.getExtraSourceProviders(), modelCache, IdeSourceProviderContainer::new);
   }
 
   @Override

@@ -18,14 +18,13 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.ClassField;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.Set;
 
 /**
  * Creates a deep copy of a {@link ClassField}.
  */
-public final class IdeClassField implements ClassField, Serializable {
+public final class IdeClassField extends IdeModel implements ClassField {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 

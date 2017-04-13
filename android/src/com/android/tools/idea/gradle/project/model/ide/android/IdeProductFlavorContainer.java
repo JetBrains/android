@@ -21,22 +21,21 @@ import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Creates a deep copy of {@link ProductFlavorContainer}.
  *
  * @see IdeAndroidProject
  */
-public class IdeProductFlavorContainer implements ProductFlavorContainer, Serializable {
+public class IdeProductFlavorContainer extends IdeModel implements ProductFlavorContainer {
   @NotNull private final ProductFlavor myProductFlavor;
   @NotNull private final SourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
 
-  public IdeProductFlavorContainer(@NotNull ProductFlavorContainer original) {
-    myProductFlavor = new IdeProductFlavor(original.getProductFlavor());
+  public IdeProductFlavorContainer(@NotNull ProductFlavorContainer original, @NotNull ModelCache modelCache) {
+    myProductFlavor = new IdeProductFlavor(original.getProductFlavor(), modelCache);
     mySourceProvider = new IdeSourceProvider(original.getSourceProvider());
 
     Collection<SourceProviderContainer> orExtraSourceProvider = original.getExtraSourceProviders();

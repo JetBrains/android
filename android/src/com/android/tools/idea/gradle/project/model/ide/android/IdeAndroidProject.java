@@ -21,15 +21,16 @@ import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * Creates a deep copy of {@link AndroidProject}.
  *
  * Holds copy object of the Android-Gradle project, maintained for persisting the Android model data.
  */
-public class IdeAndroidProject implements AndroidProject, Serializable {
+public class IdeAndroidProject extends IdeModel implements AndroidProject {
   @NotNull private final String myModelVersion;
   @NotNull private final String myName;
   @NotNull private final ProductFlavorContainer myDefaultConfig;
@@ -64,16 +65,16 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
     GradleVersion modelGradleVersion = GradleVersion.parse(myModelVersion);
 
     myName = project.getName();
-    myDefaultConfig = new IdeProductFlavorContainer(project.getDefaultConfig());
+    myDefaultConfig = new IdeProductFlavorContainer(project.getDefaultConfig(), modelCache);
 
     myBuildTypes = new ArrayList<>();
     for (BuildTypeContainer container : project.getBuildTypes()) {
-      myBuildTypes.add(new IdeBuildTypeContainer(container));
+      myBuildTypes.add(new IdeBuildTypeContainer(container, modelCache));
     }
 
     myProductFlavors = new ArrayList<>();
     for (ProductFlavorContainer container : project.getProductFlavors()) {
-      myProductFlavors.add(new IdeProductFlavorContainer(container));
+      myProductFlavors.add(new IdeProductFlavorContainer(container, modelCache));
     }
 
     myBuildToolsVersion = project.getBuildToolsVersion();

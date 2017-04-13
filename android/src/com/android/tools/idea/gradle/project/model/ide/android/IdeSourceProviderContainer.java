@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Creates a deep copy of a {@link SourceProviderContainer}.
  */
-public final class IdeSourceProviderContainer implements SourceProviderContainer, Serializable {
+public final class IdeSourceProviderContainer extends IdeModel implements SourceProviderContainer {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 

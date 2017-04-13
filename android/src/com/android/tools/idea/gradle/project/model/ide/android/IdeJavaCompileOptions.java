@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.JavaCompileOptions;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -26,7 +25,7 @@ import java.util.Objects;
  *
  * @see IdeAndroidProject
  */
-public class IdeJavaCompileOptions implements JavaCompileOptions, Serializable {
+public class IdeJavaCompileOptions extends IdeModel implements JavaCompileOptions {
   @NotNull private final String myEncoding;
   @NotNull private final String mySourceCompatibility;
   @NotNull private final String myTargetCompatibility;

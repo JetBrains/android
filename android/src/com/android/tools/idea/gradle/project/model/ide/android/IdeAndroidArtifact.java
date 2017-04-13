@@ -21,14 +21,12 @@ import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Creates a deep copy of {@link AndroidArtifact}.
  */
-public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifact, Serializable {
+public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifact {
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final String myApplicationId;
   @NotNull private final String mySourceGenTaskName;
@@ -41,10 +39,10 @@ public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifa
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
   private final boolean mySigned;
 
-  public IdeAndroidArtifact(@NotNull AndroidArtifact artifact, @NotNull ModelCache buildCache, @NotNull GradleVersion gradleVersion) {
-    super(artifact, buildCache, gradleVersion);
+  public IdeAndroidArtifact(@NotNull AndroidArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
+    super(artifact, modelCache, gradleVersion);
 
-    myOutputs = artifact.getOutputs().stream().map(IdeAndroidArtifactOutput::new).collect(Collectors.toList());
+    myOutputs = copy(artifact.getOutputs(), modelCache, IdeAndroidArtifactOutput::new);
 
     myApplicationId = artifact.getApplicationId();
     mySourceGenTaskName = artifact.getSourceGenTaskName();
@@ -64,7 +62,7 @@ public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifa
 
     Collection<NativeLibrary> nativeLibraries = artifact.getNativeLibraries();
     if (nativeLibraries != null) {
-      myNativeLibraries = nativeLibraries.stream().map(IdeNativeLibrary::new).collect(Collectors.toList());
+      myNativeLibraries = copy(nativeLibraries, modelCache, IdeNativeLibrary::new);
     }
     else {
       myNativeLibraries = null;
