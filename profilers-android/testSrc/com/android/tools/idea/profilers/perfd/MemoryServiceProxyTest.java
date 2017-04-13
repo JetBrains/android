@@ -92,7 +92,7 @@ public class MemoryServiceProxyTest {
     when(myDevice.getSerialNumber()).thenReturn("Serial");
     when(myDevice.getName()).thenReturn("Device");
     // api version < 26  to enable legacy tracking features.
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(1, "Version"));
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE, "Version"));
     when(myDevice.isOnline()).thenReturn(true);
 
     ManagedChannel mockChannel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
@@ -283,7 +283,7 @@ public class MemoryServiceProxyTest {
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getSerialNumber()).thenReturn("Serial");
     when(mockDevice.getName()).thenReturn("Device");
-    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(26, "Version"));
+    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.O, "Version"));
     when(mockDevice.isOnline()).thenReturn(true);
     ManagedChannel mockChannel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
     MemoryServiceProxy proxy =

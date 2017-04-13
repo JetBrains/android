@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
@@ -52,6 +53,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStage.class);
   }
+
+  // Post-O profiling with JVMTI agent, false by default.
+  @NotNull private static final boolean ENABLE_JVMTI_PROFILING = "true".equals(System.getProperty("enable.jvmti.profiling"));
 
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 5, 5);
   private static final BaseAxisFormatter OBJECT_COUNT_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 5, "");
@@ -106,8 +110,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     mySelection = new MemoryProfilerSelection(this);
     myConfiguration = new MemoryProfilerConfiguration(this);
 
-    myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
-
     myDetailedMemoryUsage = new DetailedMemoryUsage(profilers);
 
     myMemoryAxis = new AxisComponentModel(myDetailedMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
@@ -161,10 +163,23 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+
+    // Starts live allocation tracking immediately if we are post-O.
+    if (ENABLE_JVMTI_PROFILING && getStudioProfilers().getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
+      // TODO: the capture object needs to be handled differently as we are displaying data live.
+      trackAllocations(true, null);
+    } else {
+      myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
+    }
   }
 
   @Override
   public void exit() {
+    // Turns off live allocation tracking.
+    if (ENABLE_JVMTI_PROFILING && getStudioProfilers().getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
+      trackAllocations(false, null);
+    }
+
     myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myDetailedMemoryUsage);
     getStudioProfilers().getUpdater().unregister(myHeapDumpDurations);
@@ -302,7 +317,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       case UNRECOGNIZED:
         break;
     }
-    myAspect.changed(MemoryProfilerAspect.LEGACY_ALLOCATION);
+    myAspect.changed(MemoryProfilerAspect.TRACKING_ENABLED);
   }
 
   public boolean isTrackingAllocations() {

@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Profiler;
 import org.jetbrains.annotations.NotNull;
@@ -58,9 +59,9 @@ public class NullMonitorStage extends Stage {
       myType = Type.NO_DEVICE;
     } else {
       try {
-        int deviceApi = Integer.valueOf(device.getApi());
+        int deviceFeatureLevel = device.getFeatureLevel();
         // Currently, we only support devices with API level 21 or higher
-        if (deviceApi < 21) {
+        if (deviceFeatureLevel < AndroidVersion.VersionCodes.LOLLIPOP) {
           myType = Type.UNSUPPORTED_DEVICE;
         } else {
           // If device is not null and has API level of 21 or higher,
