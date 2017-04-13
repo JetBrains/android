@@ -495,6 +495,7 @@ public class WidgetConstraintPanel extends JPanel {
       case BASELINE:
         removeAttribute(CONNECTION_BASELINE);
         break;
+        default:
     }
   }
 
