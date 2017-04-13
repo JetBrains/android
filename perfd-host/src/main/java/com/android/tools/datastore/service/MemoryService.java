@@ -62,7 +62,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
                                          client,
                                          myFetchExecutor));
       myFetchExecutor.accept(myRunners.get(processId));
-    } else {
+    }
+    else {
       observer.onNext(MemoryStartResponse.getDefaultInstance());
       observer.onCompleted();
     }
@@ -81,7 +82,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     MemoryServiceGrpc.MemoryServiceBlockingStub service = myService.getMemoryClient(request.getSession());
     if (service == null) {
       observer.onNext(MemoryStopResponse.getDefaultInstance());
-    } else {
+    }
+    else {
       observer.onNext(service.stopMonitoringApp(request));
     }
     observer.onCompleted();
@@ -156,14 +158,14 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void listAllocationContexts(AllocationContextsRequest request,
-                                     StreamObserver<AllocationContextsResponse> responseObserver) {
+  public void listLegacyAllocationContexts(LegacyAllocationContextsRequest request,
+                                           StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myMemoryTable.listAllocationContexts((request)));
     responseObserver.onCompleted();
   }
 
   @Override
-  public void getAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
+  public void getLegacyAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
     AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getProcessId(), request.getSession(), request.getDumpTime());
@@ -174,7 +176,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
     }
     else {
-      byte[] data = myMemoryTable.getAllocationDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
+      byte[] data = myMemoryTable.getLegacyAllocationDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
       if (data == null) {
         responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
       }
@@ -188,21 +190,22 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void getAllocationEvents(AllocationEventsRequest request,
-                                  StreamObserver<AllocationEventsResponse> responseObserver) {
-    AllocationEventsResponse.Builder builder = AllocationEventsResponse.newBuilder();
+  public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
+                                        StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
+    LegacyAllocationEventsResponse.Builder builder = LegacyAllocationEventsResponse.newBuilder();
 
     AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getProcessId(), request.getSession(), request.getStartTime());
     if (response == null) {
-      builder.setStatus(AllocationEventsResponse.Status.NOT_FOUND);
+      builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_FOUND);
     }
     else if (response.getStatus() == AllocationsInfo.Status.FAILURE_UNKNOWN) {
-      builder.setStatus(AllocationEventsResponse.Status.FAILURE_UNKNOWN);
+      builder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
     }
     else {
-      AllocationEventsResponse events = myMemoryTable.getAllocationData(request.getProcessId(), request.getSession(), request.getStartTime());
+      LegacyAllocationEventsResponse events =
+        myMemoryTable.getLegacyAllocationData(request.getProcessId(), request.getSession(), request.getStartTime());
       if (events == null) {
-        builder.setStatus(AllocationEventsResponse.Status.NOT_READY);
+        builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_READY);
       }
       else {
         builder.mergeFrom(events);
@@ -229,7 +232,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(request.getSession());
     if (client != null) {
       observer.onNext(client.forceGarbageCollection(request));
-    } else {
+    }
+    else {
       observer.onNext(ForceGarbageCollectionResponse.getDefaultInstance());
     }
     observer.onCompleted();

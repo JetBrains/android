@@ -35,6 +35,6 @@ public interface LegacyAllocationTracker {
     void accept(byte[] data,
                 List<MemoryProfiler.AllocatedClass> classes,
                 List<MemoryProfiler.AllocationStack> stacks,
-                List<MemoryProfiler.AllocationEvent> events);
+                List<MemoryProfiler.LegacyAllocationEvent> events);
   }
 }
