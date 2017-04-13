@@ -325,6 +325,13 @@ public class LineChart extends AnimatedComponent {
         g2d.setColor(lineColor);
       }
       g2d.setStroke(config.getStroke());
+      if (config.isStepped()) {
+        // In stepped mode, everything is at right angles, and turning off anti-aliasing
+        // in this case makes everything look sharper in a good way.
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+      } else {
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      }
 
       if (config.isFilled()) {
         g2d.fill(path);

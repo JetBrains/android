@@ -43,18 +43,23 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private static final BasicStroke LINE_STROKE = new BasicStroke(3);
-  private static final BasicStroke DASH_STROKE = new BasicStroke(2.0f,
+  private static final BasicStroke DASH_STROKE = new BasicStroke(3.0f,
                                                                  BasicStroke.CAP_BUTT,
                                                                  BasicStroke.JOIN_BEVEL,
                                                                  10.0f,  // Miter limit, Swing's default
-                                                                 new float[]{4.0f, 2.0f},  // Dash pattern in pixel
-                                                                 0.0f);  // Dash phase - just starts at zero.)
+                                                                 new float[]{5.0f, 2f},  // Dash pattern in pixel
+                                                                 0.0f);  // Dash phase - just starts at zero.
   private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
 
   /**
    * Side of the (squared) box icon in pixels.
    */
-  private static final int ICON_WIDTH_PX = 10;
+  private static final int BOX_ICON_WIDTH_PX = 10;
+
+  /**
+   * Width of the line icons in pixels.
+   */
+  private static final int LINE_ICON_WIDTH_PX = 12;
 
   /**
    * Distance, in pixels, between icons and their correspondent labels.
@@ -160,7 +165,6 @@ public class LegendComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     // TODO: revisit this method and try to simplify it using JBPanels and a LayoutManager.
     Stroke defaultStroke = g2d.getStroke();
@@ -172,14 +176,18 @@ public class LegendComponent extends AnimatedComponent {
       Dimension labelPreferredSize = label.getPreferredSize();
       int xOffset = 0;
 
+      // The legend icon is a short, straight line, or a small box.
+      // Turning off anti-aliasing makes it look sharper in a good way.
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+
       // Draw the icon, and apply a translation offset for the label to be drawn.
       switch (config.getIcon()) {
         case BOX:
           // Adjust the box initial Y coordinate to align the box and the label vertically.
-          int boxY = myVerticalPadding + (labelPreferredSize.height - ICON_WIDTH_PX) / 2;
+          int boxY = myVerticalPadding + (labelPreferredSize.height - BOX_ICON_WIDTH_PX) / 2;
           Color fillColor = config.getColor();
           g2d.setColor(fillColor);
-          g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+          g2d.fillRect(0, boxY, BOX_ICON_WIDTH_PX, BOX_ICON_WIDTH_PX);
 
           // TODO: make the border customizable. Profilers, for instance, shouldn't have a border in Darcula.
           int r = (int)(fillColor.getRed() * .8f);
@@ -189,24 +197,25 @@ public class LegendComponent extends AnimatedComponent {
           Color borderColor = new Color(r, g, b);
           g2d.setColor(borderColor);
           g2d.setStroke(BORDER_STROKE);
-          g2d.drawRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+          g2d.drawRect(0, boxY, BOX_ICON_WIDTH_PX, BOX_ICON_WIDTH_PX);
           g2d.setStroke(defaultStroke);
 
-          xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
+          xOffset = BOX_ICON_WIDTH_PX + ICON_MARGIN_PX;
           break;
         case LINE:
         case DASHED_LINE:
           g2d.setColor(config.getColor());
           g2d.setStroke(config.getIcon() == LegendConfig.IconType.LINE ? LINE_STROKE : DASH_STROKE);
           int lineY = myVerticalPadding + labelPreferredSize.height / 2;
-          g2d.drawLine(xOffset, lineY, ICON_WIDTH_PX, lineY);
+          g2d.drawLine(xOffset, lineY, LINE_ICON_WIDTH_PX, lineY);
           g2d.setStroke(defaultStroke);
-          xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
+          xOffset = LINE_ICON_WIDTH_PX + ICON_MARGIN_PX;
           break;
         default:
           break;
       }
-
+      // Turn antialising on to render the legend text
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g2d.translate(xOffset, myVerticalPadding);
       label.setSize(labelPreferredSize);
       // TODO: use a string instead of a label and call g2d.drawString instead.
@@ -236,7 +245,7 @@ public class LegendComponent extends AnimatedComponent {
     int totalWidth = 0;
     int totalHeight = 0;
     // Using line icon (vs box icon) because it's wider. Extra space is better than lack of space.
-    int iconPaddedSize = ICON_WIDTH_PX + ICON_MARGIN_PX + LEGEND_MARGIN_PX;
+    int iconPaddedSize = LINE_ICON_WIDTH_PX + ICON_MARGIN_PX + LEGEND_MARGIN_PX;
     // Calculate total size of all icons + labels.
     for (JLabel label : myLabelsToDraw) {
       Dimension size = label.getPreferredSize();
