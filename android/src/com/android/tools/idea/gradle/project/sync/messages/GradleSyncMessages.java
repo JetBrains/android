@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.tools.idea.project.messages.AbstractSyncMessages;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
 /**
@@ -43,10 +41,5 @@ public class GradleSyncMessages extends AbstractSyncMessages {
   @NotNull
   protected ProjectSystemId getProjectSystemId() {
     return GRADLE_SYSTEM_ID;
-  }
-
-  public void removeProjectMessages() {
-    removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES,
-                   VARIANT_SELECTION_CONFLICTS, GENERATED_SOURCES, SyncMessage.DEFAULT_GROUP);
   }
 }
