@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -41,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -104,13 +107,13 @@ public class InstantApps {
    */
   @Nullable
   public static Module findInstantAppModule(@NotNull Project project) {
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-        return facet.getModule();
-      }
+    List<Module> instantAppModules = AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_INSTANTAPP);
+    if (instantAppModules.size() == 0) {
+      return null;
     }
-    return null;
+    else {
+      return instantAppModules.get(0);
+    }
   }
 
   /**

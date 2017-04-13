@@ -98,6 +98,7 @@ public class TemplateMetadata {
   public static final String ATTR_BASE_SPLIT_NAME = "baseSplitName";
   public static final String ATTR_HAS_SPLIT_WRAPPER ="hasSplitWrapper";
   public static final String ATTR_HAS_INSTANT_APP_WRAPPER ="hasInstantAppWrapper";
+  public static final String ATTR_HAS_MONOLITHIC_APP_WRAPPER ="hasMonolithicAppWrapper";
   public static final String ATTR_INSTANT_APP_SDK_DIR ="instantAppSdkDir";
   public static final String ATTR_BASE_SPLIT_MANIFEST_OUT ="baseSplitManifestOut";
   public static final String ATTR_MONOLITHIC_APP_PROJECT_NAME ="monolithicAppProjectName";
