@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
@@ -134,7 +135,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (!Boolean.getBoolean(IdeaApplication.IDEA_IS_INTERNAL_PROPERTY)) {
       return Collections.emptyList();
     }
-    return Collections.singletonList(new ToggleSlicePropertyEditor(this));
+    return ImmutableList.of(new ToggleSlicePropertyEditor(this), new ToggleDownloadableFontsAction(this));
   }
 
   @NotNull
