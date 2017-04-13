@@ -16,11 +16,17 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.model.IdeClassField;
 import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -35,11 +41,15 @@ import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.junit.Assert;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiFunction;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
 
 public class AppResourceRepositoryTest extends AndroidTestCase {
@@ -304,6 +314,116 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertNull(repository.resolveResourceId(styleId));
     assertNull(repository.resolveResourceId(layoutId));
   }
+
+  public void testNamespaces() throws Exception {
+    //// This is necessary to use DynamicResourceValueRepository.
+    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
+
+    BiFunction<String, String, DynamicResourceValueRepository> makeDynamicRepo = (namespace, value) -> {
+      IdeClassField field = new IdeClassField("string",
+                                              "model_value",
+                                              value,
+                                              "value from model",
+                                              Collections.emptySet());
+      return DynamicResourceValueRepository.createForTest(myFacet, namespace, Collections.singletonMap("model_value", field));
+    };
+
+    VirtualFile appResources = myFixture.copyFileToProject(VALUES, "app/res/values/values.xml").getParent().getParent();
+    ModuleResourceRepository app =
+      ModuleResourceRepository.createForTest(myFacet,
+                                             Collections.singleton(appResources),
+                                             null,
+                                             makeDynamicRepo.apply(null, "appValue"));
+
+    VirtualFile localLibResources = myFixture.copyFileToProject(VALUES_OVERLAY1, "localLib/res/values/values.xml").getParent().getParent();
+    ModuleResourceRepository localLib =
+      ModuleResourceRepository.createForTest(myFacet,
+                                             Collections.singleton(localLibResources),
+                                             "localLib",
+                                             makeDynamicRepo.apply("localLib", "localLibValue"));
+
+    ProjectResourceRepository projectResourceRepository = ProjectResourceRepository.createForTest(myFacet, Arrays.asList(app, localLib));
+
+    VirtualFile aarLibResources = myFixture.copyFileToProject(VALUES_OVERLAY2, "aarLib/res/values/values.xml").getParent().getParent();
+    FileResourceRepository aarLib = FileResourceRepository.createForTest(new File(aarLibResources.getPath()), "aarLib", null);
+
+    AppResourceRepository appResourceRepository = AppResourceRepository.createForTest(myFacet,
+                                                                                      Arrays.asList(projectResourceRepository, aarLib),
+                                                                                      Collections.singletonList(aarLib));
+
+    assertRepositorySelfConsistent(app);
+    assertRepositorySelfConsistent(localLib);
+    assertRepositorySelfConsistent(aarLib);
+    assertRepositorySelfConsistent(projectResourceRepository);
+    assertRepositorySelfConsistent(appResourceRepository);
+
+    ResourceTable resourceTable = appResourceRepository.getItems();
+
+    assertThat(projectResourceRepository.getNamespaces()).containsExactly("", "localLib");
+    assertThat(appResourceRepository.getNamespaces()).containsExactly("", "localLib", "aarLib");
+
+    assertOnlyValue(appResourceRepository, null, ResourceType.STRING, "app_name", "Animations Demo");
+    assertOnlyValue(appResourceRepository, "localLib", ResourceType.STRING, "app_name", "Different App Name");
+    assertOnlyValue(appResourceRepository, "aarLib", ResourceType.STRING, "app_name", "Very Different App Name");
+
+    assertOnlyValue(appResourceRepository, null, ResourceType.STRING, "model_value", "appValue");
+    assertOnlyValue(appResourceRepository, "localLib", ResourceType.STRING, "model_value", "localLibValue");
+    assertThat(resourceTable.get("aarLib", ResourceType.STRING).get("model_value")).isEmpty();
+
+    assertThat(resourceTable.get(null, ResourceType.ID).get("action_next")).hasSize(1);
+    assertThat(resourceTable.get("localLib", ResourceType.ID).get("action_next")).isEmpty();
+    assertThat(resourceTable.get("aarLib", ResourceType.ID).get("action_next")).isEmpty();
+
+    assertThat(resourceTable.get(null, ResourceType.STRING).get("unique_string")).isEmpty();
+    assertThat(resourceTable.get("localLib", ResourceType.STRING).get("unique_string")).hasSize(1);
+    assertThat(resourceTable.get("aarLib", ResourceType.STRING).get("unique_string")).isEmpty();
+
+    assertThat(resourceTable.get(null, ResourceType.STRING).get("another_unique_string")).isEmpty();
+    assertThat(resourceTable.get("localLib", ResourceType.STRING).get("another_unique_string")).isEmpty();
+    assertThat(resourceTable.get("aarLib", ResourceType.STRING).get("another_unique_string")).hasSize(1);
+  }
+
+  private static void assertRepositorySelfConsistent(AbstractResourceRepository repository) {
+    ResourceTable resourceTable = repository.getItems();
+
+    eachItemInRepo:
+    for (ResourceItem item : repository.getAllResourceItems()) {
+
+      ListMultimap<String, ResourceItem> multimap = resourceTable.get(item.getNamespace(), item.getType());
+      assertThat(multimap).named("Multimap for " + item).isNotNull();
+
+      List<ResourceItem> itemsWithSameName = multimap.get(item.getName());
+      assertThat(itemsWithSameName).named("List for " + item).isNotEmpty();
+
+      for (ResourceItem candidate : itemsWithSameName) {
+        if (candidate == item) {
+          continue eachItemInRepo;
+        }
+      }
+
+      Assert.fail(item + " is not stored correctly.");
+    }
+  }
+
+  private static void assertOnlyValue(MultiResourceRepository repository,
+                                      String namespace,
+                                      ResourceType resourceType,
+                                      String name,
+                                      String value) {
+    ListMultimap<String, ResourceItem> multimap = repository.getItems().get(namespace, resourceType);
+    assertThat(multimap).named(String.format("@%s:%s", namespace, resourceType)).isNotNull();
+
+    String fullName = String.format("@%s:%s/%s", namespace, resourceType, name);
+
+    List<ResourceItem> items = multimap.get(name);
+    assertThat(items).named(fullName).hasSize(1);
+
+    ResourceValue resourceValue = Iterables.getOnlyElement(items).getResourceValue(false);
+    assertThat((resourceValue)).named(fullName).isNotNull();
+
+    assertThat(resourceValue.getValue()).named(fullName).isEqualTo(value);
+  }
+
 
   static AppResourceRepository createTestAppResourceRepository(AndroidFacet facet) throws IOException {
     final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(facet, Collections.emptyList());

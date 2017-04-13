@@ -479,10 +479,10 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   static void assertHasExactResourceTypes(LocalResourceRepository resources, EnumSet<ResourceType> types) {
     for (ResourceType type : ResourceType.values()) {
       if (types.contains(type)) {
-        assertTrue(resources.hasResourcesOfType(type));
+        assertTrue(type.getName(), resources.hasResourcesOfType(type));
       }
       else {
-        assertFalse(resources.hasResourcesOfType(type));
+        assertFalse(type.getName(), resources.hasResourcesOfType(type));
       }
     }
   }
