@@ -3,4 +3,5 @@
     <string name="app_name">My Application</string>
     <string name="hello">@string/hello_string</string>
     <string name="hello_string">Hello World!</string>
+    <string name="msg">Not really needed</string>
 </resources>
