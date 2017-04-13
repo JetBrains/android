@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
 // TODO: cleanup/refactor/document/rename. Eventually delete the one in adt-ui
 public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
 
+  private static final int LEFT_MARGIN_PX = 3;
+
   protected boolean isMethodPlatform(MethodModel method) {
     return method.getClassName().startsWith("android.");
   }
@@ -70,26 +72,39 @@ public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
    */
   @Override
   protected String generateFittingText(MethodModel node, Rectangle2D rect, FontMetrics fontMetrics) {
+    double maxWidth = rect.getWidth() - LEFT_MARGIN_PX;
     // Try: java.lang.String.toString
     String fullyQualified = node.getClassName() + "." + node.getName();
-    if (fontMetrics.stringWidth(fullyQualified) < rect.getWidth()) {
+    if (fontMetrics.stringWidth(fullyQualified) < maxWidth) {
       return fullyQualified;
     }
 
     // Try: j.l.s.toString
     String abbrevPackage = getShortPackageName(node.getClassName()) + "." + node.getName();
-    if (fontMetrics.stringWidth(abbrevPackage) < rect.getWidth()) {
+    if (fontMetrics.stringWidth(abbrevPackage) < maxWidth) {
       return abbrevPackage;
     }
 
+    String name = node.getName();
     // Try: toString
-    if (fontMetrics.stringWidth(node.getName()) < rect.getWidth()) {
-      return node.getName();
+    if (fontMetrics.stringWidth(name) < maxWidth) {
+      return name;
+    }
+
+    // Try: t...
+    if (name.length() > 0 && fontMetrics.stringWidth(name.charAt(0) + "...") < maxWidth) {
+      return name.charAt(0) + "...";
     }
 
     return "";
   }
 
+  @Override
+  protected void renderText(Graphics2D g, String text, Rectangle2D.Float rect, FontMetrics fontMetrics) {
+    float textPositionX = LEFT_MARGIN_PX + rect.x;
+    float textPositionY = (float)(rect.getY() + fontMetrics.getAscent());
+    g.drawString(text, textPositionX, textPositionY);
+  }
 
   protected String getShortPackageName(String nameSpace) {
     if (nameSpace == null || nameSpace.equals("")) {
