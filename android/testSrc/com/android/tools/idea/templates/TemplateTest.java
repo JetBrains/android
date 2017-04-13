@@ -21,6 +21,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.lint.LintIdeClient;
@@ -35,6 +36,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.checks.ManifestDetector;
@@ -119,7 +121,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    * Whether we should run these tests or not.
    */
   private static final boolean DISABLED =
-    true || // This test is *possibly* the culprit for the hanging builds; temporarily trying this
     Boolean.parseBoolean(System.getProperty("DISABLE_STUDIO_TEMPLATE_TESTS")) ||
     Boolean.TRUE.toString().equals(System.getenv("DISABLE_STUDIO_TEMPLATE_TESTS"));
 
@@ -1082,6 +1083,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       myFixture.setUp();
 
       Project project = myFixture.getProject();
+      IdeComponents.replaceServiceWithMock(project, PostProjectBuildTasksExecutor.class);
       setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
       projectValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
