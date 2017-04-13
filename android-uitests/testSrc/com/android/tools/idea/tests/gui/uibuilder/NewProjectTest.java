@@ -61,6 +61,8 @@ public class NewProjectTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
+   * TR ID: C14579001
+   * <p>
    *   <pre>
    *   Steps:
    *   1. Create a new project with min sdk 23.
@@ -86,6 +88,8 @@ public class NewProjectTest {
    * Verify creating a new project from default template.
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14578805
    * <p>
    *   <pre>
    *   Steps:
