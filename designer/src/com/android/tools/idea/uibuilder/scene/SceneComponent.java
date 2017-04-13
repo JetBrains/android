@@ -55,6 +55,7 @@ public class SceneComponent {
   public SceneDecorator myDecorator;
   private boolean myAllowsAutoconnect = true;
   private TargetProvider myTargetProvider;
+  private ComponentProvider myComponentProvider;
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED, DRAG}
 
@@ -472,12 +473,24 @@ public class SceneComponent {
   }
 
   /**
-   * @return The underlying NlComponent
+   * @return The underlying NlComponent, possibly given by a provider
+   */
+  @NotNull
+  public NlComponent getAuthoritativeNlComponent() {
+    if (myComponentProvider != null) {
+      return myComponentProvider.getComponent(this);
+    }
+    return myNlComponent;
+  }
+
+  /**
+   * @return The underlying initial NlComponent
    */
   @NotNull
   public NlComponent getNlComponent() {
     return myNlComponent;
   }
+
 
   @NotNull
   public Scene getScene() {
@@ -650,7 +663,12 @@ public class SceneComponent {
    * Clear our attributes (delegating the action to our view handler)
    */
   public void clearAttributes() {
-    getNlComponent().clearAttributes();
+    NlComponent component = getAuthoritativeNlComponent();
+    ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
+    viewGroupHandler.clearAttributes(component);
+    for (SceneComponent child : getChildren()) {
+      viewGroupHandler.clearAttributes(child.getAuthoritativeNlComponent());
+    }
   }
 
   protected void addTarget(@NotNull Target target) {
@@ -798,7 +816,7 @@ public class SceneComponent {
    * @param targetProvider The target provider to set
    * @param isParent       The SceneComponent is the layout
    */
-  public void setTargetProvider(TargetProvider targetProvider, boolean isParent) {
+  public void setTargetProvider(@Nullable TargetProvider targetProvider, boolean isParent) {
     if (myTargetProvider == targetProvider) {
       return;
     }
@@ -807,6 +825,15 @@ public class SceneComponent {
     if (myTargetProvider != null) {
       myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
     }
+  }
+
+  /**
+   * Set the ComponentProvider for this component
+   *
+   * @param provider the component provider
+   */
+  public void setComponentProvider(@NotNull ComponentProvider provider) {
+    myComponentProvider = provider;
   }
 
   public void updateTargets(boolean isParent) {
