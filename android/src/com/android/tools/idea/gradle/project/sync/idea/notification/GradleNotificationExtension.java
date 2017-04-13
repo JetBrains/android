@@ -54,7 +54,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   @Override
   public void customize(@NotNull NotificationData notification, @NotNull Project project, @Nullable Throwable error) {
     // See https://code.google.com/p/android/issues/detail?id=226786
-    GradleSyncMessages.getInstance(project).removeMessages();
+    GradleSyncMessages.getInstance(project).removeProjectMessages();
 
     Throwable cause = error;
     if (error instanceof UndeclaredThrowableException) {
