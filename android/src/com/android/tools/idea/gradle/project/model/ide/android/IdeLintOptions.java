@@ -21,7 +21,6 @@ import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -29,7 +28,7 @@ import java.util.*;
  *
  * @see IdeAndroidProject
  */
-public class IdeLintOptions implements LintOptions, Serializable {
+public class IdeLintOptions extends IdeModel implements LintOptions {
   @NotNull private final Set<String> myDisable;
   @NotNull private final Set<String> myEnable;
   @Nullable private final Set<String> myCheck;

@@ -19,7 +19,6 @@ import com.android.builder.model.AndroidLibrary;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
@@ -27,7 +26,7 @@ import java.util.Objects;
 /**
  * Creates a deep copy of an {@link AndroidLibrary}.
  */
-public final class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrary, Serializable {
+public final class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrary {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 

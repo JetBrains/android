@@ -20,13 +20,12 @@ import com.android.builder.model.SigningConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Creates a deep copy of a {@link SigningConfig}.
  */
-public final class IdeSigningConfig implements SigningConfig, Serializable {
+public final class IdeSigningConfig extends IdeModel implements SigningConfig {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 

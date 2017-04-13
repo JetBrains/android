@@ -19,13 +19,12 @@ import com.android.builder.model.ApiVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Creates a deep copy of an {@link ApiVersion}.
  */
-public final class IdeApiVersion implements ApiVersion, Serializable {
+public final class IdeApiVersion extends IdeModel implements ApiVersion {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 

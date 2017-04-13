@@ -25,10 +25,12 @@ import java.util.function.Function;
 class ModelCache {
   @NotNull private final Map<Object, Object> myData = new HashMap<>();
 
+  @SuppressWarnings("unchecked")
   @NotNull
-  <K, V extends K> V computeIfAbsent(@NotNull Object key, @NotNull Function<Object, V> mappingFunction) {
-    Object result = myData.computeIfAbsent(key, mappingFunction::apply);
-    //noinspection unchecked
+  <K, V extends K> V computeIfAbsent(@NotNull Object key, @NotNull Function<K, V> mappingFunction) {
+    Object result = myData.computeIfAbsent(key, o -> {
+      return mappingFunction.apply((K)o);
+    });
     return (V)result;
   }
 

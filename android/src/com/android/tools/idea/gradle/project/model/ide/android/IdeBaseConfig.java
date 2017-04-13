@@ -22,13 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.*;
 
 /**
  * Creates a deep copy of a {@link BaseConfig}.
  */
-public abstract class IdeBaseConfig implements BaseConfig, Serializable {
+public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -40,13 +39,9 @@ public abstract class IdeBaseConfig implements BaseConfig, Serializable {
   @Nullable private final String myApplicationIdSuffix;
   @Nullable private final String myVersionNameSuffix;
 
-  protected IdeBaseConfig(@NotNull BaseConfig config) {
+  protected IdeBaseConfig(@NotNull BaseConfig config, @NotNull ModelCache modelCache) {
     myName = config.getName();
-
-    Map<String, ClassField> resValues = config.getResValues();
-    myResValues = new HashMap<>(resValues.size());
-    resValues.forEach((name, classField) -> myResValues.put(name, new IdeClassField(classField)));
-
+    myResValues = copy(config.getResValues(), modelCache, IdeClassField::new);
     myProguardFiles = new ArrayList<>(config.getProguardFiles());
     myConsumerProguardFiles = new ArrayList<>(config.getConsumerProguardFiles());
     myManifestPlaceholders = new HashMap<>(config.getManifestPlaceholders());
