@@ -53,9 +53,9 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterPackageName(@NotNull String text) {
-    LabelWithEditButton link = robot().finder().findByType(target(), LabelWithEditButton.class);
+    LabelWithEditButton editLabel = robot().finder().findByType(target(), LabelWithEditButton.class);
 
-    JButton editButton = robot().finder().findByType(link, JButton.class);
+    JButton editButton = robot().finder().findByType(editLabel, JButton.class);
     robot().click(editButton);
 
     JTextComponent textField = findTextFieldWithLabel("Package name:");
