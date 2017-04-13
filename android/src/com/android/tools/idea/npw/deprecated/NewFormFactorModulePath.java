@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.deprecated;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.*;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -42,11 +43,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.instantapp.InstantApps.*;
 import static com.android.tools.idea.npw.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.npw.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
@@ -327,19 +326,27 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
             templateState.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
           }
 
-          // TODO: need better name-clash handling (http://b/35712205) but this handles the most common issue.
-          String monolithicApplicationModuleName = "app";
-          int count = 2;
-          while (ModuleManager.getInstance(getProject()).findModuleByName(monolithicApplicationModuleName) != null && count < 100) {
-            monolithicApplicationModuleName = "app" + count;
-            templateState.put(ATTR_MONOLITHIC_APP_PROJECT_NAME, monolithicApplicationModuleName);
-            templateState.put(ATTR_MONOLITHIC_APP_DIR, "./" + monolithicApplicationModuleName);
-            count ++;
+          List<Module> applicationModules = AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP);
+          if (applicationModules.size() == 0) {
+            templateState.put(ATTR_HAS_MONOLITHIC_APP_WRAPPER, true);
+            // TODO: need better name-clash handling (http://b/35712205) but this handles the most common issue.
+            String monolithicApplicationModuleName = "app";
+            int count = 2;
+            while (ModuleManager.getInstance(getProject()).findModuleByName(monolithicApplicationModuleName) != null && count < 100) {
+              monolithicApplicationModuleName = "app" + count;
+              templateState.put(ATTR_MONOLITHIC_APP_PROJECT_NAME, monolithicApplicationModuleName);
+              templateState.put(ATTR_MONOLITHIC_APP_DIR, "./" + monolithicApplicationModuleName);
+              count ++;
+            }
           }
-
+          else {
+            templateState.put(ATTR_HAS_MONOLITHIC_APP_WRAPPER, false);
+            templateState.put(ATTR_MONOLITHIC_APP_PROJECT_NAME, applicationModules.get(0).getName());
+          }
         });
       }
       else {
+        templateState.put(ATTR_HAS_MONOLITHIC_APP_WRAPPER, true);
         templateState.put(ATTR_HAS_INSTANT_APP_WRAPPER, true);
       }
     }
