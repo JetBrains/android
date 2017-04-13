@@ -20,9 +20,9 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -61,7 +61,6 @@ import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
-import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.android.tools.lint.detector.api.LintUtils.convertVersion;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -1010,7 +1009,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     }
   }
 
+  @Deprecated
   @NotNull
+  // TODO use IdeBaseArtifact#getIdeSetupTaskNames.
   public static Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
     try {
       // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.

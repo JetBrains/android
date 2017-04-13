@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
+import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.ide.common.repository.GradleVersion;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Creates a deep copy of {@link BaseArtifact}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link BaseArtifact}.
  */
 public abstract class IdeBaseArtifact implements BaseArtifact, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myName;
   @NotNull private final String myCompileTaskName;
   @NotNull private final String myAssembleTaskName;
@@ -49,26 +49,58 @@ public abstract class IdeBaseArtifact implements BaseArtifact, Serializable {
   @Nullable private final IdeSourceProvider myVariantSourceProvider;
   @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
 
-  public IdeBaseArtifact(@NotNull BaseArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
+  protected IdeBaseArtifact(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
     myName = artifact.getName();
     myCompileTaskName = artifact.getCompileTaskName();
     myAssembleTaskName = artifact.getAssembleTaskName();
     myClassesFolder = artifact.getClassesFolder();
     myJavaResourcesFolder = artifact.getJavaResourcesFolder();
-    myDependencies = new IdeDependencies(artifact.getDependencies(), seen, gradleVersion);
+    myDependencies = new IdeDependencies(artifact.getDependencies(), modelCache, gradleVersion);
     //noinspection deprecation
-    myCompileDependencies = new IdeDependencies(artifact.getCompileDependencies(), seen, gradleVersion);
+    myCompileDependencies = new IdeDependencies(artifact.getCompileDependencies(), modelCache, gradleVersion);
 
-    if (gradleVersion.isAtLeast(2, 3, 0)) {
-      myDependencyGraphs = new IdeDependencyGraphs(artifact.getDependencyGraphs());
-    }
-    else {
-      myDependencyGraphs = new IdeDependencyGraphs(null);
-    }
-    myIdeSetupTaskNames = new HashSet<>(artifact.getIdeSetupTaskNames());
-    myGeneratedSourceFolders = new ArrayList<>(artifact.getGeneratedSourceFolders());
+    DependencyGraphs graphs = gradleVersion.isAtLeast(2, 3, 0) ? artifact.getDependencyGraphs() : null;
+    myDependencyGraphs = new IdeDependencyGraphs(graphs);
+
+    myIdeSetupTaskNames = new HashSet<>(getIdeSetupTaskNames(artifact));
+    myGeneratedSourceFolders = new ArrayList<>(getGeneratedSourceFolders(artifact));
     myVariantSourceProvider = createSourceProvider(artifact.getVariantSourceProvider());
     myMultiFlavorSourceProvider = createSourceProvider(artifact.getMultiFlavorSourceProvider());
+  }
+
+  @NotNull
+  private static Set<String> getIdeSetupTaskNames(@NotNull BaseArtifact artifact) {
+    try {
+      // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
+      return new HashSet<>(artifact.getIdeSetupTaskNames());
+    }
+    catch (NoSuchMethodError e) {
+      if (artifact instanceof AndroidArtifact) {
+        return Collections.singleton(((AndroidArtifact)artifact).getSourceGenTaskName());
+      }
+    }
+    catch (UnsupportedMethodException e) {
+      if (artifact instanceof AndroidArtifact) {
+        return Collections.singleton(((AndroidArtifact)artifact).getSourceGenTaskName());
+      }
+    }
+
+    return Collections.emptySet();
+  }
+
+  @NotNull
+  private static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
+    try {
+      Collection<File> folders = artifact.getGeneratedSourceFolders();
+      // JavaArtifactImpl#getGeneratedSourceFolders returns null even though BaseArtifact#getGeneratedSourceFolders is marked as @NonNull.
+      // See https://code.google.com/p/android/issues/detail?id=216236
+      //noinspection ConstantConditions
+      return folders != null ? folders : Collections.emptyList();
+    }
+    catch (UnsupportedMethodException e) {
+      // Model older than 1.2.
+    }
+    return Collections.emptyList();
   }
 
   @Nullable
@@ -146,5 +178,52 @@ public abstract class IdeBaseArtifact implements BaseArtifact, Serializable {
   @Nullable
   public IdeSourceProvider getMultiFlavorSourceProvider() {
     return myMultiFlavorSourceProvider;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof IdeBaseArtifact)) return false;
+    IdeBaseArtifact artifact = (IdeBaseArtifact)o;
+    return artifact.canEquals(this) &&
+           Objects.equals(myName, artifact.myName) &&
+           Objects.equals(myCompileTaskName, artifact.myCompileTaskName) &&
+           Objects.equals(myAssembleTaskName, artifact.myAssembleTaskName) &&
+           Objects.equals(myClassesFolder, artifact.myClassesFolder) &&
+           Objects.equals(myJavaResourcesFolder, artifact.myJavaResourcesFolder) &&
+           Objects.equals(myDependencies, artifact.myDependencies) &&
+           Objects.equals(myCompileDependencies, artifact.myCompileDependencies) &&
+           Objects.equals(myDependencyGraphs, artifact.myDependencyGraphs) &&
+           Objects.equals(myIdeSetupTaskNames, artifact.myIdeSetupTaskNames) &&
+           Objects.equals(myGeneratedSourceFolders, artifact.myGeneratedSourceFolders) &&
+           Objects.equals(myVariantSourceProvider, artifact.myVariantSourceProvider) &&
+           Objects.equals(myMultiFlavorSourceProvider, artifact.myMultiFlavorSourceProvider);
+  }
+
+  protected boolean canEquals(Object other) {
+    return other instanceof IdeBaseArtifact;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myName, myCompileTaskName, myAssembleTaskName, myClassesFolder, myJavaResourcesFolder, myDependencies,
+                        myCompileDependencies, myDependencyGraphs, myIdeSetupTaskNames, myGeneratedSourceFolders, myVariantSourceProvider,
+                        myMultiFlavorSourceProvider);
+  }
+
+  @Override
+  public String toString() {
+    return "myName='" + myName + '\'' +
+           ", myCompileTaskName='" + myCompileTaskName + '\'' +
+           ", myAssembleTaskName='" + myAssembleTaskName + '\'' +
+           ", myClassesFolder=" + myClassesFolder +
+           ", myJavaResourcesFolder=" + myJavaResourcesFolder +
+           ", myDependencies=" + myDependencies +
+           ", myCompileDependencies=" + myCompileDependencies +
+           ", myDependencyGraphs=" + myDependencyGraphs +
+           ", myIdeSetupTaskNames=" + myIdeSetupTaskNames +
+           ", myGeneratedSourceFolders=" + myGeneratedSourceFolders +
+           ", myVariantSourceProvider=" + myVariantSourceProvider +
+           ", myMultiFlavorSourceProvider=" + myMultiFlavorSourceProvider;
   }
 }
