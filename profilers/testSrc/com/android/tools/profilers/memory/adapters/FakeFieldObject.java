@@ -65,6 +65,12 @@ public class FakeFieldObject implements FieldObject {
     return myValueType == ValueType.NULL || myValueType.getIsPrimitive() ? null : (InstanceObject)myValue;
   }
 
+  @Nullable
+  @Override
+  public Object getValue() {
+    return myValue;
+  }
+
   @Override
   public int getDepth() {
     InstanceObject instanceObject = getAsInstance();

@@ -143,6 +143,12 @@ final class HeapDumpFieldObject implements FieldObject {
     return myInstanceObject;
   }
 
+  @Nullable
+  @Override
+  public Object getValue() {
+    return myInstanceObject != null ? myInstanceObject : myField.getValue();
+  }
+
   @NotNull
   @Override
   public ValueObject.ValueType getValueType() {

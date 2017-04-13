@@ -23,13 +23,14 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
+import com.android.tools.profilers.memory.instanceviewers.BitmapViewer;
+import com.android.tools.profilers.memory.instanceviewers.InstanceViewer;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,10 +40,7 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
@@ -72,6 +70,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
+  @NotNull private final List<InstanceViewer> myInstanceViewers = new ArrayList<>();
+
   public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myStage.getAspect().addDependency(this)
@@ -82,6 +82,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myTabsPanel = ideProfilerComponents.createTabsPanel();
     myTabsPanel.setOnSelectionChange(this::trackActiveTab);
     myStackTraceView = ideProfilerComponents.createStackView(stage.getStackTraceModel());
+
+    myInstanceViewers.add(new BitmapViewer());
 
     myAttributeColumns.put(
       InstanceAttribute.LABEL,
@@ -195,7 +197,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myTabsPanel.removeAll();
     boolean hasContent = false;
 
-    if (fieldPath != null && fieldPath.size() > 0) {
+    if (fieldPath.size() > 0) {
       InstanceObject fieldInstance = fieldPath.get(fieldPath.size() - 1).getAsInstance();
       if (fieldInstance != null) {
         instance = fieldInstance;
@@ -219,6 +221,14 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       myTabsPanel.addTab(TITLE_TAB_CALLSTACK, myStackTraceView.getComponent());
       hasContent = true;
     }
+
+    final InstanceObject finalInstance = instance;
+    myInstanceViewers.forEach(viewer -> {
+      JComponent component = viewer.createComponent(myIdeProfilerComponents, capture, finalInstance);
+      if (component != null) {
+        myTabsPanel.addTab(viewer.getTitle(), component);
+      }
+    });
 
     myTabsPanel.getComponent().setVisible(hasContent);
   }
