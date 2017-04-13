@@ -183,7 +183,10 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     if (result == null) {
       mySelectionRange.clear();
     }
-    else {
+    else if (!mySelectionRange.equals(result)) {
+      // In this case, we're completely replacing the existing selection with a brand new selection.
+      // If we didn't clear the previous range, it would look like we were just modifying the old selection.
+      myPreviousSelectionRange.clear();
       if (mySelectFullConstraint) {
         mySelectionRange.set(result);
       }

@@ -130,8 +130,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     mySelectionModel.addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
-        selectCaptureFromSelection();
+        selectCaptureFromSelectionRange();
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+      }
+
+      @Override
+      public void selectionCleared() {
+        selectCaptureFromSelectionRange();
       }
     });
 
@@ -186,7 +191,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return myStackTraceModel;
   }
 
-  private void selectCaptureFromSelection() {
+  private void selectCaptureFromSelectionRange() {
     if (!myUpdateCaptureOnSelection) {
       return;
     }
