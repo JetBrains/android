@@ -40,7 +40,6 @@ import java.awt.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Optional;
 
 /**
  * Implements a target anchor for the ConstraintLayout viewgroup
@@ -52,6 +51,7 @@ public class AnchorTarget extends BaseTarget {
   private final boolean myVisibility;
   private AnchorTarget myCurrentClosestTarget; // used to define the closest target during drag;
   private boolean myThisIsTheTarget;
+  private boolean myInDrag = false;
 
   // Type of possible anchors
   public enum Type {
@@ -332,9 +332,41 @@ public class AnchorTarget extends BaseTarget {
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
     }
+    int mode = mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL;
+    Integer state = DecoratorUtilities.getTryingToConnectState(myComponent.getNlComponent());
+    if (state != null) {
+      switch (myType) {
+
+        case LEFT:
+          if ((state & DecoratorUtilities.MASK_LEFT) != 0) {
+            mode = DrawAnchor.CAN_CONNECT;
+          }
+          break;
+        case TOP:
+          if ((state & DecoratorUtilities.MASK_TOP) != 0) {
+            mode = DrawAnchor.CAN_CONNECT;
+          }
+          break;
+         case RIGHT:
+           if ((state & DecoratorUtilities.MASK_RIGHT) != 0) {
+             mode = DrawAnchor.CAN_CONNECT;
+           }
+           break;
+         case BOTTOM:
+           if ((state & DecoratorUtilities.MASK_BOTTOM) != 0) {
+             mode = DrawAnchor.CAN_CONNECT;
+           }
+           break;
+         case BASELINE:
+           if ((state & DecoratorUtilities.MASK_BASELINE) != 0) {
+             mode = DrawAnchor.CAN_CONNECT;
+           }
+           break;
+       }
+     }
     DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
                    myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, isConnected() && !myThisIsTheTarget,
-                   mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
+                   mode );
 
     if (myLastX != -1 && myLastY != -1) {
       if ((myConnectedX == -1 && myConnectedY == -1)
@@ -644,7 +676,10 @@ public class AnchorTarget extends BaseTarget {
         break;
       }
     }
-
+    if (!myInDrag) {
+      myInDrag = true;
+      DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, true);
+    }
     if (myCurrentClosestTarget != closestTarget) {
       if (myCurrentClosestTarget != null) {
         myCurrentClosestTarget.setThisIsTheTarget(false);
@@ -686,6 +721,10 @@ public class AnchorTarget extends BaseTarget {
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myLastX = -1;
     myLastY = -1;
+    if (myInDrag) {
+      myInDrag = false;
+      DecoratorUtilities.setTryingToConnectState(myComponent.getNlComponent(), myType, false);
+    }
     if (myComponent.getParent() != null) {
       myComponent.getParent().setExpandTargetArea(false);
     }

@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.intellij.execution.ui.layout.View;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Tools to be used by decorators for setting timed state transitions on NLComponents
@@ -31,6 +37,10 @@ public class DecoratorUtilities {
   public static final String RIGHT_CONNECTION = "right";
   public static final String BOTTOM_CONNECTION = "bottom";
   public static final String BASELINE_CONNECTION = "baseline";
+  private static final String MODE_SUFFIX = "_mode";
+  private static final String PREV_SUFFIX = "_prev";
+  private static final String TIME_SUFFIX = "_time";
+  private static final String TRY_TO_CONNECT = "trying_to_connect";
 
   /**
    * This is done to this way to ensure that the enums have a fixed value
@@ -95,9 +105,9 @@ public class DecoratorUtilities {
    * @param to
    */
   public static void setTimeChange(NlComponent component, String type, long time, ViewStates from, ViewStates to) {
-    component.putClientProperty(type + "_mode", to);
-    component.putClientProperty(type + "_prev", from);
-    component.putClientProperty(type + "_time", time);
+    component.putClientProperty(type + MODE_SUFFIX, to);
+    component.putClientProperty(type + PREV_SUFFIX, from);
+    component.putClientProperty(type + TIME_SUFFIX, time);
   }
 
   /**
@@ -111,9 +121,9 @@ public class DecoratorUtilities {
    */
   public static void setTimeChange(NlComponent component, String type, ViewStates from, ViewStates to) {
     long time = System.nanoTime();
-    component.putClientProperty(type + "_mode", to);
-    component.putClientProperty(type + "_prev", from);
-    component.putClientProperty(type + "_time", time);
+    component.putClientProperty(type + MODE_SUFFIX, to);
+    component.putClientProperty(type + PREV_SUFFIX, from);
+    component.putClientProperty(type + TIME_SUFFIX, time);
   }
 
   /**
@@ -126,25 +136,119 @@ public class DecoratorUtilities {
    */
   public static void setTimeChange(NlComponent component, String type, ViewStates to) {
     long time = System.nanoTime();
-    component.putClientProperty(type + "_mode", to);
-    ViewStates from = (ViewStates)component.getClientProperty(type + "_mode");
+    component.putClientProperty(type + MODE_SUFFIX, to);
+    ViewStates from = (ViewStates)component.getClientProperty(type + MODE_SUFFIX);
     if (from == null) {
       from = ViewStates.NORMAL;
     }
-    component.putClientProperty(type + "_prev", from);
-    component.putClientProperty(type + "_time", time);
+    component.putClientProperty(type + PREV_SUFFIX, from);
+    component.putClientProperty(type + TIME_SUFFIX, time);
   }
 
   public static ViewStates getTimedChange_prev(NlComponent component, String type) {
-    return (ViewStates)component.getClientProperty(type + "_prev");
+    return (ViewStates)component.getClientProperty(type + PREV_SUFFIX);
   }
 
   public static ViewStates getTimedChange_value(NlComponent component, String type) {
-    return (ViewStates)component.getClientProperty(type + "_mode");
+    return (ViewStates)component.getClientProperty(type + MODE_SUFFIX);
   }
 
   public static Long getTimedChange_time(NlComponent component, String type) {
 
-    return (Long)component.getClientProperty(type + "_time");
+    return (Long)component.getClientProperty(type + TIME_SUFFIX);
+  }
+
+  public static int MASK_TOP = 1;
+  public static int MASK_BOTTOM = 2;
+  public static int MASK_LEFT = 4;
+  public static int MASK_RIGHT = 8;
+  public static int MASK_BASELINE = 16;
+
+  static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
+    HashSet<String> set = new HashSet<>();
+    set.add(c.getId());
+    int lastCount;
+    do {
+      lastCount = set.size();
+      for (NlComponent sister : sisters) {
+        for (int i = 0; i < list.length; i++) {
+          String str = ConstraintComponentUtilities.getConnectionId(sister, SdkConstants.SHERPA_URI, list[i]);
+          if (set.contains(str)) {
+            set.add(sister.getId());
+          }
+        }
+      }
+    }
+    while (set.size() > lastCount);
+    return set;
+  }
+
+  /**
+   * Set or clears the "trying to connect" state on all NLComponents that are sisters of this component.
+   * The state is a Integer flag, bit 0=top,1=south,2=east,3=west,4=baseline
+   *
+   * @param component
+   * @param type
+   * @param on
+   */
+  public static void setTryingToConnectState(NlComponent component, AnchorTarget.Type type, boolean on) {
+    List<NlComponent> sisters = component.getParent().getChildren();
+    String id = component.getId();
+    HashSet<String> connected;
+    Integer mask;
+    if (on) {
+      component.putClientProperty(TRY_TO_CONNECT, 0);
+      switch (type) {
+        case TOP:
+        case BOTTOM:
+          mask = MASK_TOP | MASK_BOTTOM;
+          connected = getConnected(component, sisters,
+                                   ConstraintComponentUtilities.ourBottomAttributes,
+                                   ConstraintComponentUtilities.ourTopAttributes);
+          for (NlComponent sister : sisters) {
+            if (sister != component && !connected.contains(sister.getId())) {
+              sister.putClientProperty(TRY_TO_CONNECT, mask);
+            }
+          }
+          break;
+        case RIGHT:
+        case LEFT:
+          mask = MASK_LEFT | MASK_RIGHT;
+          connected = getConnected(component, sisters,
+                                   ConstraintComponentUtilities.ourRightAttributes,
+                                   ConstraintComponentUtilities.ourLeftAttributes,
+                                   ConstraintComponentUtilities.ourStartAttributes,
+                                   ConstraintComponentUtilities.ourEndAttributes);
+          for (NlComponent sister : sisters) {
+            if (sister != component && !connected.contains(sister.getId())) {
+              sister.putClientProperty(TRY_TO_CONNECT, mask);
+            }
+          }
+          break;
+
+        case BASELINE:
+          System.out.println("baseline");
+          mask = MASK_BASELINE;
+          connected = getConnected(component, sisters,
+                                   ConstraintComponentUtilities.ourBottomAttributes,
+                                   ConstraintComponentUtilities.ourTopAttributes,
+                                   ConstraintComponentUtilities.ourBaselineAttributes);
+          for (NlComponent sister : sisters) {
+            if (sister != component && !connected.contains(sister.getId())) {
+              sister.putClientProperty(TRY_TO_CONNECT, mask);
+            }
+          }
+          break;
+      }
+    }
+    else {
+      for (NlComponent sister : sisters) {
+        sister.removeClientProperty(TRY_TO_CONNECT);
+      }
+    }
+  }
+
+  public static Integer getTryingToConnectState(NlComponent component) {
+    return (Integer)component.getClientProperty(TRY_TO_CONNECT);
   }
 }
