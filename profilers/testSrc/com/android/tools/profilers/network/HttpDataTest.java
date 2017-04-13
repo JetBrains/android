@@ -44,7 +44,7 @@ public class HttpDataTest {
                               " Content-Type =  text/html; charset=UTF-8;  ");
     HttpData data = builder.build();
     assertThat(data.getStatusCode(), equalTo(302));
-    assertThat(data.getResponseField("Content-Type"), equalTo("text/html; charset=UTF-8"));
+    assertThat(data.getResponseField("content-type"), equalTo("text/html; charset=UTF-8"));
   }
 
   @Test
@@ -55,7 +55,7 @@ public class HttpDataTest {
                               "  Content-Type =  text/html; charset=UTF-8  ");
     HttpData data = builder.build();
     assertThat(data.getStatusCode(), equalTo(200));
-    assertThat(data.getResponseField("Content-Type"), equalTo("text/html; charset=UTF-8"));
+    assertThat(data.getResponseField("content-type"), equalTo("text/html; charset=UTF-8"));
   }
 
   @Test
@@ -194,5 +194,22 @@ public class HttpDataTest {
     assertEquals("text/html", new HttpData.ContentType("text/html").getMimeType());
     assertEquals("text/html", new HttpData.ContentType("text/html;").getMimeType());
     assertEquals("", new HttpData.ContentType("").getMimeType());
+  }
+
+  @Test
+  public void getContentLengthFromLowerCaseData() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setResponseFields("CoNtEnt-LEngtH = 10000 \n  response-status-code = 200");
+    HttpData data = builder.build();
+    assertEquals("10000", data.getResponseField("content-length"));
+    assertEquals("10000", data.getResponseField("cOnTenT-leNGth"));
+  }
+
+  @Test
+  public void getStatusCodeFromFields() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setResponseFields("content-length = 10000 \n  response-status-code = 200");
+    HttpData data = builder.build();
+    assertEquals(200, data.getStatusCode());
   }
 }

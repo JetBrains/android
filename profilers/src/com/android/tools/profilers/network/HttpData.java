@@ -46,9 +46,10 @@ public class HttpData {
     .put("/png", ".png")
     .put("/xml", ".xml")
     .build();
+  private static final String STATUS_CODE_NAME = "response-status-code";
 
-  public static final String FIELD_CONTENT_TYPE = "Content-Type";
-  public static final String FIELD_CONTENT_LENGTH = "Content-Length";
+  public static final String FIELD_CONTENT_TYPE = "content-type";
+  public static final String FIELD_CONTENT_LENGTH = "content-length";
   public static final int NO_STATUS_CODE = -1;
 
   private final long myId;
@@ -63,7 +64,9 @@ public class HttpData {
   @Nullable private final String myResponsePayloadId;
 
   private int myStatusCode = NO_STATUS_CODE;
+  // Field key is formatted as always lower case.
   private final Map<String, String> myResponseFields = new HashMap<>();
+  // Field key is formatted as always lower case.
   private final Map<String, String> myRequestFields = new HashMap<>();
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
   private File myResponsePayloadFile;
@@ -141,7 +144,7 @@ public class HttpData {
 
   @Nullable
   public String getResponseField(@NotNull String field) {
-    return myResponseFields.get(field);
+    return myResponseFields.get(field.toLowerCase());
   }
 
   @Nullable
@@ -161,22 +164,34 @@ public class HttpData {
   }
 
   private void parseResponseFields(@NotNull String fields) {
+    fields = fields.trim();
+    if (fields.isEmpty()) {
+      return;
+    }
+
     // The status-line - should be formatted as per
     // section 6.1 of RFC 2616.
     // https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
     //
     // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase
-    String[] firstLineSplit = fields.trim().split("\\n", 2);
+
+    String[] firstLineSplit = fields.split("\\n", 2);
     String status = firstLineSplit[0].trim();
-    fields = firstLineSplit.length > 1 ? firstLineSplit[1] : "";
     if (!status.isEmpty()) {
       String[] tokens = status.split("=", 2);
       status = tokens[tokens.length - 1].trim();
-      assert status.startsWith("HTTP/1.") : String.format("Unexpected http response status-line (%s)", status);
-      myStatusCode = Integer.parseInt(status.split(" ")[1]);
+      if (status.startsWith("HTTP/1.")) {
+        myStatusCode = Integer.parseInt(status.split(" ")[1]);
+        fields = firstLineSplit.length > 1 ? firstLineSplit[1] : "";
+      }
     }
 
     parseHeaderFields(fields, myResponseFields);
+    if (myResponseFields.containsKey(STATUS_CODE_NAME)) {
+      String statusCode = myResponseFields.remove(STATUS_CODE_NAME);
+      myStatusCode = Integer.parseInt(statusCode);
+    }
+    assert myStatusCode != -1 : String.format("Unexpected http response (%s)", fields);
   }
 
   private void parseRequestFields(@NotNull String fields) {
@@ -188,7 +203,7 @@ public class HttpData {
     Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).forEach(line -> {
       String[] keyAndValue = line.split("=", 2);
       assert keyAndValue.length == 2 : String.format("Unexpected http header field (%s)", line);
-      map.put(keyAndValue[0].trim(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
+      map.put(keyAndValue[0].trim().toLowerCase(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
     });
   }
 
