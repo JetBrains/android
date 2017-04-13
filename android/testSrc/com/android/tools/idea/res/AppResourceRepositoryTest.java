@@ -22,7 +22,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.model.IdeClassField;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeClassField;
 import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
