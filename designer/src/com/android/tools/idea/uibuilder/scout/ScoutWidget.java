@@ -1204,12 +1204,12 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
   public void setX(int x) {
     setDpX(x);
-    mX = getDpX();
+    mX = x;
   }
 
   public void setY(int y) {
     setDpY(y);
-    mY = getDpY();
+    mY = y;
   }
 
   public void setWidth(int width) {
