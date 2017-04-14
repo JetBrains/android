@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2017 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<tutorialBundle
+    name="Connection Assistant"
+    resourceRoot="/bundle/connection">
+  <welcome>
+    <![CDATA[Guide you on troubleshooting your device connection issues.]]>
+  </welcome>
+  <feature
+      name="Troubleshoot device connections."
+      serviceId="connect.device">
+    <description>
+      <![CDATA[Troubleshoot Device Connection]]>
+    </description>
+    <tutorial
+        key="analytics-troubleshoot-device-connection-android"
+        label="Guide to connect your Android device."
+        remoteLink="https://developer.android.com/studio/run/device.html"
+        remoteLinkLabel="View Instructions from developer.android.com in browser.">
+      <description>
+        <![CDATA[Run Apps on a Hardware Device]]>
+      </description>
+      <step label="Connecting your device via USB">
+        <stepElement>
+          <section>
+            <![CDATA[Please check your Operating System is able to see your Android device. It should show up as a USB drive.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[<b>Unplug & Replug.</b> Not all USB cables are created equally, if your device is not detected by the OS, try connecting your device with another cable.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[<b>(Windows Only) Install Device Driver.</b> If you want to connect a device for testing, then you need to install the appropriate USB driver. More details <a href="https://developer.android.com/studio/run/oem-usb.html">here</a>.]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Enabling On-device Developer Options">
+        <stepElement>
+          <section>
+            <![CDATA[You must enable Developer Options on your phone in order to run your applications on it. ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+          <![CDATA[To access these settings, open the Developer options in the system Settings. On Android 4.2 and higher,
+          the Developer options screen is hidden by default. To make it visible, go to Settings > About phone and tap Build number seven times.
+          Return to the previous screen to find Developer options at the bottom.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[Enable USB debugging in the device system settings, under Settings > Developer options.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <image
+              src="/bundle/connection/dev-options-nexus.png"
+              width="262"
+              height="525"/>
+        </stepElement>
+      </step>
+      <step label="Check device connection using ADB (Android Debug Bridge)">
+        <stepElement>
+          <section>
+            <![CDATA[When plugged in over USB, you can verify that your device is connected by executing adb devices from your SDK platform-tools/ directory.
+            If connected, you'll see the device name listed as a "device."]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Submit a Bug Report">
+        <stepElement>
+          <section>
+            <![CDATA[If the previous steps did not fix your issue. Please <a href="https://code.google.com/p/android/issues/entry?template=User%20bug%20report">submit a bug report</a> to help us investigate your issue. Include: OS, Studio version, and Device Model.]]>
+          </section>
+        </stepElement>
+      </step>
+    </tutorial>
+  </feature>
+</tutorialBundle>

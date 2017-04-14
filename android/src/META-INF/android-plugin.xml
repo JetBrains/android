@@ -268,6 +268,14 @@
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
     </action>
+    <action
+        id="DeveloperServices.ConnectionAssistant"
+        class="com.android.tools.idea.connection.assistant.OpenConnectionAssistantSidePanelAction"
+        icon="AndroidIcons.Assistant.TutorialIndicator"
+        text="Connection Assistant"
+        description="Help debug device connection">
+      <add-to-group group-id="ToolsMenu" relative-to-action="AndroidToolsGroup" anchor="before"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -1316,6 +1324,11 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <consoleFilterProvider implementation="com.android.tools.idea.gradle.filters.GradleConsoleReRunFilterProvider"/>
+  </extensions>
+  
+  <!-- Connection Assistant -->
+  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
+    <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
   </extensions>
 
 </idea-plugin>
