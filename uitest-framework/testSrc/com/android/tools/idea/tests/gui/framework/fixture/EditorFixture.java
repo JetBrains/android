@@ -67,6 +67,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -287,6 +288,11 @@ public class EditorFixture {
     return this;
   }
 
+  @NotNull
+  public EditorFixture open(@NotNull Path relativePath, @NotNull Tab tab) {
+    return open(relativePath.toString().replace('\\', '/'), tab);
+  }
+
   /**
    * Opens up a different file. This will run through the "Open File..." dialog to
    * find and select the given file.
@@ -354,6 +360,11 @@ public class EditorFixture {
     return open(file, tab);
   }
 
+  @NotNull
+  public EditorFixture open(@NotNull Path relativePath) {
+    return open(relativePath, Tab.DEFAULT);
+  }
+
   /**
    * Like {@link #open(String, com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab)} but
    * always uses the default tab
@@ -375,15 +386,11 @@ public class EditorFixture {
       KeyboardShortcut cs = (KeyboardShortcut)shortcut;
       KeyStroke firstKeyStroke = cs.getFirstKeyStroke();
       Component component = getFocusedEditor();
-      if (component != null) {
-        ComponentDriver<Component> driver = new ComponentDriver<>(robot);
-        driver.pressAndReleaseKey(component, firstKeyStroke.getKeyCode(), new int[]{firstKeyStroke.getModifiers()});
-        KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
-        if (secondKeyStroke != null) {
-          driver.pressAndReleaseKey(component, secondKeyStroke.getKeyCode(), new int[]{secondKeyStroke.getModifiers()});
-        }
-      } else {
-        fail("Editor not focused for action");
+      ComponentDriver<Component> driver = new ComponentDriver<>(robot);
+      driver.pressAndReleaseKey(component, firstKeyStroke.getKeyCode(), new int[]{firstKeyStroke.getModifiers()});
+      KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
+      if (secondKeyStroke != null) {
+        driver.pressAndReleaseKey(component, secondKeyStroke.getKeyCode(), new int[]{secondKeyStroke.getModifiers()});
       }
     }
     else {
