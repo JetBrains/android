@@ -14,6 +14,18 @@
   ~ limitations under the License.
   -->
 <palette>
+  <item tag="item" title="Cast Button" coordinate="com.android.support:mediarouter-v7">
+    <xml>
+      <![CDATA[
+        <item xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/media_route_menu_item"
+            android:title="Cast"
+            app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"
+            tools:icon="@drawable/mr_button_light" />
+      ]]>
+    </xml>
+  </item>
+
   <item tag="item" title="Menu Item">
     <xml><![CDATA[<item android:title="Item" />]]></xml>
   </item>

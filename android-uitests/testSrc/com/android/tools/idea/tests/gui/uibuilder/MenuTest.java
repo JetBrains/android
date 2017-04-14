@@ -54,6 +54,36 @@ public final class MenuTest {
   }
 
   @Test
+  public void dragCastButtonIntoActionBar() throws IOException {
+    writeSettingsActionMenu();
+
+    myEditor.open(myMenuPath);
+    dragAndDrop("Cast Button", new Point(320, 121));
+    MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency").clickOk();
+
+    myGuiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    @Language("XML")
+    String expected = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
+                      "    <item\n" +
+                      "        android:id=\"@+id/media_route_menu_item\"\n" +
+                      "        android:title=\"Cast\"\n" +
+                      "        app:actionProviderClass=\"android.support.v7.app.MediaRouteActionProvider\"\n" +
+                      "        app:showAsAction=\"always\"\n" +
+                      "        tools:icon=\"@drawable/mr_button_light\" />\n" +
+                      "    <item\n" +
+                      "        android:id=\"@+id/action_settings\"\n" +
+                      "        android:title=\"@string/action_settings\"\n" +
+                      "        app:showAsAction=\"always\" />\n" +
+                      "</menu>\n";
+
+    myEditor.open(myMenuPath, Tab.EDITOR);
+    assertEquals(expected, myEditor.getCurrentFileContents());
+  }
+
+  @Test
   public void dragMenuItemIntoActionBar() {
     myEditor.open(myMenuPath);
     dragAndDrop("Menu Item", new Point(380, 120));
@@ -83,24 +113,17 @@ public final class MenuTest {
 
   @Test
   public void dragSearchItemIntoActionBar() throws IOException {
-    @Language("XML")
-    String xml = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
-                 "    <item\n" +
-                 "        android:id=\"@+id/action_settings\"\n" +
-                 "        android:title=\"@string/action_settings\"\n" +
-                 "        app:showAsAction=\"always\" />\n" +
-                 "</menu>\n";
-
-    FileUtils.write(myGuiTest.getProjectPath().toPath().resolve(myMenuPath), xml);
+    writeSettingsActionMenu();
 
     myEditor.open(myMenuPath);
     dragAndDrop("Search Item", new Point(330, 120));
     MessagesFixture.findByTitle(myGuiTest.robot(), "Copy Vector Asset").clickYes();
 
     @Language("XML")
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
     String expected = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
+                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                      "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
                       "    <item\n" +
                       "        android:id=\"@+id/app_bar_search\"\n" +
                       "        android:actionViewClass=\"android.widget.SearchView\"\n" +
@@ -115,6 +138,21 @@ public final class MenuTest {
 
     myEditor.open(myMenuPath, Tab.EDITOR);
     assertEquals(expected, myEditor.getCurrentFileContents());
+  }
+
+  private void writeSettingsActionMenu() throws IOException {
+    @Language("XML")
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
+    String xml = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                 "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
+                 "    <item\n" +
+                 "        android:id=\"@+id/action_settings\"\n" +
+                 "        android:title=\"@string/action_settings\"\n" +
+                 "        app:showAsAction=\"always\" />\n" +
+                 "</menu>\n";
+
+    FileUtils.write(myGuiTest.getProjectPath().toPath().resolve(myMenuPath), xml);
   }
 
   private void dragAndDrop(@NotNull String item, @NotNull Point point) {
