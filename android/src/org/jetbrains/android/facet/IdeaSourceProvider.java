@@ -436,8 +436,7 @@ public abstract class IdeaSourceProvider {
     @Override
     public Collection<VirtualFile> getAssetsDirectories() {
       VirtualFile dir = getAssetsDir(myFacet);
-      assert dir != null;
-      return Collections.singleton(dir);
+      return dir == null ? Collections.emptySet() : Collections.singleton(dir);
     }
 
     @Override
