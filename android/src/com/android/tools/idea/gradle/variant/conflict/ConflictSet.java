@@ -193,6 +193,10 @@ public class ConflictSet {
       messages.report(msg);
     }
 
-    ApplicationManager.getApplication().invokeLater(() -> BuildVariantView.getInstance(myProject).updateContents(mySelectionConflicts));
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (!myProject.isDisposed()) {
+        BuildVariantView.getInstance(myProject).updateContents(mySelectionConflicts);
+      }
+    });
   }
 }
