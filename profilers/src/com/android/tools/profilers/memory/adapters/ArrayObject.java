@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,22 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.profilers.memory.adapters.ValueObject.ValueType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Transient object that stores field information of a permanent {@link InstanceObject}.
- */
-public interface FieldObject extends ValueObject {
+public interface ArrayObject {
   @NotNull
-  String getFieldName();
+  ValueType getArrayElementType();
 
   @Nullable
-  InstanceObject getAsInstance();
+  byte[] getAsByteArray();
 
   @Nullable
-  Object getValue();
+  char[] getAsCharArray();
+
+  @Nullable
+  Object[] getAsArray();
+
+  int getArrayLength();
 }

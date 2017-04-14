@@ -19,21 +19,39 @@ import com.android.tools.idea.profilers.actions.NavigateToCodeAction;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.stacktrace.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
   private static final String COMPONENT_CONTEXT_MENU = "ComponentContextMenu";
+
+  private static final Map<String, FileType> FILE_TYPE_MAP = new ImmutableMap.Builder<String, FileType>()
+    .put(".html", StdFileTypes.HTML)
+    .put(".xml", StdFileTypes.XML)
+    .put(".json", FileTypeManager.getInstance().getStdFileType("JSON"))
+    .build();
+
+  private static final ImmutableSet<String> IMAGE_EXTENSIONS = ImmutableSet.of(".bmp", ".gif", ".jpeg", ".jpg", ".png");
 
   @NotNull private final Project myProject;
 
@@ -146,7 +164,39 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public FileViewer createFileViewer(@NotNull File file) {
-    return new IntellijFileViewer(file);
+  public DataViewer createFileViewer(@NotNull File file) {
+    String fileName = file.getName();
+    int dot = fileName.lastIndexOf(".");
+    String extension = dot >= 0 && dot < fileName.length() ? fileName.substring(dot) : "";
+
+    BufferedImage image = null;
+    if (IMAGE_EXTENSIONS.contains(extension)) {
+      try {
+        image = ImageIO.read(file);
+      } catch (IOException ignore) {}
+    }
+    if (image != null) {
+      return IntellijDataViewer.createImageViewer(image);
+    }
+
+    String content = null;
+    if (file.exists()) {
+      try {
+        content = new String(Files.readAllBytes(file.toPath()));
+      }
+      catch (IOException ignored) {}
+    }
+
+    if (content == null) {
+      return IntellijDataViewer.createInvalidViewer();
+    }
+
+    return IntellijDataViewer.createEditorViewer(content, FILE_TYPE_MAP.getOrDefault(extension, null));
+  }
+
+  @NotNull
+  @Override
+  public JComponent createResizableImageComponent(@NotNull BufferedImage image) {
+    return new ResizableImage(image);
   }
 }
