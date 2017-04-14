@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintSetInspectorProvider;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -41,6 +42,7 @@ public class NlInspectorProviders implements LafManagerListener, Disposable {
     Project project = myPropertiesManager.getProject();
     myProviders = ImmutableList.of(myIdInspectorProvider,
                                    new ViewInspectorProvider(project),
+                                   new ConstraintSetInspectorProvider(),
                                    new ProgressBarInspectorProvider(),
                                    new TextInspectorProvider(),
                                    new MockupInspectorProvider(),
