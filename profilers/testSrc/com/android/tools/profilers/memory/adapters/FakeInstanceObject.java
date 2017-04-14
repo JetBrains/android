@@ -24,9 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public final class FakeInstanceObject implements InstanceObject {
   @NotNull private final String myName;
@@ -36,6 +34,9 @@ public final class FakeInstanceObject implements InstanceObject {
   @NotNull private final ThreadId myAllocationThreadId;
   @Nullable private final AllocationStack myAllocationStack;
   @NotNull private final ValueType myValueType;
+  @Nullable private final ValueType myArrayElementType;
+  @Nullable private final Object myArray;
+  private final int myArrayLength;
   private final int myHeapId;
   private final int myDepth;
   private final int myShallowSize;
@@ -47,6 +48,9 @@ public final class FakeInstanceObject implements InstanceObject {
                              @NotNull ThreadId allocationThreadId,
                              @Nullable AllocationStack allocationStack,
                              @NotNull ValueType valueType,
+                             @Nullable ValueType arrayElementType,
+                             @Nullable Object array,
+                             int arrayLength,
                              int heapId, int depth, int shallowSize, long retainedSize) {
     myName = name;
     myClassEntry = classEntry;
@@ -58,6 +62,9 @@ public final class FakeInstanceObject implements InstanceObject {
     myAllocationThreadId = allocationThreadId;
     myAllocationStack = allocationStack;
     myValueType = valueType;
+    myArrayElementType = arrayElementType;
+    myArray = array;
+    myArrayLength = arrayLength;
     myHeapId = heapId;
   }
 
@@ -118,6 +125,58 @@ public final class FakeInstanceObject implements InstanceObject {
     return myValueType;
   }
 
+  @Nullable
+  @Override
+  public ArrayObject getArrayObject() {
+    if (myArray == null || myArrayElementType == null) {
+      return null;
+    }
+
+    assertTrue(getValueType() == ValueType.ARRAY);
+    return new ArrayObject() {
+      @NotNull
+      @Override
+      public ValueType getArrayElementType() {
+        return myArrayElementType;
+      }
+
+      @Nullable
+      @Override
+      public byte[] getAsByteArray() {
+        if (myArrayElementType == ValueType.BYTE) {
+          assertTrue(myArray instanceof byte[]);
+          return (byte[])myArray;
+        }
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public char[] getAsCharArray() {
+        if (myArrayElementType == ValueType.CHAR) {
+          assertTrue(myArray instanceof char[]);
+          return (char[])myArray;
+        }
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public Object[] getAsArray() {
+        if (myArrayElementType.getIsPrimitive()) {
+          return null;
+        }
+
+        return (Object[])myArray;
+      }
+
+      @Override
+      public int getArrayLength() {
+        return myArrayLength;
+      }
+    };
+  }
+
   @Override
   public int getDepth() {
     return myDepth;
@@ -140,7 +199,8 @@ public final class FakeInstanceObject implements InstanceObject {
   }
 
   // This fake doesn't handle circular references or multiple fields referring to the same object.
-  public void setFieldValue(@NotNull String fieldName, @NotNull ValueType fieldType, @Nullable Object fieldValue) {
+  @NotNull
+  public FakeInstanceObject setFieldValue(@NotNull String fieldName, @NotNull ValueType fieldType, @Nullable Object fieldValue) {
     FakeFieldObject fieldObject = (FakeFieldObject)myFields.stream().filter(field -> field.getName().equals(fieldName)).findFirst()
       .orElseThrow(() -> new RuntimeException("Nonexistent field name"));
     fieldObject.setFieldValue(fieldType, fieldValue);
@@ -149,6 +209,7 @@ public final class FakeInstanceObject implements InstanceObject {
       assertNotNull(fieldValue);
       ((FakeInstanceObject)fieldValue).addReference(new ReferenceObject(Collections.singletonList(fieldName), this));
     }
+    return this;
   }
 
   private void addReference(@NotNull ReferenceObject reference) {
@@ -170,6 +231,9 @@ public final class FakeInstanceObject implements InstanceObject {
     private int myDepth = Integer.MAX_VALUE;
     private int myShallowSize = INVALID_VALUE;
     private long myRetainedSize = INVALID_VALUE;
+    private ValueType myArrayElementType;
+    private Object myArray;
+    private int myArrayLength;
 
     public Builder(@NotNull FakeCaptureObject captureObject, @NotNull String className) {
       myCaptureObject = captureObject;
@@ -223,6 +287,15 @@ public final class FakeInstanceObject implements InstanceObject {
     }
 
     @NotNull
+    public Builder setArray(@NotNull ValueType elementType, @NotNull Object array, int arrayLength) {
+      assertTrue(array.getClass().isArray());
+      myArrayElementType = elementType;
+      myArray = array;
+      myArrayLength = arrayLength;
+      return this;
+    }
+
+    @NotNull
     public Builder setHeapId(int heapId) {
       myHeapId = heapId;
       return this;
@@ -249,7 +322,8 @@ public final class FakeInstanceObject implements InstanceObject {
     @NotNull
     public FakeInstanceObject build() {
       return new FakeInstanceObject(myName, myCaptureObject.registerClass(myClassLoaderId, myClassName), myFields, myAllocationThreadId,
-                                    myAllocationStack, myValueType, myHeapId, myDepth, myShallowSize, myRetainedSize);
+                                    myAllocationStack, myValueType, myArrayElementType, myArray, myArrayLength, myHeapId, myDepth,
+                                    myShallowSize, myRetainedSize);
     }
   }
 }

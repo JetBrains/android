@@ -46,6 +46,12 @@ public interface InstanceObject extends ValueObject {
     return Collections.emptyList();
   }
 
+  // Specialized getter for array access (if and only if this instance represents an array).
+  @Nullable
+  default ArrayObject getArrayObject() {
+    return null;
+  }
+
   @Nullable
   default AllocationStack getCallStack() {
     return null;

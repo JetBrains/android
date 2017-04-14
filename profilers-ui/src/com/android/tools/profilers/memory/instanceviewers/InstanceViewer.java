@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.stacktrace;
+package com.android.tools.profilers.memory.instanceviewers;
 
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 
-/**
- * A class which provides a view for a target file, based on its extension. For example, an image may be rendered directly,
- * while an xml file will be shown in syntax highlighted manner. If a file cannot be displayed, a message indicating that
- * a preview is not available will be shown.
- */
-public interface FileViewer {
-
+public interface InstanceViewer {
   @NotNull
-  JComponent getComponent();
+  String getTitle();
 
-  /**
-   * The (width x height) size of the target file, or {@code null} if the concept of a size
-   * doesn't make sense for the file type (e.g. txt, xml)
-   */
   @Nullable
-  Dimension getDimension();
+  JComponent createComponent(@NotNull IdeProfilerComponents ideProfilerComponents,
+                             @NotNull CaptureObject captureObject,
+                             @NotNull InstanceObject instanceObject);
 }
