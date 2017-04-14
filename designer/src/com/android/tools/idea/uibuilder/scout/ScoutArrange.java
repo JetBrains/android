@@ -76,6 +76,7 @@ public class ScoutArrange {
       case DistributeHorizontally:
         Arrays.sort(scoutWidgets, sSortRecX);
         break;
+        default:
     }
 
     switch (type) {
@@ -485,7 +486,7 @@ public class ScoutArrange {
         ScoutWidget[] list = ScoutWidget.getWidgetArray(widgetList.get(0).getParent());
         Rectangle bounds = null;
         for (int i = 0; i < wArray.length; i++) {
-          String id = "@+id/" + wArray[i].getId();
+          String id = SdkConstants.NEW_ID_PREFIX + wArray[i].getId();
           ScoutWidget w = list[0].getChild(id);
           if (bounds == null) {
             bounds = new Rectangle(w.getRectangle());
@@ -514,7 +515,7 @@ public class ScoutArrange {
         ScoutWidget[] list = ScoutWidget.getWidgetArray(widgetList.get(0).getParent());
         Rectangle bounds = null;
         for (int i = 0; i < wArray.length; i++) {
-          String id = "@+id/" + wArray[i].getId();
+          String id = SdkConstants.NEW_ID_PREFIX + wArray[i].getId();
           ScoutWidget w = list[0].getChild(id);
           if (bounds == null) {
             bounds = new Rectangle(w.getRectangle());
@@ -755,6 +756,7 @@ public class ScoutArrange {
         rect.height = region.height - 2;
       }
       break;
+      default:
     }
     int min = Integer.MAX_VALUE;
     ScoutWidget minWidget = null;
@@ -861,6 +863,7 @@ public class ScoutArrange {
         rect.height = region.height - 2;
       }
       break;
+      default:
     }
     int min = Integer.MAX_VALUE;
     for (int i = 0; i < list.length; i++) {
@@ -885,6 +888,7 @@ public class ScoutArrange {
           return region.x;
         case RIGHT:
           return rootWidth - (region.x + region.width);
+          default:
       }
     }
     return min;
