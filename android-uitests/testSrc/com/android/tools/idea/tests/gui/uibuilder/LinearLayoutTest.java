@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -31,10 +30,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
@@ -75,8 +72,8 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    write(myProjectPath.resolve(myStylePath), xml);
-    write(myProjectPath.resolve(myLayoutPath), buildLayout());
+    FileUtils.write(myProjectPath.resolve(myStylePath), xml);
+    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout());
 
     myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
@@ -94,15 +91,11 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    write(myProjectPath.resolve(myStylePath), xml);
-    write(myProjectPath.resolve(myLayoutPath), buildLayout());
+    FileUtils.write(myProjectPath.resolve(myStylePath), xml);
+    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout());
 
     myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
-  }
-
-  private static void write(@NotNull Path path, @NotNull String string) throws IOException {
-    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(Files.write(path, string.getBytes(StandardCharsets.UTF_8)).toFile());
   }
 
   @NotNull
