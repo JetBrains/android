@@ -26,7 +26,7 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.stacktrace.FileViewer;
+import com.android.tools.profilers.stacktrace.DataViewer;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.android.tools.profilers.stacktrace.ThreadId;
@@ -168,7 +168,7 @@ public class ConnectionDetailsView extends JPanel {
 
     if (httpData != null) {
       Optional<File> payloadFile = Optional.ofNullable(httpData.getResponsePayloadFile());
-      FileViewer fileViewer = myStageView.getIdeComponents().createFileViewer(payloadFile.orElse(new File("")));
+      DataViewer fileViewer = myStageView.getIdeComponents().createFileViewer(payloadFile.orElse(new File("")));
       fileViewer.getComponent().setName("FileViewer");
       myResponsePanel.add(fileViewer.getComponent(), new TabularLayout.Constraint(0, 0));
       myResponsePanel.add(createFields(httpData, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
