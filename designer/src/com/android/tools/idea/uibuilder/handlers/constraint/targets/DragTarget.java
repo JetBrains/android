@@ -120,7 +120,7 @@ public class DragTarget extends BaseTarget {
 
   @Nullable
   private SceneComponent getTargetComponent(@NotNull String uri, @NotNull ArrayList<String> attributes) {
-    NlComponent nlComponent = myComponent.getNlComponent();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     String target;
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
@@ -143,7 +143,7 @@ public class DragTarget extends BaseTarget {
     if (isInRtl) {
       origin += target.getDrawWidth();
     }
-    NlComponent nlComponent = myComponent.getNlComponent();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF) != null) {
       if (isInRtl) {
         origin = target.getDrawX();
@@ -159,7 +159,7 @@ public class DragTarget extends BaseTarget {
     if (isInRtl) {
       origin += target.getDrawWidth();
     }
-    NlComponent nlComponent = myComponent.getNlComponent();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF) != null) {
       if (isInRtl) {
         origin = target.getDrawX();
@@ -172,7 +172,7 @@ public class DragTarget extends BaseTarget {
 
   private int getLeftTargetOrigin(SceneComponent target) {
     int origin = target.getDrawX();
-    NlComponent nlComponent = myComponent.getNlComponent();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF) != null) {
       origin += target.getDrawWidth();
     }
@@ -181,7 +181,7 @@ public class DragTarget extends BaseTarget {
 
   private int getRightTargetOrigin(SceneComponent target) {
     int origin = target.getDrawX();
-    NlComponent nlComponent = myComponent.getNlComponent();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF) != null) {
       origin += target.getDrawWidth();
     }
@@ -190,7 +190,7 @@ public class DragTarget extends BaseTarget {
 
   private int getTopTargetOrigin(SceneComponent target) {
     int origin = target.getDrawY();
-    NlComponent nlComponent = myComponent.getNlComponent();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF) != null) {
       origin += target.getDrawHeight();
     }
@@ -199,7 +199,7 @@ public class DragTarget extends BaseTarget {
 
   private int getBottomTargetOrigin(SceneComponent target) {
     int origin = target.getDrawY();
-    NlComponent nlComponent = myComponent.getNlComponent();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF) != null) {
       origin += target.getDrawHeight();
     }
@@ -208,7 +208,7 @@ public class DragTarget extends BaseTarget {
 
   private int getMarginValue(String attribute) {
     // TODO handles RTL + margin
-    NlComponent nlComponent = myComponent.getNlComponent();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
     return ConstraintComponentUtilities.getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
   }
 
@@ -359,7 +359,7 @@ public class DragTarget extends BaseTarget {
 
   private void applyMargin(AttributesTransaction attributes, String attribute, @AndroidDpCoordinate int currentValue) {
     currentValue = Math.max(0, currentValue);
-    String marginString = myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
+    String marginString = myComponent.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
       marginValue = getMarginValue(attribute);
@@ -426,7 +426,7 @@ public class DragTarget extends BaseTarget {
       return;
     }
     myComponent.setDragging(true);
-    NlComponent component = myComponent.getNlComponent();
+    NlComponent component = myComponent.getAuthoritativeNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     int dx = x - myOffsetX;
     int dy = y - myOffsetY;
@@ -479,7 +479,7 @@ public class DragTarget extends BaseTarget {
       if (Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1) {
         commitChanges = false;
       }
-      NlComponent component = myComponent.getNlComponent();
+      NlComponent component = myComponent.getAuthoritativeNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
       int dy = y - myOffsetY;

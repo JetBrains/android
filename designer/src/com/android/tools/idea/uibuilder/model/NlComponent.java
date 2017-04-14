@@ -912,8 +912,5 @@ public class NlComponent implements NlAttributesHolder {
     if (viewGroupHandler != null) {
       viewGroupHandler.clearAttributes(this);
     }
-    for (NlComponent child : getChildren()) {
-      child.clearAttributes();
-    }
   }
 }
