@@ -55,7 +55,12 @@ abstract class ProjectSetup {
     void setUpProject(@NotNull SyncAction.ProjectModels models, @NotNull ProgressIndicator indicator) {
       ModuleSetup moduleSetup = myModuleSetupFactory.create(myProject, myModelsProvider);
       try {
-        moduleSetup.setUpModules(models, indicator);
+        executeProjectChangeAction(true /* synchronous */, new DisposeAwareProjectChange(myProject) {
+          @Override
+          public void execute() {
+            moduleSetup.setUpModules(models, indicator);
+          }
+        });
       }
       catch (Throwable e) {
         disposeChanges();
