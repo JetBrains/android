@@ -62,7 +62,7 @@ public class DrawAnchor extends DrawRegion {
   }
 
   private static int getPulseAlpha(int deltaT) {
-    return (int)Animation.EaseInOutinterpolator((deltaT % 1000) / 1000.0, 0, 255);
+    return (int)Animation.EaseInOutinterpolator(Math.abs((deltaT) - 500) / 500.0, 0, 255);
   }
 
   @Override

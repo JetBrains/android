@@ -479,19 +479,28 @@ public class ScoutArrange {
       }
       break;
       case VerticalPack: {
-        Rectangle original = getBoundingBox(widgetList);
         NlComponent[] wArray = new NlComponent[widgetList.size()];
         wArray = widgetList.toArray(wArray);
         Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpY(w1), getDpY(w2)));
-        ScoutWidget[] list = ScoutWidget.getWidgetArray(
-          widgetList.get(0).getParent());
+        ScoutWidget[] list = ScoutWidget.getWidgetArray(widgetList.get(0).getParent());
+        Rectangle bounds = null;
+        for (int i = 0; i < wArray.length; i++) {
+          String id = "@+id/" + wArray[i].getId();
+          ScoutWidget w = list[0].getChild(id);
+          if (bounds == null) {
+            bounds = new Rectangle(w.getRectangle());
+          }
+          else {
+            bounds = bounds.union(w.getRectangle());
+          }
+        }
 
         for (NlComponent cw : wArray) {
           for (ScoutWidget scoutWidget : list) {
             if (scoutWidget.mNlComponent == cw) {
               int gapN = scoutWidget.gap(Direction.TOP, list);
-              int newY = margin + getDpY(scoutWidget.mNlComponent) - gapN;
-              newY = Math.max(newY, original.y);
+              int newY = margin + scoutWidget.getDpY() - gapN;
+              newY = Math.max(newY, bounds.y);
               scoutWidget.setY(newY);
             }
           }
@@ -499,19 +508,27 @@ public class ScoutArrange {
       }
       break;
       case HorizontalPack: {
-        Rectangle original = getBoundingBox(widgetList);
         NlComponent[] wArray = new NlComponent[widgetList.size()];
         wArray = widgetList.toArray(wArray);
         Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpX(w1), getDpX(w2)));
-        ScoutWidget[] list = ScoutWidget.getWidgetArray(
-          widgetList.get(0).getParent());
-
+        ScoutWidget[] list = ScoutWidget.getWidgetArray(widgetList.get(0).getParent());
+        Rectangle bounds = null;
+        for (int i = 0; i < wArray.length; i++) {
+          String id = "@+id/" + wArray[i].getId();
+          ScoutWidget w = list[0].getChild(id);
+          if (bounds == null) {
+            bounds = new Rectangle(w.getRectangle());
+          }
+          else {
+            bounds = bounds.union(w.getRectangle());
+          }
+        }
         for (NlComponent cw : wArray) {
           for (ScoutWidget scoutWidget : list) {
             if (scoutWidget.mNlComponent == cw) {
               int gapW = scoutWidget.gap(Direction.LEFT, list);
               int newX = margin + getDpX(scoutWidget.mNlComponent) - gapW;
-              newX = Math.max(newX, original.x);
+              newX = Math.max(newX, bounds.x);
               scoutWidget.setX(newX);
             }
           }
