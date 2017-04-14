@@ -20,7 +20,9 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.android.tools.idea.avdmanager.*;
+import com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Joiner;
@@ -34,6 +36,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -415,12 +418,17 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     return devices;
   }
 
-  // TODO: this needs to become a diagnostics dialog
   public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
-    BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
     UsageTracker.getInstance()
       .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS).setAdbAssistantStats(
         AdbAssistantStats.newBuilder().setTrigger(trigger)));
+    if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
+      OpenAssistSidePanelAction action = new OpenAssistSidePanelAction();
+      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, myFacet.getModule().getProject());
+    }
+    else {
+      BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
+    }
   }
 
   public void installDoubleClickListener(@NotNull DoubleClickListener listener) {

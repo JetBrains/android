@@ -28,7 +28,7 @@ import icons.AndroidIcons;
 /**
  * Triggers the creation of the Developer Services side panel.
  */
-public final class OpenAssistSidePanelAction extends AnAction {
+public class OpenAssistSidePanelAction extends AnAction {
 
   private static final String TOOL_WINDOW_TITLE = "Assistant";
 
