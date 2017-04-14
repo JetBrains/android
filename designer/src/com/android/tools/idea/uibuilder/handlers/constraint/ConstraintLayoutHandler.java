@@ -1159,7 +1159,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_MIN_WIDTH, ATTR_MAX_WIDTH, ATTR_MIN_HEIGHT, ATTR_MAX_HEIGHT, ATTR_LAYOUT_CONSTRAINTSET);
+    return ImmutableList.of(ATTR_MIN_WIDTH, ATTR_MAX_WIDTH, ATTR_MIN_HEIGHT, ATTR_MAX_HEIGHT);
   }
 
   /**
