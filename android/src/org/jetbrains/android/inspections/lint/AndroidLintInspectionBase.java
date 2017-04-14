@@ -523,7 +523,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
       } else if (quickfixData instanceof ReplaceString) {
         ReplaceString data = (ReplaceString)quickfixData;
-        String regexp = null;
+        String regexp;
         if (data.oldPattern != null) {
           regexp = data.oldPattern;
         } else {
