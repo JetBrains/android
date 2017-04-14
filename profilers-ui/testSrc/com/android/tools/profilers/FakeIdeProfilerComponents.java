@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -167,8 +168,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public FileViewer createFileViewer(@NotNull File file) {
-    return new FileViewer() {
+  public DataViewer createFileViewer(@NotNull File file) {
+    return new DataViewer() {
       private final JComponent DUMMY_COMPONENT = new JPanel();
 
       @NotNull
@@ -185,7 +186,13 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
-  public final class StackTraceViewStub implements StackTraceView {
+  @NotNull
+  @Override
+  public JComponent createResizableImageComponent(@NotNull BufferedImage image) {
+    return new JPanel();
+  }
+
+  public static final class StackTraceViewStub implements StackTraceView {
     private StackTraceModel myModel;
 
     public StackTraceViewStub(@NotNull StackTraceModel model) {
