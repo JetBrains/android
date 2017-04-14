@@ -21,10 +21,8 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link DependencyGraphs}.
- */
 public final class DependencyGraphsStub implements DependencyGraphs {
   @NotNull private final List<GraphItem> myCompileDependencies;
   @NotNull private final List<GraphItem> myPackageDependencies;
@@ -68,5 +66,25 @@ public final class DependencyGraphsStub implements DependencyGraphs {
   @NotNull
   public List<String> getSkippedLibraries() {
     return mySkippedLibraries;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof DependencyGraphs)) {
+      return false;
+    }
+    DependencyGraphs stub = (DependencyGraphs)o;
+    return Objects.equals(getCompileDependencies(), stub.getCompileDependencies()) &&
+           Objects.equals(getPackageDependencies(), stub.getPackageDependencies()) &&
+           Objects.equals(getProvidedLibraries(), stub.getProvidedLibraries()) &&
+           Objects.equals(getSkippedLibraries(), stub.getSkippedLibraries());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getCompileDependencies(), getPackageDependencies(), getProvidedLibraries(), getSkippedLibraries());
   }
 }
