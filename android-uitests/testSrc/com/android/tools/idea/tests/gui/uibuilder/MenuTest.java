@@ -20,16 +20,20 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.awt.*;
+import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
@@ -38,25 +42,21 @@ public final class MenuTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  @Test
-  public void dragMenuItemIntoActionBar() {
+  private EditorFixture myEditor;
+  private Path myMenuPath;
+
+  @Before
+  public void setUp() {
     WizardUtils.createNewProject(myGuiTest, "google.com", "Basic Activity");
 
-    IdeFrameFixture frame = myGuiTest.ideFrame();
-    EditorFixture editor = frame.getEditor();
-    String path = FileSystems.getDefault().getPath("app", "src", "main", "res", "menu", "menu_main.xml").toString();
+    myEditor = myGuiTest.ideFrame().getEditor();
+    myMenuPath = FileSystems.getDefault().getPath("app", "src", "main", "res", "menu", "menu_main.xml");
+  }
 
-    editor.open(path);
-
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
-    layoutEditor.waitForRenderToFinish();
-    layoutEditor.getPaletteItemList(0).drag("Menu Item");
-    layoutEditor.getSurface().drop(new Point(380, 120));
-
-    editor.open(path, Tab.EDITOR);
-
-    editor.invokeAction(EditorAction.SELECT_ALL);
-    frame.invokeMenuPath("Code", "Reformat Code");
+  @Test
+  public void dragMenuItemIntoActionBar() {
+    myEditor.open(myMenuPath);
+    dragAndDrop("Menu Item", new Point(380, 120));
 
     @Language("XML")
     String expected = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -73,6 +73,53 @@ public final class MenuTest {
                       "        app:showAsAction=\"never\" />\n" +
                       "</menu>\n";
 
-    assertEquals(expected, editor.getCurrentFileContents());
+    myEditor.open(myMenuPath, Tab.EDITOR);
+
+    myEditor.invokeAction(EditorAction.SELECT_ALL);
+    myGuiTest.ideFrame().invokeMenuPath("Code", "Reformat Code");
+
+    assertEquals(expected, myEditor.getCurrentFileContents());
+  }
+
+  @Test
+  public void dragSearchItemIntoActionBar() throws IOException {
+    @Language("XML")
+    String xml = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
+                 "    <item\n" +
+                 "        android:id=\"@+id/action_settings\"\n" +
+                 "        android:title=\"@string/action_settings\"\n" +
+                 "        app:showAsAction=\"always\" />\n" +
+                 "</menu>\n";
+
+    FileUtils.write(myGuiTest.getProjectPath().toPath().resolve(myMenuPath), xml);
+
+    myEditor.open(myMenuPath);
+    dragAndDrop("Search Item", new Point(330, 120));
+    MessagesFixture.findByTitle(myGuiTest.robot(), "Copy Vector Asset").clickYes();
+
+    @Language("XML")
+    String expected = "<menu xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
+                      "    <item\n" +
+                      "        android:id=\"@+id/app_bar_search\"\n" +
+                      "        android:icon=\"@drawable/ic_search_black_24dp\"\n" +
+                      "        android:title=\"Search\"\n" +
+                      "        app:showAsAction=\"always\" />\n" +
+                      "    <item\n" +
+                      "        android:id=\"@+id/action_settings\"\n" +
+                      "        android:title=\"@string/action_settings\"\n" +
+                      "        app:showAsAction=\"always\" />\n" +
+                      "</menu>\n";
+
+    myEditor.open(myMenuPath, Tab.EDITOR);
+    assertEquals(expected, myEditor.getCurrentFileContents());
+  }
+
+  private void dragAndDrop(@NotNull String item, @NotNull Point point) {
+    NlEditorFixture layoutEditor = myEditor.getLayoutEditor(false);
+    layoutEditor.waitForRenderToFinish();
+    layoutEditor.getPaletteItemList(0).drag(item);
+    layoutEditor.getSurface().drop(point);
   }
 }

@@ -40,6 +40,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -47,6 +48,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -175,7 +177,14 @@ public class ViewEditorImpl extends ViewEditor {
         return;
       }
 
-      directory.createChildData(this, resourceFile).setBinaryContent(resourceFileContent);
+      ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Void, IOException>() {
+        @Nullable
+        @Override
+        public Void compute() throws IOException {
+          directory.createChildData(this, resourceFile).setBinaryContent(resourceFileContent);
+          return null;
+        }
+      });
     }
     catch (IOException exception) {
       Logger.getInstance(ViewEditorImpl.class).warn(exception);
