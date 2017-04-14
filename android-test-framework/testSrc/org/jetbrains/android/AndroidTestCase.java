@@ -19,6 +19,8 @@ package org.jetbrains.android;
 import com.android.SdkConstants;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
@@ -28,9 +30,13 @@ import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleTypeId;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -43,12 +49,11 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
+import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
+import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -80,15 +85,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected void setUp() throws Exception {
     super.setUp();
 
+    IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
+      AndroidModuleFixtureBuilder.class, AndroidModuleFixtureBuilderImpl.class);
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-    JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    File moduleRoot = new File(myFixture.getTempDirPath());
-
-    if (!moduleRoot.exists()) {
-      assertTrue(moduleRoot.mkdirs());
-    }
-    initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, moduleRoot.toString());
+    AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
+    initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
 
     ArrayList<MyAdditionalModuleData> modules = new ArrayList<>();
     configureAdditionalModules(projectBuilder, modules);
@@ -178,7 +180,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  private static void initializeModuleFixtureBuilderWithSrcAndGen(JavaModuleFixtureBuilder moduleFixtureBuilder, String moduleRoot) {
+  private static void initializeModuleFixtureBuilderWithSrcAndGen(AndroidModuleFixtureBuilder moduleFixtureBuilder, String moduleRoot) {
+    moduleFixtureBuilder.setModuleRoot(moduleRoot);
     moduleFixtureBuilder.addContentRoot(moduleRoot);
 
     //noinspection ResultOfMethodCallIgnored
@@ -276,24 +279,24 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected final void addModuleWithAndroidFacet(
     @NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
     @NotNull List<MyAdditionalModuleData> modules,
-    @NotNull String dirName,
+    @NotNull String moduleName,
     int projectType) {
     // By default, created module is declared as a main module's dependency
-    addModuleWithAndroidFacet(projectBuilder, modules, dirName, projectType, true);
+    addModuleWithAndroidFacet(projectBuilder, modules, moduleName, projectType, true);
   }
 
   protected final void addModuleWithAndroidFacet(
     @NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
     @NotNull List<MyAdditionalModuleData> modules,
-    @NotNull String dirName,
+    @NotNull String moduleName,
     int projectType,
     boolean isMainModuleDependency) {
-    JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
-    String moduleDirPath = myFixture.getTempDirPath() + getAdditionalModulePath(dirName);
-    //noinspection ResultOfMethodCallIgnored
-    new File(moduleDirPath).mkdirs();
-    initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, moduleDirPath);
-    modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, dirName, projectType, isMainModuleDependency));
+    AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
+    moduleFixtureBuilder.setModuleName(moduleName);
+    // A module named "lib" goes under additionalModules/lib/lib.iml
+    initializeModuleFixtureBuilderWithSrcAndGen(
+      moduleFixtureBuilder, myFixture.getTempDirPath() + getAdditionalModulePath(moduleName));
+    modules.add(new MyAdditionalModuleData(moduleFixtureBuilder, moduleName, projectType, isMainModuleDependency));
   }
 
   protected final void createManifest() throws IOException {
@@ -328,7 +331,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  protected final Map<RefEntity, CommonProblemDescriptor[]>  doGlobalInspectionTest(
+  protected final Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(
     @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     return doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
   }
@@ -367,17 +370,65 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   protected static class MyAdditionalModuleData {
-    final JavaModuleFixtureBuilder myModuleFixtureBuilder;
+    final AndroidModuleFixtureBuilder myModuleFixtureBuilder;
     final String myDirName;
     final int myProjectType;
     final boolean myIsMainModuleDependency;
 
     private MyAdditionalModuleData(
-      @NotNull JavaModuleFixtureBuilder moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
+      @NotNull AndroidModuleFixtureBuilder moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
       myModuleFixtureBuilder = moduleFixtureBuilder;
       myDirName = dirName;
       myProjectType = projectType;
       myIsMainModuleDependency = isMainModuleDependency;
+    }
+  }
+
+  interface AndroidModuleFixtureBuilder<T extends ModuleFixture> extends JavaModuleFixtureBuilder<T> {
+    void setModuleRoot(@NotNull String moduleRoot);
+
+    void setModuleName(@NotNull String moduleName);
+  }
+
+  private static class AndroidModuleFixtureBuilderImpl extends JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>
+    implements AndroidModuleFixtureBuilder<ModuleFixtureImpl> {
+
+    private File myModuleRoot;
+    private String myModuleName;
+
+    public AndroidModuleFixtureBuilderImpl(TestFixtureBuilder<? extends IdeaProjectTestFixture> fixtureBuilder) {
+      super(fixtureBuilder);
+    }
+
+    @Override
+    public void setModuleRoot(@NotNull String moduleRoot) {
+      myModuleRoot = new File(moduleRoot);
+      if (!myModuleRoot.exists()) {
+        Verify.verify(myModuleRoot.mkdirs());
+      }
+    }
+
+    @Override
+    public void setModuleName(@NotNull String moduleName) {
+      Preconditions.checkArgument(!"app".equals(moduleName), "'app' is reserved for main module");
+      myModuleName = moduleName;
+    }
+
+    @Override
+    protected Module createModule() {
+      Project project = myFixtureBuilder.getFixture().getProject();
+      Verify.verifyNotNull(project);
+      Preconditions.checkNotNull(myModuleRoot);
+
+      // the (unnamed) root module will be app.iml
+      String moduleFilePath =
+        myModuleRoot + (myModuleName == null ? "/app" : "/" + myModuleName) + ModuleFileType.DOT_DEFAULT_EXTENSION;
+      return ModuleManager.getInstance(project).newModule(moduleFilePath, ModuleTypeId.JAVA_MODULE);
+    }
+
+    @Override
+    protected ModuleFixtureImpl instantiateFixture() {
+      return new ModuleFixtureImpl(this);
     }
   }
 }
