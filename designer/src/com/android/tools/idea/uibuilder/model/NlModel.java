@@ -112,7 +112,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return true;
     }
   };
-  private Configuration myConfiguration;
+  private final Configuration myConfiguration;
   private final List<ModelListener> myListeners = Lists.newArrayList();
   private List<NlComponent> myComponents = Lists.newArrayList();
   private LintAnnotationsModel myLintAnnotationsModel;
@@ -228,7 +228,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   public void syncWithPsi(@NotNull List<TagSnapshotTreeNode> roots) {
-    syncWithPsi(AndroidPsiUtils.getRootTagSafely(getFile()), roots);
+    XmlTag tag = AndroidPsiUtils.getRootTagSafely(getFile());
+    assert tag != null;
+
+    syncWithPsi(tag, roots);
   }
 
   public void syncWithPsi(@NotNull XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
@@ -284,7 +287,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (component.w == -1) {
         assert false : component.w;
       }
-      if (component.getSnapshot() == null) {assert false;
+      if (component.getSnapshot() == null) {
+        assert false;
       }
       if (component.getTag() == null) {
         assert false;
@@ -365,7 +369,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Calls all the listeners {@link ModelListener#modelChangedOnLayout(NlModel, boolean)} method.
    *
-   * TODO: move these listeners out of NlModel, since the model shouldn't care about being layed out.
+   * TODO: move these listeners out of NlModel, since the model shouldn't care about being laid out.
    *
    * @param animate if true, warns the listeners to animate the layout update
    */
@@ -1185,7 +1189,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     for (NlComponent component : toAdd) {
       ViewHandler handler = ViewHandlerManager.get(getProject()).getHandler(component);
       if (handler != null) {
-        String artifactId = handler.getGradleCoordinateId(component.getTagName());
+        String artifactId = handler.getGradleCoordinateId(component);
+
         if (!artifactId.equals(IN_PLATFORM)) {
           artifacts.add(artifactId);
         }
@@ -1223,10 +1228,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Add tags component to the specified receiver before the given sibling.
    */
-  public void addTags(@Nullable List<NlComponent> added,
-                            @NotNull NlComponent receiver,
-                            @Nullable NlComponent before,
-                            final @NotNull InsertType insertType) {
+  public void addTags(@NotNull List<NlComponent> added,
+                      @NotNull NlComponent receiver,
+                      @Nullable NlComponent before,
+                      final @NotNull InsertType insertType) {
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(getProject(), insertType.getDragType().getDescription(), myFile) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
@@ -1570,11 +1575,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   static class ModelVersion {
     private final AtomicLong myVersion = new AtomicLong();
     @SuppressWarnings("unused") ChangeType mLastReason;
-
-    public void increase(ChangeType reason) {
-      myVersion.incrementAndGet();
-      mLastReason = reason;
-    }
 
     public long getVersion() {
       return myVersion.get();

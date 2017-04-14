@@ -72,11 +72,11 @@ final class GroupDragHandler extends DragHandler {
       protected void run() throws Throwable {
         updateOrderInCategoryAttributes();
         updateShowAsActionAttribute();
-        insertComponents(getInsertIndex(), insertType);
       }
     };
 
     action.execute();
+    insertComponents(getInsertIndex(), insertType);
   }
 
   private void updateOrderInCategoryAttributes() {

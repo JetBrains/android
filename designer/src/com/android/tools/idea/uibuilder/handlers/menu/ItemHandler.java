@@ -45,14 +45,17 @@ public final class ItemHandler extends MenuHandler {
                           @Nullable NlComponent parent,
                           @NotNull NlComponent newChild,
                           @NotNull InsertType type) {
-    if (SearchItemHandler.handles(newChild)) {
-      return new SearchItemHandler().onCreate(editor, parent, newChild, type);
+    if (!super.onCreate(editor, parent, newChild, type)) {
+      return false;
+    }
+    else if (SearchItemHandler.handles(newChild)) {
+      return SearchItemHandler.onCreate(editor, newChild, type);
     }
     else if (SwitchItemHandler.handles(newChild)) {
-      return new SwitchItemHandler().onCreate(editor, parent, newChild, type);
+      return SwitchItemHandler.onCreate(editor, type);
     }
     else {
-      return super.onCreate(editor, parent, newChild, type);
+      return true;
     }
   }
 
@@ -78,5 +81,11 @@ public final class ItemHandler extends MenuHandler {
       ATTR_VISIBLE,
       ATTR_ENABLED,
       ATTR_CHECKABLE);
+  }
+
+  @NotNull
+  @Override
+  public String getGradleCoordinateId(@NotNull NlComponent component) {
+    return CastButtonHandler.handles(component) ? CastButtonHandler.getGradleCoordinateId() : IN_PLATFORM;
   }
 }

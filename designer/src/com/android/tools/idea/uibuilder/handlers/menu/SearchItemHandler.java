@@ -21,38 +21,31 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.ATTR_ICON;
 import static com.android.SdkConstants.DRAWABLE_PREFIX;
 
-final class SearchItemHandler extends MenuHandler {
+final class SearchItemHandler {
   private static final String SEARCH_ICON = "ic_search_black_24dp";
+
+  private SearchItemHandler() {
+  }
 
   static boolean handles(@NotNull NlAttributesHolder item) {
     return (DRAWABLE_PREFIX + SEARCH_ICON).equals(item.getAndroidAttribute(ATTR_ICON));
   }
 
-  @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
-                          @NotNull NlComponent newChild,
-                          @NotNull InsertType type) {
-    if (!super.onCreate(editor, parent, newChild, type)) {
-      return false;
+  @SuppressWarnings("SameReturnValue")
+  static boolean onCreate(@NotNull ViewEditor editor, @NotNull NlComponent newChild, @NotNull InsertType type) {
+    if (!type.equals(InsertType.CREATE)) {
+      return true;
     }
 
-    if (type.equals(InsertType.CREATE)) {
-      if (editor.getMinSdkVersion().getApiLevel() < 11) {
-        newChild.setAndroidAttribute("actionViewClass", "android.support.v7.widget.SearchView");
-      }
-      else {
-        newChild.setAndroidAttribute("actionViewClass", "android.widget.SearchView");
-      }
+    String value = editor.getMinSdkVersion().getApiLevel() < 11 ? "android.support.v7.widget.SearchView" : "android.widget.SearchView";
+    newChild.setAndroidAttribute("actionViewClass", value);
 
-      if (!editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
-        editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
-      }
+    if (!editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
+      editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
     }
 
     return true;
