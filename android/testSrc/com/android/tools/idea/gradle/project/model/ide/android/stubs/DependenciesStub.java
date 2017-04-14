@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of a {@link Dependencies}.
@@ -81,5 +82,26 @@ public final class DependenciesStub implements Dependencies {
   @Nullable
   public AndroidAtom getBaseAtom() {
     return myBaseAtom;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Dependencies)) {
+      return false;
+    }
+    Dependencies stub = (Dependencies)o;
+    return Objects.equals(getAtoms(), stub.getAtoms()) &&
+           Objects.equals(getLibraries(), stub.getLibraries()) &&
+           Objects.equals(getJavaLibraries(), stub.getJavaLibraries()) &&
+           Objects.equals(getProjects(), stub.getProjects()) &&
+           Objects.equals(getBaseAtom(), stub.getBaseAtom());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getAtoms(), getLibraries(), getJavaLibraries(), getProjects(), getBaseAtom());
   }
 }

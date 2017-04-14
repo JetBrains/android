@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.stubs.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.InstantRun;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * Stub implementation of {@link InstantRun} for testing.
  */
 public class InstantRunStub implements InstantRun {
-
-  private File myInfoFile;
+  @NotNull private File myInfoFile;
   private boolean myIsSupportedByArtifact;
   private int mySupportStatus;
 
-  public InstantRunStub(File infoFile, boolean isSupportedByArtifact, int supportStatus) {
+  public InstantRunStub() {
+    this(new File("info"), true, 1);
+  }
 
+  public InstantRunStub(@NotNull File infoFile, boolean isSupportedByArtifact, int supportStatus) {
     myInfoFile = infoFile;
     myIsSupportedByArtifact = isSupportedByArtifact;
     mySupportStatus = supportStatus;
   }
-  @NonNull
+
   @Override
+  @NotNull
   public File getInfoFile() {
     return myInfoFile;
   }
@@ -49,5 +53,24 @@ public class InstantRunStub implements InstantRun {
   @Override
   public int getSupportStatus() {
     return mySupportStatus;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof InstantRun)) {
+      return false;
+    }
+    InstantRun stub = (InstantRun)o;
+    return isSupportedByArtifact() == stub.isSupportedByArtifact() &&
+           getSupportStatus() == stub.getSupportStatus() &&
+           Objects.equals(getInfoFile(), stub.getInfoFile());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getInfoFile(), isSupportedByArtifact(), getSupportStatus());
   }
 }

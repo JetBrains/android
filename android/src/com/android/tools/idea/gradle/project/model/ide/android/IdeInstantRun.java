@@ -19,13 +19,15 @@ import com.android.builder.model.InstantRun;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link InstantRun}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of an {@link InstantRun}.
  */
-public class IdeInstantRun extends IdeModel implements InstantRun {
+public final class IdeInstantRun extends IdeModel implements InstantRun {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final File myInfoFile;
   private final boolean mySupportedByArtifact;
   private final int mySupportStatus;
@@ -50,5 +52,33 @@ public class IdeInstantRun extends IdeModel implements InstantRun {
   @Override
   public int getSupportStatus() {
     return mySupportStatus;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeInstantRun)) {
+      return false;
+    }
+    IdeInstantRun run = (IdeInstantRun)o;
+    return mySupportedByArtifact == run.mySupportedByArtifact &&
+           mySupportStatus == run.mySupportStatus &&
+           Objects.equals(myInfoFile, run.myInfoFile);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myInfoFile, mySupportedByArtifact, mySupportStatus);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeInstantRun{" +
+           "myInfoFile=" + myInfoFile +
+           ", mySupportedByArtifact=" + mySupportedByArtifact +
+           ", mySupportStatus=" + mySupportStatus +
+           "}";
   }
 }
