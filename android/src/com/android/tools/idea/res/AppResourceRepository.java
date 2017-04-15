@@ -31,6 +31,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -200,7 +201,13 @@ public class AppResourceRepository extends MultiResourceRepository {
       return findAarLibrariesFromGradle(modelVersion, dependentFacets, libraries);
     }
     if (GradleProjectInfo.getInstance(facet.getModule().getProject()).isBuildWithGradle()) {
-      LOG.error(new RuntimeException("Resources not ready to load"));
+      Exception problem = new RuntimeException("Resources not ready to load");
+      if (ApplicationManager.getApplication().isInternal()) {
+        LOG.error(problem);
+      }
+      else {
+        LOG.warn(problem);
+      }
     }
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
