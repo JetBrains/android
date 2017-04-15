@@ -1017,33 +1017,6 @@ public class AndroidLintTest extends AndroidTestCase {
                 "/res/layout/deprecation.xml", "xml");
   }
 
-  /**
-   * Quick fix is available on singleLine="true" and does the right thing
-   */
-  public void testSingleLine() throws Exception {
-    deleteManifest();
-    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
-    enableOnlySpecificLintInspections(myFixture, new AndroidLintDeprecatedInspection());
-    myFixture.configureFromExistingVirtualFile(
-      myFixture.copyFileToProject(BASE_PATH + "singleLine.xml", "res/layout/singleLine.xml"));
-    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
-    assertNotNull(action);
-    doTestWithAction("xml", action);
-  }
-
-  /**
-   * Specialized quick fix is not available on singleLine="false"
-   */
-  public void testSingleLineFalse() throws Exception {
-    deleteManifest();
-    myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
-    enableOnlySpecificLintInspections(myFixture, new AndroidLintDeprecatedInspection());
-    myFixture.configureFromExistingVirtualFile(
-      myFixture.copyFileToProject(BASE_PATH + "singleLineFalse.xml", "res/layout/singleLineFalse.xml"));
-    final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
-    assertNull(action);
-  }
-
   public void testUnprotectedSmsBroadcastReceiver() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintUnprotectedSMSBroadcastReceiverInspection(),
