@@ -520,7 +520,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testVectorScientificNotation() throws Exception {
     doTestWithFix(new AndroidLintInvalidVectorPathInspection(),
-                  "Convert to plain float format", "res/drawable/vector.xml", "xml");
+                  "Replace with 67", "res/drawable/vector.xml", "xml");
   }
 
   public void testUnsupportedChromeOsHardware() throws Exception {
