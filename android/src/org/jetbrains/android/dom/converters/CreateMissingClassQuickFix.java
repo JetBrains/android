@@ -166,6 +166,6 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
         final OpenFileDescriptor fileDescriptor = new OpenFileDescriptor(project, aClass.getContainingFile().getVirtualFile());
         FileEditorManager.getInstance(project).openEditor(fileDescriptor, true);
       }
-    });
+    }, project.getDisposed());
   }
 }
