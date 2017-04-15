@@ -28,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -40,6 +41,7 @@ import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -56,11 +58,15 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
 
   @Override
   public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
-    ResourceReferenceScanner scanner = new ResourceReferenceScanner(project, elements);
-    scanner.compute();
+    CodeAndResourcesReferenceCollector scanner = new CodeAndResourcesReferenceCollector(project);
+    scanner.accumulate(elements);
 
     AndroidMoveWithResourcesProcessor processor =
-      new AndroidMoveWithResourcesProcessor(project, elements, scanner.getResourceReferences(), scanner.getManifestReferences());
+      new AndroidMoveWithResourcesProcessor(project,
+                                            elements,
+                                            scanner.getClassReferences(),
+                                            scanner.getResourceReferences(),
+                                            scanner.getManifestReferences());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       Module targetModule = TARGET_MODULE.getData(dataContext);
@@ -76,103 +82,64 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
   }
 
 
-  private static class ResourceReferenceScanner {
+  private static class CodeAndResourcesReferenceCollector {
     private final Project myProject;
-    private final PsiElement[] myRoots;
 
-    private Set<ResourceItem> myResourceRefSet;
-    private Set<PsiElement> myManifestRefSet;
+    private final Set<PsiClass> myClassRefSet = new LinkedHashSet<>();
+    private final Set<ResourceItem> myResourceRefSet = new LinkedHashSet<>(RESOURCE_SET_INITIAL_SIZE);
+    private final Set<PsiElement> myManifestRefSet = new HashSet<>();
+    private final Queue<PsiElement> myVisitQueue = new ArrayDeque<>();
 
-    public ResourceReferenceScanner(@NotNull Project project, @NotNull PsiElement[] elements) {
+
+    public CodeAndResourcesReferenceCollector(@NotNull Project project) {
       myProject = project;
-      myRoots = elements;
     }
 
-    public void compute() {
-      myResourceRefSet = new LinkedHashSet<>(RESOURCE_SET_INITIAL_SIZE);
-      myManifestRefSet = new HashSet<>();
+    public void accumulate(PsiElement... roots) {
+      myVisitQueue.clear();
 
-      Queue<ResourceItem> toVisit = new ArrayDeque<>();
+      for (PsiElement element : roots) {
+        PsiClass ownerClass =
+          (element instanceof PsiClass) ? (PsiClass)element : PsiTreeUtil.getParentOfType(element, PsiClass.class);
+        if (myClassRefSet.add(ownerClass)) {
+          myVisitQueue.add(ownerClass);
+        }
+      }
 
-      for (PsiElement element : myRoots) {
+      while (!myVisitQueue.isEmpty()) {
+        PsiElement element = myVisitQueue.poll();
+
         final AndroidFacet facet = AndroidFacet.getInstance(element);
         if (facet == null) {
           continue;
         }
 
-        ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
-        element.accept(new JavaRecursiveElementWalkingVisitor() {
-          @Override
-          public void visitReferenceExpression(PsiReferenceExpression expression) {
-            PsiElement element = expression.resolve();
-            if (element instanceof PsiField) {
-              AndroidPsiUtils.ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(expression);
+        if (element instanceof PsiClass) {
+          element.accept(new JavaReferenceVisitor(facet));
 
-              if (referenceType == AndroidPsiUtils.ResourceReferenceType.APP) {
-                // This is a resource we might be able to move
-                ResourceType type = AndroidPsiUtils.getResourceType(expression);
-                if (type != null) {
-                  String name = AndroidPsiUtils.getResourceName(expression);
+          // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
+          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProvider.getManifestFiles(facet));
 
-                  List<ResourceItem> matches = resourceRepository.getResourceItem(type, name);
-                  if (matches != null) {
-                    for (ResourceItem match : matches) {
-                      if (myResourceRefSet.add(match)) {
-                        toVisit.offer(match);
-                      }
-                    }
-                  }
-                }
-              }
+          ReferencesSearch.search(element, manifestScope).forEach(reference -> {
+            PsiElement tag = reference.getElement();
+            tag = PsiTreeUtil.getParentOfType(tag, XmlTag.class);
+
+            if (tag != null) {
+              myManifestRefSet.add(tag);
+              // Scan the tag because we might have references to other resources.
+              myVisitQueue.offer(tag);
             }
-          }
-
-          @Override
-          public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
-            // TODO: Collect Java references as well. We move everything reachable in the transitive closure.
-            PsiElement target = reference.advancedResolve(false).getElement();
-          }
-        });
-
-        // Check for manifest entries referencing this class (activities, content providers, etc).
-        GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProvider.getManifestFiles(facet));
-
-        ReferencesSearch.search(element, manifestScope).forEach(reference -> {
-          PsiElement tag = reference.getElement();
-          tag = PsiTreeUtil.getParentOfType(tag, XmlTag.class);
-
-          if (tag != null) {
-            myManifestRefSet.add(tag);
-            // Scan the tag because we might have references to other resources.
-            tag.accept(new XmlResourceReferenceVisitor(resourceRepository, myResourceRefSet, toVisit));
-          }
-        });
+          });
+        }
+        else {
+          element.accept(new XmlResourceReferenceVisitor(facet));
+        }
       }
+    }
 
-      while (!toVisit.isEmpty()) {
-        ResourceItem resource = toVisit.poll();
-
-        PsiFile psiFile = LocalResourceRepository.getItemPsiFile(myProject, resource);
-        if (psiFile == null) {
-          continue;
-        }
-        AndroidFacet facet = AndroidFacet.getInstance(psiFile);
-        if (facet == null) {
-          continue;
-        }
-        ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
-
-        PsiElement definitionToScan = psiFile;
-        if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.VALUES) {
-          // This is just a value, so we'll just scan its corresponding XmlTag
-          definitionToScan = LocalResourceRepository.getItemTag(myProject, resource);
-          if (definitionToScan == null) {
-            continue;
-          }
-        }
-
-        definitionToScan.accept(new XmlResourceReferenceVisitor(resourceRepository, myResourceRefSet, toVisit));
-      }
+    @NotNull
+    public Set<PsiClass> getClassReferences() {
+      return myClassRefSet;
     }
 
     @NotNull
@@ -184,38 +151,116 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
     public Set<PsiElement> getManifestReferences() {
       return myManifestRefSet;
     }
-  }
 
-  private static class XmlResourceReferenceVisitor extends XmlRecursiveElementWalkingVisitor {
+    @Nullable
+    private PsiElement getResourceDefinition(ResourceItem resource) {
+      PsiFile psiFile = LocalResourceRepository.getItemPsiFile(myProject, resource);
+      if (psiFile == null) { // psiFile could be null if this is dynamically defined, so nothing to visit...
+        return null;
+      }
 
-    private final ProjectResourceRepository myResourceRepository;
-    private final Set<ResourceItem> mySeenResourceItems;
-    private final Queue<ResourceItem> myToVisitLater;
-
-    XmlResourceReferenceVisitor(ProjectResourceRepository resourceRepository, Set<ResourceItem> seenResourceItems, Queue<ResourceItem> toVisitLater) {
-      myResourceRepository = resourceRepository;
-      mySeenResourceItems = seenResourceItems;
-      myToVisitLater = toVisitLater;
+      if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.VALUES) {
+        // This is just a value, so we'll just scan its corresponding XmlTag
+        return LocalResourceRepository.getItemTag(myProject, resource);
+      }
+      return psiFile;
     }
 
-    @Override
-    public void visitXmlAttributeValue(XmlAttributeValue element) {
-      processPotentialReference(element.getValue());
+    private class XmlResourceReferenceVisitor extends XmlRecursiveElementWalkingVisitor {
+      private final AndroidFacet myFacet;
+      private final ProjectResourceRepository myResourceRepository;
+
+      XmlResourceReferenceVisitor(@NotNull AndroidFacet facet) {
+        myFacet = facet;
+        myResourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
+      }
+
+      @Override
+      public void visitXmlAttributeValue(XmlAttributeValue element) {
+        processPotentialReference(element.getValue());
+      }
+
+      @Override
+      public void visitXmlToken(XmlToken token) {
+        processPotentialReference(token.getText());
+      }
+
+      private void processPotentialReference(String text) {
+        ResourceUrl url = ResourceUrl.parse(text);
+        if (url != null) {
+          if (!url.framework && !url.create && url.type != ResourceType.ID) {
+            List<ResourceItem> matches = myResourceRepository.getResourceItem(url.type, url.name);
+            if (matches != null) {
+              for (ResourceItem match : matches) {
+                if (myResourceRefSet.add(match)) {
+                  myVisitQueue.offer(getResourceDefinition(match));
+                }
+              }
+            }
+          }
+        } else {
+          // Perhaps this is a reference to a Java class
+          PsiClass target = JavaPsiFacade.getInstance(myProject).findClass(
+            text, GlobalSearchScope.moduleWithDependenciesScope(myFacet.getModule()));
+          if (target != null) {
+            if (myClassRefSet.add(target)) {
+              myVisitQueue.offer(target);
+            }
+          }
+        }
+      }
     }
 
-    @Override
-    public void visitXmlToken(XmlToken token) {
-      processPotentialReference(token.getText());
-    }
+    private class JavaReferenceVisitor extends JavaRecursiveElementWalkingVisitor {
+      private final AndroidFacet myFacet;
+      private final ProjectResourceRepository myResourceRepository;
 
-    private void processPotentialReference(String text) {
-      ResourceUrl url = ResourceUrl.parse(text);
-      if (url != null && !url.framework && !url.create && url.type != ResourceType.ID) {
-        List<ResourceItem> matches = myResourceRepository.getResourceItem(url.type, url.name);
-        if (matches != null) {
-          for (ResourceItem match : matches) {
-            if (mySeenResourceItems.add(match)) {
-              myToVisitLater.offer(match);
+      JavaReferenceVisitor(@NotNull AndroidFacet facet) {
+        myFacet = facet;
+        myResourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
+      }
+
+      @Override
+      public void visitReferenceExpression(PsiReferenceExpression expression) {
+        PsiElement element = expression.resolve();
+        if (element instanceof PsiField) {
+          AndroidPsiUtils.ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(expression);
+
+          if (referenceType == AndroidPsiUtils.ResourceReferenceType.APP) {
+            // This is a resource we might be able to move
+            ResourceType type = AndroidPsiUtils.getResourceType(expression);
+            if (type != null) {
+              String name = AndroidPsiUtils.getResourceName(expression);
+
+              List<ResourceItem> matches = myResourceRepository.getResourceItem(type, name);
+              if (matches != null) {
+                for (ResourceItem match : matches) {
+                  if (myResourceRefSet.add(match)) {
+                    myVisitQueue.offer(getResourceDefinition(match));
+                  }
+                }
+              }
+            }
+            return; // We had a resource match, no need to keep visiting children.
+          }
+        }
+        super.visitReferenceExpression(expression);
+      }
+
+      @Override
+      public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
+        PsiElement target = reference.advancedResolve(false).getElement();
+        if (target instanceof PsiClass) {
+          if (!(target instanceof PsiTypeParameter)) {
+            VirtualFile source = target.getContainingFile().getVirtualFile();
+            for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
+              if (sourceProvider.containsFile(source)) {
+                // This is a local source file, therefore a candidate to be moved
+                if (myClassRefSet.add((PsiClass)target)) {
+                  myVisitQueue.add(target);
+                }
+                return; // We had a reference match, nothing further to do
+              }
             }
           }
         }
