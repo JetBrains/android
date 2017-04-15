@@ -16,9 +16,11 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.testing.Modules;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -63,7 +65,7 @@ public class AndroidMoveWithResourcesTest extends AndroidTestCase {
     PsiElement activity = myFixture.getJavaFacade().findClass("google.MainActivity");
     DataContext context = dataId -> {
       if (LangDataKeys.TARGET_MODULE.is(dataId)) {
-        return myAdditionalModules.get(0);
+        return ModuleManager.getInstance(getProject()).findModuleByName("library");
       }
       return null;
     };
@@ -75,7 +77,9 @@ public class AndroidMoveWithResourcesTest extends AndroidTestCase {
       "res/layout/activity_main.xml",
       "res/drawable/ic_play.xml",
       "res/drawable-mdpi/ic_play_arrow_black.png",
-      "res/drawable-hdpi/ic_play_arrow_black.png"
+      "res/drawable-hdpi/ic_play_arrow_black.png",
+      "src/google/MainActivity.java",
+      "src/google/Util.java"
     ).forEach(this::verifyMoved);
 
     // Colors and strings have to be added in the corresponding values files
@@ -88,6 +92,7 @@ public class AndroidMoveWithResourcesTest extends AndroidTestCase {
                  "<resources>\n" +
                  "    <string name=\"app_name\">My Library</string>\n" +
                  "    <string name=\"hello\">@string/hello_string</string>\n" +
+                 "    <string name=\"msg\">Not really needed</string>\n" +
                  "    <string name=\"hello_string\">Hello World!</string>\n" +
                  "</resources>\n",
                  getTextForFile(LIBRARY_PATH + "res/values/strings.xml"));
