@@ -17,7 +17,12 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -25,6 +30,8 @@ import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -65,6 +72,36 @@ public class InteractionManagerTest extends LayoutTestCase {
                       "    NlComponent{tag=<TextView>, bounds=[0,150:2x2, instance=1}";
     assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
     assertEquals("Hello World", model.find("textView").getAttribute(ANDROID_URI, ATTR_TEXT));
+  }
+
+  public void testDragAndDropWithOnCreate() throws Exception {
+    // Drops an ImageView and verifies that onCreate was called.
+    ViewHandlerManager viewManager = ViewHandlerManager.get(myFacet);
+    viewManager.registerHandler(IMAGE_VIEW, new FakeImageViewHandler());
+
+    SyncNlModel model = model("test.xml", component(LINEAR_LAYOUT)
+      .withAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
+      .withBounds(0, 0, 100, 100)).build();
+
+    ScreenView screenView = createScreen(model);
+
+    DesignSurface designSurface = screenView.getSurface();
+    InteractionManager manager = createManager(designSurface);
+
+    @Language("XML")
+    String xmlFragment = "" +
+                         "<ImageView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                         "     android:layout_width=\"wrap_content\"\n" +
+                         "     android:layout_height=\"wrap_content\"\n" +
+                         "/>";
+    Transferable transferable = createTransferable(DataFlavor.stringFlavor, xmlFragment);
+    dragDrop(manager, 0, 0, 100, 100, transferable);
+    Disposer.dispose(model);
+
+    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,150:2x2, instance=0}\n" +
+                      "    NlComponent{tag=<ImageView>, bounds=[0,150:2x2, instance=1}";
+    assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
+    assertEquals("@android:drawable/selected_image", model.find("imageView").getAttribute(ANDROID_URI, ATTR_SRC));
   }
 
   public void testLinearLayoutCursorHoverComponent() throws Exception {
@@ -193,5 +230,21 @@ public class InteractionManagerTest extends LayoutTestCase {
     InteractionManager manager = createManager(surface);
     screenView.getScene().buildDisplayList(new DisplayList(), 0);
     return manager;
+  }
+
+  private static class FakeImageViewHandler extends ImageViewHandler {
+    @Override
+    public boolean onCreate(@NotNull ViewEditor editor,
+                            @Nullable NlComponent parent,
+                            @NotNull NlComponent newChild,
+                            @NotNull InsertType insertType) {
+      if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
+        setSrcAttribute(newChild, "@android:drawable/selected_image");
+      }
+      else {
+        setSrcAttribute(newChild, "@android:drawable/btn_star");
+      }
+      return true;
+    }
   }
 }
