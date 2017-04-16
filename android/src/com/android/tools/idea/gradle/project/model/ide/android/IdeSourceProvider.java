@@ -43,7 +43,8 @@ public final class IdeSourceProvider extends IdeModel implements SourceProvider 
   @NotNull private final Collection<File> myJniLibsDirectories;
   @NotNull private final Collection<File> myShadersDirectories;
 
-  public IdeSourceProvider(@NotNull SourceProvider provider) {
+  public IdeSourceProvider(@NotNull SourceProvider provider, @NotNull ModelCache modelCache) {
+    super(provider, modelCache);
     myName = provider.getName();
     myManifestFile = provider.getManifestFile();
     myJavaDirectories = new ArrayList<>(provider.getJavaDirectories());

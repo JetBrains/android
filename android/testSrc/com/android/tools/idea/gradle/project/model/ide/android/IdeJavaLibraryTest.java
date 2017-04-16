@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaLibrary
 import com.google.common.collect.Lists;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -35,6 +36,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeJavaLibrary}.
  */
 public class IdeJavaLibraryTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeJavaLibrary.class).isAssignableTo(Serializable.class);
@@ -42,7 +50,7 @@ public class IdeJavaLibraryTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeJavaLibrary javaLibrary = new IdeJavaLibrary(createStub(), new ModelCache());
+    IdeJavaLibrary javaLibrary = new IdeJavaLibrary(createStub(), myModelCache);
     byte[] bytes = serialize(javaLibrary);
     Object o = deserialize(bytes);
     assertEquals(javaLibrary, o);
@@ -51,7 +59,7 @@ public class IdeJavaLibraryTest {
   @Test
   public void constructor() throws Throwable {
     JavaLibrary original = createStub();
-    assertEqualsOrSimilar(original, new IdeJavaLibrary(original, new ModelCache()));
+    assertEqualsOrSimilar(original, new IdeJavaLibrary(original, myModelCache));
   }
 
   @NotNull

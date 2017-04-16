@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.level2.GraphItem;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.GraphItemStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeGraphItem}.
  */
 public class IdeGraphItemTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeGraphItem.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeGraphItemTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeGraphItem graphItem = new IdeGraphItem(new GraphItemStub(new GraphItemStub()));
+    IdeGraphItem graphItem = new IdeGraphItem(new GraphItemStub(new GraphItemStub()), myModelCache);
     byte[] bytes = serialize(graphItem);
     Object o = deserialize(bytes);
     assertEquals(graphItem, o);
@@ -48,7 +56,7 @@ public class IdeGraphItemTest {
   @Test
   public void constructor() throws Throwable {
     GraphItem original = new GraphItemStub(new GraphItemStub());
-    assertEqualsOrSimilar(original, new IdeGraphItem(original));
+    assertEqualsOrSimilar(original, new IdeGraphItem(original, myModelCache));
   }
 
   @Test

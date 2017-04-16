@@ -40,8 +40,9 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   @Nullable private final String myVersionNameSuffix;
 
   protected IdeBaseConfig(@NotNull BaseConfig config, @NotNull ModelCache modelCache) {
+    super(config, modelCache);
     myName = config.getName();
-    myResValues = copy(config.getResValues(), modelCache, IdeClassField::new);
+    myResValues = copy(config.getResValues(), modelCache, classField -> new IdeClassField(classField, modelCache));
     myProguardFiles = new ArrayList<>(config.getProguardFiles());
     myConsumerProguardFiles = new ArrayList<>(config.getConsumerProguardFiles());
     myManifestPlaceholders = new HashMap<>(config.getManifestPlaceholders());

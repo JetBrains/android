@@ -20,7 +20,6 @@ import com.android.build.OutputFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -35,27 +34,17 @@ public class IdeOutputFile extends IdeModel implements OutputFile {
   @NotNull private final Collection<FilterData> myFilters;
   @NotNull private final File myOutputFile;
   @NotNull private final OutputFile myMainOutputFile;
-  @NotNull private final Collection<IdeOutputFile> myOutputs;
+  @NotNull private final Collection<? extends OutputFile> myOutputs;
   private final int myVersionCode;
 
-  @SuppressWarnings("deprecation")
-  public IdeOutputFile(@NotNull OutputFile file) {
+  public IdeOutputFile(@NotNull OutputFile file, @NotNull ModelCache modelCache) {
+    super(file, modelCache);
     myOutputType = file.getOutputType();
     myFilterTypes = new HashSet<>(file.getFilterTypes());
-
-    myFilters = new HashSet<>();
-    for (FilterData data : file.getFilters()) {
-      myFilters.add(new IdeFilterData(data));
-    }
-
+    myFilters = copy(file.getFilters(), modelCache, data -> new IdeFilterData(data, modelCache));
     myOutputFile = file.getOutputFile();
-    myMainOutputFile = new IdeOutputFile(file.getMainOutputFile());
-
-    myOutputs = new ArrayList<>();
-    for (OutputFile output : file.getOutputs()) {
-      myOutputs.add(new IdeOutputFile(output));
-    }
-
+    myMainOutputFile = modelCache.computeIfAbsent(file.getMainOutputFile(), outputFile -> new IdeOutputFile(outputFile, modelCache));
+    myOutputs = copy(file.getOutputs(), modelCache, outputFile -> new IdeOutputFile(outputFile, modelCache));
     myVersionCode = file.getVersionCode();
   }
 

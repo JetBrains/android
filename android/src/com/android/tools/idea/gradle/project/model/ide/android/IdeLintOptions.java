@@ -54,7 +54,8 @@ public class IdeLintOptions extends IdeModel implements LintOptions {
   private final boolean myXmlReport;
   private final boolean myCheckReleaseBuilds;
 
-  public IdeLintOptions(@NotNull LintOptions options, @NotNull GradleVersion gradleVersion) {
+  public IdeLintOptions(@NotNull LintOptions options, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
+    super(options, modelCache);
     myDisable = new HashSet<>(options.getDisable());
     myEnable = new HashSet<>(options.getEnable());
 

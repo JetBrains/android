@@ -42,29 +42,40 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   @NotNull private final File myJavaResourcesFolder;
   @NotNull private final Dependencies myDependencies;
   @NotNull private final Dependencies myCompileDependencies;
-  @NotNull private final DependencyGraphs myDependencyGraphs;
   @NotNull private final Set<String> myIdeSetupTaskNames;
   @NotNull private final Collection<File> myGeneratedSourceFolders;
+  @Nullable private final DependencyGraphs myDependencyGraphs;
   @Nullable private final IdeSourceProvider myVariantSourceProvider;
   @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
 
-  protected IdeBaseArtifact(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
+  protected IdeBaseArtifact(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
+    super(artifact, modelCache);
     myName = artifact.getName();
     myCompileTaskName = artifact.getCompileTaskName();
     myAssembleTaskName = artifact.getAssembleTaskName();
     myClassesFolder = artifact.getClassesFolder();
     myJavaResourcesFolder = artifact.getJavaResourcesFolder();
-    myDependencies = new IdeDependencies(artifact.getDependencies(), modelCache, gradleVersion);
+    myDependencies = copy(artifact.getDependencies(), modelCache, modelVersion);
     //noinspection deprecation
-    myCompileDependencies = new IdeDependencies(artifact.getCompileDependencies(), modelCache, gradleVersion);
+    myCompileDependencies = copy(artifact.getCompileDependencies(), modelCache, modelVersion);
 
-    DependencyGraphs graphs = gradleVersion.isAtLeast(2, 3, 0) ? artifact.getDependencyGraphs() : null;
-    myDependencyGraphs = new IdeDependencyGraphs(graphs, modelCache);
+    if (modelVersion.isAtLeast(2, 3, 0)) {
+      myDependencyGraphs = modelCache.computeIfAbsent(artifact.getDependencyGraphs(),
+                                                      graphs -> new IdeDependencyGraphs(graphs, modelCache));
+    }
+    else {
+      myDependencyGraphs = null;
+    }
 
     myIdeSetupTaskNames = new HashSet<>(getIdeSetupTaskNames(artifact));
     myGeneratedSourceFolders = new ArrayList<>(getGeneratedSourceFolders(artifact));
-    myVariantSourceProvider = createSourceProvider(artifact.getVariantSourceProvider());
-    myMultiFlavorSourceProvider = createSourceProvider(artifact.getMultiFlavorSourceProvider());
+    myVariantSourceProvider = createSourceProvider(modelCache, artifact.getVariantSourceProvider());
+    myMultiFlavorSourceProvider = createSourceProvider(modelCache, artifact.getMultiFlavorSourceProvider());
+  }
+
+  @NotNull
+  private static IdeDependencies copy(@NotNull Dependencies original, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
+    return modelCache.computeIfAbsent(original, dependencies -> new IdeDependencies(dependencies, modelCache, modelVersion));
   }
 
   @NotNull
@@ -103,8 +114,8 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   }
 
   @Nullable
-  private static IdeSourceProvider createSourceProvider(@Nullable SourceProvider original) {
-    return original != null ? new IdeSourceProvider(original) : null;
+  private static IdeSourceProvider createSourceProvider(@NotNull ModelCache modelCache, @Nullable SourceProvider original) {
+    return original != null ? modelCache.computeIfAbsent(original, provider -> new IdeSourceProvider(provider, modelCache)) : null;
   }
 
   @Override
@@ -152,7 +163,12 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   @Override
   @NotNull
   public DependencyGraphs getDependencyGraphs() {
-    return myDependencyGraphs;
+    if (myDependencyGraphs != null) {
+      return myDependencyGraphs;
+    }
+    // Since this method is marked as @NotNull, it is not defined what to do when invoked while using older models. For now, we
+    // keep the default behavior and throw an exception.
+    throw new UnsupportedMethodException("getDependencyGraphs");
   }
 
   @Override

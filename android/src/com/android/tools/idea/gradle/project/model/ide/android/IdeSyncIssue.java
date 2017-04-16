@@ -30,7 +30,8 @@ public class IdeSyncIssue extends IdeModel implements SyncIssue {
   private final int mySeverity;
   private final int myType;
 
-  public IdeSyncIssue(@NotNull SyncIssue issue) {
+  public IdeSyncIssue(@NotNull SyncIssue issue, @NotNull ModelCache modelCache) {
+    super(issue, modelCache);
     myMessage = issue.getMessage();
     myData = issue.getData();
     mySeverity = issue.getSeverity();

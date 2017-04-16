@@ -30,7 +30,7 @@ public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAto
   private static final long serialVersionUID = 1L;
 
   @NotNull private final String myAtomName;
-  @NotNull private final List<AndroidAtom> myAtomDependencies;
+  @NotNull private final List<? extends AndroidAtom> myAtomDependencies;
   @NotNull private final File myDexFolder;
   @NotNull private final File myLibFolder;
   @NotNull private final File myJavaResFolder;

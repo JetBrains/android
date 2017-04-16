@@ -30,9 +30,10 @@ public final class IdeSourceProviderContainer extends IdeModel implements Source
   @NotNull private final String myArtifactName;
   @NotNull private final IdeSourceProvider mySourceProvider;
 
-  public IdeSourceProviderContainer(@NotNull SourceProviderContainer container) {
+  public IdeSourceProviderContainer(@NotNull SourceProviderContainer container, @NotNull ModelCache modelCache) {
+    super(container, modelCache);
     myArtifactName = container.getArtifactName();
-    mySourceProvider = new IdeSourceProvider(container.getSourceProvider());
+    mySourceProvider = modelCache.computeIfAbsent(container.getSourceProvider(), provider -> new IdeSourceProvider(provider, modelCache));
   }
 
   @Override

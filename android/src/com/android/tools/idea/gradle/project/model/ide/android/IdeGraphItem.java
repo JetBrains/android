@@ -19,7 +19,6 @@ import com.android.builder.model.level2.GraphItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,14 +33,10 @@ public final class IdeGraphItem extends IdeModel implements GraphItem {
   @NotNull private final List<GraphItem> myDependencies;
   @Nullable private final String myRequestedCoordinates;
 
-  public IdeGraphItem(@NotNull GraphItem item) {
+  public IdeGraphItem(@NotNull GraphItem item, @NotNull ModelCache modelCache) {
+    super(item, modelCache);
     myArtifactAddress = item.getArtifactAddress();
-
-    myDependencies = new ArrayList<>();
-    for (GraphItem dependency : item.getDependencies()) {
-      myDependencies.add(new IdeGraphItem(dependency));
-    }
-
+    myDependencies = copy(item.getDependencies(), modelCache, item1 -> new IdeGraphItem(item1, modelCache));
     myRequestedCoordinates = item.getRequestedCoordinates();
   }
 

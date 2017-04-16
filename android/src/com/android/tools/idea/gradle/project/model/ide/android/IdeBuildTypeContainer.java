@@ -34,9 +34,11 @@ public final class IdeBuildTypeContainer extends IdeModel implements BuildTypeCo
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
 
   public IdeBuildTypeContainer(@NotNull BuildTypeContainer container, @NotNull ModelCache modelCache) {
-    myBuildType = new IdeBuildType(container.getBuildType(), modelCache);
-    mySourceProvider = new IdeSourceProvider(container.getSourceProvider());
-    myExtraSourceProviders = copy(container.getExtraSourceProviders(), modelCache, IdeSourceProviderContainer::new);
+    super(container, modelCache);
+    myBuildType = modelCache.computeIfAbsent(container.getBuildType(), buildType -> new IdeBuildType(buildType, modelCache));
+    mySourceProvider = modelCache.computeIfAbsent(container.getSourceProvider(), provider -> new IdeSourceProvider(provider, modelCache));
+    myExtraSourceProviders = copy(container.getExtraSourceProviders(), modelCache,
+                                  sourceProviderContainer -> new IdeSourceProviderContainer(sourceProviderContainer, modelCache));
   }
 
   @Override
