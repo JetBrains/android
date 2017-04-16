@@ -23,6 +23,7 @@ import com.android.tools.idea.ui.validation.Validator;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -67,6 +68,7 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      UIUtil.dispatchAllInvocationEvents();
       BatchInvoker.clearOverrideStrategy();
     }
     finally {
