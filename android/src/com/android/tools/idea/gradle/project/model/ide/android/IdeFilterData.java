@@ -19,15 +19,14 @@ import com.android.build.FilterData;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Creates a deep copy of {@link FilterData}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link FilterData}.
  */
 public class IdeFilterData extends IdeModel implements FilterData {
   @NotNull private final String myIdentifier;
   @NotNull private final String myFilterType;
 
-  public IdeFilterData(@NotNull FilterData data) {
+  public IdeFilterData(@NotNull FilterData data, @NotNull ModelCache modelCache) {
+    super(data, modelCache);
     myIdentifier = data.getIdentifier();
     myFilterType = data.getFilterType();
   }

@@ -19,7 +19,6 @@ import com.android.annotations.Nullable;
 import com.android.builder.model.VectorDrawablesOptions;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -32,9 +31,9 @@ public class IdeVectorDrawablesOptions extends IdeModel implements VectorDrawabl
   @Nullable private Set<String> myGeneratedDensities;
   @Nullable private Boolean myUseSupportLibrary;
 
-  public IdeVectorDrawablesOptions(@NotNull VectorDrawablesOptions options) {
-    Set<String> opGeneratedDensities = options.getGeneratedDensities();
-    myGeneratedDensities = opGeneratedDensities == null ? null : new HashSet<>(opGeneratedDensities);
+  public IdeVectorDrawablesOptions(@NotNull VectorDrawablesOptions options, @NotNull ModelCache modelCache) {
+    super(options, modelCache);
+    myGeneratedDensities = copy(options.getGeneratedDensities());
     myUseSupportLibrary = options.getUseSupportLibrary();
   }
 

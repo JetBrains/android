@@ -29,7 +29,7 @@ public class IdeLibraryTest {
   @Test
   public void constructor() throws Throwable {
     Library original = new LibraryStub();
-    assertEqualsOrSimilar(original, new IdeLibrary(original) {});
+    assertEqualsOrSimilar(original, new IdeLibrary(original, new ModelCache()) {});
   }
 
   @Test

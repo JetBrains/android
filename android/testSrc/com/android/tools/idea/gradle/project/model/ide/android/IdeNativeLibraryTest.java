@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.NativeLibrary;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.NativeLibraryStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeNativeLibrary}.
  */
 public class IdeNativeLibraryTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeNativeLibrary.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeNativeLibraryTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeNativeLibrary nativeLibrary = new IdeNativeLibrary(new NativeLibraryStub());
+    IdeNativeLibrary nativeLibrary = new IdeNativeLibrary(new NativeLibraryStub(), myModelCache);
     byte[] bytes = serialize(nativeLibrary);
     Object o = deserialize(bytes);
     assertEquals(nativeLibrary, o);
@@ -48,7 +56,7 @@ public class IdeNativeLibraryTest {
   @Test
   public void constructor() throws Throwable {
     NativeLibrary original = new NativeLibraryStub();
-    assertEqualsOrSimilar(original, new IdeNativeLibrary(original));
+    assertEqualsOrSimilar(original, new IdeNativeLibrary(original, myModelCache));
   }
 
   @Test

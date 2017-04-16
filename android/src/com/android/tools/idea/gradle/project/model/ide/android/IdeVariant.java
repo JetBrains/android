@@ -17,12 +17,14 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Creates a deep copy of {@link Variant}.
@@ -40,28 +42,30 @@ public class IdeVariant extends IdeModel implements Variant {
   @NotNull private final ProductFlavor myMergedFlavor;
   @NotNull private final Collection<TestedTargetVariant> myTestedTargetVariants;
 
-  public IdeVariant(@NotNull Variant variant, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
+  public IdeVariant(@NotNull Variant variant, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
+    super(variant, modelCache);
     myName = variant.getName();
     myDisplayName = variant.getDisplayName();
-    myMainArtifact = new IdeAndroidArtifact(variant.getMainArtifact(), modelCache, gradleVersion);
-
-    myExtraAndroidArtifacts = new ArrayList<>();
-    for (AndroidArtifact artifact : variant.getExtraAndroidArtifacts()) {
-      myExtraAndroidArtifacts.add(new IdeAndroidArtifact(artifact, modelCache, gradleVersion));
-    }
-
-    myExtraJavaArtifacts = new ArrayList<>();
-    for (JavaArtifact artifact : variant.getExtraJavaArtifacts()) {
-      myExtraJavaArtifacts.add(new IdeJavaArtifact(artifact, modelCache, gradleVersion));
-    }
-
+    myMainArtifact = modelCache.computeIfAbsent(variant.getMainArtifact(),
+                                                artifact -> new IdeAndroidArtifact(artifact, modelCache, modelVersion));
+    myExtraAndroidArtifacts = copy(variant.getExtraAndroidArtifacts(), modelCache,
+                                   artifact -> new IdeAndroidArtifact(artifact, modelCache, modelVersion));
+    myExtraJavaArtifacts = copy(variant.getExtraJavaArtifacts(), modelCache,
+                                (Function<JavaArtifact, JavaArtifact>)artifact -> new IdeJavaArtifact(artifact, modelCache, modelVersion));
     myBuildType = variant.getBuildType();
     myProductFlavors = new ArrayList<>(variant.getProductFlavors());
-    myMergedFlavor = new IdeProductFlavor(variant.getMergedFlavor(), modelCache);
+    myMergedFlavor = modelCache.computeIfAbsent(variant.getMergedFlavor(), flavor -> new IdeProductFlavor(flavor, modelCache));
+    myTestedTargetVariants = getTestedTargetVariants(variant, modelCache);
+  }
 
-    myTestedTargetVariants = new HashSet<>();
-    for (TestedTargetVariant tested : variant.getTestedTargetVariants()) {
-      myTestedTargetVariants.add(new IdeTestedTargetVariants(tested));
+  @NotNull
+  private static Collection<TestedTargetVariant> getTestedTargetVariants(@NotNull Variant variant, @NotNull ModelCache modelCache) {
+    try {
+      return copy(variant.getTestedTargetVariants(), modelCache,
+                  targetVariant -> new IdeTestedTargetVariants(targetVariant, modelCache));
+    }
+    catch (UnsupportedMethodException e) {
+      return Collections.emptyList();
     }
   }
 

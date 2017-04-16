@@ -60,59 +60,33 @@ public class IdeAndroidProject extends IdeModel implements AndroidProject {
 
   @SuppressWarnings("deprecation")
   private IdeAndroidProject(@NotNull AndroidProject project, @NotNull ModelCache modelCache) {
-
+    super(project, modelCache);
     myModelVersion = project.getModelVersion();
-    GradleVersion modelGradleVersion = GradleVersion.parse(myModelVersion);
+    GradleVersion modelVersion = GradleVersion.parse(myModelVersion);
 
     myName = project.getName();
-    myDefaultConfig = new IdeProductFlavorContainer(project.getDefaultConfig(), modelCache);
-
-    myBuildTypes = new ArrayList<>();
-    for (BuildTypeContainer container : project.getBuildTypes()) {
-      myBuildTypes.add(new IdeBuildTypeContainer(container, modelCache));
-    }
-
-    myProductFlavors = new ArrayList<>();
-    for (ProductFlavorContainer container : project.getProductFlavors()) {
-      myProductFlavors.add(new IdeProductFlavorContainer(container, modelCache));
-    }
-
+    myDefaultConfig = modelCache.computeIfAbsent(project.getDefaultConfig(),
+                                                 container -> new IdeProductFlavorContainer(container, modelCache));
+    myBuildTypes = copy(project.getBuildTypes(), modelCache, container -> new IdeBuildTypeContainer(container, modelCache));
+    myProductFlavors = copy(project.getProductFlavors(), modelCache, container -> new IdeProductFlavorContainer(container, modelCache));
     myBuildToolsVersion = project.getBuildToolsVersion();
-
-    mySyncIssues = new ArrayList<>();
-    for (SyncIssue issue : project.getSyncIssues()) {
-      mySyncIssues.add(new IdeSyncIssue(issue));
-    }
-
-    myVariants = new ArrayList<>();
-    for (Variant variant : project.getVariants()) {
-      myVariants.add(new IdeVariant(variant, modelCache, modelGradleVersion));
-    }
-
+    mySyncIssues = copy(project.getSyncIssues(), modelCache, issue -> new IdeSyncIssue(issue, modelCache));
+    myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariant(variant, modelCache, modelVersion));
     myFlavorDimensions = new ArrayList<>(project.getFlavorDimensions());
-
     myCompileTarget = project.getCompileTarget();
     myBootClassPath = new ArrayList<>(project.getBootClasspath());
-
-    myNativeToolchains = new ArrayList<>();
-    for (NativeToolchain toolchain : project.getNativeToolchains()) {
-      myNativeToolchains.add(new IdeNativeToolchain(toolchain));
-    }
-
-    mySigningConfigs = new ArrayList<>();
-    for (SigningConfig config : project.getSigningConfigs()) {
-      mySigningConfigs.add(new IdeSigningConfig(config));
-    }
-
-    myLintOptions = new IdeLintOptions(project.getLintOptions(), modelGradleVersion);
+    myNativeToolchains = copy(project.getNativeToolchains(), modelCache, toolchain -> new IdeNativeToolchain(toolchain, modelCache));
+    mySigningConfigs = copy(project.getSigningConfigs(), modelCache, config -> new IdeSigningConfig(config, modelCache));
+    myLintOptions = modelCache.computeIfAbsent(project.getLintOptions(), options -> new IdeLintOptions(options, modelCache, modelVersion));
     myUnresolvedDependencies = new HashSet<>(project.getUnresolvedDependencies());
-    myJavaCompileOptions = new IdeJavaCompileOptions(project.getJavaCompileOptions());
+    myJavaCompileOptions = modelCache.computeIfAbsent(project.getJavaCompileOptions(),
+                                                      options -> new IdeJavaCompileOptions(options, modelCache));
     myBuildFolder = project.getBuildFolder();
     myResourcePrefix = project.getResourcePrefix();
     myApiVersion = project.getApiVersion();
     myLibrary = project.isLibrary();
 
-    if (modelGradleVersion.isAtLeast(2, 3, 0)) {
+    if (modelVersion.isAtLeast(2, 3, 0)) {
       myProjectType = project.getProjectType();
     }
     else {

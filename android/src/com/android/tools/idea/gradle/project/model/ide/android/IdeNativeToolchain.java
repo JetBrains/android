@@ -31,7 +31,8 @@ public class IdeNativeToolchain extends IdeModel implements NativeToolchain {
   @Nullable private File myCCompilerExecutable;
   @Nullable private File myCppCompilerExecutable;
 
-  public IdeNativeToolchain(@NotNull NativeToolchain toolchain) {
+  public IdeNativeToolchain(@NotNull NativeToolchain toolchain, @NotNull ModelCache modelCache) {
+    super(toolchain, modelCache);
     myName = toolchain.getName();
     myCCompilerExecutable = toolchain.getCCompilerExecutable();
     myCppCompilerExecutable = toolchain.getCppCompilerExecutable();

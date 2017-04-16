@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.DependencyGraphsStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeDependencyGraphs}.
  */
 public class IdeDependencyGraphsTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeDependencyGraphs.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeDependencyGraphsTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeDependencyGraphs graphs = new IdeDependencyGraphs(new DependencyGraphsStub(), new ModelCache());
+    IdeDependencyGraphs graphs = new IdeDependencyGraphs(new DependencyGraphsStub(), myModelCache);
     byte[] bytes = serialize(graphs);
     Object o = deserialize(bytes);
     assertEquals(graphs, o);
@@ -48,7 +56,7 @@ public class IdeDependencyGraphsTest {
   @Test
   public void constructor() throws Throwable {
     DependencyGraphs original = new DependencyGraphsStub();
-    assertEqualsOrSimilar(original, new IdeDependencyGraphs(original, new ModelCache()));
+    assertEqualsOrSimilar(original, new IdeDependencyGraphs(original, myModelCache));
   }
 
   @Test

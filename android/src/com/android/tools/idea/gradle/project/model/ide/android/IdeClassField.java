@@ -32,7 +32,8 @@ public final class IdeClassField extends IdeModel implements ClassField {
   @NotNull private final String myType;
   @NotNull private final String myValue;
 
-  public IdeClassField(@NotNull ClassField classField) {
+  public IdeClassField(@NotNull ClassField classField, @NotNull ModelCache modelCache) {
+    super(classField, modelCache);
     myName = classField.getName();
     myType = classField.getType();
     myValue = classField.getValue();

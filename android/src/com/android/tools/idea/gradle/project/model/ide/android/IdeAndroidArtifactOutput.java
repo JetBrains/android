@@ -31,8 +31,8 @@ public class IdeAndroidArtifactOutput extends IdeVariantOutput implements Androi
   @NotNull private final File myOutputFile;
 
   @SuppressWarnings("deprecation")
-  public IdeAndroidArtifactOutput(@NotNull AndroidArtifactOutput output) {
-    super(output);
+  public IdeAndroidArtifactOutput(@NotNull AndroidArtifactOutput output, @NotNull ModelCache modelCache) {
+    super(output, modelCache);
     myAssembleTaskName = output.getAssembleTaskName();
     myGeneratedManifest = output.getGeneratedManifest();
     myOutputFile = output.getOutputFile();

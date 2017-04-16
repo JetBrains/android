@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * Creates a deep copy of {@link VariantOutput}.
@@ -31,21 +30,17 @@ import java.util.HashSet;
  */
 public class IdeVariantOutput extends IdeModel implements VariantOutput {
   @NotNull private final OutputFile myMainOutputFile;
-  @NotNull private final Collection<IdeOutputFile> myOutputs;
+  @NotNull private final Collection<? extends OutputFile> myOutputs;
   @NotNull private final String myOutputType;
   @NotNull private final Collection<String> myFilterTypes;
   @NotNull private final Collection<FilterData> myFilters;
   private final int myVersionCode;
 
-  @SuppressWarnings("deprecation")
-  public IdeVariantOutput(@NotNull VariantOutput output) {
-    myMainOutputFile = new IdeOutputFile(output.getMainOutputFile());
-
-    myOutputs = new HashSet<>();
-    for (OutputFile file : output.getOutputs()) {
-      myOutputs.add(new IdeOutputFile(file));
-    }
-
+  public IdeVariantOutput(@NotNull VariantOutput output, @NotNull ModelCache modelCache) {
+    super(output, modelCache);
+    myMainOutputFile = modelCache.computeIfAbsent(output.getMainOutputFile(), outputFile -> new IdeOutputFile(outputFile, modelCache));
+    //noinspection deprecation
+    myOutputs = copy(output.getOutputs(), modelCache, outputFile -> new IdeOutputFile(outputFile, modelCache));
     myOutputType = output.getOutputType();
     myFilterTypes = new ArrayList<>(output.getFilterTypes());
     myFilters = new ArrayList<>(output.getFilters());

@@ -34,10 +34,12 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeJavaArtifact}.
  */
 public class IdeJavaArtifactTest {
+  private ModelCache myModelCache;
   private GradleVersion myGradleVersion;
 
   @Before
   public void setUp() throws Exception {
+    myModelCache = new ModelCache();
     myGradleVersion = GradleVersion.parse("3.2");
   }
 
@@ -48,7 +50,7 @@ public class IdeJavaArtifactTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeJavaArtifact javaArtifact = new IdeJavaArtifact(new JavaArtifactStub(), new ModelCache(), myGradleVersion);
+    IdeJavaArtifact javaArtifact = new IdeJavaArtifact(new JavaArtifactStub(), myModelCache, myGradleVersion);
     byte[] bytes = serialize(javaArtifact);
     Object o = deserialize(bytes);
     assertEquals(javaArtifact, o);
@@ -57,7 +59,7 @@ public class IdeJavaArtifactTest {
   @Test
   public void constructor() throws Throwable {
     JavaArtifact original = new JavaArtifactStub();
-    assertEqualsOrSimilar(original, new IdeJavaArtifact(original, new ModelCache(), myGradleVersion));
+    assertEqualsOrSimilar(original, new IdeJavaArtifact(original, myModelCache, myGradleVersion));
   }
 
   @Test

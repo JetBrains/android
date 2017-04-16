@@ -44,13 +44,13 @@ public final class IdeAndroidArtifact extends IdeBaseArtifact implements Android
 
   public IdeAndroidArtifact(@NotNull AndroidArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
     super(artifact, modelCache, gradleVersion);
-    myOutputs = copy(artifact.getOutputs(), modelCache, IdeAndroidArtifactOutput::new);
+    myOutputs = copy(artifact.getOutputs(), modelCache, output -> new IdeAndroidArtifactOutput(output, modelCache));
     myApplicationId = artifact.getApplicationId();
     mySourceGenTaskName = artifact.getSourceGenTaskName();
     myGeneratedResourceFolders.addAll(artifact.getGeneratedResourceFolders());
-    myBuildConfigFields = copy(artifact.getBuildConfigFields(), modelCache, IdeClassField::new);
-    myResValues = copy(artifact.getResValues(), modelCache, IdeClassField::new);
-    myInstantRun = new IdeInstantRun(artifact.getInstantRun());
+    myBuildConfigFields = copy(artifact.getBuildConfigFields(), modelCache, classField -> new IdeClassField(classField, modelCache));
+    myResValues = copy(artifact.getResValues(), modelCache, classField -> new IdeClassField(classField, modelCache));
+    myInstantRun = modelCache.computeIfAbsent(artifact.getInstantRun(), instantRun -> new IdeInstantRun(instantRun, modelCache));
     mySigningConfigName = artifact.getSigningConfigName();
     myAbiFilters = copy(artifact.getAbiFilters());
     myNativeLibraries = copy(modelCache, artifact.getNativeLibraries());
@@ -58,8 +58,8 @@ public final class IdeAndroidArtifact extends IdeBaseArtifact implements Android
   }
 
   @Nullable
-  private Collection<NativeLibrary> copy(@NotNull ModelCache modelCache, @Nullable Collection<NativeLibrary> original) {
-    return original != null ? copy(original, modelCache, IdeNativeLibrary::new) : null;
+  private static Collection<NativeLibrary> copy(@NotNull ModelCache modelCache, @Nullable Collection<NativeLibrary> original) {
+    return original != null ? copy(original, modelCache, library -> new IdeNativeLibrary(library, modelCache)) : null;
   }
 
   @Override
