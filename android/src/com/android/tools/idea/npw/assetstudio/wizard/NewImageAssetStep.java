@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -37,8 +38,9 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
 
   public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
-    int minSdkVersion = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel();
-    myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, model.getPaths(), minSdkVersion);
+    AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(facet).getMinSdkVersion();
+    AndroidVersion targetSdkVersion = AndroidModuleInfo.getInstance(facet).getTargetSdkVersion();
+    myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, model.getPaths(), minSdkVersion, targetSdkVersion);
     myFacet = facet;
   }
 
