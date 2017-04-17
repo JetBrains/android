@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
@@ -34,6 +35,7 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,10 +95,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   /**
-   * Receives a {@link Profiler.Device.Builder} and sets
-   * @param device
-   * @param builder
-   * @return
+   * Receives a {@link Profiler.Device.Builder} and converts it into a {@link Profiler.Device}.
    */
   private static Profiler.Device profilerDeviceFromIDevice(IDevice device, Profiler.Device.Builder builder) {
     return builder.setSerial(device.getSerialNumber())
@@ -107,6 +106,11 @@ public class ProfilerServiceProxy extends PerfdProxyService
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
       .build();
+  }
+
+  @TestOnly
+  public static Profiler.Device profilerDeviceFromIDevice(IDevice device) {
+    return profilerDeviceFromIDevice(device, Profiler.Device.newBuilder());
   }
 
   private static Profiler.Device.State convertState(IDevice.DeviceState state) {
@@ -126,7 +130,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   private static String getDeviceModel(@NotNull IDevice device) {
-    return device.isEmulator() ? device.getAvdName() : DevicePropertyUtil.getModel(device, "");
+    return device.isEmulator() ? StringUtil.notNullize(device.getAvdName(), "Unknown") : DevicePropertyUtil.getModel(device, "Unknown");
   }
 
   @Override

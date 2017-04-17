@@ -27,37 +27,27 @@ import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.internal.ServerImpl;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ProfilerServiceProxyTest {
 
-  @Before
-  public void setup() throws Exception {
-    InProcessServerBuilder builder = InProcessServerBuilder.forName("ProfilerServiceProxyTest");
-    builder.addService(new FakeProfilerService());
-    ServerImpl server = builder.build();
-    server.start();
-  }
   @Test
   public void testBindServiceContainsAllMethods() throws Exception {
-    IDevice mockDevice = mock(IDevice.class);
-    when(mockDevice.getSerialNumber()).thenReturn("Serial");
-    when(mockDevice.getName()).thenReturn("Device");
-    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(1, "API"));
-    when(mockDevice.isOnline()).thenReturn(true);
-    when(mockDevice.getClients()).thenReturn(new Client[0]);
-    when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
-    ManagedChannel channel = InProcessChannelBuilder.forName("ProfilerServiceProxyTest").build();
-    ProfilerServiceProxy proxy = new ProfilerServiceProxy(mockDevice, channel);
+    IDevice mockDevice = createMockDevice();
+    ProfilerServiceProxy proxy = new ProfilerServiceProxy(mockDevice, startNamedChannel("testBindServiceContainsAllMethods"));
 
     ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = ProfilerServiceGrpc.getServiceDescriptor().getMethods();
@@ -65,6 +55,47 @@ public class ProfilerServiceProxyTest {
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
     assertEquals(allMethods.size(), definedMethods.size());
     definedMethods.containsAll(allMethods);
+  }
+
+  @Test
+  public void testUnknownDeviceLabel() throws Exception {
+    IDevice mockDevice = createMockDevice();
+    Profiler.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
+    assertEquals("Unknown", profilerDevice.getModel());
+  }
+
+  @Test
+  public void testUnknownEmulatorLabel() throws Exception {
+    IDevice mockDevice = createMockDevice();
+    when(mockDevice.isEmulator()).thenReturn(true);
+    when(mockDevice.getAvdName()).thenReturn(null);
+    Profiler.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
+
+    assertEquals("Unknown", profilerDevice.getModel());
+  }
+
+  /**
+   * @param uniqueName Name should be unique across tests.
+   */
+  private ManagedChannel startNamedChannel(String uniqueName) throws IOException {
+    InProcessServerBuilder builder = InProcessServerBuilder.forName(uniqueName);
+    builder.addService(new FakeProfilerService());
+    ServerImpl server = builder.build();
+    server.start();
+
+    return InProcessChannelBuilder.forName(uniqueName).build();
+  }
+
+  @NotNull
+  private IDevice createMockDevice() {
+    IDevice mockDevice = mock(IDevice.class);
+    when(mockDevice.getSerialNumber()).thenReturn("Serial");
+    when(mockDevice.getName()).thenReturn("Device");
+    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(1, "API"));
+    when(mockDevice.isOnline()).thenReturn(true);
+    when(mockDevice.getClients()).thenReturn(new Client[0]);
+    when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
+    return mockDevice;
   }
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
