@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.prefs.AndroidLocation;
+import com.android.repository.Revision;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -47,6 +48,7 @@ public class AvdManagerConnectionTest extends TestCase {
 
     mFileOp.recordExistingFile("/sdk/tools/lib/emulator/snapshots.img");
     recordGoogleApisSysImg23(mFileOp);
+    recordEmulatorVersion_23_4_5(mFileOp);
 
     mAndroidSdkHandler =
       new AndroidSdkHandler(new File("/sdk"), ANDROID_HOME, mFileOp);
@@ -106,6 +108,17 @@ public class AvdManagerConnectionTest extends TestCase {
 
   }
 
+  public void testEmulatorVersionIsAtLeast() throws Exception {
+    // The emulator was created with version 23.4.5
+    assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(22, 9, 9)));
+    assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 1, 9)));
+    assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 4, 5)));
+
+    assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 4, 6)));
+    assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 5, 1)));
+    assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(24, 1, 1)));
+  }
+
 
   private static void recordGoogleApisSysImg23(MockFileOp fop) {
     fop.recordExistingFile("/sdk/system-images/android-23/google_apis/x86_64/system.img");
@@ -130,5 +143,16 @@ public class AvdManagerConnectionTest extends TestCase {
                            + "<display-name>Google APIs Intel x86 Atom_64 System Image</display-name>"
                            + "<uses-license ref=\"license-9A5C00D5\"/></localPackage>"
                            + "</ns3:sdk-sys-img>\n");
+  }
+
+  private static void recordEmulatorVersion_23_4_5(MockFileOp fop) {
+    fop.recordExistingFile("/sdk/tools/source.properties",
+                           "Pkg.UserSrc=false\n"
+                           + "Pkg.Revision=23.4.5\n"
+                           + "Platform.MinPlatformToolsRev=20\n"
+                           + "Pkg.Dependencies=emulator\n"
+                           + "Pkg.Path=tools\n"
+                           + "Pkg.Desc=Android SDK Tools\n");
+
   }
 }
