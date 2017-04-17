@@ -36,8 +36,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private long myCurrentTime = 0;
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
-  private AllocationEventsResponse.Builder myAllocationEventsBuilder = AllocationEventsResponse.newBuilder();
-  private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
+  private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
+  private LegacyAllocationContextsResponse.Builder myAllocationContextBuilder = LegacyAllocationContextsResponse.newBuilder();
 
   private int myAppId;
 
@@ -97,15 +97,15 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
-  public void getAllocationEvents(AllocationEventsRequest request,
-                                  StreamObserver<AllocationEventsResponse> responseObserver) {
+  public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
+                                  StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
     responseObserver.onNext(myAllocationEventsBuilder.build());
     responseObserver.onCompleted();
   }
 
   @Override
-  public void listAllocationContexts(AllocationContextsRequest request,
-                                     StreamObserver<AllocationContextsResponse> responseObserver) {
+  public void listLegacyAllocationContexts(LegacyAllocationContextsRequest request,
+                                     StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myAllocationContextBuilder.build());
     responseObserver.onCompleted();
   }
@@ -172,8 +172,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
-  public FakeMemoryService setExplicitAllocationEvents(AllocationEventsResponse.Status status,
-                                                       @NotNull List<AllocationEvent> events) {
+  public FakeMemoryService setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status status,
+                                                       @NotNull List<LegacyAllocationEvent> events) {
     myAllocationEventsBuilder.setStatus(status);
     myAllocationEventsBuilder.addAllEvents(events);
     return this;

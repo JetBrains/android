@@ -100,60 +100,72 @@ public class MemoryTableTest {
     myTable.insertOrReplaceAllocationsInfo(VALID_PID, VALID_SESSION, finishedAllocSample);
 
     // Perform a sequence of queries to ensure we are getting startTime-exclusive and endTime-inclusive data.
-    MemoryData result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(-1).setEndTime(0).build());
+    MemoryData result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(-1).setEndTime(0).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(0).setEndTime(1).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(0).setEndTime(1).build());
     verifyMemoryDataResultCounts(result, 1, 0, 0, 0, 0);
     assertEquals(memSample, result.getMemSamples(0));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(1).setEndTime(2).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(1).setEndTime(2).build());
     verifyMemoryDataResultCounts(result, 0, 1, 0, 0, 0);
     assertEquals(allocStatsSample, result.getAllocStatsSamples(0));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(2).setEndTime(3).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(2).setEndTime(3).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 0);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(3).setEndTime(4).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(3).setEndTime(4).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 2, 0);
     assertTrue(result.getHeapDumpInfosList().contains(ongoingHeapSample));
     assertTrue(result.getHeapDumpInfosList().contains(finishedHeapSample));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(4).setEndTime(5).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(4).setEndTime(5).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 2, 0);
     assertTrue(result.getHeapDumpInfosList().contains(ongoingHeapSample));
     assertTrue(result.getHeapDumpInfosList().contains(finishedHeapSample));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(5).setEndTime(6).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(5).setEndTime(6).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 1);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertEquals(ongoingAllocSample, result.getAllocationsInfo(0));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(6).setEndTime(7).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(6).setEndTime(7).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 2);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertTrue(result.getAllocationsInfoList().contains(ongoingAllocSample));
     assertTrue(result.getAllocationsInfoList().contains(finishedAllocSample));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(7).setEndTime(8).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(7).setEndTime(8).build());
     verifyMemoryDataResultCounts(result, 0, 0, 1, 1, 2);
     assertEquals(gcStatsSample, result.getGcStatsSamples(0));
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertTrue(result.getAllocationsInfoList().contains(ongoingAllocSample));
     assertTrue(result.getAllocationsInfoList().contains(finishedAllocSample));
 
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(8).setEndTime(9).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(VALID_PID).setStartTime(8).setEndTime(9).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 1, 1);
     assertEquals(ongoingHeapSample, result.getHeapDumpInfos(0));
     assertEquals(ongoingAllocSample, result.getAllocationsInfo(0));
 
     // Test that querying for the invalid app id returns no data
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(INVALID_PID).setStartTime(0).setEndTime(9).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(VALID_SESSION).setProcessId(INVALID_PID).setStartTime(0).setEndTime(9).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
 
     // Test that querying for an invalid session returns no data.
-    result = myTable.getData(MemoryRequest.newBuilder().setSession(INVALID_SESSION).setProcessId(VALID_PID).setStartTime(0).setEndTime(9).build());
+    result =
+      myTable.getData(MemoryRequest.newBuilder().setSession(INVALID_SESSION).setProcessId(VALID_PID).setStartTime(0).setEndTime(9).build());
     verifyMemoryDataResultCounts(result, 0, 0, 0, 0, 0);
   }
 
@@ -168,7 +180,8 @@ public class MemoryTableTest {
 
     // Update the HeapInfo with status and data and test that they returned correctly
     byte[] rawBytes = new byte[]{'a', 'b', 'c'};
-    myTable.insertHeapDumpData(VALID_PID, VALID_SESSION, sample.getStartTime(), DumpDataResponse.Status.SUCCESS, ByteString.copyFrom(rawBytes));
+    myTable
+      .insertHeapDumpData(VALID_PID, VALID_SESSION, sample.getStartTime(), DumpDataResponse.Status.SUCCESS, ByteString.copyFrom(rawBytes));
 
     assertEquals(DumpDataResponse.Status.SUCCESS, myTable.getHeapDumpStatus(VALID_PID, VALID_SESSION, sample.getStartTime()));
     assertTrue(Arrays.equals(rawBytes, myTable.getHeapDumpData(VALID_PID, VALID_SESSION, sample.getStartTime())));
@@ -183,39 +196,39 @@ public class MemoryTableTest {
   }
 
   @Test
-  public void testAllocationsQueriesAfterInsertion() throws Exception {
+  public void testLegacyAllocationsQueriesAfterInsertion() throws Exception {
     AllocationsInfo sample = AllocationsInfo.newBuilder().setStartTime(1).setEndTime(2).build();
     myTable.insertOrReplaceAllocationsInfo(VALID_PID, VALID_SESSION, sample);
 
     // Tests that the info has been inserted into table, but the event response + dump data are still null
     assertEquals(sample, myTable.getAllocationsInfo(VALID_PID, VALID_SESSION, sample.getStartTime()));
-    assertNull(myTable.getAllocationData(VALID_PID, VALID_SESSION, sample.getStartTime()));
-    assertNull(myTable.getAllocationDumpData(VALID_PID, VALID_SESSION, sample.getStartTime()));
+    assertNull(myTable.getLegacyAllocationData(VALID_PID, VALID_SESSION, sample.getStartTime()));
+    assertNull(myTable.getLegacyAllocationDumpData(VALID_PID, VALID_SESSION, sample.getStartTime()));
 
     byte[] stackBytes = new byte[]{'a', 'b', 'c'};
-    AllocationEventsResponse events = AllocationEventsResponse.newBuilder()
-      .addEvents(AllocationEvent.newBuilder().setAllocatedClassId(1).setAllocationStackId(ByteString.copyFrom(stackBytes)))
-      .addEvents(AllocationEvent.newBuilder().setAllocatedClassId(2).setAllocationStackId(ByteString.copyFrom(stackBytes))).build();
-    myTable.updateAllocationEvents(VALID_PID, VALID_SESSION, sample.getStartTime(), events);
-    assertEquals(events, myTable.getAllocationData(VALID_PID, VALID_SESSION, sample.getStartTime()));
+    LegacyAllocationEventsResponse events = LegacyAllocationEventsResponse.newBuilder()
+      .addEvents(LegacyAllocationEvent.newBuilder().setAllocatedClassId(1).setAllocationStackId(ByteString.copyFrom(stackBytes)))
+      .addEvents(LegacyAllocationEvent.newBuilder().setAllocatedClassId(2).setAllocationStackId(ByteString.copyFrom(stackBytes))).build();
+    myTable.updateLegacyAllocationEvents(VALID_PID, VALID_SESSION, sample.getStartTime(), events);
+    assertEquals(events, myTable.getLegacyAllocationData(VALID_PID, VALID_SESSION, sample.getStartTime()));
 
     byte[] rawBytes = new byte[]{'d', 'e', 'f'};
-    myTable.updateAllocationDump(VALID_PID, VALID_SESSION, sample.getStartTime(), rawBytes);
-    assertTrue(Arrays.equals(rawBytes, myTable.getAllocationDumpData(VALID_PID, VALID_SESSION, sample.getStartTime())));
+    myTable.updateLegacyAllocationDump(VALID_PID, VALID_SESSION, sample.getStartTime(), rawBytes);
+    assertTrue(Arrays.equals(rawBytes, myTable.getLegacyAllocationDumpData(VALID_PID, VALID_SESSION, sample.getStartTime())));
 
     // Test that querying for the invalid app id returns null
     assertNull(myTable.getAllocationsInfo(INVALID_PID, VALID_SESSION, sample.getStartTime()));
-    assertNull(myTable.getAllocationData(INVALID_PID, VALID_SESSION, sample.getStartTime()));
-    assertNull(myTable.getAllocationDumpData(INVALID_PID, VALID_SESSION, sample.getStartTime()));
+    assertNull(myTable.getLegacyAllocationData(INVALID_PID, VALID_SESSION, sample.getStartTime()));
+    assertNull(myTable.getLegacyAllocationDumpData(INVALID_PID, VALID_SESSION, sample.getStartTime()));
 
     // Test that querying for the invalid session returns null
     assertNull(myTable.getAllocationsInfo(VALID_PID, INVALID_SESSION, sample.getStartTime()));
-    assertNull(myTable.getAllocationData(VALID_PID, INVALID_SESSION, sample.getStartTime()));
-    assertNull(myTable.getAllocationDumpData(VALID_PID, INVALID_SESSION, sample.getStartTime()));
+    assertNull(myTable.getLegacyAllocationData(VALID_PID, INVALID_SESSION, sample.getStartTime()));
+    assertNull(myTable.getLegacyAllocationDumpData(VALID_PID, INVALID_SESSION, sample.getStartTime()));
   }
 
   @Test
-  public void testAllocationContextQueriesAfterInsertion() throws Exception {
+  public void testLegacyAllocationContextQueriesAfterInsertion() throws Exception {
     int classId1 = 1;
     int classId2 = 2;
     byte[] stackBytes1 = new byte[]{'a', 'b', 'c'};
@@ -225,18 +238,17 @@ public class MemoryTableTest {
     AllocatedClass class2 = AllocatedClass.newBuilder().setClassId(classId2).setClassName("Class2").build();
     AllocationStack stack1 = AllocationStack.newBuilder().setStackId(ByteString.copyFrom(new byte[]{'a', 'b', 'c'})).build();
     AllocationStack stack2 = AllocationStack.newBuilder().setStackId(ByteString.copyFrom(new byte[]{'d', 'e', 'f'})).build();
-    myTable.insertAllocationContext(Arrays.asList(class1, class2), Arrays.asList(stack1, stack2));
+    myTable.insertLegacyAllocationContext(Arrays.asList(class1, class2), Arrays.asList(stack1, stack2));
 
-    AllocationContextsRequest request =
-      AllocationContextsRequest.newBuilder().addClassIds(classId1).addStackIds(ByteString.copyFrom(stackBytes2)).build();
-    AllocationContextsResponse response = myTable.listAllocationContexts(request);
+    LegacyAllocationContextsRequest request =
+      LegacyAllocationContextsRequest.newBuilder().addClassIds(classId1).addStackIds(ByteString.copyFrom(stackBytes2)).build();
+    LegacyAllocationContextsResponse response = myTable.listAllocationContexts(request);
     assertEquals(1, response.getAllocatedClassesCount());
     assertEquals(1, response.getAllocationStacksCount());
     assertEquals(class1, response.getAllocatedClasses(0));
     assertEquals(stack2, response.getAllocationStacks(0));
 
-    request =
-      AllocationContextsRequest.newBuilder().addClassIds(classId2).addStackIds(ByteString.copyFrom(stackBytes1)).build();
+    request = LegacyAllocationContextsRequest.newBuilder().addClassIds(classId2).addStackIds(ByteString.copyFrom(stackBytes1)).build();
     response = myTable.listAllocationContexts(request);
     assertEquals(1, response.getAllocatedClassesCount());
     assertEquals(1, response.getAllocationStacksCount());
@@ -246,10 +258,10 @@ public class MemoryTableTest {
 
   @Test
   public void testAllocationContextNotFound() throws Exception {
-    AllocationContextsRequest request = AllocationContextsRequest.newBuilder()
+    LegacyAllocationContextsRequest request = LegacyAllocationContextsRequest.newBuilder()
       .addClassIds(1).addClassIds(2)
       .addStackIds(ByteString.copyFrom(new byte[]{'a', 'b', 'c'})).addStackIds(ByteString.copyFrom(new byte[]{'d', 'e', 'f'})).build();
-    AllocationContextsResponse response = myTable.listAllocationContexts(request);
+    LegacyAllocationContextsResponse response = myTable.listAllocationContexts(request);
 
     assertEquals(0, response.getAllocatedClassesCount());
     assertEquals(0, response.getAllocationStacksCount());

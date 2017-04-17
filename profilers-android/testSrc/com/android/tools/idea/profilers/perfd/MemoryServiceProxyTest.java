@@ -179,8 +179,8 @@ public class MemoryServiceProxyTest {
   public void testLegacyAllocationTrackingWorkflow() throws Exception {
     int time1 = 5;
     int time2 = 10;
-    AllocationEventsRequest eventRequest =
-      AllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(time1).setEndTime(time2).build();
+    LegacyAllocationEventsRequest eventRequest =
+      LegacyAllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(time1).setEndTime(time2).build();
 
     // Enable a tracking session on Process 1
     TrackAllocationsResponse expected1 = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
@@ -196,8 +196,8 @@ public class MemoryServiceProxyTest {
     verify(observer1, times(1)).onCompleted();
 
     // Verify that query for AllocationEvents on at ongoing session returns the NOT_FOUND response
-    StreamObserver<AllocationEventsResponse> notFoundObserver = mock(StreamObserver.class);
-    myProxy.getAllocationEvents(eventRequest, notFoundObserver);
+    StreamObserver<LegacyAllocationEventsResponse> notFoundObserver = mock(StreamObserver.class);
+    myProxy.getLegacyAllocationEvents(eventRequest, notFoundObserver);
     verify(notFoundObserver, times(1)).onNext(MemoryServiceProxy.NOT_FOUND_RESPONSE);
     verify(notFoundObserver, times(1)).onCompleted();
 
@@ -215,22 +215,23 @@ public class MemoryServiceProxyTest {
     // Mock completion of the parsing process and the resulting data.
     myParsingWaitLatch.countDown();
     myParsingDoneLatch.await();
-    List<AllocationEvent> expectedEvents = myAllocationConverter.getAllocationEvents(time1, time2);
-    AllocationEventsResponse expected3 = AllocationEventsResponse.newBuilder().setStatus(AllocationEventsResponse.Status.SUCCESS)
-      .addAllEvents(expectedEvents).build();
-    StreamObserver<AllocationEventsResponse> observer3 = mock(StreamObserver.class);
-    myProxy.getAllocationEvents(eventRequest, observer3);
+    List<LegacyAllocationEvent> expectedEvents = myAllocationConverter.getAllocationEvents(time1, time2);
+    LegacyAllocationEventsResponse expected3 =
+      LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.SUCCESS).addAllEvents(expectedEvents)
+        .build();
+    StreamObserver<LegacyAllocationEventsResponse> observer3 = mock(StreamObserver.class);
+    myProxy.getLegacyAllocationEvents(eventRequest, observer3);
     verify(observer3, times(1)).onNext(expected3);
     verify(observer3, times(1)).onCompleted();
 
     // Verify that ListAllocationContexts contains the stack/class info
-    AllocationContextsResponse expected4 = AllocationContextsResponse.newBuilder()
+    LegacyAllocationContextsResponse expected4 = LegacyAllocationContextsResponse.newBuilder()
       .addAllAllocatedClasses(myAllocationConverter.getClassNames())
       .addAllAllocationStacks(myAllocationConverter.getAllocationStacks()).build();
-    StreamObserver<AllocationContextsResponse> observer4 = mock(StreamObserver.class);
-    myProxy.listAllocationContexts(AllocationContextsRequest.newBuilder()
-                                     .addClassIds(expectedEvents.get(0).getAllocatedClassId())
-                                     .addStackIds(expectedEvents.get(0).getAllocationStackId()).build(), observer4);
+    StreamObserver<LegacyAllocationContextsResponse> observer4 = mock(StreamObserver.class);
+    myProxy.listLegacyAllocationContexts(LegacyAllocationContextsRequest.newBuilder()
+                                           .addClassIds(expectedEvents.get(0).getAllocatedClassId())
+                                           .addStackIds(expectedEvents.get(0).getAllocationStackId()).build(), observer4);
     verify(observer4, times(1)).onNext(expected4);
     verify(observer4, times(1)).onCompleted();
   }
@@ -254,12 +255,12 @@ public class MemoryServiceProxyTest {
     myReturnNullTrackingData = true;
     myParsingWaitLatch.countDown();
     myParsingDoneLatch.await();
-    AllocationEventsRequest eventRequest =
-      AllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(time1).setEndTime(time2).build();
-    AllocationEventsResponse expected1 =
-      AllocationEventsResponse.newBuilder().setStatus(AllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
-    StreamObserver<AllocationEventsResponse> observer1 = mock(StreamObserver.class);
-    myProxy.getAllocationEvents(eventRequest, observer1);
+    LegacyAllocationEventsRequest eventRequest =
+      LegacyAllocationEventsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setStartTime(time1).setEndTime(time2).build();
+    LegacyAllocationEventsResponse expected1 =
+      LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
+    StreamObserver<LegacyAllocationEventsResponse> observer1 = mock(StreamObserver.class);
+    myProxy.getLegacyAllocationEvents(eventRequest, observer1);
     verify(observer1, times(1)).onNext(expected1);
     verify(observer1, times(1)).onCompleted();
 
@@ -268,7 +269,7 @@ public class MemoryServiceProxyTest {
     DumpDataResponse expected2 =
       DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN).build();
     StreamObserver<DumpDataResponse> observer2 = mock(StreamObserver.class);
-    myProxy.getAllocationDump(dumpRequest, observer2);
+    myProxy.getLegacyAllocationDump(dumpRequest, observer2);
     verify(observer2, times(1)).onNext(expected2);
     verify(observer2, times(1)).onCompleted();
   }
