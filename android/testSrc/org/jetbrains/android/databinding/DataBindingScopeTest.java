@@ -28,8 +28,14 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
  */
 public class DataBindingScopeTest extends AndroidGradleTestCase {
+  // Add am empty test function to workaround junit failures
+  // It requires at least one test method in test classes
+  public void testEmpty() {
+    //This function is left blank on purpose
+  }
 
-  public void testAccessFromInaccessibleScope() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testAccessFromInaccessibleScope() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
@@ -60,6 +66,5 @@ public class DataBindingScopeTest extends AndroidGradleTestCase {
     assertNotNull(javaPsiFacade.findClass(lib2LayoutBindingClassName, myAndroidFacet.getModule().getModuleWithDependenciesScope()));
     assertNotNull(javaPsiFacade.findClass(lib2LayoutBindingClassName, myModules.getModule("lib").getModuleWithDependenciesScope()));
     assertNotNull(javaPsiFacade.findClass(lib2LayoutBindingClassName, myModules.getModule("lib2").getModuleWithDependenciesScope()));
-
   }
 }

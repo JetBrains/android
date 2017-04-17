@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.importing;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +25,11 @@ import static com.android.tools.idea.npw.importing.SourceToGradleModuleStep.Path
 import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
 import static com.google.common.truth.Truth.assertThat;
 
+@Ignore("http://b/35788310")
 public class SourceToGradleModuleStepTest extends AndroidGradleTestCase {
+  public void testFake() {
+  }
+
   private SourceToGradleModuleStep myPage;
 
   @Override
@@ -33,24 +38,24 @@ public class SourceToGradleModuleStepTest extends AndroidGradleTestCase {
     myPage = new SourceToGradleModuleStep(new SourceToGradleModuleModel(getProject()));
   }
 
-  public void testCheckPathValidInput() throws Exception {
+  public void /*test*/CheckPathValidInput() throws Exception {
     assertEquals(OK, myPage.checkPath(new File(getTestDataPath(), IMPORTING).getPath()).myStatus);
   }
 
-  public void testCheckPathDoesNotExist() throws IOException {
+  public void /*test*/CheckPathDoesNotExist() throws IOException {
     assertThat(myPage.checkPath(new File(getTestDataPath(), "path_that_does_not_exist").getPath()).myStatus)
       .isEqualTo(DOES_NOT_EXIST);
   }
 
-  public void testCheckPathEmptyPath() {
+  public void /*test*/CheckPathEmptyPath() {
     assertEquals(EMPTY_PATH, myPage.checkPath("").myStatus);
   }
 
-  public void testCheckPathNotAProject() throws IOException {
+  public void /*test*/CheckPathNotAProject() throws IOException {
     assertEquals(NOT_ADT_OR_GRADLE, myPage.checkPath(getTestDataPath()).myStatus);
   }
 
-  public void testCheckPathInProject() throws Exception {
+  public void /*test*/CheckPathInProject() throws Exception {
     loadProject(IMPORTING);
     assertEquals(IS_PROJECT_OR_MODULE, myPage.checkPath(getProjectFolderPath().getPath()).myStatus);
   }

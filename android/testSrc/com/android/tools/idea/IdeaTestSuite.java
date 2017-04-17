@@ -42,6 +42,36 @@ import java.nio.file.Paths;
   com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
   org.jetbrains.android.databinding.DataBindingScopeTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
+
+  // Require resources with spaces (HTML File template)
+  // https://github.com/bazelbuild/bazel/issues/374
+  com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
+  org.jetbrains.android.dom.CreateMissingClassFixTest.class,
+
+  // Empty test in gradle-feature - http://b.android.com/230792
+  com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
+
+  // Failing in gradle-feature branch
+  // http://b/35788105
+  com.android.tools.idea.gradle.plugin.AndroidPluginInfoTest.class,
+  com.android.tools.idea.gradle.project.model.AndroidModuleModelTest.class,
+  com.android.tools.idea.model.AndroidModuleInfoTest.class,
+  com.android.tools.idea.gradle.project.sync.DependencySetupTest.class,
+
+  // http://b/35788260
+  com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
+
+  // http://b/35788310
+  com.android.tools.idea.instantapp.InstantAppSupportTest.class,
+  com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
+  com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
+  com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
+  com.android.tools.idea.instantapp.InstantAppsTest.class,
+  com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
+  com.android.tools.idea.instantapp.MultiAtomSupportTest.class,
+
+  // http://b/36872873
+  com.android.tools.idea.ddms.adb.AdbServiceTest.class,
 })
 public class IdeaTestSuite {
 

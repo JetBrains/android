@@ -48,6 +48,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_
  */
 public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
   private static final String DATA_BINDING_COMPONENT_CLASS_NAME = SdkConstants.CLASS_DATA_BINDING_COMPONENT.replace(".", "/");
+
   @NotNull
   private ClassReader findViewDataBindingClass() throws IOException {
     File classes = null;
@@ -68,7 +69,14 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testGeneratedCodeMatch() throws Exception {
+  // Add am empty test function to workaround junit failures
+  // It requires at least one test method in test classes
+  public void testEmpty() {
+    //This function is left blank on purpose
+  }
+
+  // http://b.android.com/230792
+  public void skip_testGeneratedCodeMatch() throws Exception {
     loadProject(PROJECT_WITH_DATA_BINDING);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
@@ -119,9 +127,9 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
       if (!shouldVerify(viewDataBindingClass, classReader, superClassLookup)) {
         continue;
       }
-      verifiedClassCount ++;
+      verifiedClassCount++;
       String className = classReader.getClassName();
-      PsiClass psiClass =  javaPsiFacade
+      PsiClass psiClass = javaPsiFacade
         .findClass(className.replace("/", "."), myAndroidFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
       if (psiClass == null) {
         missingClasses.add(className);
