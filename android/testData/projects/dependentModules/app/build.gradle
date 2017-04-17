@@ -15,6 +15,7 @@ android {
             minifyEnabled false
         }
     }
+    flavorDimensions 'foo'
     productFlavors {
         basic {
           applicationId "com.example.dependentmodules.app"

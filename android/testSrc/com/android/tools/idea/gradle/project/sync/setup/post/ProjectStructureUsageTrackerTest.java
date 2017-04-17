@@ -59,7 +59,8 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     UsageTracker.cleanAfterTesting();
   }
 
-  public void testProductStructureUsageTrackingBasic() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testProductStructureUsageTrackingBasic() throws Exception {
     trackGradleProject(PROJECT_WITH_APPAND_LIB);
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();

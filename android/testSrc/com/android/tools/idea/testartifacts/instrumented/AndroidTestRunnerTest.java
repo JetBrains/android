@@ -30,7 +30,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_RUNNER_
  * Tests for the Android Test Runner related things
  */
 public class AndroidTestRunnerTest extends AndroidGradleTestCase {
-
   @Override
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)

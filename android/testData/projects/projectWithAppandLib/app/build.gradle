@@ -16,6 +16,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    flavorDimensions 'foo'
     productFlavors {
         basic {
           applicationId "com.example.projectwithappandlib.app"

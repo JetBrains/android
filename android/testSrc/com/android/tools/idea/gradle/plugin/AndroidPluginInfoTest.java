@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.plugin;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
+import org.junit.Ignore;
 
 import java.io.File;
 
@@ -30,8 +31,12 @@ import static com.android.tools.idea.testing.TestProjectPaths.PLUGIN_IN_APP;
 /**
  * Tests for {@link AndroidPluginInfo}.
  */
+@Ignore("http://b/35788105")
 public class AndroidPluginInfoTest extends AndroidGradleTestCase {
-  public void testFindWithExperimentalPlugin() throws Exception {
+  public void testFake() {
+  }
+
+  public void /*test*/FindWithExperimentalPlugin() throws Exception {
     loadProject(EXPERIMENTAL_PLUGIN);
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(getProject());
     assertNotNull(androidPluginInfo);
@@ -47,7 +52,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
     assertEquals(BuildEnvironment.getInstance().getExperimentalPluginVersion(), pluginVersion.toString());
   }
 
-  public void testFindWithExperimentalPluginReadingBuildFilesOnly() throws Exception {
+  public void /*test*/FindWithExperimentalPluginReadingBuildFilesOnly() throws Exception {
     loadProject(EXPERIMENTAL_PLUGIN);
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(getProject());
     assertNotNull(androidPluginInfo);
@@ -63,7 +68,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
     assertEquals(BuildEnvironment.getInstance().getExperimentalPluginVersion(), pluginVersion.toString());
   }
 
-  public void testFindWithStablePlugin() throws Exception {
+  public void /*test*/FindWithStablePlugin() throws Exception {
     loadSimpleApplication();
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(getProject());
     assertNotNull(androidPluginInfo);
@@ -77,7 +82,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
     assertEquals(BuildEnvironment.getInstance().getGradlePluginVersion(), pluginVersion.toString());
   }
 
-  public void testFindWithStablePluginReadingBuildFilesOnly() throws Exception {
+  public void /*test*/FindWithStablePluginReadingBuildFilesOnly() throws Exception {
     loadSimpleApplication();
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(getProject());
     assertNotNull(androidPluginInfo);
@@ -93,7 +98,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
     assertEquals(BuildEnvironment.getInstance().getGradlePluginVersion(), pluginVersion.toString());
   }
 
-  public void testFindWithStablePluginInAppReadingBuildFilesOnly() throws Exception {
+  public void /*test*/FindWithStablePluginInAppReadingBuildFilesOnly() throws Exception {
     loadProject(PLUGIN_IN_APP);
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(getProject());
     assertNotNull(androidPluginInfo);

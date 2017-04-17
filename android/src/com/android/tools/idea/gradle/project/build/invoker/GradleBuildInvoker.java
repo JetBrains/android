@@ -38,6 +38,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import org.gradle.tooling.BuildAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -238,13 +239,26 @@ public class GradleBuildInvoker {
   }
 
   public void executeTasks(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments) {
+    executeTasks(tasks, buildMode, commandLineArguments, null);
+  }
+
+  public void executeTasks(@NotNull List<String> tasks,
+                           @Nullable BuildMode buildMode,
+                           @NotNull List<String> commandLineArguments,
+                           @Nullable BuildAction buildAction) {
     if (buildMode != null) {
       setProjectBuildMode(buildMode);
     }
-    executeTasks(tasks, commandLineArguments);
+    executeTasks(tasks, commandLineArguments, buildAction);
   }
 
   public void executeTasks(@NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
+    executeTasks(gradleTasks, commandLineArguments, null);
+  }
+
+  public void executeTasks(@NotNull List<String> gradleTasks,
+                           @NotNull List<String> commandLineArguments,
+                           @Nullable BuildAction buildAction) {
     List<String> jvmArguments = new ArrayList<>();
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -268,7 +282,8 @@ public class GradleBuildInvoker {
     Request request = new Request(myProject, gradleTasks);
     // @formatter:off
     request.setJvmArguments(jvmArguments)
-           .setCommandLineArguments(commandLineArguments);
+           .setCommandLineArguments(commandLineArguments)
+           .setBuildAction(buildAction);
     // @formatter:on
     executeTasks(request);
   }
@@ -496,6 +511,7 @@ public class GradleBuildInvoker {
 
     @Nullable private ExternalSystemTaskNotificationListener myTaskListener;
     @Nullable private File myBuildFilePath;
+    @Nullable private BuildAction myBuildAction;
     private boolean myWaitForCompletion;
 
     public Request(@NotNull Project project, @NotNull String... gradleTasks) {
@@ -585,6 +601,17 @@ public class GradleBuildInvoker {
       return this;
     }
 
+    @Nullable
+    public BuildAction getBuildAction() {
+      return myBuildAction;
+    }
+
+    @NotNull
+    public Request setBuildAction(@Nullable BuildAction buildAction) {
+      myBuildAction = buildAction;
+      return this;
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -597,12 +624,13 @@ public class GradleBuildInvoker {
       // We only care about this fields because 'equals' is used for testing only. Production code does not care.
       return Objects.equals(myGradleTasks, that.myGradleTasks) &&
              Objects.equals(myJvmArguments, that.myJvmArguments) &&
-             Objects.equals(myCommandLineArguments, that.myCommandLineArguments);
+             Objects.equals(myCommandLineArguments, that.myCommandLineArguments) &&
+             Objects.equals(myBuildAction, that.myBuildAction);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(myGradleTasks, myJvmArguments, myCommandLineArguments);
+      return Objects.hash(myGradleTasks, myJvmArguments, myCommandLineArguments, myBuildAction);
     }
 
     @Override
@@ -611,6 +639,7 @@ public class GradleBuildInvoker {
              "myGradleTasks=" + myGradleTasks +
              ", myJvmArguments=" + myJvmArguments +
              ", myCommandLineArguments=" + myCommandLineArguments +
+             ", myBuildAction=" + myBuildAction +
              '}';
     }
   }

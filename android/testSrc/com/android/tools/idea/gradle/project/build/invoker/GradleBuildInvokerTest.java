@@ -66,7 +66,8 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     myTasksExecutor.assertWasExecuted();
   }
 
-  public void testCompileJava_forUnitTests() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testCompileJava_forUnitTests() throws Exception {
     loadSimpleApplication();
     myTaskExecutorFactory.setExpectedTasks(":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies", ":app:generateDebugSources",
                                            ":app:compileDebugUnitTestSources");
@@ -118,7 +119,8 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     when(syncState.lastSyncFailed()).thenReturn(failed);
   }
 
-  public void testCleanProject() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testCleanProject() throws Exception {
     loadSimpleApplication();
     myTaskExecutorFactory.setExpectedTasks("clean", ":app:generateDebugSources", ":app:generateDebugAndroidTestSources",
                                            ":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies");
@@ -131,7 +133,8 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     myTasksExecutor.assertWasExecuted();
   }
 
-  public void testGenerateSources() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testGenerateSources() throws Exception {
     loadSimpleApplication();
     myTaskExecutorFactory.setExpectedTasks(":app:generateDebugSources", ":app:generateDebugAndroidTestSources", ":app:mockableAndroidJar",
                                            ":app:prepareDebugUnitTestDependencies");
@@ -141,7 +144,8 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     myTasksExecutor.assertWasExecuted();
   }
 
-  public void testGenerateSourcesWithClean() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testGenerateSourcesWithClean() throws Exception {
     loadSimpleApplication();
     myTaskExecutorFactory.setExpectedTasks("clean", ":app:generateDebugSources", ":app:generateDebugAndroidTestSources",
                                            ":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies");
@@ -154,7 +158,8 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     myTasksExecutor.assertWasExecuted();
   }
 
-  public void testCompileJava() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testCompileJava() throws Exception {
     loadSimpleApplication();
     myTaskExecutorFactory.setExpectedTasks(":app:generateDebugSources", ":app:generateDebugAndroidTestSources", ":app:mockableAndroidJar",
                                            ":app:prepareDebugUnitTestDependencies", ":app:compileDebugSources",
@@ -171,7 +176,8 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     return new Module[]{myModules.getAppModule()};
   }
 
-  public void testRebuild() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testRebuild() throws Exception {
     loadSimpleApplication();
     myTaskExecutorFactory.setExpectedTasks("clean", ":app:generateDebugSources", ":app:generateDebugAndroidTestSources",
                                            ":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies", ":app:compileDebugSources",
