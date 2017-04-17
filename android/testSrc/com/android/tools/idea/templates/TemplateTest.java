@@ -334,11 +334,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "BlankWearActivity", true);
   }
 
-  public void testNewNavigationDrawerActivity() throws Exception {
+  // http://b/35788310
+  public void /*test*/NewNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", false);
   }
 
-  public void testNewProjectWithNavigationDrawerActivity() throws Exception {
+  // http://b/35788310
+  public void /*test*/NewProjectWithNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", true);
   }
 
