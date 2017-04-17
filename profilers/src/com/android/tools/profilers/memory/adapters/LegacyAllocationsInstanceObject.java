@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.memory.adapters.ClassDb.ClassEntry;
 import com.android.tools.profilers.stacktrace.ThreadId;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-final class AllocationsInstanceObject implements InstanceObject {
+final class LegacyAllocationsInstanceObject implements InstanceObject {
   @NotNull static final Map<String, ValueObject.ValueType> ourTypeMap = ImmutableMap.<String, ValueObject.ValueType>builder()
     .put("boolean", ValueObject.ValueType.BOOLEAN)
     .put("byte", ValueObject.ValueType.BYTE)
@@ -37,14 +37,14 @@ final class AllocationsInstanceObject implements InstanceObject {
     .put("double", ValueObject.ValueType.DOUBLE)
     .build();
 
-  @NotNull private final AllocationEvent myEvent;
+  @NotNull private final LegacyAllocationEvent myEvent;
   @NotNull private final ClassEntry myAllocationClassEntry;
   @NotNull private final AllocationStack myCallStack;
   @NotNull private final ValueObject.ValueType myValueType;
 
-  public AllocationsInstanceObject(@NotNull AllocationEvent event,
-                                   @NotNull ClassEntry allocationClassEntry,
-                                   @NotNull AllocationStack callStack) {
+  public LegacyAllocationsInstanceObject(@NotNull LegacyAllocationEvent event,
+                                         @NotNull ClassEntry allocationClassEntry,
+                                         @NotNull AllocationStack callStack) {
     myEvent = event;
     myAllocationClassEntry = allocationClassEntry;
     myCallStack = callStack;
@@ -76,7 +76,7 @@ final class AllocationsInstanceObject implements InstanceObject {
 
   @Override
   public int getHeapId() {
-    return AllocationsCaptureObject.DEFAULT_HEAP_ID;
+    return LegacyAllocationCaptureObject.DEFAULT_HEAP_ID;
   }
 
   @NotNull

@@ -18,7 +18,7 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class AllocationsCaptureObject implements CaptureObject {
+public final class LegacyAllocationCaptureObject implements CaptureObject {
   static final int DEFAULT_HEAP_ID = 0;
   static final String DEFAULT_HEAP_NAME = "default";
   static final long DEFAULT_CLASSLOADER_ID = -1;
@@ -51,12 +51,12 @@ public final class AllocationsCaptureObject implements CaptureObject {
   // Allocation records do not have heap information, but we create a fake HeapSet container anyway so that we have a consistent MemoryObject model.
   private final HeapSet myFakeHeapSet;
 
-  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                                  @Nullable Common.Session session,
-                                  int processId,
-                                  @NotNull MemoryProfiler.AllocationsInfo info,
-                                  @NotNull RelativeTimeConverter converter,
-                                  @NotNull FeatureTracker featureTracker) {
+  public LegacyAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
+                                       @Nullable Common.Session session,
+                                       int processId,
+                                       @NotNull MemoryProfiler.AllocationsInfo info,
+                                       @NotNull RelativeTimeConverter converter,
+                                       @NotNull FeatureTracker featureTracker) {
     myClient = client;
     myClassDb = new ClassDb();
     myProcessId = processId;
@@ -78,11 +78,11 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
   @Override
   public boolean equals(Object obj) {
-    if (!(obj instanceof AllocationsCaptureObject)) {
+    if (!(obj instanceof LegacyAllocationCaptureObject)) {
       return false;
     }
 
-    AllocationsCaptureObject other = (AllocationsCaptureObject)obj;
+    LegacyAllocationCaptureObject other = (LegacyAllocationCaptureObject)obj;
     return other.myProcessId == myProcessId && other.myStartTimeNs == myStartTimeNs && other.myEndTimeNs == myEndTimeNs;
   }
 
@@ -101,7 +101,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
   @Override
   public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
-    MemoryProfiler.DumpDataResponse response = myClient.getAllocationDump(
+    MemoryProfiler.DumpDataResponse response = myClient.getLegacyAllocationDump(
       MemoryProfiler.DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myStartTimeNs).build());
     if (response.getStatus() == MemoryProfiler.DumpDataResponse.Status.SUCCESS) {
       response.getData().writeTo(outputStream);
@@ -132,17 +132,17 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
   @Override
   public boolean load() {
-    MemoryProfiler.AllocationEventsResponse response;
+    MemoryProfiler.LegacyAllocationEventsResponse response;
     while (true) {
-      response = myClient.getAllocationEvents(MemoryProfiler.AllocationEventsRequest.newBuilder()
-                                                .setProcessId(myProcessId)
-                                                .setSession(mySession)
-                                                .setStartTime(myStartTimeNs)
-                                                .setEndTime(myEndTimeNs).build());
-      if (response.getStatus() == MemoryProfiler.AllocationEventsResponse.Status.SUCCESS) {
+      response = myClient.getLegacyAllocationEvents(MemoryProfiler.LegacyAllocationEventsRequest.newBuilder()
+                                                      .setProcessId(myProcessId)
+                                                      .setSession(mySession)
+                                                      .setStartTime(myStartTimeNs)
+                                                      .setEndTime(myEndTimeNs).build());
+      if (response.getStatus() == MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS) {
         break;
       }
-      else if (response.getStatus() == MemoryProfiler.AllocationEventsResponse.Status.NOT_READY) {
+      else if (response.getStatus() == MemoryProfiler.LegacyAllocationEventsResponse.Status.NOT_READY) {
         try {
           Thread.sleep(50L);
         }
@@ -157,12 +157,12 @@ public final class AllocationsCaptureObject implements CaptureObject {
       return false;
     }
 
-    MemoryProfiler.AllocationContextsRequest contextRequest = MemoryProfiler.AllocationContextsRequest.newBuilder()
+    MemoryProfiler.LegacyAllocationContextsRequest contextRequest = MemoryProfiler.LegacyAllocationContextsRequest.newBuilder()
       .setSession(mySession)
-      .addAllStackIds(response.getEventsList().stream().map(AllocationEvent::getAllocationStackId).collect(Collectors.toSet()))
-      .addAllClassIds(response.getEventsList().stream().map(AllocationEvent::getAllocatedClassId).collect(Collectors.toSet()))
+      .addAllStackIds(response.getEventsList().stream().map(LegacyAllocationEvent::getAllocationStackId).collect(Collectors.toSet()))
+      .addAllClassIds(response.getEventsList().stream().map(LegacyAllocationEvent::getAllocatedClassId).collect(Collectors.toSet()))
       .build();
-    MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(contextRequest);
+    MemoryProfiler.LegacyAllocationContextsResponse contextsResponse = myClient.listLegacyAllocationContexts(contextRequest);
 
     Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
     Map<ByteString, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
@@ -171,11 +171,12 @@ public final class AllocationsCaptureObject implements CaptureObject {
     contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
     // TODO make sure class IDs fall into a global pool
-    for (AllocationEvent event : response.getEventsList()) {
+    for (LegacyAllocationEvent event : response.getEventsList()) {
       assert classEntryMap.containsKey(event.getAllocatedClassId());
       assert callStacks.containsKey(event.getAllocationStackId());
       myFakeHeapSet.addInstanceObject(
-        new AllocationsInstanceObject(event, classEntryMap.get(event.getAllocatedClassId()), callStacks.get(event.getAllocationStackId())));
+        new LegacyAllocationsInstanceObject(event, classEntryMap.get(event.getAllocatedClassId()),
+                                            callStacks.get(event.getAllocationStackId())));
     }
     myIsDoneLoading = true;
 
