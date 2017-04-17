@@ -103,6 +103,7 @@ public final class MenuTest {
                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n" +
                       "    <item\n" +
                       "        android:id=\"@+id/app_bar_search\"\n" +
+                      "        android:actionViewClass=\"android.widget.SearchView\"\n" +
                       "        android:icon=\"@drawable/ic_search_black_24dp\"\n" +
                       "        android:title=\"Search\"\n" +
                       "        app:showAsAction=\"always\" />\n" +
