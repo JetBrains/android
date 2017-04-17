@@ -39,7 +39,7 @@ public class TriData {
   /**
    * It is ok to create and then initialize
    */
-  public TriData(){
+  public TriData() {
   }
 
   public void bounds(float[] min, float[] max) {
@@ -118,6 +118,15 @@ public class TriData {
     }
   }
 
+  public void transformP(Matrix m, TriData out, float cx, float cy, float scrDist) {
+
+    for (int i = 0; i < myVert.length; i += 3) {
+      m.mult3(myVert, i, out.myVert, i);
+      out.myVert[i] = cx + (out.myVert[i] - cx) * scrDist / out.myVert[i + 2];
+      out.myVert[i + 1] = cy + (out.myVert[i + 1] - cy) * scrDist / out.myVert[i + 2];
+    }
+  }
+
   public void ptransform(ViewMatrix vm, Matrix m, TriData out) {
     float dist = (float)vm.screenDistance();
     float cx = (float)vm.myScreenDim[0] / 2;
@@ -168,5 +177,4 @@ public class TriData {
       e.printStackTrace();
     }
   }
-
 }
