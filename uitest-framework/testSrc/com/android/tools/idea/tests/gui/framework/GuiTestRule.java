@@ -47,9 +47,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
-import javax.swing.*;
 import java.awt.*;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -62,9 +60,6 @@ import static com.google.common.truth.TruthJUnit.assume;
 import static org.fest.reflect.core.Reflection.*;
 
 public class GuiTestRule implements TestRule {
-
-  /** Hack to solve focus issue when running with no window manager */
-  private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
   private File myProjectPath;
   private IdeFrameFixture myIdeFrameFixture;
@@ -79,20 +74,6 @@ public class GuiTestRule implements TestRule {
     .around(new TestPerformance())
     .around(new ScreenshotOnFailure())
     .around(new Timeout(5, TimeUnit.MINUTES));
-
-  private final PropertyChangeListener myGlobalFocusListener = e -> {
-    Object oldValue = e.getOldValue();
-    if ("permanentFocusOwner".equals(e.getPropertyName()) && oldValue instanceof Component && e.getNewValue() == null) {
-      Window parentWindow = oldValue instanceof Window ? (Window)oldValue : SwingUtilities.getWindowAncestor((Component)oldValue);
-      if (parentWindow instanceof Dialog) {
-        Container parent = parentWindow.getParent();
-        if (parent != null && parent.isVisible()) {
-          System.out.println("Focus Listener: Request focus!");
-          parent.requestFocus();
-        }
-      }
-    }
-  };
 
   public GuiTestRule withLeakCheck() {
     myLeakCheck.setEnabled(true);
@@ -153,10 +134,6 @@ public class GuiTestRule implements TestRule {
     GuiTests.setUpDefaultProjectCreationLocationPath();
     GuiTests.setIdeSettings();
     GuiTests.setUpSdks();
-
-    if (!HAS_EXTERNAL_WINDOW_MANAGER) {
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(myGlobalFocusListener);
-    }
   }
 
   private static ImmutableList<Throwable> thrownFromRunning(Runnable r) {
@@ -184,9 +161,6 @@ public class GuiTestRule implements TestRule {
     errors.addAll(thrownFromRunning(this::waitForBackgroundTasks));
     errors.addAll(checkForModalDialogs());
     errors.addAll(thrownFromRunning(this::tearDownProject));
-    if (!HAS_EXTERNAL_WINDOW_MANAGER) {
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(myGlobalFocusListener);
-    }
     errors.addAll(GuiTests.fatalErrorsFromIde());
     fixMemLeaks();
     return errors.build();

@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE)  // failing after 2017.1.2 EAP merge
 @RunWith(GuiTestRunner.class)
 public class FindInPathTest {
 

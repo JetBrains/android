@@ -103,6 +103,7 @@ public class ThemeSelectorTest {
   /**
    * Tests the Show all themes dialog from the theme selector
    */
+  @RunIn(TestGroup.UNRELIABLE)  // unreliable without focus requesting removed by http://ag/2120294
   @Test
   public void testShowAllThemes() throws IOException {
     guiTest.importSimpleApplication();
@@ -143,6 +144,7 @@ public class ThemeSelectorTest {
    * Tests the theme creation functionality of the theme selector
    * and that IntelliJ's Undo can revert this action
    */
+  @RunIn(TestGroup.UNRELIABLE)  // unreliable without focus requesting removed by http://ag/2120294
   @Test
   public void testCreateNewTheme() throws IOException {
     guiTest.importSimpleApplication();
