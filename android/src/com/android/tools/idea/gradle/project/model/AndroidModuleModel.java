@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.android.tools.idea.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -139,7 +139,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       myCopyAndroidProjectLatch = new CountDownLatch(1);
       try {
         //myCopyAndroidProject = new IdeAndroidProject(myAndroidProject);
-        myCopyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
+        //myCopyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
       } finally {
         myCopyAndroidProjectLatch.countDown();
       }
