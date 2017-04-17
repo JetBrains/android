@@ -373,7 +373,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetAllocationDump() {
+  public void testGetLegacyAllocationDump() {
     myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
     getPollTicker().run();
 
@@ -386,7 +386,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .setData(DUMP_DATA)
       .build();
     StreamObserver<DumpDataResponse> observer = mock(StreamObserver.class);
-    myMemoryService.getAllocationDump(request, observer);
+    myMemoryService.getLegacyAllocationDump(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -464,8 +464,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getAllocationDump(DumpDataRequest request,
-                                  StreamObserver<DumpDataResponse> responseObserver) {
+    public void getLegacyAllocationDump(DumpDataRequest request,
+                                        StreamObserver<DumpDataResponse> responseObserver) {
       DumpDataResponse.Builder response = DumpDataResponse.newBuilder();
       if (request.getDumpTime() == FINISHED_ALLOCATION_INFO.getStartTime()) {
         response.setData(DUMP_DATA);
@@ -498,16 +498,16 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getAllocationEvents(AllocationEventsRequest request,
-                                    StreamObserver<AllocationEventsResponse> responseObserver) {
-      responseObserver.onNext(AllocationEventsResponse.getDefaultInstance());
+    public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
+                                          StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
+      responseObserver.onNext(LegacyAllocationEventsResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 
     @Override
-    public void listAllocationContexts(AllocationContextsRequest request,
-                                       StreamObserver<AllocationContextsResponse> responseObserver) {
-      responseObserver.onNext(AllocationContextsResponse.getDefaultInstance());
+    public void listLegacyAllocationContexts(LegacyAllocationContextsRequest request,
+                                             StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
+      responseObserver.onNext(LegacyAllocationContextsResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 

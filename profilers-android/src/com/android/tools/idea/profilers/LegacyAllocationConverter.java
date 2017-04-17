@@ -16,8 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 
@@ -128,8 +128,8 @@ public class LegacyAllocationConverter {
     }
 
     @NotNull
-    public AllocationEvent bindAllocationEventInfos(long startTime, long endTime) {
-      return AllocationEvent.newBuilder().setAllocatedClassId(myClassId).setSize(mySize).setThreadId(myThreadId)
+    public LegacyAllocationEvent bindAllocationEventInfos(long startTime, long endTime) {
+      return LegacyAllocationEvent.newBuilder().setAllocatedClassId(myClassId).setSize(mySize).setThreadId(myThreadId)
         .setTrackingStartTime(startTime).setTimestamp(endTime).setAllocationStackId(ByteString.copyFrom(myCallStackId))
         .build();
     }
@@ -180,7 +180,7 @@ public class LegacyAllocationConverter {
     myAllocations.add(allocationInfo);
   }
 
-  public List<AllocationEvent> getAllocationEvents(long startTime, long endTime) {
+  public List<LegacyAllocationEvent> getAllocationEvents(long startTime, long endTime) {
     return myAllocations.stream().map(allocation -> allocation.bindAllocationEventInfos(startTime, endTime)).collect(Collectors.toList());
   }
 
