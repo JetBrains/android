@@ -44,6 +44,8 @@ import java.awt.image.BufferedImage;
  * launch graphic, platform and API level, and target CPU architecture.
  */
 public class SystemImagePreview {
+  public enum ImageRecommendation { RECOMMENDATION_NONE, RECOMMENDATION_X86, RECOMMENDATION_GOOGLE_PLAY };
+
   private JBLabel myReleaseName;
   private JBLabel myReleaseIcon;
   private JBLabel myApiLevel;
@@ -131,9 +133,20 @@ public class SystemImagePreview {
     }
   }
 
-  public void showExplanationForRecommended(boolean show, boolean recommendPlayStore) {
-    myRecommendedExplanation.setText(recommendPlayStore ? PS_RECOMMENDATION : NON_PS_RECOMMENDATION);
-    myRecommendedExplanation.setVisible(show);
+  public void showExplanationForRecommended(ImageRecommendation recommendationChoice) {
+    switch (recommendationChoice) {
+      case RECOMMENDATION_NONE:
+        myRecommendedExplanation.setVisible(false);
+        break;
+      case RECOMMENDATION_X86:
+        myRecommendedExplanation.setText(NON_PS_RECOMMENDATION);
+        myRecommendedExplanation.setVisible(true);
+        break;
+      case RECOMMENDATION_GOOGLE_PLAY:
+        myRecommendedExplanation.setText(PS_RECOMMENDATION);
+        myRecommendedExplanation.setVisible(true);
+        break;
+    }
   }
 
   /**
