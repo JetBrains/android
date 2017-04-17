@@ -84,6 +84,13 @@ public class InstantRunNotificationProviderTest {
   }
 
   @Test
+  public void restartNotification() {
+    BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
+    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.RESTART, "");
+    assertEquals(AndroidBundle.message("instant.run.notification.coldswap"), provider.getNotificationText());
+  }
+
+  @Test
   public void hotswapNotification() {
     BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.HOTSWAP, "");
