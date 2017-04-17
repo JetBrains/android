@@ -19,9 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
 import com.intellij.openapi.diagnostic.Logger;
-import io.grpc.ManagedChannel;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import io.grpc.*;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +42,7 @@ public class DataStoreService {
   private List<ServicePassThrough> myServices = new ArrayList<>();
   private Consumer<Runnable> myFetchExecutor;
   private ProfilerService myProfilerService;
+  private ServerInterceptor myInterceptor;
   private Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
 
   /**
@@ -52,8 +51,13 @@ public class DataStoreService {
    *                      want to run it on a background thread.
    */
   public DataStoreService(String serviceName, String dbPath, Consumer<Runnable> fetchExecutor) {
+    this(serviceName, dbPath, fetchExecutor, null);
+  }
+
+  public DataStoreService(String serviceName, String dbPath, Consumer<Runnable> fetchExecutor, ServerInterceptor interceptor) {
     try {
       myFetchExecutor = fetchExecutor;
+      myInterceptor = interceptor;
       myDatabase = new DataStoreDatabase(dbPath);
       myServerBuilder = InProcessServerBuilder.forName(serviceName).directExecutor();
       createPollers();
@@ -87,7 +91,12 @@ public class DataStoreService {
     myServices.add(service);
     myDatabase.registerTable(service.getDatastoreTable());
     // Build server and start listening for RPC calls for the registered service
-    myServerBuilder.addService(service.bindService());
+
+    if (myInterceptor != null) {
+      myServerBuilder.addService(ServerInterceptors.intercept(service.bindService(), myInterceptor));
+    } else {
+      myServerBuilder.addService(service.bindService());
+    }
   }
 
   /**
@@ -104,9 +113,9 @@ public class DataStoreService {
    */
   public void disconnect(@NotNull Common.Session session) {
     if(myConnectedClients.containsKey(session)) {
-      ManagedChannel channel = myConnectedClients.remove(session).getChannel();
-      channel.shutdownNow();
-      myProfilerService.stopMonitoring(channel);
+      DataStoreClient client = myConnectedClients.remove(session);
+      client.shutdownNow();
+      myProfilerService.stopMonitoring(client.getChannel());
     }
   }
 
@@ -124,7 +133,7 @@ public class DataStoreService {
     return myServices;
   }
 
-  public void setConnectedClients(Common.Session session, ManagedChannel channel) {
+  public void setConnectedClients(Common.Session session, Channel channel) {
     if (!myConnectedClients.containsKey(session)) {
       myConnectedClients.put(session, new DataStoreClient(channel));
     }
@@ -156,14 +165,14 @@ public class DataStoreService {
    */
   private static class DataStoreClient {
 
-    @NotNull private final ManagedChannel myChannel;
+    @NotNull private final Channel myChannel;
     @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
     @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
     @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
     @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
     @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
 
-    public DataStoreClient(@NotNull ManagedChannel channel) {
+    public DataStoreClient(@NotNull Channel channel) {
       myChannel = channel;
       myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
       myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
@@ -171,7 +180,7 @@ public class DataStoreService {
       myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
       myEventClient = EventServiceGrpc.newBlockingStub(channel);
     }
-    public ManagedChannel getChannel() {
+    public Channel getChannel() {
       return myChannel;
     }
 
@@ -201,7 +210,10 @@ public class DataStoreService {
     }
 
     public void shutdownNow() {
-      myChannel.shutdownNow();
+      // The check is needed because the test replace the channel with a PassthroughChannel instead of a managed channel.
+      if( myChannel instanceof ManagedChannel ) {
+        ((ManagedChannel)myChannel).shutdownNow();
+      }
     }
   }
 }

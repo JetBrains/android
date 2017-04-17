@@ -27,6 +27,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestName;
 
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +40,7 @@ import static org.mockito.Mockito.when;
 public class NetworkDataPollerTest extends DataStorePollerTest {
 
   private static final int TEST_APP_ID = 1234;
-  private static final long BASE_TIME_NS = System.nanoTime();
+  private static final long BASE_TIME_NS = TimeUnit.DAYS.toNanos(1);
   private static final long SENT_VALUE = 1024;
   private static final long RECEIVED_VALUE = 2048;
   private static final int CONNECTION_COUNT = 4;
@@ -97,9 +99,15 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
   private NetworkService myNetworkService = new NetworkService(myDataStoreService, getPollTicker()::run);
 
+
   private final FakeNetworkService myFakeNetworkService = new FakeNetworkService();
+
+  public TestName myTestName = new TestName();
+  public TestGrpcService<FakeNetworkService> myService =
+    new TestGrpcService<>(NetworkDataPollerTest.class, myTestName, myNetworkService, myFakeNetworkService);
+
   @Rule
-  public TestGrpcService<FakeNetworkService> myService = new TestGrpcService<>(myNetworkService, myFakeNetworkService);
+  public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
 
   @Before
   public void setUp() throws Exception {
