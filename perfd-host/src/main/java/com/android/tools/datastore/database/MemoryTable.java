@@ -67,20 +67,23 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
     INSERT_OR_REPLACE_ALLOCATIONS_INFO(
       "INSERT OR REPLACE INTO Memory_AllocationInfo (Pid, Session, StartTime, EndTime, InfoData) VALUES (?, ?, ?, ?, ?)"),
-    UPDATE_ALLOCATIONS_INFO_EVENTS("UPDATE Memory_AllocationInfo SET EventsData = ? WHERE Pid = ? AND Session = ? AND StartTime = ?"),
-    UPDATE_ALLOCATIONS_INFO_DUMP("UPDATE Memory_AllocationInfo SET DumpData = ? WHERE Pid = ? AND Session = ? AND StartTime = ?"),
+    UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS(
+      "UPDATE Memory_AllocationInfo SET LegacyEventsData = ? WHERE Pid = ? AND Session = ? AND StartTime = ?"),
+    UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP(
+      "UPDATE Memory_AllocationInfo SET LegacyDumpData = ? WHERE Pid = ? AND Session = ? AND StartTime = ?"),
     // EndTime = UNSPECIFIED_DURATION checks for the special case where we have an ongoing duration sample
     QUERY_ALLOCATION_INFO_BY_TIME(String.format(
       "SELECT InfoData FROM Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND (EndTime = %d OR EndTime > ?) AND StartTime <= ?",
       DurationData.UNSPECIFIED_DURATION)),
     QUERY_ALLOCATION_INFO_BY_ID("SELECT InfoData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),
-    QUERY_ALLOCATION_EVENTS_BY_ID("SELECT EventsData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),
-    QUERY_ALLOCATION_DUMP_BY_ID("SELECT DumpData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),
+    QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID(
+      "SELECT LegacyEventsData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),
+    QUERY_LEGACY_ALLOCATION_DUMP_BY_ID("SELECT LegacyDumpData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),
 
-    INSERT_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_AllocationStack (Id, Data) VALUES (?, ?)"),
-    INSERT_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Id, Data) VALUES (?, ?)"),
-    QUERY_ALLOCATION_STACK("Select Data FROM Memory_AllocationStack WHERE Id = ?"),
-    QUERY_ALLOCATED_CLASS("Select Data FROM Memory_AllocatedClass WHERE Id = ?");
+    INSERT_LEGACY_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_LegacyAllocationStack (Id, Data) VALUES (?, ?)"),
+    INSERT_LEGACY_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_LegacyAllocatedClass (Id, Data) VALUES (?, ?)"),
+    QUERY_LEGACY_ALLOCATION_STACK("Select Data FROM Memory_LegacyAllocationStack WHERE Id = ?"),
+    QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Id = ?");
 
     @NotNull private final String mySqlStatement;
 
@@ -107,9 +110,10 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
       createTable("Memory_Samples", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Timestamp INTEGER", "Type INTEGER",
                   "Data BLOB", "PRIMARY KEY(Pid, Session, Timestamp, Type)");
       createTable("Memory_AllocationInfo", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER",
-                  "EndTime INTEGER", "InfoData BLOB", "EventsData BLOB", "DumpData BLOB", "PRIMARY KEY(Pid, Session, StartTime)");
-      createTable("Memory_AllocationStack", "Id BLOB", "Data BLOB", "PRIMARY KEY(Id)");
-      createTable("Memory_AllocatedClass", "Id INTEGER", "Data BLOB", "PRIMARY KEY(Id)");
+                  "EndTime INTEGER", "InfoData BLOB", "LegacyEventsData BLOB", "LegacyDumpData BLOB",
+                  "PRIMARY KEY(Pid, Session, StartTime)");
+      createTable("Memory_LegacyAllocationStack", "Id BLOB", "Data BLOB", "PRIMARY KEY(Id)");
+      createTable("Memory_LegacyAllocatedClass", "Id INTEGER", "Data BLOB", "PRIMARY KEY(Id)");
       createTable("Memory_HeapDump", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER", "Status INTEGER", "InfoData BLOB", "DumpData BLOB", "PRIMARY KEY(Pid, Session, StartTime)");
     }
@@ -243,18 +247,17 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     execute(MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO, pid, session, info.getStartTime(), info.getEndTime(), info.toByteArray());
   }
 
-  public void updateAllocationEvents(int pid,
-                                     Common.Session session,
-                                     long trackingStartTime,
-                                     @NotNull AllocationEventsResponse allocationData) {
-
-    execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), pid, session, trackingStartTime);
+  public void updateLegacyAllocationEvents(int pid,
+                                           Common.Session session,
+                                           long trackingStartTime,
+                                           @NotNull LegacyAllocationEventsResponse allocationData) {
+    execute(MemoryStatements.UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), pid, session, trackingStartTime);
   }
 
 
-  public void updateAllocationDump(int pid, Common.Session session, long trackingStartTime, byte[] data) {
+  public void updateLegacyAllocationDump(int pid, Common.Session session, long trackingStartTime, byte[] data) {
 
-    execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_DUMP, data, pid, session, trackingStartTime);
+    execute(MemoryStatements.UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP, data, pid, session, trackingStartTime);
   }
 
   /**
@@ -283,14 +286,14 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    * @return the AllocationEventsResponse associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
-  public AllocationEventsResponse getAllocationData(int pid, Common.Session session, long trackingStartTime) {
+  public LegacyAllocationEventsResponse getLegacyAllocationData(int pid, Common.Session session, long trackingStartTime) {
 
     try {
-      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_EVENTS_BY_ID, pid, session, trackingStartTime);
+      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID, pid, session, trackingStartTime);
       if (resultSet.next()) {
         byte[] bytes = resultSet.getBytes(1);
         if (bytes != null) {
-          return AllocationEventsResponse.parseFrom(resultSet.getBytes(1));
+          return LegacyAllocationEventsResponse.parseFrom(resultSet.getBytes(1));
         }
       }
     }
@@ -305,10 +308,10 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    * @return the raw legacy allocation tracking byte data associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
-  public byte[] getAllocationDumpData(int pid, Common.Session session, long trackingStartTime) {
+  public byte[] getLegacyAllocationDumpData(int pid, Common.Session session, long trackingStartTime) {
 
     try {
-      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_DUMP_BY_ID, pid, session, trackingStartTime);
+      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_LEGACY_ALLOCATION_DUMP_BY_ID, pid, session, trackingStartTime);
       if (resultSet.next()) {
         return resultSet.getBytes(1);
       }
@@ -319,21 +322,22 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     return null;
   }
 
-  public void insertAllocationContext(@NotNull List<AllocatedClass> classes, @NotNull List<AllocationStack> stacks) {
+  public void insertLegacyAllocationContext(@NotNull List<AllocatedClass> classes, @NotNull List<AllocationStack> stacks) {
 
     // TODO: batch insert
-    classes.forEach(klass -> execute(MemoryStatements.INSERT_ALLOCATED_CLASS, klass.getClassId(), klass.toByteArray()));
-    stacks.forEach(stack -> execute(MemoryStatements.INSERT_ALLOCATION_STACK, stack.getStackId().toByteArray(), stack.toByteArray()));
+    classes.forEach(klass -> execute(MemoryStatements.INSERT_LEGACY_ALLOCATED_CLASS, klass.getClassId(), klass.toByteArray()));
+    stacks
+      .forEach(stack -> execute(MemoryStatements.INSERT_LEGACY_ALLOCATION_STACK, stack.getStackId().toByteArray(), stack.toByteArray()));
   }
 
 
-  public AllocationContextsResponse listAllocationContexts(@NotNull AllocationContextsRequest request) {
+  public LegacyAllocationContextsResponse listAllocationContexts(@NotNull LegacyAllocationContextsRequest request) {
 
-    AllocationContextsResponse.Builder builder = AllocationContextsResponse.newBuilder();
+    LegacyAllocationContextsResponse.Builder builder = LegacyAllocationContextsResponse.newBuilder();
     // TODO optimize queries
     try {
       for (int i = 0; i < request.getClassIdsCount(); i++) {
-        ResultSet classResultSet = executeQuery(MemoryStatements.QUERY_ALLOCATED_CLASS, request.getClassIds(i));
+        ResultSet classResultSet = executeQuery(MemoryStatements.QUERY_LEGACY_ALLOCATED_CLASS, request.getClassIds(i));
         if (classResultSet.next()) {
           AllocatedClass data = AllocatedClass.newBuilder().mergeFrom(classResultSet.getBytes(1)).build();
           builder.addAllocatedClasses(data);
@@ -341,7 +345,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
       }
 
       for (int i = 0; i < request.getStackIdsCount(); i++) {
-        ResultSet stackResultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_STACK, request.getStackIds(i).toByteArray());
+        ResultSet stackResultSet = executeQuery(MemoryStatements.QUERY_LEGACY_ALLOCATION_STACK, request.getStackIds(i).toByteArray());
         if (stackResultSet.next()) {
           AllocationStack data = AllocationStack.newBuilder().mergeFrom(stackResultSet.getBytes(1)).build();
           builder.addAllocationStacks(data);

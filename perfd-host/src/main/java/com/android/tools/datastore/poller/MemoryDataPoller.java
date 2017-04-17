@@ -143,10 +143,11 @@ public class MemoryDataPoller extends PollRunner {
     Runnable query = () -> {
       HashSet<Integer> classesToFetch = new HashSet<>();
       HashSet<ByteString> stacksToFetch = new HashSet<>();
-      HashMap<Long, AllocationEventsResponse> eventsToSave = new HashMap<>();
+      HashMap<Long, LegacyAllocationEventsResponse> eventsToSave = new HashMap<>();
       for (AllocationsInfo sample : dumpsToFetch) {
-        AllocationEventsResponse allocEventsResponse = myPollingService.getAllocationEvents(
-          AllocationEventsRequest.newBuilder().setProcessId(myProcessId).setStartTime(sample.getStartTime()).setEndTime(sample.getEndTime())
+        LegacyAllocationEventsResponse allocEventsResponse = myPollingService.getLegacyAllocationEvents(
+          LegacyAllocationEventsRequest.newBuilder().setProcessId(myProcessId).setStartTime(sample.getStartTime())
+            .setEndTime(sample.getEndTime())
             .build());
         eventsToSave.put(sample.getStartTime(), allocEventsResponse);
 
@@ -156,18 +157,19 @@ public class MemoryDataPoller extends PollRunner {
         });
 
         // Also save out raw dump
-        DumpDataResponse allocDumpResponse = myPollingService.getAllocationDump(
+        DumpDataResponse allocDumpResponse = myPollingService.getLegacyAllocationDump(
           DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
-        myMemoryTable.updateAllocationDump(myProcessId, mySession, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
+        myMemoryTable.updateLegacyAllocationDump(myProcessId, mySession, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
       }
 
       // Note: the class/stack information are saved first to the table to avoid the events referencing yet-to-exist data
       // in the tables.
-      AllocationContextsRequest contextRequest = AllocationContextsRequest.newBuilder()
+      LegacyAllocationContextsRequest contextRequest = LegacyAllocationContextsRequest.newBuilder()
         .addAllClassIds(classesToFetch).addAllStackIds(stacksToFetch).build();
-      AllocationContextsResponse contextsResponse = myPollingService.listAllocationContexts(contextRequest);
-      myMemoryTable.insertAllocationContext(contextsResponse.getAllocatedClassesList(), contextsResponse.getAllocationStacksList());
-      eventsToSave.forEach((startTime, response) -> myMemoryTable.updateAllocationEvents(myProcessId, mySession, startTime, response));
+      LegacyAllocationContextsResponse contextsResponse = myPollingService.listLegacyAllocationContexts(contextRequest);
+      myMemoryTable.insertLegacyAllocationContext(contextsResponse.getAllocatedClassesList(), contextsResponse.getAllocationStacksList());
+      eventsToSave
+        .forEach((startTime, response) -> myMemoryTable.updateLegacyAllocationEvents(myProcessId, mySession, startTime, response));
     };
     myFetchExecutor.accept(query);
   }
@@ -181,7 +183,8 @@ public class MemoryDataPoller extends PollRunner {
       for (HeapDumpInfo sample : dumpsToFetch) {
         DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
           DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
-        myMemoryTable.insertHeapDumpData(myProcessId, mySession, sample.getStartTime(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
+        myMemoryTable
+          .insertHeapDumpData(myProcessId, mySession, sample.getStartTime(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
       }
     };
     myFetchExecutor.accept(query);
