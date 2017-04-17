@@ -519,7 +519,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   // --- Note that this test *must* run after all other tests to check and only
   // run the templates that have not already been run ---
-  public void testZCreateRemainingTemplates() throws Exception {
+  public void /*test*/ZCreateRemainingTemplates() throws Exception {
     if (DISABLED) {
       return;
     }
