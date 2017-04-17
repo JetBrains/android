@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.ApiVersion;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.ApiVersionStub;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidArtifactOutputStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,9 +30,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeApiVersion}.
+ * Tests for {@link }.
  */
-public class IdeApiVersionTest {
+public class IdeAndroidArtifactOutputTest {
   private ModelCache myModelCache;
 
   @Before
@@ -42,25 +42,25 @@ public class IdeApiVersionTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeApiVersion.class).isAssignableTo(Serializable.class);
+    assertThat(IdeAndroidArtifactOutput.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeApiVersion apiVersion = new IdeApiVersion(new ApiVersionStub(), myModelCache);
-    byte[] bytes = serialize(apiVersion);
+    IdeAndroidArtifactOutput output = new IdeAndroidArtifactOutput(new AndroidArtifactOutputStub(), myModelCache);
+    byte[] bytes = serialize(output);
     Object o = deserialize(bytes);
-    assertEquals(apiVersion, o);
+    assertEquals(output, o);
   }
 
   @Test
   public void constructor() throws Throwable {
-    ApiVersion original = new ApiVersionStub();
-    assertEqualsOrSimilar(original, new IdeApiVersion(original, myModelCache));
+    AndroidArtifactOutput original = new AndroidArtifactOutputStub();
+    assertEqualsOrSimilar(original, new IdeAndroidArtifactOutput(original, myModelCache));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeApiVersion.class).verify();
+    EqualsVerifier.forClass(IdeAndroidArtifactOutput.class).withRedefinedSuperclass().verify();
   }
 }

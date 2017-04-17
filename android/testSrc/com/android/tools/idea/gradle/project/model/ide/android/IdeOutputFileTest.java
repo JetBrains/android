@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.ApiVersion;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.ApiVersionStub;
+import com.android.build.OutputFile;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.OutputFileStub;
+import com.google.common.collect.Lists;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,9 +32,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeApiVersion}.
+ * Tests for {@link IdeOutputFile}.
  */
-public class IdeApiVersionTest {
+public class IdeOutputFileTest {
   private ModelCache myModelCache;
 
   @Before
@@ -42,25 +44,30 @@ public class IdeApiVersionTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeApiVersion.class).isAssignableTo(Serializable.class);
+    assertThat(IdeOutputFile.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeApiVersion apiVersion = new IdeApiVersion(new ApiVersionStub(), myModelCache);
-    byte[] bytes = serialize(apiVersion);
+    IdeOutputFile outputFile = new IdeOutputFile(createStub(), myModelCache);
+    byte[] bytes = serialize(outputFile);
     Object o = deserialize(bytes);
-    assertEquals(apiVersion, o);
+    assertEquals(outputFile, o);
   }
 
   @Test
   public void constructor() throws Throwable {
-    ApiVersion original = new ApiVersionStub();
-    assertEqualsOrSimilar(original, new IdeApiVersion(original, myModelCache));
+    OutputFile original = createStub();
+    assertEqualsOrSimilar(original, new IdeOutputFile(original, myModelCache));
+  }
+
+  @NotNull
+  private static OutputFileStub createStub() {
+    return new OutputFileStub(Lists.newArrayList(new OutputFileStub()));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeApiVersion.class).verify();
+    EqualsVerifier.forClass(IdeOutputFile.class).verify();
   }
 }

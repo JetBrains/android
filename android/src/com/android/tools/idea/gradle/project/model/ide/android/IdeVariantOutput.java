@@ -22,13 +22,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link VariantOutput}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link VariantOutput}.
  */
-public class IdeVariantOutput extends IdeModel implements VariantOutput {
+public abstract class IdeVariantOutput extends IdeModel implements VariantOutput {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final OutputFile myMainOutputFile;
   @NotNull private final Collection<? extends OutputFile> myOutputs;
   @NotNull private final String myOutputType;
@@ -43,7 +45,7 @@ public class IdeVariantOutput extends IdeModel implements VariantOutput {
     myOutputs = copy(output.getOutputs(), modelCache, outputFile -> new IdeOutputFile(outputFile, modelCache));
     myOutputType = output.getOutputType();
     myFilterTypes = new ArrayList<>(output.getFilterTypes());
-    myFilters = new ArrayList<>(output.getFilters());
+    myFilters = copy(output.getFilters(), modelCache, data -> new IdeFilterData(data, modelCache));
     myVersionCode = output.getVersionCode();
   }
 
@@ -80,5 +82,42 @@ public class IdeVariantOutput extends IdeModel implements VariantOutput {
   @Override
   public int getVersionCode() {
     return myVersionCode;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeVariantOutput)) {
+      return false;
+    }
+    IdeVariantOutput output = (IdeVariantOutput)o;
+    return output.canEquals(this) &&
+           myVersionCode == output.myVersionCode &&
+           Objects.equals(myMainOutputFile, output.myMainOutputFile) &&
+           Objects.equals(myOutputs, output.myOutputs) &&
+           Objects.equals(myOutputType, output.myOutputType) &&
+           Objects.equals(myFilterTypes, output.myFilterTypes) &&
+           Objects.equals(myFilters, output.myFilters);
+  }
+
+  protected boolean canEquals(Object other) {
+    return other instanceof IdeVariantOutput;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myMainOutputFile, myOutputs, myOutputType, myFilterTypes, myFilters, myVersionCode);
+  }
+
+  @Override
+  public String toString() {
+    return "myMainOutputFile=" + myMainOutputFile +
+           ", myOutputs=" + myOutputs +
+           ", myOutputType='" + myOutputType + '\'' +
+           ", myFilterTypes=" + myFilterTypes +
+           ", myFilters=" + myFilters +
+           ", myVersionCode=" + myVersionCode;
   }
 }

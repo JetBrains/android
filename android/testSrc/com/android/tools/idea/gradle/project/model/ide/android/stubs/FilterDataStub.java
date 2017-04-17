@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.build.FilterData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link FilterData}.
- */
-public final class IdeFilterData extends IdeModel implements FilterData {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public final class FilterDataStub implements FilterData {
   @NotNull private final String myIdentifier;
   @NotNull private final String myFilterType;
 
-  public IdeFilterData(@NotNull FilterData data, @NotNull ModelCache modelCache) {
-    super(data, modelCache);
-    myIdentifier = data.getIdentifier();
-    myFilterType = data.getFilterType();
+  public FilterDataStub() {
+    this("identifier", "filterType");
+  }
+
+  public FilterDataStub(@NotNull String identifier, @NotNull String filterType) {
+    myIdentifier = identifier;
+    myFilterType = filterType;
   }
 
   @Override
@@ -53,24 +50,16 @@ public final class IdeFilterData extends IdeModel implements FilterData {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeFilterData)) {
+    if (!(o instanceof FilterData)) {
       return false;
     }
-    IdeFilterData data = (IdeFilterData)o;
-    return Objects.equals(myIdentifier, data.myIdentifier) &&
-           Objects.equals(myFilterType, data.myFilterType);
+    FilterData filterData = (FilterData)o;
+    return Objects.equals(getIdentifier(), filterData.getIdentifier()) &&
+           Objects.equals(getFilterType(), filterData.getFilterType());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myIdentifier, myFilterType);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeFilterData{" +
-           "myIdentifier='" + myIdentifier + '\'' +
-           ", myFilterType='" + myFilterType + '\'' +
-           "}";
+    return Objects.hash(getIdentifier(), getFilterType());
   }
 }

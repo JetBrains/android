@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.JavaCompileOptions;
 import org.jetbrains.annotations.NotNull;
@@ -23,19 +23,19 @@ import java.util.Objects;
 /**
  * Creates a deep copy of a {@link JavaCompileOptions}.
  */
-public final class IdeJavaCompileOptions extends IdeModel implements JavaCompileOptions {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public final class JavaCompileOptionsStub implements JavaCompileOptions {
   @NotNull private final String myEncoding;
   @NotNull private final String mySourceCompatibility;
   @NotNull private final String myTargetCompatibility;
 
-  public IdeJavaCompileOptions(@NotNull JavaCompileOptions options, @NotNull ModelCache modelCache) {
-    super(options, modelCache);
-    myEncoding = options.getEncoding();
-    mySourceCompatibility = options.getSourceCompatibility();
-    myTargetCompatibility = options.getTargetCompatibility();
+  public JavaCompileOptionsStub() {
+    this("encoding", "sourceCompatibility", "targetCompatibility");
+  }
+
+  public JavaCompileOptionsStub(@NotNull String encoding, @NotNull String sourceCompatibility, @NotNull String targetCompatibility) {
+    myEncoding = encoding;
+    mySourceCompatibility = sourceCompatibility;
+    myTargetCompatibility = targetCompatibility;
   }
 
   @Override
@@ -61,26 +61,17 @@ public final class IdeJavaCompileOptions extends IdeModel implements JavaCompile
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeJavaCompileOptions)) {
+    if (!(o instanceof JavaCompileOptions)) {
       return false;
     }
-    IdeJavaCompileOptions options = (IdeJavaCompileOptions)o;
-    return Objects.equals(myEncoding, options.myEncoding) &&
-           Objects.equals(mySourceCompatibility, options.mySourceCompatibility) &&
-           Objects.equals(myTargetCompatibility, options.myTargetCompatibility);
+    JavaCompileOptions compileOptions = (JavaCompileOptions)o;
+    return Objects.equals(getEncoding(), compileOptions.getEncoding()) &&
+           Objects.equals(getSourceCompatibility(), compileOptions.getSourceCompatibility()) &&
+           Objects.equals(getTargetCompatibility(), compileOptions.getTargetCompatibility());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myEncoding, mySourceCompatibility, myTargetCompatibility);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeJavaCompileOptions{" +
-           "myEncoding='" + myEncoding + '\'' +
-           ", mySourceCompatibility='" + mySourceCompatibility + '\'' +
-           ", myTargetCompatibility='" + myTargetCompatibility + '\'' +
-           "}";
+    return Objects.hash(getEncoding(), getSourceCompatibility(), getTargetCompatibility());
   }
 }
