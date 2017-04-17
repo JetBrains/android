@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 
 import com.android.assetstudiolib.*;
 import com.android.resources.Density;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.npw.assetstudio.icon.*;
 import com.android.tools.idea.npw.assetstudio.ui.*;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
@@ -119,7 +120,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
    */
   public GenerateImageAssetPanel(@NotNull Disposable disposableParent,
                                  @NotNull AndroidProjectPaths defaultPaths,
-                                 int minSdkVersion,
+                                 @NotNull AndroidVersion minSdkVersion,
+                                 @NotNull AndroidVersion targetSdkVersion,
                                  @NotNull AndroidAdaptiveIconType... supportedTypes) {
     super(new BorderLayout());
 
@@ -134,6 +136,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myIconTypeCombo.setModel(supportedTypesModel);
     myIconTypeCombo.setVisible(supportedTypes.length > 1);
     myOutputIconType = new AsValueExpression<>(new SelectedItemProperty<>(myIconTypeCombo));
+
+    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
     myPreviewResolutionComboBox.setRenderer(new ListCellRendererWrapper<Density>() {
       @Override
@@ -161,16 +165,16 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
       ConfigureIconView view;
       switch (iconType) {
         case ADAPTIVE:
-          view = new ConfigureAdaptiveIconPanel(this, minSdkVersion, myShowGridProperty, myShowSafeZoneProperty, myPreviewDensityProperty);
+          view = new ConfigureAdaptiveIconPanel(this, minSdkVersion, targetSdkVersion, myShowGridProperty, myShowSafeZoneProperty, myPreviewDensityProperty, myValidatorPanel);
           break;
         case LAUNCHER_LEGACY:
-          view = new ConfigureIconPanel(this, AndroidIconType.LAUNCHER, minSdkVersion);
+          view = new ConfigureIconPanel(this, AndroidIconType.LAUNCHER, minSdkVersion.getApiLevel());
           break;
         case ACTIONBAR:
-          view = new ConfigureIconPanel(this, AndroidIconType.ACTIONBAR, minSdkVersion);
+          view = new ConfigureIconPanel(this, AndroidIconType.ACTIONBAR, minSdkVersion.getApiLevel());
           break;
         case NOTIFICATION:
-          view = new ConfigureIconPanel(this, AndroidIconType.NOTIFICATION, minSdkVersion);
+          view = new ConfigureIconPanel(this, AndroidIconType.NOTIFICATION, minSdkVersion.getApiLevel());
           break;
         default:
           throw new IllegalArgumentException("Invalid icon type");
@@ -208,8 +212,6 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     GuiUtils.replaceJSplitPaneWithIDEASplitter(mySplitPane);
 
     initializeListenersAndBindings();
-
-    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     initializeValidators();
 
     Disposer.register(disposableParent, this);
