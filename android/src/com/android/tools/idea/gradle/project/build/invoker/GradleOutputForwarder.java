@@ -20,6 +20,7 @@ import com.google.common.io.Closeables;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.util.SystemProperties;
 import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.LongRunningOperation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,12 +50,12 @@ class GradleOutputForwarder {
     myOutput = new ByteArrayOutputStream(SIZE * 2);
   }
 
-  void attachTo(@NotNull BuildLauncher launcher, @Nullable Listener listener) {
+  void attachTo(@NotNull LongRunningOperation operation, @Nullable Listener listener) {
     OutputStream stdout = new ConsoleAwareOutputStream(this, NORMAL_OUTPUT, listener);
     OutputStream stderr = new ConsoleAwareOutputStream(this, ERROR_OUTPUT, listener);
 
-    launcher.setStandardOutput(stdout);
-    launcher.setStandardError(stderr);
+    operation.setStandardOutput(stdout);
+    operation.setStandardError(stderr);
   }
 
   void close() {

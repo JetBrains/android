@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.annotations.Nullable;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.SigningConfig;
-import com.android.tools.idea.model.IdeSigningConfig;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeSigningConfig;
 import org.jetbrains.annotations.NotNull;
 
 /**

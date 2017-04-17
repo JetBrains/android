@@ -89,7 +89,8 @@ public class TestArtifactsResolveTest extends TestArtifactsTestCase {
   }
 
   // Flaky test, reactivate when investigated (http://b.android.com/226541)
-  public void testMultiModuleSourceResolvableInBothTests() throws Exception {
+  // http://b.android.com/230792
+  public void skip_testMultiModuleSourceResolvableInBothTests() throws Exception {
     setFileContent("module2/src/main/java/MyClass.java", "class MyClass {}");
 
     String importString = "import MyC<caret>lass;";

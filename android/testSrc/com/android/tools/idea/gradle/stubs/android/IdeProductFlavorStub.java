@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.model.IdeApiVersion;
-import com.android.tools.idea.model.IdeSigningConfig;
-import com.android.tools.idea.model.IdeVectorDrawablesOptions;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeApiVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeSigningConfig;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVectorDrawablesOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
