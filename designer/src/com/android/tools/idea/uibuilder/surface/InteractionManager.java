@@ -928,6 +928,8 @@ public class InteractionManager {
         components.get(index).x = dragged.get(index).x;
         components.get(index).y = dragged.get(index).y;
       }
+      dragged.clear();
+      dragged.addAll(components);
       return insertType;
     }
 
