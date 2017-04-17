@@ -27,6 +27,8 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.*;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestName;
 
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +40,7 @@ import static org.mockito.Mockito.when;
 public class MemoryDataPollerTest extends DataStorePollerTest {
 
   private static final int TEST_APP_ID = 1234;
-  private static final long BASE_TIME_NS = System.nanoTime();
+  private static final long BASE_TIME_NS = TimeUnit.DAYS.toNanos(1);
   private static final ByteString DUMP_DATA = ByteString.copyFrom("Test Data", Charset.defaultCharset());
 
   private static final MemoryData.MemorySample DEFAULT_MEMORY_SAMPLE = MemoryData.MemorySample.newBuilder()
@@ -84,8 +86,11 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   private MemoryService myMemoryService = new MemoryService(myDataStore, getPollTicker()::run);
   private FakeMemoryService myFakeMemoryService = new FakeMemoryService();
 
+  private TestName myTestName = new TestName();
+  private TestGrpcService<FakeMemoryService> myService =
+    new TestGrpcService<>(MemoryDataPollerTest.class, myTestName, myMemoryService, myFakeMemoryService);
   @Rule
-  public TestGrpcService<FakeMemoryService> myService = new TestGrpcService<>(myMemoryService, myFakeMemoryService);
+  public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
 
   @Before
   public void setUp() throws Exception {

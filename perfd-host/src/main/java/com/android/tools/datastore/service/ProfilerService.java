@@ -23,6 +23,7 @@ import com.android.tools.datastore.poller.ProfilerDevicePoller;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
+import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ import java.util.function.Consumer;
  * The data is populated from polling the service passed into the connectService function.
  */
 public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
-  private Map<ManagedChannel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
+  private Map<Channel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
   private Consumer<Runnable> myFetchExecutor;
   private ProfilerTable myTable = new ProfilerTable();
   private DataStoreService myService;
@@ -96,14 +97,14 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     responseObserver.onCompleted();
   }
 
-  public void startMonitoring(ManagedChannel channel) {
+  public void startMonitoring(Channel channel) {
     assert !myPollers.containsKey(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(channel);
     myPollers.put(channel, new ProfilerDevicePoller(myService, myTable, stub));
     myFetchExecutor.accept(myPollers.get(channel));
   }
 
-  public void stopMonitoring(ManagedChannel channel) {
+  public void stopMonitoring(Channel channel) {
     if (myPollers.containsKey(channel)) {
       ProfilerDevicePoller poller = myPollers.remove(channel);
       poller.stop();

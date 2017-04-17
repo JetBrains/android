@@ -29,6 +29,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestName;
 
 import java.util.Map;
 
@@ -69,9 +71,13 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     put(BYTES_ID_2, BYTES_2).
     build();
 
-  FakeProfilerService myFakeService = new FakeProfilerService();
+  private FakeProfilerService myFakeService = new FakeProfilerService();
+  private TestName myTestName = new TestName();
+  private TestGrpcService<FakeProfilerService> myService =
+    new TestGrpcService<>(ProfilerServiceTest.class, myTestName, myProfilerService, myFakeService);
+
   @Rule
-  public TestGrpcService<FakeProfilerService> myService = new TestGrpcService<>(myProfilerService, myFakeService);
+  public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
 
   @Before
   public void setUp() throws Exception {

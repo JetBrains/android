@@ -4,6 +4,7 @@ iml_module(
     name = "perfd-host",
     srcs = ["src/main/java"],
     tags = ["managed"],
+    test_resources = ["testData"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
