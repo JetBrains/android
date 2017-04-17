@@ -20,6 +20,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.avdmanager.SystemImagePreview.ImageRecommendation;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -242,15 +243,19 @@ public class ChooseSystemImagePanel extends JPanel
     switch (myTabPane.getSelectedIndex()) {
       case 0:
         myRecommendedImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(true, myDevice != null && myDevice.hasPlayStore());
+        if (myDevice != null && myDevice.hasPlayStore()) {
+          mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_GOOGLE_PLAY);
+        } else {
+          mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_X86);
+        }
         break;
       case 1:
         myX86ImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(false, false);
+        mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_NONE);
         break;
       default:
         myOtherImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(false, false);
+        mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_NONE);
         break;
     }
   }
