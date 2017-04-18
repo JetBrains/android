@@ -16,18 +16,23 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.annotations.Nullable;
-import com.android.builder.model.*;
+import com.android.builder.model.ApiVersion;
+import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.SigningConfig;
+import com.android.builder.model.VectorDrawablesOptions;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Creates a deep copy of {@link ProductFlavor}.
  *
  * @see IdeAndroidProject
  */
-public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor, Serializable {
+public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   @NotNull private final Map<String,String> myTestInstrumentationRunnerArguments;
   @NotNull private final Collection<String> myResourceConfigurations;
   @NotNull private final VectorDrawablesOptions myVectorDrawables;
@@ -49,8 +54,8 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor, Se
   @Nullable private final SigningConfig mySigningConfig;
   @Nullable private final Boolean myWearAppUnbundled;
 
-  public IdeProductFlavor(@NotNull ProductFlavor flavor) {
-    super(flavor);
+  public IdeProductFlavor(@NotNull ProductFlavor flavor, @NotNull ModelCache modelCache) {
+    super(flavor, modelCache);
 
     myTestInstrumentationRunnerArguments = new HashMap<>(flavor.getTestInstrumentationRunnerArguments());
     myResourceConfigurations = new ArrayList<>(flavor.getResourceConfigurations());

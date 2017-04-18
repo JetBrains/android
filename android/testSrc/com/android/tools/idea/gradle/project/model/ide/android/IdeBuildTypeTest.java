@@ -39,7 +39,7 @@ public class IdeBuildTypeTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeBuildType buildType = new IdeBuildType(new BuildTypeStub());
+    IdeBuildType buildType = new IdeBuildType(new BuildTypeStub(), new ModelCache());
     byte[] bytes = serialize(buildType);
     Object o = deserialize(bytes);
     assertEquals(buildType, o);
@@ -48,7 +48,7 @@ public class IdeBuildTypeTest {
   @Test
   public void constructor() throws Throwable {
     BuildType original = new BuildTypeStub();
-    assertEqualsOrSimilar(original, new IdeBuildType(original));
+    assertEqualsOrSimilar(original, new IdeBuildType(original, new ModelCache()));
   }
 
   @Test

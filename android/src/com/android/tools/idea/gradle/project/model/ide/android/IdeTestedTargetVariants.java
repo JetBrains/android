@@ -18,14 +18,12 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.TestedTargetVariant;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * Creates a deep copy of {@link TestedTargetVariant}.
  *
  * @see IdeAndroidProject
  */
-public class IdeTestedTargetVariants implements TestedTargetVariant, Serializable {
+public class IdeTestedTargetVariants extends IdeModel implements TestedTargetVariant {
   @NotNull private final String myTargetProjectPath;
   @NotNull private final String myTargetVariant;
 

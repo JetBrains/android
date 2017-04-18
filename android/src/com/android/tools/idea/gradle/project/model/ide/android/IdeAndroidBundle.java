@@ -22,8 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +29,7 @@ import java.util.Objects;
 /**
  * Creates a deep copy of an {@link AndroidBundle}.
  */
-public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBundle, Serializable {
+public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBundle {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -50,19 +48,8 @@ public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBund
     myBundle = bundle.getBundle();
     myFolder = bundle.getFolder();
 
-    List<? extends AndroidLibrary> libraryDependencies = bundle.getLibraryDependencies();
-    myLibraryDependencies = new ArrayList<>(libraryDependencies.size());
-    for (AndroidLibrary dependency : libraryDependencies) {
-      IdeAndroidLibrary copy = modelCache.computeIfAbsent(dependency, library -> new IdeAndroidLibrary(dependency, modelCache));
-      myLibraryDependencies.add(copy);
-    }
-
-    Collection<? extends JavaLibrary> javaDependencies = bundle.getJavaDependencies();
-    myJavaDependencies = new ArrayList<>(javaDependencies.size());
-    for (JavaLibrary dependency : javaDependencies) {
-      IdeJavaLibrary copy = modelCache.computeIfAbsent(dependency, library -> new IdeJavaLibrary(dependency, modelCache));
-      myJavaDependencies.add(copy);
-    }
+    myLibraryDependencies = copy(bundle.getLibraryDependencies(), modelCache, library -> new IdeAndroidLibrary(library, modelCache));
+    myJavaDependencies = copy(bundle.getJavaDependencies(), modelCache, library -> new IdeJavaLibrary(library, modelCache));
 
     myManifest = bundle.getManifest();
     myJarFile = bundle.getJarFile();

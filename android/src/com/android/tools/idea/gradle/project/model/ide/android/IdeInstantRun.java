@@ -19,14 +19,13 @@ import com.android.builder.model.InstantRun;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 
 /**
  * Creates a deep copy of {@link InstantRun}.
  *
  * @see IdeAndroidProject
  */
-public class IdeInstantRun implements InstantRun, Serializable {
+public class IdeInstantRun extends IdeModel implements InstantRun {
   @NotNull private final File myInfoFile;
   private final boolean mySupportedByArtifact;
   private final int mySupportStatus;

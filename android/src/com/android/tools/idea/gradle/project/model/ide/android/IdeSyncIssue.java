@@ -19,14 +19,12 @@ import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * Creates a deep copy of {@link SyncIssue}.
  *
  * @see IdeAndroidProject
  */
-public class IdeSyncIssue implements SyncIssue, Serializable {
+public class IdeSyncIssue extends IdeModel implements SyncIssue {
   @NotNull private final String myMessage;
   @Nullable private final String myData;
   private final int mySeverity;

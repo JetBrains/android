@@ -20,7 +20,6 @@ import com.android.build.OutputFile;
 import com.android.build.VariantOutput;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -30,7 +29,7 @@ import java.util.HashSet;
  *
  * @see IdeAndroidProject
  */
-public class IdeVariantOutput implements VariantOutput, Serializable {
+public class IdeVariantOutput extends IdeModel implements VariantOutput {
   @NotNull private final OutputFile myMainOutputFile;
   @NotNull private final Collection<IdeOutputFile> myOutputs;
   @NotNull private final String myOutputType;

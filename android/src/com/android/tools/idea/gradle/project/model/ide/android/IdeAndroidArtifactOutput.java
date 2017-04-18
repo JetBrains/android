@@ -19,14 +19,13 @@ import com.android.builder.model.AndroidArtifactOutput;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 
 /**
  * Creates a deep copy of {@link AndroidArtifactOutput}.
  *
  * @see IdeAndroidProject
  */
-public class IdeAndroidArtifactOutput extends IdeVariantOutput implements AndroidArtifactOutput, Serializable {
+public class IdeAndroidArtifactOutput extends IdeVariantOutput implements AndroidArtifactOutput {
   @NotNull private final String myAssembleTaskName;
   @NotNull private final File myGeneratedManifest;
   @NotNull private final File myOutputFile;

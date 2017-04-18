@@ -19,15 +19,13 @@ import com.android.builder.model.JavaLibrary;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * Creates a deep copy of a {@link JavaLibrary}.
  */
-public final class IdeJavaLibrary extends IdeLibrary implements JavaLibrary, Serializable {
+public final class IdeJavaLibrary extends IdeLibrary implements JavaLibrary {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -36,15 +34,8 @@ public final class IdeJavaLibrary extends IdeLibrary implements JavaLibrary, Ser
 
   public IdeJavaLibrary(@NotNull JavaLibrary library, @NotNull ModelCache modelCache) {
     super(library);
-
     myJarFile = library.getJarFile();
-
-    List<? extends JavaLibrary> dependencies = library.getDependencies();
-    myDependencies = new ArrayList<>(dependencies.size());
-    for (JavaLibrary dependency : dependencies) {
-      IdeJavaLibrary copy = modelCache.computeIfAbsent(dependency, key -> new IdeJavaLibrary(dependency, modelCache));
-      myDependencies.add(copy);
-    }
+    myDependencies = copy(library.getDependencies(), modelCache, dependency -> new IdeJavaLibrary(dependency, modelCache));
   }
 
   @Override

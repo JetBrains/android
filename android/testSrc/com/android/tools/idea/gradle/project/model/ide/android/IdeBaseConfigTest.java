@@ -38,7 +38,7 @@ public class IdeBaseConfigTest {
   @Test
   public void constructor() throws Throwable {
     BaseConfig original = createStub();
-    assertEqualsOrSimilar(original, new IdeBaseConfig(original) {});
+    assertEqualsOrSimilar(original, new IdeBaseConfig(original, new ModelCache()) {});
   }
 
   @NotNull

@@ -39,7 +39,7 @@ public class IdeDependencyGraphsTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeDependencyGraphs graphs = new IdeDependencyGraphs(new DependencyGraphsStub());
+    IdeDependencyGraphs graphs = new IdeDependencyGraphs(new DependencyGraphsStub(), new ModelCache());
     byte[] bytes = serialize(graphs);
     Object o = deserialize(bytes);
     assertEquals(graphs, o);
@@ -48,7 +48,7 @@ public class IdeDependencyGraphsTest {
   @Test
   public void constructor() throws Throwable {
     DependencyGraphs original = new DependencyGraphsStub();
-    assertEqualsOrSimilar(original, new IdeDependencyGraphs(original));
+    assertEqualsOrSimilar(original, new IdeDependencyGraphs(original, new ModelCache()));
   }
 
   @Test

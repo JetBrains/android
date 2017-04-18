@@ -19,15 +19,17 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Creates a deep copy of {@link Variant}.
  *
  * @see IdeAndroidProject
  */
-public class IdeVariant implements Variant, Serializable {
+public class IdeVariant extends IdeModel implements Variant {
   @NotNull private final String myName;
   @NotNull private final String myDisplayName;
   @NotNull private final AndroidArtifact myMainArtifact;
@@ -38,24 +40,24 @@ public class IdeVariant implements Variant, Serializable {
   @NotNull private final ProductFlavor myMergedFlavor;
   @NotNull private final Collection<TestedTargetVariant> myTestedTargetVariants;
 
-  public IdeVariant(@NotNull Variant variant, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
+  public IdeVariant(@NotNull Variant variant, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
     myName = variant.getName();
     myDisplayName = variant.getDisplayName();
-    myMainArtifact = new IdeAndroidArtifact(variant.getMainArtifact(), seen, gradleVersion);
+    myMainArtifact = new IdeAndroidArtifact(variant.getMainArtifact(), modelCache, gradleVersion);
 
     myExtraAndroidArtifacts = new ArrayList<>();
     for (AndroidArtifact artifact : variant.getExtraAndroidArtifacts()) {
-      myExtraAndroidArtifacts.add(new IdeAndroidArtifact(artifact, seen, gradleVersion));
+      myExtraAndroidArtifacts.add(new IdeAndroidArtifact(artifact, modelCache, gradleVersion));
     }
 
     myExtraJavaArtifacts = new ArrayList<>();
     for (JavaArtifact artifact : variant.getExtraJavaArtifacts()) {
-      myExtraJavaArtifacts.add(new IdeJavaArtifact(artifact, seen, gradleVersion));
+      myExtraJavaArtifacts.add(new IdeJavaArtifact(artifact, modelCache, gradleVersion));
     }
 
     myBuildType = variant.getBuildType();
     myProductFlavors = new ArrayList<>(variant.getProductFlavors());
-    myMergedFlavor = new IdeProductFlavor(variant.getMergedFlavor());
+    myMergedFlavor = new IdeProductFlavor(variant.getMergedFlavor(), modelCache);
 
     myTestedTargetVariants = new HashSet<>();
     for (TestedTargetVariant tested : variant.getTestedTargetVariants()) {

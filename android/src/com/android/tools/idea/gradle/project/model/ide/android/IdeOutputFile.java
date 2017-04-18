@@ -20,7 +20,6 @@ import com.android.build.OutputFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -30,7 +29,7 @@ import java.util.HashSet;
  *
  * @see IdeAndroidProject
  */
-public class IdeOutputFile implements OutputFile, Serializable {
+public class IdeOutputFile extends IdeModel implements OutputFile {
   @NotNull private final String myOutputType;
   @NotNull private final Collection<String> myFilterTypes;
   @NotNull private final Collection<FilterData> myFilters;

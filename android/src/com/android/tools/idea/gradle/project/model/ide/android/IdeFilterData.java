@@ -18,14 +18,12 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.build.FilterData;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
 /**
  * Creates a deep copy of {@link FilterData}.
  *
  * @see IdeAndroidProject
  */
-public class IdeFilterData implements FilterData, Serializable {
+public class IdeFilterData extends IdeModel implements FilterData {
   @NotNull private final String myIdentifier;
   @NotNull private final String myFilterType;
 
