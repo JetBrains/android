@@ -45,7 +45,7 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidSourceSet.getSourceSets(myFacet, null)));
+    return Collections.singletonList(new ConfirmGenerateImagesStep(getModel(), AndroidSourceSet.getSourceSets(myFacet, null)));
   }
 
   @NotNull
