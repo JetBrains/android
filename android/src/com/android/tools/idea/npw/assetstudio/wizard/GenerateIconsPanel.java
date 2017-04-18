@@ -335,7 +335,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
       protected void done() {
         if (myCategoryIconMap != null) {
           for (PreviewIconsPanel generatedIconsPanel : myOutputPreviewPanels.get(myOutputIconType.get())) {
-            generatedIconsPanel.updateImages(myCategoryIconMap);
+            generatedIconsPanel.showPreviewImages(myCategoryIconMap);
           }
           myCategoryIconMap = null;
         }

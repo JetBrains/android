@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import com.android.tools.idea.ui.ImageComponent;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,10 +23,11 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class ImagePreviewPanel {
   private JBLabel myImageLabel;
-  private JBLabel myImage;
+  private ImageComponent myImage;
   private JPanel myComponent;
 
   @NotNull
@@ -37,7 +39,15 @@ public class ImagePreviewPanel {
     myImageLabel.setText(title);
   }
 
-  public void setImage(@Nullable ImageIcon icon) {
+  public void setImage(@Nullable BufferedImage image) {
+    if (image == null) {
+      myImage.setIcon(null);
+      return;
+    }
+    ImageIcon icon = new ImageIcon(image);
+    Dimension d = new Dimension(icon.getIconWidth(), icon.getIconHeight());
+    myImage.setPreferredSize(d);
+    myImage.setMinimumSize(d);
     myImage.setIcon(icon);
   }
 

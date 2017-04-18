@@ -59,7 +59,7 @@ import java.util.Map;
  * See also {@link GenerateIconsPanel} which owns a couple of these panels, one for each
  * {@link AndroidIconType}.
  */
-public final class ConfigureIconPanel extends JPanel implements Disposable {
+public final class ConfigureIconPanel extends JPanel implements Disposable, ConfigureIconView {
 
   /**
    * Source material icons are provided in a vector graphics format, but their default resolution
@@ -347,19 +347,28 @@ public final class ConfigureIconPanel extends JPanel implements Disposable {
   /**
    * Return an icon generator which will create Android icons using the panel's current settings.
    */
+  @Override
   @NotNull
   public AndroidIconGenerator getIconGenerator() {
     return myIconGenerator;
+  }
+
+  @NotNull
+  @Override
+  public JComponent getRootComponent() {
+    return this;
   }
 
   /**
    * Add a listener which will be triggered whenever the asset represented by this panel is
    * modified in any way.
    */
+  @Override
   public void addAssetListener(@NotNull ActionListener listener) {
     myAssetListeners.add(listener);
   }
 
+  @Override
   @NotNull
   public StringProperty outputName() {
     return myOutputName;
