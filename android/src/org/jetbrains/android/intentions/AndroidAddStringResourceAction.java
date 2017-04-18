@@ -450,12 +450,6 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     return null;
   }
 
-
-  @Override
-  public boolean startInWriteAction() {
-    return true;
-  }
-
   private static class MyVarOfTypeExpression extends VariableOfTypeMacro {
     private final String myDefaultValue;
 
