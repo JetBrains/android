@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.DurationData;
@@ -227,9 +228,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
-    final JLabel label = new JLabel(getStage().getName());
-    label.setBorder(MONITOR_LABEL_PADDING);
-    label.setVerticalAlignment(SwingConstants.TOP);
+    final JLabel stageHeader = new JLabel(getStage().getName());
+    stageHeader.setFont(AdtUiUtils.FONT_PROFILER_TITLE);
+    stageHeader.setBorder(MONITOR_LABEL_PADDING);
+    stageHeader.setVerticalAlignment(SwingConstants.TOP);
+    stageHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -320,7 +323,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
-    legendPanel.add(label, BorderLayout.WEST);
+    legendPanel.add(stageHeader, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));

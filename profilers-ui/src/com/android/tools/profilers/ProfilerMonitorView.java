@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -94,10 +95,11 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
       JLabel disabledMessage = new JLabel(getDisabledMessage());
       disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
       disabledMessage.setVerticalAlignment(SwingConstants.BOTTOM);
-      disabledMessage.setFont(disabledMessage.getFont().deriveFont(16f));
+      disabledMessage.setFont(AdtUiUtils.FONT_ERROR_INLINE_TITLE);
       myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
 
       HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
+      linkToConfigMessage.setFont(AdtUiUtils.FONT_ERROR_INLINE_MESSAGE);
       linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration dialog", "");
       linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
         @Override

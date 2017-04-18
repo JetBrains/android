@@ -157,7 +157,7 @@ public final class ImageDiffUtil {
 
     } catch (IOException | FontFormatException e) {
       System.err.println("Couldn't load default TrueType Font. Using a logical font instead.");
-      return AdtUiUtils.DEFAULT_FONT;
+      return AdtUiUtils.FONT_DEFAULT;
     }
   }
 
