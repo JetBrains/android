@@ -4,6 +4,7 @@ import com.android.SdkConstants;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -25,6 +26,8 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
   private final String myAttributeName;
   private final String myValue;
   private final String myNamespace;
+  private final int myDot;
+  private final int myMark;
 
   // 'null' value means asking
   public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String value) {
@@ -32,11 +35,18 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
   }
 
   public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value) {
+    this(name, attributeName, namespace, value, Integer.MIN_VALUE, Integer.MIN_VALUE);
+
+  }
+  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value,
+                              int dot, int mark) {
     super();
     myName = name;
     myAttributeName = attributeName;
     myValue = value;
     myNamespace = namespace;
+    myDot = dot;
+    myMark = mark;
   }
 
   @NotNull
@@ -72,8 +82,8 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
       ? tag.setAttribute(myAttributeName, myNamespace, "")
       :tag.setAttribute(myAttributeName, "");
 
-    if (attribute != null) {
-      if (value != null) {
+    if (attribute != null ) {
+      if (value != null && !value.isEmpty()) {
         attribute.setValue(value);
       }
       if (context instanceof AndroidQuickfixContexts.EditorContext) {
@@ -83,6 +93,18 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
 
         if (valueElement != null) {
           final int valueElementStart = valueElement.getTextRange().getStartOffset();
+          if (myDot != Integer.MIN_VALUE) {
+            int end = valueElementStart + valueTextRange.getStartOffset() + myDot;
+            if (myMark != Integer.MIN_VALUE && myMark != myDot) {
+              int start = valueElementStart + valueTextRange.getStartOffset() + myMark;
+              editor.getCaretModel().moveToOffset(end);
+              editor.getSelectionModel().setSelection(start, end);
+            } else {
+              editor.getCaretModel().moveToOffset(end);
+            }
+            return;
+          }
+
           editor.getCaretModel().moveToOffset(valueElementStart + valueTextRange.getStartOffset());
 
           if (valueTextRange.getStartOffset() < valueTextRange.getEndOffset()) {
@@ -132,8 +154,13 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
     if (tag == null) {
       return false;
     }
-    return myNamespace != null
-      ? tag.getAttribute(myAttributeName, myNamespace) == null
-      : tag.getAttribute(myAttributeName) == null;
+
+    XmlAttribute attribute;
+    if (myNamespace != null) {
+      attribute = tag.getAttribute(myAttributeName, myNamespace);
+    } else {
+      attribute = tag.getAttribute(myAttributeName);
+    }
+    return attribute == null || !StringUtil.notNullize(myValue).equals(StringUtil.notNullize(attribute.getValue()));
   }
 }

@@ -17,18 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.PxUsageDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintSpUsageInspection extends AndroidLintInspectionBase {
   public AndroidLintSpUsageInspection() {
     super(AndroidBundle.message("android.lint.inspections.sp.usage"), PxUsageDetector.DP_ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, "\\d+(di?p)", "sp")};
   }
 }

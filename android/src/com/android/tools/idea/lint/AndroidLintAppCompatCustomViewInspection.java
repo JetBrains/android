@@ -16,26 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
-import com.android.tools.lint.detector.api.TextFormat;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintAppCompatCustomViewInspection extends AndroidLintInspectionBase {
   public AndroidLintAppCompatCustomViewInspection() {
     super(AndroidBundle.message("android.lint.inspections.app.compat.custom.view"), AppCompatCustomViewDetector.ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    String superClass = AppCompatCustomViewDetector.getSuggestedSuperClass(message, TextFormat.RAW);
-    if (superClass != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Extend AppCompat widget instead", null, superClass)};
-    }
-
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

@@ -162,7 +162,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testContentDescription() throws Exception {
     doTestWithFix(new AndroidLintContentDescriptionInspection(),
-                  AndroidBundle.message("android.lint.fix.add.content.description"),
+                  "Set contentDescription",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -234,7 +234,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testBaselineWeights() throws Exception {
     doTestWithFix(new AndroidLintDisableBaselineAlignmentInspection(),
-                  AndroidBundle.message("android.lint.fix.set.baseline.attribute"),
+                  "Set baselineAligned=\"false\"",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -271,7 +271,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testExportedService() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintExportedServiceInspection(),
-                  AndroidBundle.message("android.lint.fix.add.permission.attribute"),
+                  "Set permission",
                   "AndroidManifest.xml", "xml");
   }
 
@@ -284,12 +284,12 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testExportedReceiver() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintExportedReceiverInspection(),
-                  "Set permission attribute", "AndroidManifest.xml", "xml");
+                  "Set permission", "AndroidManifest.xml", "xml");
   }
 
   public void testEditText() throws Exception {
     doTestWithFix(new AndroidLintTextFieldsInspection(),
-                  AndroidBundle.message("android.lint.fix.add.input.type.attribute"),
+                  "Set inputType",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -404,7 +404,7 @@ public class AndroidLintTest extends AndroidTestCase {
     deleteManifest();
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
     doTestWithFix(new AndroidLintRtlCompatInspection(),
-                  "Set paddingLeft", "/res/layout/layout.xml", "xml");
+                  "Set paddingLeft=\"12sp\"", "/res/layout/layout.xml", "xml");
   }
 
   public void testAppCompatMethod() throws Exception {
@@ -491,7 +491,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testMissingAppIcon() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintMissingApplicationIconInspection(),
-                  "Set application icon", "AndroidManifest.xml", "xml");
+                  "Set icon", "AndroidManifest.xml", "xml");
   }
 
   public void testMissingLeanbackSupport() throws Exception {
@@ -509,7 +509,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testMissingTvBanner() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintMissingTvBannerInspection(),
-                  "Set banner attribute", "AndroidManifest.xml", "xml");
+                  "Set banner", "AndroidManifest.xml", "xml");
   }
 
   public void testInvalidUsesTagAttribute() throws Exception {
@@ -659,7 +659,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testPropertyFiles() throws Exception {
     doTestWithFix(new AndroidLintPropertyEscapeInspection(),
-                  "Replace with C\\:\\\\foo\\\\bar", "local.properties", "properties");
+                  "Escape", "local.properties", "properties");
   }
 
   public void testReferenceTypes() throws Exception {
@@ -673,7 +673,7 @@ public class AndroidLintTest extends AndroidTestCase {
     deleteManifest();
     // Need to use targetSdkVersion 11
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
-    doTestWithFix(new AndroidLintSelectableTextInspection(), "Set android:textIsSelectable=true",
+    doTestWithFix(new AndroidLintSelectableTextInspection(), "Set textIsSelectable=\"true\"",
                   "/res/layout/layout.xml", "xml");
   }
 
@@ -1020,7 +1020,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testUnprotectedSmsBroadcastReceiver() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintUnprotectedSMSBroadcastReceiverInspection(),
-                  "Set permission attribute", "AndroidManifest.xml", "xml");
+                  "Set permission=\"android.permission.BROADCAST_SMS\"", "AndroidManifest.xml", "xml");
   }
 
   public void testActivityRegistered() throws Exception {
@@ -1114,7 +1114,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testMissingWearStandaloneAppFlagValueAttr() throws Exception {
     deleteManifest();
     doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
-                  "Set value attribute",
+                  "Set value=\"true\"",
                   "AndroidManifest.xml", "xml");
   }
 
@@ -1138,7 +1138,7 @@ public class AndroidLintTest extends AndroidTestCase {
     myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
 
     doTestWithFix(new AndroidLintWifiManagerLeakInspection(),
-                  "Replace with getApplicationContext().getSystemService()",
+                  "Add getApplicationContext()",
                   "/src/test/pkg/WifiManagerLeak.java", "java");
   }
 

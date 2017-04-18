@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.NetworkSecurityConfigDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -25,6 +26,7 @@ import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.RenameAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -35,17 +37,11 @@ public class AndroidLintNetworkSecurityConfigInspection extends AndroidLintInspe
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    if (NetworkSecurityConfigDetector.isInvalidDigestAlgorithmMessage(message)) {
-      List<String> digestAlgs = NetworkSecurityConfigDetector.getSupportedPinDigestAlgorithms();
-      AndroidLintQuickFix[] digestFixes = new AndroidLintQuickFix[digestAlgs.size()];
-      for (int i = 0; i < digestFixes.length; i++) {
-        String algorithm = digestAlgs.get(i);
-        digestFixes[i] = new ReplaceStringQuickFix(String.format("Set digest to \"%1$s\"", algorithm), null, algorithm);
-      }
-      return digestFixes;
-    }
-    else if (NetworkSecurityConfigDetector.isAttributeSpellingError(message)) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    if (NetworkSecurityConfigDetector.isAttributeSpellingError(message)) {
       XmlTag parentTag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
       XmlAttribute currentAttr = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false);
       assert parentTag != null;
@@ -72,7 +68,7 @@ public class AndroidLintNetworkSecurityConfigInspection extends AndroidLintInspe
       return elementQuickFixes;
     }
     else {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
+      return super.getQuickFixes(startElement, endElement, message, fixData);
     }
   }
 }

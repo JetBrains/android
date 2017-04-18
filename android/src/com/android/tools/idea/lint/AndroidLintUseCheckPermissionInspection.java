@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.SupportAnnotationDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -33,13 +34,18 @@ public class AndroidLintUseCheckPermissionInspection extends AndroidLintInspecti
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
-                                             @Nullable Object extraData) {
-    if (extraData instanceof String) {
-      return new AndroidLintQuickFix[] {
-        new AndroidLintCheckResultInspection.ReplaceCallFix((String)extraData)
-      };
+                                             @Nullable LintFix fixData) {
+    if (fixData instanceof LintFix.DataMap) {
+      LintFix.DataMap map = (LintFix.DataMap)fixData;
+
+      String suggested = map.get(String.class);
+      if (suggested != null) {
+        return new AndroidLintQuickFix[]{
+          new AndroidLintCheckResultInspection.ReplaceCallFix(suggested)
+        };
+      }
     }
 
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

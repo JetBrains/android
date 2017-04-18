@@ -17,24 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.TextFieldDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_INPUT_TYPE;
 
 public class AndroidLintTextFieldsInspection extends AndroidLintInspectionBase {
   public AndroidLintTextFieldsInspection() {
     super(AndroidBundle.message("android.lint.inspections.text.fields"), TextFieldDetector.ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{
-      new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.add.input.type.attribute"),
-                               ATTR_INPUT_TYPE, null)
-    };
   }
 }

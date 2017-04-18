@@ -224,7 +224,7 @@ public class LintIdeClient extends LintClient implements Disposable {
                      @NonNull Location location,
                      @NonNull String message,
                      @NonNull TextFormat format,
-                     @Nullable Object extraData) {
+                     @Nullable LintFix extraData) {
     assert false : message;
   }
 
@@ -243,7 +243,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    * problem for each location associated with the lint error.
    */
   protected void reportSecondary(@NonNull Context context, @NonNull Issue issue, @NonNull Severity severity, @NonNull Location location,
-                                 @NonNull String message, @NonNull TextFormat format, @Nullable Object extraData) {
+                                 @NonNull String message, @NonNull TextFormat format, @Nullable LintFix extraData) {
     Location secondary = location.getSecondary();
     if (secondary != null && secondary.isVisible()) {
       String secondaryMessage = secondary.getMessage();
@@ -597,7 +597,7 @@ public class LintIdeClient extends LintClient implements Disposable {
                        @NonNull Location location,
                        @NonNull String message,
                        @NonNull TextFormat format,
-                       @Nullable Object quickfixData) {
+                       @Nullable LintFix quickfixData) {
       if (location != null) {
         final File file = location.getFile();
         final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
@@ -744,7 +744,7 @@ public class LintIdeClient extends LintClient implements Disposable {
                        @NonNull Location location,
                        @NonNull String message,
                        @NonNull TextFormat format,
-                       @Nullable Object quickfixData) {
+                       @Nullable LintFix quickfixData) {
       VirtualFile vFile = null;
       File file = null;
 

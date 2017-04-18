@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.WearStandaloneAppDetector.*;
-import static com.android.xml.AndroidManifest.*;
+import static com.android.xml.AndroidManifest.NODE_APPLICATION;
+import static com.android.xml.AndroidManifest.NODE_METADATA;
 
 public class AndroidLintWearStandaloneAppFlagInspection extends AndroidLintInspectionBase {
   public AndroidLintWearStandaloneAppFlagInspection() {
@@ -41,24 +42,12 @@ public class AndroidLintWearStandaloneAppFlagInspection extends AndroidLintInspe
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
-                                             @Nullable Object extraData) {
-    if (!(extraData instanceof Integer)) {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
-    }
+                                             @Nullable LintFix fixData) {
 
-    Integer extraType = (Integer)extraData;
-
-    switch (extraType) {
-      case QFX_EXTRA_INVALID_ATTR_VALUE:
-        return new AndroidLintQuickFix[]{
-          new ReplaceStringQuickFix(null, null, VALUE_TRUE),
-          new ReplaceStringQuickFix(null, null, VALUE_FALSE),
-        };
-      case QFX_EXTRA_MISSING_VALUE_ATTRIBUTE:
-        return new AndroidLintQuickFix[]{
-          new SetAttributeQuickFix("Set value attribute", ATTR_VALUE, VALUE_TRUE)
-        };
-      case QFX_EXTRA_MISSING_META_DATA:
+    if (fixData instanceof LintFix.DataMap) {
+      LintFix.DataMap map = (LintFix.DataMap)fixData;
+      Integer id = map.get(Integer.class);
+      if (id != null && id == QFX_EXTRA_MISSING_META_DATA) {
         return new AndroidLintQuickFix[]{
           new DefaultLintQuickFix("Add meta-data element for '" + WEARABLE_STANDALONE_ATTR + "'") {
             @Override
@@ -96,8 +85,9 @@ public class AndroidLintWearStandaloneAppFlagInspection extends AndroidLintInspe
             }
           }
         };
-      default:
-        return AndroidLintQuickFix.EMPTY_ARRAY;
+      }
     }
+
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }
