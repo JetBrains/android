@@ -677,10 +677,10 @@ public class RenderTask implements IImageFactory {
         return topParser;
       }
       catch (IOException e) {
-        myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()), e);
+        myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()),  null, e);
       }
       catch (XmlPullParserException e) {
-        myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), e.getDetail() != null ? e.getDetail() : e);
+        myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), null, e.getDetail() != null ? e.getDetail() : e);
       }
     }
 

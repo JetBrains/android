@@ -261,7 +261,7 @@ public class RenderService extends AndroidFacetScopedService {
     }
     catch (IOException e) {
       final String message = e.getMessage();
-      logger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e);
+      logger.error(null, "I/O error: " + (message != null ? ": " + message : ""), null, e);
       return null;
     }
 

@@ -651,7 +651,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   }
 
   public void testFidelityErrors() {
-    LogOperation operation = (logger, render) -> logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
+    LogOperation operation = (logger, render) -> logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null);
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(1, issues);
@@ -660,8 +660,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                      "<BR/></DL><A HREF=\"runnable:1\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(0));
 
     operation = (logger, render) -> {
-      logger.fidelityWarning("Fidelity", "Fidelity issue", null, null);
-      logger.error("Error", "An error", null, null);
+      logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null);
+      logger.error("Error", "An error", null);
     };
     issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(2, issues);
