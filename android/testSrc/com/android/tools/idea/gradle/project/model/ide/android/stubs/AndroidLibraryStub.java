@@ -13,35 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.AndroidLibrary;
+import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 
 /**
  * Creates a deep copy of an {@link AndroidLibrary}.
  */
-public final class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrary, Serializable {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public final class AndroidLibraryStub extends AndroidBundleStub implements AndroidLibrary {
   @NotNull private final Collection<File> myLocalJars;
   @NotNull private final File myProguardRules;
   @NotNull private final File myLintJar;
   @NotNull private final File myPublicResources;
 
-  public IdeAndroidLibrary(@NotNull AndroidLibrary library, @NotNull ModelCache modelCache) {
-    super(library, modelCache);
-    myLocalJars = new ArrayList<>(library.getLocalJars());
-    myProguardRules = library.getProguardRules();
-    myLintJar = library.getLintJar();
-    myPublicResources = library.getPublicResources();
+  public AndroidLibraryStub() {
+    this(Lists.newArrayList(new File("jar")), new File("proguardRules"), new File("lintJar"), new File("publicResources"));
+  }
+
+  public AndroidLibraryStub(@NotNull Collection<File> jars,
+                            @NotNull File proguardRules,
+                            @NotNull File lintJar,
+                            @NotNull File publicResources) {
+    myLocalJars = jars;
+    myProguardRules = proguardRules;
+    myLintJar = lintJar;
+    myPublicResources = publicResources;
   }
 
   @Override
@@ -102,45 +104,5 @@ public final class IdeAndroidLibrary extends IdeAndroidBundle implements Android
   @Deprecated
   public boolean isOptional() {
     throw new UnusedModelMethodException("isOptional");
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof IdeAndroidLibrary)) {
-      return false;
-    }
-    if (!super.equals(o)) {
-      return false;
-    }
-    IdeAndroidLibrary library = (IdeAndroidLibrary)o;
-    return library.canEqual(this) &&
-           Objects.equals(myLocalJars, library.myLocalJars) &&
-           Objects.equals(myProguardRules, library.myProguardRules) &&
-           Objects.equals(myLintJar, library.myLintJar) &&
-           Objects.equals(myPublicResources, library.myPublicResources);
-  }
-
-  @Override
-  public boolean canEqual(Object other) {
-    return other instanceof IdeAndroidLibrary;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), myLocalJars, myProguardRules, myLintJar, myPublicResources);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeAndroidLibrary{" +
-           super.toString() +
-           ", myLocalJars=" + myLocalJars +
-           ", myProguardRules=" + myProguardRules +
-           ", myLintJar=" + myLintJar +
-           ", myPublicResources=" + myPublicResources +
-           "}";
   }
 }

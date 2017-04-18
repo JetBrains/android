@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.Library;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,9 @@ import java.util.Objects;
  * Creates a deep copy of a {@link Library}.
  */
 public abstract class IdeLibrary implements Library, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final IdeMavenCoordinates myResolvedCoordinates;
   @Nullable private final String myProject;
   @Nullable private final String myName;
@@ -33,9 +37,19 @@ public abstract class IdeLibrary implements Library, Serializable {
 
   protected IdeLibrary(@NotNull Library library) {
     myResolvedCoordinates = new IdeMavenCoordinates(library.getResolvedCoordinates());
-    myProject = library.getProject();
+    myProject = getProject(library);
     myName = library.getName();
     myProvided = library.isProvided();
+  }
+
+  @Nullable
+  private static String getProject(@NotNull Library library) {
+    try {
+      return library.getProject();
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
+    }
   }
 
   @Override

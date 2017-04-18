@@ -20,9 +20,9 @@ import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Creates a deep copy of a {@link BuildTypeContainer}.
@@ -40,10 +40,7 @@ public final class IdeBuildTypeContainer implements BuildTypeContainer, Serializ
     mySourceProvider = new IdeSourceProvider(container.getSourceProvider());
 
     Collection<SourceProviderContainer> sourceProviders = container.getExtraSourceProviders();
-    myExtraSourceProviders = new ArrayList<>(sourceProviders.size());
-    for (SourceProviderContainer sourceProviderContainer : sourceProviders) {
-      myExtraSourceProviders.add(new IdeSourceProviderContainer(sourceProviderContainer));
-    }
+    myExtraSourceProviders = sourceProviders.stream().map(IdeSourceProviderContainer::new).collect(Collectors.toList());
   }
 
   @Override

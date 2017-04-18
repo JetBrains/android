@@ -25,9 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link AndroidAtom}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of an {@link AndroidAtom}.
  */
 public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAtom, Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.

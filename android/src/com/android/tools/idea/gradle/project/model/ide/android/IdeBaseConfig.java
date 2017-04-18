@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseConfig;
 import com.android.builder.model.ClassField;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +29,9 @@ import java.util.*;
  * Creates a deep copy of a {@link BaseConfig}.
  */
 public abstract class IdeBaseConfig implements BaseConfig, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myName;
   @NotNull private final Map<String, ClassField> myResValues;
   @NotNull private final Collection<File> myProguardFiles;
@@ -47,7 +51,17 @@ public abstract class IdeBaseConfig implements BaseConfig, Serializable {
     myConsumerProguardFiles = new ArrayList<>(config.getConsumerProguardFiles());
     myManifestPlaceholders = new HashMap<>(config.getManifestPlaceholders());
     myApplicationIdSuffix = config.getApplicationIdSuffix();
-    myVersionNameSuffix = config.getVersionNameSuffix();
+    myVersionNameSuffix = getVersionNameSuffix(config);
+  }
+
+  @Nullable
+  private static String getVersionNameSuffix(@NotNull BaseConfig config) {
+    try {
+      return config.getVersionNameSuffix();
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
+    }
   }
 
   @Override

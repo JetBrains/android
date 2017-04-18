@@ -32,6 +32,9 @@ import java.util.Objects;
  * Creates a deep copy of an {@link AndroidBundle}.
  */
 public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBundle, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final File myBundle;
   @NotNull private final File myFolder;
   @NotNull private final List<AndroidLibrary> myLibraryDependencies;
