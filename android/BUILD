@@ -78,6 +78,7 @@ iml_module(
         "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module]",
         "//tools/base/build-system/java-lib-plugin/java-lib-model-builder:studio.java-lib-model-builder[module]",
         "//tools/base/layoutinspector:studio.layoutinspector[module]",
+        "//tools/idea/.idea/libraries:equalsverifier[test]",
     ],
 )
 
