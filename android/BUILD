@@ -174,6 +174,7 @@ iml_module(
         "//tools/adt/idea/sdk-updates[module, test]",
         "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module, test]",
         "//tools/base/layoutinspector:studio.layoutinspector[module, test]",
+        "//tools/idea/.idea/libraries:equalsverifier[test]",
     ],
 )
 
