@@ -91,5 +91,6 @@
     <orderEntry type="module" module-name="sdk-updates" scope="TEST" />
     <orderEntry type="module" module-name="java-lib-model" scope="TEST" />
     <orderEntry type="module" module-name="layoutinspector" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
   </component>
 </module>
