@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -30,7 +31,19 @@ import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.google.common.base.Charsets;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.ProjectScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.util.EmptyQuery;
+import com.intellij.util.Query;
+import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -43,19 +56,46 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 
-public class NlPaletteModel {
+public class NlPaletteModel implements Disposable {
   @VisibleForTesting
   static final String THIRD_PARTY_GROUP = "3rd Party";
+  static final String PROJECT_GROUP = "Project";
+
+  /**
+   * {@link Function} that returns all the classes within the project scope that inherit from android.view.View
+   */
+  private static final Function<Project, Query<PsiClass>> VIEW_CLASSES_QUERY = (project) -> {
+    PsiClass viewClass = JavaPsiFacade.getInstance(project).findClass("android.view.View", GlobalSearchScope.allScope(project));
+
+    if (viewClass == null) {
+      // There is probably no SDK
+      return EmptyQuery.getEmptyQuery();
+    }
+
+    return ClassInheritorsSearch.search(viewClass, ProjectScope.getProjectScope(project), true);
+  };
 
   private final Map<NlLayoutType, Palette> myTypeToPalette;
   private final Module myModule;
+  private UpdateListener myListener;
+
+  @Override
+  public void dispose() {
+    myListener = null;
+  }
+
+  public interface UpdateListener {
+    void update();
+  }
 
   public static NlPaletteModel get(@NotNull AndroidFacet facet) {
     return facet.getModule().getComponent(NlPaletteModel.class);
@@ -64,6 +104,7 @@ public class NlPaletteModel {
   private NlPaletteModel(@NotNull Module module) {
     myTypeToPalette = new EnumMap<>(NlLayoutType.class);
     myModule = module;
+    Disposer.register(module, this);
   }
 
   @NotNull
@@ -80,7 +121,12 @@ public class NlPaletteModel {
     }
   }
 
+  public void setUpdateListener(@NotNull UpdateListener updateListener) {
+    myListener = updateListener;
+  }
+
   private void loadPalette(@NotNull NlLayoutType type) {
+
     try {
       String metadata = type.getPaletteFileName();
       URL url = NlPaletteModel.class.getResource(metadata);
@@ -90,10 +136,48 @@ public class NlPaletteModel {
       try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
         palette = loadPalette(reader, type);
       }
-      loadThirdPartyLibraryComponents(type, palette);
+
+      loadAdditionalComponents(type, palette, VIEW_CLASSES_QUERY);
     }
     catch (IOException | JAXBException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Loads all components that are not part of default palette description. This includes components from third party libraries and
+   * components from the project.
+   */
+  @VisibleForTesting
+  void loadAdditionalComponents(@NotNull NlLayoutType type,
+                                @NotNull Palette palette,
+                                @NotNull Function<Project, Query<PsiClass>> viewClasses) {
+
+
+    AndroidProjectBuildNotifications
+      .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, palette, viewClasses));
+
+    Project project = myModule.getProject();
+    DumbService dumbService = DumbService.getInstance(project);
+    if (dumbService.isDumb()) {
+      dumbService.runWhenSmart(() -> loadAdditionalComponents(type, palette, viewClasses));
+    }
+    else {
+      // Clean-up the existing items
+      palette.getItems().stream()
+        .filter(Palette.Group.class::isInstance)
+        .map(Palette.Group.class::cast)
+        .filter(g -> PROJECT_GROUP.equals(g.getName()) || THIRD_PARTY_GROUP.equals(g.getName()))
+        .map(Palette.Group::getItems)
+        .forEach(List::clear);
+
+      loadThirdPartyLibraryComponents(type, palette);
+      loadProjectComponents(type, palette, viewClasses);
+    }
+
+    UpdateListener listener = myListener;
+    if (listener != null) {
+      listener.update();
     }
   }
 
@@ -113,13 +197,38 @@ public class NlPaletteModel {
       //}
     }
     // TODO: Remove this. Use this line to test this feature.
-    //addThirdPartyComponent(type, palette, AndroidIcons.Android, AndroidIcons.Android24,
+    //addThirdPartyComponent(type, THIRD_PARTY_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24,
     //                       "com.google.android.exoplayer2.ui.SimpleExoPlayerView", null, null, "com.google.android.exoplayer:exoplayer",
     //                       null, Collections.singletonList("tag"), Collections.emptyList());
   }
 
+  private void loadProjectComponents(@NotNull NlLayoutType type,
+                                     @NotNull Palette palette,
+                                     @NotNull Function<Project, Query<PsiClass>> viewClasses) {
+    Project project = myModule.getProject();
+    viewClasses.apply(project).forEach(psiClass -> {
+      String description = psiClass.getName(); // We use the "simple" name as description on the preview.
+      String className = psiClass.getQualifiedName();
+
+      if (description == null || className == null) {
+        // Currently we ignore anonymous views
+        return false;
+      }
+
+      addAdditionalComponent(type, PROJECT_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24,
+                             className, null, null, "",
+                             null, Collections.emptyList(), Collections.emptyList());
+
+      return true;
+    });
+  }
+
+  /**
+   * Adds a new component to the palette with the given properties. This method is used to add 3rd party and project components
+   */
   @VisibleForTesting
-  boolean addThirdPartyComponent(@NotNull NlLayoutType type,
+  boolean addAdditionalComponent(@NotNull NlLayoutType type,
+                                 @NotNull String groupName,
                                  @NotNull Palette palette,
                                  @Nullable Icon icon16,
                                  @Nullable Icon icon24,
@@ -136,11 +245,7 @@ public class NlPaletteModel {
     }
 
     ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
-    ViewHandler handler = manager.getHandler(tagName);
-    if (handler == null) {
-      getLogger().warning(String.format("Could not add %1s to palette", tagName));
-      return false;
-    }
+    ViewHandler handler = manager.getHandlerOrDefault(tagName);
 
     // For now only support layouts
     if (type != NlLayoutType.LAYOUT ||
@@ -160,10 +265,14 @@ public class NlPaletteModel {
     }
 
     List<Palette.BaseItem> groups = palette.getItems();
-    assert groups.size() > 0 && groups.get(groups.size() - 1) instanceof Palette.Group;
-    Palette.Group group = (Palette.Group)groups.get(groups.size() - 1);
-    if (!group.getName().equals(THIRD_PARTY_GROUP)) {
-      group = new Palette.Group(THIRD_PARTY_GROUP);
+    Palette.Group group = groups.stream()
+      .filter(Palette.Group.class::isInstance)
+      .map(Palette.Group.class::cast)
+      .filter(g -> groupName.equals(g.getName()))
+      .findFirst()
+      .orElse(null);
+    if (group == null) {
+      group = new Palette.Group(groupName);
       groups.add(group);
     }
     group.getItems().add(new Palette.Item(tagName, handler));
