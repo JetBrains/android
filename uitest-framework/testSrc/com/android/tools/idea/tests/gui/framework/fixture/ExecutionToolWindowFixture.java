@@ -26,6 +26,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.util.Ref;
+import com.intellij.ui.ComponentWithMnemonics;
+import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.content.Content;
@@ -38,6 +41,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
@@ -47,6 +51,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
@@ -54,6 +59,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static org.fest.reflect.core.Reflection.method;
+import static org.junit.Assert.fail;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
   public static class ContentFixture {
@@ -185,17 +191,50 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return GuiTests.waitUntilShowingAndEnabled(myRobot, ideFrame.target(), Matchers.byType(JBPopupMenu.class));
     }
 
-    public void addWatchpoint(@NotNull IdeFrameFixture ideFrame, @Nullable Container popupMenu) {
+    public WatchpointConfigFixture findWatchpointConfig(@NotNull IdeFrameFixture ideFrame, @Nullable Container popupMenu) {
       Component addWatchpoint = GuiTests.waitUntilShowingAndEnabled(
           myRobot,
           popupMenu,
           Matchers.byText(ActionMenuItem.class, "Add Watchpoint"));
       myRobot.click(addWatchpoint);
 
-      //TODO: Need to a new fixture for watchpoint configuration dialog.
-      //Here, we directly click on "Done" button to finish creating an default one with write type.
-      Component doneButton = GuiTests.waitUntilShowingAndEnabled(myRobot, ideFrame.target(), Matchers.byText(JButton.class, "Done"));
-      myRobot.click(doneButton);
+      Ref<JPanel> out = new Ref<>();
+      Wait.seconds(5).expecting("").until(() -> {
+        // Check the dialog is showing and enabled by checking key components within it are showing and enabled.
+        Collection<JPanel> allFound = myRobot.finder().findAll(ideFrame.target(), Matchers.byType(JPanel.class));
+        JPanel watchpointJpanel = null;
+        int componentWithMnemonicsCount = 0;
+        for (JPanel jPanel : allFound) {
+          try {
+            if (jPanel instanceof ComponentWithMnemonics) {
+              componentWithMnemonicsCount++;
+              myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Enabled"));
+              myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Suspend"));
+              myRobot.finder().find(jPanel, Matchers.byText(JLabel.class, "Access Type:"));
+              myRobot.finder().find(jPanel, Matchers.byText(LinkLabel.class, "More (Ctrl+Shift+F8)"));
+              myRobot.finder().find(jPanel, Matchers.byText(JButton.class, "Done"));
+              watchpointJpanel = jPanel;
+            }
+          }
+          catch (ComponentLookupException e) {
+            return false;
+          }
+        }
+
+        if (watchpointJpanel == null) {
+          return false;
+        }
+
+        if (componentWithMnemonicsCount > 1) {
+          fail("Found more than one ComponentWithMnemonics type which matches the criteria.");
+        }
+
+        out.set(watchpointJpanel);
+        return true;
+      });
+      assertThat(out.get()).isNotNull();
+
+      return new WatchpointConfigFixture(myRobot, out.get());
     }
 
     @NotNull
