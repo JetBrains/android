@@ -18,14 +18,13 @@ package com.android.tools.idea.lint;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspectionBase {
   public AndroidLintGradleDynamicVersionInspection() {
@@ -34,12 +33,12 @@ public class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspec
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull final PsiElement startElement,
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
                                              @NotNull PsiElement endElement,
-                                             @NotNull String message) {
-    String before = GradleDetector.getOldValue(GradleDetector.PLUS, message, RAW);
-    if (before != null && before.contains("+")) {
-      final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    if (fixData instanceof LintFix.DataMap) {
+      GradleCoordinate plus = ((LintFix.DataMap)fixData).get(GradleCoordinate.class);
       if (plus != null && plus.getArtifactId() != null) {
         return new AndroidLintQuickFix[]{
           new ReplaceStringQuickFix("Replace with specific version", plus.getRevision(), "specific version") {
@@ -51,6 +50,6 @@ public class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspec
           }};
       }
     }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

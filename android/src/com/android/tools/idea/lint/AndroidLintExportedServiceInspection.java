@@ -17,23 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.SecurityDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_PERMISSION;
 
 public class AndroidLintExportedServiceInspection extends AndroidLintInspectionBase {
   public AndroidLintExportedServiceInspection() {
     super(AndroidBundle.message("android.lint.inspections.exported.service"), SecurityDetector.EXPORTED_SERVICE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{
-      new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.add.permission.attribute"), ATTR_PERMISSION, null)
-    };
   }
 }

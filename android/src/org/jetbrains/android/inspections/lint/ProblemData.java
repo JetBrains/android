@@ -1,6 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Severity;
 import com.intellij.openapi.util.TextRange;
 import org.jetbrains.annotations.NotNull;
@@ -14,10 +15,10 @@ public class ProblemData {
   private final String myMessage;
   private final TextRange myTextRange;
   private final Severity myConfiguredSeverity;
-  private Object myQuickfixData;
+  private LintFix myQuickfixData;
 
   public ProblemData(@NotNull Issue issue, @NotNull String message, @NotNull TextRange textRange, @Nullable Severity configuredSeverity,
-                     @Nullable Object quickfixData) {
+                     @Nullable LintFix quickfixData) {
     myIssue = issue;
     myTextRange = textRange;
     myMessage = message;
@@ -46,7 +47,7 @@ public class ProblemData {
   }
 
   @Nullable
-  public Object getQuickfixData() {
+  public LintFix getQuickfixData() {
     return myQuickfixData;
   }
 }

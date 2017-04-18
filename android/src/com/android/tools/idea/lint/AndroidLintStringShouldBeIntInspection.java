@@ -17,26 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.GradleDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintStringShouldBeIntInspection extends AndroidLintInspectionBase {
   public AndroidLintStringShouldBeIntInspection() {
     super(AndroidBundle.message("android.lint.inspections.string.should.be.int"), GradleDetector.STRING_INTEGER);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String current = GradleDetector.getOldValue(GradleDetector.STRING_INTEGER, message, RAW);
-    String proposed = GradleDetector.getNewValue(GradleDetector.STRING_INTEGER, message, RAW);
-    if (proposed != null && current != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with integer", current, proposed)};
-    }
-
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

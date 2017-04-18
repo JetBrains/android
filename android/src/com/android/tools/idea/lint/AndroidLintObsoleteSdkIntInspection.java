@@ -28,7 +28,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.lint.checks.ApiDetector;
-import com.android.tools.lint.detector.api.QuickfixData;
+import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -69,33 +69,36 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
-                                             @Nullable Object extraData) {
-    if (extraData instanceof QuickfixData) {
-      QuickfixData quickfixData = (QuickfixData) extraData;
-      // Merge resource folder
-      File file = quickfixData.get(File.class);
-      AndroidVersion minSdkVersion = quickfixData.get(AndroidVersion.class);
-      String destFolder = quickfixData.get(String.class);
+                                             @Nullable LintFix fixData) {
+    if (fixData instanceof LintFix.DataMap) {
+      LintFix.DataMap map = (LintFix.DataMap)fixData;
 
-      if (file != null && destFolder != null && minSdkVersion != null) {
-        AndroidFacet facet = AndroidFacet.getInstance(startElement);
-        VirtualFile dir = StandardFileSystems.local().findFileByPath(file.getPath());
-        if (facet != null && dir != null) {
+      Boolean constant = map.get(Boolean.class);
+      if (constant != null) {
+        PsiBinaryExpression subExpression = PsiTreeUtil.getParentOfType(startElement, PsiBinaryExpression.class, false);
+        if (subExpression != null) {
           return new AndroidLintQuickFix[]{
-            new MergeResourceFolderFix(facet, dir, destFolder, minSdkVersion)
+            new AndroidLintQuickFix.LocalFixWrappee(new SimplifyBooleanExpressionFix(subExpression, constant))
           };
+        }
+      } else {
+        // Merge resource folder
+        File file = map.get(File.class);
+        AndroidVersion minSdkVersion = map.get(AndroidVersion.class);
+        String destFolder = map.get(String.class);
+
+        if (file != null && destFolder != null && minSdkVersion != null) {
+          AndroidFacet facet = AndroidFacet.getInstance(startElement);
+          VirtualFile dir = StandardFileSystems.local().findFileByPath(file.getPath());
+          if (facet != null && dir != null) {
+            return new AndroidLintQuickFix[]{
+              new MergeResourceFolderFix(facet, dir, destFolder, minSdkVersion)
+            };
+          }
         }
       }
     }
-    else if (extraData instanceof Boolean) {
-      Boolean constant = (Boolean)extraData;
-      PsiBinaryExpression subExpression = PsiTreeUtil.getParentOfType(startElement, PsiBinaryExpression.class, false);
-      if (subExpression != null) {
-        return new AndroidLintQuickFix[]{
-          new AndroidLintQuickFix.LocalFixWrappee(new SimplifyBooleanExpressionFix(subExpression, constant))
-        };
-      }
-    }
+
     return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 
