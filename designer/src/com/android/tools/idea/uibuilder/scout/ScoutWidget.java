@@ -795,17 +795,33 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    * @return the distance between two widgets at there closest point to each other
    */
   static float distance(ScoutWidget a, ScoutWidget b) {
+
     float ax1, ax2, ay1, ay2;
     float bx1, bx2, by1, by2;
     ax1 = a.mX;
     ax2 = a.mX + a.mWidth;
     ay1 = a.mY;
     ay2 = a.mY + a.mHeight;
-
+    if (a.isVerticalGuideline()) {
+      ay1 = -10000; // make the line infinite long
+      ay2 = 10000;
+    }
+    if (a.isHorizontalGuideline()) {
+      ax1 = -10000; // make the line infinite long
+      ax2 = 10000;
+    }
     bx1 = b.mX;
     bx2 = b.mX + b.mWidth;
     by1 = b.mY;
     by2 = b.mY + b.mHeight;
+    if (b.isVerticalGuideline()) {
+      by1 = -10000; // make the line infinite long
+      by2 = 10000;
+    }
+    if (b.isHorizontalGuideline()) {
+      bx1 = -10000; // make the line infinite long
+      bx2 = 10000;
+    }
     float xdiff11 = Math.abs(ax1 - bx1);
     float xdiff12 = Math.abs(ax1 - bx2);
     float xdiff21 = Math.abs(ax2 - bx1);
