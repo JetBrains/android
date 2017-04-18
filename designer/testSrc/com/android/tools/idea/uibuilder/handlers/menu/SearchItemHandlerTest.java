@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,20 +27,16 @@ public final class SearchItemHandlerTest {
   private ViewEditor myEditor;
   private NlComponent newChild;
 
-  private ViewHandler myHandler;
-
   @Before
   public void setUp() {
     myEditor = Mockito.mock(ViewEditor.class);
     newChild = Mockito.mock(NlComponent.class);
-
-    myHandler = new SearchItemHandler();
   }
 
   @Test
   public void onCreateApiLevelIs10() {
     Mockito.when(myEditor.getMinSdkVersion()).thenReturn(new AndroidVersion(10, null));
-    myHandler.onCreate(myEditor, null, newChild, InsertType.CREATE);
+    SearchItemHandler.onCreate(myEditor, newChild, InsertType.CREATE);
 
     Mockito.verify(newChild).setAndroidAttribute("actionViewClass", "android.support.v7.widget.SearchView");
   }
@@ -49,7 +44,7 @@ public final class SearchItemHandlerTest {
   @Test
   public void onCreateApiLevelIs11() {
     Mockito.when(myEditor.getMinSdkVersion()).thenReturn(new AndroidVersion(11, null));
-    myHandler.onCreate(myEditor, null, newChild, InsertType.CREATE);
+    SearchItemHandler.onCreate(myEditor, newChild, InsertType.CREATE);
 
     Mockito.verify(newChild).setAndroidAttribute("actionViewClass", "android.widget.SearchView");
   }
