@@ -28,7 +28,7 @@ import icons.AndroidIcons;
 /**
  * Triggers the creation of the Developer Services side panel.
  */
-public class OpenAssistSidePanelAction extends AnAction {
+public final class OpenAssistSidePanelAction extends AnAction {
 
   private static final String TOOL_WINDOW_TITLE = "Assistant";
 
@@ -54,13 +54,5 @@ public class OpenAssistSidePanelAction extends AnAction {
       // Always active the window, in case it was previously minimized.
       toolWindow.activate(null);
     });
-    onActionPerformed(event);
   }
-
-  /**
-   * Allows plugins to perform some action on panel being opened without requiring/allowing them to override {@code actionPerformed}.
-   */
-  public void onActionPerformed(AnActionEvent event) {
-  }
-
 }
