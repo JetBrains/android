@@ -22,30 +22,41 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
- * Creates a deep copy of {@link DependencyGraphs}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link DependencyGraphs}.
  */
-public class IdeDependencyGraphs implements DependencyGraphs, Serializable {
-  @NotNull private final List<GraphItem> myCompileDependencies = new ArrayList<>();
-  @NotNull private final List<GraphItem> myPackageDependencies = new ArrayList<>();
-  @NotNull private final List<String> myProvidedLibraries = new ArrayList<>();
-  @NotNull private final List<String> mySkippedLibraries = new ArrayList<>();
+public final class IdeDependencyGraphs implements DependencyGraphs, Serializable {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
+  @NotNull private final List<GraphItem> myCompileDependencies;
+  @NotNull private final List<GraphItem> myPackageDependencies;
+  @NotNull private final List<String> myProvidedLibraries;
+  @NotNull private final List<String> mySkippedLibraries;
 
   public IdeDependencyGraphs(@Nullable DependencyGraphs graphs) {
     if (graphs != null) {
-      for (GraphItem dependency : graphs.getCompileDependencies()) {
-        myCompileDependencies.add(new IdeGraphItem(dependency));
-      }
-      for (GraphItem dependency : graphs.getPackageDependencies()) {
-        myPackageDependencies.add(new IdeGraphItem(dependency));
-      }
-      myProvidedLibraries.addAll(graphs.getProvidedLibraries());
-      mySkippedLibraries.addAll(graphs.getSkippedLibraries());
+      myCompileDependencies = copy(graphs.getCompileDependencies());
+      myPackageDependencies = copy(graphs.getPackageDependencies());
+      myProvidedLibraries = new ArrayList<>(graphs.getProvidedLibraries());
+      mySkippedLibraries = new ArrayList<>(graphs.getSkippedLibraries());
     }
+    else {
+      myCompileDependencies = Collections.emptyList();
+      myPackageDependencies = Collections.emptyList();
+      myProvidedLibraries = Collections.emptyList();
+      mySkippedLibraries = Collections.emptyList();
+    }
+  }
+
+  @NotNull
+  private static List<GraphItem> copy(@NotNull List<GraphItem> dependencies) {
+    return dependencies.stream().map(IdeGraphItem::new).collect(Collectors.toList());
   }
 
   @Override
@@ -70,5 +81,35 @@ public class IdeDependencyGraphs implements DependencyGraphs, Serializable {
   @NotNull
   public List<String> getSkippedLibraries() {
     return mySkippedLibraries;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeDependencyGraphs)) {
+      return false;
+    }
+    IdeDependencyGraphs graphs = (IdeDependencyGraphs)o;
+    return Objects.equals(myCompileDependencies, graphs.myCompileDependencies) &&
+           Objects.equals(myPackageDependencies, graphs.myPackageDependencies) &&
+           Objects.equals(myProvidedLibraries, graphs.myProvidedLibraries) &&
+           Objects.equals(mySkippedLibraries, graphs.mySkippedLibraries);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myCompileDependencies, myPackageDependencies, myProvidedLibraries, mySkippedLibraries);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeDependencyGraphs{" +
+           "myCompileDependencies=" + myCompileDependencies +
+           ", myPackageDependencies=" + myPackageDependencies +
+           ", myProvidedLibraries=" + myProvidedLibraries +
+           ", mySkippedLibraries=" + mySkippedLibraries +
+           '}';
   }
 }

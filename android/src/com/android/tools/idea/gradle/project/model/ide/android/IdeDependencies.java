@@ -21,9 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Creates a deep copy of a {@link Dependencies}.
@@ -49,7 +48,7 @@ public final class IdeDependencies implements Dependencies, Serializable {
       }
     }
     else {
-      myAtoms = new ArrayList<>();
+      myAtoms = Collections.emptyList();
     }
 
     Collection<AndroidLibrary> androidLibraries = dependencies.getLibraries();
@@ -71,6 +70,11 @@ public final class IdeDependencies implements Dependencies, Serializable {
 
     AndroidAtom baseAtom = atLeastTwoDotThree ? dependencies.getBaseAtom() : null;
     myBaseAtom = copyAtom(modelCache, baseAtom);
+  }
+
+  @NotNull
+  private static List<AndroidLibrary> copy(@NotNull Collection<AndroidLibrary> libraries, @NotNull ModelCache modelCache) {
+    return libraries.stream().map(library -> new IdeAndroidLibrary(library, modelCache)).collect(Collectors.toList());
   }
 
   @Nullable

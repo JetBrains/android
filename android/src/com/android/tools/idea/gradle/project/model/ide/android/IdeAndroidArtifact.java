@@ -41,8 +41,8 @@ public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifa
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
   private final boolean mySigned;
 
-  public IdeAndroidArtifact(@NotNull AndroidArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
-    super(artifact, seen, gradleVersion);
+  public IdeAndroidArtifact(@NotNull AndroidArtifact artifact, @NotNull ModelCache buildCache, @NotNull GradleVersion gradleVersion) {
+    super(artifact, buildCache, gradleVersion);
 
     myOutputs = artifact.getOutputs().stream().map(IdeAndroidArtifactOutput::new).collect(Collectors.toList());
 
