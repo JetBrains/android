@@ -37,6 +37,8 @@ public class Display3D extends JPanel {
   ViewMatrix myViewMatrix = new ViewMatrix();
   Matrix myInvMatrix;
   boolean isImageInvalid = true;
+  static final boolean mPerspective = true;
+
   Vector<ActionListener> myViewChangeListener = new Vector<>();
 
   public String getOrientationString(Rectangle rect) {
@@ -148,7 +150,12 @@ public class Display3D extends JPanel {
       if (myTransFormCache == null) {
         myTransFormCache = new TriData(mTriData);
       }
-      mTriData.transform(myInvMatrix, myTransFormCache);
+      if (mPerspective) {
+        mTriData.transformP(myInvMatrix, myTransFormCache, w / 2f, h / 2f, 800);
+      } else {
+        mTriData.transform (myInvMatrix, myTransFormCache);
+      }
+
       Arrays.fill(myZBuffer, Float.MAX_VALUE);
       Arrays.fill(rgbData, 0xFF000000);
 
