@@ -50,7 +50,6 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(JUnit4.class)
-@Ignore
 public class WorkBenchTest {
   @Rule
   public FrameworkRule myFrameworkRule = new FrameworkRule();
@@ -131,14 +130,8 @@ public class WorkBenchTest {
     myToolWindow1.setMinimized(false);
     myModel.update(myToolWindow1, PropertyType.AUTO_HIDE);
 
-    myWorkBench.addNotify();
-    try {
-      fireFocusOwnerChange(myContent);
-      assertThat(myToolWindow1.isMinimized()).isTrue();
-    }
-    finally {
-      myWorkBench.removeNotify();
-    }
+    fireFocusOwnerChange(myContent);
+    assertThat(myToolWindow1.isMinimized()).isTrue();
   }
 
   private static void fireFocusOwnerChange(@NotNull JComponent component) {
