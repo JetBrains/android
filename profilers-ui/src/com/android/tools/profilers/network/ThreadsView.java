@@ -48,7 +48,7 @@ final class ThreadsView {
     myThreadsList = new JBList<>(new ThreadListModel(stageView.getStage()));
     myThreadsList.setCellRenderer(new ThreadCellRenderer(myThreadsList, stageView.getTimeline()));
     myThreadsList.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myThreadsList.setFont(AdtUiUtils.DEFAULT_FONT);
+    myThreadsList.setFont(AdtUiUtils.FONT_DEFAULT);
     int fontHeight = myThreadsList.getFontMetrics(myThreadsList.getFont()).getHeight();
     myThreadsList.setFixedCellHeight(fontHeight + CELL_HEIGHT_PADDING);
   }

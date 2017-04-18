@@ -21,6 +21,7 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
@@ -43,10 +44,11 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
   protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*"));
 
-    final JLabel label = new JLabel(getMonitor().getName());
-    label.setBorder(MONITOR_LABEL_PADDING);
-    label.setVerticalAlignment(JLabel.TOP);
-    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    final JLabel sectionHeader = new JLabel(getMonitor().getName());
+    sectionHeader.setFont(AdtUiUtils.FONT_PROFILER_TITLE);
+    sectionHeader.setBorder(MONITOR_LABEL_PADDING);
+    sectionHeader.setVerticalAlignment(JLabel.TOP);
+    sectionHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
@@ -80,7 +82,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
     JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
-    legendPanel.add(label, BorderLayout.WEST);
+    legendPanel.add(sectionHeader, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
     container.add(legendPanel, new TabularLayout.Constraint(0, 0));

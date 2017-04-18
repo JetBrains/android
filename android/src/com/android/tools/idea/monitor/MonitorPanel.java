@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.monitor;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -270,6 +271,7 @@ class MonitorPanel extends JPanel {
       new Dimension(titleSize + borderInsets.left + borderInsets.right, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height));
     titleLabel.setPreferredSize(titleLabel.getMinimumSize());
     titleLabel.setMaximumSize(titleLabel.getMinimumSize());
+    titleLabel.setFont(AdtUiUtils.FONT_MONITOR_TITLE);
 
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.add(titleLabel, BorderLayout.WEST);

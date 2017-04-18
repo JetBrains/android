@@ -90,7 +90,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     mRenderMode = RenderMode.BAR;
     myReducer = reducer;
     myRender = true;
-    setFont(AdtUiUtils.DEFAULT_FONT);
+    setFont(AdtUiUtils.FONT_DEFAULT);
     setModel(model);
   }
 
