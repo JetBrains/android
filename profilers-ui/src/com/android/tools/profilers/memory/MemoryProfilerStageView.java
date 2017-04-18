@@ -97,10 +97,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
-      .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, this::legacyAllocationChanged);
+      .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged);
 
     captureObjectChanged();
-    legacyAllocationChanged();
+    allocationTrackingChanged();
   }
 
   @Override
@@ -186,7 +186,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     return myInstanceDetailsView;
   }
 
-  private void legacyAllocationChanged() {
+  private void allocationTrackingChanged() {
     //TODO enable/disable hprof/allocation if they cannot be performed
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setText("Stop Recording");
