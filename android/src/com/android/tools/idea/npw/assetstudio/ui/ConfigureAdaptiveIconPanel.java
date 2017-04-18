@@ -542,8 +542,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   private void updateBindingsAndUiForActiveIconType() {
     myOutputName.set(AndroidAdaptiveIconType.ADAPTIVE.toOutputName("name"));
-    myForegroundLayerName.set("ic_image_fore");
-    myBackgroundLayerName.set("ic_image_back");
+    myForegroundLayerName.set("ic_image_foreground");
+    myBackgroundLayerName.set("ic_image_background");
 
     myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myForegroundActiveAsset));
     myGeneralBindings.bind(myIconGenerator.name(), myOutputName);

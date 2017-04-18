@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.assetstudiolib.*;
+import com.android.assetstudiolib.GeneratedIcon;
+import com.android.assetstudiolib.GeneratedImageIcon;
+import com.android.assetstudiolib.GeneratedXmlResource;
+import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
@@ -35,7 +38,6 @@ import com.android.tools.idea.ui.validation.validators.FalseValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.primitives.Ints;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -59,10 +61,9 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -165,9 +166,8 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   private void showSelectedNodeDetails(TreePath newPath) {
     if (newPath != null && newPath.getLastPathComponent() instanceof FileTreeModel.Node) {
       FileTreeModel.Node node = (FileTreeModel.Node)newPath.getLastPathComponent();
-      TreePath parentPath = newPath.getParentPath();
 
-      GeneratedIcon generatedIcon = myNodeToPreviewImage.get(newPath.getLastPathComponent());
+      GeneratedIcon generatedIcon = myNodeToPreviewImage.get(node);
       if (generatedIcon instanceof GeneratedImageIcon) {
         BufferedImage image = ((GeneratedImageIcon)generatedIcon).getImage();
         ImageIcon icon = new ImageIcon(image);
@@ -274,11 +274,9 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
       final Map<File, GeneratedIcon> pathIconMap = iconGenerator.generateIntoIconMap(sourceSet.getPaths());
       myFilesAlreadyExist.set(false);
 
-      ImmutableSortedSet.Builder<File> sortedPaths = ImmutableSortedSet.orderedBy(getFileComparator());
-      sortedPaths.addAll(pathIconMap.keySet());
-
+      // Create a FileTreeModel containing all generated files
       FileTreeModel treeModel = new FileTreeModel(resDir.getParentFile(), true);
-      for (File path : sortedPaths.build()) {
+      for (File path : pathIconMap.keySet()) {
         GeneratedIcon icon = pathIconMap.get(path);
 
         if (path.exists()) {
@@ -289,11 +287,33 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         myNodeToPreviewImage.put(newNode, icon);
       }
 
-      treeModel.sort(getFileComparator());
+      // Collect all directory names from all generated file names for sorting purposes.
+      // We use this map instead of looking at the file system when sorting, since
+      // not all files/directories exist on disk at this point.
+      Set<File> outputDirectories = pathIconMap.keySet()
+        .stream()
+        .flatMap(x -> {
+          File root = resDir.getParentFile();
+          List<File> directories = new ArrayList<>();
+          x = x.getParentFile();
+          while (x != null && !Objects.equals(x, root)) {
+            directories.add(x);
+            x = x.getParentFile();
+          }
+          return directories.stream();
+        })
+        .distinct()
+        .collect(Collectors.toSet());
+
+      // Sort the FileTreeModel so that the preview tree entries are sorted
+      treeModel.sort(getFileComparator(outputDirectories));
+
       myOutputPreviewTree.setModel(treeModel);
 
       // The tree should be totally expanded by default
-      // Note: This code works because "getRowCount()" keeps increasing as we expand rows
+      // Note: There is subtle behavior here: even though we merely expand "rows", we
+      //       actually end up expanding all entries in the tree, because
+      //       "getRowCount()" keeps increasing as we expand each row.
       for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {
         myOutputPreviewTree.expandRow(i);
       }
@@ -312,19 +332,30 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
   }
 
   @NotNull
-  private static Comparator<File> getFileComparator() {
+  private static Comparator<File> getFileComparator(Set<File> outputDirectories) {
     return (file1, file2) -> {
-      String path1 = file1.getAbsolutePath();
-      String path2 = file2.getAbsolutePath();
-      Density density1 = CategoryIconMap.pathToDensity(path1 + File.separator);
-      Density density2 = CategoryIconMap.pathToDensity(path2 + File.separator);
+      // Sort by "directory vs file" first, then by density, then by name
+      boolean isDirectory1 = outputDirectories.contains(file1);
+      boolean isDirectory2 = outputDirectories.contains(file2);
+      if (isDirectory1 == isDirectory2) {
+        String path1 = file1.getAbsolutePath();
+        String path2 = file2.getAbsolutePath();
+        Density density1 = CategoryIconMap.pathToDensity(path1 + File.separator);
+        Density density2 = CategoryIconMap.pathToDensity(path2 + File.separator);
 
-      if (density1 != null && density2 != null && density1 != density2) {
-        // Sort least dense to most dense
-        return Ints.compare(density2.ordinal(), density1.ordinal());
+        if (density1 != null && density2 != null && density1 != density2) {
+          // Sort least dense to most dense
+          return Ints.compare(density2.ordinal(), density1.ordinal());
+        }
+        else {
+          return path1.compareTo(path2);
+        }
+      }
+      else if (isDirectory1) {
+        return -1;
       }
       else {
-        return path1.compareTo(path2);
+        return 1;
       }
     };
   }
