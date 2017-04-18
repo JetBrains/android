@@ -24,6 +24,12 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AndroidProjectInfo {
   @NotNull private final Project myProject;
@@ -35,6 +41,21 @@ public class AndroidProjectInfo {
 
   public AndroidProjectInfo(@NotNull Project project) {
     myProject = project;
+  }
+
+  /**
+   * Returns all modules of a given type in the project
+   *
+   * @param projectType the Project type as an integer given in {@link AndroidProject}
+   * @return An array of all Modules in the project of that type
+   */
+  public List<Module> getAllModulesOfProjectType(int projectType) {
+    return Stream.of(ModuleManager.getInstance(myProject).getModules())
+      .filter(module -> {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        return facet != null && facet.getProjectType() == projectType;
+      })
+      .collect(Collectors.toList());
   }
 
   /**
