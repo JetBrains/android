@@ -308,14 +308,12 @@ public class ViewEditorImpl extends ViewEditor {
   }
 
   @Override
-  public boolean openLayout(@NotNull Configuration configuration,
-                            @NotNull String layoutName,
-                            @Nullable VirtualFile currentFile) {
+  public boolean openResource(@NotNull Configuration configuration, @NotNull String reference, @Nullable VirtualFile currentFile) {
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     if (resourceResolver == null) {
       return false;
     }
-    ResourceValue resValue = resourceResolver.findResValue(layoutName, false);
+    ResourceValue resValue = resourceResolver.findResValue(reference, false);
     File path = ResourceHelper.resolveLayout(resourceResolver, resValue);
     if (path != null) {
       VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(path);

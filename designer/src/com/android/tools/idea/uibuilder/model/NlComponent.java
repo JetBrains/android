@@ -251,6 +251,10 @@ public class NlComponent implements NlAttributesHolder {
     return result;
   }
 
+  public boolean contains(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    return containsX(x) && containsY(y);
+  }
+
   public boolean containsX(@AndroidCoordinate int x) {
     return Ranges.contains(this.x, this.x + w, x);
   }
@@ -869,7 +873,7 @@ public class NlComponent implements NlAttributesHolder {
 
   /**
    * Removes an element from the cache
-   *  A cache for use by system to reduce recalculating information
+   * A cache for use by system to reduce recalculating information
    * The cache may be destroyed at any time as the system rebuilds the components
    *
    * @param key

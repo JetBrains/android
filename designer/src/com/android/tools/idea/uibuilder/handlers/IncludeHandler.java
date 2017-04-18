@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.google.common.collect.ImmutableList;
@@ -104,8 +105,16 @@ public final class IncludeHandler extends ViewHandler {
   }
 
   @Override
-  public void onActivate(@NotNull ViewEditor viewEditor, @NotNull NlComponent component) {
-    openIncludedLayout(viewEditor, component);
+  public void onActivateInComponentTree(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    openIncludedLayout(editor, component);
+  }
+
+  @Override
+  public void onActivateInDesignSurface(@NotNull ViewEditor editor,
+                                        @NotNull NlComponent component,
+                                        @AndroidCoordinate int x,
+                                        @AndroidCoordinate int y) {
+    openIncludedLayout(editor, component);
   }
 
   /**
@@ -122,7 +131,7 @@ public final class IncludeHandler extends ViewHandler {
       return;
     }
     Configuration configuration = model.getConfiguration();
-    boolean editorOpened = viewEditor.openLayout(configuration, attribute, component.getTag().getContainingFile().getVirtualFile());
+    boolean editorOpened = viewEditor.openResource(configuration, attribute, component.getTag().getContainingFile().getVirtualFile());
     if (!editorOpened) {
       Logger.getInstance(IncludeHandler.class).warn(
         String.format("Cannot open included layout \"%s\" for %s tag with id \"%s\"", attribute, component.getTag(), component.getId())

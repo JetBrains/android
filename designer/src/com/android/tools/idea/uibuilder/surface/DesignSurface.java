@@ -97,7 +97,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final RenderErrorPanel myErrorPanel;
-  protected List<DesignSurfaceListener> myListeners = new ArrayList<>();
+  protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
   @SuppressWarnings("CanBeFinal") private float mySavedErrorPanelProportion;
@@ -406,7 +406,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * @param dimension the Dimension object to reuse to avoid reallocation
-   * @return The total size of all the SceenViews in the DesignSurface
+   * @return The total size of all the ScreenViews in the DesignSurface
    */
   @NotNull
   public abstract Dimension getContentSize(@Nullable Dimension dimension);
@@ -720,15 +720,34 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  public void notifyActivateComponent(@NotNull NlComponent component) {
+  public void notifyComponentActivateInComponentTree(@NotNull NlComponent component) {
     ViewHandler handler = component.getViewHandler();
-    ViewEditor viewEditor = getViewEditor();
-    if (handler != null && viewEditor != null) {
-      handler.onActivate(viewEditor, component);
+    ViewEditor editor = getViewEditor();
+
+    if (handler != null && editor != null) {
+      handler.onActivateInComponentTree(editor, component);
     }
 
-    List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
-    for (DesignSurfaceListener listener : listeners) {
+    activatePreferredEditor(component);
+  }
+
+  /**
+   * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
+   * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
+   */
+  void notifyComponentActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    ViewHandler handler = component.getViewHandler();
+    ViewEditor editor = getViewEditor();
+
+    if (handler != null && editor != null) {
+      handler.onActivateInDesignSurface(editor, component, x, y);
+    }
+
+    activatePreferredEditor(component);
+  }
+
+  private void activatePreferredEditor(@NotNull NlComponent component) {
+    for (DesignSurfaceListener listener : new ArrayList<>(myListeners)) {
       if (listener.activatePreferredEditor(this, component)) {
         break;
       }

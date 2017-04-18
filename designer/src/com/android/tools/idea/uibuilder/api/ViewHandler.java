@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -149,13 +150,21 @@ public class ViewHandler extends StructurePaneComponentHandler {
 
 
   /**
-   * Called when the user double-click on the component in the {@link com.android.tools.idea.uibuilder.surface.NlDesignSurface}
-   * or the {@link com.android.tools.idea.uibuilder.structure.NlComponentTree}.
-   *
-   * @param viewEditor The View editor where the provided component is being edited
-   * @param component  The component clicked
+   * Handles a double click on the component in the component tree
    */
-  public void onActivate(@NotNull ViewEditor viewEditor, @NotNull NlComponent component) {
+  public void onActivateInComponentTree(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     // Do nothing
+  }
+
+  /**
+   * Handles a double click on the component in the design surface
+   *
+   * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
+   * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
+   */
+  public void onActivateInDesignSurface(@NotNull ViewEditor editor,
+                                        @NotNull NlComponent component,
+                                        @AndroidCoordinate int x,
+                                        @AndroidCoordinate int y) {
   }
 }
