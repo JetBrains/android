@@ -160,13 +160,14 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     assertThat(event.isConsumed()).isTrue();
   }
 
-  /** Disabled in merge of IntelliJ 2017.1.2 */
-  public void ignored_testEnterCausesStartEditingOfClosedFlagsInTable() {
+  public void testEnterCausesStartEditingOfClosedFlagsInTable() {
     List<NlComponent> components = Collections.singletonList(myButton);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     NlProperty textStyle = properties.get(ANDROID_URI, ATTR_TEXT_STYLE);
     myPanel.setAllPropertiesPanelVisible(true);
     myPanel.setItems(components, properties, myPropertiesManager);
+    myTable.resetRequestFocusCount();
+
     myPanel.setFilter("textSt");
     KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
     myPanel.getFilterKeyListener().keyPressed(event);
@@ -179,8 +180,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     assertThat(event.isConsumed()).isTrue();
   }
 
-  /** Disabled in merge of IntelliJ 2017.1.2 */
-  public void ignored_testEnterCausesStartEditingOfOpenFlagsInTable() {
+  public void testEnterCausesStartEditingOfOpenFlagsInTable() {
     List<NlComponent> components = Collections.singletonList(myButton);
     Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
     NlProperty textStyle = properties.get(ANDROID_URI, ATTR_TEXT_STYLE);
@@ -188,6 +188,8 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     myPanel.setItems(components, properties, myPropertiesManager);
     int textStyleRow = findRowOf(ANDROID_URI, ATTR_TEXT_STYLE);
     myModel.expand(textStyleRow);
+    myTable.resetRequestFocusCount();
+
     myPanel.setFilter("textSt");
     KeyEvent event = new KeyEvent(myPanel, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
     myPanel.getFilterKeyListener().keyPressed(event);
@@ -332,6 +334,10 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     public void requestFocus() {
       super.requestFocus();
       myRequestFocusCount++;
+    }
+
+    private void resetRequestFocusCount() {
+      myRequestFocusCount = 0;
     }
 
     private int getRequestFocusCount() {
