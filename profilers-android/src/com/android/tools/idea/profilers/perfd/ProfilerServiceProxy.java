@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
@@ -58,7 +59,6 @@ public class ProfilerServiceProxy extends PerfdProxyService
   private static final String AGENT_NAME = "libperfa.so";
   private static final String AGENT_JAR = "perfa.jar";
   private static final String EMULATOR = "Emulator";
-  private static final int MINIMUM_SUPPORTED_API = 21;
 
   private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
   @NotNull private final IDevice myDevice;
@@ -70,7 +70,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
   public ProfilerServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
     super(ProfilerServiceGrpc.getServiceDescriptor());
-    myIsDeviceApiSupported = device.getVersion().getApiLevel() >= MINIMUM_SUPPORTED_API;
+    myIsDeviceApiSupported = device.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
     myDevice = device;
     myServiceStub = ProfilerServiceGrpc.newBlockingStub(channel);
 
@@ -101,7 +101,8 @@ public class ProfilerServiceProxy extends PerfdProxyService
     return builder.setSerial(device.getSerialNumber())
       .setModel(getDeviceModel(device))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
-      .setApi(Integer.toString(device.getVersion().getApiLevel()))
+      .setApiLevel(device.getVersion().getApiLevel())
+      .setFeatureLevel(device.getVersion().getFeatureLevel())
       .setManufacturer(DevicePropertyUtil.getManufacturer(device, device.isEmulator() ? EMULATOR : ""))
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
