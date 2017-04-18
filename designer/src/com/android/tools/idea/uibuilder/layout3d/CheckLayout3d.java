@@ -33,6 +33,7 @@ import java.util.prefs.Preferences;
  * This is a simple test driver for the 3d engine
  */
 public class CheckLayout3d extends JPanel {
+  private static final boolean DEBUG_WITH_FILE = false;
   Display3D myDisplay3D = new Display3D();
 
   public CheckLayout3d() {
@@ -43,7 +44,15 @@ public class CheckLayout3d extends JPanel {
 
   public static BufferedImage getTestImage() {
     BufferedImage img = null;
-
+   if (DEBUG_WITH_FILE) {
+     try {
+       img = ImageIO.read(new File(""));
+       return img;
+     }
+     catch (IOException e) {
+       e.printStackTrace();
+     }
+   }
     //Typically the image would be loaded from a file using image = ImageIO.read...
     // but for testing we just build a pattern
     int width = 1024;
