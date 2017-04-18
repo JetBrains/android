@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidAtom;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Dependencies;
+import com.android.builder.model.JavaLibrary;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of a {@link Dependencies}.
  */
-public final class IdeDependencies implements Dependencies, Serializable {
+public final class IdeDependencies extends IdeModel implements Dependencies {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -40,41 +44,20 @@ public final class IdeDependencies implements Dependencies, Serializable {
   public IdeDependencies(@NotNull Dependencies dependencies, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
     boolean atLeastTwoDotThree = gradleVersion.isAtLeast(2, 3, 0);
     if (atLeastTwoDotThree) {
-      Collection<AndroidAtom> atoms = dependencies.getAtoms();
-      myAtoms = new ArrayList<>(atoms.size());
-      for (AndroidAtom atom : atoms) {
-        AndroidAtom copy = modelCache.computeIfAbsent(atom, key -> new IdeAndroidAtom(atom, modelCache));
-        myAtoms.add(copy);
-      }
+      myAtoms = copy(dependencies.getAtoms(), modelCache, atom -> new IdeAndroidAtom(atom, modelCache));
     }
     else {
       myAtoms = Collections.emptyList();
     }
 
-    Collection<AndroidLibrary> androidLibraries = dependencies.getLibraries();
-    myLibraries = new ArrayList<>(androidLibraries.size());
-    for (AndroidLibrary library : androidLibraries) {
-      IdeAndroidLibrary copy = modelCache.computeIfAbsent(library, key -> new IdeAndroidLibrary(library, modelCache));
-      myLibraries.add(copy);
-    }
-
-    Collection<JavaLibrary> javaLibraries = dependencies.getJavaLibraries();
-    myJavaLibraries = new ArrayList<>(javaLibraries.size());
-    for (JavaLibrary library : javaLibraries) {
-      IdeJavaLibrary copy = modelCache.computeIfAbsent(library, key -> new IdeJavaLibrary(library, modelCache));
-      myJavaLibraries.add(copy);
-    }
+    myLibraries = copy(dependencies.getLibraries(), modelCache, library -> new IdeAndroidLibrary(library, modelCache));
+    myJavaLibraries = copy(dependencies.getJavaLibraries(), modelCache, library -> new IdeJavaLibrary(library, modelCache));
 
     //noinspection deprecation
     myProjects = new ArrayList<>(dependencies.getProjects());
 
     AndroidAtom baseAtom = atLeastTwoDotThree ? dependencies.getBaseAtom() : null;
     myBaseAtom = copyAtom(modelCache, baseAtom);
-  }
-
-  @NotNull
-  private static List<AndroidLibrary> copy(@NotNull Collection<AndroidLibrary> libraries, @NotNull ModelCache modelCache) {
-    return libraries.stream().map(library -> new IdeAndroidLibrary(library, modelCache)).collect(Collectors.toList());
   }
 
   @Nullable

@@ -19,15 +19,13 @@ import com.android.builder.model.AndroidAtom;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * Creates a deep copy of an {@link AndroidAtom}.
  */
-public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAtom, Serializable {
+public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAtom {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -43,11 +41,7 @@ public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAto
     myAtomName = atom.getAtomName();
     //
     List<? extends AndroidAtom> atomDependencies = atom.getAtomDependencies();
-    myAtomDependencies = new ArrayList<>(atomDependencies.size());
-    for (AndroidAtom dependency : atomDependencies) {
-      IdeAndroidAtom copy = modelCache.computeIfAbsent(dependency, library -> new IdeAndroidAtom(dependency, modelCache));
-      myAtomDependencies.add(copy);
-    }
+    myAtomDependencies = copy(atomDependencies, modelCache, dependency -> new IdeAndroidAtom(dependency, modelCache));
 
     myDexFolder = atom.getDexFolder();
     myLibFolder = atom.getLibFolder();

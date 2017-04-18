@@ -20,13 +20,12 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Creates a deep copy of a {@link Library}.
  */
-public abstract class IdeLibrary implements Library, Serializable {
+public abstract class IdeLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 

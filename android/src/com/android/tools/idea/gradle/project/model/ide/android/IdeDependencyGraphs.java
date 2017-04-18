@@ -20,17 +20,15 @@ import com.android.builder.model.level2.GraphItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Creates a deep copy of a {@link DependencyGraphs}.
  */
-public final class IdeDependencyGraphs implements DependencyGraphs, Serializable {
+public final class IdeDependencyGraphs extends IdeModel implements DependencyGraphs {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -39,10 +37,10 @@ public final class IdeDependencyGraphs implements DependencyGraphs, Serializable
   @NotNull private final List<String> myProvidedLibraries;
   @NotNull private final List<String> mySkippedLibraries;
 
-  public IdeDependencyGraphs(@Nullable DependencyGraphs graphs) {
+  public IdeDependencyGraphs(@Nullable DependencyGraphs graphs, @NotNull ModelCache modelCache) {
     if (graphs != null) {
-      myCompileDependencies = copy(graphs.getCompileDependencies());
-      myPackageDependencies = copy(graphs.getPackageDependencies());
+      myCompileDependencies = copy(graphs.getCompileDependencies(), modelCache, IdeGraphItem::new);
+      myPackageDependencies = copy(graphs.getPackageDependencies(), modelCache, IdeGraphItem::new);
       myProvidedLibraries = new ArrayList<>(graphs.getProvidedLibraries());
       mySkippedLibraries = new ArrayList<>(graphs.getSkippedLibraries());
     }
@@ -52,11 +50,6 @@ public final class IdeDependencyGraphs implements DependencyGraphs, Serializable
       myProvidedLibraries = Collections.emptyList();
       mySkippedLibraries = Collections.emptyList();
     }
-  }
-
-  @NotNull
-  private static List<GraphItem> copy(@NotNull List<GraphItem> dependencies) {
-    return dependencies.stream().map(IdeGraphItem::new).collect(Collectors.toList());
   }
 
   @Override

@@ -21,14 +21,13 @@ import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 
 /**
  * Creates a deep copy of {@link JavaArtifact}.
  *
  * @see IdeAndroidProject
  */
-public class IdeJavaArtifact extends IdeBaseArtifact implements JavaArtifact, Serializable {
+public class IdeJavaArtifact extends IdeBaseArtifact implements JavaArtifact {
   @Nullable private final File myMockablePlatformJar;
 
   public IdeJavaArtifact(@NotNull JavaArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {

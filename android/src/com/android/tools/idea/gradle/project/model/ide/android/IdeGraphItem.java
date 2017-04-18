@@ -19,7 +19,6 @@ import com.android.builder.model.level2.GraphItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -27,7 +26,7 @@ import java.util.Objects;
 /**
  * Creates a deep copy of a {@link GraphItem}.
  */
-public final class IdeGraphItem implements GraphItem, Serializable {
+public final class IdeGraphItem extends IdeModel implements GraphItem {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 

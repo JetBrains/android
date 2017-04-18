@@ -19,7 +19,6 @@ import com.android.builder.model.NativeLibrary;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +27,7 @@ import java.util.List;
  *
  * @see IdeAndroidProject
  */
-public class IdeNativeLibrary implements NativeLibrary, Serializable {
+public class IdeNativeLibrary extends IdeModel implements NativeLibrary {
   @NotNull private final String myName;
   @NotNull private final String myAbi;
   @NotNull private final String myToolchainName;

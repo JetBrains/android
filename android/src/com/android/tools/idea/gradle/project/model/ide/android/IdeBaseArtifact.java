@@ -26,13 +26,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.*;
 
 /**
  * Creates a deep copy of a {@link BaseArtifact}.
  */
-public abstract class IdeBaseArtifact implements BaseArtifact, Serializable {
+public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -60,7 +59,7 @@ public abstract class IdeBaseArtifact implements BaseArtifact, Serializable {
     myCompileDependencies = new IdeDependencies(artifact.getCompileDependencies(), modelCache, gradleVersion);
 
     DependencyGraphs graphs = gradleVersion.isAtLeast(2, 3, 0) ? artifact.getDependencyGraphs() : null;
-    myDependencyGraphs = new IdeDependencyGraphs(graphs);
+    myDependencyGraphs = new IdeDependencyGraphs(graphs, modelCache);
 
     myIdeSetupTaskNames = new HashSet<>(getIdeSetupTaskNames(artifact));
     myGeneratedSourceFolders = new ArrayList<>(getGeneratedSourceFolders(artifact));
