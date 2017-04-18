@@ -19,8 +19,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
+import java.util.List;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link AndroidProjectInfo}.
@@ -32,6 +37,22 @@ public class AndroidProjectInfoTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myProjectInfo = new AndroidProjectInfo(getProject());
+  }
+
+  public void testGetAllModulesofProjectType() {
+    createAndAddAndroidFacet(getModule());
+    List<Module> applicationModules = myProjectInfo.getAllModulesOfProjectType(PROJECT_TYPE_APP);
+    assertThat(applicationModules).hasSize(1);
+    assertEquals(getModule(), applicationModules.get(0));
+  }
+
+  public void testGetAllModulesofProjectTypeWithNone() {
+    createAndAddAndroidFacet(getModule());
+    assertEmpty(myProjectInfo.getAllModulesOfProjectType(PROJECT_TYPE_LIBRARY));
+  }
+
+  public void testGetAllModulesofProjectTypeWithNonAndroidModule() {
+    assertEmpty(myProjectInfo.getAllModulesOfProjectType(PROJECT_TYPE_APP));
   }
 
   public void testRequiresAndroidModel() {
