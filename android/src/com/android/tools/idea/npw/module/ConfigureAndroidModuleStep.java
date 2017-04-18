@@ -68,7 +68,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private JTextField myAppName;
   private LabelWithEditButton myPackageName;
 
-  protected RenderTemplateModel myRenderModel;
+  private RenderTemplateModel myRenderModel;
 
   public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel,
                                     boolean isLibrary, boolean isInstantApp, @NotNull String title) {
@@ -138,11 +138,10 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    if (myIsLibrary && !myIsInstantApp) {
-      // No dependent steps for libraries (no need to choose an activity)
-      return Lists.newArrayList();
-    }
-    return Lists.newArrayList(new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList()));
+    // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
+    ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
+    chooseActivityStep.setShouldShow(!myIsLibrary || myIsInstantApp);
+    return Lists.newArrayList(chooseActivityStep);
   }
 
   @Override
