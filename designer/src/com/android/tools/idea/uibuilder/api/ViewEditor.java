@@ -172,25 +172,12 @@ public abstract class ViewEditor {
                                            @Nullable String currentValue);
 
   /**
-   * Open the layout with the provided name using the provided configuration
-   * The layout name format can be:
-   * <ul>
-   * <li><code>@layout/resName
-   * <li><code>@android:layout/resName
-   * <li><code>@layout/android:resName
-   * <li><code>?layout/resName
-   * <li><code>?android:layout/resName
-   * <li><code>?layout/android:resName
-   * </ul>
-   * Any other string format won't open the layout.
+   * Opens the resource using the resource resolver in the configuration.
    *
-   * @param configuration The configuration to use to find the appropriate layout
-   * @param layoutName    The layout reference.
-   * @param currentFile   The file from which the layout will be open if we are navigating to an included layout
-   * @return true if the layout file has been opened.
+   * @param reference   the resource reference
+   * @param currentFile the currently open file. It's pushed onto the file navigation stack under the resource to open.
+   * @return true if the resource was opened
    * @see RenderResources#findResValue(String, boolean)
    */
-  public abstract boolean openLayout(@NotNull Configuration configuration,
-                                     @NotNull String layoutName,
-                                     @NotNull VirtualFile currentFile);
+  public abstract boolean openResource(@NotNull Configuration configuration, @NotNull String reference, @NotNull VirtualFile currentFile);
 }

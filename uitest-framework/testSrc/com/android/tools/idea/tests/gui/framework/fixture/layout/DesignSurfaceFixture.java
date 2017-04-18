@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.fest.swing.core.ComponentDragAndDrop;
+import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -183,6 +184,10 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   // Only applicable to NlDesignSurface
   public boolean isInScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     return target().getScreenMode() == mode;
+  }
+
+  public void doubleClick(@NotNull Point point) {
+    robot().click(target(), point, MouseButton.LEFT_BUTTON, 2);
   }
 
   public void drop(@NotNull Point point) {
