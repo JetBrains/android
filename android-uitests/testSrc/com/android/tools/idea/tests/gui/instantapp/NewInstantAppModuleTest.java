@@ -40,9 +40,11 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -87,6 +89,27 @@ public class NewInstantAppModuleTest {
     assertNull(getManifest("instantapp"));
     assertCorrectPackageAndSplit("feature", "featuresplit", "featuresplit");
     assertCorrectPackageAndSplit("feature","basesplit", null);
+  }
+
+  @Test
+  public void testAddNewInstantAppModule() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Instant Application")
+      .clickNext() // Selected App
+      .clickFinish();
+
+    ideFrame
+      .waitForGradleProjectSyncToFinish(Wait.seconds(20))
+      .waitForBuildToFinish(SOURCE_GEN);
+    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
+
+    Module module = ideFrame.getModule("instantapp");
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assertNotNull(facet);
+    assertEquals(PROJECT_TYPE_INSTANTAPP, facet.getProjectType());
   }
 
   private void addNewInstantAppModule(@Nullable String moduleName) {
