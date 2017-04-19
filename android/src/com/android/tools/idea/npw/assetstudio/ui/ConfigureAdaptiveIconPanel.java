@@ -36,17 +36,29 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -290,7 +302,10 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myForegroundClipartRadioButton.setSelected(true);
 
     // Set a reasonable default path for the background image
-    myBackgroundImageAssetBrowser.getAsset().imagePath().set(ImageAsset.getTemplateImage("ic_image_back.png"));
+    File sampleFile = createSampleBackgroundImage();
+    if (sampleFile != null) {
+      myBackgroundImageAssetBrowser.getAsset().imagePath().set(sampleFile);
+    }
     myBackgroundImageAsset = new OptionalValueProperty<>(myBackgroundImageAssetBrowser.getAsset());
 
     // For the background layer, use a simple plain color by default
@@ -305,6 +320,50 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     }
     add(myRootPanel);
   }
+
+  /**
+   * Copy sample image resource to local file system so it can be imported as a file
+   */
+  @Nullable
+  private static File createSampleBackgroundImage() {
+    try {
+      BufferedImage image = GraphicGenerator.getStencilImage("/images/adaptive_icons_samples/background.png");
+      if (image == null) {
+        return null;
+      }
+      Path sampleFile = getImageSamplesPath().resolve("background-layer.png");
+      Files.createDirectories(sampleFile.getParent());
+      ImageIO.write(image, "PNG", sampleFile.toFile());
+      return sampleFile.toFile();
+    }
+    catch (IOException e) {
+      return null;
+    }
+  }
+
+  @NotNull
+  private static Path getImageSamplesPath() {
+    String userHome = System.getProperty("user.home");
+    String path = null;
+    if (SystemInfo.isWindows) {
+      // On Windows, we need the localized "Documents" folder name
+      path = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
+    }
+    else if (SystemInfo.isMac) {
+      // On OSX, "Documents" is not localized
+      path = FileUtil.join(userHome, "Documents");
+    }
+    else if (SystemInfo.isLinux) {
+      // On Linux, there is no standard "Documents" folder, so use the home folder
+      path = userHome;
+    }
+    if (StringUtil.isEmpty(path)) {
+      throw new RuntimeException("Platform is not supported");
+    }
+    return Paths.get(path, "AndroidStudio", "ImageAssets", "Samples");
+  }
+
+
 
   private void initializeListenersAndBindings() {
     final BoolProperty foregroundTrimmed = new SelectedProperty(myForegroundTrimmedRadioButton);
