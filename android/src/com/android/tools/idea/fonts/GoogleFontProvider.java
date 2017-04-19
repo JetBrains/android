@@ -19,10 +19,12 @@ package com.android.tools.idea.fonts;
  * The only known {@link FontProvider}. Others may be available in the future.
  */
 public class GoogleFontProvider extends FontProvider {
+  public static final String GOOGLE_FONT_NAME = "Google Fonts";
   public static final String GOOGLE_FONT_AUTHORITY = "com.google.android.gms.fonts.provider.fontprovider";
   public static final String GOOGLE_FONT_URL = "https://fonts.gstatic.com/s/a/directory.xml";
+  public static final FontProvider INSTANCE = new GoogleFontProvider();
 
-  public GoogleFontProvider() {
-    super("Google Fonts", GOOGLE_FONT_AUTHORITY, GOOGLE_FONT_URL);
+  private GoogleFontProvider() {
+    super(GOOGLE_FONT_NAME, GOOGLE_FONT_AUTHORITY, GOOGLE_FONT_URL);
   }
 }

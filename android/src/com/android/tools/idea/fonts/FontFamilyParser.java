@@ -182,7 +182,7 @@ class FontFamilyParser {
       return defaultValue;
     }
     try {
-      return Integer.parseInt(intAsString);
+      return Math.round(Float.parseFloat(intAsString));
     }
     catch (NumberFormatException ex) {
       return defaultValue;
