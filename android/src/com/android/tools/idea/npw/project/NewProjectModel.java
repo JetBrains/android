@@ -62,7 +62,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.instantapp.InstantApps.getInstantAppSdkLocation;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -209,14 +208,16 @@ public class NewProjectModel extends WizardModel {
             if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(new File(projectLocation))) {
               return true;
             }
-          } catch (Exception e) {
+          }
+          catch (Exception e) {
             getLogger().error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
           }
           return false;
         }
       });
-      if(!couldEnsureLocationExists) {
-        String msg = "Could not ensure the target project location exists and is accessible:\n\n%1$s\n\nPlease try to specify another path.";
+      if (!couldEnsureLocationExists) {
+        String msg =
+          "Could not ensure the target project location exists and is accessible:\n\n%1$s\n\nPlease try to specify another path.";
         Messages.showErrorDialog(String.format(msg, projectLocation), "Error Creating Project");
         // TODO: Is this available on the New Wizard?
         //navigateToNamedStep(com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.STEP_NAME, true);
@@ -256,21 +257,13 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
 
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
-      boolean hasInstantApp = false;
       for (NewModuleModel newModuleModel : getNewModuleModels()) {
         params.putAll(newModuleModel.getTemplateValues());
-        hasInstantApp |= newModuleModel.instantApp().get();
 
         // Set global parameters
         newModuleModel.getRenderTemplateValues().getValue().putAll(myTemplateValues);
         newModuleModel.getTemplateValues().putAll(myTemplateValues);
       }
-
-      // TODO: Maybe we should not reuse ATTR_IS_INSTANT_APP. A new ATTR_IS_INSTANT_PROJECT?
-      params.put(ATTR_IS_INSTANT_APP, hasInstantApp);
-    if (hasInstantApp) {
-      params.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
-    }
 
       Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
       // @formatter:off
@@ -329,7 +322,8 @@ public class NewProjectModel extends WizardModel {
         // The GradleSyncListener will take care of creating the Module top level module and opening Android Studio if gradle sync fails,
         // otherwise the project will be created but Android studio will not open - http://b.android.com/335265
         projectImporter.importProject(applicationName().get(), rootLocation, request,
-                                      new NewProjectImportGradleSyncListener() {});
+                                      new NewProjectImportGradleSyncListener() {
+                                      });
       }
       catch (IOException | ConfigurationException e) {
         Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));

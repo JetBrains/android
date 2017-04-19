@@ -25,12 +25,9 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +35,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.tools.idea.instantapp.InstantApps.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -219,44 +215,16 @@ public final class NewModuleModel extends WizardModel {
       Project project = myProject.getValue();
       if (myIsInstantApp.get()) {
         myTemplateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, myProjectPackageName.get());
-        myTemplateValues.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
-        myTemplateValues.put(ATTR_HAS_SPLIT_WRAPPER, true);
-        myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, true);
 
         if (renderTemplateValues != null) {
           renderTemplateValues.put(ATTR_IS_INSTANT_APP, true);
           renderTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
-          renderTemplateValues.put(ATTR_SPLIT_NAME, myModuleName.get() + "split");
-          // TODO: Calculate the "out" values in a more correct fashion
-          renderTemplateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, "./base/src/main");
         }
 
         if (myCreateInExistingProject) {
-          ApplicationManager.getApplication().runReadAction(() -> {
-            // We are adding a feature module to an existing instant app. Find the appropriate package and base-module path to add things to
-            if (findInstantAppModule(project) != null) {
-              Module baseSplit = getBaseSplitInInstantApp(project);
-              myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
-              myTemplateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, getInstantAppPackage(baseSplit));
-              myTemplateValues.put(ATTR_BASE_SPLIT_NAME, baseSplit.getName());
-
-              if (renderTemplateValues != null) {
-                renderTemplateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
-              }
-            }
-
-            // TODO: need better name-clash handling (http://b/35712205) but this handles the most common issue.
-            String monolithicApplicationModuleName = "app";
-            int count = 2;
-            while (ModuleManager.getInstance(project).findModuleByName(monolithicApplicationModuleName) != null && count < 100) {
-              monolithicApplicationModuleName = "app" + count;
-              myTemplateValues.put(ATTR_MONOLITHIC_APP_PROJECT_NAME, monolithicApplicationModuleName);
-              myTemplateValues.put(ATTR_MONOLITHIC_APP_DIR, "./" + monolithicApplicationModuleName);
-              count++;
-            }
-          });
+          myTemplateValues.put(ATTR_HAS_MONOLITHIC_APP_WRAPPER, false);
+          myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
         }
-
       }
 
       if (renderTemplateValues != null) {

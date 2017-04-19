@@ -222,7 +222,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     }
 
     new TemplateValueInjector(moduleModel.getTemplateValues())
-      .setProjectDefaults(moduleModel.getProject().getValueOrNull(), moduleModel.applicationName().get());
+      .setProjectDefaults(moduleModel.getProject().getValueOrNull(), moduleModel.applicationName().get(), myRenderModel.instantApp().get());
   }
 
   private static int getDefaultSelectedTemplateIndex(@NotNull TemplateRenderer[] templateRenderers, boolean isNewModule) {

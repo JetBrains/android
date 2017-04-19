@@ -77,7 +77,7 @@ public class WizardConstants {
   public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", WIZARD, String.class);
   public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
   @SuppressWarnings("unchecked") public static final Key<SetMultimap<String, String>> DEPENDENCIES_KEY =
-    createKey(ATTR_DEPENDENCIES_MULTIMAP, WIZARD, (Class<SetMultimap<String, String>>)(Class) SetMultimap.class);
+    createKey(ATTR_DEPENDENCIES_MULTIMAP, WIZARD, (Class<SetMultimap<String, String>>)(Class)SetMultimap.class);
   public static final Key<String> GRADLE_PLUGIN_VERSION_KEY = createKey(ATTR_GRADLE_PLUGIN_VERSION, WIZARD, String.class);
   public static final Key<String> GRADLE_VERSION_KEY = createKey(ATTR_GRADLE_VERSION, WIZARD, String.class);
   @SuppressWarnings("unchecked") public static final Key<List<String>> INSTALL_REQUESTS_KEY =
@@ -99,7 +99,6 @@ public class WizardConstants {
   public static final Key<Boolean> IS_LOW_MEMORY_KEY = createKey(ATTR_IS_LOW_MEMORY, WIZARD, Boolean.class);
 
   // Instant module step keys
-  public static final Key<String> SPLIT_NAME_KEY = createKey(ATTR_SPLIT_NAME, WIZARD, String.class);
   public static final Key<String> INSTANT_APP_PACKAGE_NAME_KEY = createKey(ATTR_INSTANT_APP_PACKAGE_NAME, WIZARD, String.class);
   public static final Key<Boolean> IS_INSTANT_APP_KEY = createKey(ATTR_IS_INSTANT_APP, WIZARD, Boolean.class);
 

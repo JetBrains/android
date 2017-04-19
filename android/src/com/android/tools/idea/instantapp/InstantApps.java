@@ -15,234 +15,90 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.builder.model.AndroidAtom;
-import com.android.builder.model.Dependencies;
-import com.android.builder.model.Library;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class InstantApps {
-  private static final Pattern OLD_ATOM_NAME_PATTERN = Pattern.compile("(?:(?:atom|feature)-)(.+)");
-  private static final Pattern NEW_ATOM_NAME_PATTERN = Pattern.compile("(.+)(?:atom|split)");
 
   /**
-   * This method will find and return a base split if one exists and is associated with the given facet.
+   * This method will find and return all feature modules associated with the facet of an instant app application module.
    *
-   * @param facet the {@link AndroidFacet} for the Instant App application module whose base split you want to find.
-   * @return The {@link Module} corresponding with the base split or {@code null} if none is found.
+   * @param facet the {@link AndroidFacet} for the Instant App application module whose feature modules you want to find.
+   * @return The {@link List} of {@link Module}s corresponding to all found features.
    */
-  @Nullable
-  public static Module findInstantAppBaseSplit(@NotNull AndroidFacet facet) {
-    Module baseAtomModule = null;
+  @NotNull
+  public static List<Module> findFeatureModules(@NotNull AndroidFacet facet) {
+    // TODO - this doesn't work for now as we have no dependencies for instantapp modules. However can only build one instantapp in a
+    // project at the moment, so just getting all feature modules is exactly equivalent.
+    /*List<Module> featureModules = new ArrayList<>();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP && androidModuleModel != null) {
-      AndroidAtom baseSplit = androidModuleModel.getMainArtifact().getDependencies().getBaseAtom();
-      if (baseSplit != null) {
-        String project = baseSplit.getProject();
-        if (project != null) {
-          ReadAction<Module> readAction = new ReadAction<Module>() {
+      Collection<AndroidLibrary> androidLibraries = androidModuleModel.getMainArtifact().getDependencies().getLibraries();
+      List<String> gradlePaths = new ArrayList<>();
+      for (AndroidLibrary library : androidLibraries) {
+        if (isNotEmpty(library.getProject()) && library instanceof AndroidModuleModel) {
+          AndroidModuleModel dependencyModel = (AndroidModuleModel)library;
+          assert dependencyModel.getProjectType() == PROJECT_TYPE_FEATURE;
+          gradlePaths.add(library.getProject());
+        }
+      }
 
-            @Override
-            protected void run(@NotNull Result<Module> result) throws Throwable {
-              for (Module module : ModuleManager.getInstance(facet.getModule().getProject()).getModules()) {
-                GradleFacet facetToCheck = GradleFacet.getInstance(module);
-                if (facetToCheck != null) {
-                  GradleModuleModel gradleModuleModel = facetToCheck.getGradleModuleModel();
-                  if (gradleModuleModel != null && project.equals(gradleModuleModel.getGradlePath())) {
-                    result.setResult(module);
-                    return;
-                  }
-                }
-              }
-
-              result.setResult(null);
+      ApplicationManager.getApplication().runReadAction(() -> {
+        for (Module module : ModuleManager.getInstance(facet.getModule().getProject()).getModules()) {
+          GradleFacet facetToCheck = GradleFacet.getInstance(module);
+          if (facetToCheck != null) {
+            GradleModuleModel gradleModuleModel = facetToCheck.getGradleModuleModel();
+            if (gradleModuleModel != null && gradlePaths.contains(gradleModuleModel.getGradlePath())) {
+              featureModules.add(module);
             }
-          };
-          baseAtomModule = readAction.execute().getResultObject();
-        }
-      }
-    }
-    return baseAtomModule;
-  }
-
-  /**
-   * This method will find and return an instant app module if one exists in the given Project. If the project contains multiple Instant
-   * Apps then it will return the first one based on the internal project ordering.
-   *
-   * @param project the {@link Project} you want to search.
-   * @return The found {@link Module} corresponding to an Instant App application module, or {@code null} if none exist.
-   */
-  @Nullable
-  public static Module findInstantAppModule(@NotNull Project project) {
-    List<Module> instantAppModules = AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_INSTANTAPP);
-    if (instantAppModules.size() == 0) {
-      return null;
-    }
-    else {
-      return instantAppModules.get(0);
-    }
-  }
-
-  /**
-   * Given a project that is known to contain an Instant App, this method will get the base split. In a project with multiple Instant Apps
-   * it will get the base split of the project returned by {@link #findInstantAppModule}.
-   *
-   * @param project the {@link Project} to search.
-   * @return The {@link Module} corresponding to the base split.
-   */
-  @NotNull
-  public static Module getBaseSplitInInstantApp(@NotNull Project project) {
-    Module instantAppModule = findInstantAppModule(project);
-    assert instantAppModule != null;
-    AndroidFacet facet = AndroidFacet.getInstance(instantAppModule);
-    assert facet != null;
-    Module baseSplit = findInstantAppBaseSplit(facet);
-    assert baseSplit != null;
-    return baseSplit;
-  }
-
-  /**
-   * Get the package used by all splits that are part of an Instant App.
-   *
-   * @param baseSplit the {@link Module} corresponding to the base split of an Instant App.
-   * @return the package name as a {@link String}.
-   */
-  @NotNull
-  public static String getInstantAppPackage(@NotNull Module baseSplit) {
-    AndroidFacet baseSplitFacet = AndroidFacet.getInstance(baseSplit);
-    assert baseSplitFacet != null;
-    Manifest baseSplitManifest = baseSplitFacet.getManifest();
-    assert baseSplitManifest != null;
-    String packageValue = baseSplitManifest.getPackage().getStringValue();
-    assert packageValue != null;
-    return packageValue;
-  }
-
-  /**
-   * Find the directory where intent-filters and shared resources should be inserted given a specified base split.
-   *
-   * @param baseSplit the {@link Module} corresponding to the base split.
-   * @return The output directory as a {@link String}.
-   */
-  @NotNull
-  public static String getBaseSplitOutDir(@NotNull Module baseSplit) {
-    String baseSplitModuleName = baseSplit.getName();
-    // TODO: Remove all this code once we have feature modules
-    // Until we have feature-modules we need to handle the "fake-split" case where we actually want to add things to the library associated
-    // with the base split rather than the base split. If the module name is of type xxxsplit or xxxatom or atom-xxx or feature-xxx then
-    // look for xxx or xxxlib or lib-xxx
-    String baseName = baseSplitModuleName;
-    Matcher newMatcher = NEW_ATOM_NAME_PATTERN.matcher(baseSplitModuleName);
-    if (newMatcher.matches()) {
-      baseName = newMatcher.group(1);
-    }
-    else {
-      Matcher oldMatcher = OLD_ATOM_NAME_PATTERN.matcher(baseSplitModuleName);
-      if (oldMatcher.matches()) {
-        baseName = oldMatcher.group(1);
-      }
-    }
-
-    if (!baseName.equals(baseSplitModuleName)) {
-      ModuleManager moduleManager = ModuleManager.getInstance(baseSplit.getProject());
-      Module realBaseModule = moduleManager.findModuleByName(baseName);
-      if (realBaseModule != null) {
-        baseSplit = realBaseModule;
-      }
-      else {
-        realBaseModule = moduleManager.findModuleByName("lib-" + baseName);
-        if (realBaseModule != null) {
-          baseSplit = realBaseModule;
-        }
-        else {
-          realBaseModule = moduleManager.findModuleByName(baseName + "lib");
-          if (realBaseModule != null) {
-            baseSplit = realBaseModule;
           }
         }
-      }
+      });
     }
-    AndroidModuleModel baseSplitModel = AndroidModuleModel.get(baseSplit);
-    assert baseSplitModel != null;
-    return baseSplitModel.getRootDirPath().getAbsolutePath();
+    return featureModules;*/
+    return AndroidProjectInfo.getInstance(facet.getModule().getProject()).getAllModulesOfProjectType(PROJECT_TYPE_FEATURE);
   }
 
   /**
-   * Find the Instant App split module that references the target.
+   * This method will find and return a base feature if one exists and is associated with the given facet.
    *
-   * @param target a {@link Module}.
-   * @return Returns the referencing split module if it exists, the target module if the target module is a split, or {@code null} if no
-   * suitable module can be  found.
+   * @param facet the {@link AndroidFacet} for the Instant App application module whose base feature module you want to find.
+   * @return The {@link Module} corresponding with the base feature module or {@code null} if none is found.
    */
   @Nullable
-  public static Module getContainingSplit(@NotNull Module target) {
-    AndroidFacet facet = AndroidFacet.getInstance(target);
-    if (facet != null && facet.getProjectType() == PROJECT_TYPE_ATOM) {
-      return target;
+  public static Module findBaseFeature(@NotNull AndroidFacet facet) {
+    Module baseFeature = null;
+    List<Module> featureModules = findFeatureModules(facet);
+    for (Module module : featureModules) {
+      // TODO: once isBaseSplit is merged in then this can be commented out and the code will work
+      //AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      //if (androidModel != null && androidModel.getAndroidProject().isBaseSplit()) {
+        baseFeature = module;
+        break;
+      //}
     }
-    GradleFacet gradleFacet = GradleFacet.getInstance(target);
-    if (gradleFacet == null) {
-      return target;
-    }
-
-    GradleModuleModel gradleModuleModel = gradleFacet.getGradleModuleModel();
-    if (gradleModuleModel == null) {
-      return target;
-    }
-
-    for (Module otherModule : ModuleManager.getInstance(target.getProject()).getModules()) {
-      if (otherModule == target) {
-        continue;
-      }
-      AndroidFacet otherFacet = AndroidFacet.getInstance(otherModule);
-      if (otherFacet != null && otherFacet.getProjectType() == PROJECT_TYPE_ATOM) {
-        AndroidModuleModel androidModuleModel = AndroidModuleModel.get(otherFacet);
-        if (androidModuleModel != null) {
-          Dependencies dependencies = androidModuleModel.getMainArtifact().getDependencies();
-          if (dependencies.getLibraries()
-            .stream()
-            .map(Library::getProject)
-            .filter(Objects::nonNull)
-            .anyMatch(n -> n.equals(gradleModuleModel.getGradlePath()))) {
-            return otherModule;
-          }
-        }
-      }
-    }
-    return null;
+    return baseFeature;
   }
 
   /**
@@ -254,10 +110,13 @@ public class InstantApps {
   @NotNull
   public static String getDefaultInstantAppUrl(@NotNull AndroidFacet facet) {
     String defaultUrl = "<<ERROR - NO URL SET>>";
-    Module baseSplit = findInstantAppBaseSplit(facet);
-    if (baseSplit != null) {
-      String foundUrl = new InstantAppUrlFinder(MergedManifest.get(baseSplit)).getDefaultUrl();
-      defaultUrl = isEmpty(foundUrl) ? defaultUrl : foundUrl;
+    List<Module> featureModules = findFeatureModules(facet);
+    for (Module module : featureModules) {
+      String foundUrl = new InstantAppUrlFinder(MergedManifest.get(module)).getDefaultUrl();
+      if (isNotEmpty(foundUrl)) {
+        defaultUrl = foundUrl;
+        break;
+      }
     }
     return defaultUrl;
   }
@@ -279,18 +138,6 @@ public class InstantApps {
   public static boolean isInstantAppApplicationModule(@NotNull Module module) {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     return model != null && model.getProjectType() == PROJECT_TYPE_INSTANTAPP;
-  }
-
-  @Nullable
-  @Deprecated
-  public static String getInstantAppSdkLocation() {
-    try {
-      return getInstantAppSdk().getCanonicalPath();
-    }
-    catch (IOException e) {
-      // Ignore
-      return null;
-    }
   }
 
   public static boolean isPostO(IDevice device) {
