@@ -66,78 +66,77 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertNotNull(rootModuleName);
 
     String projectName = getProject().getName();
-    String expected =
-      projectName + "\n" +
-      " app (Android)\n" +
-      "  manifests\n" +
-      "   AndroidManifest.xml (main)\n" +
-      "   AndroidManifest.xml (debug)\n" +
-      "  java\n" +
-      "   app (main)\n" +
-      "    MainActivity\n" +
-      "   app (androidTest)\n" +
-      "    MainActivityTest.java\n" +
-      "   Debug.java\n" +
-      "  renderscript\n" +
-      "   test.rs (main)\n" +
-      "  assets\n" +
-      "   raw.asset.txt (main)\n" +
-      "  res\n" +
-      "   drawable\n" +
-      "    ic_launcher.png (2)\n" +
-      "     ic_launcher.png (hdpi, debug)\n" +
-      "     ic_launcher.png (mdpi)\n" +
-      "    j.png (mdpi)\n" +
-      "   layout\n" +
-      "    activity_main.xml\n" +
-      "   menu\n" +
-      "    main.xml\n" +
-      "   values\n" +
-      "    dimens.xml (3)\n" +
-      "     dimens.xml\n" +
-      "     dimens.xml (debug)\n" +
-      "     dimens.xml (w820dp)\n" +
-      "    strings.xml (2)\n" +
-      "     strings.xml\n" +
-      "     strings.xml (debug)\n" +
-      "    styles.xml\n" +
-      " empty (non-Android)\n" +
-      " javamodule (non-Android)\n" +
-      "  java\n" +
-      "   foo\n" +
-      "    Foo.java\n" +
-      "  tests\n" +
-      "   foo\n" +
-      "    FooTest.java\n" +
-      "  resources\n" +
-      "   res2.txt\n" +
-      "  test-resources\n" +
-      "   test-res.txt\n" +
-      " lib (Android)\n" +
-      "  manifests\n" +
-      "   AndroidManifest.xml (main)\n" +
-      "  cpp\n" +
-      "   hello.c (main)\n" +
-      "  jniLibs\n" +
-      "   libc.so (main)\n" +
-      "   libm.so (debug)\n" +
-      "  res\n" +
-      "   drawable\n" +
-      "    ic_launcher.png (mdpi)\n" +
-      "   values\n" +
-      "    strings.xml\n" +
-      " Gradle Scripts\n" +
-      "  build.gradle (Project: " + rootModuleName + ")\n" +
-      "  build.gradle (Module: app)\n" +
-      "  sonar.gradle (Module: app)\n" +
-      "  build.gradle (Module: empty)\n" +
-      "  build.gradle (Module: javamodule)\n" +
-      "  build.gradle (Module: lib)\n" +
-      "  gradle-wrapper.properties (Gradle Version)\n" +
-      "  proguard-rules.pro (ProGuard Rules for app)\n" +
-      "  proguard.cfg (ProGuard Rules for lib)\n" +
-      "  settings.gradle (Project Settings)\n" +
-      "  local.properties (SDK Location)\n";
+    String expected = projectName + "\n" +
+                      " app (Android)\n" +
+                      "  manifests\n" +
+                      "   AndroidManifest.xml (main)\n" +
+                      "   AndroidManifest.xml (debug)\n" +
+                      "  java\n" +
+                      "   app (main)\n" +
+                      "    MainActivity\n" +
+                      "   app (androidTest)\n" +
+                      "    MainActivityTest.java\n" +
+                      "   Debug.java\n" +
+                      "  renderscript\n" +
+                      "   test.rs (main)\n" +
+                      "  assets\n" +
+                      "   raw.asset.txt (main)\n" +
+                      "  res\n" +
+                      "   drawable\n" +
+                      "    ic_launcher.png (2)\n" +
+                      "     ic_launcher.png (hdpi, debug)\n" +
+                      "     ic_launcher.png (mdpi)\n" +
+                      "    j.png (mdpi)\n" +
+                      "   layout\n" +
+                      "    activity_main.xml\n" +
+                      "   menu\n" +
+                      "    main.xml\n" +
+                      "   values\n" +
+                      "    dimens.xml (3)\n" +
+                      "     dimens.xml\n" +
+                      "     dimens.xml (debug)\n" +
+                      "     dimens.xml (w820dp)\n" +
+                      "    strings.xml (2)\n" +
+                      "     strings.xml\n" +
+                      "     strings.xml (debug)\n" +
+                      "    styles.xml\n" +
+                      " empty (non-Android)\n" +
+                      " javamodule (non-Android)\n" +
+                      "  java\n" +
+                      "   foo\n" +
+                      "    Foo.java\n" +
+                      "  tests\n" +
+                      "   foo\n" +
+                      "    FooTest.java\n" +
+                      "  resources\n" +
+                      "   res2.txt\n" +
+                      "  test-resources\n" +
+                      "   test-res.txt\n" +
+                      " lib (Android)\n" +
+                      "  manifests\n" +
+                      "   AndroidManifest.xml (main)\n" +
+                      "  cpp\n" +
+                      "   hello.c (main)\n" +
+                      "  jniLibs\n" +
+                      "   libc.so (main)\n" +
+                      "   libm.so (debug)\n" +
+                      "  res\n" +
+                      "   drawable\n" +
+                      "    ic_launcher.png (mdpi)\n" +
+                      "   values\n" +
+                      "    strings.xml\n" +
+                      " Gradle Scripts\n" +
+                      "  build.gradle (Project: " + rootModuleName + ")\n" +
+                      "  build.gradle (Module: app)\n" +
+                      "  sonar.gradle (Module: app)\n" +
+                      "  build.gradle (Module: empty)\n" +
+                      "  build.gradle (Module: javamodule)\n" +
+                      "  build.gradle (Module: lib)\n" +
+                      "  gradle-wrapper.properties (Gradle Version)\n" +
+                      "  proguard-rules.pro (ProGuard Rules for app)\n" +
+                      "  proguard.cfg (ProGuard Rules for lib)\n" +
+                      "  settings.gradle (Project Settings)\n" +
+                      "  local.properties (SDK Location)\n";
     int numLines = expected.split("\n").length;
     assertStructureEqual(structure, expected, numLines, new GroupByTypeComparator(null, "android"), structure.getRootElement(), printInfo);
   }
@@ -217,23 +216,22 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertThat(modules).hasLength(1);
 
     String projectName = getProject().getName();
-    String expected =
-      projectName + "\n" +
-      " Gradle Scripts\n" +
-      "  build.gradle (Module: " + modules[0].getName() + ")\n" +
-      "  gradle-wrapper.properties (Gradle Version)\n" +
-      "  local.properties (SDK Location)\n" +
-      " " + modules[0].getName() + " (Android)\n" +
-      "  java\n" +
-      "   foo (main)\n" +
-      "    Foo.java\n" +
-      "  manifests\n" +
-      "   AndroidManifest.xml (main)\n" +
-      "  res\n" +
-      "   values\n" +
-      "    dimens.xml (w820dp)\n" +
-      "  resources\n" +
-      "   sample_resource.txt\n";
+    String expected = projectName + "\n" +
+                      " Gradle Scripts\n" +
+                      "  build.gradle (Module: " + modules[0].getName() + ")\n" +
+                      "  gradle-wrapper.properties (Gradle Version)\n" +
+                      "  local.properties (SDK Location)\n" +
+                      " " + modules[0].getName() + " (Android)\n" +
+                      "  java\n" +
+                      "   foo (main)\n" +
+                      "    Foo.java\n" +
+                      "  manifests\n" +
+                      "   AndroidManifest.xml (main)\n" +
+                      "  res\n" +
+                      "   values\n" +
+                      "    dimens.xml (w820dp)\n" +
+                      "  resources\n" +
+                      "   sample_resource.txt\n";
     int numLines = expected.split("\n").length;
     assertStructureEqual(structure, expected, numLines, createComparator(printInfo), structure.getRootElement(), printInfo);
   }

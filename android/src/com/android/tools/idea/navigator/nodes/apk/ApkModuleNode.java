@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.apk;
 
 import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.apk.debugging.LibraryFolder;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.java.DexGroupNode;
@@ -116,8 +117,8 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     children.add(myDexGroupNode);
 
     // "Native libraries" folder
-    VirtualFile found = myProject.getBaseDir().findChild("lib");
-    if (found != null && found.isDirectory()) {
+    VirtualFile found = LibraryFolder.findIn(myProject);
+    if (found != null) {
       children.add(new LibFolderNode(myProject, found, settings));
     }
 

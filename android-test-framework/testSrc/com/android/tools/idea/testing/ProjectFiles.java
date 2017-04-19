@@ -40,4 +40,16 @@ public final class ProjectFiles {
     assertNotNull(folder);
     return folder;
   }
+
+  @NotNull
+  public static VirtualFile createFileInProjectRoot(@NotNull Project project, @NotNull String fileName) throws IOException {
+    VirtualFile folder = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
+      @Override
+      public VirtualFile compute() throws IOException {
+        return project.getBaseDir().createChildData(this, fileName);
+      }
+    });
+    assertNotNull(folder);
+    return folder;
+  }
 }
