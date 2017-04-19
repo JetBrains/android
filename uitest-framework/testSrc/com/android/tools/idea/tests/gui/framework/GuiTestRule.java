@@ -84,7 +84,7 @@ public class GuiTestRule implements TestRule {
     Object oldValue = e.getOldValue();
     if ("permanentFocusOwner".equals(e.getPropertyName()) && oldValue instanceof Component && e.getNewValue() == null) {
       Window parentWindow = oldValue instanceof Window ? (Window)oldValue : SwingUtilities.getWindowAncestor((Component)oldValue);
-      if (parentWindow instanceof Dialog) {
+      if (parentWindow instanceof Dialog && ((Dialog)parentWindow).isModal()) {
         Container parent = parentWindow.getParent();
         if (parent != null && parent.isVisible()) {
           System.out.println("Focus Listener: Request focus!");
