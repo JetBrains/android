@@ -634,7 +634,7 @@ public class GradleImportTest extends AndroidTestCase {
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  public void /*test*/NoProjectProperties() throws Exception {
+  public void testNoProjectProperties() throws Exception {
     // Missing project.properties
     File projectDir = createProject("testError3", "test.pkg");
 
