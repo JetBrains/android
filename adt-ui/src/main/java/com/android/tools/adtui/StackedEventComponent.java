@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.StackedEventType;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -39,11 +40,12 @@ import static com.android.tools.adtui.common.AdtUiUtils.getFittedString;
  */
 public class StackedEventComponent extends AnimatedComponent {
 
-  private static final Color DISABLED_ACTION = new Color(221, 222, 224);
-  private static final Color ENABLED_ACTION = new Color(106, 189, 180);
-  private static final Color FONT_COLOR = new Color(200, 201, 202);
+  private static final Color DISABLED_ACTION = new JBColor(0xDBDFE2, 0X5E5F60);
+  private static final Color ENABLED_ACTION = new JBColor(0x64D8B6, 0x12B0A1);
+  private static final Color FONT_COLOR = new JBColor(0x545454, 0xCACACA);
   private static final int CHARACTERS_TO_SHRINK_BY = 1;
   private static final int SEGMENT_SPACING = 5;
+  private static final float FONT_PADDING = 10;
 
   @NotNull
   private final EventModel<StackedEventType> myModel;
@@ -154,23 +156,19 @@ public class StackedEventComponent extends AnimatedComponent {
       if (event.getType() != StackedEventType.NONE) {
         text = ((ActivityAction)event).getData();
       }
-      int width = metrics.stringWidth(text);
-      int height = metrics.getHeight();
       double normalizedStartPosition = (event.getStartUs() - min) / (max - min);
-      double lifetime = event.getEndUs() - event.getStartUs();
+      double lifetime = event.getEndUs();
       if (event.getEndUs() == 0) {
-        lifetime = max - event.getStartUs();
+        lifetime = max;
       }
-      double normalizedEndPosition = ((event.getStartUs() + (lifetime)) - min)
+      double normalizedEndPosition = (lifetime - min)
                                      / (max - min);
       float startPosition = (float)normalizedStartPosition * scaleFactor;
       float endPosition = (float)normalizedEndPosition * scaleFactor;
       boolean ellipsis = true;
-      //TODO: If text was previously ellipsed and it is getting pushed off the screen,
-      //we need to ellipse it before doing the sliding animation.
-      if (startPosition < 0 && endPosition > 0) {
-        startPosition = width < endPosition ? 0 : endPosition - width;
-        ellipsis = false;
+
+      if (startPosition <= FONT_PADDING) {
+        startPosition = FONT_PADDING;
       }
 
       if (ellipsis) {
@@ -179,7 +177,8 @@ public class StackedEventComponent extends AnimatedComponent {
           continue;
         }
       }
-      g2d.setColor(FONT_COLOR);
+
+      g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
       g2d.drawString(text, startPosition, (myLineThickness + SEGMENT_SPACING));
     }
   }
