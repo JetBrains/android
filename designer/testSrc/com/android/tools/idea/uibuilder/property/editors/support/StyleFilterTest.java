@@ -49,7 +49,7 @@ public class StyleFilterTest extends AndroidGradleTestCase {
     generateSources();
 
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myAndroidFacet.getModule()).getConfiguration(file);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myAndroidFacet).getConfiguration(file);
     myResolver = configuration.getResourceResolver();
     assertNotNull(myResolver);
     myFilter = new StyleFilter(getProject(), myResolver);
