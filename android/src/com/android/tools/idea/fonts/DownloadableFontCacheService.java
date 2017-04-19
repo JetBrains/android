@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.Font;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -82,4 +83,10 @@ public interface DownloadableFontCacheService {
    * @param failure optional callback after a failed download of a font directory.
    */
   void refresh(@Nullable Runnable success, @Nullable Runnable failure);
+
+  /**
+   * Returns the path to the current font cache directory, if any.
+   */
+  @Nullable
+  File getFontPath();
 }

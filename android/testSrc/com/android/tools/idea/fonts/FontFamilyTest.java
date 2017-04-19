@@ -16,13 +16,17 @@
 package com.android.tools.idea.fonts;
 
 import com.android.tools.idea.fonts.FontFamily.FontSource;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 
 import static com.android.tools.idea.fonts.FontFamily.FontSource.DOWNLOADABLE;
+import static com.android.tools.idea.fonts.FontFamily.FontSource.PROJECT;
 import static com.google.common.truth.Truth.assertThat;
 
 public class FontFamilyTest extends FontTestCase {
@@ -65,5 +69,31 @@ public class FontFamilyTest extends FontTestCase {
                                              @Nullable String menuName) {
     return new FontFamily(provider, fontSource, name, menuUrl, menuName,
                           Collections.singletonList(new FontDetail.Builder(400, 100, false, "http://fonts/font.ttf", null)));
+  }
+
+  public void testFontFamilyXml() throws IOException {
+    FontDetail.Builder builder = new FontDetail.Builder();
+    builder.myItalics = true;
+    builder.myStyleName = "Regular Italic";
+    File fakeTtfFile = FileUtil.createTempFile("fontFamily", ".ttf");
+    // The font needs to exist to be added to the generated file so create a fake cache file
+    builder.myFontUrl = "file://" + fakeTtfFile.getAbsolutePath();
+    FontFamily embeddedFontFamily =
+      new FontFamily(FontProvider.EMPTY_PROVIDER, PROJECT, "embeddedFont", "file://test/path", null, Collections.singletonList(builder));
+
+    FontFamily compoundFontFamily = FontFamily.createCompound(GoogleFontProvider.INSTANCE,
+                                                              DOWNLOADABLE,
+                                                              "myFont",
+                                                              "Menu name",
+                                                              ImmutableList.of(
+                                                                embeddedFontFamily.getFonts().get(0)
+                                                              ));
+    assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                 "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\">" +
+                 "<font android:font=\"" + fakeTtfFile.getAbsolutePath() + "\" " +
+                 "android:fontStyle=\"italic\" " +
+                 "android:fontWeight=\"400\" />" +
+                 "</font-family>",
+                 FontFamily.toXml(compoundFontFamily));
   }
 }

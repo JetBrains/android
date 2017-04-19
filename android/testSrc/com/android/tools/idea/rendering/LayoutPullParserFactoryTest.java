@@ -17,13 +17,25 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
+import com.android.tools.idea.fonts.FontDetail;
+import com.android.tools.idea.fonts.FontFamily;
+import com.android.tools.idea.fonts.GoogleFontProvider;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
+
+import java.io.File;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class LayoutPullParserFactoryTest extends RenderTestBase {
@@ -94,7 +106,6 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
   public void testFontFamily() throws Exception {
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fonta.ttf");
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fontb.ttf");
-    myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
     VirtualFile file = myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
     assertNotNull(file);
     RenderTask task = createRenderTask(file);
@@ -135,5 +146,66 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     assertEquals(expectedLayout, actualLayout);
 
     checkRendering(task, "fonts/fontFamily.png");
+  }
+
+  @NotNull
+  private static FontFamily createMockFontFamily(boolean fileExists) {
+    File fileMock = mock(File.class);
+    when(fileMock.exists()).thenReturn(fileExists);
+    FontDetail fontDetail = mock(FontDetail.class);
+    when(fontDetail.isItalics()).thenReturn(true);
+    when(fontDetail.getStyleName()).thenReturn("Italic");
+    when(fontDetail.getFontStyle()).thenReturn("italic");
+    when(fontDetail.getCachedFontFile()).thenReturn(fileMock);
+    return FontFamily.createCompound(GoogleFontProvider.INSTANCE,
+                                     FontFamily.FontSource.DOWNLOADABLE,
+                                     "myFont",
+                                     "Menu name",
+                                     ImmutableList.of(fontDetail));
+  }
+
+  public void testDownloadedFontFamily() throws Exception {
+    FontFamily compoundFontFamily = createMockFontFamily(true);
+
+    VirtualFile file = myFixture.copyFileToProject("fonts/my_downloadable_font_family.xml", "res/font/my_downloadable_font_family.xml");
+    assertNotNull(file);
+
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    ILayoutPullParser parser = LayoutPullParserFactory.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily);
+    assertTrue(parser instanceof DomPullParser);
+    Element root = ((DomPullParser)parser).getRoot();
+
+    String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
+    String labelColor = "#" + ColorUtil.toHex(UIUtil.getLabelForeground());
+    String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
+      "<LinearLayout",
+      "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
+      "layout_width=\"fill_parent\"",
+      "layout_height=\"wrap_content\"",
+      "orientation=\"vertical\" >",
+      "<TextView",
+      "    layout_width=\"wrap_content\"",
+      "    layout_height=\"wrap_content\"",
+      "    fontFamily=\"@font/my_downloadable_font_family\"",
+      "    paddingBottom=\"20dp\"",
+      "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
+      "    textColor=\"" + labelColor + "\"",
+      "    textSize=\"30sp\"",
+      "    textStyle=\"italic\" />",
+      "</LinearLayout>",
+      "");
+
+    assertEquals(expectedLayout, actualLayout);
+  }
+
+  public void testDownloadableFontWithoutFile() throws Exception {
+    // This is a downloadable font that hasn't been cached yet
+    FontFamily compoundFontFamily = createMockFontFamily(false);
+
+    VirtualFile file = myFixture.copyFileToProject("fonts/my_downloadable_font_family.xml", "res/font/my_downloadable_font_family.xml");
+    assertNotNull(file);
+
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+    assertNull(LayoutPullParserFactory.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily));
   }
 }
