@@ -52,6 +52,16 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   private Navigatable getNavigatable(@NotNull CodeLocation location) {
     PsiClass psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getClassName());
     if (psiClass == null) {
+      if (location.getLineNumber() >= 0) {
+        // There has been at least one case where the PsiManager could not find an inner class in
+        // Kotlin code, which caused us to abort navigating. However, if we have the outer class
+        // (which is easier for PsiManager to find) and a line number, that's enough information to
+        // help us navigate. So, to be more robust against PsiManager error, we try one more time.
+        psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getOuterClassName());
+      }
+    }
+
+    if (psiClass == null) {
       return null;
     }
     else if (location.getLineNumber() >= 0) {
