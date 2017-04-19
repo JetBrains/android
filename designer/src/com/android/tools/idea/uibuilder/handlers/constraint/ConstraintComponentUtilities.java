@@ -1153,8 +1153,8 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isHorizontalGuideline(@NotNull NlComponent component) {
-    if (component.viewInfo != null && component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE)) {
-      String orientation = component.getAttribute(SHERPA_URI, ATTR_ORIENTATION);
+    if (component.viewInfo != null && component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
         return true;
       }
@@ -1163,8 +1163,8 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isVerticalGuideline(@NotNull NlComponent component) {
-    if (component.viewInfo != null && component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE)) {
-      String orientation = component.getAttribute(SHERPA_URI, ATTR_ORIENTATION);
+    if (component.viewInfo != null && component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         return true;
       }

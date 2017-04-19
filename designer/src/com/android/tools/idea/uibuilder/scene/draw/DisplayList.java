@@ -134,8 +134,8 @@ public class DisplayList {
           break;
         case DIR_BASELINE:
           start_dy = -scale;
-          end_dy = scale;
-          arrowDirection = DrawConnection.DIR_BOTTOM;
+          end_dy = (y2 > y1) ? -scale : scale;
+          arrowDirection = (y2 > y1) ? DrawConnection.DIR_TOP : DrawConnection.DIR_BOTTOM;
           arrowY += (y2 > y1) ? -arrowGap : arrowGap;
           break;
       }
