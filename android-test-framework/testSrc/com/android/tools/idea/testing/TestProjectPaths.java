@@ -26,14 +26,14 @@ public final class TestProjectPaths {
   public static final String MODULE_INFO_MANIFEST_ONLY = "projects/moduleInfo/manifestOnly";
   public static final String MODULE_INFO_MERGE = "projects/moduleInfo/merge";
   public static final String MOVE_WITH_RESOURCES = "projects/moveWithResources";
-  public static final String MULTI_ATOM = "projects/multiAtom";
+  public static final String MULTI_FEATURE = "projects/multiFeature";
   public static final String NAVIGATION_EDITOR_BASIC = "projects/navigationEditor/basic";
   public static final String NAVIGATION_EDITOR_SCHEMA_TEST = "projects/navigationEditor/schemaTest";
   public static final String NAVIGATOR_INVALID = "projects/navigator/invalid";
   public static final String NAVIGATOR_PACKAGEVIEW_COMMONROOTS = "projects/navigator/packageview/commonroots";
   public static final String NAVIGATOR_PACKAGEVIEW_SIMPLE = "projects/navigator/packageview/simple";
   public static final String NESTED_MODULE = "projects/nestedModule";
-  public static final String NESTED_MULTI_ATOM = "projects/nestedMultiAtom";
+  public static final String NESTED_MULTI_FEATURE = "projects/nestedMultiFeature";
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_DATA_BINDING = "projects/projectWithDataBinding";

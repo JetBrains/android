@@ -42,7 +42,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     loadProject(INSTANT_APP);
     generateSources();
 
-    assertModuleIsValidAIAInstantApp(getModule("instant-app"), "feature", ImmutableList.of(":feature"));
+    assertModuleIsValidAIAInstantApp(getModule("instant-app"), ImmutableList.of(":feature"));
     assertModuleIsValidAIABaseFeature(getModule("feature"), ImmutableList.of());
 
     Project project = getProject();
