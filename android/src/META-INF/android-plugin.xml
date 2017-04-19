@@ -1177,6 +1177,7 @@
   <extensions defaultExtensionNs="org.jetbrains.android">
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.npw.LegacyWizardPathProvider"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.npw.JavaWizardPathProvider"/>
+    <newModuleDynamicPathFactory implementation="com.android.tools.idea.npw.InstantAppWizardPathProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
