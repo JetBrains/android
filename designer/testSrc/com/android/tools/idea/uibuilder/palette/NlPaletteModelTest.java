@@ -26,6 +26,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.CollectionQuery;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -183,10 +184,10 @@ public class NlPaletteModelTest extends PaletteTestCase {
 
   public void testAddIllegalThirdPartyComponent() {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
-    boolean added = model.addThirdPartyComponent(NlLayoutType.LAYOUT, palette, null, null, LINEAR_LAYOUT, null, null,
-                                 SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null, Collections.emptyList(), Collections.emptyList());
+    boolean added = model.addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, null, null, LINEAR_LAYOUT, null, null,
+                                                 SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null, Collections.emptyList(), Collections.emptyList());
     assertThat(added).isFalse();
-    assertThat(getThirdPartyGroup()).isNull();
+    assertThat(getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP)).isNull();
 
     ViewHandler handler = ViewHandlerManager.get(myFacet).getHandler(LINEAR_LAYOUT);
     assertThat(handler).isInstanceOf(LinearLayoutHandler.class);
@@ -198,10 +199,10 @@ public class NlPaletteModelTest extends PaletteTestCase {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     String tag = "com.example.FakeCustomView";
     boolean added = model
-      .addThirdPartyComponent(NlLayoutType.LAYOUT, palette, AndroidIcons.Android, AndroidIcons.Android24, tag,
+      .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, AndroidIcons.Android24, tag,
                               getXml(tag), getPreviewXml(tag), SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
                               "family", ImmutableList.of("family", "size"), Collections.emptyList());
-    Palette.Group thirdParty = getThirdPartyGroup();
+    Palette.Group thirdParty = getGroupByName(NlPaletteModel.THIRD_PARTY_GROUP);
     assertThat(added).isTrue();
     assertThat(thirdParty).isNotNull();
     assertThat(thirdParty.getItems().size()).isEqualTo(1);
@@ -227,12 +228,44 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertThat(handler.getPreferredProperty()).isEqualTo("family");
   }
 
+  public void testProjectComponents() {
+    registerJavaClasses();
+    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
+    Palette.Group projectComponents = getGroupByName(NlPaletteModel.PROJECT_GROUP);
+    assertThat(projectComponents).isNull();
+
+    model.loadAdditionalComponents(NlLayoutType.LAYOUT, palette, (project) -> {
+      PsiClass customView = mock(PsiClass.class);
+      when(customView.getName()).thenReturn("FakeCustomView");
+      when(customView.getQualifiedName()).thenReturn("com.example.FakeCustomView");
+      return new CollectionQuery<>(ImmutableList.of(customView));
+    });
+    projectComponents = getGroupByName(NlPaletteModel.PROJECT_GROUP);
+    assertThat(projectComponents.getItems().size()).isEqualTo(1);
+
+    String tag = "com.example.FakeCustomView";
+    Palette.Item item = (Palette.Item)projectComponents.getItem(0);
+    assertThat(item.getTagName()).isEqualTo(tag);
+    assertThat(item.getIcon()).isEqualTo(AndroidIcons.Android);
+    assertThat(item.getLargeIcon()).isEqualTo(AndroidIcons.Android24);
+    assertThat(item.getTitle()).isEqualTo("FakeCustomView");
+    assertThat(item.getGradleCoordinateId()).isEmpty();
+    assertThat(item.getXml()).isEqualTo("<com.example.FakeCustomView\n" +
+                                        "    android:layout_width=\"wrap_content\"\n" +
+                                        "    android:layout_height=\"wrap_content\" />\n");
+    assertThat(item.getPreviewXml()).isEmpty();
+  }
+
   @Nullable
-  private Palette.Group getThirdPartyGroup() {
+  private Palette.Group getGroupByName(@NotNull String name) {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     List<Palette.BaseItem> groups = palette.getItems();
-    Palette.Group group = (Palette.Group)groups.get(groups.size() - 1);
-    return group.getName().equals(NlPaletteModel.THIRD_PARTY_GROUP) ? group : null;
+    return groups.stream()
+      .filter(Palette.Group.class::isInstance)
+      .map(Palette.Group.class::cast)
+      .filter(g -> name.equals(g.getName()))
+      .findFirst()
+      .orElse(null);
   }
 
   private void registerFakeBaseViewHandler() {
@@ -250,7 +283,9 @@ public class NlPaletteModelTest extends PaletteTestCase {
     JavaPsiFacade facade = mock(JavaPsiFacade.class);
     registerProjectComponent(JavaPsiFacade.class, facade);
     when(facade.findClasses(anyString(), any(GlobalSearchScope.class))).thenReturn(PsiClass.EMPTY_ARRAY);
-    when(facade.findClasses(eq("com.example.FakeView"), any(GlobalSearchScope.class))).thenReturn(new PsiClass[]{fakeView});
+    when(facade.findClass(eq("android.view.View"), any(GlobalSearchScope.class))).thenReturn(fakeView);
+    when(facade.findClasses(eq("android.view.View"), any(GlobalSearchScope.class))).thenReturn(new PsiClass[]{fakeView});
+    when(facade.findClass(eq("com.example.FakeCustomView"), any(GlobalSearchScope.class))).thenReturn(fakeCustomView);
     when(facade.findClasses(eq("com.example.FakeCustomView"), any(GlobalSearchScope.class))).thenReturn(new PsiClass[]{fakeCustomView});
     when(facade.getElementFactory()).thenReturn(PsiElementFactory.SERVICE.getInstance(getProject()));
     when(fakeCustomView.getSuperClass()).thenReturn(fakeView);
@@ -259,8 +294,8 @@ public class NlPaletteModelTest extends PaletteTestCase {
   @Language("JAVA")
   @NotNull
   private static String getFakeView() {
-    return "package com.example;\n" +
-           "public class FakeView {\n" +
+    return "package android.view;\n" +
+           "public class View {\n" +
            "}\n";
   }
 
@@ -268,7 +303,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
   @NotNull
   private static String getFakeCustomViewView() {
     return "package com.example;\n" +
-           "public class FakeCustomView extends FakeView {\n" +
+           "public class FakeCustomView extends android.view.View {\n" +
            "}\n";
   }
 

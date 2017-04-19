@@ -173,11 +173,16 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
       assert facet != null;
       myLayoutType = designSurface.getLayoutType();
       NlPaletteModel model = NlPaletteModel.get(facet);
-      Palette palette = model.getPalette(myLayoutType);
-      myPalettePanel.populateUiModel(palette, (NlDesignSurface)designSurface);
-      myDependencyManager.setPalette(palette, module);
-      repaint();
+      model.setUpdateListener(() -> reloadPalette(model, module, designSurface));
+      reloadPalette(model, module, designSurface);
     }
+  }
+
+  private void reloadPalette(NlPaletteModel model, Module module, DesignSurface designSurface) {
+    Palette palette = model.getPalette(myLayoutType);
+    myPalettePanel.populateUiModel(palette, (NlDesignSurface)designSurface);
+    myDependencyManager.setPalette(palette, module);
+    repaint();
   }
 
   private void closeAutoHideToolWindow() {
