@@ -1,4 +1,0 @@
-include ':baselib', ':baseatom'
-include ':feature1lib', ':feature1atom'
-include ':feature2lib', ':feature2atom'
-include ':apk', ':iapk'
