@@ -37,9 +37,9 @@ public class MultiAtomSupportTest extends AndroidGradleTestCase {
     assertModuleIsValidAIALibrary(getModule("baselib"), ImmutableList.of());
     assertModuleIsValidAIAInstantApp(getModule("iapk"), "baseatom",
                                      ImmutableList.of(":feature1atom", ":feature2atom", ":baseatom" /*See http://b/34154264*/));
-    assertModuleIsValidAIASplit(getModule("feature1atom"), "baseatom", ImmutableList.of(":feature1lib"), ImmutableList.of(":baseatom"));
-    assertModuleIsValidAIASplit(getModule("feature2atom"), "baseatom", ImmutableList.of(":feature2lib"), ImmutableList.of(":baseatom"));
-    assertModuleIsValidAIABaseSplit(getModule("baseatom"), ImmutableList.of(":baselib"));
+    assertModuleIsValidAIAFeature(getModule("feature1atom"), "baseatom", ImmutableList.of(":feature1lib"), ImmutableList.of(":baseatom"));
+    assertModuleIsValidAIAFeature(getModule("feature2atom"), "baseatom", ImmutableList.of(":feature2lib"), ImmutableList.of(":baseatom"));
+    assertModuleIsValidAIABaseFeature(getModule("baseatom"), ImmutableList.of(":baselib"));
 
     // Until http://b/34154473 is fixed the following fails as source generation / building can not complete without errors
     // generateSources();
@@ -57,9 +57,9 @@ public class MultiAtomSupportTest extends AndroidGradleTestCase {
     assertModuleIsValidAIALibrary(getModule("lib-base"), ImmutableList.of());
     assertModuleIsValidAIAInstantApp(getModule("iapk"), "base",
                                      ImmutableList.of(":atom:feature1", ":atom:feature2", ":atom:base" /*See http://b/34154264*/));
-    assertModuleIsValidAIASplit(getModule("atom-feature1"), "base", ImmutableList.of(":lib:feature1"), ImmutableList.of(":atom:base"));
-    assertModuleIsValidAIASplit(getModule("atom-feature2"), "base", ImmutableList.of(":lib:feature2"), ImmutableList.of(":atom:base"));
-    assertModuleIsValidAIABaseSplit(getModule("atom-base"), ImmutableList.of(":lib:base"));
+    assertModuleIsValidAIAFeature(getModule("atom-feature1"), "base", ImmutableList.of(":lib:feature1"), ImmutableList.of(":atom:base"));
+    assertModuleIsValidAIAFeature(getModule("atom-feature2"), "base", ImmutableList.of(":lib:feature2"), ImmutableList.of(":atom:base"));
+    assertModuleIsValidAIABaseFeature(getModule("atom-base"), ImmutableList.of(":lib:base"));
 
     // Until http://b/34154473 is fixed the following fails as source generation / building can not complete without errors
     // generateSources();

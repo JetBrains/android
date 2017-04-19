@@ -1,1 +1,1 @@
-include ':baseatom', ':instant-app'
+include ':feature', ':instant-app'

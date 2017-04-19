@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.builder.model.AndroidAtom;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Dependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -31,7 +30,8 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static junit.framework.Assert.assertNotNull;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Helper methods for checking modules in an AIA-enabled project are created correctly by a project sync.
@@ -70,19 +70,19 @@ public class AIAProjectStructureAssertions {
    * Asserts that the given module is a split module with the given base split and dependencies on the given library projects and split
    * projects
    */
-  public static void assertModuleIsValidAIASplit(@NotNull Module module,
-                                                 @SuppressWarnings("SameParameterValue") @NotNull String baseSplitName,
-                                                 @NotNull Collection<String> libraryDependencies,
-                                                 @NotNull Collection<String> splitDependencies) throws InterruptedException {
-    assertModuleIsValidForAIA(module, libraryDependencies, splitDependencies, baseSplitName, PROJECT_TYPE_ATOM);
+  public static void assertModuleIsValidAIAFeature(@NotNull Module module,
+                                                   @SuppressWarnings("SameParameterValue") @NotNull String baseSplitName,
+                                                   @NotNull Collection<String> libraryDependencies,
+                                                   @NotNull Collection<String> splitDependencies) throws InterruptedException {
+    assertModuleIsValidForAIA(module, libraryDependencies, splitDependencies, baseSplitName, PROJECT_TYPE_FEATURE);
   }
 
   /**
    * Asserts that the given module is a base split module with dependencies on the given library projects
    */
-  public static void assertModuleIsValidAIABaseSplit(@NotNull Module module,
-                                                     @NotNull Collection<String> libraryDependencies) throws InterruptedException {
-    assertModuleIsValidForAIA(module, libraryDependencies, ImmutableList.of(), null, PROJECT_TYPE_ATOM);
+  public static void assertModuleIsValidAIABaseFeature(@NotNull Module module,
+                                                       @NotNull Collection<String> libraryDependencies) throws InterruptedException {
+    assertModuleIsValidForAIA(module, libraryDependencies, ImmutableList.of(), null, PROJECT_TYPE_FEATURE);
   }
 
   private static void assertModuleIsValidForAIA(@NotNull Module module,
@@ -96,28 +96,12 @@ public class AIAProjectStructureAssertions {
     assertEquals(moduleType, projectType);
 
     Dependencies dependencies = model.getMainArtifact().getDependencies();
-    AndroidAtom baseSplit = dependencies.getBaseAtom();
-    Collection<AndroidAtom> splits = dependencies.getAtoms();
     List<String> libraries =
       dependencies.getLibraries().stream().map(AndroidLibrary::getProject).filter(Objects::nonNull).collect(Collectors.toList());
-
-    if (expectedBaseSplit != null) {
-      assertNotNull(baseSplit);
-      assertEquals(expectedBaseSplit, baseSplit.getAtomName());
-    }
-    else {
-      assertNull(baseSplit);
-    }
-
-    assertEquals(splitDependencies.size(), splits.size());
-    assertTrue(splits.stream().map(AndroidAtom::getProject).allMatch(splitDependencies::contains));
 
     assertEquals(libraryDependencies.size(), libraries.size());
     assertTrue(libraries.stream().allMatch(libraryDependencies::contains));
 
-
-    // Until http://b/36120271 is fixed there will be errors in any AIA module that references a split (which could be the main app, another
-    // split or the base library depending on the structure of the project), so disabling the following test.
-    //assertFileHasNoErrors(module.getProject(), new File(module.getName(), "/src/main/AndroidManifest.xml"));
+    // TODO - add dependency checking once dependencies are correctly reported by the model
   }
 }
