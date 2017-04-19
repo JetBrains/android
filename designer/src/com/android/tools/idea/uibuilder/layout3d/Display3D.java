@@ -17,11 +17,14 @@ package com.android.tools.idea.uibuilder.layout3d;
 
 import com.intellij.util.ui.UIUtil;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -37,7 +40,7 @@ public class Display3D extends JPanel {
   ViewMatrix myViewMatrix = new ViewMatrix();
   Matrix myInvMatrix;
   boolean isImageInvalid = true;
-  static final boolean mPerspective = true;
+  static final boolean mPerspective = false;
 
   Vector<ActionListener> myViewChangeListener = new Vector<>();
 
@@ -73,6 +76,24 @@ public class Display3D extends JPanel {
       }
     }
 
+    setFocusable(true);
+    addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+        switch (e.getKeyChar()) {
+          case 's':
+            BufferedImage img = save(1920*4,1024*4);
+            try {
+              ImageIO.write(img, "png", new File("capture"+((System.currentTimeMillis()/1000)%10000)+"png"));
+            }
+            catch (IOException e1) {
+              e1.printStackTrace();
+            }
+            break;
+        }
+      }
+    });
+
     addMouseListener(new MouseAdapter() {
 
       @Override
@@ -106,6 +127,41 @@ public class Display3D extends JPanel {
         repaint();
       }
     });
+  }
+
+  public BufferedImage save(int w, int h) {
+    myImage = UIUtil.createImage(w, h, BufferedImage.TYPE_INT_RGB);
+    myZBuffer = new float[w * h];
+    isImageInvalid = true;
+    myViewMatrix.setScreenDim(w, h);
+    myViewMatrix.calcMatrix();
+    myInvMatrix = myViewMatrix.invers();
+
+    int[] rgbData = ((DataBufferInt)myImage.getRaster().getDataBuffer()).getData();
+    if (isImageInvalid) {
+      if (myTransFormCache == null) {
+        myTransFormCache = new TriData(mTriData);
+      }
+      if (mPerspective) {
+        mTriData.transformP(myInvMatrix, myTransFormCache, w / 2f, h / 2f, 800);
+      } else {
+        mTriData.transform (myInvMatrix, myTransFormCache);
+      }
+
+      Arrays.fill(myZBuffer, Float.MAX_VALUE);
+      Arrays.fill(rgbData, 0xFF000000);
+
+      if (mTriData.myTexture != null) {
+        Rasterize.toZBuff(myZBuffer, rgbData, w, h, myTransFormCache,
+                          mTriData.myTexture, mTriData.myTextureWidth, mTriData.myTextureHeight, myViewMatrix.m);
+      }
+      else { // run a simple render if no myTexture
+        Rasterize.simple(myZBuffer, rgbData, w, h, myTransFormCache);
+      }
+
+      isImageInvalid = false;
+    }
+    return myImage;
   }
 
   public void setTriData(TriData data) {
