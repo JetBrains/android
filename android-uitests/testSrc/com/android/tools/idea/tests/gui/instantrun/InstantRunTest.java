@@ -218,6 +218,50 @@ public class InstantRunTest extends TestWithEmulator {
   }
 
   /**
+   * Verifies if IDE performs an unnecessary clean b.android.com/201411
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14606153
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Create a project with basic activity
+   *   2. Launch app, select a new (i.e. not already running) emulator to deploy
+   *   3. Click Rerun button on the top left of the run tool window
+   *   Verify:
+   *   1. Clicking on re-run should not do a clean build just install application to emulator/device
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void unnecessaryCleanCheck() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+
+    ideFrameFixture
+      .runApp(APP_NAME)
+      .selectDevice(AVD_NAME)
+      .clickOk();
+
+    ideFrameFixture
+      .getRunToolWindow()
+      .findContent(APP_NAME)
+      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+
+    ideFrameFixture
+      .getRunToolWindow()
+      .clickRerunApplication()
+      .selectDevice(AVD_NAME)
+      .clickOk();
+
+    ideFrameFixture
+      .getRunToolWindow()
+      .findContent(APP_NAME)
+      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+  }
+
+  /**
    * Verifies that instant run hot swap works as expected on a C++ support project.
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
