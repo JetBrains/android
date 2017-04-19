@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
 import java.util.Set;
 
 import static com.android.tools.idea.wizard.WizardConstants.*;
@@ -58,7 +57,6 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
     myState.put(INSTANT_APP_PACKAGE_NAME_KEY, myState.get(PACKAGE_NAME_KEY));
 
     register(moduleNameKey, mySplitNameField);
-    register(SPLIT_NAME_KEY, mySplitNameField);
     register(PACKAGE_NAME_KEY, myPackageName);
 
     registerValueDeriver(PACKAGE_NAME_KEY, new ValueDeriver<String>() {
@@ -74,7 +72,6 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
         return myState.get(INSTANT_APP_PACKAGE_NAME_KEY) + "." + myState.get(moduleNameKey);
       }
     });
-
   }
 
   @Override
