@@ -33,11 +33,11 @@ public class Layout extends TriData {
   /**
    * This represent a rect on the screen
    */
-  static class View extends Rectangle2D.Float {
+  public static class View extends Rectangle2D.Float {
     View parent;
     View child;
     View sister;
-    public static final float DEPTH = 15;
+    public static final float DEPTH = 25;
 
     public View(float x, float y, float width, float height) {
       super(x, y, width, height);
@@ -141,7 +141,7 @@ public class Layout extends TriData {
         0, 1, 5,
         5, 4, 0
       };
-      int[] type = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};
+      int[] type = {0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};
 
       for (int i = 0; i < ind.length; i++) {
         index[i + ioff] = ind[i] * 3 + voff;
