@@ -15,29 +15,77 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.JavaArtifact;
 import com.android.ide.common.repository.GradleVersion;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link JavaArtifact}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link JavaArtifact}.
  */
-public class IdeJavaArtifact extends IdeBaseArtifact implements JavaArtifact {
+public final class IdeJavaArtifact extends IdeBaseArtifact implements JavaArtifact {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @Nullable private final File myMockablePlatformJar;
 
   public IdeJavaArtifact(@NotNull JavaArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
     super(artifact, seen, gradleVersion);
-    myMockablePlatformJar = artifact.getMockablePlatformJar();
+    myMockablePlatformJar = getMockablePlatformJar(artifact);
+  }
+
+  @Nullable
+  private static File getMockablePlatformJar(@NotNull JavaArtifact artifact) {
+    try {
+      return artifact.getMockablePlatformJar();
+    }
+    catch (UnsupportedMethodException e) {
+      // Older model.
+      return null;
+    }
   }
 
   @Override
   @Nullable
   public File getMockablePlatformJar() {
     return myMockablePlatformJar;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeJavaArtifact)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    IdeJavaArtifact artifact = (IdeJavaArtifact)o;
+    return artifact.canEquals(this) &&
+           Objects.equals(myMockablePlatformJar, artifact.myMockablePlatformJar);
+  }
+
+  @Override
+  protected boolean canEquals(Object other) {
+    return other instanceof IdeJavaArtifact;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), myMockablePlatformJar);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeJavaArtifact{" +
+           super.toString() +
+           ", myMockablePlatformJar=" + myMockablePlatformJar +
+           "}";
   }
 }

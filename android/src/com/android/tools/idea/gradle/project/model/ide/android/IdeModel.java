@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.*;
@@ -49,5 +51,11 @@ public abstract class IdeModel implements Serializable {
       copies.put(k, copy);
     });
     return copies;
+  }
+
+  @Contract("!null -> !null")
+  @Nullable
+  protected Set<String> copy(@Nullable Set<String> original) {
+    return original != null ? new HashSet<>(original) : null;
   }
 }
