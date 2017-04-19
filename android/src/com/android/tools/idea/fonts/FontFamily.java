@@ -66,6 +66,9 @@ public class FontFamily implements Comparable<FontFamily> {
     myFonts = build(fonts);
   }
 
+  /**
+   * Special use for creating synonyms in font-family files with references to other fonts.
+   */
   private FontFamily(@NotNull FontProvider provider,
                      @NotNull FontSource source,
                      @NotNull String name,
@@ -104,11 +107,6 @@ public class FontFamily implements Comparable<FontFamily> {
   }
 
   @NotNull
-  public String getFontFolderName() {
-    return DownloadableFontCacheServiceImpl.convertNameToFilename(myName);
-  }
-
-  @NotNull
   public String getMenu() {
     return myMenu;
   }
@@ -123,13 +121,33 @@ public class FontFamily implements Comparable<FontFamily> {
     return myFonts;
   }
 
-  @NotNull
+  /**
+   * Returns the possibly cached font file.
+   * Or <code>null</code> if this family has errors in the specification.
+   */
+  @Nullable
   public File getCachedMenuFile() {
+    if (myMenu.isEmpty()) {
+      return null;
+    }
     if (myMenu.startsWith(FILE_PROTOCOL_START)) {
       return new File(myMenu.substring(FILE_PROTOCOL_START.length()));
     }
     DownloadableFontCacheServiceImpl service = DownloadableFontCacheServiceImpl.getInstance();
-    return service.getCachedFont(myProvider.getAuthority(), getFontFolderName(), myMenu);
+    return service.getCachedFont(myProvider.getAuthority(), myMenu);
+  }
+
+  /**
+   * Returns a file relative to the font cache path.
+   * Or <code>null</code> if this is not a valid downloadable file.
+   */
+  @Nullable
+  public File getRelativeCachedMenuFile() {
+    if (!myMenu.startsWith(HTTPS_PROTOCOL_START)) {
+      return null;
+    }
+    DownloadableFontCacheServiceImpl service = DownloadableFontCacheServiceImpl.getInstance();
+    return service.getRelativeCachedFont(myProvider.getAuthority(), myMenu);
   }
 
   @Override
