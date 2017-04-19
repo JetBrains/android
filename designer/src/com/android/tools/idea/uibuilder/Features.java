@@ -22,9 +22,4 @@ public class Features {
    * Animations preview toolbar
    */
   public static final boolean ANIMATIONS_PREVIEW_ENABLED = ALL_ENABLED || Boolean.getBoolean("nele.animated.preview");
-
-  /**
-   * Include navigation
-   */
-  public static final boolean INCLUDE_NAVIGATION_ENABLED = ALL_ENABLED || Boolean.getBoolean("nele.include.navigation");
 }
