@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,6 +25,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +33,14 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final Project myProject;
   @NotNull private final SyncExecutor mySyncExecutor;
   @NotNull private final SyncResultHandler myResultHandler;
+
+  public static boolean isEnabled() {
+    return isOptionVisible() && GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC;
+  }
+
+  public static boolean isOptionVisible() {
+    return SystemProperties.getBooleanProperty("show.new.sync.preference", false);
+  }
 
   public NewGradleSync(@NotNull Project project) {
     this(project, new SyncExecutor(project), new SyncResultHandler(project));
