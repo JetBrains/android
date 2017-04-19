@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.BuildTypeContainerStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeBuildTypeContainer}.
  */
 public class IdeBuildTypeContainerTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeBuildTypeContainer.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeBuildTypeContainerTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeBuildTypeContainer buildType = new IdeBuildTypeContainer(new BuildTypeContainerStub(), new ModelCache());
+    IdeBuildTypeContainer buildType = new IdeBuildTypeContainer(new BuildTypeContainerStub(), myModelCache);
     byte[] bytes = serialize(buildType);
     Object o = deserialize(bytes);
     assertEquals(buildType, o);
@@ -48,7 +56,7 @@ public class IdeBuildTypeContainerTest {
   @Test
   public void constructor() throws Throwable {
     BuildTypeContainer original = new BuildTypeContainerStub();
-    assertEqualsOrSimilar(original, new IdeBuildTypeContainer(original, new ModelCache()));
+    assertEqualsOrSimilar(original, new IdeBuildTypeContainer(original, myModelCache));
   }
 
   @Test

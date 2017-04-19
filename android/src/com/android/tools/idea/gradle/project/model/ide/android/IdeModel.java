@@ -27,21 +27,29 @@ public abstract class IdeModel implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
+  protected IdeModel(@NotNull Object original, @NotNull ModelCache modelCache) {
+    Object copy = modelCache.computeIfAbsent(original, (Function<Object, Object>)recursiveModel1 -> this);
+    if (copy != this) {
+      throw new IllegalStateException("An existing copy was found in the cache");
+    }
+  }
+
   @NotNull
-  protected <T> List<T> copy(@NotNull Collection<?> original, @NotNull ModelCache modelCache, @NotNull Function<T, T> mapper) {
+  protected static <K, V> List<K> copy(@NotNull Collection<K> original, @NotNull ModelCache modelCache, @NotNull Function<K, V> mapper) {
     if (original.isEmpty()) {
       return Collections.emptyList();
     }
-    List<T> copies = new ArrayList<>(original.size());
-    for (Object item : original) {
-      T copy = modelCache.computeIfAbsent(item, mapper);
-      copies.add(copy);
+    List<K> copies = new ArrayList<>(original.size());
+    for (K item : original) {
+      V copy = modelCache.computeIfAbsent(item, mapper);
+      //noinspection unchecked
+      copies.add((K)copy);
     }
     return copies;
   }
 
   @NotNull
-  protected <K, V> Map<K, V> copy(@NotNull Map<K, V> original, @NotNull ModelCache modelCache, @NotNull Function<V, V> mapper) {
+  protected static <K, V> Map<K, V> copy(@NotNull Map<K, V> original, @NotNull ModelCache modelCache, @NotNull Function<V, V> mapper) {
     if (original.isEmpty()) {
       return Collections.emptyMap();
     }
@@ -55,7 +63,7 @@ public abstract class IdeModel implements Serializable {
 
   @Contract("!null -> !null")
   @Nullable
-  protected Set<String> copy(@Nullable Set<String> original) {
+  protected static Set<String> copy(@Nullable Set<String> original) {
     return original != null ? new HashSet<>(original) : null;
   }
 }

@@ -42,6 +42,7 @@ public final class IdeDependencies extends IdeModel implements Dependencies {
   @Nullable private final IdeAndroidAtom myBaseAtom;
 
   public IdeDependencies(@NotNull Dependencies dependencies, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
+    super(dependencies, modelCache);
     boolean atLeastTwoDotThree = gradleVersion.isAtLeast(2, 3, 0);
     if (atLeastTwoDotThree) {
       myAtoms = copy(dependencies.getAtoms(), modelCache, atom -> new IdeAndroidAtom(atom, modelCache));

@@ -35,8 +35,8 @@ public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBund
 
   @NotNull private final File myBundle;
   @NotNull private final File myFolder;
-  @NotNull private final List<AndroidLibrary> myLibraryDependencies;
-  @NotNull private final Collection<JavaLibrary> myJavaDependencies;
+  @NotNull private final List<? extends AndroidLibrary> myLibraryDependencies;
+  @NotNull private final Collection<? extends JavaLibrary> myJavaDependencies;
   @NotNull private final File myManifest;
   @NotNull private final File myJarFile;
   @NotNull private final File myResFolder;
@@ -44,7 +44,7 @@ public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBund
   @Nullable private final String myProjectVariant;
 
   protected IdeAndroidBundle(@NotNull AndroidBundle bundle, @NotNull ModelCache modelCache) {
-    super(bundle);
+    super(bundle, modelCache);
     myBundle = bundle.getBundle();
     myFolder = bundle.getFolder();
 

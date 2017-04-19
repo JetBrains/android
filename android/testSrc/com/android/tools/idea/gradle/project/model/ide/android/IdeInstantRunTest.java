@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.InstantRun;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.InstantRunStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeInstantRun}.
  */
 public class IdeInstantRunTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeInstantRun.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeInstantRunTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeInstantRun instantRun = new IdeInstantRun(new InstantRunStub());
+    IdeInstantRun instantRun = new IdeInstantRun(new InstantRunStub(), myModelCache);
     byte[] bytes = serialize(instantRun);
     Object o = deserialize(bytes);
     assertEquals(instantRun, o);
@@ -48,7 +56,7 @@ public class IdeInstantRunTest {
   @Test
   public void constructor() throws Throwable {
     InstantRun original = new InstantRunStub();
-    assertEqualsOrSimilar(original, new IdeInstantRun(original));
+    assertEqualsOrSimilar(original, new IdeInstantRun(original, myModelCache));
   }
 
   @Test

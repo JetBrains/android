@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.ApiVersionStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeApiVersion}.
  */
 public class IdeApiVersionTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeApiVersion.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeApiVersionTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeApiVersion apiVersion = new IdeApiVersion(new ApiVersionStub());
+    IdeApiVersion apiVersion = new IdeApiVersion(new ApiVersionStub(), myModelCache);
     byte[] bytes = serialize(apiVersion);
     Object o = deserialize(bytes);
     assertEquals(apiVersion, o);
@@ -48,7 +56,7 @@ public class IdeApiVersionTest {
   @Test
   public void constructor() throws Throwable {
     ApiVersion original = new ApiVersionStub();
-    assertEqualsOrSimilar(original, new IdeApiVersion(original));
+    assertEqualsOrSimilar(original, new IdeApiVersion(original, myModelCache));
   }
 
   @Test

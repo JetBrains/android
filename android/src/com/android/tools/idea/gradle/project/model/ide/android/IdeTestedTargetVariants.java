@@ -27,9 +27,10 @@ public class IdeTestedTargetVariants extends IdeModel implements TestedTargetVar
   @NotNull private final String myTargetProjectPath;
   @NotNull private final String myTargetVariant;
 
-  public IdeTestedTargetVariants(@NotNull TestedTargetVariant tested) {
-    myTargetProjectPath = tested.getTargetProjectPath();
-    myTargetVariant = tested.getTargetVariant();
+  public IdeTestedTargetVariants(@NotNull TestedTargetVariant variant, @NotNull ModelCache modelCache) {
+    super(variant, modelCache);
+    myTargetProjectPath = variant.getTargetProjectPath();
+    myTargetVariant = variant.getTargetVariant();
   }
 
   @Override

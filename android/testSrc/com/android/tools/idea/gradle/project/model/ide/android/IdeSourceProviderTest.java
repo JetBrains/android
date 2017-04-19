@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.SourceProviderStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeSourceProvider}.
  */
 public class IdeSourceProviderTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeSourceProvider.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeSourceProviderTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeSourceProvider classField = new IdeSourceProvider(new SourceProviderStub());
+    IdeSourceProvider classField = new IdeSourceProvider(new SourceProviderStub(), myModelCache);
     byte[] bytes = serialize(classField);
     Object o = deserialize(bytes);
     assertEquals(classField, o);
@@ -48,7 +56,7 @@ public class IdeSourceProviderTest {
   @Test
   public void constructor() throws Throwable {
     SourceProvider original = new SourceProviderStub();
-    assertEqualsOrSimilar(original, new IdeSourceProvider(original));
+    assertEqualsOrSimilar(original, new IdeSourceProvider(original, myModelCache));
   }
 
   @Test

@@ -18,10 +18,8 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.builder.model.level2.GraphItem;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,19 +35,12 @@ public final class IdeDependencyGraphs extends IdeModel implements DependencyGra
   @NotNull private final List<String> myProvidedLibraries;
   @NotNull private final List<String> mySkippedLibraries;
 
-  public IdeDependencyGraphs(@Nullable DependencyGraphs graphs, @NotNull ModelCache modelCache) {
-    if (graphs != null) {
-      myCompileDependencies = copy(graphs.getCompileDependencies(), modelCache, IdeGraphItem::new);
-      myPackageDependencies = copy(graphs.getPackageDependencies(), modelCache, IdeGraphItem::new);
-      myProvidedLibraries = new ArrayList<>(graphs.getProvidedLibraries());
-      mySkippedLibraries = new ArrayList<>(graphs.getSkippedLibraries());
-    }
-    else {
-      myCompileDependencies = Collections.emptyList();
-      myPackageDependencies = Collections.emptyList();
-      myProvidedLibraries = Collections.emptyList();
-      mySkippedLibraries = Collections.emptyList();
-    }
+  public IdeDependencyGraphs(@NotNull DependencyGraphs graphs, @NotNull ModelCache modelCache) {
+    super(graphs, modelCache);
+    myCompileDependencies = copy(graphs.getCompileDependencies(), modelCache, item -> new IdeGraphItem(item, modelCache));
+    myPackageDependencies = copy(graphs.getPackageDependencies(), modelCache, item -> new IdeGraphItem(item, modelCache));
+    myProvidedLibraries = new ArrayList<>(graphs.getProvidedLibraries());
+    mySkippedLibraries = new ArrayList<>(graphs.getSkippedLibraries());
   }
 
   @Override

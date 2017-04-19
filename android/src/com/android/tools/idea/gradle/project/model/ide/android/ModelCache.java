@@ -27,10 +27,8 @@ class ModelCache {
 
   @SuppressWarnings("unchecked")
   @NotNull
-  <K, V extends K> V computeIfAbsent(@NotNull Object key, @NotNull Function<K, V> mappingFunction) {
-    Object result = myData.computeIfAbsent(key, o -> {
-      return mappingFunction.apply((K)o);
-    });
+  <K, V> V computeIfAbsent(@NotNull K key, @NotNull Function<K, V> mappingFunction) {
+    Object result = myData.computeIfAbsent(key, o -> mappingFunction.apply((K)o));
     return (V)result;
   }
 

@@ -19,6 +19,7 @@ import com.android.builder.model.SigningConfig;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.SigningConfigStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -34,6 +35,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeSigningConfig}.
  */
 public class IdeSigningConfigTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeSigningConfig.class).isAssignableTo(Serializable.class);
@@ -41,7 +49,7 @@ public class IdeSigningConfigTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeSigningConfig signingConfig = new IdeSigningConfig(createStub());
+    IdeSigningConfig signingConfig = new IdeSigningConfig(createStub(), myModelCache);
     byte[] bytes = serialize(signingConfig);
     Object o = deserialize(bytes);
     assertEquals(signingConfig, o);
@@ -50,7 +58,7 @@ public class IdeSigningConfigTest {
   @Test
   public void constructor() throws Throwable {
     SigningConfig original = createStub();
-    assertEqualsOrSimilar(original, new IdeSigningConfig(original));
+    assertEqualsOrSimilar(original, new IdeSigningConfig(original, myModelCache));
   }
 
   @NotNull

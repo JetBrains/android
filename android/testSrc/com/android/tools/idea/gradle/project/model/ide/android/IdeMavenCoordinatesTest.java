@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.MavenCoordinates;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.MavenCoordinatesStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeMavenCoordinates}.
  */
 public class IdeMavenCoordinatesTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeMavenCoordinates.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeMavenCoordinatesTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeMavenCoordinates coordinates = new IdeMavenCoordinates(new MavenCoordinatesStub());
+    IdeMavenCoordinates coordinates = new IdeMavenCoordinates(new MavenCoordinatesStub(), myModelCache);
     byte[] bytes = serialize(coordinates);
     Object o = deserialize(bytes);
     assertEquals(coordinates, o);
@@ -48,7 +56,7 @@ public class IdeMavenCoordinatesTest {
   @Test
   public void constructor() throws Throwable {
     MavenCoordinates original = new MavenCoordinatesStub();
-    assertEqualsOrSimilar(original, new IdeMavenCoordinates(original));
+    assertEqualsOrSimilar(original, new IdeMavenCoordinates(original, myModelCache));
   }
 
   @Test
