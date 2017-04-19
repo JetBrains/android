@@ -128,7 +128,7 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
       case WAITING:
         return captured ? CpuProfilerStage.ThreadState.WAITING_CAPTURED : CpuProfilerStage.ThreadState.WAITING;
       default:
-        getLog().warn("Unexpected thread state found: " + state);
+        // TODO: Use colors that have been agreed in design review.
         return CpuProfilerStage.ThreadState.UNKNOWN;
     }
   }
