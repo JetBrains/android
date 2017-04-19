@@ -92,6 +92,7 @@ iml_module(
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:constraint-layout_latest",
+        "//prebuilts/studio/sdk:databinding_latest",
         "//prebuilts/studio/sdk:docs",
         "//prebuilts/studio/sdk:espresso_latest",
         "//prebuilts/studio/sdk:licenses",
