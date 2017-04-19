@@ -21,13 +21,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link NativeLibrary}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link NativeLibrary}.
  */
-public class IdeNativeLibrary extends IdeModel implements NativeLibrary {
+public final class IdeNativeLibrary extends IdeModel implements NativeLibrary {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myName;
   @NotNull private final String myAbi;
   @NotNull private final String myToolchainName;
@@ -126,5 +128,52 @@ public class IdeNativeLibrary extends IdeModel implements NativeLibrary {
   @NotNull
   public List<File> getDebuggableLibraryFolders() {
     return myDebuggableLibraryFolders;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeNativeLibrary)) {
+      return false;
+    }
+    IdeNativeLibrary library = (IdeNativeLibrary)o;
+    return Objects.equals(myName, library.myName) &&
+           Objects.equals(myAbi, library.myAbi) &&
+           Objects.equals(myToolchainName, library.myToolchainName) &&
+           Objects.equals(myCIncludeDirs, library.myCIncludeDirs) &&
+           Objects.equals(myCppIncludeDirs, library.myCppIncludeDirs) &&
+           Objects.equals(myCSystemIncludeDirs, library.myCSystemIncludeDirs) &&
+           Objects.equals(myCppSystemIncludeDirs, library.myCppSystemIncludeDirs) &&
+           Objects.equals(myCDefines, library.myCDefines) &&
+           Objects.equals(myCppDefines, library.myCppDefines) &&
+           Objects.equals(myCCompilerFlags, library.myCCompilerFlags) &&
+           Objects.equals(myCppCompilerFlags, library.myCppCompilerFlags) &&
+           Objects.equals(myDebuggableLibraryFolders, library.myDebuggableLibraryFolders);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myName, myAbi, myToolchainName, myCIncludeDirs, myCppIncludeDirs, myCSystemIncludeDirs, myCppSystemIncludeDirs,
+                        myCDefines, myCppDefines, myCCompilerFlags, myCppCompilerFlags, myDebuggableLibraryFolders);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeNativeLibrary{" +
+           "myName='" + myName + '\'' +
+           ", myAbi='" + myAbi + '\'' +
+           ", myToolchainName='" + myToolchainName + '\'' +
+           ", myCIncludeDirs=" + myCIncludeDirs +
+           ", myCppIncludeDirs=" + myCppIncludeDirs +
+           ", myCSystemIncludeDirs=" + myCSystemIncludeDirs +
+           ", myCppSystemIncludeDirs=" + myCppSystemIncludeDirs +
+           ", myCDefines=" + myCDefines +
+           ", myCppDefines=" + myCppDefines +
+           ", myCCompilerFlags=" + myCCompilerFlags +
+           ", myCppCompilerFlags=" + myCppCompilerFlags +
+           ", myDebuggableLibraryFolders=" + myDebuggableLibraryFolders +
+           "}";
   }
 }

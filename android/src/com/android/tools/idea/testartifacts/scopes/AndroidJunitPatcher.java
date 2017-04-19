@@ -140,6 +140,8 @@ public class AndroidJunitPatcher extends JUnitPatcher {
   }
 
   @Nullable
+  @Deprecated
+  // TODO use IdeJavaArtifact#getMockablePlatformJar
   private static File getMockableJarFromModel(@NotNull JavaArtifact model) {
     try {
       return model.getMockablePlatformJar();

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
@@ -26,13 +26,16 @@ import java.util.*;
 /**
  * Creates a deep copy of {@link AndroidArtifact}.
  */
-public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifact {
+public final class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifact {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final String myApplicationId;
   @NotNull private final String mySourceGenTaskName;
   @NotNull private final Collection<File> myGeneratedResourceFolders = new ArrayList<>();
-  @NotNull private final Map<String, ClassField> myBuildConfigFields = new HashMap<>();
-  @NotNull private final Map<String, ClassField> myResValues = new HashMap<>();
+  @NotNull private final Map<String, ClassField> myBuildConfigFields;
+  @NotNull private final Map<String, ClassField> myResValues;
   @NotNull private final InstantRun myInstantRun;
   @Nullable private final String mySigningConfigName;
   @Nullable private final Set<String> myAbiFilters;
@@ -41,34 +44,22 @@ public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifa
 
   public IdeAndroidArtifact(@NotNull AndroidArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
     super(artifact, modelCache, gradleVersion);
-
     myOutputs = copy(artifact.getOutputs(), modelCache, IdeAndroidArtifactOutput::new);
-
     myApplicationId = artifact.getApplicationId();
     mySourceGenTaskName = artifact.getSourceGenTaskName();
     myGeneratedResourceFolders.addAll(artifact.getGeneratedResourceFolders());
-
-    Map<String, ClassField> buildConfigFields = artifact.getBuildConfigFields();
-    buildConfigFields.forEach((name, classField) -> myBuildConfigFields.put(name, new IdeClassField(classField)));
-
-    Map<String, ClassField> resValues = artifact.getResValues();
-    resValues.forEach((name, classField) -> myResValues.put(name, new IdeClassField(classField)));
-
+    myBuildConfigFields = copy(artifact.getBuildConfigFields(), modelCache, IdeClassField::new);
+    myResValues = copy(artifact.getResValues(), modelCache, IdeClassField::new);
     myInstantRun = new IdeInstantRun(artifact.getInstantRun());
     mySigningConfigName = artifact.getSigningConfigName();
-
-    Set<String> abiFilters = artifact.getAbiFilters();
-    myAbiFilters = abiFilters != null ? new HashSet<>(abiFilters) : null;
-
-    Collection<NativeLibrary> nativeLibraries = artifact.getNativeLibraries();
-    if (nativeLibraries != null) {
-      myNativeLibraries = copy(nativeLibraries, modelCache, IdeNativeLibrary::new);
-    }
-    else {
-      myNativeLibraries = null;
-    }
-
+    myAbiFilters = copy(artifact.getAbiFilters());
+    myNativeLibraries = copy(modelCache, artifact.getNativeLibraries());
     mySigned = artifact.isSigned();
+  }
+
+  @Nullable
+  private Collection<NativeLibrary> copy(@NotNull ModelCache modelCache, @Nullable Collection<NativeLibrary> original) {
+    return original != null ? copy(original, modelCache, IdeNativeLibrary::new) : null;
   }
 
   @Override
@@ -141,11 +132,15 @@ public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifa
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof IdeAndroidArtifact)) {
+      return false;
+    }
+    if (!super.equals(o)) {
       return false;
     }
     IdeAndroidArtifact artifact = (IdeAndroidArtifact)o;
-    return mySigned == artifact.mySigned &&
+    return artifact.canEquals(this) &&
+           mySigned == artifact.mySigned &&
            Objects.equals(myOutputs, artifact.myOutputs) &&
            Objects.equals(myApplicationId, artifact.myApplicationId) &&
            Objects.equals(mySourceGenTaskName, artifact.mySourceGenTaskName) &&
@@ -159,15 +154,21 @@ public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifa
   }
 
   @Override
+  protected boolean canEquals(Object other) {
+    return other instanceof IdeAndroidArtifact;
+  }
+
+  @Override
   public int hashCode() {
-    return Objects.hash(myOutputs, myApplicationId, mySourceGenTaskName, myGeneratedResourceFolders, myBuildConfigFields, myResValues,
-                        myInstantRun, mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned);
+    return Objects.hash(super.hashCode(), myOutputs, myApplicationId, mySourceGenTaskName, myGeneratedResourceFolders, myBuildConfigFields,
+                        myResValues, myInstantRun, mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned);
   }
 
   @Override
   public String toString() {
     return "IdeAndroidArtifact{" +
-           "myOutputs=" + myOutputs +
+           super.toString() +
+           ", myOutputs=" + myOutputs +
            ", myApplicationId='" + myApplicationId + '\'' +
            ", mySourceGenTaskName='" + mySourceGenTaskName + '\'' +
            ", myGeneratedResourceFolders=" + myGeneratedResourceFolders +
@@ -178,6 +179,6 @@ public class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifa
            ", myAbiFilters=" + myAbiFilters +
            ", myNativeLibraries=" + myNativeLibraries +
            ", mySigned=" + mySigned +
-           '}';
+           "}";
   }
 }
