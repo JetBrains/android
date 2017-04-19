@@ -17,8 +17,10 @@ package com.android.tools.idea.fonts;
 
 import com.android.annotations.concurrency.Immutable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.URLUtil;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -181,5 +183,34 @@ public class FontFamily implements Comparable<FontFamily> {
       }
     }
     return details.build();
+  }
+
+  @Nullable
+  @Language("XML")
+  public static String toXml(@Nullable FontFamily fontFamily) {
+    if (fontFamily == null) {
+      return null;
+    }
+
+    StringBuilder output = new StringBuilder("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                             "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\">");
+    boolean hasAnyDownloadedFonts = false;
+    for (FontDetail detail : fontFamily.getFonts()) {
+      File cachedFile = detail.getCachedFontFile();
+      if (cachedFile == null || !cachedFile.exists()) {
+        continue;
+      }
+      hasAnyDownloadedFonts = true;
+      output.append(String.format("<font android:font=\"%1$s\" android:fontStyle=\"%2$s\" android:fontWeight=\"%3$d\" />",
+                                  detail.getCachedFontFile().getAbsolutePath(),
+                                  detail.getFontStyle(),
+                                  detail.getWeight()));
+    }
+    if (!hasAnyDownloadedFonts) {
+      return null;
+    }
+    output.append("</font-family>");
+
+    return output.toString();
   }
 }

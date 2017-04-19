@@ -180,8 +180,9 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
     }
   }
 
+  @Override
   @Nullable
-  File getFontPath() {
+  public File getFontPath() {
     synchronized (myLock) {
       return myFontPath;
     }

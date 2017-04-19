@@ -95,6 +95,11 @@ public class FontDetail {
     return myStyleName;
   }
 
+  @NotNull
+  public String getFontStyle() {
+    return isItalics() ? "italic" : "regular";
+  }
+
   @Nullable
   public File getCachedFontFile() {
     if (myFontUrl.isEmpty()) {
