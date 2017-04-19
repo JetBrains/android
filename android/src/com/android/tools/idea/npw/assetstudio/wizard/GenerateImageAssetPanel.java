@@ -29,9 +29,11 @@ import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdap
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
+import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.expressions.value.AsValueExpression;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
+import com.android.tools.idea.ui.properties.swing.VisibleProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.utils.Pair;
@@ -241,6 +243,18 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myListeners.receiveAndFire(myShowGridProperty, selected -> updatePreview.run());
     myListeners.receiveAndFire(myShowSafeZoneProperty, selected -> updatePreview.run());
     myListeners.receiveAndFire(myPreviewDensityProperty, value -> updatePreview.run());
+
+    // Show interactive preview components only if creating adaptive icons
+    BooleanExpression isAdaptiveIconOutput = new BooleanExpression(myOutputIconType) {
+      @NotNull
+      @Override
+      public Boolean get() {
+        return myOutputIconType.get() == AndroidAdaptiveIconType.ADAPTIVE;
+      }
+    };
+    myBindings.bind(new VisibleProperty(myShowGrid), isAdaptiveIconOutput);
+    myBindings.bind(new VisibleProperty(myShowSafeZone), isAdaptiveIconOutput);
+    myBindings.bind(new VisibleProperty(myPreviewResolutionComboBox), isAdaptiveIconOutput);
   }
 
   /**
