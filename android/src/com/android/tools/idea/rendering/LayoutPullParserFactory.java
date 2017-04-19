@@ -18,11 +18,14 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.fonts.FontDetail;
+import com.android.tools.idea.fonts.FontFamily;
+import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.res.ResourceHelper;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,8 +44,11 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.FULL_EXPAND;
@@ -166,7 +172,8 @@ public class LayoutPullParserFactory {
         renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        return createFontFamilyParser(file);
+        return createFontFamilyParser(file, (fontName) -> renderTask.getResourceResolver() != null ? (new ProjectFonts(
+          renderTask.getResourceResolver())).getFont(fontName) : null);
       default:
         // Should have been prevented by isSupported(PsiFile)
         assert false : folderType;
@@ -245,8 +252,9 @@ public class LayoutPullParserFactory {
     return new DomPullParser(document.getDocumentElement());
   }
 
+  @VisibleForTesting
   @Nullable
-  private static ILayoutPullParser createFontFamilyParser(XmlFile file) {
+  static ILayoutPullParser createFontFamilyParser(XmlFile file, @NotNull Function<String, FontFamily> getDownloadableFont) {
     XmlTag rootTag = file.getRootTag();
 
     if (rootTag == null || !TAG_FONT_FAMILY.equals(rootTag.getName())) {
@@ -262,22 +270,43 @@ public class LayoutPullParserFactory {
 
     String loremText = new LoremGenerator().generate(8, true);
     String fontRefName = PREFIX_RESOURCE_REF + ResourceHelper.getFolderType(file).getName() + "/" + ResourceHelper.getResourceName(file);
-    for (XmlTag fontTag : rootTag.getSubTags()) {
+
+    XmlTag[] fontSubTags = rootTag.getSubTags();
+    Stream<String> stylesStream;
+
+    if (fontSubTags.length == 0) {
+      // This might be a downloadable font. Check if we have it.
+      FontFamily downloadedFont = getDownloadableFont.apply(fontRefName);
+
+      stylesStream = downloadedFont != null ? downloadedFont.getFonts().stream()
+        .filter(font -> font.getCachedFontFile().exists())
+        .map(FontDetail::getFontStyle) : Stream.empty();
+    }
+    else {
+      stylesStream = Arrays.stream(fontSubTags)
+        .map(font -> font.getAttributeValue("fontStyle", ANDROID_URI))
+        .filter(StringUtil::isNotEmpty);
+    }
+
+    boolean[] hasElements = new boolean[1];
+    String fontColor = '#' + ColorUtil.toHex(UIUtil.getLabelForeground());
+    stylesStream.forEach(styleName -> {
+      hasElements[0] = true;
       Element fontElement = document.createElement(TEXT_VIEW);
       setAndroidAttr(fontElement, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
       setAndroidAttr(fontElement, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
       setAndroidAttr(fontElement, ATTR_TEXT, loremText);
       setAndroidAttr(fontElement, ATTR_FONT_FAMILY, fontRefName);
       setAndroidAttr(fontElement, ATTR_TEXT_SIZE, "30sp");
-      setAndroidAttr(fontElement, ATTR_TEXT_COLOR, '#' + ColorUtil.toHex(UIUtil.getLabelForeground()));
+      setAndroidAttr(fontElement, ATTR_TEXT_COLOR, fontColor);
       setAndroidAttr(fontElement, ATTR_PADDING_BOTTOM, "20dp");
-
-      String fontStyle = fontTag.getAttributeValue("fontStyle",ANDROID_URI);
-      if (StringUtil.isNotEmpty(fontStyle)) {
-        setAndroidAttr(fontElement, ATTR_TEXT_STYLE, fontStyle);
-      }
+      setAndroidAttr(fontElement, ATTR_TEXT_STYLE, styleName);
 
       rootLayout.appendChild(fontElement);
+    });
+
+    if (!hasElements[0]) {
+      return null;
     }
 
     return new DomPullParser(document.getDocumentElement());

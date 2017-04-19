@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.tools.idea.fonts.FontFamily;
+import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
@@ -61,6 +63,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
@@ -96,7 +99,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
-  @Nullable private RenderResources myResourceResolver;
+  @Nullable private ResourceResolver myResourceResolver;
   @Nullable private final ActionBarHandler myActionBarHandler;
   @Nullable private final RenderTask myRenderTask;
   private boolean myUsed = false;
@@ -104,6 +107,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private int myParserCount;
   private ParserFactory myParserFactory;
   @NotNull public ImmutableMap<String, TagSnapshot> myAaptDeclaredResources = ImmutableMap.of();
+  private final Map<String, ResourceValue> myFontFamilies;
+  private ProjectFonts myProjectFonts;
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -142,8 +147,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     } else {
       myNamespace = AUTO_URI;
     }
-  }
 
+    myFontFamilies = projectRes.getAllResourceItems().stream()
+      .filter(r -> r.getType() == ResourceType.FONT)
+      .map(r -> r.getResourceValue(false))
+      .filter(value -> value.getRawXmlValue().endsWith(DOT_XML))
+      .collect(Collectors.toMap(ResourceValue::getRawXmlValue, (ResourceValue value) -> value));
+  }
   /** Resets the callback state for another render */
   void reset() {
     myParserCount = 0;
@@ -249,6 +259,21 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
+  private static XmlPullParser getParserFromText(@NotNull ParserFactory factory, String fileName, @NotNull String text) {
+    try {
+      XmlPullParser parser = factory.createParser(fileName);
+      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      parser.setInput(new StringReader(text));
+      return parser;
+    }
+    catch (XmlPullParserException e) {
+      LOG.warn("Could not create parser for " + fileName);
+    }
+
+    return null;
+  }
+
+  @Nullable
   @Override
   public XmlPullParser getXmlFileParser(String fileName) {
     // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
@@ -263,18 +288,28 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       if (virtualFile != null) {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), virtualFile);
         if (psiFile != null) {
-          try {
-            XmlPullParser parser = getParserFactory().createParser(fileName);
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-            String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
-                             ? psiFile.getText()
-                             : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);
-            parser.setInput(new StringReader(psiText));
-            return parser;
+          ResourceValue resourceValue = myFontFamilies.get(fileName);
+          if (resourceValue != null) {
+            // This is a font-family XML. Now check if it defines a downloadable font. If it is, this is a special case where we generate
+            // a synthetic font-family XML file that points to the cached fonts downloaded by the DownloadableFontCacheService
+            if (myProjectFonts == null && myResourceResolver != null) {
+              myProjectFonts = new ProjectFonts(myResourceResolver);
+            }
+
+            if (myProjectFonts != null) {
+              String fontFamilyXml = FontFamily.toXml(myProjectFonts.getFont(resourceValue.getResourceUrl().toString()));
+              if (fontFamilyXml == null) {
+                return null;
+              }
+
+              return getParserFromText(getParserFactory(), fileName, fontFamilyXml);
+            }
           }
-          catch (XmlPullParserException e) {
-            LOG.warn("Could not create parser for " + fileName);
-          }
+
+          String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
+                           ? psiFile.getText()
+                           : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);
+          return getParserFromText(getParserFactory(), fileName, psiText);
         }
       }
       return null;
@@ -701,7 +736,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    *
    * @param resolver the resolver to use
    */
-  public void setResourceResolver(@Nullable RenderResources resolver) {
+  public void setResourceResolver(@Nullable ResourceResolver resolver) {
     myResourceResolver = resolver;
   }
 

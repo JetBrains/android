@@ -16,17 +16,18 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.AssetRepository;
+import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.psi.impl.file.impl.FileManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -76,8 +77,24 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
   }
 
   /**
+   * Returns whether the given file is contained within the downloadable fonts cache
+   */
+  private static boolean isCachedFontFile(@NotNull VirtualFile file) {
+    File fontCachePathFile = DownloadableFontCacheService.getInstance().getFontPath();
+    if (fontCachePathFile == null) {
+      return false;
+    }
+
+    VirtualFile fontCachePath = VirtualFileManager.getInstance().findFileByUrl("file://" + fontCachePathFile.getAbsolutePath());
+    if (fontCachePath == null) {
+      return false;
+    }
+    return VfsUtilCore.isAncestor(fontCachePath, file, true);
+  }
+
+  /**
    * It takes an absolute path that does not point to an asset and opens the file. Currently the access is restricted to files under
-   * the resources directories.
+   * the resources directories and the downloadable font cache directory.
    * @param mode one of ACCESS_UNKNOWN, ACCESS_STREAMING, ACCESS_RANDOM or ACCESS_BUFFER (int values 0-3).
    */
   @Nullable
@@ -99,6 +116,10 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
           return file.getInputStream();
         }
       }
+    }
+
+    if (isCachedFontFile(file)) {
+      return file.getInputStream();
     }
 
     return null;
