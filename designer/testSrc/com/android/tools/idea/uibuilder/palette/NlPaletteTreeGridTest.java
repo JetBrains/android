@@ -86,7 +86,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     myCloseToolWindowCallback = mock(Runnable.class);
     myIconPreviewFactory = new IconPreviewFactory();
     PsiFile file = myFixture.configureByText("res/layout/mine.xml", "<LinearLayout/>");
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(file.getVirtualFile());
     when(mySurface.getConfiguration()).thenReturn(configuration);
     myUsageTracker = mockNlUsageTracker(mySurface);
     myPanel = new NlPaletteTreeGrid(

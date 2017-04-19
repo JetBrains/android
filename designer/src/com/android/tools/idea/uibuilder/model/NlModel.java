@@ -141,7 +141,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     mySurface = surface;
     myFacet = facet;
     myFile = file;
-    myConfiguration = ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(myFile.getVirtualFile());
+    myConfiguration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(myFile.getVirtualFile());
     myConfigurationModificationCount = myConfiguration.getModificationCount();
     myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {
@@ -495,7 +495,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
       assert facet != null;
-      Configuration configuration = ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(better);
+      Configuration configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(better);
       configuration.setEffectiveDevice(device, newState);
     }
     else {
