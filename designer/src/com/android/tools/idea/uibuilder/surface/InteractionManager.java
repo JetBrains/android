@@ -22,7 +22,10 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -38,7 +41,6 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -164,17 +166,6 @@ public class InteractionManager {
   @NotNull
   public DesignSurface getSurface() {
     return mySurface;
-  }
-
-  /**
-   * Returns the current {@link Interaction}, if one is in progress, and otherwise returns
-   * null.
-   *
-   * @return The current interaction or null.
-   */
-  @Nullable
-  public Interaction getCurrentInteraction() {
-    return myCurrentInteraction;
   }
 
   /**
@@ -322,8 +313,12 @@ public class InteractionManager {
 
     @Override
     public void mouseClicked(@NotNull MouseEvent event) {
+      int x = event.getX();
+      int y = event.getY();
+
       if (event.getClickCount() == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        NlComponent component = getComponentAt(event.getX(), event.getY());
+        NlComponent component = getComponentAt(x, y);
+
         if (component != null) {
           // TODO: find a way to move layout-specific logic elsewhere.
           if (mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
@@ -332,15 +327,21 @@ public class InteractionManager {
             PsiNavigateUtil.navigate(component.getTag());
           }
           else {
+            SceneView view = mySurface.getSceneView(x, y);
+
+            if (view == null) {
+              return;
+            }
+
             // Notify that the user is interested in a component.
             // A properties manager may move the focus to the most important attribute of the component.
             // Such as the text attribute of a TextView
-            mySurface.notifyActivateComponent(component);
+            mySurface.notifyComponentActivateInDesignSurface(component, Coordinates.getAndroidX(view, x), Coordinates.getAndroidY(view, y));
           }
         }
       }
       else if (event.isPopupTrigger()) {
-        selectComponentAt(event.getX(), event.getY(), false, true);
+        selectComponentAt(x, y, false, true);
         mySurface.getActionManager().showPopup(event);
       }
     }
@@ -362,7 +363,7 @@ public class InteractionManager {
         return;
       }
 
-      if(interceptPanInteraction(event, myLastMouseX, myLastMouseY)) {
+      if (interceptPanInteraction(event, myLastMouseX, myLastMouseY)) {
         return;
       }
 
@@ -375,7 +376,6 @@ public class InteractionManager {
       // TODO: find a way to move layout-specific logic elsewhere.
       if (mySurface instanceof NlDesignSurface) {
         Dimension size = sceneView.getSize();
-        // TODO: use constants for those numbers
         Rectangle resizeZone =
           new Rectangle(sceneView.getX() + size.width, sceneView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
         if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
@@ -404,7 +404,7 @@ public class InteractionManager {
       if (component == null) {
         // If we cannot find an element where we clicked, try to use the first element currently selected
         // (if any) to find the view group handler that may want to handle the mousePressed()
-        // This allows us to correctly handle elements out of the bounds of the screenview.
+        // This allows us to correctly handle elements out of the bounds of the screen view.
         if (!selectionModel.isEmpty()) {
           component = selectionModel.getPrimary();
         }
@@ -590,7 +590,10 @@ public class InteractionManager {
         SelectionHandle handle =
           selectionModel.findHandle(Coordinates.getAndroidXDip(sceneView, x), Coordinates.getAndroidYDip(sceneView, y), max);
         if (handle != null) {
-          interaction = new ResizeInteraction(sceneView, scene.getSceneComponent(handle.component), handle);
+          SceneComponent component = scene.getSceneComponent(handle.component);
+          assert component != null;
+
+          interaction = new ResizeInteraction(sceneView, component, handle);
         }
         else {
           NlModel model = sceneView.getModel();

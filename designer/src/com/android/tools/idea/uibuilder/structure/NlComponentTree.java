@@ -529,14 +529,22 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
     }
 
-    private void handleDoubleClick(@NotNull MouseEvent e) {
-      TreePath path = getPathForLocation(e.getX(), e.getY());
-      if (path != null) {
-        Object component = path.getLastPathComponent();
-        if (component instanceof NlComponent) {
-          myScreenView.getSurface().notifyActivateComponent(((NlComponent)component));
-        }
+    private void handleDoubleClick(@NotNull MouseEvent event) {
+      int x = event.getX();
+      int y = event.getY();
+      TreePath path = getPathForLocation(x, y);
+
+      if (path == null) {
+        return;
       }
+
+      Object component = path.getLastPathComponent();
+
+      if (!(component instanceof NlComponent)) {
+        return;
+      }
+
+      myScreenView.getSurface().notifyComponentActivateInComponentTree((NlComponent)component);
     }
   }
 
