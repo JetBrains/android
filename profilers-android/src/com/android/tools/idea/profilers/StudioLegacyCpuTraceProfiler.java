@@ -72,7 +72,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
     synchronized (myLegacyProfilingLock) {
       LegacyProfilingRecord record = myLegacyProfilingRecord.get(appPkgName);
-      if (record != null) {
+      if (record != null && client.getClientData().getMethodProfilingStatus() != ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE)
           .setErrorMessage("Start request ignored. The app has an on-going profiling session.").build();
       }
@@ -124,7 +124,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       }
 
       LegacyProfilingRecord record = myLegacyProfilingRecord.get(appPkgName);
-      if (record == null) {
+      if (record == null || client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE)
           .setErrorMessage("The app is not being profiled.").build();
       }
@@ -159,7 +159,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
     synchronized (myLegacyProfilingLock) {
       LegacyProfilingRecord record = myLegacyProfilingRecord.get(appPkgName);
-      if (record == null) {
+      if (record == null || client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setBeingProfiled(false).build();
       }
       else {
