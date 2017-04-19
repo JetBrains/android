@@ -42,7 +42,7 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 public class LibFolderNode extends ProjectViewNode<VirtualFile> {
   @NotNull private final VirtualFile myFolder;
 
-  public LibFolderNode(@NotNull Project project, @NotNull VirtualFile folder, @NotNull ViewSettings settings) {
+  public LibFolderNode(@NotNull Project project, @NotNull VirtualFile folder /* "lib" folder */, @NotNull ViewSettings settings) {
     super(project, folder, settings);
     myFolder = folder;
   }
