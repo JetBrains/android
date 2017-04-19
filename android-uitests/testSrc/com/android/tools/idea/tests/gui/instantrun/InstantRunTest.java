@@ -71,7 +71,7 @@ public class InstantRunTest extends TestWithEmulator {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37480946
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -239,7 +239,7 @@ public class InstantRunTest extends TestWithEmulator {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37480946
   @Test
   public void cmakeHotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
