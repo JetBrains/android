@@ -21,7 +21,6 @@ import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -34,15 +33,12 @@ public class IdeProductFlavorContainer extends IdeModel implements ProductFlavor
   @NotNull private final SourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
 
-  public IdeProductFlavorContainer(@NotNull ProductFlavorContainer original, @NotNull ModelCache modelCache) {
-    myProductFlavor = new IdeProductFlavor(original.getProductFlavor(), modelCache);
-    mySourceProvider = new IdeSourceProvider(original.getSourceProvider());
-
-    Collection<SourceProviderContainer> orExtraSourceProvider = original.getExtraSourceProviders();
-    myExtraSourceProviders = new ArrayList<>();
-    for (SourceProviderContainer container : orExtraSourceProvider) {
-      myExtraSourceProviders.add(new IdeSourceProviderContainer(container));
-    }
+  public IdeProductFlavorContainer(@NotNull ProductFlavorContainer container, @NotNull ModelCache modelCache) {
+    super(container, modelCache);
+    myProductFlavor = modelCache.computeIfAbsent(container.getProductFlavor(), flavor -> new IdeProductFlavor(flavor, modelCache));
+    mySourceProvider = modelCache.computeIfAbsent(container.getSourceProvider(), provider -> new IdeSourceProvider(provider, modelCache));
+    myExtraSourceProviders = copy(container.getExtraSourceProviders(), modelCache,
+                                  sourceProviderContainer -> new IdeSourceProviderContainer(sourceProviderContainer, modelCache));
   }
 
   @Override

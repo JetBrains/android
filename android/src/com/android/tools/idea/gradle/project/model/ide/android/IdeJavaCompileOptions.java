@@ -30,7 +30,8 @@ public class IdeJavaCompileOptions extends IdeModel implements JavaCompileOption
   @NotNull private final String mySourceCompatibility;
   @NotNull private final String myTargetCompatibility;
 
-  public IdeJavaCompileOptions(@NotNull JavaCompileOptions options) {
+  public IdeJavaCompileOptions(@NotNull JavaCompileOptions options, @NotNull ModelCache modelCache) {
+    super(options, modelCache);
     myEncoding = options.getEncoding();
     mySourceCompatibility = options.getSourceCompatibility();
     myTargetCompatibility = options.getTargetCompatibility();

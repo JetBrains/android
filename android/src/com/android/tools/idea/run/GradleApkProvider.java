@@ -169,6 +169,8 @@ public class GradleApkProvider implements ApkProvider {
 
   // TODO: Remove once Android plugin v. 2.3 is the "recommended" version.
   @NotNull
+  @Deprecated
+  // TODO: use IdeVariant#getTestedTargetVariants instead.
   private static Collection<TestedTargetVariant> getTestedTargetVariants(@NotNull Variant variant) {
     try {
       return variant.getTestedTargetVariants();

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.ClassField;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.ClassFieldStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -32,6 +33,13 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeClassField}.
  */
 public class IdeClassFieldTest {
+  private ModelCache myModelCache;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeClassField.class).isAssignableTo(Serializable.class);
@@ -39,7 +47,7 @@ public class IdeClassFieldTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeClassField classField = new IdeClassField(new ClassFieldStub());
+    IdeClassField classField = new IdeClassField(new ClassFieldStub(), myModelCache);
     byte[] bytes = serialize(classField);
     Object o = deserialize(bytes);
     assertEquals(classField, o);
@@ -48,7 +56,7 @@ public class IdeClassFieldTest {
   @Test
   public void constructor() throws Throwable {
     ClassField original = new ClassFieldStub();
-    assertEqualsOrSimilar(original, new IdeClassField(original));
+    assertEqualsOrSimilar(original, new IdeClassField(original, myModelCache));
   }
 
   @Test

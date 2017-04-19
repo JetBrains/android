@@ -30,10 +30,10 @@ public final class IdeJavaLibrary extends IdeLibrary implements JavaLibrary {
   private static final long serialVersionUID = 1L;
 
   @NotNull private final File myJarFile;
-  @NotNull private final List<JavaLibrary> myDependencies;
+  @NotNull private final List<? extends JavaLibrary> myDependencies;
 
   public IdeJavaLibrary(@NotNull JavaLibrary library, @NotNull ModelCache modelCache) {
-    super(library);
+    super(library, modelCache);
     myJarFile = library.getJarFile();
     myDependencies = copy(library.getDependencies(), modelCache, dependency -> new IdeJavaLibrary(dependency, modelCache));
   }

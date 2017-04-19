@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.SigningConfig;
 import com.android.builder.model.VectorDrawablesOptions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,18 +59,14 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
 
     myTestInstrumentationRunnerArguments = new HashMap<>(flavor.getTestInstrumentationRunnerArguments());
     myResourceConfigurations = new ArrayList<>(flavor.getResourceConfigurations());
-    myVectorDrawables = new IdeVectorDrawablesOptions(flavor.getVectorDrawables());
+    myVectorDrawables = modelCache.computeIfAbsent(flavor.getVectorDrawables(),
+                                                   options -> new IdeVectorDrawablesOptions(options, modelCache));
     myDimension = flavor.getDimension();
     myApplicationId = flavor.getApplicationId();
     myVersionCode = flavor.getVersionCode();
     myVersionName = flavor.getVersionName();
-
-    ApiVersion flMinSdkVersion = flavor.getMinSdkVersion();
-    myMinSdkVersion = flMinSdkVersion != null ?  new IdeApiVersion(flMinSdkVersion) : null;
-
-    ApiVersion flTargetSdkVersion = flavor.getTargetSdkVersion();
-    myTargetedSdkVersion = flTargetSdkVersion != null ? new IdeApiVersion(flTargetSdkVersion) : null;
-
+    myMinSdkVersion = copy(modelCache, flavor.getMinSdkVersion());
+    myTargetedSdkVersion = copy(modelCache, flavor.getTargetSdkVersion());
     myMaxSdkVersion = flavor.getMaxSdkVersion();
     myRenderscriptTargetApi = flavor.getRenderscriptTargetApi();
     myRenderscriptSupporModeEnabled = flavor.getRenderscriptSupportModeEnabled();
@@ -81,10 +77,23 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
     myTestHandleProfiling = flavor.getTestHandleProfiling();
     myTestFunctionalTest = flavor.getTestFunctionalTest();
 
-    SigningConfig flSigningConfig = flavor.getSigningConfig();
-    mySigningConfig = flSigningConfig != null ? new IdeSigningConfig(flSigningConfig) : null;
+    SigningConfig signingConfig = flavor.getSigningConfig();
+    if (signingConfig != null) {
+      mySigningConfig = modelCache.computeIfAbsent(signingConfig, config -> new IdeSigningConfig(config, modelCache));
+    }
+    else {
+      mySigningConfig = null;
+    }
 
     myWearAppUnbundled = flavor.getWearAppUnbundled();
+  }
+
+  @Nullable
+  private static IdeApiVersion copy(@NotNull ModelCache modelCache, @Nullable ApiVersion apiVersion) {
+    if (apiVersion != null) {
+      return modelCache.computeIfAbsent(apiVersion, version -> new IdeApiVersion(version, modelCache));
+    }
+    return null;
   }
 
   @Override

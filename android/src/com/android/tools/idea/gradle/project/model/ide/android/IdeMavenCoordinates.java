@@ -32,7 +32,8 @@ public final class IdeMavenCoordinates extends IdeModel implements MavenCoordina
   @NotNull private final String myArtifactId;
   @NotNull private final String myVersion;
 
-  public IdeMavenCoordinates(@NotNull MavenCoordinates coordinates) {
+  public IdeMavenCoordinates(@NotNull MavenCoordinates coordinates, @NotNull ModelCache modelCache) {
+    super(coordinates, modelCache);
     myGroupId = coordinates.getGroupId();
     myArtifactId = coordinates.getArtifactId();
     myVersion = coordinates.getVersion();

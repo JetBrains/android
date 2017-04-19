@@ -19,6 +19,7 @@ import com.android.builder.model.Dependencies;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.DependenciesStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -33,6 +34,15 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link IdeDependencies}.
  */
 public class IdeDependenciesTest {
+  private ModelCache myModelCache;
+  private GradleVersion myModelVersion;
+
+  @Before
+  public void setUp() throws Exception {
+    myModelCache = new ModelCache();
+    myModelVersion = GradleVersion.parse("2.3.0");
+  }
+
   @Test
   public void serializable() {
     assertThat(IdeDependencies.class).isAssignableTo(Serializable.class);
@@ -40,7 +50,7 @@ public class IdeDependenciesTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeDependencies dependencies = new IdeDependencies(new DependenciesStub(), new ModelCache(), GradleVersion.parse("2.3.0"));
+    IdeDependencies dependencies = new IdeDependencies(new DependenciesStub(), myModelCache, myModelVersion);
     byte[] bytes = serialize(dependencies);
     Object o = deserialize(bytes);
     assertEquals(dependencies, o);
@@ -49,7 +59,7 @@ public class IdeDependenciesTest {
   @Test
   public void constructor() throws Throwable {
     Dependencies original = new DependenciesStub();
-    IdeDependencies copy = new IdeDependencies(original, new ModelCache(), GradleVersion.parse("2.3.0"));
+    IdeDependencies copy = new IdeDependencies(original, myModelCache, myModelVersion);
     assertEqualsOrSimilar(original, copy);
   }
 
