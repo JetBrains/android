@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
@@ -28,10 +29,14 @@ import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpression;
 import com.android.tools.idea.ui.properties.expressions.optional.AsOptionalExpression;
 import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
+import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.swing.*;
+import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -82,10 +87,12 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   @NotNull private final List<ActionListener> myAssetListeners = Lists.newArrayListWithExpectedSize(1);
 
+  @NotNull private final AndroidVersion myTargetSdkVersion;
   @NotNull private final BoolProperty myShowGridProperty;
   @NotNull private final BoolProperty myShowSafeZoneProperty;
   @NotNull private final AbstractProperty<Density> myPreviewDensityProperty;
   @NotNull private final AndroidAdaptiveIconGenerator myIconGenerator;
+  @NotNull private final ValidatorPanel myValidatorPanel;
 
   @NotNull private final BindingsManager myGeneralBindings = new BindingsManager();
   @NotNull private final BindingsManager myForegroundActiveAssetBindings = new BindingsManager();
@@ -223,17 +230,22 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
    * supported types are passed in, then all types will be supported by default.
    */
   public ConfigureAdaptiveIconPanel(@NotNull Disposable disposableParent,
-                                    int minSdkVersion,
+                                    @NotNull AndroidVersion minSdkVersion,
+                                    @NotNull AndroidVersion targetSdkVersion,
                                     @NotNull BoolProperty showGridProperty,
                                     @NotNull BoolProperty showSafeZoneProperty,
-                                    @NotNull AbstractProperty<Density> previewDensityProperty) {
+                                    @NotNull AbstractProperty<Density> previewDensityProperty,
+                                    @NotNull ValidatorPanel validatorPanel) {
     super(new BorderLayout());
+    myTargetSdkVersion = targetSdkVersion;
 
     myShowGridProperty = showGridProperty;
     myShowSafeZoneProperty = showSafeZoneProperty;
     myPreviewDensityProperty = previewDensityProperty;
     myIconGenerator =
-      (AndroidAdaptiveIconGenerator)AndroidAdaptiveIconType.createIconGenerator(AndroidAdaptiveIconType.ADAPTIVE, minSdkVersion);
+      (AndroidAdaptiveIconGenerator)AndroidAdaptiveIconType
+        .createIconGenerator(AndroidAdaptiveIconType.ADAPTIVE, minSdkVersion.getApiLevel());
+    myValidatorPanel = validatorPanel;
 
     DefaultComboBoxModel<GraphicGenerator.Shape> shapesModel = new DefaultComboBoxModel<>();
     for (GraphicGenerator.Shape shape : myShapeNames.keySet()) {
@@ -313,6 +325,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundImageRadioButton.setSelected(true);
 
     initializeListenersAndBindings();
+    initializeValidators();
 
     Disposer.register(disposableParent, this);
     for (AssetComponent assetComponent : myForegroundAssetPanelMap.values()) {
@@ -485,6 +498,67 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myListeners.listenAll(layoutProperties.keySet()).with(() -> {
       SwingUtilities.updateComponentTreeUI(myForegroundAllOptionsPanel);
       SwingUtilities.updateComponentTreeUI(myBackgroundAllOptionsPanel);
+    });
+  }
+
+  private void initializeValidators() {
+    // We use this property as a way to trigger the validation when the panel is shown/hidden
+    // when the "output icon type" changes in our parent component.
+    // For example, we only want to validate the API level (see below) if the user is trying
+    // to create an adaptive icon (from this component).
+    VisibleProperty isActive = new VisibleProperty(getRootComponent());
+
+    // Validate the API level when our panel is active
+    Expression<AndroidVersion> targetSdkVersion = new Expression<AndroidVersion>(isActive) {
+      @NotNull
+      @Override
+      public AndroidVersion get() {
+        return myTargetSdkVersion;
+      }
+    };
+    myValidatorPanel.registerValidator(targetSdkVersion, targetSdk -> {
+      if (isActive.get() && targetSdk.getFeatureLevel() < 26) {
+        return new Validator.Result(Validator.Severity.ERROR, "Project must target API 26 or later to use adaptive icons");
+      }
+      else {
+        return Validator.Result.OK;
+      }
+    });
+
+    // Validate foreground layer name when our panel is active
+    StringExpression foregroundName = new StringExpression(isActive, myForegroundLayerName) {
+      @NotNull
+      @Override
+      public String get() {
+        return myForegroundLayerName.get();
+      }
+    };
+    myValidatorPanel.registerValidator(foregroundName, name -> {
+      String trimmedName = name.trim();
+      if (isActive.get() && trimmedName.isEmpty()) {
+        return new Validator.Result(Validator.Severity.ERROR, "Foreground layer name must be set");
+      }
+      else {
+        return Validator.Result.OK;
+      }
+    });
+
+    // Validate background layer name when our panel is active
+    StringExpression backgroundName = new StringExpression(isActive, myBackgroundLayerName) {
+      @NotNull
+      @Override
+      public String get() {
+        return myBackgroundLayerName.get();
+      }
+    };
+    myValidatorPanel.registerValidator(backgroundName, name -> {
+      String trimmedName = name.trim();
+      if (isActive.get() && trimmedName.isEmpty()) {
+        return new Validator.Result(Validator.Severity.ERROR, "Background layer name must be set");
+      }
+      else {
+        return Validator.Result.OK;
+      }
     });
   }
 
