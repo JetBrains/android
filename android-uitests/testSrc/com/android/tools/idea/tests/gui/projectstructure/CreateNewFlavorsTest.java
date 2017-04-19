@@ -50,7 +50,7 @@ public class CreateNewFlavorsTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37478645
   @Test
   public void createNewFlavors() throws Exception {
     String gradleFileContents = guiTest.importSimpleApplication()
