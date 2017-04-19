@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.fd.actions.HotswapAction;
+import com.android.tools.idea.ui.GotItMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.BrowserUtil;
@@ -27,7 +28,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.wm.WindowManager;
-import com.intellij.ui.GotItMessage;
 import com.intellij.ui.awt.RelativePoint;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
