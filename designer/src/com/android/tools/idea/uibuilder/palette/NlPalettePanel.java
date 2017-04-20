@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.configurations.Configuration;
@@ -38,7 +36,6 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -47,25 +44,16 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumHeight;
-
 public class NlPalettePanel extends JPanel implements Disposable, DataProvider, ToolContent<DesignSurface> {
   static final String PALETTE_MODE = "palette.mode";
-  static final String PALETTE_PREVIEW_HEIGHT = "palette.preview.height";
-  static final int DEFAULT_PREVIEW_HEIGHT = 140;
 
-  private final NlPreviewPanel myPreviewPane;
   private final CopyProvider myCopyProvider;
   private final NlPaletteTreeGrid myPalettePanel;
   private final DependencyManager myDependencyManager;
   private final CopyPasteManager myCopyPasteManager;
-  private final ComponentsSplitter mySplitter;
   private NlLayoutType myLayoutType;
   private Runnable myCloseAutoHideCallback;
 
@@ -81,26 +69,13 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
     myDependencyManager = new DependencyManager(project, this, this);
     myPalettePanel = new NlPaletteTreeGrid(
       project, getInitialMode(), myDependencyManager, this::closeAutoHideToolWindow, designSurface, iconPreviewFactory);
-    myPreviewPane = new NlPreviewPanel(new NlPreviewImagePanel(iconPreviewFactory, myDependencyManager, this::closeAutoHideToolWindow));
     myCopyProvider = new CopyProviderImpl();
-    myPalettePanel.setSelectionListener(myPreviewPane);
     myLayoutType = NlLayoutType.UNKNOWN;
 
-    // Use a ComponentSplitter instead of a Splitter here to avoid a fat splitter size.
-    mySplitter = new ComponentsSplitter(true, true);
-    mySplitter.setInnerComponent(myPalettePanel);
-    mySplitter.setLastComponent(myPreviewPane);
-    mySplitter.setHonorComponentsMinimumSize(true);
-    mySplitter.setLastSize(JBUI.scale(getInitialPreviewHeight()));
-    myPalettePanel.addComponentListener(createPreviewHeightUpdater());
-    setMinimumHeight(myPalettePanel, JBUI.scale(20));
-    setMinimumHeight(myPreviewPane, JBUI.scale(40));
-    Disposer.register(this, mySplitter);
     Disposer.register(this, myPalettePanel);
-    Disposer.register(this, myPreviewPane);
 
     setLayout(new BorderLayout());
-    add(mySplitter, BorderLayout.CENTER);
+    add(myPalettePanel, BorderLayout.CENTER);
 
     setToolContext(designSurface);
   }
@@ -126,11 +101,6 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   @TestOnly
   public NlPaletteTreeGrid getTreeGrid() {
     return myPalettePanel;
-  }
-
-  @TestOnly
-  public ComponentsSplitter getSplitter() {
-    return mySplitter;
   }
 
   @NotNull
@@ -166,7 +136,6 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   @Override
   public void setToolContext(@Nullable DesignSurface designSurface) {
     assert designSurface == null || designSurface instanceof NlDesignSurface;
-    myPreviewPane.setDesignSurface(designSurface);
     Module module = getModule(designSurface);
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -214,25 +183,6 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
     }
     catch (IllegalArgumentException unused) {
       return PaletteMode.ICON_AND_NAME;
-    }
-  }
-
-  @NotNull
-  private ComponentListener createPreviewHeightUpdater() {
-    return new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent event) {
-        PropertiesComponent.getInstance().setValue(PALETTE_PREVIEW_HEIGHT, String.valueOf(AdtUiUtils.unscale(mySplitter.getLastSize())));
-      }
-    };
-  }
-
-  private static int getInitialPreviewHeight() {
-    try {
-      return Integer.parseInt(PropertiesComponent.getInstance().getValue(PALETTE_PREVIEW_HEIGHT, String.valueOf(DEFAULT_PREVIEW_HEIGHT)));
-    }
-    catch (NumberFormatException unused) {
-      return DEFAULT_PREVIEW_HEIGHT;
     }
   }
 
