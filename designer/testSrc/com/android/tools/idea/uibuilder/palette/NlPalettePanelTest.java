@@ -28,17 +28,12 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 
-import javax.swing.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 
-import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.*;
+import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.PALETTE_MODE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -110,31 +105,6 @@ public class NlPalettePanelTest extends AndroidTestCase {
     assertThat(myPanel.getTreeGrid().getFilter()).isEqualTo("button");
   }
 
-  public void testDefaultInitialPreviewHeight() {
-    assertThat(getPreviewHeight()).isEqualTo(JBUI.scale(DEFAULT_PREVIEW_HEIGHT));
-  }
-
-  public void testInitialPreviewHeightIsReadFromOptions() {
-    PropertiesComponent.getInstance().setValue(PALETTE_PREVIEW_HEIGHT, "2017");
-    Disposer.dispose(myPanel);
-    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
-    assertThat(getPreviewHeight()).isEqualTo(JBUI.scale(2017));
-  }
-
-  public void testInitialPreviewHeightFromMalformedOptionValueIsIgnored() {
-    PropertiesComponent.getInstance().setValue(PALETTE_PREVIEW_HEIGHT, "malformed");
-    Disposer.dispose(myPanel);
-    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
-    assertThat(getPreviewHeight()).isEqualTo(JBUI.scale(DEFAULT_PREVIEW_HEIGHT));
-  }
-
-  public void testInitialPreviewHeightIsSavedToOptions() {
-    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_PREVIEW_HEIGHT)).isNull();
-    setPreviewHeight(JBUI.scale(1971));
-    fireComponentResize(myPanel.getTreeGrid());
-    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_PREVIEW_HEIGHT)).isEqualTo("1971");
-  }
-
   public void testDefaultMode() {
     assertThat(myPanel.getMode()).isEqualTo(PaletteMode.ICON_AND_NAME);
   }
@@ -157,20 +127,5 @@ public class NlPalettePanelTest extends AndroidTestCase {
     assertThat(PropertiesComponent.getInstance().getValue(PALETTE_MODE)).isNull();
     myPanel.setMode(PaletteMode.SMALL_ICONS);
     assertThat(PropertiesComponent.getInstance().getValue(PALETTE_MODE)).isEqualTo(PaletteMode.SMALL_ICONS.toString());
-  }
-
-  private static void fireComponentResize(@NotNull JComponent component) {
-    ComponentEvent event = mock(ComponentEvent.class);
-    for (ComponentListener listener : component.getComponentListeners()) {
-      listener.componentResized(event);
-    }
-  }
-
-  private int getPreviewHeight() {
-    return myPanel.getSplitter().getLastSize();
-  }
-
-  private void setPreviewHeight(@SuppressWarnings("SameParameterValue") int height) {
-    myPanel.getSplitter().setLastSize(height);
   }
 }
