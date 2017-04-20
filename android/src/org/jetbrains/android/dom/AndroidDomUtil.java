@@ -31,10 +31,7 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
-import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
+import org.jetbrains.android.dom.attrs.*;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.*;
@@ -236,11 +233,11 @@ public class AndroidDomUtil {
         containsUnsupportedFormats = true;
       }
     }
-    ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
     if (formats.contains(AttributeFormat.Flag)) {
       return new FlagConverter(compositeBuilder.build(), values);
     }
 
+    ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
     if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
       resConverter = new ResourceReferenceConverter(EnumSet.of(ResourceType.INTEGER), attr);
       resConverter.setQuiet(true);

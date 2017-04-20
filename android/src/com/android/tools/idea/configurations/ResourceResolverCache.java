@@ -32,6 +32,7 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.SparseArray;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;

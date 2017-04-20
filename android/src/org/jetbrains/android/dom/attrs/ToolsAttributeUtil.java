@@ -133,9 +133,15 @@ public class ToolsAttributeUtil {
     }
 
     Collection<AttributeFormat> formats = ATTRIBUTES.get(name);
-    AttributeDefinition def = new AttributeDefinition(name);
+    AttributeDefinition def = new ToolsAttributeDefinition(name);
     def.addFormats(formats);
 
     return def;
+  }
+
+  public static class ToolsAttributeDefinition extends AttributeDefinition {
+    public ToolsAttributeDefinition(@NotNull String name) {
+      super(name);
+    }
   }
 }
