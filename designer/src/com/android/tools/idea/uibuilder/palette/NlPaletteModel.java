@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -177,7 +178,7 @@ public class NlPaletteModel implements Disposable {
 
     UpdateListener listener = myListener;
     if (listener != null) {
-      listener.update();
+      ApplicationManager.getApplication().invokeLater(listener::update);
     }
   }
 
@@ -190,7 +191,11 @@ public class NlPaletteModel implements Disposable {
   }
 
   private void loadThirdPartyLibraryComponents(@NotNull NlLayoutType type, @NotNull Palette palette) {
-    for (FileResourceRepository fileResource : AppResourceRepository.getOrCreateInstance(myModule).getLibraries()) {
+    AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(myModule);
+    if (appResourceRepository == null) {
+      return;
+    }
+    for (FileResourceRepository fileResource : appResourceRepository.getLibraries()) {
       // TODO: Add all palette components here:
       //for (PaletteComponent component : fileResource.getPaletteComponents()) {
       //  addThirdPartyComponent(...);
