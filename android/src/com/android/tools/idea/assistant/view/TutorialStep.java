@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import com.android.tools.idea.assistant.DefaultTutorialBundle;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.google.common.base.Strings;
@@ -34,6 +35,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
 import javax.swing.text.SimpleAttributeSet;
@@ -43,6 +45,8 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Renders a single step inside of a tutorial.
@@ -100,6 +104,25 @@ public class TutorialStep extends JPanel {
           break;
         case CODE:
           myContents.add(new CodePane(element));
+          break;
+        case IMAGE:
+          File file;
+          DefaultTutorialBundle.Image imageElement = element.getImage();
+          try {
+            file = new File(getClass().getResource(imageElement.getSource()).getPath());
+            if (!file.isFile()) {
+              getLog().error("Cannot load image: " + imageElement.getSource());
+              continue;
+            }
+            ImageIcon imageIcon = new ImageIcon(ImageIO.read(file));
+            Image image = imageIcon.getImage();
+            Image scaledImage = image.getScaledInstance(imageElement.getWidth(), imageElement.getHeight(), Image.SCALE_SMOOTH);
+            imageIcon = new ImageIcon(scaledImage, imageElement.getDescription());
+            myContents.add(new JLabel(imageIcon));
+          }
+          catch (IOException e) {
+            getLog().error("Cannot load image: " + imageElement.getSource(), e);
+          }
           break;
         default:
           getLog().error("Found a StepElement of unknown type. " + element.toString());
