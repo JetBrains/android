@@ -59,6 +59,7 @@ public class FrameworkRule implements TestRule {
     private final Statement myBase;
     private final PropertiesComponent myPropertiesComponent;
     private final Disposable myDisposable;
+    private final UISettings myUISettings;
 
     @Mock private Application myApplication;
     @Mock private PicoContainer myPicoContainer;
@@ -75,7 +76,6 @@ public class FrameworkRule implements TestRule {
     @Mock private FloatingToolWindowManager myFloatingToolWindowManager;
     @Mock private FileEditorManager myFileEditorManager;
     @Mock private ToolWindowManager myToolWindowManager;
-    @Mock private UISettings myUISettings;
     @Mock private ActionPopupMenu myActionPopupMenu;
     @Mock private JPopupMenu myPopupMenu;
 
@@ -83,6 +83,7 @@ public class FrameworkRule implements TestRule {
       myBase = base;
       myPropertiesComponent = new PropertiesComponentMock();
       myDisposable = Disposer.newDisposable();
+      myUISettings = new UISettings();
     }
 
     @Override
