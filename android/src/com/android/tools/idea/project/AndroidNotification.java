@@ -33,8 +33,8 @@ import org.jetbrains.annotations.Nullable;
  * Creates balloon notifications related to Android projects.
  */
 public class AndroidNotification {
-  private static final NotificationGroup BALLOON_GROUP = NotificationGroup.balloonGroup("Android Notification Group");
-  private static final NotificationGroup LOG_ONLY_GROUP = NotificationGroup.logOnlyGroup("Android Notification Log-Only Group");
+  public static final NotificationGroup BALLOON_GROUP = NotificationGroup.balloonGroup("Android Notification Group");
+  public static final NotificationGroup LOG_ONLY_GROUP = NotificationGroup.logOnlyGroup("Android Notification Log-Only Group");
 
   @Nullable private Notification myNotification;
   @NotNull private final Project myProject;
