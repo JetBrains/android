@@ -156,9 +156,4 @@ public class NavDesignSurface extends DesignSurface {
   protected int getContentOriginY() {
     return 0;
   }
-
-  @Override
-  public Configuration getConfiguration() {
-    return null;
-  }
 }

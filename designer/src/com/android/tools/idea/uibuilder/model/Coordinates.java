@@ -196,6 +196,15 @@ public class Coordinates {
    * the {@link NlDesignSurface} coordinate system.)
    */
   @AndroidCoordinate
+  public static int getAndroidDimension(@NotNull DesignSurface surface, @SwingCoordinate int swingDimension) {
+    return (int)(swingDimension / surface.getScale());
+  }
+
+  /**
+   * Returns the Android dimension for the given Swing dimension coordinate (in
+   * the {@link NlDesignSurface} coordinate system.)
+   */
+  @AndroidCoordinate
   public static int getAndroidDimensionDip(@NotNull SceneView view, @SwingCoordinate int swingDimension) {
     return pxToDp(view, getSwingDimension(view, swingDimension));
   }
@@ -206,7 +215,7 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidDimensionDip(@NotNull DesignSurface surface, @SwingCoordinate int swingDimension) {
-    return pxToDp(surface.getModel(), getSwingDimension(surface, swingDimension));
+    return pxToDp(surface.getModel(), getAndroidDimension(surface, swingDimension));
   }
 
   /**
