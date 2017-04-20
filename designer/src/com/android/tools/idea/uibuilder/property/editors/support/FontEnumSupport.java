@@ -53,7 +53,7 @@ public class FontEnumSupport extends EnumSupport {
         values.add(new ValueWithDisplayString(font, "@font/" + font));
       }
       if (PropertiesComponent.getInstance().getBoolean(ENABLE_DOWNLOADABLE_FONTS)) {
-        values.add(new ValueWithDisplayString("More Fonts...", AndroidIcons.NeleIcons.TextAllCaps, null, null,
+        values.add(new ValueWithDisplayString("More Fonts...", null, null, null,
                                               new MoreFontSelector(facet, resolver)));
       }
     }
