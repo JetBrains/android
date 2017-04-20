@@ -161,6 +161,58 @@ public class InstantRunTest extends TestWithEmulator {
   }
 
   /**
+   * Verifies that Instant run user notification on activity running on separate process.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14606152
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Create a project
+   *   2. Run on emulator
+   *   3. Open AndroidManifest
+   *   4. For launcher activity set android:process=":foo"
+   *   </pre>
+   *   Verify:
+   *   Verify that instant run cold swap is applied in Run tool window.
+   */
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37512428
+  @Test
+  public void ActivityRunningOnSeparateProcess() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+
+    ideFrameFixture
+      .runApp(APP_NAME)
+      .selectDevice(AVD_NAME)
+      .clickOk();
+
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    String output = contentFixture.getOutput();
+    String pid = extractPidFromOutput(output, RUN_OUTPUT);
+
+    ideFrameFixture
+      .getEditor()
+      .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+      .moveBetween("<application", "")
+      .enterText("\nandroid:process=\":foo\"");
+
+    ideFrameFixture
+      .waitForGradleProjectSyncToFinish()
+      .findApplyChangesButton()
+      .click();
+
+    // Studio takes a few seconds to reset Run tool window contents.
+    Wait.seconds(10).expecting("Run tool window output has been reset").until(() -> !contentFixture.getOutput().contains(output));
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    String newPid = extractPidFromOutput(contentFixture.getOutput(), RUN_OUTPUT);
+    // (Cold swap) Verify the inequality of PIDs before and after IR
+    assertThat(pid).isNotEqualTo(newPid);
+  }
+
+  /**
    * Verifies that instant run works as expected when AndroidManifest is changed.
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
