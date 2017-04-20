@@ -53,6 +53,7 @@ public class IdeAndroidProject extends IdeModel implements AndroidProject {
   private final boolean myLibrary;
   private final int myProjectType;
   private final int myPluginGeneration;
+  private final boolean myBaseSplit;
 
   public IdeAndroidProject(@NotNull AndroidProject project) {
     this(project, new ModelCache());
@@ -94,6 +95,7 @@ public class IdeAndroidProject extends IdeModel implements AndroidProject {
     }
 
     myPluginGeneration = project.getPluginGeneration();
+    myBaseSplit = project.isBaseSplit();
   }
 
   @Override
@@ -242,5 +244,10 @@ public class IdeAndroidProject extends IdeModel implements AndroidProject {
   @Override
   public int getPluginGeneration() {
     return myPluginGeneration;
+  }
+
+  @Override
+  public boolean isBaseSplit() {
+    return myBaseSplit;
   }
 }

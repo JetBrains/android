@@ -266,6 +266,11 @@ public class AndroidProjectStub implements AndroidProject {
     return myPluginGeneration;
   }
 
+  @Override
+  public boolean isBaseSplit() {
+    throw new UnsupportedOperationException();
+  }
+
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {
     myPluginGeneration = pluginGeneration;
     return this;
