@@ -68,9 +68,9 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
                   "StartTime INTEGER",
                   "EndTime INTEGER",
                   "Data BLOB");
-      createIndex("Cpu_Data", "AppId", "Timestamp", "Session");
-      createIndex("Cpu_Trace", "TraceId", "Session");
-      createIndex("Thread_Activities", "AppId", "Session", "ThreadId", "Timestamp");
+      createUniqueIndex("Cpu_Data", "AppId", "Timestamp", "Session");
+      createUniqueIndex("Cpu_Trace", "TraceId", "Session");
+      createUniqueIndex("Thread_Activities", "AppId", "Session", "ThreadId", "Timestamp");
     }
     catch (SQLException ex) {
       getLogger().error(ex);

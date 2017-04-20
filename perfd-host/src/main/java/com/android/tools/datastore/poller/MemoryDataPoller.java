@@ -70,6 +70,10 @@ public class MemoryDataPoller extends PollRunner {
     myMemoryTable.insertAllocStats(myProcessId, mySession, response.getAllocStatsSamplesList());
     myMemoryTable.insertGcStats(myProcessId, mySession, response.getGcStatsSamplesList());
 
+    for (BatchAllocationSample sample : response.getAllocationSamplesList()) {
+      myMemoryTable.insertAllocationData(myProcessId, mySession, sample);
+    }
+
     List<AllocationsInfo> allocDumpsToFetch = new ArrayList<>();
     for (int i = 0; i < response.getAllocationsInfoCount(); i++) {
       if (myPendingAllocationSample != null) {

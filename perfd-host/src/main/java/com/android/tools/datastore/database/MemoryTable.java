@@ -27,10 +27,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.tools.datastore.database.MemoryTable.MemoryStatements.*;
 
 public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
@@ -83,7 +86,21 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     INSERT_LEGACY_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_LegacyAllocationStack (Id, Data) VALUES (?, ?)"),
     INSERT_LEGACY_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_LegacyAllocatedClass (Id, Data) VALUES (?, ?)"),
     QUERY_LEGACY_ALLOCATION_STACK("Select Data FROM Memory_LegacyAllocationStack WHERE Id = ?"),
-    QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Id = ?");
+    QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Id = ?"),
+
+    // O+ Allocation Tracking
+    INSERT_CLASS("INSERT INTO Memory_AllocatedClass (Pid, Session, TrackingStartTime, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?, ?)"),
+    INSERT_ALLOC(
+      "INSERT INTO Memory_AllocationEvents (Pid, Session, TrackingStartTime, Tag, ClassTag, AllocTime, FreeTime, Size, Length) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+    UPDATE_ALLOC(
+      "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND TrackingStartTime = ? AND Tag = ?"),
+    QUERY_CLASS("SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ?"),
+    // XORing (AllocTime >= startTime AND AllocTime < endTime) and (FreeTime >= startTime AND FreeTime < endTime)
+    QUERY_ALLOC_SNAPSHOT("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length FROM Memory_AllocationEvents " +
+                         "WHERE Pid = ? AND Session = ? AND AllocTime < ? AND FreeTime >= ? AND " +
+                         "((AllocTime >= ? OR FreeTime < ?) AND " +
+                         "NOT (AllocTime >= ? AND FreeTime < ?))");
 
     @NotNull private final String mySqlStatement;
 
@@ -116,6 +133,16 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
       createTable("Memory_LegacyAllocatedClass", "Id INTEGER", "Data BLOB", "PRIMARY KEY(Id)");
       createTable("Memory_HeapDump", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER", "Status INTEGER", "InfoData BLOB", "DumpData BLOB", "PRIMARY KEY(Pid, Session, StartTime)");
+
+      // O+ Allocation Tracking
+      createTable("Memory_AllocatedClass", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "TrackingStartTime INTEGER",
+                  "Tag INTEGER", "AllocTime INTEGER", "Name TEXT",
+                  "PRIMARY KEY(Pid, Session, TrackingStartTime, Tag)");
+      createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "TrackingStartTime INTEGER",
+                  "Tag INTEGER", "ClassTag INTEGER", "AllocTime INTEGER", "FreeTime INTERGER", "Size INTEGER", "Length INTEGER",
+                  "PRIMARY KEY(Pid, Session, TrackingStartTime, Tag)");
+      // TODO: including TrackingStartTime. Currently value is invalid coming from perfd+perfa.
+      createIndex("Memory_AllocationEvents", "Pid", "Session", "AllocTime", "FreeTime");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -125,7 +152,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   @Override
   public void prepareStatements(Connection connection) {
     try {
-      MemoryStatements[] statements = MemoryStatements.values();
+      MemoryStatements[] statements = values();
       for (int i = 0; i < statements.length; i++) {
         createStatement(statements[i], statements[i].getStatement());
       }
@@ -141,19 +168,19 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     long startTime = request.getStartTime();
     long endTime = request.getEndTime();
     List<MemoryData.MemorySample> memorySamples =
-      getResultsInfo(MemoryStatements.QUERY_MEMORY, pid, request.getSession(), startTime, endTime,
+      getResultsInfo(QUERY_MEMORY, pid, request.getSession(), startTime, endTime,
                      MemoryData.MemorySample.getDefaultInstance());
     List<MemoryData.AllocStatsSample> allocStatsSamples =
-      getResultsInfo(MemoryStatements.QUERY_ALLOC_STATS, pid, request.getSession(), startTime, endTime,
+      getResultsInfo(QUERY_ALLOC_STATS, pid, request.getSession(), startTime, endTime,
                      MemoryData.AllocStatsSample.getDefaultInstance());
     List<MemoryData.GcStatsSample> gcStatsSamples =
-      getResultsInfo(MemoryStatements.QUERY_GC_STATS, pid, request.getSession(), startTime, endTime,
+      getResultsInfo(QUERY_GC_STATS, pid, request.getSession(), startTime, endTime,
                      MemoryData.GcStatsSample.getDefaultInstance());
     List<HeapDumpInfo> heapDumpSamples =
-      getResultsInfo(MemoryStatements.QUERY_HEAP_INFO_BY_TIME, pid, request.getSession(), startTime, endTime,
+      getResultsInfo(QUERY_HEAP_INFO_BY_TIME, pid, request.getSession(), startTime, endTime,
                      HeapDumpInfo.getDefaultInstance());
     List<AllocationsInfo> allocationSamples =
-      getResultsInfo(MemoryStatements.QUERY_ALLOCATION_INFO_BY_TIME, pid, request.getSession(), startTime, endTime,
+      getResultsInfo(QUERY_ALLOCATION_INFO_BY_TIME, pid, request.getSession(), startTime, endTime,
                      AllocationsInfo.getDefaultInstance());
     MemoryData.Builder response = MemoryData.newBuilder()
       .addAllMemSamples(memorySamples)
@@ -166,21 +193,21 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
   public void insertMemory(int pid, Common.Session session, List<MemoryData.MemorySample> samples) {
     for (MemoryData.MemorySample sample : samples) {
-      execute(MemoryStatements.INSERT_SAMPLE, pid, session, sample.getTimestamp(), MemorySamplesType.MEMORY.ordinal(),
+      execute(INSERT_SAMPLE, pid, session, sample.getTimestamp(), MemorySamplesType.MEMORY.ordinal(),
               sample.toByteArray());
     }
   }
 
   public void insertAllocStats(int pid, Common.Session session, List<MemoryData.AllocStatsSample> samples) {
     for (MemoryData.AllocStatsSample sample : samples) {
-      execute(MemoryStatements.INSERT_SAMPLE, pid, session, sample.getTimestamp(), MemorySamplesType.ALLOC_STATS.ordinal(),
+      execute(INSERT_SAMPLE, pid, session, sample.getTimestamp(), MemorySamplesType.ALLOC_STATS.ordinal(),
               sample.toByteArray());
     }
   }
 
   public void insertGcStats(int pid, Common.Session session, List<MemoryData.GcStatsSample> samples) {
     for (MemoryData.GcStatsSample sample : samples) {
-      execute(MemoryStatements.INSERT_SAMPLE, pid, session, sample.getStartTime(), MemorySamplesType.GC_STATS.ordinal(),
+      execute(INSERT_SAMPLE, pid, session, sample.getStartTime(), MemorySamplesType.GC_STATS.ordinal(),
               sample.toByteArray());
     }
   }
@@ -189,7 +216,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    * Note: this will reset the row's Status and DumpData to NOT_READY and null respectively, if an info with the same DumpId already exist.
    */
   public void insertOrReplaceHeapInfo(int pid, Common.Session session, HeapDumpInfo info) {
-    execute(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO, pid, session, info.getStartTime(), info.getEndTime(),
+    execute(INSERT_OR_REPLACE_HEAP_INFO, pid, session, info.getStartTime(), info.getEndTime(),
             DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
   }
 
@@ -198,7 +225,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    */
   public DumpDataResponse.Status getHeapDumpStatus(int pid, Common.Session session, long dumpTime) {
     try {
-      ResultSet result = executeQuery(MemoryStatements.QUERY_HEAP_STATUS_BY_ID, pid, session, dumpTime);
+      ResultSet result = executeQuery(QUERY_HEAP_STATUS_BY_ID, pid, session, dumpTime);
       if (result.next()) {
         return DumpDataResponse.Status.forNumber(result.getInt(1));
       }
@@ -211,7 +238,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
 
   public List<HeapDumpInfo> getHeapDumpInfoByRequest(int pid, Common.Session session, ListDumpInfosRequest request) {
-    return getResultsInfo(MemoryStatements.QUERY_HEAP_INFO_BY_TIME, pid, session, request.getStartTime(), request.getEndTime(),
+    return getResultsInfo(QUERY_HEAP_INFO_BY_TIME, pid, session, request.getStartTime(), request.getEndTime(),
                           HeapDumpInfo.getDefaultInstance());
   }
 
@@ -219,7 +246,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    * Adds/updates the status and raw dump data associated with a dump sample's id.
    */
   public void insertHeapDumpData(int pid, Common.Session session, long dumpTime, DumpDataResponse.Status status, ByteString data) {
-    execute(MemoryStatements.UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), pid, session, dumpTime);
+    execute(UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), pid, session, dumpTime);
   }
 
   /**
@@ -228,7 +255,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   @Nullable
   public byte[] getHeapDumpData(int pid, Common.Session session, long dumpTime) {
     try {
-      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_HEAP_DUMP_BY_ID, pid, session, dumpTime);
+      ResultSet resultSet = executeQuery(QUERY_HEAP_DUMP_BY_ID, pid, session, dumpTime);
       if (resultSet.next()) {
         return resultSet.getBytes(1);
       }
@@ -244,20 +271,20 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    * Note: this will reset the allocation events and its raw dump byte content associated with a tracking start time if an entry already exists.
    */
   public void insertOrReplaceAllocationsInfo(int pid, Common.Session session, AllocationsInfo info) {
-    execute(MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO, pid, session, info.getStartTime(), info.getEndTime(), info.toByteArray());
+    execute(INSERT_OR_REPLACE_ALLOCATIONS_INFO, pid, session, info.getStartTime(), info.getEndTime(), info.toByteArray());
   }
 
   public void updateLegacyAllocationEvents(int pid,
                                            Common.Session session,
                                            long trackingStartTime,
                                            @NotNull LegacyAllocationEventsResponse allocationData) {
-    execute(MemoryStatements.UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), pid, session, trackingStartTime);
+    execute(UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), pid, session, trackingStartTime);
   }
 
 
   public void updateLegacyAllocationDump(int pid, Common.Session session, long trackingStartTime, byte[] data) {
 
-    execute(MemoryStatements.UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP, data, pid, session, trackingStartTime);
+    execute(UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP, data, pid, session, trackingStartTime);
   }
 
   /**
@@ -266,7 +293,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   @Nullable
   public AllocationsInfo getAllocationsInfo(int pid, Common.Session session, long trackingStartTime) {
     try {
-      ResultSet results = executeQuery(MemoryStatements.QUERY_ALLOCATION_INFO_BY_ID, pid, session, trackingStartTime);
+      ResultSet results = executeQuery(QUERY_ALLOCATION_INFO_BY_ID, pid, session, trackingStartTime);
       if (results.next()) {
         byte[] bytes = results.getBytes(1);
         if (bytes != null) {
@@ -289,7 +316,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   public LegacyAllocationEventsResponse getLegacyAllocationData(int pid, Common.Session session, long trackingStartTime) {
 
     try {
-      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID, pid, session, trackingStartTime);
+      ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID, pid, session, trackingStartTime);
       if (resultSet.next()) {
         byte[] bytes = resultSet.getBytes(1);
         if (bytes != null) {
@@ -303,7 +330,6 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     return null;
   }
 
-
   /**
    * @return the raw legacy allocation tracking byte data associated with the tracking start time. Null if an entry does not exist.
    */
@@ -311,7 +337,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   public byte[] getLegacyAllocationDumpData(int pid, Common.Session session, long trackingStartTime) {
 
     try {
-      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_LEGACY_ALLOCATION_DUMP_BY_ID, pid, session, trackingStartTime);
+      ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_DUMP_BY_ID, pid, session, trackingStartTime);
       if (resultSet.next()) {
         return resultSet.getBytes(1);
       }
@@ -325,9 +351,9 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   public void insertLegacyAllocationContext(@NotNull List<AllocatedClass> classes, @NotNull List<AllocationStack> stacks) {
 
     // TODO: batch insert
-    classes.forEach(klass -> execute(MemoryStatements.INSERT_LEGACY_ALLOCATED_CLASS, klass.getClassId(), klass.toByteArray()));
+    classes.forEach(klass -> execute(INSERT_LEGACY_ALLOCATED_CLASS, klass.getClassId(), klass.toByteArray()));
     stacks
-      .forEach(stack -> execute(MemoryStatements.INSERT_LEGACY_ALLOCATION_STACK, stack.getStackId().toByteArray(), stack.toByteArray()));
+      .forEach(stack -> execute(INSERT_LEGACY_ALLOCATION_STACK, stack.getStackId().toByteArray(), stack.toByteArray()));
   }
 
 
@@ -337,7 +363,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     // TODO optimize queries
     try {
       for (int i = 0; i < request.getClassIdsCount(); i++) {
-        ResultSet classResultSet = executeQuery(MemoryStatements.QUERY_LEGACY_ALLOCATED_CLASS, request.getClassIds(i));
+        ResultSet classResultSet = executeQuery(QUERY_LEGACY_ALLOCATED_CLASS, request.getClassIds(i));
         if (classResultSet.next()) {
           AllocatedClass data = AllocatedClass.newBuilder().mergeFrom(classResultSet.getBytes(1)).build();
           builder.addAllocatedClasses(data);
@@ -345,7 +371,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
       }
 
       for (int i = 0; i < request.getStackIdsCount(); i++) {
-        ResultSet stackResultSet = executeQuery(MemoryStatements.QUERY_LEGACY_ALLOCATION_STACK, request.getStackIds(i).toByteArray());
+        ResultSet stackResultSet = executeQuery(QUERY_LEGACY_ALLOCATION_STACK, request.getStackIds(i).toByteArray());
         if (stackResultSet.next()) {
           AllocationStack data = AllocationStack.newBuilder().mergeFrom(stackResultSet.getBytes(1)).build();
           builder.addAllocationStacks(data);
@@ -358,6 +384,125 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     return builder.build();
   }
 
+  public BatchAllocationSample getAllocationSnapshot(int pid, Common.Session session, long startTime, long endTime) {
+    BatchAllocationSample.Builder sampleBuilder = BatchAllocationSample.newBuilder();
+    try {
+      // Query all the classes
+      // TODO: only return classes that are valid for current snapshot?
+      ResultSet klassResult = executeQuery(QUERY_CLASS, pid, session);
+      while (klassResult.next()) {
+        long allocTime = klassResult.getLong(2);
+        AllocationEvent event = AllocationEvent.newBuilder()
+          .setClassData(AllocationEvent.Klass.newBuilder().setTag(klassResult.getLong(1)).setName(klassResult.getString(3)))
+          .setTimestamp(allocTime).build();
+        sampleBuilder.addEvents(event);
+      }
+
+      // Then get all allocation events that are valid for requestTime.
+      ResultSet allocResult =
+        executeQuery(QUERY_ALLOC_SNAPSHOT, pid, session, endTime, startTime, startTime, endTime, startTime, endTime);
+      while (allocResult.next()) {
+        long allocTime = allocResult.getLong(3);
+        long freeTime = allocResult.getLong(4);
+        AllocationEvent event = AllocationEvent.newBuilder()
+          .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(allocResult.getLong(1)).setClassTag(allocResult.getLong(2))
+                          .setFreeTimestamp(freeTime).setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).build())
+          .setTimestamp(allocTime).build();
+        sampleBuilder.addEvents(event);
+      }
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+
+    return sampleBuilder.build();
+  }
+
+  public void insertAllocationData(int pid, Common.Session session, BatchAllocationSample sample) {
+    AllocationEvent.EventCase currentCase = null;
+    PreparedStatement currentStatement = null;
+    try {
+      for (AllocationEvent event : sample.getEventsList()) {
+        if (currentCase != event.getEventCase()) {
+          if (currentCase != null) {
+            assert currentStatement != null;
+            currentStatement.executeBatch();
+          }
+
+          currentCase = event.getEventCase();
+          switch (currentCase) {
+            case CLASS_DATA:
+              currentStatement = getStatementMap().get(INSERT_CLASS);
+              break;
+            case ALLOC_DATA:
+              currentStatement = getStatementMap().get(INSERT_ALLOC);
+              break;
+            case FREE_DATA:
+              currentStatement = getStatementMap().get(UPDATE_ALLOC);
+              break;
+            default:
+              assert false;
+          }
+        }
+
+        switch (currentCase) {
+          case CLASS_DATA:
+            AllocationEvent.Klass klass = event.getClassData();
+            applyParams(currentStatement, pid, session, event.getTrackingStartTime(), klass.getTag(), event.getTimestamp(),
+                        jniToJavaName(klass.getName()));
+            break;
+          case ALLOC_DATA:
+            AllocationEvent.Allocation allocation = event.getAllocData();
+            applyParams(currentStatement, pid, session, event.getTrackingStartTime(), allocation.getTag(), allocation.getClassTag(),
+                        event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength());
+            break;
+          case FREE_DATA:
+            AllocationEvent.Deallocation free = event.getFreeData();
+            applyParams(currentStatement, event.getTimestamp(), pid, session, event.getTrackingStartTime(), free.getTag());
+            break;
+          default:
+            assert false;
+        }
+        currentStatement.addBatch();
+      }
+
+      // Handles last batch after exiting from for-loop.
+      currentStatement.executeBatch();
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+  }
+
+  /**
+   * Converts jni class names into java names
+   * e.g. Ljava/lang/String; -> java.lang.String
+   * e.g. [[Ljava/lang/Object; -> java.lang.Object[][]
+   * TODO convert primitive types too?
+   */
+  private static String jniToJavaName(String jniName) {
+    int arrayDimension = 0;
+    int classNameIndex = 0;
+    while (jniName.charAt(classNameIndex) == '[') {
+      arrayDimension++;
+      classNameIndex++;
+    }
+
+    String javaName;
+    if (jniName.charAt(classNameIndex) == 'L') {
+      // Class - drop the prefix 'L' and postfix ';'
+      javaName = jniName.substring(classNameIndex + 1, jniName.length() - 1).replace('/', '.');
+    }
+    else {
+      javaName = jniName.substring(classNameIndex, jniName.length());
+    }
+
+    while (arrayDimension > 0) {
+      javaName += "[]";
+      arrayDimension--;
+    }
+    return javaName;
+  }
 
   /**
    * A helper method for querying samples for MemorySample, AllocStatsSample, GcStatsSample, HeapDumpInfo and AllocationsInfo

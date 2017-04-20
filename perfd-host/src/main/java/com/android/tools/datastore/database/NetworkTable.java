@@ -66,8 +66,8 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
       createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Id INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER",
                   "ConnectionData BLOB", "BodyData BLOB", "RequestData BLOB", "ResponseData BLOB", "PRIMARY KEY(ProcessId, Id)");
-      createIndex("Network_Data", "Id", "Type", "EndTime");
-      createIndex("Network_Connection", "ProcessId", "Session", "Id");
+      createUniqueIndex("Network_Data", "Id", "Type", "EndTime");
+      createUniqueIndex("Network_Connection", "ProcessId", "Session", "Id");
     }
     catch (SQLException ex) {
       getLogger().error(ex);

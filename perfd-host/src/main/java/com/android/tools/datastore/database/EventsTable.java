@@ -21,13 +21,10 @@ import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
 
@@ -49,8 +46,8 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
     try {
       createTable("Events_Activity", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Data BLOB");
       createTable("Events_System", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
-      createIndex("Events_Activity", "Id", "AppId", "Session");
-      createIndex("Events_System", "Id", "AppId", "Session");
+      createUniqueIndex("Events_Activity", "Id", "AppId", "Session");
+      createUniqueIndex("Events_System", "Id", "AppId", "Session");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
