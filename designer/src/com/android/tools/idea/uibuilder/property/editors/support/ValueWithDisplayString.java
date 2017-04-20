@@ -88,7 +88,7 @@ public class ValueWithDisplayString {
   }
 
   /**
-   * This value is a hack to get around a problem where swing will call {@link javax.swing.DefaultComboBoxModel#setSelectedItem}
+   * This value is a hack to get around a problem where swing will call {@link DefaultComboBoxModel#setSelectedItem}
    * with the toString() value of this class.
    * See comment in {@link com.android.tools.idea.uibuilder.property.editors.NlEnumEditor#setModel}.
    */
