@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.function.Function;
 
-import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR;
+import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC;
 import static org.mockito.Mockito.when;
 
 public abstract class NavigationTestCase extends AndroidGradleTestCase {
@@ -46,7 +46,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject(NAVIGATION_EDITOR);
+    loadProject(NAVIGATION_EDITOR_BASIC);
     myFixture.setTestDataPath(getTestDataPath());
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
     AndroidCodeStyleSettingsModifier.modify(mySettings);
