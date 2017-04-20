@@ -114,6 +114,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     addToolsToModel();
     myWorkBenchManager.register(this);
     myFloatingToolWindowManager.register(myFileEditor, this);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   public void setLoadingText(@NotNull String loadingText) {
@@ -145,6 +146,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   public void dispose() {
     myWorkBenchManager.unregister(this);
     myFloatingToolWindowManager.unregister(myFileEditor);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   // ----------------------------------- Implementation --------------------------------------------------------------- //
@@ -188,18 +190,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
     }
     return false;
-  }
-
-  @Override
-  public void addNotify() {
-    super.addNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
-  }
-
-  @Override
-  public void removeNotify() {
-    super.removeNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   private void autoHide(@NotNull PropertyChangeEvent event) {
