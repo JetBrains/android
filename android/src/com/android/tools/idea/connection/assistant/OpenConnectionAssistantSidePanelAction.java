@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.assistant.datamodel;
+package com.android.tools.idea.connection.assistant;
 
-/**
- * Supported types of a {@link StepElementData}.
- */
-public enum StepElementType {
-  /**
-   * An action button including behavior binding.
-   */
-  ACTION,
-  /**
-   * Textual section, may contain markup.
-   */
-  SECTION,
-  /**
-   * Code sample.
-   */
-  CODE,
-  /**
-   * Image
-   */
-  IMAGE
+import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+
+public class OpenConnectionAssistantSidePanelAction extends OpenAssistSidePanelAction {
+  @Override
+  public void update(AnActionEvent e) {
+    e.getPresentation().setVisible(ConnectionAssistantBundleCreator.isAssistantEnabled());
+  }
 }

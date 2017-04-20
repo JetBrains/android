@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.AdbAssistantStats;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -222,6 +223,12 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     }
 
     super.doOKAction();
+  }
+
+  @Override
+  protected void doHelpAction() {
+    myDevicePicker.launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE);
+    super.doHelpAction();
   }
 
   /**
