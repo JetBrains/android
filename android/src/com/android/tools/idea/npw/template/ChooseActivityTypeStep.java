@@ -54,7 +54,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -97,7 +96,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
   private ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel, @NotNull RenderTemplateModel renderModel,
                                  @NotNull FormFactor formFactor) {
-    super(moduleModel, message("android.wizard.activity.add", formFactor));
+    super(moduleModel, message("android.wizard.activity.add", formFactor.id));
     this.myRenderModel = renderModel;
   }
 
