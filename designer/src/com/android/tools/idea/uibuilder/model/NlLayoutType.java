@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceConstants;
+import org.jetbrains.android.dom.navigation.*;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
 import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
@@ -86,7 +87,7 @@ public enum NlLayoutType {
   NAV(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return NavSceneManager.enableNavigationEditor() && file.getParent().getName().equals("nav");
+      return NavSceneManager.enableNavigationEditor() && NavigationDomFileDescription.isNavFile(file);
     }
 
     @NotNull

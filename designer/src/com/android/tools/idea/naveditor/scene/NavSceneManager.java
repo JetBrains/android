@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.tools.idea.naveditor.model.NavigationSchema;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.DummyAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
@@ -29,7 +29,9 @@ import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -46,7 +49,7 @@ public class NavSceneManager extends SceneManager {
   public final NavScreenTargetProvider myScreenTargetProvider;
   private NavSceneLayoutAlgorithm myLayoutAlgorithm;
 
-  private final SceneDecoratorFactory myDecoratorFactory;
+  private SceneDecoratorFactory myDecoratorFactory;
   private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
 
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
@@ -55,7 +58,6 @@ public class NavSceneManager extends SceneManager {
     myLayoutAlgorithm = new ManualLayoutAlgorithm(new DummyAlgorithm(schema), schema);
     surface.zoomActual();
     myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm, schema);
-    myDecoratorFactory = new NavSceneDecoratorFactory(schema);
   }
 
   public static boolean enableNavigationEditor() {
@@ -169,7 +171,15 @@ public class NavSceneManager extends SceneManager {
   @NotNull
   @Override
   public SceneDecoratorFactory getSceneDecoratorFactory() {
+    if (myDecoratorFactory == null) {
+      myDecoratorFactory = new NavSceneDecoratorFactory(getDesignSurface().getSchema());
+    }
     return myDecoratorFactory;
+  }
+
+  @Override
+  public Map<Object, PropertiesMap> getDefaultProperties() {
+    return ImmutableMap.of();
   }
 
   private class ModelChangeListener implements ModelListener {

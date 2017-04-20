@@ -61,7 +61,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private static final int COLUMN_COUNT = 2;
 
   private final JComponent myAllPropertiesLink;
-  private final NlInspectorProviders myProviders;
+  private final NlPropertiesManager myPropertiesManager;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
   private final GridInspectorPanel myInspector;
@@ -71,6 +71,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private final Multimap<JLabel, Component> myLabel2ComponentMap = HashMultimap.create();
   private final JLabel myDefaultLabel = new JLabel();
   private final InspectorExpandableItemsHandler myExpandableItemsHandler;
+  private final Disposable myParentDisposable;
 
   private List<InspectorComponent> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
@@ -86,7 +87,8 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     super(new BorderLayout());
     myAllPropertiesLink = allPropertiesLink;
     myAllPropertiesLink.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-    myProviders = new NlInspectorProviders(propertiesManager, parentDisposable);
+    myPropertiesManager = propertiesManager;
+    myParentDisposable = parentDisposable;
     myDesignProperties = new NlDesignProperties();
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
@@ -110,7 +112,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   public void addNotify() {
     super.addNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
-    myExpandableItemsHandler.install(myProviders);
+    myExpandableItemsHandler.install(myParentDisposable);
   }
 
   @Override
@@ -244,7 +246,8 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
         propertiesByName.putIfAbsent(property.getName(), property);
       }
 
-      myInspectors = myProviders.createInspectorComponents(components, propertiesByName, propertiesManager);
+      myInspectors = myPropertiesManager.getDesignSurface().getInspectorProviders(myPropertiesManager, myParentDisposable)
+        .createInspectorComponents(components, propertiesByName, propertiesManager);
 
       int rows = 0;
       for (InspectorComponent inspector : myInspectors) {

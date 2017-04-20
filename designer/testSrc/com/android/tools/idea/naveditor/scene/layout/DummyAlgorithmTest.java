@@ -15,30 +15,29 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import com.android.tools.idea.naveditor.model.NavigationSchema;
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 /**
  * Tests for {@link DummyAlgorithm}
  */
-public class DummyAlgorithmTest extends LayoutTestCase {
+public class DummyAlgorithmTest extends NavigationTestCase {
   public void testSimple() throws Exception {
-    SyncNlModel model = navModel("nav.xml",
-                                 component(NavigationSchema.TAG_NAVIGATION.tag).unboundedChildren(
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment1"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment2"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment3")
+    SyncNlModel model = model("nav.xml",
+                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3")
                                      .unboundedChildren(component(NavigationSchema.TAG_ACTION)),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment4"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment5"))).build();
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment4"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment5"))).build();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
     root.setSize(500, 500, false);
-    DummyAlgorithm algorithm = new DummyAlgorithm(new NavigationSchema(getProject()));
+    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myAndroidFacet));
     root.flatten().forEach(algorithm::layout);
 
     assertEquals(50, scene.getSceneComponent("fragment1").getDrawX());
@@ -54,18 +53,18 @@ public class DummyAlgorithmTest extends LayoutTestCase {
   }
 
   public void testSkipOther() throws Exception {
-    SyncNlModel model = navModel("nav.xml",
-                                 component(NavigationSchema.TAG_NAVIGATION.tag).unboundedChildren(
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment1"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment2"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment3")
+    SyncNlModel model = model("nav.xml",
+                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3")
                                      .unboundedChildren(component(NavigationSchema.TAG_ACTION)),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment4"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment5"))).build();
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment4"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment5"))).build();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
     root.setSize(500, 500, false);
-    DummyAlgorithm algorithm = new DummyAlgorithm(new NavigationSchema(getProject()));
+    DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myAndroidFacet));
     SceneComponent manual = scene.getSceneComponent("fragment1");
     manual.setPosition(200, 80);
     root.flatten().filter(c -> c != manual).forEach(algorithm::layout);

@@ -27,6 +27,8 @@ import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
+import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
@@ -35,6 +37,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.update.Update;
@@ -286,6 +289,12 @@ public class NlDesignSurface extends DesignSurface {
     return null;
   }
 
+  @NotNull
+  @Override
+  public NlInspectorProviders getInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
+    return new NlInspectorProviders(propertiesManager, parentDisposable);
+  }
+
   @Nullable
   public ScreenView getBlueprintView() {
     return myBlueprintView;
@@ -329,6 +338,7 @@ public class NlDesignSurface extends DesignSurface {
     myCentered = centered;
   }
 
+  @NotNull
   @Override
   protected ActionManager createActionManager() {
     return new NlActionManager(this);
