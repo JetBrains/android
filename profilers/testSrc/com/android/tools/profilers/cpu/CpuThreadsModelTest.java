@@ -95,4 +95,14 @@ public class CpuThreadsModelTest {
     myRange.set(TimeUnit.SECONDS.toMicros(16), TimeUnit.SECONDS.toMicros(25));
     assertEquals(0, myThreadsModel.getSize());
   }
+
+  @Test
+  public void notEmptyWhenInitialized() {
+    myRange.set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(5));
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), 42 /* Any process id */, ProfilersTestData.SESSION_DATA);
+    assertEquals(1, myThreadsModel.getSize());
+  }
 }
