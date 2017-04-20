@@ -21,13 +21,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
@@ -47,6 +45,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -113,6 +112,61 @@ public class NewProjectTest {
       .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
     assertThat(androidManifestContents).contains("\".MainActivity\"");
+  }
+
+  /**
+   * Verify module properties can be modified.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: 14606134
+   * <p>
+   *   <pre>
+   *   Steps:
+   *   1. Create a new project.
+   *   2. Create a new library module and an application module.
+   *   3. Right click on the library module and select Change Module Settings.
+   *   4. Make a few changes to the properties, like build tools version.
+   *   5. Repeat with application module
+   *   Verify:
+   *   1. Module setting can be updated and project builds successfully.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void changeLibraryModuleSettings() throws  Exception {
+    newProject("MyTestApp").withMinSdk("24").create();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    ideFrame
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Android Library")
+      .clickNextToStep("Android Library")
+      .setModuleName("library-module")
+      .clickFinish()
+      .getProjectView()
+      .selectProjectPane()
+      .clickPath(RIGHT_BUTTON, "MyTestApp", "library-module");
+    ideFrame.invokeMenuPath("Open Module Settings");
+
+    String gradleFileContents = ProjectStructureDialogFixture.find(ideFrame)
+      .selectPropertiesTab()
+      .setCompileSdkVersion("API 24: Android 7.0 (Nougat)")
+      .setBuildToolsVersion("25.0.1")
+      .setIgnoreAssetsPattern("TestIgnoreAssetsPattern")
+      .setIncrementalDex(false)
+      .setSourceCompatibility("1.7")
+      .setTargetCompatibility("1.7")
+      .clickOk()
+      .getEditor()
+      .open("/library-module/build.gradle")
+      .getCurrentFileContents();
+
+    assertThat(gradleFileContents).contains("compileSdkVersion 24");
+    assertThat(gradleFileContents).contains("buildToolsVersion '25.0.1'");
+    assertThat(gradleFileContents).contains("aaptOptions {\n        ignoreAssetsPattern 'TestIgnoreAssetsPattern'\n    }");
+    assertThat(gradleFileContents).contains("dexOptions {\n        incremental false\n    }");
+    assertThat(gradleFileContents).contains(
+      "compileOptions {\n        sourceCompatibility JavaVersion.VERSION_1_7\n        targetCompatibility JavaVersion.VERSION_1_7\n    }");
   }
 
   @Test
