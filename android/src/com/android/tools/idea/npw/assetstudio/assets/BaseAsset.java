@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
+import com.android.ide.common.util.AssetUtil;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.ui.properties.AbstractProperty;
@@ -23,6 +24,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Objects;
+
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 /**
  * Base class for all asset types which can be converted into Android icons. See also
@@ -34,8 +38,10 @@ import java.awt.image.BufferedImage;
 @SuppressWarnings("UseJBColor") // Intentionally not using JBColor for Android icons
 public abstract class BaseAsset {
   private final BoolProperty myTrimmed = new BoolValueProperty();
-  private final IntProperty myPaddingPercent = new IntValueProperty();
+  private final IntProperty myPaddingPercent = new IntValueProperty(0);
+  private final IntProperty myScalingPercent = new IntValueProperty(100);
   private final ObjectProperty<Color> myColor = new ObjectValueProperty<>(Color.BLACK);
+  private final OptionalProperty<Dimension> myTargetSize = new OptionalValueProperty<>();
 
   /**
    * Whether or not transparent space should be removed from the asset before rendering.
@@ -56,6 +62,15 @@ public abstract class BaseAsset {
     return myPaddingPercent;
   }
 
+  @NotNull
+  public IntProperty scalingPercent() {
+    return myScalingPercent;
+  }
+
+  public OptionalProperty<Dimension> targetSize() {
+    return myTargetSize;
+  }
+
   /**
    * A color to use when rendering this image. Not all asset types are affected by this color.
    */
@@ -74,7 +89,25 @@ public abstract class BaseAsset {
     if (myTrimmed.get()) {
       image = AssetStudioUtils.trim(image);
     }
-    image = AssetStudioUtils.pad(image, myPaddingPercent.get());
+    if (myPaddingPercent.get() != 0) {
+      image = AssetStudioUtils.pad(image, myPaddingPercent.get());
+    }
+    if (myScalingPercent.get() != 100) {
+      image = AssetUtil.scaledImage(image,
+                                    image.getWidth() * myScalingPercent.get() / 100,
+                                    image.getHeight() * myScalingPercent.get() / 100);
+    }
+
+    // Set image size to target size
+    Dimension imageTargetSize = targetSize().getValueOrNull();
+    if (imageTargetSize != null && !Objects.equals(imageTargetSize, new Dimension(image.getWidth(), image.getHeight()))) {
+      BufferedImage source = image;
+      image = AssetUtil.newArgbBufferedImage(imageTargetSize.width, imageTargetSize.height);
+      Graphics2D gImage = (Graphics2D)image.getGraphics();
+      AssetUtil.drawCentered(gImage, source, new Rectangle(0, 0, image.getWidth(), image.getHeight()));
+      gImage.dispose();
+    }
+
     return image;
   }
 

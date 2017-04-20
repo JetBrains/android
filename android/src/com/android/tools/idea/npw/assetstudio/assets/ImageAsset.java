@@ -18,33 +18,68 @@ package com.android.tools.idea.npw.assetstudio.assets;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.ObjectProperty;
 import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Function;
 
 /**
  * An asset that represents an image on disk.
  */
 public final class ImageAsset extends BaseAsset {
-
   @NotNull private final ObjectProperty<File> myImagePath;
+  @Nullable private BufferedImage myImage;
+  @Nullable private Function<BufferedImage, BufferedImage> myImageImporter;
 
   public ImageAsset() {
     myImagePath = new ObjectValueProperty<>(getTemplateImage("ic_launcher.png"));
+    myImagePath.addListener(this::pathChanged);
   }
 
+  @SuppressWarnings("SameParameterValue")
   @NotNull
   public static File getTemplateImage(@NotNull String fileName) {
     String pathToSampleImageInTemplate =
       FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidModule", "root", "res", "mipmap-xxxhdpi", fileName);
     return new File(TemplateManager.getTemplateRootFolder(), pathToSampleImageInTemplate);
+  }
+
+  public void setImageImporter(@Nullable Function<BufferedImage, BufferedImage> imageImporter) {
+    myImageImporter = imageImporter;
+  }
+
+  private void pathChanged(ObservableValue<?> value) {
+    loadImage();
+  }
+
+  private void loadImage() {
+    myImage = null;
+    File imageFile = myImagePath.get();
+    try {
+      myImage = ImageIO.read(imageFile);
+    }
+    catch (IOException ignored) {
+      Logger.getInstance(this.getClass()).warn(String.format("Error loading image %s", imageFile), ignored);
+    }
+
+    if (myImage == null) {
+      myImage = AssetStudioUtils.createDummyImage();
+    }
+    else {
+      if (myImageImporter != null) {
+        myImage = myImageImporter.apply(myImage);
+      }
+    }
   }
 
   /**
@@ -58,17 +93,9 @@ public final class ImageAsset extends BaseAsset {
   @NotNull
   @Override
   protected BufferedImage createAsImage(@NotNull Color color) {
-    BufferedImage image = null;
-    try {
-      image = ImageIO.read(myImagePath.get());
+    if (myImage == null) {
+      loadImage();
     }
-    catch (IOException ignored) {
-    }
-
-    if (image == null) {
-      image = AssetStudioUtils.createDummyImage();
-    }
-
-    return image;
+    return myImage;
   }
 }
