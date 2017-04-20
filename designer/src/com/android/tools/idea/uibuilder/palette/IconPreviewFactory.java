@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
