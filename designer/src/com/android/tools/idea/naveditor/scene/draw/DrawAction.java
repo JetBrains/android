@@ -22,10 +22,12 @@ import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
+import java.util.Map;
 
 import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
 
@@ -33,6 +35,12 @@ import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SE
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
  */
 public class DrawAction implements DrawCommand {
+  public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
+    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
+    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
+    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
+  );
+
   private static final GeneralPath PATH = new GeneralPath();
   private final ActionTarget.ConnectionType myConnectionType;
   @SwingCoordinate private Rectangle mySource = new Rectangle();
@@ -80,6 +88,7 @@ public class DrawAction implements DrawCommand {
 
   @Override
   public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+    g.setRenderingHints(HQ_RENDERING_HITS);
     Color previousColor = g.getColor();
     ColorSet color = sceneContext.getColorSet();
     g.setColor(color.getConstraints());

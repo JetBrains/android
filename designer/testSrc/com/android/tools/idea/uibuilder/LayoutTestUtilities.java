@@ -167,6 +167,7 @@ public class LayoutTestUtilities {
     when(surface.getLayeredPane()).thenReturn(layeredPane);
     when(surface.getSelectionModel()).thenReturn(new SelectionModel());
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
+    when(surface.getScale()).thenReturn(0.5);
     return surface;
   }
 

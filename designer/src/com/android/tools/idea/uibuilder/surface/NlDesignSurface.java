@@ -518,11 +518,6 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Override
-  public Configuration getConfiguration() {
-    return myScreenView != null ? myScreenView.getConfiguration() : null;
-  }
-
-  @Override
   protected Dimension getDefaultOffset() {
     return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X + RULER_SIZE_PX, 2 * DEFAULT_SCREEN_OFFSET_Y + RULER_SIZE_PX);
   }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
+import com.android.sdklib.devices.Device;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
@@ -36,20 +38,20 @@ public class DummyAlgorithmTest extends NavigationTestCase {
                                    component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment5"))).build();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
-    root.setSize(500, 500, false);
+    root.setSize(1000, 1000, false);
     DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myAndroidFacet));
     root.flatten().forEach(algorithm::layout);
 
-    assertEquals(50, scene.getSceneComponent("fragment1").getDrawX());
+    assertEquals(310, scene.getSceneComponent("fragment1").getDrawX());
     assertEquals(50, scene.getSceneComponent("fragment1").getDrawY());
-    assertEquals(180, scene.getSceneComponent("fragment2").getDrawX());
+    assertEquals(570, scene.getSceneComponent("fragment2").getDrawX());
     assertEquals(50, scene.getSceneComponent("fragment2").getDrawY());
-    assertEquals(310, scene.getSceneComponent("fragment3").getDrawX());
+    assertEquals(830, scene.getSceneComponent("fragment3").getDrawX());
     assertEquals(50, scene.getSceneComponent("fragment3").getDrawY());
     assertEquals(50, scene.getSceneComponent("fragment4").getDrawX());
-    assertEquals(180, scene.getSceneComponent("fragment4").getDrawY());
-    assertEquals(180, scene.getSceneComponent("fragment5").getDrawX());
-    assertEquals(180, scene.getSceneComponent("fragment5").getDrawY());
+    assertEquals(440, scene.getSceneComponent("fragment4").getDrawY());
+    assertEquals(50, scene.getSceneComponent("fragment5").getDrawX());
+    assertEquals(50, scene.getSceneComponent("fragment5").getDrawY());
   }
 
   public void testSkipOther() throws Exception {
@@ -60,24 +62,31 @@ public class DummyAlgorithmTest extends NavigationTestCase {
                                    component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3")
                                      .unboundedChildren(component(NavigationSchema.TAG_ACTION)),
                                    component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment4"),
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment5"))).build();
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment5"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment6"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment7"))).build();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
-    root.setSize(500, 500, false);
+    root.setSize(1000, 1000, false);
     DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myAndroidFacet));
     SceneComponent manual = scene.getSceneComponent("fragment1");
-    manual.setPosition(200, 80);
+    manual.setPosition(400, 300);
     root.flatten().filter(c -> c != manual).forEach(algorithm::layout);
 
-    assertEquals(200, scene.getSceneComponent("fragment1").getDrawX());
-    assertEquals(80, scene.getSceneComponent("fragment1").getDrawY());
-    assertEquals(50, scene.getSceneComponent("fragment2").getDrawX());
+    assertEquals(400, manual.getDrawX());
+    assertEquals(300, manual.getDrawY());
+
+    assertEquals(50, scene.getSceneComponent("fragment7").getDrawX());
+    assertEquals(50, scene.getSceneComponent("fragment7").getDrawY());
+    assertEquals(700, scene.getSceneComponent("fragment2").getDrawX());
     assertEquals(50, scene.getSceneComponent("fragment2").getDrawY());
-    assertEquals(310, scene.getSceneComponent("fragment3").getDrawX());
-    assertEquals(50, scene.getSceneComponent("fragment3").getDrawY());
-    assertEquals(50, scene.getSceneComponent("fragment4").getDrawX());
-    assertEquals(180, scene.getSceneComponent("fragment4").getDrawY());
-    assertEquals(180, scene.getSceneComponent("fragment5").getDrawX());
-    assertEquals(180, scene.getSceneComponent("fragment5").getDrawY());
+    assertEquals(50, scene.getSceneComponent("fragment3").getDrawX());
+    assertEquals(440, scene.getSceneComponent("fragment3").getDrawY());
+    assertEquals(700, scene.getSceneComponent("fragment4").getDrawX());
+    assertEquals(440, scene.getSceneComponent("fragment4").getDrawY());
+    assertEquals(310, scene.getSceneComponent("fragment5").getDrawX());
+    assertEquals(700, scene.getSceneComponent("fragment5").getDrawY());
+    assertEquals(50, scene.getSceneComponent("fragment6").getDrawX());
+    assertEquals(830, scene.getSceneComponent("fragment6").getDrawY());
   }
 }

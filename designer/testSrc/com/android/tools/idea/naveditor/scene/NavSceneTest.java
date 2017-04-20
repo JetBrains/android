@@ -17,8 +17,11 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
@@ -32,25 +35,26 @@ public class NavSceneTest extends NavigationTestCase {
       .unboundedChildren(
         component(NavigationSchema.TAG_FRAGMENT)
           .id("@+id/fragment1")
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
           .unboundedChildren(
             component(NavigationSchema.TAG_ACTION)
               .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
           ),
         component(NavigationSchema.TAG_FRAGMENT)
-          .id("@+id/fragment2"))
+          .id("@+id/fragment2")
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"))
     ).build();
     Scene scene = model.getSurface().getScene();
 
     DisplayList list = new DisplayList();
-    scene.buildDisplayList(list, 0);
+    scene.layout(0, SceneContext.get());
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,0,0\n" +
-                 "DrawComponentBackground,50,50,50,50,1\n" +
-                 "DrawNavScreen,50,50,50,50,fragment1\n" +
-                 "DrawComponentFrame,50,50,50,50,1\n" +
-                 "DrawAction,NORMAL,50x50x50x50,50x180x50x50,NORMAL\n" +
-                 "DrawComponentBackground,50,180,50,50,1\n" +
-                 "DrawNavScreen,50,180,50,50,fragment2\n" +
-                 "DrawComponentFrame,50,180,50,50,1\n" +
+                 "DrawNavScreen,51,441,199,332\n" +
+                 "DrawComponentFrame,50,440,200,333,1\n" +
+                 "DrawAction,NORMAL,50x440x200x333,50x50x200x333,NORMAL\n" +
+                 "DrawNavScreen,51,51,199,332\n" +
+                 "DrawComponentFrame,50,50,200,333,1\n" +
                  "UNClip\n", list.serialize());
   }
 }
