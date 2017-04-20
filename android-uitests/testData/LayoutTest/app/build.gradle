@@ -19,12 +19,16 @@ android {
         resValue "dimen", "dynamic_padding", "20dp"
     }
 
+    flavorDimensions "main"
+
     productFlavors {
         pro {
+            dimension "main"
             resValue "string", "dynamic_string3", "String 3 defined by flavor pro"
             resValue "string", "dynamic_string4", "String 4 defined by flavor pro"
         }
         free {
+            dimension "main"
             resValue "string", "dynamic_string3", "String 3 defined by flavor free"
             resValue "string", "dynamic_string4", "String 4 defined by flavor free"
         }
