@@ -36,9 +36,11 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
   private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
   private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(Color.WHITE);
-  private final BoolProperty myForegroundCropped = new BoolValueProperty();
-  private final BoolProperty myBackgroundCropped = new BoolValueProperty();
-  private final ObjectProperty<GraphicGenerator.Shape> myLegacyShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
+  private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty();
+  private final BoolProperty myGenerateRoundIcon = new BoolValueProperty();
+  private final BoolProperty myGenerateWebIcon = new BoolValueProperty();
+  private final ObjectProperty<GraphicGenerator.Shape> myLegacyIconShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
+  private final ObjectProperty<GraphicGenerator.Shape> myWebIconShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
   private final BoolProperty myShowGrid = new BoolValueProperty();
   private final BoolProperty myShowSafeZone = new BoolValueProperty(true);
   private final ObjectValueProperty<Density> myPreviewDensity = new ObjectValueProperty<>(Density.XHIGH);
@@ -76,29 +78,43 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
   }
 
   /**
-   * If {@code true}, any extra part of the source asset that doesn't fit on the final icon will
-   * be cropped. Otherwise, the source asset will be shrunk to fit.
+   * If {@code true}, generate the "Legacy" icon (API 24 and earlier)
    */
   @NotNull
-  public BoolProperty foregroundCropped() {
-    return myForegroundCropped;
+  public BoolProperty generateLegacyIcon() {
+    return myGenerateLegacyIcon;
   }
 
   /**
-   * If {@code true}, any extra part of the source asset that doesn't fit on the final icon will
-   * be cropped. Otherwise, the source asset will be shrunk to fit.
+   * If {@code true}, generate the "Round" icon (API 25)
    */
   @NotNull
-  public BoolProperty backgroundCropped() {
-    return myBackgroundCropped;
+  public BoolProperty generateRoundIcon() {
+    return myGenerateRoundIcon;
   }
 
   /**
-   * A shape which will be used as the legacy icon's backdrop.
+   * If {@code true}, generate the "Web" icon for PlayStore
    */
   @NotNull
-  public ObjectProperty<GraphicGenerator.Shape> legacyShape() {
-    return myLegacyShape;
+  public BoolProperty generateWebIcon() {
+    return myGenerateWebIcon;
+  }
+
+  /**
+   * A shape which will be used as the "Legacy" icon's backdrop.
+   */
+  @NotNull
+  public ObjectProperty<GraphicGenerator.Shape> legacyIconShape() {
+    return myLegacyIconShape;
+  }
+
+  /**
+   * A shape which will be used as the "Web" icon's backdrop.
+   */
+  @NotNull
+  public ObjectProperty<GraphicGenerator.Shape> webIconShape() {
+    return myWebIconShape;
   }
 
   @NotNull
@@ -140,25 +156,44 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
   @NotNull
   @Override
   protected GraphicGenerator.Options createOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    AdaptiveIconGenerator.AdaptiveIconOptions launcherOptions = new AdaptiveIconGenerator.AdaptiveIconOptions();
-    launcherOptions.legacyShape = myLegacyShape.get();
-    launcherOptions.cropForeground = myForegroundCropped.get();
-    launcherOptions.cropBackground = myBackgroundCropped.get();
-    launcherOptions.useForegroundColor = myUseForegroundColor.get();
-    launcherOptions.foregroundColor = myForegroundColor.get().getRGB();
-    if (myBackgroundImageAsset.getValueOrNull() == null) {
-      launcherOptions.backgroundImage = null;
-    } else {
-      launcherOptions.backgroundImage = myBackgroundImageAsset.getValueOrNull().toImage();
-    }
-    launcherOptions.backgroundColor = myBackgroundColor.get().getRGB();
-    launcherOptions.isWebGraphic = true;
-    launcherOptions.showGrid = myShowGrid.get();
-    launcherOptions.showSafeZone = myShowSafeZone.get();
-    launcherOptions.previewDensity = myPreviewDensity.get();
-    launcherOptions.foregroundLayerName = myForegroundLayerName.get();
-    launcherOptions.backgroundLayerName = myBackgroundLayerName.get();
+    AdaptiveIconGenerator.AdaptiveIconOptions options = createOptions();
+    options.generateOutputIcons = true;
+    options.generatePreviewIcons = false;
+    return options;
+  }
 
-    return launcherOptions;
+
+  @NotNull
+  @Override
+  protected GraphicGenerator.Options createPreviewOptions(@NotNull Class<? extends BaseAsset> assetType) {
+    AdaptiveIconGenerator.AdaptiveIconOptions options = createOptions();
+    options.generateOutputIcons = false;
+    options.generatePreviewIcons = true;
+    return options;
+  }
+
+  @NotNull
+  private AdaptiveIconGenerator.AdaptiveIconOptions createOptions() {
+    AdaptiveIconGenerator.AdaptiveIconOptions options = new AdaptiveIconGenerator.AdaptiveIconOptions();
+    options.useForegroundColor = myUseForegroundColor.get();
+    options.foregroundColor = myForegroundColor.get().getRGB();
+    if (myBackgroundImageAsset.getValueOrNull() == null) {
+      options.backgroundImage = null;
+    } else {
+      options.backgroundImage = myBackgroundImageAsset.getValueOrNull().toImage();
+    }
+    options.backgroundColor = myBackgroundColor.get().getRGB();
+    options.showGrid = myShowGrid.get();
+    options.showSafeZone = myShowSafeZone.get();
+    options.previewDensity = myPreviewDensity.get();
+    options.foregroundLayerName = myForegroundLayerName.get();
+    options.backgroundLayerName = myBackgroundLayerName.get();
+    options.generateLegacyIcon = myGenerateLegacyIcon.get();
+    options.legacyIconShape = myLegacyIconShape.get();
+    options.webIconShape = myWebIconShape.get();
+    options.generateRoundIcon = myGenerateRoundIcon.get();
+    options.generateWebIcon = myGenerateWebIcon.get();
+
+    return options;
   }
 }

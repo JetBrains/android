@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="myRootPanel" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="500" height="632"/>
+      <xy x="20" y="20" width="500" height="540"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -81,18 +81,18 @@
                   <size top="10" left="10" bottom="10" right="20"/>
                 </border>
                 <children>
-                  <grid id="18220" binding="myForegroundAllOptionsPanel" layout-manager="GridLayoutManager" row-count="5" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="18220" binding="myForegroundAllOptionsPanel" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints/>
                     <properties/>
-                    <border type="empty">
+                    <border type="none">
                       <size top="0" left="0" bottom="0" right="0"/>
                     </border>
                     <children>
                       <grid id="a9736" binding="myForegroundLayerNamePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                         </constraints>
                         <properties>
                           <visible value="true"/>
@@ -119,7 +119,7 @@
                             <children>
                               <component id="51b77" class="javax.swing.JTextField" binding="myForegroundLayerNameTextField">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties>
                                   <text value="(name)"/>
@@ -130,17 +130,25 @@
                           </grid>
                         </children>
                       </grid>
+                      <component id="3073a" class="com.intellij.ui.TitledSeparator" binding="mySourceAssetTitleSeparator">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Source Asset"/>
+                        </properties>
+                      </component>
                       <grid id="d8b85" binding="myForegroundAssetTypePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                         </constraints>
                         <properties/>
                         <border type="none"/>
                         <children>
                           <component id="d4572" class="javax.swing.JLabel" binding="myForegroundAssetTypeLabel">
                             <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                 <minimum-size width="70" height="-1"/>
                               </grid>
                             </constraints>
@@ -148,17 +156,17 @@
                               <text value="Asset Type:"/>
                             </properties>
                           </component>
-                          <grid id="d9cc4" binding="myForegroundAssetRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                          <grid id="d9cc4" binding="myForegroundAssetRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="0" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
-                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
                             </constraints>
                             <properties/>
                             <border type="none"/>
                             <children>
                               <component id="c4dd3" class="javax.swing.JRadioButton" binding="myForegroundClipartRadioButton">
                                 <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties>
                                   <text value="Clip Art"/>
@@ -167,7 +175,7 @@
                               </component>
                               <component id="e568b" class="javax.swing.JRadioButton" binding="myForegroundTextRadioButton">
                                 <constraints>
-                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties>
                                   <text value="Text"/>
@@ -176,7 +184,7 @@
                               </component>
                               <component id="6c5db" class="javax.swing.JRadioButton" binding="myForegroundImageRadioButton" default-binding="true">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties>
                                   <text value="Image"/>
@@ -187,10 +195,10 @@
                           </grid>
                         </children>
                       </grid>
-                      <grid id="f9563" binding="myForegroundAssetTypeSourcePanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="f9563" binding="myForegroundAssetTypeSourcePanel" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                         </constraints>
                         <properties/>
                         <border type="none"/>
@@ -198,14 +206,14 @@
                           <grid id="69e52" binding="myForegroundImageAssetRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                             </constraints>
                             <properties/>
                             <border type="none"/>
                             <children>
                               <component id="af719" class="com.intellij.ui.components.JBLabel" binding="myForegroundImagePathLabel">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                     <minimum-size width="70" height="-1"/>
                                   </grid>
                                 </constraints>
@@ -215,7 +223,7 @@
                               </component>
                               <component id="b4a4c" class="com.android.tools.idea.npw.assetstudio.ui.ImageAssetBrowser" binding="myForegroundImageAssetBrowser">
                                 <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties/>
                               </component>
@@ -224,14 +232,14 @@
                           <grid id="34796" binding="myForegroundClipartAssetRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
-                              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                             </constraints>
                             <properties/>
                             <border type="none"/>
                             <children>
                               <component id="51b07" class="com.intellij.ui.components.JBLabel" binding="myForegroundClipartLabel">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                     <minimum-size width="70" height="-1"/>
                                   </grid>
                                 </constraints>
@@ -241,7 +249,7 @@
                               </component>
                               <component id="58a2b" class="com.android.tools.idea.npw.assetstudio.ui.VectorIconButton" binding="myForegroundClipartAssetButton">
                                 <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="2" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties/>
                               </component>
@@ -250,14 +258,14 @@
                           <grid id="14a6c" binding="myForegroundTextAssetRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
-                              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                             </constraints>
                             <properties/>
                             <border type="none"/>
                             <children>
                               <component id="34083" class="com.intellij.ui.components.JBLabel" binding="myForegroundTextLabel">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                     <minimum-size width="70" height="-1"/>
                                   </grid>
                                 </constraints>
@@ -267,26 +275,64 @@
                               </component>
                               <component id="26fc2" class="com.android.tools.idea.npw.assetstudio.ui.TextAssetEditor" binding="myForegroundTextAssetEditor">
                                 <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties/>
                               </component>
                             </children>
                           </grid>
+                          <grid id="9be4f" binding="myForegroundColorRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                            <margin top="0" left="0" bottom="0" right="0"/>
+                            <constraints>
+                              <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none">
+                              <size top="2" left="0" bottom="2" right="0"/>
+                            </border>
+                            <children>
+                              <component id="43705" class="com.intellij.ui.components.JBLabel" binding="myForegroundColorLabel">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                                    <minimum-size width="70" height="-1"/>
+                                  </grid>
+                                </constraints>
+                                <properties>
+                                  <text value="Color:"/>
+                                </properties>
+                              </component>
+                              <component id="28c1d" class="com.intellij.ui.ColorPanel" binding="myForegroundColorPanel">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <selectedColor color="-16777216"/>
+                                </properties>
+                              </component>
+                            </children>
+                          </grid>
                         </children>
                       </grid>
-                      <grid id="f6a70" binding="myForegroundImageOptionsPanel" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="f6a70" binding="myForegroundImageOptionsPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                         </constraints>
                         <properties/>
                         <border type="none"/>
                         <children>
-                          <grid id="12af7" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                          <component id="5c8a1" class="com.intellij.ui.TitledSeparator" binding="myForegroundScalingTitleSeparator">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="Scaling"/>
+                            </properties>
+                          </component>
+                          <grid id="12af7" binding="myForegroundTrimPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                             </constraints>
                             <properties>
                               <visible value="true"/>
@@ -295,7 +341,7 @@
                             <children>
                               <component id="a5253" class="com.intellij.ui.components.JBLabel" binding="myForegroundTrimLabel">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                     <minimum-size width="70" height="-1"/>
                                   </grid>
                                 </constraints>
@@ -339,27 +385,27 @@
                               </grid>
                             </children>
                           </grid>
-                          <grid id="cf681" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                          <grid id="cf681" binding="myForegroundResizePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
-                              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                             </constraints>
                             <properties>
                               <visible value="true"/>
                             </properties>
                             <border type="none"/>
                             <children>
-                              <component id="ca778" class="com.intellij.ui.components.JBLabel" binding="myForegroundPaddingLabel">
+                              <component id="ca778" class="com.intellij.ui.components.JBLabel" binding="myForegroundResizeLabel">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                     <minimum-size width="70" height="-1"/>
                                   </grid>
                                 </constraints>
                                 <properties>
-                                  <text value="Padding:"/>
+                                  <text value="Resize:"/>
                                 </properties>
                               </component>
-                              <grid id="aef39" binding="myForegroundPaddingSliderPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                              <grid id="aef39" binding="myForegroundResizeSliderPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                                 <margin top="0" left="0" bottom="0" right="0"/>
                                 <constraints>
                                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -367,22 +413,23 @@
                                 <properties/>
                                 <border type="none"/>
                                 <children>
-                                  <component id="ab936" class="javax.swing.JSlider" binding="myForegroundPaddingSlider">
+                                  <component id="ab936" class="javax.swing.JSlider" binding="myForegroundResizeSlider">
                                     <constraints>
-                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                                     </constraints>
                                     <properties>
-                                      <maximum value="50"/>
-                                      <minimum value="-10"/>
-                                      <minorTickSpacing value="5"/>
+                                      <maximum value="400"/>
+                                      <minimum value="0"/>
+                                      <minorTickSpacing value="20"/>
                                       <paintLabels value="false"/>
                                       <paintTicks value="true"/>
-                                      <snapToTicks value="true"/>
-                                      <toolTipText value="Add a percentage of padding around the original asset before rendering. This happens after any trimming."/>
-                                      <value value="0"/>
+                                      <snapToTicks value="false"/>
+                                      <toolTipText value="Resize the original asset using the specified scaling factor (in percent). This happens after any trimming."/>
+                                      <value value="100"/>
+                                      <valueIsAdjusting value="false"/>
                                     </properties>
                                   </component>
-                                  <component id="5a6de" class="javax.swing.JLabel" binding="myForegroundPaddingValueLabel">
+                                  <component id="5a6de" class="javax.swing.JLabel" binding="myForegroundResizeValueLabel">
                                     <constraints>
                                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
                                         <preferred-size width="40" height="-1"/>
@@ -393,149 +440,6 @@
                                       <text value="100 %"/>
                                     </properties>
                                   </component>
-                                  <hspacer id="d9037">
-                                    <constraints>
-                                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                  </hspacer>
-                                </children>
-                              </grid>
-                            </children>
-                          </grid>
-                          <grid id="9be4f" binding="myForegroundColorRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                            <margin top="0" left="0" bottom="0" right="0"/>
-                            <constraints>
-                              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
-                            </constraints>
-                            <properties/>
-                            <border type="empty">
-                              <size top="2" left="0" bottom="2" right="0"/>
-                            </border>
-                            <children>
-                              <component id="43705" class="com.intellij.ui.components.JBLabel" binding="myForegroundColorLabel">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                                    <minimum-size width="70" height="-1"/>
-                                  </grid>
-                                </constraints>
-                                <properties>
-                                  <text value="Color:"/>
-                                </properties>
-                              </component>
-                              <component id="28c1d" class="com.intellij.ui.ColorPanel" binding="myForegroundColorPanel">
-                                <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties>
-                                  <selectedColor color="-16777216"/>
-                                </properties>
-                              </component>
-                            </children>
-                          </grid>
-                          <grid id="6b9e7" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                            <margin top="0" left="0" bottom="0" right="0"/>
-                            <constraints>
-                              <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
-                            </constraints>
-                            <properties/>
-                            <border type="none"/>
-                            <children>
-                              <component id="ba20a" class="com.intellij.ui.components.JBLabel" binding="myForegroundScalingLabel">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                                    <minimum-size width="70" height="-1"/>
-                                  </grid>
-                                </constraints>
-                                <properties>
-                                  <text value="Scaling:"/>
-                                </properties>
-                              </component>
-                              <grid id="e637e" binding="myForegroundScalingRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                                <margin top="0" left="0" bottom="0" right="0"/>
-                                <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties/>
-                                <border type="none"/>
-                                <children>
-                                  <component id="c2f6" class="javax.swing.JRadioButton" binding="myForegroundCropRadioButton" default-binding="true">
-                                    <constraints>
-                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                    <properties>
-                                      <text value="Crop"/>
-                                      <toolTipText value="Crop source asset to fit icon size."/>
-                                    </properties>
-                                  </component>
-                                  <component id="dc910" class="javax.swing.JRadioButton" default-binding="true">
-                                    <constraints>
-                                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                    <properties>
-                                      <selected value="true"/>
-                                      <text value="Shrink to Fit"/>
-                                      <toolTipText value="Shrink the source asset to fit icon size."/>
-                                    </properties>
-                                  </component>
-                                  <hspacer id="efeee">
-                                    <constraints>
-                                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                  </hspacer>
-                                </children>
-                              </grid>
-                            </children>
-                          </grid>
-                          <grid id="77aab" binding="myForegroundEffectPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                            <margin top="0" left="0" bottom="0" right="0"/>
-                            <constraints>
-                              <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
-                            </constraints>
-                            <properties/>
-                            <border type="none"/>
-                            <children>
-                              <component id="49143" class="com.intellij.ui.components.JBLabel" binding="myForegroundEffectLabel">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                                    <minimum-size width="70" height="-1"/>
-                                  </grid>
-                                </constraints>
-                                <properties>
-                                  <text value="Effect:"/>
-                                </properties>
-                              </component>
-                              <grid id="18788" binding="myForegroundEffectRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                                <margin top="0" left="0" bottom="0" right="0"/>
-                                <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties/>
-                                <border type="none"/>
-                                <children>
-                                  <component id="29f87" class="javax.swing.JRadioButton">
-                                    <constraints>
-                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                    <properties>
-                                      <selected value="true"/>
-                                      <text value="None"/>
-                                      <toolTipText value="Do not apply any transformative effects to the icon."/>
-                                    </properties>
-                                  </component>
-                                  <component id="862f5" class="javax.swing.JRadioButton" binding="myForegroundDogEarRadioButton" default-binding="true">
-                                    <constraints>
-                                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                    <properties>
-                                      <text value="DogEar"/>
-                                      <toolTipText value="Add a fold to the top right of the icon's backdrop shape (if supported)."/>
-                                    </properties>
-                                  </component>
-                                  <hspacer id="c35b8">
-                                    <constraints>
-                                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                  </hspacer>
                                 </children>
                               </grid>
                             </children>
@@ -544,7 +448,7 @@
                       </grid>
                       <vspacer id="a5b49">
                         <constraints>
-                          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                          <grid row="5" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                         </constraints>
                       </vspacer>
                     </children>
@@ -572,11 +476,11 @@
                   <size top="10" left="10" bottom="10" right="20"/>
                 </border>
                 <children>
-                  <grid id="b18220" binding="myBackgroundAllOptionsPanel" layout-manager="GridLayoutManager" row-count="5" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="b18220" binding="myBackgroundAllOptionsPanel" layout-manager="GridLayoutManager" row-count="6" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints/>
                     <properties/>
-                    <border type="empty">
+                    <border type="none">
                       <size top="0" left="0" bottom="0" right="0"/>
                     </border>
                     <children>
@@ -621,17 +525,25 @@
                           </grid>
                         </children>
                       </grid>
+                      <component id="c2b7b" class="com.intellij.ui.TitledSeparator" binding="myBackgroundSourceAssetTitleSeparator">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Source Asset"/>
+                        </properties>
+                      </component>
                       <grid id="bd8b85" binding="myBackgroundAssetTypePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                         </constraints>
                         <properties/>
                         <border type="none"/>
                         <children>
                           <component id="bd4572" class="javax.swing.JLabel" binding="myBackgroundAssetTypeLabel">
                             <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                 <minimum-size width="70" height="-1"/>
                               </grid>
                             </constraints>
@@ -669,25 +581,29 @@
                           </grid>
                         </children>
                       </grid>
-                      <grid id="bf9563" binding="myBackgroundAssetTypeSourcePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="bf9563" binding="myBackgroundAssetTypeSourcePanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                         </constraints>
                         <properties/>
-                        <border type="none"/>
+                        <border type="none">
+                          <size top="2" left="0" bottom="2" right="0"/>
+                        </border>
                         <children>
                           <grid id="b69e52" binding="myBackgroundImageAssetRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                              <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true">
+                                <minimum-size width="30" height="30"/>
+                              </grid>
                             </constraints>
                             <properties/>
                             <border type="none"/>
                             <children>
                               <component id="baf719" class="com.intellij.ui.components.JBLabel" binding="myBackgroundImagePathLabel">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                     <minimum-size width="70" height="-1"/>
                                   </grid>
                                 </constraints>
@@ -697,18 +613,58 @@
                               </component>
                               <component id="bb4a4c" class="com.android.tools.idea.npw.assetstudio.ui.ImageAssetBrowser" binding="myBackgroundImageAssetBrowser">
                                 <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                                 </constraints>
                                 <properties/>
                               </component>
                             </children>
                           </grid>
+                          <grid id="b9be4f" binding="myBackgroundColorRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                            <margin top="0" left="0" bottom="0" right="0"/>
+                            <constraints>
+                              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true">
+                                <minimum-size width="30" height="30"/>
+                              </grid>
+                            </constraints>
+                            <properties/>
+                            <border type="none">
+                              <size top="2" left="0" bottom="2" right="0"/>
+                            </border>
+                            <children>
+                              <component id="b43705" class="com.intellij.ui.components.JBLabel" binding="myBackgroundColorLabel">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                                    <minimum-size width="70" height="-1"/>
+                                  </grid>
+                                </constraints>
+                                <properties>
+                                  <text value="Color:"/>
+                                </properties>
+                              </component>
+                              <component id="b28c1d" class="com.intellij.ui.ColorPanel" binding="myBackgroundColorPanel">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <selectedColor color="-16777216"/>
+                                </properties>
+                              </component>
+                            </children>
+                          </grid>
+                          <component id="20826" class="com.intellij.ui.TitledSeparator" binding="myBackgroundScalingTitleSeparator">
+                            <constraints>
+                              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <text value="Scaling"/>
+                            </properties>
+                          </component>
                         </children>
                       </grid>
-                      <grid id="bf6a70" binding="myBackgroundImageOptionsPanel" layout-manager="GridLayoutManager" row-count="5" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="bf6a70" binding="myBackgroundImageOptionsPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                         </constraints>
                         <properties/>
                         <border type="none"/>
@@ -725,7 +681,7 @@
                             <children>
                               <component id="ba5253" class="com.intellij.ui.components.JBLabel" binding="myBackgroundTrimLabel">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                     <minimum-size width="70" height="-1"/>
                                   </grid>
                                 </constraints>
@@ -746,7 +702,7 @@
                                       <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                                     </constraints>
                                   </hspacer>
-                                  <component id="b4fb0e" class="javax.swing.JRadioButton" binding="myBackgroundTrimmedRadioButton" default-binding="true">
+                                  <component id="b4fb0e" class="javax.swing.JRadioButton" binding="myBackgroundTrimYesRadioButton">
                                     <constraints>
                                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                                     </constraints>
@@ -755,7 +711,7 @@
                                       <toolTipText value="Remove any transparent space from around your source asset before rendering to icon."/>
                                     </properties>
                                   </component>
-                                  <component id="bbf450" class="javax.swing.JRadioButton" default-binding="true">
+                                  <component id="bbf450" class="javax.swing.JRadioButton" binding="myBackgroundTrimNoRadioButton">
                                     <constraints>
                                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                                     </constraints>
@@ -769,7 +725,7 @@
                               </grid>
                             </children>
                           </grid>
-                          <grid id="bcf681" binding="myBackgroundPaddingRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                          <grid id="bcf681" binding="myBackgroundResizeRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
                               <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
@@ -779,17 +735,17 @@
                             </properties>
                             <border type="none"/>
                             <children>
-                              <component id="bca778" class="com.intellij.ui.components.JBLabel" binding="myBackgroundPaddingLabel">
+                              <component id="bca778" class="com.intellij.ui.components.JBLabel" binding="myBackgroundResizeLabel">
                                 <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                     <minimum-size width="70" height="-1"/>
                                   </grid>
                                 </constraints>
                                 <properties>
-                                  <text value="Padding:"/>
+                                  <text value="Resize:"/>
                                 </properties>
                               </component>
-                              <grid id="baef39" binding="myBackgroundPaddingSliderPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                              <grid id="baef39" binding="myBackgroundResizeSliderPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                                 <margin top="0" left="0" bottom="0" right="0"/>
                                 <constraints>
                                   <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -797,22 +753,22 @@
                                 <properties/>
                                 <border type="none"/>
                                 <children>
-                                  <component id="bab936" class="javax.swing.JSlider" binding="myBackgroundPaddingSlider">
+                                  <component id="bab936" class="javax.swing.JSlider" binding="myBackgroundResizeSlider">
                                     <constraints>
-                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                                     </constraints>
                                     <properties>
-                                      <maximum value="50"/>
-                                      <minimum value="-10"/>
-                                      <minorTickSpacing value="5"/>
+                                      <maximum value="400"/>
+                                      <minimum value="0"/>
+                                      <minorTickSpacing value="20"/>
                                       <paintLabels value="false"/>
                                       <paintTicks value="true"/>
-                                      <snapToTicks value="true"/>
-                                      <toolTipText value="Add a percentage of padding around the original asset before rendering. This happens after any trimming."/>
-                                      <value value="0"/>
+                                      <snapToTicks value="false"/>
+                                      <toolTipText value="Resize the original asset using the specified scaling factor (in percent). This happens after any trimming."/>
+                                      <value value="100"/>
                                     </properties>
                                   </component>
-                                  <component id="b5a6de" class="javax.swing.JLabel" binding="myBackgroundPaddingValueLabel">
+                                  <component id="b5a6de" class="javax.swing.JLabel" binding="myBackgroundResizeValueLabel">
                                     <constraints>
                                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
                                         <preferred-size width="40" height="-1"/>
@@ -823,149 +779,6 @@
                                       <text value="100 %"/>
                                     </properties>
                                   </component>
-                                  <hspacer id="bd9037">
-                                    <constraints>
-                                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                  </hspacer>
-                                </children>
-                              </grid>
-                            </children>
-                          </grid>
-                          <grid id="b6b9e7" binding="myBackgroundScalingRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                            <margin top="0" left="0" bottom="0" right="0"/>
-                            <constraints>
-                              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
-                            </constraints>
-                            <properties/>
-                            <border type="none"/>
-                            <children>
-                              <component id="bba20a" class="com.intellij.ui.components.JBLabel" binding="myBackgroundScalingLabel">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                                    <minimum-size width="70" height="-1"/>
-                                  </grid>
-                                </constraints>
-                                <properties>
-                                  <text value="Scaling:"/>
-                                </properties>
-                              </component>
-                              <grid id="be637e" binding="myBackgroundScalingRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                                <margin top="0" left="0" bottom="0" right="0"/>
-                                <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties/>
-                                <border type="none"/>
-                                <children>
-                                  <component id="bc2f6" class="javax.swing.JRadioButton" binding="myBackgroundCropRadioButton" default-binding="true">
-                                    <constraints>
-                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                    <properties>
-                                      <text value="Crop"/>
-                                      <toolTipText value="Crop source asset to fit icon size."/>
-                                    </properties>
-                                  </component>
-                                  <component id="bdc910" class="javax.swing.JRadioButton" default-binding="true">
-                                    <constraints>
-                                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                    <properties>
-                                      <selected value="true"/>
-                                      <text value="Shrink to Fit"/>
-                                      <toolTipText value="Shrink the source asset to fit icon size."/>
-                                    </properties>
-                                  </component>
-                                  <hspacer id="befeee">
-                                    <constraints>
-                                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                  </hspacer>
-                                </children>
-                              </grid>
-                            </children>
-                          </grid>
-                          <grid id="b9be4f" binding="myBackgroundColorRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                            <margin top="0" left="0" bottom="0" right="0"/>
-                            <constraints>
-                              <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
-                            </constraints>
-                            <properties/>
-                            <border type="empty">
-                              <size top="2" left="0" bottom="2" right="0"/>
-                            </border>
-                            <children>
-                              <component id="b43705" class="com.intellij.ui.components.JBLabel" binding="myBackgroundColorLabel">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                                    <minimum-size width="70" height="-1"/>
-                                  </grid>
-                                </constraints>
-                                <properties>
-                                  <text value="Color:"/>
-                                </properties>
-                              </component>
-                              <component id="b28c1d" class="com.intellij.ui.ColorPanel" binding="myBackgroundColorPanel">
-                                <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties>
-                                  <selectedColor color="-16777216"/>
-                                </properties>
-                              </component>
-                            </children>
-                          </grid>
-                          <grid id="b77aab" binding="myBackgroundEffectPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                            <margin top="0" left="0" bottom="0" right="0"/>
-                            <constraints>
-                              <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
-                            </constraints>
-                            <properties/>
-                            <border type="none"/>
-                            <children>
-                              <component id="b49143" class="com.intellij.ui.components.JBLabel" binding="myBackgroundEffectLabel">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
-                                    <minimum-size width="70" height="-1"/>
-                                  </grid>
-                                </constraints>
-                                <properties>
-                                  <text value="Effect:"/>
-                                </properties>
-                              </component>
-                              <grid id="b18788" binding="myBackgroundEffectRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                                <margin top="0" left="0" bottom="0" right="0"/>
-                                <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties/>
-                                <border type="none"/>
-                                <children>
-                                  <component id="b29f87" class="javax.swing.JRadioButton">
-                                    <constraints>
-                                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                    <properties>
-                                      <selected value="true"/>
-                                      <text value="None"/>
-                                      <toolTipText value="Do not apply any transformative effects to the icon."/>
-                                    </properties>
-                                  </component>
-                                  <component id="b862f5" class="javax.swing.JRadioButton" binding="myBackgroundDogEarRadioButton" default-binding="true">
-                                    <constraints>
-                                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                    <properties>
-                                      <text value="DogEar"/>
-                                      <toolTipText value="Add a fold to the top right of the icon's backdrop shape (if supported)."/>
-                                    </properties>
-                                  </component>
-                                  <hspacer id="bc35b8">
-                                    <constraints>
-                                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                                    </constraints>
-                                  </hspacer>
                                 </children>
                               </grid>
                             </children>
@@ -974,7 +787,7 @@
                       </grid>
                       <vspacer id="f69b49">
                         <constraints>
-                          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                          <grid row="5" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                         </constraints>
                       </vspacer>
                     </children>
@@ -991,7 +804,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <scrollpane id="c7b657" class="com.intellij.ui.components.JBScrollPane" binding="myLegacyScrollPane">
+              <scrollpane id="c7b657" class="com.intellij.ui.components.JBScrollPane" binding="myOtherIconsScrollPane">
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -1002,7 +815,7 @@
                   <size top="10" left="10" bottom="10" right="20"/>
                 </border>
                 <children>
-                  <grid id="c92220" binding="myLegacyAllOptionsPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="c92220" binding="myOtherIconsAllOptionsPanel" layout-manager="GridLayoutManager" row-count="9" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints/>
                     <properties/>
@@ -1010,17 +823,82 @@
                       <size top="0" left="0" bottom="0" right="0"/>
                     </border>
                     <children>
-                      <grid id="ce9a16" binding="myLegacyShapePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <component id="c2b07" class="com.intellij.ui.TitledSeparator">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Legacy Icon (API 24 or earlier)"/>
+                        </properties>
+                      </component>
+                      <grid id="6b9e7" binding="myGenerateLegacyIconRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                        </constraints>
+                        <properties>
+                          <visible value="true"/>
+                        </properties>
+                        <border type="none"/>
+                        <children>
+                          <component id="ba20a" class="com.intellij.ui.components.JBLabel" binding="myGenerateLegacyIconLabel">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                                <minimum-size width="70" height="-1"/>
+                              </grid>
+                            </constraints>
+                            <properties>
+                              <text value="Generate:"/>
+                            </properties>
+                          </component>
+                          <grid id="e637e" binding="mGenerateLegacyIconRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                            <margin top="0" left="0" bottom="0" right="0"/>
+                            <constraints>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="c2f6" class="javax.swing.JRadioButton" binding="myGenerateLegacyIconYesRadioButton">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <selected value="true"/>
+                                  <text value="Yes"/>
+                                  <toolTipText value="Generate Legacy icon (API &lt;= 24)"/>
+                                </properties>
+                              </component>
+                              <component id="dc910" class="javax.swing.JRadioButton" default-binding="true">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <selected value="false"/>
+                                  <text value="No"/>
+                                  <toolTipText value=""/>
+                                </properties>
+                              </component>
+                              <hspacer id="efeee">
+                                <constraints>
+                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                              </hspacer>
+                            </children>
+                          </grid>
+                        </children>
+                      </grid>
+                      <grid id="ce9a16" binding="myLegacyIconShapePanelRow" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                         </constraints>
                         <properties/>
-                        <border type="empty"/>
+                        <border type="none"/>
                         <children>
-                          <component id="b42061" class="com.intellij.ui.components.JBLabel" binding="myBackgroundLegacyShapeLabel">
+                          <component id="b42061" class="com.intellij.ui.components.JBLabel" binding="myLegacyIconShapeLabel">
                             <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                 <minimum-size width="70" height="-1"/>
                               </grid>
                             </constraints>
@@ -1028,7 +906,7 @@
                               <text value="Shape:"/>
                             </properties>
                           </component>
-                          <grid id="bd16d6" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                          <grid id="bd16d6" binding="myLegacyIconShapePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
                               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -1036,7 +914,7 @@
                             <properties/>
                             <border type="none"/>
                             <children>
-                              <component id="b49a58" class="javax.swing.JComboBox" binding="myBackgroundLegacyShapeComboBox">
+                              <component id="b49a58" class="javax.swing.JComboBox" binding="myLegacyIconShapeComboBox">
                                 <constraints>
                                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                                 </constraints>
@@ -1053,11 +931,184 @@
                           </grid>
                         </children>
                       </grid>
+                      <component id="14a98" class="com.intellij.ui.TitledSeparator">
+                        <constraints>
+                          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Round Icon (API 25 or later)"/>
+                        </properties>
+                      </component>
+                      <grid id="b6b9e7" binding="myGenerateRoundIconRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="4" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                        </constraints>
+                        <properties>
+                          <visible value="true"/>
+                        </properties>
+                        <border type="none"/>
+                        <children>
+                          <component id="bba20a" class="com.intellij.ui.components.JBLabel" binding="myGenerateRoundIconLabel">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                                <minimum-size width="70" height="-1"/>
+                              </grid>
+                            </constraints>
+                            <properties>
+                              <text value="Generate:"/>
+                            </properties>
+                          </component>
+                          <grid id="be637e" binding="myGenerateRoundIconRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                            <margin top="0" left="0" bottom="0" right="0"/>
+                            <constraints>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="bc2f6" class="javax.swing.JRadioButton" binding="myGenerateRoundIconYesRadioButton">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <selected value="true"/>
+                                  <text value="Yes"/>
+                                  <toolTipText value="Generate Round icon (API 25)"/>
+                                </properties>
+                              </component>
+                              <component id="bdc910" class="javax.swing.JRadioButton" default-binding="true">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <selected value="false"/>
+                                  <text value="No"/>
+                                  <toolTipText value=""/>
+                                </properties>
+                              </component>
+                              <hspacer id="befeee">
+                                <constraints>
+                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                              </hspacer>
+                            </children>
+                          </grid>
+                        </children>
+                      </grid>
+                      <component id="5b4f2" class="com.intellij.ui.TitledSeparator">
+                        <constraints>
+                          <grid row="5" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Web Image"/>
+                        </properties>
+                      </component>
+                      <grid id="4c112" binding="myGenerateWebIconRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="6" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                        </constraints>
+                        <properties>
+                          <visible value="true"/>
+                        </properties>
+                        <border type="none"/>
+                        <children>
+                          <component id="cb40" class="com.intellij.ui.components.JBLabel" binding="myGenerateWebIconLabel">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                                <minimum-size width="70" height="-1"/>
+                              </grid>
+                            </constraints>
+                            <properties>
+                              <text value="Generate:"/>
+                            </properties>
+                          </component>
+                          <grid id="ba504" binding="myGenerateWebIconRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                            <margin top="0" left="0" bottom="0" right="0"/>
+                            <constraints>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="cc274" class="javax.swing.JRadioButton" binding="myGenerateWebIconYesRadioButton">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <selected value="true"/>
+                                  <text value="Yes"/>
+                                  <toolTipText value="Generate Web Image (512x512)"/>
+                                </properties>
+                              </component>
+                              <component id="dcd52" class="javax.swing.JRadioButton" default-binding="true">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <selected value="false"/>
+                                  <text value="No"/>
+                                  <toolTipText value=""/>
+                                </properties>
+                              </component>
+                              <hspacer id="5433c">
+                                <constraints>
+                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                              </hspacer>
+                            </children>
+                          </grid>
+                        </children>
+                      </grid>
                       <vspacer id="c4e84">
                         <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                          <grid row="8" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                         </constraints>
                       </vspacer>
+                      <grid id="d32f7" binding="myWebIconShapePanelRow" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="7" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <component id="d6683" class="com.intellij.ui.components.JBLabel" binding="myWebIconShapeLabel">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                                <minimum-size width="70" height="-1"/>
+                              </grid>
+                            </constraints>
+                            <properties>
+                              <text value="Shape:"/>
+                            </properties>
+                          </component>
+                          <grid id="45630" binding="myWebIconShapePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                            <margin top="0" left="0" bottom="0" right="0"/>
+                            <constraints>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="82ef0" class="javax.swing.JComboBox" binding="myWebIconShapeComboBox">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <toolTipText value="The shape of the launcher icon's backdrop."/>
+                                </properties>
+                              </component>
+                              <hspacer id="9be91">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                              </hspacer>
+                            </children>
+                          </grid>
+                        </children>
+                      </grid>
                     </children>
                   </grid>
                 </children>
@@ -1078,7 +1129,7 @@
       <member id="bf450"/>
       <member id="4fb0e"/>
     </group>
-    <group name="myForegroundScalingGroup">
+    <group name="myGenerateLegacyIconGroup">
       <member id="dc910"/>
       <member id="c2f6"/>
     </group>
@@ -1094,13 +1145,17 @@
       <member id="bbf450"/>
       <member id="b4fb0e"/>
     </group>
-    <group name="myBackgroundScalingGroup">
+    <group name="myGenerateRoundIconGroup">
       <member id="bdc910"/>
       <member id="bc2f6"/>
     </group>
     <group name="myBackgroundEffectGroup">
       <member id="b862f5"/>
       <member id="b29f87"/>
+    </group>
+    <group name="myGenerateWebIconGroup">
+      <member id="cc274"/>
+      <member id="dcd52"/>
     </group>
   </buttonGroups>
 </form>

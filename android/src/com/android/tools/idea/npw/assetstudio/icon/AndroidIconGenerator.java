@@ -84,6 +84,18 @@ public abstract class AndroidIconGenerator {
     return new IconGeneratorResult(graphicGenerator.generateIcons(context, options, myName.get()), options);
   }
 
+  @NotNull
+  public IconGeneratorResult generatePreviewIcons() {
+    if (!mySourceAsset.get().isPresent()) {
+      throw new IllegalStateException("Can't generate icons without a source asset set first");
+    }
+
+    AssetStudioGraphicGeneratorContext context = new AssetStudioGraphicGeneratorContext();
+    GraphicGenerator graphicGenerator = createGenerator();
+    GraphicGenerator.Options options = createPreviewOptions(mySourceAsset.getValue());
+    return new IconGeneratorResult(graphicGenerator.generateIcons(context, options, myName.get()), options);
+  }
+
   /**
    * Generate icons into a map in memory. This is useful for generating previews.
    *
@@ -201,8 +213,21 @@ public abstract class AndroidIconGenerator {
   protected abstract GraphicGenerator.Options createOptions(@NotNull Class<? extends BaseAsset> assetType);
 
   @NotNull
+  protected GraphicGenerator.Options createPreviewOptions(@NotNull Class<? extends BaseAsset> assetType) {
+    return createOptions(assetType);
+  }
+
+  @NotNull
   private GraphicGenerator.Options createOptions(@NotNull BaseAsset baseAsset) {
     GraphicGenerator.Options options = createOptions(baseAsset.getClass());
+    options.minSdk = myMinSdkVersion;
+    options.sourceImage = baseAsset.toImage();
+    return options;
+  }
+
+  @NotNull
+  private GraphicGenerator.Options createPreviewOptions(@NotNull BaseAsset baseAsset) {
+    GraphicGenerator.Options options = createPreviewOptions(baseAsset.getClass());
     options.minSdk = myMinSdkVersion;
     options.sourceImage = baseAsset.toImage();
     return options;
