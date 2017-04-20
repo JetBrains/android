@@ -37,7 +37,7 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    loadProject(TestProjectPaths.NAVIGATION_SCHEMA);
+    loadProject(TestProjectPaths.NAVIGATION_EDITOR_SCHEMA_TEST);
     requestSyncAndWait();
   }
 
