@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
@@ -48,7 +47,6 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.instantapp.InstantApps.findInstantAppModule;
 import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
@@ -114,9 +112,23 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
     ImmutableList.Builder<ModuleTemplate> extrasTemplates = ImmutableList.builder();
     Set<FormFactor> formFactorSet = Sets.newHashSet();
 
+    ModuleTemplate instantAppTemplate = null;
+    if (isInstantAppSdkEnabled()) {
+      for (ModuleTemplateProvider provider : myModuleTypesProviders) {
+        for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
+          if (moduleTemplate.getName().equals("Instant Application")) {
+            // This is horrible, however this code is only temporary until we move over to the new NewModuleWizard where all this can be
+            // handled more explicitly...
+            instantAppTemplate = moduleTemplate;
+          }
+        }
+      }
+    }
+
     // Android device templates are shown first, with less important templates following
     for (ModuleTemplateProvider provider : myModuleTypesProviders) {
       for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
+        String templateName = moduleTemplate.getName();
         FormFactor formFactor = moduleTemplate.getFormFactor();
         if (formFactor != null) {
           if (formFactor == FormFactor.GLASS && !AndroidSdkUtils.isGlassInstalled()) {
@@ -124,8 +136,13 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
             continue;
           }
 
-          if (moduleTemplate.getName().equals("Feature Module") && !isInstantAppSdkEnabled()){
-            continue;
+          if (templateName.equals("Feature Module")) {
+            if (!isInstantAppSdkEnabled()) {
+              continue;
+            }
+            else if (instantAppTemplate != null) {
+              deviceTemplates.add(instantAppTemplate);
+            }
           }
 
           if (formFactor != FormFactor.CAR) {
@@ -135,6 +152,9 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
           }
         }
         else {
+          if (templateName.equals("Instant Application")) {
+            continue;
+          }
           extrasTemplates.add(moduleTemplate);
         }
       }

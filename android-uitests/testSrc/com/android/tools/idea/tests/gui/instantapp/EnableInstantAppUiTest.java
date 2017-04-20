@@ -19,10 +19,18 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.ui.ASGallery;
+import org.fest.swing.fixture.JListFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
@@ -69,6 +77,41 @@ public class EnableInstantAppUiTest {
     newProjectWizard
       .clickCancel();
 
+    SdkReplacer.putBack();
+  }
+
+  @Test
+  public void testNewModuleInstantAppUIHidden() throws IOException {
+    assertThat(getenv("WH_SDK")).isNull();
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    NewModuleWizardFixture wizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
+
+    JListFixture listFixture =
+      new JListFixture(guiTest.robot(), guiTest.robot().finder().findByType(wizardFixture.target(), ASGallery.class));
+    List<String> listContents = Arrays.asList(listFixture.contents());
+    assertThat(listContents).doesNotContain("Instant Application");
+    assertThat(listContents).doesNotContain("Feature Module");
+
+    wizardFixture.clickCancel();
+  }
+
+  @Test
+  public void testNewModuleInstantAppUIShown() throws IOException {
+    SdkReplacer.replaceSdkLocationAndActivate(null, true);
+    assertThat(getenv("WH_SDK")).isNull();
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    NewModuleWizardFixture wizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
+
+    JListFixture listFixture =
+      new JListFixture(guiTest.robot(), guiTest.robot().finder().findByType(wizardFixture.target(), ASGallery.class));
+    listFixture.selectItem("Instant Application");
+    listFixture.selectItem("Feature Module");
+
+    wizardFixture.clickCancel();
     SdkReplacer.putBack();
   }
 }
