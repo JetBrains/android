@@ -17,21 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.MissingIdDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_ID;
 
 public class AndroidLintMissingIdInspection extends AndroidLintInspectionBase {
   public AndroidLintMissingIdInspection() {
     super(AndroidBundle.message("android.lint.inspections.missing.id"), MissingIdDetector.ISSUE);
-  }
-
-  @Override
-  @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set id", ATTR_ID, null)};
   }
 }

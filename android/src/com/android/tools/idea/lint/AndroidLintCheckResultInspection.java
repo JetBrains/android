@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.SupportAnnotationDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.TextRange;
@@ -39,11 +40,13 @@ public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase 
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
-                                             @Nullable Object extraData) {
-    if (extraData instanceof String) {
-      return new AndroidLintQuickFix[] {
-        new ReplaceCallFix((String)extraData)
-      };
+                                             @Nullable LintFix fixData) {
+    if (fixData instanceof LintFix.DataMap) {
+      LintFix.DataMap map = (LintFix.DataMap)fixData;
+      String suggest = map.get(String.class);
+      if (suggest != null) {
+        return new AndroidLintQuickFix[]{ new ReplaceCallFix(suggest) };
+      }
     }
 
     return AndroidLintQuickFix.EMPTY_ARRAY;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.pkg">
   <application android:allowBackup="false"
-      android:banner="">
+      android:banner="TODO">
     <activity android:name="test.pkg.TvActivity">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />

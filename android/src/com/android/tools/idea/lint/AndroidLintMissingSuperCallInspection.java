@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.CallSuperDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -39,7 +40,7 @@ public class AndroidLintMissingSuperCallInspection extends AndroidLintInspection
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
-                                             @Nullable Object extraData) {
+                                             @Nullable LintFix fixData) {
     return new AndroidLintQuickFix[]{
       new DefaultLintQuickFix("Add super call") {
         @Override

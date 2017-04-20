@@ -16,25 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.GradleDetector;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintNotInterpolatedInspection extends AndroidLintInspectionBase {
   public AndroidLintNotInterpolatedInspection() {
     super(AndroidBundle.message("android.lint.inspections.not.interpolated"), GradleDetector.NOT_INTERPOLATED);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    String s = endElement.getText();
-    if (s.startsWith("'") && s.endsWith("'") && s.length() > 2) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace single quotes with double quotes", s,
-                                                                 "\"" + s.substring(1, s.length() - 1) + "\"")};
-    }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

@@ -17,24 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.SecurityDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_EXPORTED;
-import static com.android.SdkConstants.VALUE_FALSE;
 
 public class AndroidLintExportedContentProviderInspection extends AndroidLintInspectionBase {
   public AndroidLintExportedContentProviderInspection() {
     super(AndroidBundle.message("android.lint.inspections.exported.content.provider"), SecurityDetector.EXPORTED_PROVIDER);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{
-      new SetAttributeQuickFix("Set exported=\"false\"", ATTR_EXPORTED, VALUE_FALSE)
-    };
   }
 }

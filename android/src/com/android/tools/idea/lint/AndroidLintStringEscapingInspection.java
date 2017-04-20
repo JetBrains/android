@@ -16,26 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.DuplicateResourceDetector;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintStringEscapingInspection extends AndroidLintInspectionBase {
   public AndroidLintStringEscapingInspection() {
     super(AndroidBundle.message("android.lint.inspections.string.escaping"), DuplicateResourceDetector.STRING_ESCAPING);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    if (message.contains("Apostrophe")) {
-      return new AndroidLintQuickFix[]{
-        new ReplaceStringQuickFix("Escape Apostrophe", "[^\\\\](')", "\\'")
-      };
-    }
-
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

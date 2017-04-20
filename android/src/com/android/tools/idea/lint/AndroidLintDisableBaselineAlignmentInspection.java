@@ -17,25 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.InefficientWeightDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.ATTR_BASELINE_ALIGNED;
-import static com.android.SdkConstants.VALUE_FALSE;
 
 public class AndroidLintDisableBaselineAlignmentInspection extends AndroidLintInspectionBase {
   public AndroidLintDisableBaselineAlignmentInspection() {
     super(AndroidBundle.message("android.lint.inspections.disable.baseline.alignment"), InefficientWeightDetector.BASELINE_WEIGHTS);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{
-      new SetAttributeQuickFix(AndroidBundle.message("android.lint.fix.set.baseline.attribute"),
-                               ATTR_BASELINE_ALIGNED, VALUE_FALSE)
-    };
   }
 }
