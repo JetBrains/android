@@ -18,6 +18,7 @@ package com.android.tools.idea.lint;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.PermissionRequirement;
 import com.android.tools.lint.checks.SupportAnnotationDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
@@ -57,40 +58,38 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
   @NotNull
   @Override
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
-                                             Object quickfixData) {
-    if (!(quickfixData instanceof Object[])) {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
-    }
-
-    Object[] data = (Object[])quickfixData;
-    if (data.length != 2) {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(startElement);
-    if (facet == null) {
-      return AndroidLintQuickFix.EMPTY_ARRAY;
-    }
-
-    @SuppressWarnings("unchecked")
-    Set<String> names = (Set<String>)data[0];
-    if (data[1] instanceof Integer) {
-      // [missing permissions: Set<String>, maxSdkVersion: Integer] :
-      // Add quickfixes for the missing permissions
-      Integer lastApplicableApi = (Integer)data[1];
-      List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(4);
-      for (String name : names) {
-        fixes.add(new AddPermissionFix(facet, name, lastApplicableApi));
+                                             LintFix quickfixData) {
+    if (quickfixData instanceof LintFix.DataMap) {
+      LintFix.DataMap map = (LintFix.DataMap)quickfixData;
+      @SuppressWarnings("unchecked")
+      Set<String> names = (Set<String>)map.get(Set.class);
+      if (names == null) {
+        return AndroidLintQuickFix.EMPTY_ARRAY;
       }
-      return fixes.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
-    }
-    else if (data[1] instanceof PermissionRequirement) {
-      // [revocable permissions: Set<String>, requirement: PermissionRequirement] :
-      // Add quickfix for requesting permissions
-      PermissionRequirement requirement = (PermissionRequirement)data[1];
-      return new AndroidLintQuickFix[]{
-        new AddCheckPermissionFix(facet, requirement, startElement, names)
-      };
+
+      AndroidFacet facet = AndroidFacet.getInstance(startElement);
+      if (facet == null) {
+        return AndroidLintQuickFix.EMPTY_ARRAY;
+      }
+
+      Integer lastApplicableApi = map.get(Integer.class);
+      PermissionRequirement requirement = map.get(PermissionRequirement.class);
+      if (lastApplicableApi != null) {
+        // [missing permissions: Set<String>, maxSdkVersion: Integer] :
+        // Add quickfixes for the missing permissions
+        List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(4);
+        for (String name : names) {
+          fixes.add(new AddPermissionFix(facet, name, lastApplicableApi));
+        }
+        return fixes.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
+      }
+      else if (requirement != null) {
+        // [revocable permissions: Set<String>, requirement: PermissionRequirement] :
+        // Add quickfix for requesting permissions
+        return new AndroidLintQuickFix[]{
+          new AddCheckPermissionFix(facet, requirement, startElement, names)
+        };
+      }
     }
 
     return AndroidLintQuickFix.EMPTY_ARRAY;

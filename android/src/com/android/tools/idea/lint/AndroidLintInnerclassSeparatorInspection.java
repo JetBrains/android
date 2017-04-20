@@ -17,26 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.MissingClassDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintInnerclassSeparatorInspection extends AndroidLintInspectionBase {
   public AndroidLintInnerclassSeparatorInspection() {
     super(AndroidBundle.message("android.lint.inspections.innerclass.separator"), MissingClassDetector.INNERCLASS);
-  }
-
-  @Override
-  @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String current = MissingClassDetector.getOldValue(MissingClassDetector.INNERCLASS, message, RAW);
-    String proposed = MissingClassDetector.getNewValue(MissingClassDetector.INNERCLASS, message, RAW);
-    if (proposed != null && current != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, current, proposed)};
-    }
-
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

@@ -9,6 +9,7 @@ import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Sets;
@@ -227,7 +228,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       final Issue issue = problemData.getIssue();
       final String message = problemData.getMessage();
       final TextRange range = problemData.getTextRange();
-      final Object quickfixData = problemData.getQuickfixData();
+      final LintFix quickfixData = problemData.getQuickfixData();
 
       if (range.getStartOffset() == range.getEndOffset()) {
         continue;

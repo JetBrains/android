@@ -17,25 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.JavaPerformanceDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintUseValueOfInspection extends AndroidLintInspectionBase {
   public AndroidLintUseValueOfInspection() {
     super(AndroidBundle.message("android.lint.inspections.use.value.of"), JavaPerformanceDetector.USE_VALUE_OF);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    String replacedType = JavaPerformanceDetector.getReplacedType(message, RAW);
-    if (replacedType != null) {
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with valueOf()", "(new\\s+" + replacedType + ")",
-                                                                 replacedType + ".valueOf")};
-    }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 }

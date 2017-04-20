@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.lint;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.checks.RtlDetector;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ListMultimap;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class LintAnnotationsModel {
@@ -123,7 +123,7 @@ public class LintAnnotationsModel {
                        @NotNull HighlightDisplayLevel level,
                        @NotNull PsiElement startElement,
                        @NotNull PsiElement endElement,
-                       @Nullable Object quickfixData) {
+                       @Nullable LintFix quickfixData) {
     // Constraint layout doesn't handle RTL issues yet; don't highlight these
     if (issue == RtlDetector.COMPAT) {
       return;
@@ -155,7 +155,7 @@ public class LintAnnotationsModel {
     @NotNull public final PsiElement endElement;
     @NotNull public final PsiElement startElement;
     @NotNull public final NlComponent component;
-    @Nullable public final Object quickfixData;
+    @Nullable public final LintFix quickfixData;
 
     private IssueData(@NotNull NlComponent component,
                       @NotNull AndroidLintInspectionBase inspection,
@@ -164,7 +164,7 @@ public class LintAnnotationsModel {
                       @NotNull HighlightDisplayLevel level,
                       @NotNull PsiElement startElement,
                       @NotNull PsiElement endElement,
-                      @Nullable Object quickfixData) {
+                      @Nullable LintFix quickfixData) {
       this.component = component;
       this.inspection = inspection;
       this.issue = issue;

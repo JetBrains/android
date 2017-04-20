@@ -16,26 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.WakelockDetector;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintWakelockTimeoutInspection extends AndroidLintInspectionBase {
   public AndroidLintWakelockTimeoutInspection() {
     super(AndroidBundle.message("android.lint.inspections.wakelock.timeout"), WakelockDetector.TIMEOUT);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable Object extraData) {
-    return new AndroidLintQuickFix[] {
-      new ReplaceStringQuickFix("Set timeout to 10 minutes", "acquire\\(()\\)", "10*60*1000L /*10 minutes*/")
-    };
   }
 }

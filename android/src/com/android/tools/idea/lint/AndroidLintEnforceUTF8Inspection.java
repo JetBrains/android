@@ -17,18 +17,10 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.Utf8Detector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintEnforceUTF8Inspection extends AndroidLintInspectionBase {
   public AndroidLintEnforceUTF8Inspection() {
     super(AndroidBundle.message("android.lint.inspections.enforce.utf8"), Utf8Detector.ISSUE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, "utf-8")};
   }
 }
