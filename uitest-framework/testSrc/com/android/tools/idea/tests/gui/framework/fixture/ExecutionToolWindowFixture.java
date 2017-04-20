@@ -319,4 +319,20 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
   public ContentFixture findContent(@NotNull TextMatcher tabNameMatcher) {
     return new ContentFixture(this, myRobot, getContent(tabNameMatcher));
   }
+
+  @NotNull
+  private JPanel getContentPanel() {
+    return (JPanel)myToolWindow.getContentManager().getComponent();
+  }
+
+  @NotNull
+  private ActionButtonFixture findAction(@NotNull String text) {
+    return ActionButtonFixture.findByText(text, myRobot, getContentPanel());
+  }
+
+  @NotNull
+  public DeployTargetPickerDialogFixture clickRerunApplication() {
+    findAction("Rerun").waitUntilEnabledAndShowing().click();
+    return DeployTargetPickerDialogFixture.find(myRobot);
+  }
 }
