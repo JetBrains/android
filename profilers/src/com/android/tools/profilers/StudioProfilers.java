@@ -135,6 +135,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myUpdater.register(this);
   }
 
+  public void stop() {
+    // Stops the updater to prevent it leaking across projects.
+    myUpdater.stop();
+  }
+
   public List<Profiler.Device> getDevices() {
     return Lists.newArrayList(myProcesses.keySet());
   }

@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class AspectModel<T extends Enum<T>> extends AspectObserver {
-  private Collection<Dependency> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency, Boolean>());
+  private Collection<Dependency<T>> myDependencies = Collections.newSetFromMap(new WeakHashMap<Dependency<T>, Boolean>());
 
   public void changed(T aspect) {
     ArrayList<Dependency> deps = new ArrayList<>(myDependencies.size());
@@ -36,26 +36,32 @@ public class AspectModel<T extends Enum<T>> extends AspectObserver {
    * and are removed from the {@link AspectModel}
    */
   public Dependency addDependency(@NotNull AspectObserver observer) {
-    Dependency dependency = new Dependency();
+    Dependency<T> dependency = new Dependency<>();
     observer.addDependency(dependency);
     myDependencies.add(dependency);
     return dependency;
   }
 
   public void removeDependencies(AspectObserver observer) {
-    myDependencies.removeAll(observer.getDependencies());
+    List<Dependency<?>> dependencies = observer.getDependencies();
+    myDependencies.removeAll(dependencies);
+    dependencies.clear();
   }
 
-  public class Dependency {
+  public static class Dependency<U extends Enum<U>> {
 
-    private Multimap<T, Runnable> myListeners = HashMultimap.create();
+    private Multimap<U, Runnable> myListeners = HashMultimap.create();
 
-    public Dependency onChange(T aspect, Runnable runnable) {
+    // Should only be created by AspectModel.
+    private Dependency() {
+    }
+
+    public Dependency<U> onChange(U aspect, Runnable runnable) {
       myListeners.put(aspect, runnable);
       return this;
     }
 
-    private void changed(T aspect) {
+    private void changed(U aspect) {
       myListeners.get(aspect).forEach(Runnable::run);
     }
   }

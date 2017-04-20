@@ -20,17 +20,17 @@ import java.util.List;
 
 public class AspectObserver {
 
-  private final List<AspectModel<?>.Dependency> myDependencies;
+  private final List<AspectModel.Dependency<?>> myDependencies;
 
   public AspectObserver() {
     myDependencies = new ArrayList<>();
   }
 
-  public void addDependency(AspectModel<?>.Dependency dependency) {
+  public void addDependency(AspectModel.Dependency<?> dependency) {
     myDependencies.add(dependency);
   }
 
-  public List<AspectModel<?>.Dependency> getDependencies() {
+  public List<AspectModel.Dependency<?>> getDependencies() {
     return myDependencies;
   }
 }
