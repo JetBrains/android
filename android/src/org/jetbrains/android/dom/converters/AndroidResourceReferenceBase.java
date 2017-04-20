@@ -11,6 +11,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
@@ -31,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.SdkConstants.TOOLS_URI;
 
 /**
  * @author Eugene.Kudelevsky
@@ -105,13 +108,24 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
         assert resources != null;
         List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
-        if (items != null && FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
-          for (ResourceItem item : items) {
-            XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
-            if (tag != null) {
-              elements.add(tag);
-            } else if (item instanceof DynamicResourceValueItem) {
-              result.add(((DynamicResourceValueItem)item).createResolveResult());
+        if (items != null) {
+          if (FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
+            for (ResourceItem item : items) {
+              XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
+              if (tag != null) {
+                elements.add(tag);
+              } else if (item instanceof DynamicResourceValueItem) {
+                result.add(((DynamicResourceValueItem)item).createResolveResult());
+              }
+            }
+          }
+          else if (resourceType == ResourceType.MOCK && myElement.getParent() instanceof XmlAttribute) {
+            // The mock references can only be applied to tools: attributes
+            XmlAttribute attribute = (XmlAttribute)myElement.getParent();
+            if (TOOLS_URI.equals(attribute.getNamespace())) {
+              for (ResourceItem item : items) {
+                elements.add(LocalResourceRepository.getItemPsiFile(myFacet.getModule().getProject(), item));
+              }
             }
           }
         }
