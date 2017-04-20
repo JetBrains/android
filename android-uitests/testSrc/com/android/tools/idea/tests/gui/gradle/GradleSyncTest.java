@@ -28,10 +28,12 @@ import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.ContentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
@@ -39,7 +41,9 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.application.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.Result;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -56,7 +60,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -82,7 +85,6 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -91,7 +93,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.WARNING;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
@@ -305,42 +306,6 @@ public class GradleSyncTest {
     }
 
     assertThat(moduleDependency.getModuleName()).isEqualTo("library2");
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=169778
-  @Test
-  public void javaToAndroidModuleDependencies() throws IOException {
-    guiTest.importMultiModule();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    Module library3 = ideFrame.getModule("library3");
-    assertNull(AndroidFacet.getInstance(library3));
-
-    File library3BuildFile = new File(ideFrame.getProjectPath(), join("library3", FN_BUILD_GRADLE));
-    assertAbout(file()).that(library3BuildFile).isFile();
-    appendToFile(library3BuildFile, "dependencies { compile project(':app') }");
-
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(library3);
-    // Verify that the module "library3" doesn't depend on module "app"
-    ModuleOrderEntry moduleDependency = null;
-    for (OrderEntry orderEntry : moduleRootManager.getOrderEntries()) {
-      if (orderEntry instanceof ModuleOrderEntry) {
-        moduleDependency = (ModuleOrderEntry)orderEntry;
-        break;
-      }
-    }
-
-    assertNull(moduleDependency);
-
-    ContentFixture syncMessages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message =
-      syncMessages.findMessage(WARNING, firstLineStartingWith("Ignoring dependency of module 'app' on module 'library3'."));
-
-    // Verify if the error message's link goes to the build file.
-    VirtualFile buildFile = getGradleBuildFile(library3);
-    message.requireLocation(new File(buildFile.getPath()), 0);
   }
 
   // See https://code.google.com/p/android/issues/detail?id=73087
