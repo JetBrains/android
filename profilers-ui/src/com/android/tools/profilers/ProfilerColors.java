@@ -142,6 +142,8 @@ public class ProfilerColors {
 
   public static final Color NETWORK_TABLE_AXIS_SELECTED = JBColor.BLACK;
 
+  public static final Color NETWORK_TABLE_CONNECTIONS_NAME = new JBColor(new Color(255, 255, 255, (int)(0.74 * 255)), new Color(0x2b2d2e));
+
   public static final Color MEMORY_TOTAL = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
 
   public static final Color MEMORY_JAVA = new JBColor(new Color(69, 165, 207), new Color(60, 158, 201));

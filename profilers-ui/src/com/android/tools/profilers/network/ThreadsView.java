@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -39,7 +38,7 @@ import java.util.List;
  * Displays network connection information of all threads.
  */
 final class ThreadsView {
-  private static final int CELL_HEIGHT_PADDING = JBUI.scale(6);
+  private static final int CELL_HEIGHT = 15;
 
   @NotNull
   private final JList<List<HttpData>> myThreadsList;
@@ -49,8 +48,7 @@ final class ThreadsView {
     myThreadsList.setCellRenderer(new ThreadCellRenderer(myThreadsList, stageView.getTimeline()));
     myThreadsList.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myThreadsList.setFont(AdtUiUtils.FONT_DEFAULT);
-    int fontHeight = myThreadsList.getFontMetrics(myThreadsList.getFont()).getHeight();
-    myThreadsList.setFixedCellHeight(fontHeight + CELL_HEIGHT_PADDING);
+    myThreadsList.setFixedCellHeight(CELL_HEIGHT);
   }
 
   @NotNull
@@ -100,7 +98,6 @@ final class ThreadsView {
     @NotNull private final JList<List<HttpData>> myList;
     @NotNull private final List<JComponent> myRows;
     @NotNull private final ProfilerTimeline myTimeline;
-    private AxisComponent myAxis;
 
     private int myHoveredIndex = -1;
 
@@ -153,24 +150,29 @@ final class ThreadsView {
 
     private void modelChanged() {
       myRows.clear();
-      for (int i = 0; i < myList.getModel().getSize(); ++i) {
-        List<HttpData> data = myList.getModel().getElementAt(i);
+      for (int index = 0; index < myList.getModel().getSize(); ++index) {
+        List<HttpData> data = myList.getModel().getElementAt(index);
         assert !data.isEmpty();
 
         ConnectionsStateChart chart = new ConnectionsStateChart(data, myTimeline.getSelectionRange());
-        chart.setHeightGap(0.4f);
+        chart.setHeightGap(0.2f);
 
         JLabel label = new JLabel(data.get(0).getJavaThread().getName());
         label.setForeground(myList.getForeground());
         label.setFont(myList.getFont());
+        AxisComponent axis = createAxis();
+        axis.setMarkerLengths(myList.getFixedCellHeight(), 0);
+        // If it is the first row show labels.
+        axis.setShowLabels(index == 0);
 
         JPanel panel = new JPanel(new TabularLayout("*", "*"));
+        panel.setPreferredSize(new Dimension((int)panel.getPreferredSize().getWidth(), CELL_HEIGHT));
         panel.add(label, new TabularLayout.Constraint(0, 0));
+        panel.add(axis, new TabularLayout.Constraint(0, 0));
+        panel.add(new ConnectionNamesComponent(data, myTimeline.getSelectionRange()), new TabularLayout.Constraint(0, 0));
         panel.add(chart.getComponent(), new TabularLayout.Constraint(0, 0));
-
         myRows.add(panel);
       }
-      myAxis = createAxis();
     }
 
     @Override
@@ -181,15 +183,7 @@ final class ThreadsView {
                                                   boolean cellHasFocus) {
       Component comp = myRows.get(index);
       comp.setBackground(index == myHoveredIndex ? ProfilerColors.NETWORK_TABLE_HOVER_COLOR : list.getBackground());
-
-      myAxis.setMarkerLengths(list.getFixedCellHeight(), 0);
-      // If it is the first row show labels.
-      myAxis.setShowLabels(index == 0);
-
-      JPanel panel = new JPanel(new TabularLayout("*", "*"));
-      panel.add(myAxis, new TabularLayout.Constraint(0, 0));
-      panel.add(comp, new TabularLayout.Constraint(0, 0));
-      return panel;
+      return comp;
     }
 
     @NotNull
@@ -204,6 +198,47 @@ final class ThreadsView {
       axis.setForeground(ProfilerColors.NETWORK_TABLE_AXIS);
       model.update(1);
       return axis;
+    }
+  }
+
+  /**
+   * A component that responsible for rendering the given connections name.
+   */
+  private static final class ConnectionNamesComponent extends JComponent {
+    private static final int PADDING = 6;
+
+    @NotNull private final List<HttpData> myDataList;
+    @NotNull private final Range myRange;
+
+    private ConnectionNamesComponent(@NotNull List<HttpData> data, @NotNull Range range) {
+      myDataList = data;
+      myRange = range;
+      setFont(AdtUiUtils.FONT_DEFAULT_TITLE);
+      setForeground(ProfilerColors.NETWORK_TABLE_CONNECTIONS_NAME);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      super.paintComponent(g);
+      Graphics2D g2d = (Graphics2D)g.create();
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g2d.setFont(getFont());
+      g2d.setColor(getForeground());
+
+      for (HttpData data : myDataList) {
+        float start = (float)((data.getStartTimeUs() - myRange.getMin()) / myRange.getLength() * getWidth());
+        float end = getWidth();
+        if (data.getEndTimeUs() != 0) {
+          end = (float)((data.getEndTimeUs() - myRange.getMin()) / myRange.getLength() * getWidth());
+        }
+
+        FontMetrics metrics = getFontMetrics(getFont());
+        String text = AdtUiUtils.getFittedString(metrics, HttpData.getUrlName(data.getUrl()), end - start - 2 * PADDING, 1);
+        float availableSpace = (end - start - metrics.stringWidth(text));
+        g2d.drawString(text, start + availableSpace / 2, (getHeight() - metrics.getHeight()) * 0.5f + metrics.getAscent());
+      }
+
+      g2d.dispose();
     }
   }
 }
