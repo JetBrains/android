@@ -408,7 +408,7 @@ public class MoreFontsDialog extends DialogWrapper {
           break;
         case PROJECT:
           if (fontFamily.getMenu().startsWith(FontFamily.FILE_PROTOCOL_START)) {
-            setIcon(AndroidIcons.NeleIcons.TextAllCaps);
+            setIcon(AndroidIcons.FontFile);
           }
           else if (fontFamily.getMenu().startsWith(FontFamily.HTTPS_PROTOCOL_START)) {
             setIcon(AndroidIcons.NeleIcons.Link);
