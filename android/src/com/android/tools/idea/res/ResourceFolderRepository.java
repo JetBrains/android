@@ -30,6 +30,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.ILogger;
+import com.google.common.base.Strings;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -825,6 +826,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       } else {
         return;
       }
+
+      if (Strings.isNullOrEmpty(id)) {
+        return;
+      }
+
       pendingResourceIds.remove(id);
       PsiResourceItem item = new PsiResourceItem(id, ResourceType.ID, myNamespace, tag, file);
       items.add(item);
@@ -863,7 +869,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         List<ResourceItem> items = Lists.newArrayListWithExpectedSize(subTags.length);
         for (XmlTag tag : subTags) {
           String name = tag.getAttributeValue(ATTR_NAME);
-          if (name != null) {
+          if (!Strings.isNullOrEmpty(name)) {
             ResourceType type = AndroidResourceUtil.getType(tag);
             if (type != null) {
               ListMultimap<String, ResourceItem> map = getMap(myNamespace, type, true);
@@ -880,7 +886,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
                   for (XmlTag child : attrs) {
                     String attrName = child.getAttributeValue(ATTR_NAME);
-                    if (attrName != null && !attrName.startsWith(ANDROID_NS_NAME_PREFIX)
+                    if (!Strings.isNullOrEmpty(attrName) && !attrName.startsWith(ANDROID_NS_NAME_PREFIX)
                         // Only add attr nodes for elements that specify a format or have flag/enum children; otherwise
                         // it's just a reference to an existing attr
                         && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
@@ -1285,7 +1291,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   assert resFile instanceof PsiResourceFile;
                   PsiResourceFile resourceFile = (PsiResourceFile)resFile;
                   String name = tag.getAttributeValue(ATTR_NAME);
-                  if (name != null) {
+                  if (!Strings.isNullOrEmpty(name)) {
                     ResourceType type = AndroidResourceUtil.getType(tag);
                     if (type == ResourceType.DECLARE_STYLEABLE) {
                       // Can't handle declare styleable additions incrementally yet; need to update paired attr items
