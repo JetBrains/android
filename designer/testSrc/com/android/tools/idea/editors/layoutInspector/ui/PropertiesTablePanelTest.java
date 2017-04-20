@@ -16,15 +16,18 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.layoutinspector.model.ViewNode;
-import com.android.layoutinspector.model.ViewNodeTableModel;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableModel;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
+import com.android.tools.idea.editors.layoutInspector.ptable.LITableRendererProvider;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.table.JBTable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.swing.table.TableRowSorter;
+import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -36,13 +39,15 @@ public class PropertiesTablePanelTest {
   @Before
   public void setUp() {
     ViewNode node = ViewNode.parseFlatString(getViewNodeFlatString());
-    ViewNodeTableModel model = new ViewNodeTableModel();
-    model.setNode(node);
-    JBTable table = new JBTable(model);
-
+    PTableModel model = new PTableModel();
+    model.setItems(LayoutInspectorContext.convertToItems(node.groupedProperties));
+    CopyPasteManager mockManager = mock(CopyPasteManager.class);
+    PTable table = new PTable(model, mockManager);
+    table.setRendererProvider(LITableRendererProvider.getInstance());
     myPanel = new PropertiesTablePanel();
     LayoutInspectorContext context = mock(LayoutInspectorContext.class);
     when(context.getPropertiesTable()).thenReturn(table);
+    when(context.getTableModel()).thenReturn(model);
     myPanel.setToolContext(context);
   }
 
@@ -63,14 +68,13 @@ public class PropertiesTablePanelTest {
 
   @Test
   public void testSetFilter() {
-    JBTable table = myPanel.getTable();
-    TableRowSorter<ViewNodeTableModel> sorter = (TableRowSorter<ViewNodeTableModel>)table.getRowSorter();
-    assertThat(sorter.getRowFilter()).isNull();
-    assertThat(table.getRowCount()).isEqualTo(4);
+    PTable table = myPanel.getTable();
+    assertThat(table.getRowCount()).isEqualTo(3);
 
-    myPanel.setFilter("m");
-    assertThat(sorter.getRowFilter()).isNotNull();
-    assertThat(table.getRowCount()).isEqualTo(1);
-    assertThat(table.getModel().getValueAt(table.convertRowIndexToModel(0), 0)).isEqualTo("mID");
+    myPanel.setFilter("c");
+    RowSorter sorter = table.getRowSorter();
+    assertThat(sorter).isNotNull();
+    assertThat(table.getRowCount()).isEqualTo(2);
+    assertThat(((PTableItem) table.getModel().getValueAt(table.convertRowIndexToModel(0), 0)).getName()).isEqualTo("cat");
   }
 }
