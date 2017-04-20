@@ -39,6 +39,7 @@ import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.dom.menu.MenuItem;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -95,6 +96,9 @@ public class AndroidDomUtil {
                            ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
     addSpecialResourceType(ResourceType.FONT, ATTR_FONT_FAMILY);
+
+    // Nav editor
+    addSpecialResourceType(ResourceType.ID, NavigationSchema.ATTR_DESTINATION);
   }
 
   private AndroidDomUtil() {

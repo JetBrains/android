@@ -28,6 +28,8 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
+import com.android.tools.idea.uibuilder.property.inspector.InspectorProviders;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -201,6 +203,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myActionManager.registerActions(myLayeredPane);
   }
 
+  @NotNull
   protected abstract ActionManager createActionManager();
 
   @NotNull
@@ -864,6 +867,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public SceneManager getSceneManager() {
     return mySceneManager;
   }
+
+  @NotNull
+  public abstract InspectorProviders getInspectorProviders(@NotNull NlPropertiesManager propertiesManager,
+                                                           @NotNull Disposable parentDisposable);
 
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {

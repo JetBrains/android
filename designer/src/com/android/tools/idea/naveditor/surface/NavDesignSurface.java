@@ -16,16 +16,19 @@
 package com.android.tools.idea.naveditor.surface;
 
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.naveditor.model.NavigationSchema;
-import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.uibuilder.editor.ActionManager;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.surface.SceneView;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.Disposable;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,9 +41,9 @@ public class NavDesignSurface extends DesignSurface {
   private NavView myNavView;
   private final NavigationSchema mySchema;
 
-  public NavDesignSurface(@NotNull Project project) {
-    super(project);
-    mySchema = new NavigationSchema(project);
+  public NavDesignSurface(@NotNull AndroidFacet facet) {
+    super(facet.getModule().getProject());
+    mySchema = NavigationSchema.getOrCreateSchema(facet);
     zoomActual();
   }
 
@@ -49,6 +52,7 @@ public class NavDesignSurface extends DesignSurface {
     return mySchema;
   }
 
+  @NotNull
   @Override
   protected ActionManager createActionManager() {
     return new NavActionManager(this);
@@ -60,9 +64,16 @@ public class NavDesignSurface extends DesignSurface {
     return new NavSceneManager(model, this);
   }
 
+  @Nullable
   @Override
   public NavSceneManager getSceneManager() {
     return (NavSceneManager)super.getSceneManager();
+  }
+
+  @NotNull
+  @Override
+  public NavInspectorProviders getInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
+    return new NavInspectorProviders(propertiesManager, parentDisposable);
   }
 
   @Override

@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.naveditor.model.NavigationSchema;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -84,16 +84,6 @@ public abstract class LayoutTestCase extends AndroidTestCase {
                               LayoutlibSceneManager
                                 .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
                                                  model), "layout", NlDesignSurface.class);
-  }
-
-  protected ModelBuilder navModel(@NotNull String name, @NotNull ComponentDescriptor root) {
-    Function<? super SyncNlModel, ? extends SceneManager> managerFactory = model -> {
-      when(((NavDesignSurface)model.getSurface()).getSchema()).thenReturn(new NavigationSchema(null));
-      return new NavSceneManager(model, (NavDesignSurface)model.getSurface());
-    };
-
-    return new ModelBuilder(myFacet, myFixture, name, root, managerFactory,
-                            (model, newModel) -> {}, "nav", NavDesignSurface.class);
   }
 
   private List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {
