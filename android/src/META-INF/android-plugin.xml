@@ -1226,6 +1226,7 @@
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.UnknownHostErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.CorruptGradleDependencyErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.JavaHeapSpaceErrorHandler"/>
+    <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.Gradle4AndPlugin2Dot2ErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ClassLoadingErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.ObjectStreamErrorHandler"/>
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.GenericErrorHandler"/>

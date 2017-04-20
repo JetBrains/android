@@ -18,6 +18,7 @@ package com.android.tools.idea.testing;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.RegEx;
 import java.io.File;
@@ -28,29 +29,33 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.google.common.io.Files.write;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class AndroidGradleTests {
-  public static void updateGradleVersions(@NotNull File file) throws IOException {
-    updateGradleVersions(file, getLocalRepositories());
+  public static void updateGradleVersions(@NotNull File folderRootPath, @NotNull String gradlePluginVersion) throws IOException {
+    doUpdateGradleVersions(folderRootPath, getLocalRepositories(), gradlePluginVersion);
   }
 
-  private static void updateGradleVersions(@NotNull File file, @NotNull String localRepositories) throws IOException {
-    if (file.isDirectory()) {
-      File[] files = file.listFiles();
-      if (files != null) {
-        for (File child : files) {
-          updateGradleVersions(child, localRepositories);
-        }
+  public static void updateGradleVersions(@NotNull File folderRootPath) throws IOException {
+    doUpdateGradleVersions(folderRootPath, getLocalRepositories(), null);
+  }
+
+  private static void doUpdateGradleVersions(@NotNull File path, @NotNull String localRepositories, @Nullable String gradlePluginVersion)
+    throws IOException {
+    if (path.isDirectory()) {
+      for (File child : notNullize(path.listFiles())) {
+        doUpdateGradleVersions(child, localRepositories, gradlePluginVersion);
       }
     }
-    else if (file.getPath().endsWith(DOT_GRADLE) && file.isFile()) {
-      String contentsOrig = Files.toString(file, Charsets.UTF_8);
+    else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
+      String contentsOrig = Files.toString(path, Charsets.UTF_8);
       String contents = contentsOrig;
 
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
+      String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
-                                   buildEnvironment.getGradlePluginVersion());
+                                   pluginVersion);
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
                                    buildEnvironment.getExperimentalPluginVersion());
 
@@ -60,7 +65,7 @@ public class AndroidGradleTests {
       contents = contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
 
       if (!contents.equals(contentsOrig)) {
-        write(contents, file, Charsets.UTF_8);
+        write(contents, path, Charsets.UTF_8);
       }
     }
   }
