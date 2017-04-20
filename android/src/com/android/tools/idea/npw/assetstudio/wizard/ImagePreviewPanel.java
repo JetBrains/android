@@ -36,6 +36,9 @@ public class ImagePreviewPanel {
   }
 
   public void setLabelText(@Nullable String title) {
+    // The label is displayed on top of a gray/white checkered background, so we *do* want to use the actual Black color.
+    //noinspection UseJBColor
+    myImageLabel.setForeground(Color.BLACK);
     myImageLabel.setText(title);
   }
 
