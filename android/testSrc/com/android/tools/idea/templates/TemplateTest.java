@@ -16,13 +16,12 @@
 package com.android.tools.idea.templates;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.blame.Message;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
@@ -59,7 +58,6 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -67,6 +65,11 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.ArrayUtil;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -78,6 +81,7 @@ import org.w3c.dom.Element;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
@@ -152,6 +156,9 @@ public class TemplateTest extends AndroidGradleTestCase {
     KNOWN_BROKEN.add("WatchFaceService");
     KNOWN_BROKEN.add("BlankWearActivity");
     KNOWN_BROKEN.add("GoogleMapsWearActivity");
+
+    // Prebuilts are not at latest version so disable this template until they are updated and this test can work again
+    KNOWN_BROKEN.add("NavigationDrawerActivity");
 
     // See http://b.android.com/253296
     if (SystemInfo.isWindows) {
@@ -513,13 +520,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("other", "AndroidAutoMediaService");
   }
 
-  public void testAndroidAutoMessagingSerice() throws Exception {
+  public void testAndroidAutoMessagingService() throws Exception {
     checkCreateTemplate("other", "AndroidAutoMessagingService");
   }
 
   // --- Note that this test *must* run after all other tests to check and only
   // run the templates that have not already been run ---
-  public void /*test*/ZCreateRemainingTemplates() throws Exception {
+  public void testZCreateRemainingTemplates() throws Exception {
     if (DISABLED) {
       return;
     }
@@ -1090,13 +1097,12 @@ public class TemplateTest extends AndroidGradleTestCase {
       projectDir = Projects.getBaseDirPath(project);
       projectValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
 
-      //noinspection ConstantConditions
-      createProject(projectValues);
+      createProject(projectValues, CHECK_LINT);
 
+      File projectRoot = virtualToIoFile(project.getBaseDir());
       if (templateValues != null && !projectValues.getBoolean(ATTR_CREATE_ACTIVITY)) {
         templateValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
         ApplicationManager.getApplication().runWriteAction(() -> {
-          File projectRoot = virtualToIoFile(project.getBaseDir());
           Template template = templateValues.getTemplate();
           assert template != null;
           File moduleRoot = new File(projectRoot, modifiedProjectName);
@@ -1127,15 +1133,28 @@ public class TemplateTest extends AndroidGradleTestCase {
       assertNotNull(project);
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
 
-      GradleInvocationResult result = invokeGradleTasks(project, "assembleDebug");
-      // Use the following commented out code to debug the generated project in case of a failure.
-      //if (!result.isBuildSuccessful()) {
+      GradleConnector connector = GradleConnector.newConnector();
+      connector.forProjectDirectory(projectRoot);
+      ((DefaultGradleConnector)connector).daemonMaxIdleTime(10000, TimeUnit.MILLISECONDS);
+      ProjectConnection connection = connector.connect();
+      BuildLauncher buildLauncher = connection.newBuild().forTasks("assembleDebug");
+
+      List<String> commandLineArguments = Lists.newArrayList();
+      GradleInitScripts initScripts = GradleInitScripts.getInstance();
+      initScripts.addLocalMavenRepoInitScriptCommandLineArgTo(commandLineArguments);
+      buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
+      try {
+        buildLauncher.run();
+      }
+      //// Use the following commented out code to debug the generated project in case of a failure.
+      //catch (Exception e) {
       //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-      //  FileUtil.copyDir(projectDir, tmpDir);
+      //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
       //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
       //}
-      assertTrue(StringUtil.join(result.getCompilerMessages(Message.Kind.ERROR), "\n"),
-                 result.isBuildSuccessful());
+      finally {
+        connection.close();
+      }
 
       if (CHECK_LINT) {
         assertLintsCleanly(project, Severity.INFORMATIONAL, Sets.newHashSet(ManifestDetector.TARGET_NEWER));
@@ -1159,7 +1178,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void createProject(@NotNull NewProjectWizardState projectWizardState) throws Exception {
+  private void createProject(@NotNull NewProjectWizardState projectWizardState, boolean syncProject) throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
       AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
       createProject(projectWizardState, myFixture.getProject(), assetGenerator);
@@ -1171,8 +1190,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
     createGradleWrapper(projectRoot);
     updateVersionAndDependencies(projectRoot);
-    String projectName = projectWizardState.getString(ATTR_MODULE_NAME);
-    importProject(projectName, projectRoot, null);
+    LocalFileSystem.getInstance().refresh(false);
+    if (syncProject) {
+      importProject(projectWizardState.getString(ATTR_MODULE_NAME), projectRoot, null);
+    }
   }
 
   private static void createProject(@NotNull final NewModuleWizardState wizardState, @NotNull Project project,
@@ -1181,7 +1202,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     try {
       wizardState.populateDirectoryParameters();
       String moduleName = wizardState.getString(ATTR_MODULE_NAME);
-      String projectName = wizardState.getString(ATTR_APP_TITLE);
       File projectRoot = new File(wizardState.getString(ATTR_PROJECT_LOCATION));
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
