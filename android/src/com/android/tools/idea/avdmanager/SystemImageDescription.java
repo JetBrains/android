@@ -225,7 +225,7 @@ public final class SystemImageDescription {
 
     @Override
     public boolean hasPlayStore() {
-      return false; // Remote images don't comply
+      return SystemImage.PLAY_STORE_TAG.equals(myTag);
     }
 
     @Override
