@@ -168,4 +168,24 @@ public class NewModuleTest {
       .open("backend/src/main/java/com/example/backend/MyEndpoint.java")
       .open("backend/src/main/webapp/index.html");
   }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void createNewJavaLibraryWithDefaults() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Java Library")
+      .clickNextToStep("Library name:")
+      .getConfigureJavaLibaryStepFixture()
+      .enterLibraryName("mylib")
+      .enterPackageName("my.test")
+      .enterClassName("MyJavaClass")
+      .setCreateGitIgnore(true)
+      .getWizard()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("mylib/.gitignore")
+      .open("mylib/src/main/java/my/test/MyJavaClass.java");
+  }
 }
