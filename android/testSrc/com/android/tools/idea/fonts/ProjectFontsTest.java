@@ -19,6 +19,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +43,7 @@ public class ProjectFontsTest extends FontTestCase {
     assertThat(family.getFontSource()).isSameAs(FontFamily.FontSource.PROJECT);
     assertThat(family.getName()).isEqualTo("a_bee_zee_regular");
     assertThat(family.getMenuName()).isEqualTo("a_bee_zee_regular");
-    assertThat(family.getMenu()).isEqualTo(FontFamily.FILE_PROTOCOL_START + file.getPath());
+    assertThat(family.getMenu()).isEqualTo(FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(file.getPath()));
     assertThat(family.getCachedMenuFile()).isEquivalentAccordingToCompareTo(new File(file.getPath()));
     assertThat(family.getFonts().size()).isEqualTo(1);
 
@@ -52,7 +53,7 @@ public class ProjectFontsTest extends FontTestCase {
     assertThat(detail.getWidth()).isEqualTo(100);
     assertThat(detail.isItalics()).isFalse();
     assertThat(detail.getStyleName()).isEqualTo("Regular");
-    assertThat(detail.getFontUrl()).isEqualTo(FontFamily.FILE_PROTOCOL_START + file.getPath());
+    assertThat(detail.getFontUrl()).isEqualTo(FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(file.getPath()));
     assertThat(detail.getCachedFontFile()).isEqualTo(new File(file.getPath()));
   }
 
@@ -70,7 +71,7 @@ public class ProjectFontsTest extends FontTestCase {
     assertThat(family.getFontSource()).isSameAs(FontFamily.FontSource.PROJECT);
     assertThat(family.getName()).isEqualTo("my_font_family");
     assertThat(family.getMenuName()).isEqualTo("my_font_family");
-    assertThat(family.getMenu()).isEqualTo(FontFamily.FILE_PROTOCOL_START + fileA.getPath());
+    assertThat(family.getMenu()).isEqualTo(FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()));
     assertThat(family.getCachedMenuFile()).isEquivalentAccordingToCompareTo(new File(fileA.getPath()));
     assertThat(family.getFonts().size()).isEqualTo(2);
 
@@ -81,7 +82,7 @@ public class ProjectFontsTest extends FontTestCase {
     assertThat(detailA.getWidth()).isEqualTo(100);
     assertThat(detailA.isItalics()).isFalse();
     assertThat(detailA.getStyleName()).isEqualTo("Regular");
-    assertThat(detailA.getFontUrl()).isEqualTo(FontFamily.FILE_PROTOCOL_START + fileA.getPath());
+    assertThat(detailA.getFontUrl()).isEqualTo(FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()));
     assertThat(detailA.getCachedFontFile()).isEquivalentAccordingToCompareTo(new File(fileA.getPath()));
 
     FontDetail detailB = family.getFonts().get(1);
@@ -91,7 +92,7 @@ public class ProjectFontsTest extends FontTestCase {
     assertThat(detailB.getWidth()).isEqualTo(100);
     assertThat(detailB.isItalics()).isTrue();
     assertThat(detailB.getStyleName()).isEqualTo("Regular Italic");
-    assertThat(detailB.getFontUrl()).isEqualTo(FontFamily.FILE_PROTOCOL_START + fileB.getPath());
+    assertThat(detailB.getFontUrl()).isEqualTo(FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileB.getPath()));
     assertThat(detailB.getCachedFontFile()).isEqualTo(new File(fileB.getPath()));
   }
 
