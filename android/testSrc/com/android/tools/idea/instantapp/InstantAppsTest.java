@@ -16,19 +16,16 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import org.junit.Ignore;
 
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
-@Ignore("http://b/35788310")
 public class InstantAppsTest extends AndroidGradleTestCase {
-  // TODO: re-enable tests after INSTANT_APP project has been updated
-  public void /*test*/FindBaseFeatureWithInstantApp() throws Exception {
+  public void testFindBaseFeatureWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
-    assertEquals(myModules.getModule("baseatom"), findBaseFeature(myAndroidFacet));
+    assertEquals(myModules.getModule("feature"), findBaseFeature(myAndroidFacet));
   }
 
   public void testFindBaseFeatureWithoutInstantApp() throws Exception {
@@ -36,7 +33,7 @@ public class InstantAppsTest extends AndroidGradleTestCase {
     assertNull(findBaseFeature(myAndroidFacet));
   }
 
-  public void /*test*/GetDefaultInstantAppUrlWithInstantApp() throws Exception {
+  public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
     assertEquals("http://example.com/parameter", getDefaultInstantAppUrl(myAndroidFacet));
   }
