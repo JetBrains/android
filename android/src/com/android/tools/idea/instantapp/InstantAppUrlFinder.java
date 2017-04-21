@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.INSTANT_APP_URI;
 import static com.android.xml.AndroidManifest.NODE_DATA;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -122,7 +121,7 @@ public final class InstantAppUrlFinder {
 
     @VisibleForTesting
     public static int getOrder(@NotNull Element element) {
-      String orderValue = element.getAttributeNS(INSTANT_APP_URI, "order");
+      String orderValue = element.getAttributeNS(ANDROID_URI, "order");
       try {
         return Integer.parseUnsignedInt(orderValue);
       }
@@ -207,7 +206,8 @@ public final class InstantAppUrlFinder {
       if (path.isEmpty()) {
         if (isNotEmpty(myPathPrefix)) {
           path = myPathPrefix + "/.*";
-        } else {
+        }
+        else {
           path = myPathPattern;
         }
       }
