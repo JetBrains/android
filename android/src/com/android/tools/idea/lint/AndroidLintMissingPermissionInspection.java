@@ -64,12 +64,12 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       @SuppressWarnings("unchecked")
       Set<String> names = (Set<String>)map.get(Set.class);
       if (names == null) {
-        return AndroidLintQuickFix.EMPTY_ARRAY;
+        return super.getQuickFixes(startElement, endElement, message, quickfixData);
       }
 
       AndroidFacet facet = AndroidFacet.getInstance(startElement);
       if (facet == null) {
-        return AndroidLintQuickFix.EMPTY_ARRAY;
+        return super.getQuickFixes(startElement, endElement, message, quickfixData);
       }
 
       Integer lastApplicableApi = map.get(Integer.class);
@@ -92,7 +92,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       }
     }
 
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, quickfixData);
   }
 
   private static class AddPermissionFix extends DefaultLintQuickFix {

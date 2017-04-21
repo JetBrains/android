@@ -28,6 +28,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashMap;
 import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;
@@ -515,34 +517,123 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     return myIssue;
   }
 
-  /** Wraps quickfixes from {@link QuickfixData} with default implementations */
-  static AndroidLintQuickFix[] createFixes(@Nullable Object quickfixData) {
-    if (quickfixData instanceof LintFix) {
-      if (quickfixData instanceof ReplaceString) {
-        ReplaceString data = (ReplaceString)quickfixData;
-        String regexp;
-        if (data.oldPattern != null) {
-          regexp = data.oldPattern;
-        } else if (data.oldString != null) {
-          regexp = "(" + Pattern.quote(data.oldString) + ")";
-        } else {
-          regexp = null;
-        }
-        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(data.getDisplayName(), regexp, data.replacement)};
-      } else if (quickfixData instanceof SetAttribute) {
-        SetAttribute data = (SetAttribute)quickfixData;
-        return new AndroidLintQuickFix[]{new SetAttributeQuickFix(data.getDisplayName(), data.attribute,
-                                                                  data.namespace, data.value,
-                                                                  data.dot, data.mark)};
-      } else if (quickfixData instanceof LintFixGroup) {
-        List<AndroidLintQuickFix> fixes = Lists.newArrayList();
-        for (LintFix fix : ((LintFixGroup)quickfixData).fixes) {
-          Collections.addAll(fixes, createFixes(fix));
-        }
-        return fixes.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
+  /** Wraps quickfixes from {@link LintFix} with default implementations */
+  static AndroidLintQuickFix[] createFixes(@Nullable LintFix lintFix) {
+    if (lintFix instanceof ReplaceString) {
+      ReplaceString data = (ReplaceString)lintFix;
+      String regexp;
+      if (data.oldPattern != null) {
+        regexp = data.oldPattern;
+      } else if (data.oldString != null) {
+        regexp = "(" + Pattern.quote(data.oldString) + ")";
+      } else {
+        regexp = null;
+      }
+      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(data.getDisplayName(), regexp, data.replacement)};
+    } else if (lintFix instanceof SetAttribute) {
+      SetAttribute data = (SetAttribute)lintFix;
+      if (data.value == null) {
+        return new AndroidLintQuickFix[]{ new RemoteAttributeFix(data) };
+      }
+
+      return new AndroidLintQuickFix[]{new SetAttributeQuickFix(data.getDisplayName(), data.attribute,
+                                                                data.namespace, data.value,
+                                                                data.dot, data.mark)};
+    } else if (lintFix instanceof LintFixGroup) {
+      LintFixGroup group = (LintFixGroup)lintFix;
+      List<AndroidLintQuickFix> fixList = Lists.newArrayList();
+      for (LintFix fix : group.fixes) {
+        Collections.addAll(fixList, createFixes(fix));
+      }
+      AndroidLintQuickFix[] fixes = fixList.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
+
+      switch (group.type) {
+        case COMPOSITE:
+          return new AndroidLintQuickFix[] { new CompositeLintFix(lintFix.getDisplayName(), fixes) };
+        case ALTERNATIVES:
+          return fixes;
       }
     }
     return AndroidLintQuickFix.EMPTY_ARRAY;
+  }
+
+  static class CompositeLintFix implements AndroidLintQuickFix {
+    private final String myDisplayName;
+    private final AndroidLintQuickFix[] myFixes;
+
+    public CompositeLintFix(String displayName, AndroidLintQuickFix[] myFixes) {
+      myDisplayName = displayName;
+      this.myFixes = myFixes;
+    }
+
+    @Override
+    public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
+      for (AndroidLintQuickFix fix : myFixes) {
+        fix.apply(startElement, endElement, context);
+      }
+    }
+
+    @Override
+    public boolean isApplicable(@NotNull PsiElement startElement,
+                                @NotNull PsiElement endElement,
+                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
+      for (AndroidLintQuickFix fix : myFixes) {
+        if (!fix.isApplicable(startElement, endElement, contextType)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return myDisplayName != null ? myDisplayName : "Fix";
+    }
+  }
+
+  static class RemoteAttributeFix implements AndroidLintQuickFix {
+    private final SetAttribute myData;
+
+    public RemoteAttributeFix(SetAttribute data) {
+      myData = data;
+    }
+
+    @Override
+    public void apply(@NotNull PsiElement startElement,
+                      @NotNull PsiElement endElement,
+                      @NotNull AndroidQuickfixContexts.Context context) {
+      XmlAttribute attribute = findAttribute(startElement);
+      if(attribute != null && attribute.isValid()) {
+        attribute.delete();
+      }
+    }
+
+    @Override
+    public boolean isApplicable(@NotNull PsiElement startElement,
+                                @NotNull PsiElement endElement,
+                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
+      XmlAttribute attribute = findAttribute(startElement);
+      return attribute != null && attribute.isValid();
+    }
+
+    @Nullable
+    private XmlAttribute findAttribute(@NotNull PsiElement startElement) {
+      final XmlTag tag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
+
+      if (tag == null) {
+        return null;
+      }
+
+      return myData.namespace != null ? tag.getAttribute(myData.attribute, myData.namespace) :
+             tag.getAttribute(myData.attribute);
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return myData.getDisplayName();
+    }
   }
 
   static class MyLocalQuickFix implements LocalQuickFix {

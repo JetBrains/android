@@ -35,7 +35,10 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
   }
 
   public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value) {
-    this(name, attributeName, namespace, value, Integer.MIN_VALUE, Integer.MIN_VALUE);
+    this(name, attributeName, namespace, value,
+         // The default was to select the whole text range
+         value != null ? 0 : Integer.MIN_VALUE,
+         value != null ? value.length() : Integer.MIN_VALUE);
 
   }
   public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value,
@@ -102,14 +105,6 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
             } else {
               editor.getCaretModel().moveToOffset(end);
             }
-            return;
-          }
-
-          editor.getCaretModel().moveToOffset(valueElementStart + valueTextRange.getStartOffset());
-
-          if (valueTextRange.getStartOffset() < valueTextRange.getEndOffset()) {
-            editor.getSelectionModel().setSelection(valueElementStart + valueTextRange.getStartOffset(),
-                                                    valueElementStart + valueTextRange.getEndOffset());
           }
         }
       }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.UnusedResourceDetector;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -25,6 +26,7 @@ import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.refactoring.UnusedResourcesQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.ATTR_KEEP;
 import static com.android.SdkConstants.TOOLS_URI;
@@ -37,8 +39,11 @@ public class AndroidLintUnusedResourcesInspection extends AndroidLintInspectionB
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    String resource = UnusedResourceDetector.getUnusedResource(message, RAW);
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    String resource = LintFix.getData(fixData, String.class);
     if (resource != null) {
       String resourceUrl = "@" + resource.substring(2).replace('.', '/');
       return new AndroidLintQuickFix[]{
