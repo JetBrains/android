@@ -114,12 +114,14 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
 
     ModuleTemplate instantAppTemplate = null;
     if (isInstantAppSdkEnabled()) {
+      outerLoop:
       for (ModuleTemplateProvider provider : myModuleTypesProviders) {
         for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
           if (moduleTemplate.getName().equals("Instant Application")) {
             // This is horrible, however this code is only temporary until we move over to the new NewModuleWizard where all this can be
             // handled more explicitly...
             instantAppTemplate = moduleTemplate;
+            break outerLoop;
           }
         }
       }
