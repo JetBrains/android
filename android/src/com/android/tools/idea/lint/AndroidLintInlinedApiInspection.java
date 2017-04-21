@@ -16,20 +16,10 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.ApiDetector;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
-public class AndroidLintInlinedApiInspection extends AndroidLintInspectionBase {
+public class AndroidLintInlinedApiInspection extends AndroidLintApiInspection {
   public AndroidLintInlinedApiInspection() {
     super(AndroidBundle.message("android.lint.inspections.inlined.api"), ApiDetector.INLINED);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    return AndroidLintNewApiInspection.getApiDetectorFixes(ApiDetector.INLINED, startElement, endElement, message);
   }
 }

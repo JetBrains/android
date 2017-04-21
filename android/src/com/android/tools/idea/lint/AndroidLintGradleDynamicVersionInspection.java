@@ -37,19 +37,18 @@ public class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspec
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
                                              @Nullable LintFix fixData) {
-    if (fixData instanceof LintFix.DataMap) {
-      GradleCoordinate plus = ((LintFix.DataMap)fixData).get(GradleCoordinate.class);
-      if (plus != null && plus.getArtifactId() != null) {
-        return new AndroidLintQuickFix[]{
-          new ReplaceStringQuickFix("Replace with specific version", plus.getRevision(), "specific version") {
-            @Nullable
-            @Override
-            protected String getNewValue() {
-              return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(plus, startElement.getProject());
-            }
-          }};
-      }
+    GradleCoordinate plus = LintFix.getData(fixData, GradleCoordinate.class);
+    if (plus != null && plus.getArtifactId() != null) {
+      return new AndroidLintQuickFix[]{
+        new ReplaceStringQuickFix("Replace with specific version", plus.getRevision(), "specific version") {
+          @Nullable
+          @Override
+          protected String getNewValue() {
+            return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(plus, startElement.getProject());
+          }
+        }};
     }
+
     return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }
