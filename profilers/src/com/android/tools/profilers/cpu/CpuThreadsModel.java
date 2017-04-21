@@ -47,6 +47,7 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     myAspectObserver = new AspectObserver();
 
     myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
+    rangeChanged();
   }
 
   public void rangeChanged() {
