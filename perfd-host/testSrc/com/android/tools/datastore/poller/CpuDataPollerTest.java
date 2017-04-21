@@ -26,6 +26,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestName;
 
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +46,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   private static final String THREAD_NAME_2 = "Thread2";
   private static final int TRACE_ID = 1111;
   private static final ByteString TRACE_DATA = ByteString.copyFrom("Test Data", Charset.defaultCharset());
-  private static final long BASE_TIME_NS = System.nanoTime();
+  private static final long BASE_TIME_NS = TimeUnit.DAYS.toNanos(1);
   private static final long ONE_SECOND_MS = TimeUnit.SECONDS.toMillis(1);
   private static final long TEN_SECONDS_MS = TimeUnit.SECONDS.toMillis(10);
   private static final CpuProfiler.GetThreadsResponse.Thread THREAD1 = CpuProfiler.GetThreadsResponse.Thread.newBuilder()
@@ -90,11 +92,15 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
   private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run);
 
+  public TestName myTestName = new TestName();
+  public TestGrpcService<FakeCpuService> myService =
+    new TestGrpcService<>(CpuDataPollerTest.class, myTestName, myCpuService, new FakeCpuService(), new FakeProfilerService());
+
   @Rule
-  public TestGrpcService<FakeCpuService> myService = new TestGrpcService<>(myCpuService, new FakeCpuService(), new FakeProfilerService());
+  public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     when(myDataStoreService.getCpuClient(any())).thenReturn(CpuServiceGrpc.newBlockingStub(myService.getChannel()));
     when(myDataStoreService.getProfilerClient(any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();

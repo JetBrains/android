@@ -67,7 +67,7 @@ public class ProfilerDevicePoller extends PollRunner {
           .build();
         DeviceData deviceData = myDevices.computeIfAbsent(session, s -> new DeviceData(device));
 
-        myService.setConnectedClients(session, (ManagedChannel)myPollingService.getChannel());
+        myService.setConnectedClients(session, myPollingService.getChannel());
         Profiler.GetProcessesRequest processesRequest =
           Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
         Profiler.GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);

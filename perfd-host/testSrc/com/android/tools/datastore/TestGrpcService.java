@@ -15,19 +15,17 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.datastore.poller.PollRunner;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.util.Function;
-import io.grpc.BindableService;
-import io.grpc.ManagedChannel;
-import io.grpc.Server;
+import io.grpc.*;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
+import org.junit.Assert;
 import org.junit.rules.ExternalResource;
+import org.junit.rules.TestName;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  * JUnit rule for creating a test instance of {@link StudioProfilers} connected over a light,
@@ -37,7 +35,6 @@ import java.util.function.Consumer;
  * Within a test, use {@link #get()} to fetch a valid {@link StudioProfilers} instance.
  */
 public final class TestGrpcService<S extends BindableService> extends ExternalResource {
-  public interface BeforeTick { void apply(); }
   private String myGrpcName;
   private final S myService;
   private final BindableService mySecondaryService;
@@ -45,24 +42,30 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
   private ServicePassThrough myDataStoreService;
   private File myTestFile;
   private DataStoreDatabase myDatabase;
+  private TestGrpcFile myRpcFile;
+  private TestName myMethodName;
+  private String myTestClassName;
 
-  public TestGrpcService(ServicePassThrough dataStoreService, S service) {
-    this(dataStoreService, service, null);
+  public TestGrpcService(Class testClazz, TestName methodName, ServicePassThrough dataStoreService, S service) {
+    this(testClazz, methodName, dataStoreService, service, null);
   }
 
-  public TestGrpcService(ServicePassThrough dataStoreService, S service, BindableService secondaryService) {
+  public TestGrpcService(Class testClazz, TestName methodName, ServicePassThrough dataStoreService, S service, BindableService secondaryService) {
     myService = service;
+    myMethodName = methodName;
+    myTestClassName = testClazz.getSimpleName();
     mySecondaryService = secondaryService;
     myDataStoreService = dataStoreService;
   }
 
   @Override
   protected void before() throws Throwable {
+    myRpcFile = new TestGrpcFile(File.separator + myTestClassName + File.separator + myMethodName.getMethodName());
     myGrpcName = UUID.randomUUID().toString();
     InProcessServerBuilder builder = InProcessServerBuilder.forName(myGrpcName);
-    builder.addService(myService);
+    builder.addService(ServerInterceptors.intercept(myService, new TestServerInterceptor(myRpcFile)));
     if (mySecondaryService != null) {
-      builder.addService(mySecondaryService);
+      builder.addService(ServerInterceptors.intercept(mySecondaryService, new TestServerInterceptor(myRpcFile)));
     }
     myServer = builder.build();
     myServer.start();
@@ -77,15 +80,22 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     myServer.shutdownNow();
     myDatabase.disconnect();
     myTestFile.delete();
+    try {
+      // Validate the gRPC call execution order in its entirety makes it easier to view diffs.
+      myRpcFile.closeAndValidate();
+    } catch (IOException ex) {
+      // Failed to close file handle.
+      Assert.fail("Failed to validate test: " + ex);
+    }
   }
 
   public void shutdownServer() {
     myServer.shutdownNow();
   }
 
-  public ManagedChannel getChannel() {
-    return InProcessChannelBuilder.forName(myGrpcName)
-      .usePlaintext(true)
-      .build();
+  public Channel getChannel() throws FileNotFoundException {
+    return ClientInterceptors.intercept(InProcessChannelBuilder.forName(myGrpcName)
+                                          .usePlaintext(true)
+                                          .build(), new TestClientInterceptor(myRpcFile));
   }
 }
