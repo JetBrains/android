@@ -20,6 +20,7 @@ import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -39,6 +40,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.Features;
@@ -53,6 +55,7 @@ import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
   private final NlPreviewManager myManager;
+  private final Project myProject;
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
   private final MergingUpdateQueue myRenderingQueue =
@@ -85,8 +88,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
-    Project project = myManager.getProject();
-    mySurface = new NlDesignSurface(project, true);
+    myProject = myManager.getProject();
+    mySurface = new NlDesignSurface(myProject, true);
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
@@ -129,11 +132,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       myAnimationToolbar = null;
     }
 
-    createContentPanel();
-
-    myWorkBench = new WorkBench<>(project, "Preview", null);
-    myWorkBench.init(myContentPanel, mySurface,
-                     Collections.singletonList(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
+    myWorkBench = new WorkBench<>(myProject, "Preview", null);
   }
 
   private void createContentPanel() {
@@ -336,12 +335,38 @@ public class NlPreviewForm implements Disposable, CaretListener {
         Disposer.dispose(myModel);
       }
 
-      myModel = NlModel.create(mySurface, null, facet, xmlFile);
-
-      mySurface.setModel(myModel);
-      myPendingFile = new Pending(xmlFile, myModel);
+      if (myContentPanel == null) {  // First time: Make sure we have compiled the project at least once...
+        DelayedInitialization.getInstance(myProject).runAfterBuild(() -> initNeleModel(facet, xmlFile), this::buildError);
+      }
+      else {
+        initNeleModel(facet, xmlFile);
+      }
     }
     return true;
+  }
+
+  private void initNeleModel(@NotNull AndroidFacet facet, @NotNull XmlFile xmlFile) {
+    UIUtil.invokeLaterIfNeeded(() -> initNeleModelOnEventDispatchThread(facet, xmlFile));
+  }
+
+  // Build was either cancelled or there was an error
+  private void buildError() {
+    myWorkBench.setLoadingText("Error.");
+  }
+
+  private void initNeleModelOnEventDispatchThread(@NotNull AndroidFacet facet, @NotNull XmlFile xmlFile) {
+    if (Disposer.isDisposed(this)) {
+      return;
+    }
+    if (myContentPanel == null) {
+      createContentPanel();
+      myWorkBench.init(myContentPanel, mySurface,
+                       Collections.singletonList(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
+    }
+    myModel = NlModel.create(mySurface, null, facet, xmlFile);
+
+    mySurface.setModel(myModel);
+    myPendingFile = new Pending(xmlFile, myModel);
   }
 
   public void setActiveModel(@Nullable NlModel model) {

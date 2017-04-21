@@ -92,7 +92,7 @@ public abstract class SceneView {
   abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
 
   public void switchDevice() {
-    List<Device> devices = ConfigurationManager.getOrCreateInstance(myModel.getModule()).getDevices();
+    List<Device> devices = ConfigurationManager.getOrCreateInstance(myModel.getFacet()).getDevices();
     List<Device> applicable = Lists.newArrayList();
     for (Device device : devices) {
       if (HardwareConfigHelper.isNexus(device)) {

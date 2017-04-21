@@ -87,22 +87,34 @@ public class ConfigurationManager implements Disposable {
   private long myLocaleCacheStamp;
 
   @NotNull
+  public static ConfigurationManager getOrCreateInstance(@NotNull AndroidFacet androidFacet) {
+    return findConfigurationManager(androidFacet, true /* create if necessary */);
+  }
+
+  // TODO: Migrate to use the version that takes an AndroidFacet
+  @NotNull
   public static ConfigurationManager getOrCreateInstance(@NotNull Module module) {
-    return findConfigurationManager(module, true /* create if necessary */);
-  }
-
-  @Nullable
-  public static ConfigurationManager findExistingInstance(@NotNull Module module) {
-    return findConfigurationManager(module, false /* do not create if not found */);
-  }
-
-  @Contract("_, true -> !null")
-  @Nullable
-  private static ConfigurationManager findConfigurationManager(@NotNull Module module, boolean createIfNecessary) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet == null) {
       throw new IllegalArgumentException("Module '" + module.getName() + "' is not an Android module");
     }
+    return findConfigurationManager(androidFacet, true /* create if necessary */);
+  }
+
+  // TODO: Migrate to use a version that takes an AndroidFacet
+  @Nullable
+  public static ConfigurationManager findExistingInstance(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
+      throw new IllegalArgumentException("Module '" + module.getName() + "' is not an Android module");
+    }
+    return findConfigurationManager(androidFacet, false /* do not create if not found */);
+  }
+
+  @Contract("_, true -> !null")
+  @Nullable
+  private static ConfigurationManager findConfigurationManager(@NotNull AndroidFacet androidFacet, boolean createIfNecessary) {
+    Module module = androidFacet.getModule();
 
     ConfigurationManager configurationManager = module.getUserData(KEY);
     if (configurationManager == null && createIfNecessary) {
