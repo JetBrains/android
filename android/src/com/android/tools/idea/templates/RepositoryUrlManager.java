@@ -21,7 +21,6 @@ import com.android.ide.common.repository.GradleCoordinate.ArtifactType;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.MavenRepositories;
 import com.android.ide.common.repository.SdkMavenRepository;
-import com.android.repository.Revision;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
@@ -436,9 +435,9 @@ public class RepositoryUrlManager {
     // Perform network lookup to resolve current best version, if possible
     if (project != null) {
       LintClient client = new LintIdeClient(project);
-      Revision latest = GradleDetector.getLatestVersionFromRemoteRepo(client, coordinate, coordinate.isPreview());
+      GradleVersion latest = GradleDetector.getLatestVersionFromRemoteRepo(client, coordinate, coordinate.isPreview());
       if (latest != null) {
-        String version = latest.toShortString();
+        String version = latest.toString();
         if (version.startsWith(filter)) {
           return version;
         }
