@@ -14,6 +14,8 @@
  */
 package com.android.tools.idea.npw.module;
 
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
@@ -28,14 +30,17 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewModuleModel extends WizardModel {
@@ -219,6 +224,33 @@ public final class NewModuleModel extends WizardModel {
         if (renderTemplateValues != null) {
           renderTemplateValues.put(ATTR_IS_INSTANT_APP, true);
           renderTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
+
+          String projectPath = project.getBasePath();
+          assert projectPath != null;
+          String defaultResourceSuffix = join("src", "main", "res");
+          File projectRoot = new File(projectPath);
+          File baseModuleRoot = new File(projectRoot, "base");
+          File baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+          if (myCreateInExistingProject) {
+            Module baseFeature = InstantApps.findBaseFeature(project);
+            if (baseFeature == null) {
+              baseModuleRoot = new File(projectRoot, myModuleName.get());
+              baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+              renderTemplateValues.put(ATTR_IS_BASE_SPLIT, true);
+            }
+            else {
+              AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
+              assert moduleModel != null;
+              baseModuleRoot = moduleModel.getRootDirPath();
+              Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
+              assert resDirectories.size() > 0;
+              baseModuleResourceRoot = resDirectories.iterator().next();
+            }
+          }
+
+          renderTemplateValues.put(ATTR_BASE_LIB_NAME, baseModuleRoot.getName());
+          renderTemplateValues.put(ATTR_BASE_LIB_DIR, baseModuleRoot.getPath());
+          renderTemplateValues.put(ATTR_BASE_LIB_RES_DIR, baseModuleResourceRoot.getPath());
         }
 
         if (myCreateInExistingProject) {
