@@ -36,7 +36,6 @@ import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -50,7 +49,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 
-import static com.android.tools.idea.instantapp.InstantApps.*;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -101,12 +100,8 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
     myTemplateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
 
-    Module splitModule = getContainingSplit(facet.getModule());
-    if (splitModule != null) {
-      Module baseSplit = getBaseSplitInInstantApp(facet.getModule().getProject());
+    if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
       myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
-      myTemplateValues.put(ATTR_SPLIT_NAME, splitModule.getName());
-      myTemplateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
     }
 
     return this;
@@ -115,6 +110,7 @@ public final class TemplateValueInjector {
   /**
    * Same as {@link #setFacet(AndroidFacet)}, but uses a {link AndroidVersionsInfo.VersionItem}. This version is used when the Module is
    * not created yet.
+   *
    * @param buildVersion Build version information for the new Module being created.
    */
   public TemplateValueInjector setBuildVersion(@NotNull AndroidVersionsInfo.VersionItem buildVersion) {
@@ -139,7 +135,7 @@ public final class TemplateValueInjector {
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_SRC_DIR},
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_SRC_OUT}, etc.
    *
-   * @param paths Project paths
+   * @param paths       Project paths
    * @param packageName Package Name for the module
    */
   public TemplateValueInjector setModuleRoots(@NotNull AndroidProjectPaths paths, @NotNull String packageName) {
@@ -196,7 +192,7 @@ public final class TemplateValueInjector {
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_GRADLE_PLUGIN_VERSION},
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_GRADLE_VERSION}, etc.
    */
-  public TemplateValueInjector setProjectDefaults(@Nullable Project project, @NotNull String moduleTitle) {
+  public TemplateValueInjector setProjectDefaults(@Nullable Project project, @NotNull String moduleTitle, boolean isInstantApp) {
     myTemplateValues.put(ATTR_APP_TITLE, moduleTitle);
 
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
@@ -220,7 +216,8 @@ public final class TemplateValueInjector {
     }
 
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class), false);
+    BuildToolInfo buildTool =
+      sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class), isInstantApp);
     // If buildTool is null, the template will use buildApi (18.0.1) and that may be to old.
     String buildToolVersion = buildTool == null ? GradleImport.CURRENT_BUILD_TOOLS_VERSION : buildTool.getRevision().toString();
     myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolVersion);
@@ -265,6 +262,7 @@ public final class TemplateValueInjector {
 
   /**
    * Find the most appropriated Gradle Plugin version for the specified project.
+   *
    * @param project If {@code null} (ie we are creating a new project) returns the recommended gradle version.
    */
   @NotNull
