@@ -102,8 +102,8 @@ public class InstantAppUrlFinderTest {
     assertThat(iterator.next()).isEqualTo("scheme2://domainD/");
     assertThat(iterator.next()).isEqualTo("scheme1://domainA/pathA");
     assertThat(iterator.next()).isEqualTo("scheme2://domainA/pathA");
-    assertThat(iterator.next()).isEqualTo("scheme1://domainC/pathPrefixC/parameter");
-    assertThat(iterator.next()).isEqualTo("scheme2://domainC/pathPrefixC/parameter");
+    assertThat(iterator.next()).isEqualTo("scheme1://domainC/pathPrefixC/example");
+    assertThat(iterator.next()).isEqualTo("scheme2://domainC/pathPrefixC/example");
   }
 
   @Test
@@ -143,7 +143,7 @@ public class InstantAppUrlFinderTest {
     assertThat(wrapper.getAllUrlData().size()).isEqualTo(2);
     assertThat(wrapper.getOrder()).isEqualTo(3);
     Iterator<InstantAppUrlFinder.UrlData> iterator = wrapper.getAllUrlData().iterator();
-    assertThat(iterator.next().getUrl()).isEqualTo("scheme1://domain/pathPrefix/parameter");
+    assertThat(iterator.next().getUrl()).isEqualTo("scheme1://domain/pathPrefix/example");
     assertThat(iterator.next().getUrl()).isEqualTo("scheme2://domain/pathPattern");
   }
 
@@ -254,13 +254,13 @@ public class InstantAppUrlFinderTest {
   @Test
   public void UrlData_getUrl_withPrefix() {
     assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "/prefix", "").getUrl())
-      .isEqualTo("scheme://domain.url/prefix/parameter");
+      .isEqualTo("scheme://domain.url/prefix/example");
   }
 
   @Test
   public void UrlData_getUrl_withPattern() {
     assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "/.*/X/Y").getUrl())
-      .isEqualTo("scheme://domain.url/parameter/X/Y");
+      .isEqualTo("scheme://domain.url/example/X/Y");
   }
 
   @Test
@@ -316,6 +316,6 @@ public class InstantAppUrlFinderTest {
 
   @Test
   public void UrlData_convertPatternToExample() {
-    assertThat(InstantAppUrlFinder.UrlData.convertPatternToExample(".*")).isEqualTo("parameter");
+    assertThat(InstantAppUrlFinder.UrlData.convertPatternToExample(".*")).isEqualTo("example");
   }
 }
