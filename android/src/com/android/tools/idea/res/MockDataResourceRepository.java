@@ -17,12 +17,9 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
