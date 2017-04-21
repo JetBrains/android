@@ -21,9 +21,13 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.google.common.base.Charsets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
+
+import java.io.IOException;
 
 public class MockDataResourceRepositoryTest extends AndroidTestCase {
   public void testDataLoad() {
@@ -83,5 +87,43 @@ public class MockDataResourceRepositoryTest extends AndroidTestCase {
       new ResourceValue(ResourceUrl.create(null, ResourceType.STRING, "test"), "@mock/refs")).getValue());
 
     assertNull(resolver.findResValue("@mock/invalid", false));
+  }
+
+  public void testResolverCacheInvalidation() {
+    @Language("XML")
+    String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                        "    android:layout_width=\"match_parent\"\n" +
+                        "    android:layout_height=\"match_parent\" />";
+    @Language("XML")
+    String stringsText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                         "<resources>\n" +
+                         "  <string name=\"test1\">Hello 1</string>\n" +
+                         "  <string name=\"test2\">Hello 2</string>\n" +
+                         "</resources>";
+
+    PsiFile mocksFile = myFixture.addFileToProject("mocks/strings",
+                               "string1\n" +
+                               "string2\n" +
+                               "string3\n");
+    PsiFile layout = myFixture.addFileToProject("res/layout/layout.xml", layoutText);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assertEquals("string1", resolver.findResValue("@mock/strings", false).getValue());
+    assertEquals("string2",resolver.findResValue("@mock/strings", false).getValue());
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      try {
+        mocksFile.getVirtualFile().setBinaryContent(("new1\n" +
+                                                     "new2\n" +
+                                                     "new3\n" +
+                                                     "new4\n").getBytes(Charsets.UTF_8));
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+
+    // The cursor does not get reset when the file is changed so we expect "new3" as opposed as getting "new1"
+    assertEquals("new3", resolver.findResValue("@mock/strings", false).getValue());
   }
 }
