@@ -144,7 +144,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     repositories.addAll(libraries);
     repositories.add(resources);
     if (Features.NELE_MOCK_DATA) {
-      repositories.add(new MockDataResourceRepository(facet));
+      repositories.add(new SampleDataResourceRepository(facet));
     }
     return repositories;
   }
