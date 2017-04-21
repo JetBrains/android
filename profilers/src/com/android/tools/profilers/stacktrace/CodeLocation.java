@@ -60,6 +60,20 @@ public final class CodeLocation {
     return myClassName;
   }
 
+  /**
+   * Convenience method for stripping all inner classes (e.g. anything following the first "$")
+   * from {@link #getClassName()}. If this code location's class is already an outer class, its
+   * name is returned as is.
+   */
+  @NotNull
+  public String getOuterClassName() {
+    int innerCharIndex = myClassName.indexOf('$');
+    if (innerCharIndex < 0) {
+      innerCharIndex = myClassName.length();
+    }
+    return myClassName.substring(0, innerCharIndex);
+  }
+
   @Nullable
   public String getFileName() {
     return myFileName;
