@@ -20,6 +20,8 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.BuildSignedApkDialogKeystoreStepFixture;
 import org.jetbrains.android.exportSignedPackage.GradleSignStep;
 import org.junit.Before;
@@ -37,6 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 
 @RunWith(GuiTestRunner.class)
+@RunIn(TestGroup.UNRELIABLE) // b/37560852
 public class BuildSignedApkTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
