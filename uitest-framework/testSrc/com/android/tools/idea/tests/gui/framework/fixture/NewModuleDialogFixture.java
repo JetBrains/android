@@ -19,6 +19,7 @@ import com.android.tools.idea.npw.ModuleTemplate;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureJavaLibraryStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.ASGallery;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -115,6 +116,11 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   public NewModuleDialogFixture chooseClientModule(@NotNull String name) {
     new JComboBoxFixture(robot(), robot().finder().findByName(target(), "ClientModule", JComboBox.class)).selectItem(name);
     return this;
+  }
+
+  @NotNull
+  public ConfigureJavaLibraryStepFixture<NewModuleDialogFixture> getConfigureJavaLibaryStepFixture() {
+    return new ConfigureJavaLibraryStepFixture(this);
   }
 
   @NotNull
