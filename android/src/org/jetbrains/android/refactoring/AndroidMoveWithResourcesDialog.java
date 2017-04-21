@@ -22,6 +22,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.refactoring.ui.RefactoringDialog;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +41,7 @@ public class AndroidMoveWithResourcesDialog extends RefactoringDialog {
   protected AndroidMoveWithResourcesDialog(@NotNull Project project, AndroidMoveWithResourcesProcessor processor) {
     super(project, true);
     myProcessor = processor;
-    setTitle("Move With Resources");
+    setTitle("Modularize");
     init();
   }
 
@@ -57,6 +58,11 @@ public class AndroidMoveWithResourcesDialog extends RefactoringDialog {
   protected JComponent createCenterPanel() {
     final JPanel panel = new JPanel(new BorderLayout());
 
+    panel.add(
+      new JLabel(
+        String.format("Move %1$d classes and %2$d resources to:", myProcessor.getClassesCount(), myProcessor.getResourcesCount())),
+      BorderLayout.NORTH);
+
     // Only offer modules that have an Android facet, otherwise we don't know where to move resources.
     List<Module> suitableModules = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
@@ -67,7 +73,7 @@ public class AndroidMoveWithResourcesDialog extends RefactoringDialog {
 
     ComboBoxModel<Module> model = new CollectionComboBoxModel<>(suitableModules);
     myModuleCombo = new ComboBox<>(model);
-    panel.add(myModuleCombo);
+    panel.add(myModuleCombo, BorderLayout.CENTER);
     return panel;
   }
 }
