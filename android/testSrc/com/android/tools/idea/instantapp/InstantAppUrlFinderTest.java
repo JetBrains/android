@@ -54,7 +54,7 @@ public class InstantAppUrlFinderTest {
   private static Collection<Element> createDummyValidData() throws Exception {
     return ImmutableList.of(
       (Element)createXMLContent("<activity>" +
-                                "  <intent-filter instant:order=\"3\">" +
+                                "  <intent-filter android:order=\"3\">" +
                                 "    <data android:host=\"domainA\"\n" +
                                 "          android:path=\"/pathA\"\n" +
                                 "          android:scheme=\"scheme1\" />" +
@@ -62,7 +62,7 @@ public class InstantAppUrlFinderTest {
                                 "          android:path=\"/pathA\"\n" +
                                 "          android:scheme=\"scheme2\" />" +
                                 "  </intent-filter>" +
-                                "  <intent-filter instant:order=\"1\">" +
+                                "  <intent-filter android:order=\"1\">" +
                                 "    <data android:host=\"domainB\"\n" +
                                 "          android:pathPattern=\"/pathPatternB\"\n" +
                                 "          android:scheme=\"scheme1\" />" +
@@ -72,7 +72,7 @@ public class InstantAppUrlFinderTest {
                                 "  </intent-filter>" +
                                 "</activity>"),
       (Element)createXMLContent("<activity>" +
-                                "  <intent-filter instant:order=\"4\">" +
+                                "  <intent-filter android:order=\"4\">" +
                                 "    <data android:host=\"domainC\"\n" +
                                 "          android:pathPrefix=\"/pathPrefixC\"\n" +
                                 "          android:scheme=\"scheme1\" />" +
@@ -80,7 +80,7 @@ public class InstantAppUrlFinderTest {
                                 "          android:pathPrefix=\"/pathPrefixC\"\n" +
                                 "          android:scheme=\"scheme2\" />" +
                                 "  </intent-filter>" +
-                                "  <intent-filter instant:order=\"2\">" +
+                                "  <intent-filter android:order=\"2\">" +
                                 "    <data android:host=\"domainD\"\n" +
                                 "          android:scheme=\"scheme1\" />" +
                                 "    <data android:host=\"domainD\"\n" +
@@ -129,7 +129,7 @@ public class InstantAppUrlFinderTest {
 
   @Test
   public void InstantAppIntentFilterWrapper() throws Exception {
-    Element intentWithData = (Element)createXMLContent("<intent-filter instant:order=\"3\">" +
+    Element intentWithData = (Element)createXMLContent("<intent-filter android:order=\"3\">" +
                                                        "<data android:host=\"domain\"\n" +
                                                        "      android:pathPrefix=\"/pathPrefix\"\n" +
                                                        "      android:scheme=\"scheme1\" />" +
@@ -172,14 +172,14 @@ public class InstantAppUrlFinderTest {
 
   @Test
   public void InstantAppIntentFilterWrapper_getOrder_Valid() throws Exception {
-    Element intentWithOrder = (Element)createXMLContent("<intent-filter instant:order=\"7\"/>");
+    Element intentWithOrder = (Element)createXMLContent("<intent-filter android:order=\"7\"/>");
 
     assertThat(InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(intentWithOrder)).isEqualTo(7);
   }
 
   @Test
   public void InstantAppIntentFilterWrapper_getOrder_negativeValue() throws Exception {
-    Element negativeValuesAreInvalid = (Element)createXMLContent("<intent-filter instant:order=\"-3\"/>");
+    Element negativeValuesAreInvalid = (Element)createXMLContent("<intent-filter android:order=\"-3\"/>");
 
     exception.expect(IllegalArgumentException.class);
     InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(negativeValuesAreInvalid);
@@ -187,18 +187,10 @@ public class InstantAppUrlFinderTest {
 
   @Test
   public void InstantAppIntentFilterWrapper_getOrder_nonNumericalValue() throws Exception {
-    Element notANumber = (Element)createXMLContent("<intent-filter instant:order=\"foo\"/>");
+    Element notANumber = (Element)createXMLContent("<intent-filter android:order=\"foo\"/>");
 
     exception.expect(IllegalArgumentException.class);
     InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(notANumber);
-  }
-
-  @Test
-  public void InstantAppIntentFilterWrapper_getOrder_wrongNamespace() throws Exception {
-    Element badNamespace = (Element)createXMLContent("<intent-filter android:order=\"3\"/>");
-
-    exception.expect(IllegalArgumentException.class);
-    InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(badNamespace);
   }
 
   @Test
