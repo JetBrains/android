@@ -18,25 +18,33 @@ package com.android.tools.idea.fonts;
 import com.android.tools.idea.fonts.FontFamily.FontSource;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.download.DownloadableFileDescription;
+import com.intellij.util.download.DownloadableFileService;
+import com.intellij.util.download.FileDownloader;
+import com.intellij.util.download.impl.DownloadableFileServiceImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 import static com.android.tools.idea.fonts.FontFamily.FontSource.DOWNLOADABLE;
 import static com.android.tools.idea.fonts.FontFamily.FontSource.PROJECT;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class FontFamilyTest extends FontTestCase {
 
   public void testConstructorAndGetters() {
-    FontFamily family = createFontFamily(GoogleFontProvider.INSTANCE, DOWNLOADABLE, "Roboto", "http://fonts/roboto.ttf", null);
+    FontFamily family = createFontFamily(GoogleFontProvider.INSTANCE, DOWNLOADABLE, "Roboto", "https://fonts.com/roboto/v15/xyz.ttf", null);
     assertThat(family.getProvider()).isEqualTo(GoogleFontProvider.INSTANCE);
     assertThat(family.getFontSource()).isEqualTo(DOWNLOADABLE);
     assertThat(family.getName()).isEqualTo("Roboto");
-    assertThat(family.getMenu()).isEqualTo("http://fonts/roboto.ttf");
+    assertThat(family.getMenu()).isEqualTo("https://fonts.com/roboto/v15/xyz.ttf");
     assertThat(family.getMenuName()).isEqualTo("Roboto");
   }
 
@@ -51,8 +59,8 @@ public class FontFamilyTest extends FontTestCase {
   }
 
   public void testGetCachedMenuFile() {
-    FontFamily family = createFontFamily(GoogleFontProvider.INSTANCE, DOWNLOADABLE, "Roboto", "http://fonts/roboto/v3/roboto.ttf", null);
-    File expected = makeFile(myFontPath, GoogleFontProvider.GOOGLE_FONT_AUTHORITY, "fonts", "roboto", "v3", "roboto.ttf");
+    FontFamily family = createFontFamily(GoogleFontProvider.INSTANCE, DOWNLOADABLE, "Roboto", "https://fonts.com/roboto/v15/xyz.ttf", null);
+    File expected = makeFile(myFontPath, GoogleFontProvider.GOOGLE_FONT_AUTHORITY, "fonts", "roboto", "v15", "xyz.ttf");
     assertThat(family.getCachedMenuFile()).isEquivalentAccordingToCompareTo(expected);
   }
 
@@ -68,7 +76,7 @@ public class FontFamilyTest extends FontTestCase {
                                              @NotNull String menuUrl,
                                              @Nullable String menuName) {
     return new FontFamily(provider, fontSource, name, menuUrl, menuName,
-                          Collections.singletonList(new FontDetail.Builder(400, 100, false, "http://fonts/font.ttf", null)));
+                          Collections.singletonList(new FontDetail.Builder(400, 100, false, "https://fonts.com/roboto/v15/qrs.ttf", null)));
   }
 
   public void testFontFamilyXml() throws IOException {
@@ -94,6 +102,37 @@ public class FontFamilyTest extends FontTestCase {
                  "android:fontStyle=\"italic\" " +
                  "android:fontWeight=\"400\" />" +
                  "</font-family>",
-                 FontFamily.toXml(compoundFontFamily));
+                 compoundFontFamily.toXml());
+  }
+
+  public void testToXmlWithNoCachedFont() {
+    FontFamily family = createFontFamily(GoogleFontProvider.INSTANCE, DOWNLOADABLE, "Roboto", "https://fonts.com/roboto/v15/xyz.ttf", null);
+    String xml = family.toXml();
+    assertThat(xml).isNull();
+  }
+
+  public void testDownload() throws Exception {
+    DownloadableFileService fileService = mockFileService();
+    FontFamily family = createFontFamily(GoogleFontProvider.INSTANCE, DOWNLOADABLE, "Roboto", "https://fonts.com/roboto/v15/xyz.ttf", null);
+    family.download(() -> checkFilesDownloaded(fileService), () -> fail("Error happened during download"));
+  }
+
+  private static void checkFilesDownloaded(@NotNull DownloadableFileService fileService) {
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<DownloadableFileDescription>> filesCaptor = ArgumentCaptor.forClass(List.class);
+    verify(fileService).createDownloader(filesCaptor.capture(), anyString());
+    List<DownloadableFileDescription> files = filesCaptor.getValue();
+    assertThat(files.size()).isEqualTo(2);
+    assertThat(files.get(0).getDownloadUrl()).isEqualTo("https://fonts.com/roboto/v15/xyz.ttf");
+    assertThat(files.get(1).getDownloadUrl()).isEqualTo("https://fonts.com/roboto/v15/qrs.ttf");
+  }
+
+  private DownloadableFileService mockFileService() {
+    FileDownloader downloader = mock(FileDownloader.class);
+    DownloadableFileService fileService = mock(DownloadableFileServiceImpl.class);
+    doCallRealMethod().when(fileService).createFileDescription(anyString(), anyString());
+    registerApplicationComponent(DownloadableFileService.class, fileService);
+    when(fileService.createDownloader(anyList(), anyString())).thenReturn(downloader);
+    return fileService;
   }
 }

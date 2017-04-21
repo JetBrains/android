@@ -44,7 +44,7 @@ public class FontDownloadService {
 
   public static void download(@NotNull List<FontFamily> fontsToDownload,
                               boolean menuFontsOnly,
-                              @NotNull Runnable success,
+                              @Nullable Runnable success,
                               @Nullable Runnable failure) {
     FontDownloadService service = new FontDownloadService(fontsToDownload, menuFontsOnly, success, failure);
     service.download();
@@ -52,7 +52,7 @@ public class FontDownloadService {
 
   private FontDownloadService(@NotNull List<FontFamily> fontsToDownload,
                               boolean menuFontsOnly,
-                              @NotNull Runnable success,
+                              @Nullable Runnable success,
                               @Nullable Runnable failure) {
     myFontPath = DownloadableFontCacheServiceImpl.getInstance().getFontPath();
     myFontsToDownload = fontsToDownload;
@@ -71,23 +71,29 @@ public class FontDownloadService {
       addFontFamily(files, fontFamily);
     }
     if (myFontPath == null) {
-      myFailure.run();
+      notify(myFailure);
       return;
     }
     FileDownloader downloader = DownloadableFileService.getInstance().createDownloader(files, "Download Fonts");
     try {
       downloader.download(myFontPath);
-      mySuccess.run();
+      notify(mySuccess);
     }
     catch (Exception ex) {
       // The multiple file download failed.
       // Attempt to download the files one by one.
       if (performSingleFileDownloads(myFontPath, files)) {
-        mySuccess.run();
+        notify(mySuccess);
       }
       else if (myFailure != null) {
-        myFailure.run();
+        notify(myFailure);
       }
+    }
+  }
+
+  private static void notify(@Nullable Runnable callback) {
+    if (callback != null) {
+      callback.run();
     }
   }
 
