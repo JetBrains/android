@@ -39,6 +39,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.utils.Pair;
 import com.google.common.base.Charsets;
@@ -64,9 +65,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
@@ -81,6 +80,9 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.uast.UElement;
+import org.jetbrains.uast.UFile;
+import org.jetbrains.uast.UastUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -296,7 +298,28 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Nullable
   @Override
   public UastParser getUastParser(@Nullable com.android.tools.lint.detector.api.Project project) {
-    return new DefaultUastParser(project, myProject);
+    return new DefaultUastParser(project, myProject) {
+      @NonNull
+      @Override
+      protected DefaultJavaEvaluator createEvaluator(@Nullable com.android.tools.lint.detector.api.Project project,
+                                                     @NonNull Project p) {
+        return new DefaultJavaEvaluator(p, project) {
+          // Use JavaDirectoryService. From the CLI we avoid it.
+          @Nullable
+          @Override
+          public PsiPackage getPackage(@NonNull PsiElement node) {
+            PsiFile containingFile = node.getContainingFile();
+            if (containingFile != null) {
+              PsiDirectory dir = containingFile.getParent();
+              if (dir != null) {
+                return JavaDirectoryService.getInstance().getPackage(dir);
+              }
+            }
+            return null;
+          }
+        };
+      }
+    };
   }
 
   @NonNull
