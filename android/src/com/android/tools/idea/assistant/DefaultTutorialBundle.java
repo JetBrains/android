@@ -76,6 +76,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @XmlElement(name = "learnMoreLink")
   private String myLearnMoreLink;
 
+  @XmlAttribute(name = "stepByStep")
+  private boolean myStepByStep;
+
   private Icon myIcon;
 
   private Icon myLogo;
@@ -139,6 +142,12 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @Override
+  @Nullable
+  public boolean isStepByStep() {
+    return myStepByStep;
   }
 
   @Nullable
