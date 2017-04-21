@@ -25,12 +25,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewMo
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -46,7 +44,6 @@ import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * Test that newly created Instant App modules do not have errors in them
@@ -76,19 +73,27 @@ public class NewInstantAppModuleTest {
   @Test
   public void testCanBuildDefaultNewInstantAppFeatureModules() throws IOException {
     guiTest.importSimpleApplication();
-    addNewInstantAppModule("feature1");
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
-    addNewInstantAppModule("feature2");
+    addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
-  public void testPackagesGeneratedCorrectly() throws IOException {
+  public void testPackageGeneratedCorrectly() throws IOException {
     guiTest.importSimpleApplication();
-    addNewInstantAppModule("feature");
-    assertNull(getManifest("instantapp"));
-    assertCorrectPackageAndSplit("feature", "featuresplit", "featuresplit");
-    assertCorrectPackageAndSplit("feature","basesplit", null);
+    addNewFeatureModule("feature");
+
+    Module module = guiTest.ideFrame().getModule("feature");
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assertNotNull(facet);
+    Manifest manifest = facet.getManifest();
+    assertNotNull(manifest);
+
+    ApplicationManager.getApplication().runReadAction(() -> {
+      GenericAttributeValue<String> packageAttribute = manifest.getPackage();
+      assertNotNull(packageAttribute);
+      assertThat(packageAttribute.isValid()).isTrue();
+      assertThat(packageAttribute.getStringValue()).isEqualTo("com.example.aia.feature");
+    });
   }
 
   @Test
@@ -112,8 +117,7 @@ public class NewInstantAppModuleTest {
     assertEquals(PROJECT_TYPE_INSTANTAPP, facet.getProjectType());
   }
 
-  private void addNewInstantAppModule(@Nullable String moduleName) {
-
+  private void addNewFeatureModule(@Nullable String moduleName) {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
@@ -121,7 +125,7 @@ public class NewInstantAppModuleTest {
       .chooseModuleType("Feature Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
-      .selectMinimumSdkApi("16");
+      .selectMinimumSdkApi("23");
 
     if (moduleName != null) {
       configureAndroidModuleStep.enterModuleName(moduleName);
@@ -135,33 +139,5 @@ public class NewInstantAppModuleTest {
     ideFrame
       .waitForGradleProjectSyncToFinish(Wait.seconds(20))
       .waitForBuildToFinish(SOURCE_GEN);
-  }
-
-  @Nullable
-  private Manifest getManifest(@NotNull String moduleName) {
-    Module module = guiTest.ideFrame().getModule(moduleName);
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assertNotNull(facet);
-    return facet.getManifest();
-  }
-
-  private void assertCorrectPackageAndSplit(@NotNull String appName, @NotNull String moduleName, @Nullable String splitName) {
-    Manifest manifest = getManifest(moduleName);
-    assertNotNull(manifest);
-
-    ApplicationManager.getApplication().runReadAction(() -> {
-      GenericAttributeValue<String> packageAttribute = manifest.getPackage();
-      assertNotNull(packageAttribute);
-      assertThat(packageAttribute.isValid()).isTrue();
-      assertThat(packageAttribute.getStringValue()).isEqualTo("com.example.aia." + appName + ".instantapp");
-
-      if (splitName != null) {
-        boolean splitNameFound = false;
-        for (PsiElement child : manifest.getXmlElement().getChildren()) {
-          splitNameFound = splitNameFound || child.getText().equals("split=\"" + splitName + "\"");
-        }
-        assertThat(splitNameFound).isTrue();
-      }
-    });
   }
 }
