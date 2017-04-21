@@ -212,8 +212,8 @@
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
-    <action id="AndroidMoveWithResourcesAction" class="org.jetbrains.android.refactoring.AndroidMoveWithResourcesAction" text="Move With Resources..."
-            description="Move classes and their associated resources">
+    <action id="AndroidMoveWithResourcesAction" class="org.jetbrains.android.refactoring.AndroidMoveWithResourcesAction" text="Modularize..."
+            description="Move classes and their associated resources to another module">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidUnusedResourceAction" class="org.jetbrains.android.refactoring.UnusedResourcesAction" text="Remove Unused Resources..."
