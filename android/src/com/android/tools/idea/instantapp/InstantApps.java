@@ -91,12 +91,11 @@ public class InstantApps {
     Module baseFeature = null;
     List<Module> featureModules = findFeatureModules(facet);
     for (Module module : featureModules) {
-      // TODO: once isBaseSplit is merged in then this can be commented out and the code will work
-      //AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      //if (androidModel != null && androidModel.getAndroidProject().isBaseSplit()) {
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      if (androidModel != null && androidModel.getAndroidProject().isBaseSplit()) {
         baseFeature = module;
         break;
-      //}
+      }
     }
     return baseFeature;
   }
