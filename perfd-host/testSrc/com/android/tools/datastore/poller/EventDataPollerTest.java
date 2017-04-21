@@ -26,6 +26,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestName;
 
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +40,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
   private static final int ACTIVITY_HASH = ACTIVITY_NAME.hashCode();
   private static final int TEST_APP_ID = 1234;
   private static final int ACTION_ID = 4321;
-  private static final long START_TIME = System.nanoTime();
+  private static final long START_TIME = TimeUnit.DAYS.toNanos(1);
   private static final long ONE_SECOND = TimeUnit.SECONDS.toNanos(1);
   private static final EventProfiler.SystemData NO_END_SYSTEM_DATA = EventProfiler.SystemData.newBuilder()
     .setProcessId(TEST_APP_ID)
@@ -76,18 +78,21 @@ public class EventDataPollerTest extends DataStorePollerTest {
     .addStateChanges(
       EventProfiler.ActivityStateData.newBuilder()
         .setState(EventProfiler.ActivityStateData.ActivityState.PAUSED)
-        .setTimestamp(START_TIME + ONE_SECOND*2)
+        .setTimestamp(START_TIME + ONE_SECOND * 2)
         .build())
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
   private EventService myEventDataPoller = new EventService(myDataStoreService, getPollTicker()::run);
 
+  private TestName myTestName = new TestName();
+  private TestGrpcService<EventServiceMock> myService =
+    new TestGrpcService<>(EventDataPollerTest.class, myTestName, myEventDataPoller, new EventServiceMock());
   @Rule
-  public TestGrpcService<EventServiceMock> myService = new TestGrpcService<>(myEventDataPoller, new EventServiceMock());
+  public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     when(myDataStoreService.getEventClient(any())).thenReturn(EventServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();
     getPollTicker().run();
@@ -111,11 +116,13 @@ public class EventDataPollerTest extends DataStorePollerTest {
   @Test
   public void testAppStoppedRequestHandled() {
     when(myDataStoreService.getEventClient(any())).thenReturn(null);
-    EventProfiler.EventStopRequest stopRequest = EventProfiler.EventStopRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
+    EventProfiler.EventStopRequest stopRequest =
+      EventProfiler.EventStopRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
     StreamObserver<EventProfiler.EventStopResponse> stopObserver = mock(StreamObserver.class);
     myEventDataPoller.stopMonitoringApp(stopRequest, stopObserver);
     validateResponse(stopObserver, EventProfiler.EventStopResponse.getDefaultInstance());
-    EventProfiler.EventStartRequest startRequest = EventProfiler.EventStartRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
+    EventProfiler.EventStartRequest startRequest =
+      EventProfiler.EventStartRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
     StreamObserver<EventProfiler.EventStartResponse> startObserver = mock(StreamObserver.class);
     myEventDataPoller.startMonitoringApp(startRequest, startObserver);
     validateResponse(startObserver, EventProfiler.EventStartResponse.getDefaultInstance());
@@ -143,8 +150,8 @@ public class EventDataPollerTest extends DataStorePollerTest {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
       .setSession(DataStorePollerTest.SESSION)
-      .setStartTimestamp(START_TIME + ONE_SECOND*2)
-      .setEndTimestamp(START_TIME + ONE_SECOND*5)
+      .setStartTimestamp(START_TIME + ONE_SECOND * 2)
+      .setEndTimestamp(START_TIME + ONE_SECOND * 5)
       .build();
     EventProfiler.SystemDataResponse expectedResponse = EventProfiler.SystemDataResponse.newBuilder()
       .addData(NO_END_SYSTEM_DATA)
