@@ -16,7 +16,8 @@
   -->
 <tutorialBundle
     name="Connection Assistant"
-    resourceRoot="/bundle/connection">
+    resourceRoot="/bundle/connection"
+    stepByStep="true">
   <welcome>
     <![CDATA[Guide you on troubleshooting your device connection issues.]]>
   </welcome>
