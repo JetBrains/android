@@ -42,7 +42,7 @@ import javax.swing.*;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
-import static com.android.tools.idea.instantapp.InstantApps.findInstantAppBaseSplit;
+import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 
 public class DeepLinkChooserDialog extends DialogWrapper {
 
@@ -71,9 +71,9 @@ public class DeepLinkChooserDialog extends DialogWrapper {
 
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        Module baseSplit = findInstantAppBaseSplit(facet);
-        if (baseSplit != null) {
-          deepLinks.addAll(new InstantAppUrlFinder(MergedManifest.get(baseSplit)).getAllUrls());
+        List<Module> featureModules = findFeatureModules(facet);
+        for (Module featureModule : featureModules) {
+          deepLinks.addAll(new InstantAppUrlFinder(MergedManifest.get(featureModule)).getAllUrls());
         }
       }
     }
@@ -83,7 +83,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
   }
 
   @Nullable
-  public String getSelectedDeepLink()  {
+  public String getSelectedDeepLink() {
     return mySelectedDeepLink;
   }
 
@@ -133,6 +133,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
 
   /**
    * Returns all match deep links from a root xml tag.
+   *
    * @param root The root xml tag, usually is the root tag of AndroidManifest.xml
    */
   @VisibleForTesting
@@ -194,7 +195,8 @@ public class DeepLinkChooserDialog extends DialogWrapper {
       String name = category.getAttributeValue(SdkConstants.ATTR_NAME, SdkConstants.NS_RESOURCES);
       if (name != null && name.equals(CATEGORY_DEFAULT)) {
         hasDefaultCategory = true;
-      } else if (name != null && name.equals(CATEGORY_BROWSABLE)) {
+      }
+      else if (name != null && name.equals(CATEGORY_BROWSABLE)) {
         hasBrowsableCategory = true;
       }
     }
@@ -204,9 +206,9 @@ public class DeepLinkChooserDialog extends DialogWrapper {
 
     // Parse deep link
     List<XmlTag> datas = searchXmlTagsByName(intentFilter, TAG_DATA);
-    String scheme=null, host=null, pathPrefix=null, path=null;
+    String scheme = null, host = null, pathPrefix = null, path = null;
     for (XmlTag data : datas) {
-      if(null != data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.NS_RESOURCES)) {
+      if (null != data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.NS_RESOURCES)) {
         scheme = data.getAttributeValue(SdkConstants.ATTR_SCHEME, SdkConstants.NS_RESOURCES);
       }
       if (null != data.getAttributeValue(SdkConstants.ATTR_HOST, SdkConstants.NS_RESOURCES)) {
@@ -227,7 +229,8 @@ public class DeepLinkChooserDialog extends DialogWrapper {
         builder.append(host);
         if (path != null) {
           builder.append(path);
-        } else if (pathPrefix != null) {
+        }
+        else if (pathPrefix != null) {
           builder.append(pathPrefix);
         }
       }

@@ -18,87 +18,23 @@ package com.android.tools.idea.instantapp;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import org.junit.Ignore;
 
-import static com.android.tools.idea.instantapp.InstantApps.*;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
-import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
+import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
+import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
 @Ignore("http://b/35788310")
 public class InstantAppsTest extends AndroidGradleTestCase {
-  public void /*test*/FindBaseSplitWithInstantApp() throws Exception {
+  // TODO: re-enable tests after INSTANT_APP project has been updated
+  public void /*test*/FindBaseFeatureWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
-    assertEquals(myModules.getModule("baseatom"), findInstantAppBaseSplit(myAndroidFacet));
+    assertEquals(myModules.getModule("baseatom"), findBaseFeature(myAndroidFacet));
   }
 
-  public void testFindBaseSplitWithoutInstantApp() throws Exception {
+  public void testFindBaseFeatureWithoutInstantApp() throws Exception {
     loadProject(SIMPLE_APPLICATION, "app");
-    assertNull(findInstantAppBaseSplit(myAndroidFacet));
+    assertNull(findBaseFeature(myAndroidFacet));
   }
-
-  public void /*test*/GetBaseSplitInInstantAppWithInstantApp() throws Exception {
-    loadProject(INSTANT_APP, "baseatom");
-    assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
-  }
-
-  public void /*test*/GetBaseSplitInInstantAppWithMultiAtom() throws Exception {
-    loadProject(MULTI_ATOM, "baseatom");
-    assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
-  }
-
-  public void /*test*/GetBaseSplitInInstantAppWithNestedMultiAtom() throws Exception {
-    loadProject(NESTED_MULTI_ATOM, "atom-base");
-    assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
-  }
-
-  public void /*test*/FindInstantAppModuleWithInstantApp() throws Exception {
-    loadProject(INSTANT_APP, "instant-app");
-    assertEquals(myAndroidFacet.getModule(), findInstantAppModule(getProject()));
-  }
-
-  public void testFindInstantAppModuleWithoutInstantApp() throws Exception {
-    loadProject(SIMPLE_APPLICATION);
-    assertNull(findInstantAppModule(getProject()));
-  }
-
-  public void /*test*/GetInstantAppPackage() throws Exception {
-    loadProject(INSTANT_APP, "baseatom");
-    assertEquals("com.example.instantapp", getInstantAppPackage(myAndroidFacet.getModule()));
-  }
-
-  public void /*test*/GetBaseSplitOutDirSimple() throws Exception {
-    loadProject(INSTANT_APP, "baseatom");
-    assertEquals(join(getProjectFolderPath().getAbsolutePath(), "baseatom"), getBaseSplitOutDir(myAndroidFacet.getModule()));
-  }
-
-  public void /*test*/GetBaseSplitOutDirMultiAtom() throws Exception {
-    loadProject(MULTI_ATOM, "baseatom");
-    assertEquals(join(getProjectFolderPath().getAbsolutePath(), "baselib"), getBaseSplitOutDir(myAndroidFacet.getModule()));
-  }
-
-  public void /*test*/GetBaseSplitOutDirNestedMultiAtom() throws Exception {
-    loadProject(NESTED_MULTI_ATOM, "atom-base");
-    assertEquals(join(getProjectFolderPath().getAbsolutePath(), "lib", "base"), getBaseSplitOutDir(myAndroidFacet.getModule()));
-  }
-
-  public void /*test*/GetContainingSplitWithSplit() throws Exception {
-    loadProject(INSTANT_APP, "baseatom");
-    assertEquals(myAndroidFacet.getModule(), getContainingSplit(myAndroidFacet.getModule()));
-  }
-
-  public void /*test*/GetContainingSplitWithLibrary() throws Exception {
-    loadProject(MULTI_ATOM, "baselib");
-    assertEquals(myModules.getModule("baseatom"), getContainingSplit(myAndroidFacet.getModule()));
-  }
-
-  public void /*test*/GetContainingSplitWithNestedLibrary() throws Exception {
-    loadProject(NESTED_MULTI_ATOM, "lib-base");
-    assertEquals(myModules.getModule("atom-base"), getContainingSplit(myAndroidFacet.getModule()));
-  }
-
-  public void testGetContainingSplitWithoutInstantApp() throws Exception {
-    loadProject(SIMPLE_APPLICATION, "app");
-    assertNull(getContainingSplit(myAndroidFacet.getModule()));
-  }
-
 
   public void /*test*/GetDefaultInstantAppUrlWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
