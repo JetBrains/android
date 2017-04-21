@@ -19,8 +19,6 @@ import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -166,9 +164,9 @@ public class NewInstantAppTest {
 
   @Test
   public void testValidPathInDefaultNewInstantAppProjects() throws IOException {
-    createAndOpenDefaultAIAProject("RouteApp", null);
+    createAndOpenDefaultAIAProject("RouteApp", "routefeature");
 
-    Module module = guiTest.ideFrame().getModule("basesplit");
+    Module module = guiTest.ideFrame().getModule("routefeature");
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertThat(facet).isNotNull();
     assertThat(new InstantAppUrlFinder(MergedManifest.get(facet)).getAllUrls()).isNotEmpty();
