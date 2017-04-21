@@ -23,6 +23,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -117,6 +118,7 @@ public class MockDataResourceRepositoryTest extends AndroidTestCase {
                                                      "new2\n" +
                                                      "new3\n" +
                                                      "new4\n").getBytes(Charsets.UTF_8));
+        PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
       }
       catch (IOException e) {
         e.printStackTrace();
