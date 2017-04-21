@@ -36,29 +36,29 @@ import java.util.Objects;
 import java.util.Set;
 
 
-public class MockDataResourceRepository extends LocalResourceRepository {
+public class SampleDataResourceRepository extends LocalResourceRepository {
   private final ResourceTable myFullTable;
 
-  protected MockDataResourceRepository(AndroidFacet androidFacet) {
+  protected SampleDataResourceRepository(AndroidFacet androidFacet) {
     super("MockData");
 
     myFullTable = new ResourceTable();
 
     // Find all the files in the mocks directory
     VirtualFile contentRoot = AndroidRootUtil.getMainContentRoot(androidFacet);
-    VirtualFile mocksDir = contentRoot != null ? contentRoot.findFileByRelativePath("/mocks") : null;
-    if (mocksDir != null) {
+    VirtualFile sampleDataDir = contentRoot != null ? contentRoot.findFileByRelativePath("/sampledata") : null;
+    if (sampleDataDir != null) {
       ImmutableListMultimap.Builder<String, ResourceItem> items = ImmutableListMultimap.builder();
       PsiManager psiManager = PsiManager.getInstance(androidFacet.getModule().getProject());
       ApplicationManager.getApplication().runReadAction(() -> {
-        Arrays.stream(mocksDir.getChildren())
+        Arrays.stream(sampleDataDir.getChildren())
           .map(psiManager::findFile)
           .filter(Objects::nonNull)
           .forEach(f -> items.put(f.getName(),
-                                  new PsiResourceItem(f.getName(), ResourceType.MOCK, null, null, f)));
+                                  new PsiResourceItem(f.getName(), ResourceType.SAMPLE_DATA, null, null, f)));
       });
 
-      myFullTable.put(null, ResourceType.MOCK, items.build());
+      myFullTable.put(null, ResourceType.SAMPLE_DATA, items.build());
     }
   }
 
