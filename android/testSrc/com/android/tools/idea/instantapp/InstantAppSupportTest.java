@@ -25,44 +25,40 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.project.Project;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.getIrSupportStatus;
-import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseSplit;
+import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseFeature;
 import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 
-@Ignore("http://b/35788310")
 public class InstantAppSupportTest extends AndroidGradleTestCase {
-  public void testFake() {
-  }
 
-  public void /*test*/LoadInstantAppProject() throws Exception {
+  public void testLoadInstantAppProject() throws Exception {
     loadProject(INSTANT_APP);
     generateSources();
 
-    assertModuleIsValidAIAInstantApp(getModule("instant-app"), "baseatom", ImmutableList.of(":baseatom"));
-    assertModuleIsValidAIABaseSplit(getModule("baseatom"), ImmutableList.of());
+    assertModuleIsValidAIAInstantApp(getModule("instant-app"), "feature", ImmutableList.of(":feature"));
+    assertModuleIsValidAIABaseFeature(getModule("feature"), ImmutableList.of());
 
     Project project = getProject();
-    assertFileHasNoErrors(project, new File("baseatom/src/main/java/com/example/instantapp/MainActivity.java"));
-    assertFileHasNoErrors(project, new File("baseatom/src/androidTest/java/com/example/instantapp/ExampleInstrumentedTest.java"));
-    assertFileHasNoErrors(project, new File("baseatom/src/test/java/com/example/instantapp/ExampleUnitTest.java"));
+    assertFileHasNoErrors(project, new File("feature/src/main/java/com/example/instantapp/MainActivity.java"));
+    assertFileHasNoErrors(project, new File("feature/src/androidTest/java/com/example/instantapp/ExampleInstrumentedTest.java"));
+    assertFileHasNoErrors(project, new File("feature/src/test/java/com/example/instantapp/ExampleUnitTest.java"));
   }
 
-  public void /*test*/InstantRunDisabled() throws Exception {
+  public void testInstantRunDisabled() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
 
     // by definition, InstantRunGradleSupport.INSTANT_APP != InstantRunGradleSupport.SUPPORTED
     assertEquals(InstantRunGradleSupport.INSTANT_APP, getIrSupportStatus(getModel(), null));
   }
 
-  public void /*test*/CorrectRunConfigurationsCreated() throws Exception {
+  public void testCorrectRunConfigurationsCreated() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
 
     // Create one run configuration
