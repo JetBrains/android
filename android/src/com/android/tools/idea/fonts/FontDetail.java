@@ -34,7 +34,6 @@ import static com.android.tools.idea.fonts.FontFamily.HTTPS_PROTOCOL_START;
 @Immutable
 public class FontDetail {
   public static final int DEFAULT_WEIGHT = 400;
-  public static final int DEFAULT_BOLD_WEIGHT = 700;
   public static final int DEFAULT_WIDTH = 100;
 
   private final FontFamily myFamily;
@@ -187,10 +186,12 @@ public class FontDetail {
     return Math.abs(myWeight - other.myWeight) + Math.abs(myWidth - other.myWidth) + (myItalics != other.myItalics ? 50 : 0);
   }
 
+  // TODO: Rewrite this class in Kotlin using public var fields. Name the class MutableFontDetail
   public static final class Builder {
     public int myWeight;
     public int myWidth;
     public boolean myItalics;
+    public boolean myExact;
     public String myFontUrl;
     public String myStyleName;
 

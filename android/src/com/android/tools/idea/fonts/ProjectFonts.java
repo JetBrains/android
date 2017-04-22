@@ -27,7 +27,6 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.fonts.FontDetail.DEFAULT_BOLD_WEIGHT;
 import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WEIGHT;
 import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WIDTH;
 import static com.android.tools.idea.fonts.FontFamily.FontSource.LOOKUP;
@@ -45,7 +44,7 @@ public class ProjectFonts {
   private final ResourceResolver myResolver;
   private final ResourceValueMap myFonts;
   private final Map<String, FontFamily> myProjectFonts;
-  private final Map<String, FontFamilyParser.ParseResult> myParseResults;
+  private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
   public ProjectFonts(@NotNull ResourceResolver resolver) {
@@ -95,32 +94,6 @@ public class ProjectFonts {
   }
 
   /**
-   * Resolve a project font name to the cached font file (usually a ttf file).
-   * This method is meant to be used from layoutlib to resolve a downloadable font.
-   * Callers should be able to handle corrupt font files.
-   *
-   * @param name      the name of the font starting with "@font/"
-   * @param textStyle the textStyle wanted of this font
-   * @return the font file specified by the {@param name} defaulting to the {@param textStyle} attribute specified
-   * or <code>null</code> if {@param name} font or its cached file doesn't exists.
-   */
-  @Nullable
-  public File getFontFile(@NotNull String name, @Nullable String textStyle) {
-    int weight = textStyle != null && textStyle.contains("bold") ? DEFAULT_BOLD_WEIGHT : DEFAULT_WEIGHT;
-    boolean italics = textStyle != null && textStyle.contains("italic");
-    FontDetail.Builder wanted = new FontDetail.Builder(weight, DEFAULT_WIDTH, italics, "", null);
-    FontFamily family = resolveFont(name);
-    if (family.getMenu().isEmpty()) {  // Error in definition
-      return null;
-    }
-    FontDetail best = findBestMatch(family.getFonts(), wanted);
-    if (best == null) {
-      return null;
-    }
-    return best.getCachedFontFile();
-  }
-
-  /**
    * Given a font resource name e.g. "@font/myfont" find the {@link FontFamily} it is referring to.
    * The result can be either:
    * <ul>
@@ -153,32 +126,44 @@ public class ProjectFonts {
       }
       return family;
     }
-    FontFamilyParser.ParseResult result = myParseResults.get(name);
-    assert result != null;
-    if (result.getFonts().isEmpty()) {
-      return resolveDownloadableFont(name, result);
+    QueryParser.ParseResult result = myParseResults.get(name);
+    if (result instanceof QueryParser.DownloadableParseResult) {
+      return resolveDownloadableFont(name, (QueryParser.DownloadableParseResult)result);
     }
-    else {
-      return resolveCompoundFont(name, result);
+    if (result instanceof FontFamilyParser.CompoundFontResult) {
+      return resolveCompoundFont(name, (FontFamilyParser.CompoundFontResult)result);
     }
+    return createUnresolvedFontFamily(name);
   }
 
-  private FontFamily resolveDownloadableFont(@NotNull String name, @NotNull FontFamilyParser.ParseResult result) {
-    FontProvider provider = new FontProvider("", result.getAuthority(), "");
-    FontDetail.Builder wanted = result.getFontDetail();
-    FontFamily wantedFamily = new FontFamily(provider, LOOKUP, result.getFontName(), "", null, Collections.singletonList(wanted));
-    FontFamily family = myService.lookup(wantedFamily);
-    if (family == null) {
+  private FontFamily resolveDownloadableFont(@NotNull String name, @NotNull QueryParser.DownloadableParseResult result) {
+    String authority = result.getAuthority();
+    List<FontDetail> details = new ArrayList<>();
+    for (Map.Entry<String, Collection<FontDetail.Builder>> entry : result.getFonts().asMap().entrySet()) {
+      String fontName = entry.getKey();
+      FontProvider providerLookup = new FontProvider("", authority, "");
+      FontFamily wantedFamily = new FontFamily(providerLookup, LOOKUP, fontName, "", null, Collections.emptyList());
+      FontFamily family = myService.lookup(wantedFamily);
+      if (family == null) {
+        return createUnresolvedFontFamily(name);
+      }
+      for (FontDetail.Builder wanted : entry.getValue()) {
+        FontDetail best = findBestMatch(family.getFonts(), wanted);
+        if (best == null) {
+          return createUnresolvedFontFamily(name);
+        }
+        if (details.indexOf(best) < 0) {
+          details.add(best);
+        }
+      }
+    }
+    if (details.isEmpty()) {
       return createUnresolvedFontFamily(name);
     }
-    FontDetail best = findBestMatch(family.getFonts(), wanted);
-    if (best == null) {
-      return createUnresolvedFontFamily(name);
-    }
-    return createSynonym(name, best);
+    return createSynonym(name, details);
   }
 
-  private FontFamily resolveCompoundFont(@NotNull String name, @NotNull FontFamilyParser.ParseResult result) {
+  private FontFamily resolveCompoundFont(@NotNull String name, @NotNull FontFamilyParser.CompoundFontResult result) {
     if (hasCircularReferences(name)) {
       return createUnresolvedFontFamily(name);
     }
@@ -227,15 +212,16 @@ public class ProjectFonts {
       return;
     }
     if (value.endsWith(".xml")) {
-      FontFamilyParser.ParseResult result = FontFamilyParser.parseFontFamily(new File(value));
-      if (result != null) {
-        myParseResults.put(name, result);
-        for (String font : result.getFonts().keySet()) {
+      QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(new File(value));
+      if (result instanceof QueryParser.ParseErrorResult) {
+        createUnresolvedFontFamily(name);
+      }
+      myParseResults.put(name, result);
+      if (result instanceof FontFamilyParser.CompoundFontResult) {
+        FontFamilyParser.CompoundFontResult compoundResult = (FontFamilyParser.CompoundFontResult)result;
+        for (String font : compoundResult.getFonts().keySet()) {
           analyzeFont(font);
         }
-      }
-      else {
-        createUnresolvedFontFamily(name);
       }
       return;
     }
@@ -257,19 +243,22 @@ public class ProjectFonts {
   }
 
   private boolean checkDependencies(@NotNull String name) {
-    FontFamilyParser.ParseResult result = myParseResults.get(name);
+    QueryParser.ParseResult result = myParseResults.get(name);
     if (result == null) {
       return false;
     }
     int dept = myDefinitions.size();
-    for (String dependency : result.getFonts().keySet()) {
-      myDefinitions.subList(dept, myDefinitions.size()).clear();
-      if (myDefinitions.contains(dependency)) {
-        return true;
-      }
-      myDefinitions.add(dependency);
-      if (checkDependencies(dependency)) {
-        return true;
+    if (result instanceof FontFamilyParser.CompoundFontResult) {
+      FontFamilyParser.CompoundFontResult compoundResult = (FontFamilyParser.CompoundFontResult)result;
+      for (String dependency : compoundResult.getFonts().keySet()) {
+        myDefinitions.subList(dept, myDefinitions.size()).clear();
+        if (myDefinitions.contains(dependency)) {
+          return true;
+        }
+        myDefinitions.add(dependency);
+        if (checkDependencies(dependency)) {
+          return true;
+        }
       }
     }
     return false;
@@ -291,12 +280,14 @@ public class ProjectFonts {
     return family;
   }
 
-  private FontFamily createSynonym(@NotNull String name, @NotNull FontDetail detail) {
+  private FontFamily createSynonym(@NotNull String name, @NotNull List<FontDetail> details) {
+    assert !details.isEmpty();
+    FontDetail.Builder wanted = new FontDetail.Builder(400, 100, false, "", null);
+    FontDetail best = findBestMatch(details, wanted);
+    assert best != null;
+    FontProvider provider = best.getFamily().getProvider();
     String fontName = StringUtil.trimStart(name, "@font/");
-    FontFamily original = detail.getFamily();
-    FontDetail.Builder synonym = new FontDetail.Builder(detail);
-    FontFamily family =
-      new FontFamily(original.getProvider(), PROJECT, fontName, detail.getFontUrl(), null, Collections.singletonList(synonym));
+    FontFamily family = FontFamily.createCompound(provider, PROJECT, fontName, best.getFontUrl(), details);
     myProjectFonts.put(name, family);
     return family;
   }
