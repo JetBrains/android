@@ -23,7 +23,6 @@ import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -112,8 +111,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final SelectionModel mySelectionModel;
   private ViewEditorImpl myViewEditor;
 
-  public DesignSurface(@NotNull Project project) {
+  public DesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
+    Disposer.register(parentDisposable, this);
     myProject = project;
 
     setOpaque(true);
@@ -725,33 +725,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  public void notifyComponentActivateInComponentTree(@NotNull NlComponent component) {
-    ViewHandler handler = component.getViewHandler();
-    ViewEditor editor = getViewEditor();
-
-    if (handler != null && editor != null) {
-      handler.onActivateInComponentTree(editor, component);
-    }
-
-    activatePreferredEditor(component);
-  }
-
   /**
    * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
    * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
    */
-  void notifyComponentActivateInDesignSurface(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    ViewHandler handler = component.getViewHandler();
-    ViewEditor editor = getViewEditor();
+  public void notifyComponentActivate(@NotNull NlComponent component, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    notifyComponentActivate(component);
+  }
 
-    if (handler != null && editor != null) {
-      handler.onActivateInDesignSurface(editor, component, x, y);
-    }
-
+  public void notifyComponentActivate(@NotNull NlComponent component) {
     activatePreferredEditor(component);
   }
 
-  private void activatePreferredEditor(@NotNull NlComponent component) {
+  protected void activatePreferredEditor(@NotNull NlComponent component) {
     for (DesignSurfaceListener listener : new ArrayList<>(myListeners)) {
       if (listener.activatePreferredEditor(this, component)) {
         break;

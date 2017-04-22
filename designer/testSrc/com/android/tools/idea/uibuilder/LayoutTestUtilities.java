@@ -102,7 +102,7 @@ public class LayoutTestUtilities {
       assertTrue(listener instanceof MouseListener);
       MouseListener mouseListener = (MouseListener)listener;
       MouseEvent event =
-        new MouseEventBuilder(x, y).withSource(layeredPane).withButton(button).withMask(modifiers).withClickCount(i).build();
+        new MouseEventBuilder(x, y).withSource(layeredPane).withButton(button).withMask(modifiers).withClickCount(i + 1).build();
       mouseListener.mouseClicked(event);
     }
   }

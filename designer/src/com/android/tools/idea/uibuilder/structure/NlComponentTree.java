@@ -539,7 +539,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         return;
       }
 
-      myScreenView.getSurface().notifyComponentActivateInComponentTree((NlComponent)component);
+      myScreenView.getSurface().notifyComponentActivate((NlComponent)component);
     }
   }
 

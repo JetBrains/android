@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.ide.IdeEventQueue;
-import com.intellij.openapi.util.Disposer;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
 
@@ -31,17 +30,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-
-    mySurface = new NlDesignSurface(getProject(), false);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      Disposer.dispose(mySurface);
-    } finally {
-      super.tearDown();
-    }
+    mySurface = new NlDesignSurface(getProject(), false, getTestRootDisposable());
   }
 
   public void testEmptyRenderSuccess() {

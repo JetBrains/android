@@ -24,6 +24,8 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
@@ -130,8 +132,8 @@ public class NlDesignSurface extends DesignSurface {
   private WeakReference<PanZoomPanel> myPanZoomPanel = new WeakReference<>(null);
   private boolean myRenderHasProblems;
 
-  public NlDesignSurface(@NotNull Project project, boolean inPreview) {
-    super(project);
+  public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
+    super(project, parentDisposable);
     myInPreview = inPreview;
   }
 
@@ -553,6 +555,29 @@ public class NlDesignSurface extends DesignSurface {
     }
 
     return new Dimension(requiredWidth, requiredHeight);
+  }
+
+  @Override
+  public void notifyComponentActivate(@NotNull NlComponent component) {
+    ViewHandler handler = component.getViewHandler();
+    ViewEditor editor = getViewEditor();
+
+    if (handler != null && editor != null) {
+      handler.onActivateInComponentTree(editor, component);
+    }
+
+    super.notifyComponentActivate(component);
+  }
+
+  @Override
+  public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
+    ViewHandler handler = component.getViewHandler();
+    ViewEditor editor = getViewEditor();
+
+    if (handler != null && editor != null) {
+      handler.onActivateInDesignSurface(editor, component, x, y);
+    }
+    super.notifyComponentActivate(component, x, y);
   }
 
   private class MyBottomLayer extends Layer {

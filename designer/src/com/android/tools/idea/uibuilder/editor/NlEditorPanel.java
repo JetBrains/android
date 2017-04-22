@@ -65,13 +65,12 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myContentPanel = new JPanel(new BorderLayout());
 
     if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
-      mySurface = new NavDesignSurface(facet);
+      mySurface = new NavDesignSurface(facet, editor);
     }
     else {
-      mySurface = new NlDesignSurface(project, false);
+      mySurface = new NlDesignSurface(project, false, editor);
       ((NlDesignSurface)mySurface).setCentered(true);
     }
-    Disposer.register(editor, mySurface);
 
     setLoadingText("Wait for build to complete");
     DelayedInitialization.getInstance(project).runAfterBuild(this::initNeleModel, this::buildError);

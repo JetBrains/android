@@ -199,7 +199,9 @@ public class InteractionManager {
     layeredPane.removeMouseWheelListener(myListener);
     layeredPane.removeMouseListener(myListener);
     layeredPane.removeKeyListener(myListener);
-    myDropTarget.removeDropTargetListener(myListener);
+    if (myDropTarget != null) {
+      myDropTarget.removeDropTargetListener(myListener);
+    }
     myHoverTimer.removeActionListener(myListener);
     myIsListening = false;
   }
@@ -337,7 +339,7 @@ public class InteractionManager {
             // Notify that the user is interested in a component.
             // A properties manager may move the focus to the most important attribute of the component.
             // Such as the text attribute of a TextView
-            mySurface.notifyComponentActivateInDesignSurface(component, Coordinates.getAndroidX(view, x), Coordinates.getAndroidY(view, y));
+            mySurface.notifyComponentActivate(component, Coordinates.getAndroidX(view, x), Coordinates.getAndroidY(view, y));
           }
         }
       }
