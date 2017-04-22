@@ -89,8 +89,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
     myProject = myManager.getProject();
-    mySurface = new NlDesignSurface(myProject, true);
-    Disposer.register(this, mySurface);
+    mySurface = new NlDesignSurface(myProject, true, this);
     mySurface.setCentered(true);
     mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.addListener(new DesignSurfaceListener() {
