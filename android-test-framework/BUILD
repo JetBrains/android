@@ -15,5 +15,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:jsr305[test]",
         "//tools/adt/idea/adt-ui[module, test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
