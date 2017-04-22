@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.fonts;
 
-import com.google.common.base.Splitter;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -29,9 +27,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WEIGHT;
@@ -44,18 +40,19 @@ import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WIDTH;
  */
 class FontFamilyParser {
 
-  @Nullable
-  static ParseResult parseFontFamily(@NotNull File xmlFile) {
+  @NotNull
+  static QueryParser.ParseResult parseFontFamily(@NotNull File xmlFile) {
     try {
       return parseFontReference(xmlFile);
     }
     catch (SAXException | ParserConfigurationException | IOException ex) {
-      Logger.getInstance(FontFamilyParser.class).error("Could not parse font xml file " + xmlFile, ex);
-      return null;
+      String message = "Could not parse font xml file " + xmlFile;
+      Logger.getInstance(FontFamilyParser.class).error(message, ex);
+      return new QueryParser.ParseErrorResult(message);
     }
   }
 
-  private static ParseResult parseFontReference(@NotNull File xmlFile)
+  private static QueryParser.ParseResult parseFontReference(@NotNull File xmlFile)
     throws SAXException, ParserConfigurationException, IOException {
     SAXParserFactory factory = SAXParserFactory.newInstance();
     factory.setNamespaceAware(true);
@@ -76,15 +73,17 @@ class FontFamilyParser {
     private static final String ATTR_FONT_STYLE = "android:fontStyle";
 
     private final File myFile;
-    private final ParseResult myResult;
+    private QueryParser.ParseResult myResult;
 
     private FontFamilyHandler(@NotNull File file) {
       myFile = file;
-      myResult = new ParseResult();
     }
 
     @NotNull
-    private ParseResult getResult() {
+    private QueryParser.ParseResult getResult() {
+      if (myResult == null) {
+        myResult = new QueryParser.ParseErrorResult("The font file is empty");
+      }
       return myResult;
     }
 
@@ -93,21 +92,14 @@ class FontFamilyParser {
       throws SAXException {
       switch (name) {
         case FONT_FAMILY:
-          myResult.myAuthority = attributes.getValue(ATTR_AUTHORITY);
-          parseQuery(attributes.getValue(ATTR_QUERY));
+          myResult = parseQuery(attributes.getValue(ATTR_AUTHORITY), attributes.getValue(ATTR_QUERY));
           break;
         case FONT:
-          String font = attributes.getValue(ATTR_FONT);
-          FontDetail.Builder detail = new FontDetail.Builder();
-          detail.myWeight = parseInt(attributes.getValue(ATTR_FONT_WEIGHT), DEFAULT_WEIGHT);
-          detail.myWidth = parseInt(attributes.getValue(ATTR_FONT_WIDTH), DEFAULT_WIDTH);
-          detail.myItalics = parseFontStyle(attributes.getValue(ATTR_FONT_STYLE));
-          if (!StringUtil.isEmpty(font)) {
-            if (myResult.myFonts.isEmpty()) {
-              myResult.myFonts = new HashMap<>();
-            }
-            myResult.myFonts.put(font, detail);
-          }
+          String fontName = attributes.getValue(ATTR_FONT);
+          int weight = parseInt(attributes.getValue(ATTR_FONT_WEIGHT), DEFAULT_WEIGHT);
+          int width = parseInt(attributes.getValue(ATTR_FONT_WIDTH), DEFAULT_WIDTH);
+          boolean italics = parseFontStyle(attributes.getValue(ATTR_FONT_STYLE));
+          myResult = addFont(fontName, weight, width, italics);
           break;
         default:
           Logger.getInstance(FontFamilyParser.class).warn("Unrecognized tag: " + name + " in file: " + myFile);
@@ -115,65 +107,68 @@ class FontFamilyParser {
       }
     }
 
-    private void parseQuery(@Nullable String query) {
+    /**
+     * Parse the downloadable font query if present
+     *
+     * The XML file may be either a downloadable font with required attributes: font authority and a query attribute,
+     * or the file may be a font family definition which combines several font tags.
+     */
+    @Nullable
+    private QueryParser.ParseResult parseQuery(@Nullable String authority, @Nullable String query) {
+      // If there already is an error condition stop
+      if (myResult instanceof QueryParser.ParseErrorResult) {
+        return myResult;
+      }
+      // If neither an authority or a query is defined then this XML file must be a font family definition.
+      // Simply return the existing result (which may be null).
+      if (authority == null && query == null) {
+        return myResult;
+      }
+      if (myResult != null) {
+        return new QueryParser.ParseErrorResult("<" + FONT_FAMILY + "> must be the root element");
+      }
+      if (authority == null) {
+        return new QueryParser.ParseErrorResult("The <" + FONT_FAMILY + "> tag must contain an " + ATTR_AUTHORITY + " attribute");
+      }
       if (query == null) {
-        return;
+        return new QueryParser.ParseErrorResult("The <" + FONT_FAMILY + "> tag must contain a " + ATTR_QUERY + " attribute");
       }
-      if (query.indexOf('=') < 0) {
-        myResult.myFontName = query;
-        return;
+      return QueryParser.parseDownloadableFont(authority, query);
+    }
+
+    private QueryParser.ParseResult addFont(@Nullable String fontName, int weight, int width, boolean italics) {
+      if (myResult instanceof QueryParser.ParseErrorResult) {
+        return myResult;
       }
-      for (String part : Splitter.on('&').trimResults().split(query)) {
-        List<String> parameter = Splitter.on('=').splitToList(part);
-        if (parameter.size() == 2) {
-          switch (parameter.get(0)) {
-            case "name":
-              myResult.myFontName = parameter.get(1);
-              break;
-            case "weight":
-              myResult.myDetail.myWeight = parseInt(parameter.get(1), DEFAULT_WEIGHT);
-              break;
-            case "width":
-              myResult.myDetail.myWidth = parseInt(parameter.get(1), DEFAULT_WIDTH);
-              break;
-            case "italic":
-              myResult.myDetail.myItalics = parseItalics(parameter.get(1));
-              break;
-          }
-        }
+      if (myResult != null && !(myResult instanceof CompoundFontResult)) {
+        return new QueryParser.ParseErrorResult("<" + FONT + "> is not allowed in a downloadable font definition");
       }
+      if (fontName == null) {
+        return new QueryParser.ParseErrorResult("The <" + FONT + "> tag must contain a " + ATTR_FONT + " attribute");
+      }
+      CompoundFontResult result = (CompoundFontResult)myResult;
+      if (result == null) {
+        result = new CompoundFontResult();
+      }
+      result.addFont(fontName, weight, width, italics);
+      return result;
     }
   }
 
-  static class ParseResult {
-    private String myAuthority;
-    private String myFontName;
-    private FontDetail.Builder myDetail;
+  static class CompoundFontResult extends QueryParser.ParseResult {
     private Map<String, FontDetail.Builder> myFonts;
 
-    ParseResult() {
-      myDetail = new FontDetail.Builder();
-      myFonts = Collections.emptyMap();
-    }
-
-    @NotNull
-    public String getAuthority() {
-      return StringUtil.notNullize(myAuthority);
-    }
-
-    @NotNull
-    public String getFontName() {
-      return StringUtil.notNullize(myFontName);
-    }
-
-    @NotNull
-    public FontDetail.Builder getFontDetail() {
-      return myDetail;
+    CompoundFontResult() {
+      myFonts = new HashMap<>();
     }
 
     @NotNull
     Map<String, FontDetail.Builder> getFonts() {
       return myFonts;
+    }
+
+    private void addFont(@NotNull String fontName, int weight, int width, boolean italics) {
+      myFonts.put(fontName, new FontDetail.Builder(weight, width, italics, "", null));
     }
   }
 
