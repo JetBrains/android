@@ -154,4 +154,15 @@ public class NativeLibraryTest extends IdeaTestCase {
     assertThat(library.pathMappings).isEmpty();
     assertEquals(debuggableFile.getPath(), library.debuggableFilePath);
   }
+
+  public void testGetUserSelectedPathsInMappings() {
+    NativeLibrary library = new NativeLibrary("library");
+    assertThat(library.getUserSelectedPathsInMappings()).isEmpty();
+
+    library.pathMappings.put("abc.so", "");
+    assertThat(library.getUserSelectedPathsInMappings()).isEmpty();
+
+    library.pathMappings.put("xyz.so", "123.so");
+    assertThat(library.getUserSelectedPathsInMappings()).containsExactly("123.so");
+  }
 }

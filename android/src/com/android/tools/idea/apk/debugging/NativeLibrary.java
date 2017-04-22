@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Transient;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -150,6 +152,12 @@ public class NativeLibrary {
     hasDebugSymbols = true;
     debuggableFilePath = debuggableFile.getPath();
     pathMappings.clear();
+  }
+
+  @NotNull
+  public List<String> getUserSelectedPathsInMappings() {
+    Collection<String> values = pathMappings.values();
+    return values.isEmpty() ? Collections.emptyList() : values.stream().filter(StringUtil::isNotEmpty).collect(Collectors.toList());
   }
 
   @Override
