@@ -141,6 +141,7 @@ public class NativeLibraryTest extends IdeaTestCase {
     NativeLibrary library = new NativeLibrary("library");
     library.hasDebugSymbols = false;
     library.pathMappings.put("abc.so", "");
+    library.sourceFolderPaths.add("source1");
 
     VirtualFile debuggableFile = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
       @Override
@@ -152,6 +153,7 @@ public class NativeLibraryTest extends IdeaTestCase {
     library.setDebuggableFile(debuggableFile);
     assertTrue(library.hasDebugSymbols);
     assertThat(library.pathMappings).isEmpty();
+    assertThat(library.sourceFolderPaths).isEmpty();
     assertEquals(debuggableFile.getPath(), library.debuggableFilePath);
   }
 

@@ -152,6 +152,7 @@ public class NativeLibrary {
     hasDebugSymbols = true;
     debuggableFilePath = debuggableFile.getPath();
     pathMappings.clear();
+    sourceFolderPaths.clear();
   }
 
   @NotNull
