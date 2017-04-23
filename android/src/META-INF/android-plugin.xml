@@ -276,6 +276,12 @@
         description="Help debug device connection">
       <add-to-group group-id="ToolsMenu" relative-to-action="AndroidToolsGroup" anchor="before"/>
     </action>
+    <action
+      id="LayoutEditor.AddSampleData"
+      class="com.android.tools.idea.sampledata.AddSampleDataFileAction"
+      text="Add Sample Data File"
+      description="Adds a new data sample file">
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
