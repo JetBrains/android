@@ -15,138 +15,77 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.LintOptions;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
 
 /**
- * Creates a deep copy of {@link LintOptions}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link LintOptions}.
  */
-public class IdeLintOptions extends IdeModel implements LintOptions {
-  @NotNull private final Set<String> myDisable;
-  @NotNull private final Set<String> myEnable;
-  @Nullable private final Set<String> myCheck;
-  @Nullable private final File myLintConfig;
-  @Nullable private final File myTextOutput;
-  @Nullable private final File myHtmlOutput;
-  @Nullable private final File myXmlOutput;
+public final class IdeLintOptions extends IdeModel implements LintOptions {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @Nullable private final File myBaselineFile;
-  @Nullable private final Map<String,Integer> mySeverityOverrides;
-  private final boolean myAbortOnError;
-  private final boolean myAbsolutePaths;
-  private final boolean myNoLines;
-  private final boolean myQuiet;
-  private final boolean myCheckAllWarnings;
-  private final boolean myIgnoreWarnings;
-  private final boolean myWarningsAsErrors;
+  @Nullable private final Map<String, Integer> mySeverityOverrides;
   private final boolean myCheckTestSources;
-  private final boolean myCheckGeneratedSources;
-  private final boolean myExplainIssues;
-  private final boolean myShowAll;
-  private final boolean myTextReport;
-  private final boolean myHtmlReport;
-  private final boolean myXmlReport;
-  private final boolean myCheckReleaseBuilds;
 
-  public IdeLintOptions(@NotNull LintOptions options, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
+  public IdeLintOptions(@NotNull LintOptions options, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
     super(options, modelCache);
-    myDisable = new HashSet<>(options.getDisable());
-    myEnable = new HashSet<>(options.getEnable());
+    myBaselineFile = modelVersion.isAtLeast(2, 3, 0, "beta", 2, true) ? options.getBaselineFile() : null;
+    mySeverityOverrides = copy(options.getSeverityOverrides());
+    myCheckTestSources = modelVersion.isAtLeast(2, 4, 0) && options.isCheckTestSources();
+  }
 
-    Set<String> opCheck = options.getCheck();
-    myCheck = opCheck == null ? null : new HashSet<>(opCheck);
-
-    myLintConfig = options.getLintConfig();
-    myTextOutput = options.getTextOutput();
-    myHtmlOutput = options.getHtmlOutput();
-    myXmlOutput = options.getXmlOutput();
-
-    if (gradleVersion.isAtLeast(2, 3, 0, "beta", 2, true)) {
-      myBaselineFile = options.getBaselineFile();
-    }
-    else {
-      myBaselineFile = null;
-    }
-
-    Map<String, Integer> opSeverityOverrides = options.getSeverityOverrides();
-    mySeverityOverrides = opSeverityOverrides == null ? null : new HashMap<>(opSeverityOverrides);
-
-    myAbortOnError = options.isAbortOnError();
-    myAbsolutePaths = options.isAbsolutePaths();
-    myNoLines = options.isNoLines();
-    myQuiet = options.isQuiet();
-    myCheckAllWarnings = options.isCheckAllWarnings();
-    myIgnoreWarnings = options.isIgnoreWarnings();
-    myWarningsAsErrors = options.isWarningsAsErrors();
-
-    if (gradleVersion.isAtLeast(2, 4, 0)) {
-      myCheckTestSources = options.isCheckTestSources();
-    }
-    else {
-      myCheckTestSources = false;
-    }
-
-    if (gradleVersion.isAtLeast(2, 4, 0, "alpha", 6, true)) {
-      myCheckGeneratedSources = options.isCheckGeneratedSources();
-    }
-    else {
-      myCheckGeneratedSources = false;
-    }
-
-    myExplainIssues = options.isExplainIssues();
-    myShowAll = options.isShowAll();
-    myTextReport = options.getTextReport();
-    myHtmlReport = options.getHtmlReport();
-    myXmlReport = options.getXmlReport();
-    myCheckReleaseBuilds = options.isCheckReleaseBuilds();
+  @Nullable
+  private static Map<String, Integer> copy(@Nullable Map<String, Integer> original) {
+    return original != null ? new HashMap<>(original) : null;
   }
 
   @Override
   @NotNull
   public Set<String> getDisable() {
-    return myDisable;
+    throw new UnusedModelMethodException("getDisable");
   }
 
   @Override
   @NotNull
   public Set<String> getEnable() {
-    return myEnable;
+    throw new UnusedModelMethodException("getEnable");
   }
 
   @Override
   @Nullable
   public Set<String> getCheck() {
-    return myCheck;
+    throw new UnusedModelMethodException("getCheck");
   }
 
   @Override
   @Nullable
   public File getLintConfig() {
-    return myLintConfig;
+    throw new UnusedModelMethodException("getLintConfig");
   }
 
   @Override
   @Nullable
   public File getTextOutput() {
-    return myTextOutput;
+    throw new UnusedModelMethodException("getTextOutput");
   }
 
   @Override
   @Nullable
   public File getHtmlOutput() {
-    return myHtmlOutput;
+    throw new UnusedModelMethodException("getHtmlOutput");
   }
 
   @Override
   @Nullable
   public File getXmlOutput() {
-    return myXmlOutput;
+    throw new UnusedModelMethodException("getXmlOutput");
   }
 
   @Override
@@ -163,37 +102,37 @@ public class IdeLintOptions extends IdeModel implements LintOptions {
 
   @Override
   public boolean isAbortOnError() {
-    return myAbortOnError;
+    throw new UnusedModelMethodException("isAbortOnError");
   }
 
   @Override
   public boolean isAbsolutePaths() {
-    return myAbsolutePaths;
+    throw new UnusedModelMethodException("isAbsolutePaths");
   }
 
   @Override
   public boolean isNoLines() {
-    return myNoLines;
+    throw new UnusedModelMethodException("isNoLines");
   }
 
   @Override
   public boolean isQuiet() {
-    return myQuiet;
+    throw new UnusedModelMethodException("isQuiet");
   }
 
   @Override
   public boolean isCheckAllWarnings() {
-    return myCheckAllWarnings;
+    throw new UnusedModelMethodException("isCheckAllWarnings");
   }
 
   @Override
   public boolean isIgnoreWarnings() {
-    return myIgnoreWarnings;
+    throw new UnusedModelMethodException("isIgnoreWarnings");
   }
 
   @Override
   public boolean isWarningsAsErrors() {
-    return myWarningsAsErrors;
+    throw new UnusedModelMethodException("isWarningsAsErrors");
   }
 
   @Override
@@ -203,68 +142,64 @@ public class IdeLintOptions extends IdeModel implements LintOptions {
 
   @Override
   public boolean isCheckGeneratedSources() {
-    return myCheckGeneratedSources;
+    throw new UnusedModelMethodException("isCheckGeneratedSources");
   }
 
   @Override
   public boolean isExplainIssues() {
-    return myExplainIssues;
+    throw new UnusedModelMethodException("isExplainIssues");
   }
 
   @Override
   public boolean isShowAll() {
-    return myShowAll;
+    throw new UnusedModelMethodException("isShowAll");
   }
 
   @Override
   public boolean getTextReport() {
-    return myTextReport;
+    throw new UnusedModelMethodException("getTextReport");
   }
 
   @Override
   public boolean getHtmlReport() {
-    return myHtmlReport;
+    throw new UnusedModelMethodException("getHtmlReport");
   }
 
   @Override
   public boolean getXmlReport() {
-    return myXmlReport;
+    throw new UnusedModelMethodException("getXmlReport");
   }
 
   @Override
   public boolean isCheckReleaseBuilds() {
-    return myCheckReleaseBuilds;
+    throw new UnusedModelMethodException("isCheckReleaseBuilds");
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof LintOptions)) return false;
-    LintOptions options = (LintOptions)o;
-    return isAbortOnError() == options.isAbortOnError() &&
-           isAbsolutePaths() == options.isAbsolutePaths() &&
-           isNoLines() == options.isNoLines() &&
-           isQuiet() == options.isQuiet() &&
-           isCheckAllWarnings() == options.isCheckAllWarnings() &&
-           isIgnoreWarnings() == options.isIgnoreWarnings() &&
-           isWarningsAsErrors() == options.isWarningsAsErrors() &&
-           isCheckTestSources() == options.isCheckTestSources() &&
-           isCheckGeneratedSources() == options.isCheckGeneratedSources() &&
-           isExplainIssues() == options.isExplainIssues() &&
-           isShowAll() == options.isShowAll() &&
-           getTextReport() == options.getTextReport() &&
-           getHtmlReport() == options.getHtmlReport() &&
-           getXmlReport() == options.getXmlReport() &&
-           isCheckReleaseBuilds() == options.isCheckReleaseBuilds() &&
-           Objects.equals(getDisable(), options.getDisable()) &&
-           Objects.equals(getEnable(), options.getEnable()) &&
-           Objects.equals(getCheck(), options.getCheck()) &&
-           Objects.equals(getLintConfig(), options.getLintConfig()) &&
-           Objects.equals(getTextOutput(), options.getTextOutput()) &&
-           Objects.equals(getHtmlOutput(), options.getHtmlOutput()) &&
-           Objects.equals(getXmlOutput(), options.getXmlOutput()) &&
-           Objects.equals(getBaselineFile(), options.getBaselineFile()) &&
-           Objects.equals(getSeverityOverrides(), options.getSeverityOverrides());
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeLintOptions)) {
+      return false;
+    }
+    IdeLintOptions options = (IdeLintOptions)o;
+    return myCheckTestSources == options.myCheckTestSources &&
+           Objects.equals(myBaselineFile, options.myBaselineFile) &&
+           Objects.equals(mySeverityOverrides, options.mySeverityOverrides);
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(myBaselineFile, mySeverityOverrides, myCheckTestSources);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeLintOptions{" +
+           "myBaselineFile=" + myBaselineFile +
+           ", mySeverityOverrides=" + mySeverityOverrides +
+           ", myCheckTestSources=" + myCheckTestSources +
+           "} " + super.toString();
+  }
 }
