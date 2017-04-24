@@ -188,6 +188,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       cpuUsageData.setSystemCpuTimeInMillisec(0);
       cpuUsageData.setAppCpuTimeInMillisec(0);
       CpuProfiler.CpuProfilerData.Builder data = CpuProfiler.CpuProfilerData.newBuilder().setCpuUsage(cpuUsageData);
+      data.getBasicInfoBuilder().setEndTimestamp(0).build();
       response.addData(data);
 
       // Add second usage data.
@@ -196,6 +197,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       cpuUsageData.setSystemCpuTimeInMillisec(mySystemTimeMs);
       cpuUsageData.setAppCpuTimeInMillisec(myAppTimeMs);
       data = CpuProfiler.CpuProfilerData.newBuilder().setCpuUsage(cpuUsageData);
+      data.getBasicInfoBuilder().setEndTimestamp(0).build();
       response.addData(data);
     }
 

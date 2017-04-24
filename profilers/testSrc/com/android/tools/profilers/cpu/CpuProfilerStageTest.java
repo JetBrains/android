@@ -28,6 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -444,6 +445,22 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertEquals(capture2, myStage.getCapture());
     // Thread selection should be kept instead of selecting capture2 main thread.
     assertEquals(otherThread, myStage.getSelectedThread());
+  }
+
+  @Test
+  public void testTooltipLegends() {
+    myStage.enter();
+    CpuProfilerStage.CpuStageLegends legends = myStage.getTooltipLegends();
+    double tooltipTime = TimeUnit.SECONDS.toMicros(0);
+    myCpuService.setAppTimeMs(10);
+    myCpuService.setSystemTimeMs(50);
+    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
+    assertEquals("App", legends.getCpuLegend().getName());
+    assertEquals("Others", legends.getOthersLegend().getName());
+    assertEquals("Threads", legends.getThreadsLegend().getName());
+    assertEquals("10%", legends.getCpuLegend().getValue());
+    assertEquals("40%", legends.getOthersLegend().getValue());
+    assertEquals("1", legends.getThreadsLegend().getValue());
   }
 
   private void captureSuccessfully() throws InterruptedException {
