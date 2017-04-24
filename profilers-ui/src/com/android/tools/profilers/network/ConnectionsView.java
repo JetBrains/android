@@ -25,9 +25,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ExpandedItemRendererComponentWrapper;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,12 +35,9 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -50,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_AXIS;
 import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_AXIS_SELECTED;
+import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_HOVER_COLOR;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -157,7 +153,7 @@ final class ConnectionsView {
     myTableModel = new ConnectionsTableModel(selectionRange);
     mySelectionRange = selectionRange;
 
-    myConnectionsTable = new ConnectionsTable(myTableModel);
+    myConnectionsTable = new HoverRowTable(myTableModel, NETWORK_TABLE_HOVER_COLOR);
     customizeConnectionsTable();
   }
 
@@ -364,65 +360,6 @@ final class ConnectionsView {
 
       model.update(1);
       return axis;
-    }
-  }
-
-  private static final class ConnectionsTable extends JBTable {
-    private int myHoveredRow = -1;
-
-    ConnectionsTable(@NotNull TableModel model) {
-      super(model);
-
-      MouseAdapter mouseAdapter = new MouseAdapter() {
-        @Override
-        public void mouseMoved(MouseEvent e) {
-          hoveredRowChanged(rowAtPoint(e.getPoint()));
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-          hoveredRowChanged(-1);
-        }
-
-        private void hoveredRowChanged(int row) {
-          if (row == myHoveredRow) {
-            return;
-          }
-          myHoveredRow = row;
-          ConnectionsTable.this.repaint();
-        }
-      };
-      addMouseMotionListener(mouseAdapter);
-      addMouseListener(mouseAdapter);
-    }
-
-    @NotNull
-    @Override
-    public Component prepareRenderer(@NotNull TableCellRenderer renderer, int row, int column) {
-      Component comp = super.prepareRenderer(renderer, row, column);
-      Component toChangeComp = comp;
-
-      if (comp instanceof ExpandedItemRendererComponentWrapper) {
-        // To be able to show extended value of a cell via popup, when the value is stripped,
-        // JBTable wraps the cell component into ExpandedItemRendererComponentWrapper.
-        // So, we need to change background and foreground colors of the cell component rather than the wrapper.
-        toChangeComp = ((ExpandedItemRendererComponentWrapper)comp).getComponent(0);
-      }
-
-      if (isRowSelected(row)) {
-        toChangeComp.setForeground(getSelectionForeground());
-        toChangeComp.setBackground(getSelectionBackground());
-      }
-      else if (row == myHoveredRow) {
-        toChangeComp.setBackground(ProfilerColors.NETWORK_TABLE_HOVER_COLOR);
-        toChangeComp.setForeground(getForeground());
-      }
-      else {
-        toChangeComp.setBackground(getBackground());
-        toChangeComp.setForeground(getForeground());
-      }
-
-      return comp;
     }
   }
 }

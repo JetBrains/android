@@ -27,10 +27,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.Is.is;
@@ -65,50 +65,55 @@ public class ThreadsViewTest {
   @Test
   public void showsCorrectThreadData() {
     Range selection = myStageView.getTimeline().getSelectionRange();
-    JList<List<HttpData>> list = getList();
+    JTable table = getTable();
 
     selection.set(0, TimeUnit.SECONDS.toMicros(22));
-    assertThat(list.getModel().getSize(), is(2));
-    assertThat(list.getModel().getElementAt(0), is(Arrays.asList(FAKE_DATA.get(0), FAKE_DATA.get(2), FAKE_DATA.get(3))));
-    assertThat(list.getModel().getElementAt(1), is(Arrays.asList(FAKE_DATA.get(1), FAKE_DATA.get(4))));
+    assertThat(table.getModel().getRowCount(), is(2));
+    assertThat(table.getModel().getValueAt(0, 0), is("threadA"));
+    assertThat(table.getModel().getValueAt(0, 1), is(Arrays.asList(FAKE_DATA.get(0), FAKE_DATA.get(2), FAKE_DATA.get(3))));
+    assertThat(table.getModel().getValueAt(1, 0), is("threadB"));
+    assertThat(table.getModel().getValueAt(1, 1), is(Arrays.asList(FAKE_DATA.get(1), FAKE_DATA.get(4))));
   }
 
   @Test
   public void shouldHandleEmptySelection() {
     Range selection = myStageView.getTimeline().getSelectionRange();
-    JList<List<HttpData>> list = getList();
+    JTable list = getTable();
 
     selection.set(0, TimeUnit.SECONDS.toMicros(22));
-    assertThat(list.getModel().getSize(), is(2));
+    assertThat(list.getModel().getRowCount(), is(2));
 
     selection.clear();
-    assertThat(list.getModel().getSize(), is(0));
+    assertThat(list.getModel().getRowCount(), is(0));
   }
 
   @Test
   public void shouldHandleThreadsWithTheSameNameButDifferentID() {
     Range selection = myStageView.getTimeline().getSelectionRange();
-    JList<List<HttpData>> list = getList();
+    JTable table = getTable();
 
     selection.set(TimeUnit.SECONDS.toMicros(99), TimeUnit.SECONDS.toMicros(120));
-    assertThat(list.getModel().getSize(), is(2));
-    assertThat(list.getModel().getElementAt(0), is(Collections.singletonList(FAKE_DATA.get(5))));
-    assertThat(list.getModel().getElementAt(1), is(Collections.singletonList(FAKE_DATA.get(6))));
+    assertThat(table.getModel().getRowCount(), is(2));
+    assertThat(table.getModel().getValueAt(0, 0), is("threadC"));
+    assertThat(table.getModel().getValueAt(0, 1), is(Collections.singletonList(FAKE_DATA.get(5))));
+    assertThat(table.getModel().getValueAt(1, 0), is("threadC"));
+    assertThat(table.getModel().getValueAt(1, 1), is(Collections.singletonList(FAKE_DATA.get(6))));
   }
 
   @Test
   public void ensureAxisInList() {
-    JList<List<HttpData>> list = this.getList();
+    JTable table = getTable();
     Range selection = myStageView.getTimeline().getSelectionRange();
     selection.set(0, TimeUnit.SECONDS.toMicros(22));
 
-    Component rendered = list.getCellRenderer().getListCellRendererComponent(list, list.getModel().getElementAt(0), 0, false, false);
-    assertTrue(new TreeWalker(rendered).descendantStream().anyMatch(c -> c instanceof AxisComponent));
+    TableCellRenderer renderer = table.getCellRenderer(0, 1);
+    Component comp = table.prepareRenderer(renderer, 0, 1);
+    assertTrue(new TreeWalker(comp).descendantStream().anyMatch(c -> c instanceof AxisComponent));
   }
 
   @NotNull
-  private JList<List<HttpData>> getList() {
-    return (JList<List<HttpData>>)myView.getComponent();
+  private JTable getTable() {
+    return (JTable)myView.getComponent();
   }
 
   @NotNull

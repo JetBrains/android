@@ -22,15 +22,16 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
-import com.intellij.ui.components.JBList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.*;
 import java.util.List;
 
@@ -38,31 +39,49 @@ import java.util.List;
  * Displays network connection information of all threads.
  */
 final class ThreadsView {
-  private static final int CELL_HEIGHT = 15;
+  private static final int ROW_HEIGHT = 19;
 
   @NotNull
-  private final JList<List<HttpData>> myThreadsList;
+  private final JTable myThreadsTable;
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
-    myThreadsList = new JBList<>(new ThreadListModel(stageView.getStage()));
-    myThreadsList.setCellRenderer(new ThreadCellRenderer(myThreadsList, stageView.getTimeline()));
-    myThreadsList.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myThreadsList.setFont(AdtUiUtils.FONT_DEFAULT);
-    myThreadsList.setFixedCellHeight(CELL_HEIGHT);
+    myThreadsTable = new HoverRowTable(new ThreadsTableModel(stageView.getStage()), ProfilerColors.NETWORK_TABLE_HOVER_COLOR);
+    myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(new TimelineRenderer(myThreadsTable, stageView.getTimeline()));
+    myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    myThreadsTable.setFont(AdtUiUtils.FONT_DEFAULT);
+    myThreadsTable.setShowVerticalLines(true);
+    myThreadsTable.setShowHorizontalLines(false);
+    myThreadsTable.setTableHeader(null);
+    myThreadsTable.setCellSelectionEnabled(false);
+    myThreadsTable.setFocusable(false);
+    myThreadsTable.setRowMargin(0);
+
+    myThreadsTable.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        myThreadsTable.getColumnModel().getColumn(0).setPreferredWidth((int)(myThreadsTable.getWidth() * 1.0/8));
+        myThreadsTable.getColumnModel().getColumn(1).setPreferredWidth((int)(myThreadsTable.getWidth() * 7.0/8));
+      }
+    });
+
+    myThreadsTable.setRowHeight(ROW_HEIGHT);
   }
 
   @NotNull
   JComponent getComponent() {
-    return myThreadsList;
+    return myThreadsTable;
   }
 
-  private static final class ThreadListModel extends DefaultListModel<List<HttpData>> {
+  private static final class ThreadsTableModel extends AbstractTableModel {
     @NotNull private final AspectObserver myAspectObserver;
     @NotNull private final NetworkProfilerStage myStage;
+    @NotNull private final List<List<HttpData>> myThreads;
 
-    private ThreadListModel(@NotNull NetworkProfilerStage stage) {
+    private ThreadsTableModel(@NotNull NetworkProfilerStage stage) {
       myStage = stage;
       myAspectObserver = new AspectObserver();
+      myThreads = new ArrayList<>();
+
       Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
       selection.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
       rangeChanged();
@@ -70,10 +89,12 @@ final class ThreadsView {
 
     public void rangeChanged() {
       Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-      removeAllElements();
+      myThreads.clear();
       if (selection.isEmpty()) {
+        fireTableDataChanged();
         return;
       }
+
       List<HttpData> dataList = myStage.getConnectionsModel().getData(selection);
       Map<Long, List<HttpData>> threads = new HashMap<>();
       for (HttpData data : dataList) {
@@ -90,84 +111,62 @@ final class ThreadsView {
         HttpData.JavaThread thread2 = o2.get(0).getJavaThread();
         int nameCompare = thread1.getName().compareTo(thread2.getName());
         return (nameCompare != 0) ? nameCompare : Long.compare(thread1.getId(), thread2.getId());
-      }).forEach(this::addElement);
+      }).forEach(myThreads::add);
+
+      fireTableDataChanged();
+    }
+
+    @Override
+    public int getRowCount() {
+      return myThreads.size();
+    }
+
+    @Override
+    public int getColumnCount() {
+      return 2;
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+      if (columnIndex == 0) {
+        return myThreads.get(rowIndex).get(0).getJavaThread().getName();
+      } else {
+        return myThreads.get(rowIndex);
+      }
     }
   }
 
-  private static final class ThreadCellRenderer implements ListCellRenderer<List<HttpData>> {
-    @NotNull private final JList<List<HttpData>> myList;
+  private static final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+    @NotNull private final JTable myTable;
     @NotNull private final List<JComponent> myRows;
     @NotNull private final ProfilerTimeline myTimeline;
 
-    private int myHoveredIndex = -1;
-
-    ThreadCellRenderer(@NotNull JList<List<HttpData>> list, @NotNull ProfilerTimeline timeline) {
-      myList = list;
+    TimelineRenderer(@NotNull JTable table, @NotNull ProfilerTimeline timeline) {
+      myTable = table;
       myTimeline = timeline;
       myRows = new ArrayList<>();
 
-      list.getModel().addListDataListener(new ListDataListener() {
-        @Override
-        public void intervalAdded(ListDataEvent e) {
-          modelChanged();
-        }
-
-        @Override
-        public void intervalRemoved(ListDataEvent e) {
-          modelChanged();
-        }
-
-        @Override
-        public void contentsChanged(ListDataEvent e) {
-          modelChanged();
-        }
-      });
-
-      MouseAdapter mouseAdapter = new MouseAdapter() {
-        @Override
-        public void mouseMoved(MouseEvent e) {
-          hoveredIndexChanged(myList.locationToIndex(e.getPoint()));
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-          hoveredIndexChanged(-1);
-        }
-
-        private void hoveredIndexChanged(int index) {
-          if (index == myHoveredIndex) {
-            return;
-          }
-          myHoveredIndex = index;
-          myList.repaint();
-        }
-      };
-      myList.addMouseMotionListener(mouseAdapter);
-      myList.addMouseListener(mouseAdapter);
-
-      modelChanged();
+      myTable.getModel().addTableModelListener(this);
+      tableChanged(new TableModelEvent(myTable.getModel()));
     }
 
-    private void modelChanged() {
+    @Override
+    public void tableChanged(TableModelEvent e) {
       myRows.clear();
-      for (int index = 0; index < myList.getModel().getSize(); ++index) {
-        List<HttpData> data = myList.getModel().getElementAt(index);
+      for (int index = 0; index < myTable.getModel().getRowCount(); ++index) {
+        List<HttpData> data = (List<HttpData>)myTable.getModel().getValueAt(index, 1);
         assert !data.isEmpty();
 
         ConnectionsStateChart chart = new ConnectionsStateChart(data, myTimeline.getSelectionRange());
         chart.setHeightGap(0.2f);
 
-        JLabel label = new JLabel(data.get(0).getJavaThread().getName());
-        label.setForeground(myList.getForeground());
-        label.setFont(myList.getFont());
         AxisComponent axis = createAxis();
-        axis.setMarkerLengths(myList.getFixedCellHeight(), 0);
+        axis.setMarkerLengths(myTable.getRowHeight(), 0);
         // If it is the first row show labels.
         axis.setShowLabels(index == 0);
 
         JPanel panel = new JPanel(new TabularLayout("*", "*"));
-        panel.setPreferredSize(new Dimension((int)panel.getPreferredSize().getWidth(), CELL_HEIGHT));
-        panel.add(label, new TabularLayout.Constraint(0, 0));
+        panel.setPreferredSize(new Dimension((int)panel.getPreferredSize().getWidth(), myTable.getRowHeight()));
         panel.add(axis, new TabularLayout.Constraint(0, 0));
         panel.add(new ConnectionNamesComponent(data, myTimeline.getSelectionRange()), new TabularLayout.Constraint(0, 0));
         panel.add(chart.getComponent(), new TabularLayout.Constraint(0, 0));
@@ -176,14 +175,8 @@ final class ThreadsView {
     }
 
     @Override
-    public Component getListCellRendererComponent(JList<? extends List<HttpData>> list,
-                                                  List<HttpData> value,
-                                                  int index,
-                                                  boolean isSelected,
-                                                  boolean cellHasFocus) {
-      Component comp = myRows.get(index);
-      comp.setBackground(index == myHoveredIndex ? ProfilerColors.NETWORK_TABLE_HOVER_COLOR : list.getBackground());
-      return comp;
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      return myRows.get(row);
     }
 
     @NotNull
