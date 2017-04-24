@@ -34,13 +34,13 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testSessionRestart() throws IOException, ClassNotFoundException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     // Setup breakpoints
     openAndToggleBreakPoints(projectFrame,
-                             "app/src/main/jni/multifunction-jni.c",
+                             "app/src/main/jni/native-lib.c",
                              "return (*env)->NewStringUTF(env, message);");
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
@@ -66,12 +66,12 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     openAndToggleBreakPoints(projectFrame,
-                             "app/src/main/jni/multifunction-jni.c",
+                             "app/src/main/jni/native-lib.c",
                              "return sum;",
                              "return product;",
                              "return quotient;",
@@ -151,7 +151,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testCAndJavaBreakAndResume() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
@@ -161,8 +161,8 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
       .clickOk();
 
     // Setup C++ and Java breakpoints.
-    openAndToggleBreakPoints(ideFrameFixture, "app/src/main/jni/multifunction-jni.c", "return (*env)->NewStringUTF(env, message);");
-    openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/BasicJniApp.java", "setContentView(tv);");
+    openAndToggleBreakPoints(ideFrameFixture, "app/src/main/jni/native-lib.c", "return (*env)->NewStringUTF(env, message);");
+    openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/basiccmakeapp/MainActivity.java", "setContentView(tv);");
 
     // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
     String[][] expectedPatterns = {
