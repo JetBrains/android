@@ -53,14 +53,14 @@ public class WatchpointTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testWatchpoint() throws IOException, ClassNotFoundException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeApp");
 
     final IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     createDefaultAVD(ideFrame.invokeAvdManager());
 
     // Setup breakpoints
-    openAndToggleBreakPoints(ideFrame, "app/src/main/jni/multifunction-jni.c", "int dummy = 1;");
+    openAndToggleBreakPoints(ideFrame, "app/src/main/jni/native-lib.c", "int dummy = 1;");
 
     // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
     String[] expectedPattern = {variableToSearchPattern("write", "int", "5")};
