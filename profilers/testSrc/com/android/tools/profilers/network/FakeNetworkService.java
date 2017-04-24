@@ -103,15 +103,10 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
 
       if (Math.max(requestStartTime, startTime) <= Math.min(requestEndTime, endTime == 0 ? Long.MAX_VALUE : endTime)) {
         HttpConnectionData.Builder dataBuilder = HttpConnectionData.newBuilder();
-        JavaThread javaThread = JavaThread.newBuilder()
-          .setId(data.getJavaThread().getId())
-          .setName(data.getJavaThread().getName())
-          .build();
         dataBuilder.setConnId(data.getId())
           .setStartTimestamp(startTime)
           .setDownloadingTimestamp(downloadTime)
           .setEndTimestamp(endTime)
-          .setThread(javaThread)
           .build();
         builder.addData(dataBuilder.build());
       }
@@ -148,6 +143,11 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
         bodyBuilder.setPayloadId(data.getResponsePayloadId());
         response.setResponseBody(bodyBuilder.build());
         break;
+      case ACCESSING_THREADS:
+        HttpDetailsResponse.AccessingThreads.Builder threadsBuilder = HttpDetailsResponse.AccessingThreads.newBuilder();
+        data.getJavaThreads().forEach(t -> threadsBuilder.addThread(JavaThread.newBuilder().setName(t.getName()).setId(t.getId())));
+        response.setAccessingThreads(threadsBuilder);
+        break;
       default:
         assert false : "Unsupported request type " + request.getType();
     }
@@ -170,7 +170,6 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     builder.setTrace(String.format(FAKE_STACK_TRACE, id));
     builder.setUrl("http://example.com/" + id);
     builder.setMethod("method " + id);
-    builder.setJavaThread(new HttpData.JavaThread(id, "myThread" + id));
     if (endS != 0) {
       builder.setResponsePayloadId("payloadId " + id);
       builder.setResponseFields(formatFakeResponseFields(id));

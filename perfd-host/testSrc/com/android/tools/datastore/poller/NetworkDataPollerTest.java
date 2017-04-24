@@ -129,7 +129,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     // that everything was polled according to plan.
     assertEquals(1, myFakeNetworkService.getDataRequested());
     // request + response + body
-    assertEquals(3, myFakeNetworkService.getDetailsRequested());
+    assertEquals(4, myFakeNetworkService.getDetailsRequested());
   }
 
   @Test

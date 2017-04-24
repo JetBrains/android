@@ -35,10 +35,22 @@ public class RpcNetworkConnectionsModelTest {
 
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpDataBuilder(0, 0, 7, 14).setRequestFields(FAKE_REQUEST_HEADERS).build())
-      .add(FakeNetworkService.newHttpDataBuilder(1, 2, 3, 6).setRequestFields(FAKE_REQUEST_HEADERS).build())
-      .add(FakeNetworkService.newHttpDataBuilder(2, 4, 0, 0).setRequestFields(FAKE_REQUEST_HEADERS).build())
-      .add(FakeNetworkService.newHttpDataBuilder(3, 8, 10, 12).setRequestFields(FAKE_REQUEST_HEADERS).build())
+      .add(FakeNetworkService.newHttpDataBuilder(0, 0, 7, 14)
+             .setRequestFields(FAKE_REQUEST_HEADERS)
+             .addJavaThread(new HttpData.JavaThread(0, "threadA"))
+             .build())
+      .add(FakeNetworkService.newHttpDataBuilder(1, 2, 3, 6)
+             .setRequestFields(FAKE_REQUEST_HEADERS)
+             .addJavaThread(new HttpData.JavaThread(1, "threadB"))
+             .build())
+      .add(FakeNetworkService.newHttpDataBuilder(2, 4, 0, 0)
+             .setRequestFields(FAKE_REQUEST_HEADERS)
+             .addJavaThread(new HttpData.JavaThread(2, "threadC"))
+             .build())
+      .add(FakeNetworkService.newHttpDataBuilder(3, 8, 10, 12)
+             .setRequestFields(FAKE_REQUEST_HEADERS)
+             .addJavaThread(new HttpData.JavaThread(3, "threadD"))
+             .build())
       .build();
 
   private FakeProfilerService myProfilerService = new FakeProfilerService(false);
@@ -111,8 +123,8 @@ public class RpcNetworkConnectionsModelTest {
       assertEquals(FAKE_DATA.get((int)id).getStackTrace().getTrace(), data.getStackTrace().getTrace());
       assertEquals(FAKE_DATA.get((int)id).getResponsePayloadId(), data.getResponsePayloadId());
       assertEquals(FAKE_DATA.get((int)id).getResponseField("connId"), data.getResponseField("connId"));
-      assertEquals(FAKE_DATA.get((int)id).getJavaThread().getId(), data.getJavaThread().getId());
-      assertEquals(FAKE_DATA.get((int)id).getJavaThread().getName(), data.getJavaThread().getName());
+      assertEquals(FAKE_DATA.get((int)id).getJavaThreads().get(0).getId(), data.getJavaThreads().get(0).getId());
+      assertEquals(FAKE_DATA.get((int)id).getJavaThreads().get(0).getName(), data.getJavaThreads().get(0).getName());
       ImmutableMap<String, String> requestHeaders = data.getRequestHeaders();
       assertEquals(2, requestHeaders.size());
       assertEquals("Customized", requestHeaders.get("user-agent"));

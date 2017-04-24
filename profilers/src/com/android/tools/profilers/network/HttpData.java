@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.StackFrameParser;
 import com.google.common.annotations.VisibleForTesting;
@@ -59,7 +61,7 @@ public class HttpData {
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
   @NotNull private final StackTrace myTrace;
-  @NotNull private final JavaThread myThread;
+  @NotNull private final List<JavaThread> myThreads;
 
   @Nullable private final String myResponsePayloadId;
 
@@ -79,7 +81,8 @@ public class HttpData {
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
     myTrace = new StackTrace(builder.myTrace);
-    myThread = builder.myThread;
+    myThreads = builder.myThreads;
+
     myResponsePayloadId = builder.myResponsePayloadId;
 
     if (builder.myResponseFields != null) {
@@ -119,9 +122,12 @@ public class HttpData {
   @NotNull
   public StackTrace getStackTrace() { return myTrace; }
 
+  /**
+   * Threads that access a connection. The first thread is the thread that creates the connection.
+   */
   @NotNull
-  public JavaThread getJavaThread() {
-    return myThread;
+  public List<JavaThread> getJavaThreads() {
+    return myThreads;
   }
 
   @Nullable
@@ -364,7 +370,7 @@ public class HttpData {
     private String myRequestFields;
     private String myResponsePayloadId;
     private String myTrace = "";
-    private JavaThread myThread;
+    private List<JavaThread> myThreads = new ArrayList<>();
 
     public Builder(long id, long startTimeUs, long endTimeUs, long downloadingTimeUS) {
       myId = id;
@@ -392,8 +398,10 @@ public class HttpData {
     }
 
     @NotNull
-    public Builder setJavaThread(@NotNull JavaThread javaThread) {
-      myThread = javaThread;
+    public Builder addJavaThread(@NotNull JavaThread thread) {
+      if (!myThreads.stream().anyMatch(t -> t.getId() == thread.getId())) {
+        myThreads.add(thread);
+      }
       return this;
     }
 
@@ -419,5 +427,6 @@ public class HttpData {
     public HttpData build() {
       return new HttpData(this);
     }
+
   }
 }
