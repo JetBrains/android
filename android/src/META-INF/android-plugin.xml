@@ -429,6 +429,7 @@
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
     <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
+    <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
@@ -437,10 +438,12 @@
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
+    <lang.parserDefinition language="Room SQL" implementationClass="com.android.tools.idea.lang.roomSql.psi.RoomSqlParserDefinition" />
 
-    <lang.syntaxHighlighterFactory key="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
-    <lang.syntaxHighlighterFactory key="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
-    <lang.syntaxHighlighterFactory key="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
+    <lang.syntaxHighlighterFactory language="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
+    <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
+    <lang.syntaxHighlighterFactory language="Room SQL" implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory" />
 
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
 
