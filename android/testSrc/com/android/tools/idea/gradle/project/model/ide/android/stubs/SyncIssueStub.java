@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.SyncIssue;
 import org.jetbrains.annotations.NotNull;
@@ -21,24 +21,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link SyncIssue}.
- */
-public final class IdeSyncIssue extends IdeModel implements SyncIssue {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public final class SyncIssueStub implements SyncIssue {
   @NotNull private final String myMessage;
   @Nullable private final String myData;
   private final int mySeverity;
   private final int myType;
 
-  public IdeSyncIssue(@NotNull SyncIssue issue, @NotNull ModelCache modelCache) {
-    super(issue, modelCache);
-    myMessage = issue.getMessage();
-    myData = issue.getData();
-    mySeverity = issue.getSeverity();
-    myType = issue.getType();
+  public SyncIssueStub() {
+    this("message", "data", 1, 2);
+  }
+
+  public SyncIssueStub(@NotNull String message, @Nullable String data, int severity, int type) {
+    myMessage = message;
+    myData = data;
+    mySeverity = severity;
+    myType = type;
   }
 
   @Override
@@ -68,28 +65,18 @@ public final class IdeSyncIssue extends IdeModel implements SyncIssue {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeSyncIssue)) {
+    if (!(o instanceof SyncIssue)) {
       return false;
     }
-    IdeSyncIssue issue = (IdeSyncIssue)o;
-    return mySeverity == issue.mySeverity &&
-           myType == issue.myType &&
-           Objects.equals(myMessage, issue.myMessage) &&
-           Objects.equals(myData, issue.myData);
+    SyncIssue issue = (SyncIssue)o;
+    return getSeverity() == issue.getSeverity() &&
+           getType() == issue.getType() &&
+           Objects.equals(getMessage(), issue.getMessage()) &&
+           Objects.equals(getData(), issue.getData());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myMessage, myData, mySeverity, myType);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeSyncIssue{" +
-           "myMessage='" + myMessage + '\'' +
-           ", myData='" + myData + '\'' +
-           ", mySeverity=" + mySeverity +
-           ", myType=" + myType +
-           "}";
+    return Objects.hash(getMessage(), getData(), getSeverity(), getType());
   }
 }

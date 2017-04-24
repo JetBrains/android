@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.NativeToolchain;
 import org.jetbrains.annotations.NotNull;
@@ -22,22 +22,19 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link NativeToolchain}.
- */
-public final class IdeNativeToolchain extends IdeModel implements NativeToolchain {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
+public class NativeToolchainStub implements NativeToolchain {
   @NotNull private final String myName;
   @Nullable private final File myCCompilerExecutable;
   @Nullable private final File myCppCompilerExecutable;
 
-  public IdeNativeToolchain(@NotNull NativeToolchain toolchain, @NotNull ModelCache modelCache) {
-    super(toolchain, modelCache);
-    myName = toolchain.getName();
-    myCCompilerExecutable = toolchain.getCCompilerExecutable();
-    myCppCompilerExecutable = toolchain.getCppCompilerExecutable();
+  public NativeToolchainStub() {
+    this("name", new File("cCompilerExecutable"), new File("cppCompilerExecutable"));
+  }
+
+  public NativeToolchainStub(@NotNull String name, @Nullable File cCompilerExecutable, @Nullable File cppCompilerExecutable) {
+    myName = name;
+    myCCompilerExecutable = cCompilerExecutable;
+    myCppCompilerExecutable = cppCompilerExecutable;
   }
 
   @Override
@@ -63,26 +60,17 @@ public final class IdeNativeToolchain extends IdeModel implements NativeToolchai
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeNativeToolchain)) {
+    if (!(o instanceof NativeToolchain)) {
       return false;
     }
-    IdeNativeToolchain toolchain = (IdeNativeToolchain)o;
-    return Objects.equals(myName, toolchain.myName) &&
-           Objects.equals(myCCompilerExecutable, toolchain.myCCompilerExecutable) &&
-           Objects.equals(myCppCompilerExecutable, toolchain.myCppCompilerExecutable);
+    NativeToolchain stub = (NativeToolchain)o;
+    return Objects.equals(getName(), stub.getName()) &&
+           Objects.equals(getCCompilerExecutable(), stub.getCCompilerExecutable()) &&
+           Objects.equals(getCppCompilerExecutable(), stub.getCppCompilerExecutable());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myName, myCCompilerExecutable, myCppCompilerExecutable);
-  }
-
-  @Override
-  public String toString() {
-    return "IdeNativeToolchain{" +
-           "myName='" + myName + '\'' +
-           ", myCCompilerExecutable=" + myCCompilerExecutable +
-           ", myCppCompilerExecutable=" + myCppCompilerExecutable +
-           "}";
+    return Objects.hash(getName(), getCCompilerExecutable(), getCppCompilerExecutable());
   }
 }
