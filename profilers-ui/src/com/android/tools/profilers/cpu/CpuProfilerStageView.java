@@ -80,6 +80,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   @NotNull
   private final JComboBox<CpuProfiler.CpuProfilingAppStartRequest.Mode> myProfilingModesCombo;
 
+  @NotNull
+  private final CpuStageTooltipView myTooltipView;
+
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
     super(profilersView, stage);
@@ -202,6 +205,15 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
+
+    myTooltipView = new CpuStageTooltipView(myStage);
+    TooltipComponent tooltip =
+      new TooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltipView.createComponent());
+    // TODO: This needs to be refactored, because probably we don't handle mouse events
+    //       properly when components are layered, currently mouse events should happen on the OverlayComponent.
+    tooltip.registerListenersOn(overlay);
+    tooltip.registerListenersOn(overlayPanel);
+    details.add(tooltip, new TabularLayout.Constraint(1, 0, 2, 1));
 
     layout.setRowSizing(1, "4*");
     details.add(monitorPanel, new TabularLayout.Constraint(1, 0));

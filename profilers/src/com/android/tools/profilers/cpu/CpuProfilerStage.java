@@ -55,6 +55,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final AxisComponentModel myTimeAxisGuide;
   private final DetailedCpuUsage myCpuUsage;
   private final CpuStageLegends myLegends;
+  private final CpuStageLegends myTooltipLegends;
   private final DurationDataModel<CpuCapture> myTraceDurations;
   private final EventMonitor myEventMonitor;
   private final SelectionModel mySelectionModel;
@@ -123,6 +124,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
     Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
+    Range tooltipRange = getStudioProfilers().getTimeline().getTooltipRange();
 
     myCpuUsage = new DetailedCpuUsage(profilers);
 
@@ -136,6 +138,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myTimeAxisGuide.setGlobalRange(dataRange);
 
     myLegends = new CpuStageLegends(myCpuUsage, dataRange);
+    myTooltipLegends = new CpuStageLegends(myCpuUsage, tooltipRange);
 
     // Create an event representing the traces within the range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
@@ -183,6 +186,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myLegends;
   }
 
+  public CpuStageLegends getTooltipLegends() {
+    return myTooltipLegends;
+  }
+
   public DurationDataModel<CpuCapture> getTraceDurations() {
     return myTraceDurations;
   }
@@ -204,6 +211,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myThreadCountAxis);
     getStudioProfilers().getUpdater().register(myTimeAxisGuide);
     getStudioProfilers().getUpdater().register(myLegends);
+    getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myThreadsStates);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
@@ -219,6 +227,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
     getStudioProfilers().getUpdater().unregister(myTimeAxisGuide);
     getStudioProfilers().getUpdater().unregister(myLegends);
+    getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myThreadsStates);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
