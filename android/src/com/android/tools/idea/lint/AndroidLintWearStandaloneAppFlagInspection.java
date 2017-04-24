@@ -43,49 +43,45 @@ public class AndroidLintWearStandaloneAppFlagInspection extends AndroidLintInspe
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
                                              @Nullable LintFix fixData) {
-
-    if (fixData instanceof LintFix.DataMap) {
-      LintFix.DataMap map = (LintFix.DataMap)fixData;
-      Integer id = map.get(Integer.class);
-      if (id != null && id == QFX_EXTRA_MISSING_META_DATA) {
-        return new AndroidLintQuickFix[]{
-          new DefaultLintQuickFix("Add meta-data element for '" + WEARABLE_STANDALONE_ATTR + "'") {
-            @Override
-            public void apply(@NotNull PsiElement startElement,
-                              @NotNull PsiElement endElement,
-                              @NotNull AndroidQuickfixContexts.Context context) {
-              XmlTag parent = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
-              if (parent == null || !NODE_APPLICATION.equals(parent.getName())) {
-                return;
-              }
-
-              XmlTag nodeMetadata = parent.createChildTag(NODE_METADATA, null, null, false);
-              // Find the right location for the meta-data tag under <application>.
-              XmlTag[] currentMetadataTags = parent.findSubTags(NODE_METADATA);
-              XmlTag addAfter = currentMetadataTags.length > 0 ? currentMetadataTags[currentMetadataTags.length - 1] : null;
-              if (addAfter != null) {
-                nodeMetadata = (XmlTag)parent.addAfter(nodeMetadata, addAfter);
-              }
-              else {
-                nodeMetadata = parent.addSubTag(nodeMetadata, true);
-              }
-
-              if (nodeMetadata != null) {
-                nodeMetadata.setAttribute(ATTR_NAME, ANDROID_URI, WEARABLE_STANDALONE_ATTR);
-                nodeMetadata.setAttribute(ATTR_VALUE, ANDROID_URI, VALUE_TRUE);
-              }
+    Integer id = LintFix.getData(fixData, Integer.class);
+    if (id != null && id == QFX_EXTRA_MISSING_META_DATA) {
+      return new AndroidLintQuickFix[]{
+        new DefaultLintQuickFix("Add meta-data element for '" + WEARABLE_STANDALONE_ATTR + "'") {
+          @Override
+          public void apply(@NotNull PsiElement startElement,
+                            @NotNull PsiElement endElement,
+                            @NotNull AndroidQuickfixContexts.Context context) {
+            XmlTag parent = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
+            if (parent == null || !NODE_APPLICATION.equals(parent.getName())) {
+              return;
             }
 
-            @Override
-            public boolean isApplicable(@NotNull PsiElement startElement,
-                                        @NotNull PsiElement endElement,
-                                        @NotNull AndroidQuickfixContexts.ContextType contextType) {
-              XmlTag parent = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
-              return parent != null && TAG_APPLICATION.equals(parent.getName());
+            XmlTag nodeMetadata = parent.createChildTag(NODE_METADATA, null, null, false);
+            // Find the right location for the meta-data tag under <application>.
+            XmlTag[] currentMetadataTags = parent.findSubTags(NODE_METADATA);
+            XmlTag addAfter = currentMetadataTags.length > 0 ? currentMetadataTags[currentMetadataTags.length - 1] : null;
+            if (addAfter != null) {
+              nodeMetadata = (XmlTag)parent.addAfter(nodeMetadata, addAfter);
+            }
+            else {
+              nodeMetadata = parent.addSubTag(nodeMetadata, true);
+            }
+
+            if (nodeMetadata != null) {
+              nodeMetadata.setAttribute(ATTR_NAME, ANDROID_URI, WEARABLE_STANDALONE_ATTR);
+              nodeMetadata.setAttribute(ATTR_VALUE, ANDROID_URI, VALUE_TRUE);
             }
           }
-        };
-      }
+
+          @Override
+          public boolean isApplicable(@NotNull PsiElement startElement,
+                                      @NotNull PsiElement endElement,
+                                      @NotNull AndroidQuickfixContexts.ContextType contextType) {
+            XmlTag parent = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
+            return parent != null && TAG_APPLICATION.equals(parent.getName());
+          }
+        }
+      };
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);
