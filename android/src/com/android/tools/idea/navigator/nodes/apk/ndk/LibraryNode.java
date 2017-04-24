@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
@@ -75,9 +74,9 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
       for (String path : sourceFolderPaths) {
         VirtualFile folder = fileSystem.findFileByPath(path);
         if (folder != null) {
-          PsiDirectory psiFile = PsiManager.getInstance(myProject).findDirectory(folder);
-          if (psiFile != null) {
-            children.add(new PsiDirectoryNode(myProject, psiFile, settings));
+          PsiDirectory psiFolder = PsiManager.getInstance(myProject).findDirectory(folder);
+          if (psiFolder != null) {
+            children.add(new SourceFolderNode(myProject, psiFolder, settings));
           }
         }
       }
