@@ -31,10 +31,15 @@ public final class ProjectFiles {
 
   @NotNull
   public static VirtualFile createFolderInProjectRoot(@NotNull Project project, @NotNull String folderName) throws IOException {
+    return createFolder(project.getBaseDir(), folderName);
+  }
+
+  @NotNull
+  public static VirtualFile createFolder(@NotNull VirtualFile parent, @NotNull String folderName) throws IOException {
     VirtualFile folder = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
       @Override
       public VirtualFile compute() throws IOException {
-        return project.getBaseDir().createChildDirectory(this, folderName);
+        return parent.createChildDirectory(this, folderName);
       }
     });
     assertNotNull(folder);

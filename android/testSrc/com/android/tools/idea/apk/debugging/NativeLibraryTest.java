@@ -141,6 +141,7 @@ public class NativeLibraryTest extends IdeaTestCase {
     NativeLibrary library = new NativeLibrary("library");
     library.hasDebugSymbols = false;
     library.pathMappings.put("abc.so", "");
+    library.sourceFolderPaths.add("source1");
 
     VirtualFile debuggableFile = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
       @Override
@@ -152,6 +153,18 @@ public class NativeLibraryTest extends IdeaTestCase {
     library.setDebuggableFile(debuggableFile);
     assertTrue(library.hasDebugSymbols);
     assertThat(library.pathMappings).isEmpty();
+    assertThat(library.sourceFolderPaths).isEmpty();
     assertEquals(debuggableFile.getPath(), library.debuggableFilePath);
+  }
+
+  public void testGetUserSelectedPathsInMappings() {
+    NativeLibrary library = new NativeLibrary("library");
+    assertThat(library.getUserSelectedPathsInMappings()).isEmpty();
+
+    library.pathMappings.put("abc.so", "");
+    assertThat(library.getUserSelectedPathsInMappings()).isEmpty();
+
+    library.pathMappings.put("xyz.so", "123.so");
+    assertThat(library.getUserSelectedPathsInMappings()).containsExactly("123.so");
   }
 }
