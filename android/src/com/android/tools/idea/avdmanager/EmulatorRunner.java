@@ -58,7 +58,7 @@ public class EmulatorRunner {
   public ProcessHandler start() throws ExecutionException {
     final Process process = myCommandLine.createProcess();
     myProcessHandler = new EmulatorProcessHandler(process, myCommandLine);
-    myExtraListeners.forEach(myProcessHandler::addProcessListener);
+    myProcessHandler.startNotify();
     return myProcessHandler;
   }
 
