@@ -34,7 +34,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testSessionRestart() throws IOException, ClassNotFoundException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeApp");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
@@ -66,7 +66,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeApp");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
@@ -151,7 +151,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testCAndJavaBreakAndResume() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeApp");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
