@@ -19,20 +19,22 @@ import com.android.builder.model.AndroidArtifactOutput;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link AndroidArtifactOutput}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of an {@link AndroidArtifactOutput}.
  */
-public class IdeAndroidArtifactOutput extends IdeVariantOutput implements AndroidArtifactOutput {
+public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements AndroidArtifactOutput {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myAssembleTaskName;
   @NotNull private final File myGeneratedManifest;
   @NotNull private final File myOutputFile;
 
-  @SuppressWarnings("deprecation")
   public IdeAndroidArtifactOutput(@NotNull AndroidArtifactOutput output, @NotNull ModelCache modelCache) {
     super(output, modelCache);
+    //noinspection deprecation
     myAssembleTaskName = output.getAssembleTaskName();
     myGeneratedManifest = output.getGeneratedManifest();
     myOutputFile = output.getOutputFile();
@@ -54,5 +56,43 @@ public class IdeAndroidArtifactOutput extends IdeVariantOutput implements Androi
   @NotNull
   public File getOutputFile() {
     return myOutputFile;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeAndroidArtifactOutput)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    IdeAndroidArtifactOutput output = (IdeAndroidArtifactOutput)o;
+    return output.canEquals(this) &&
+           Objects.equals(myAssembleTaskName, output.myAssembleTaskName) &&
+           Objects.equals(myGeneratedManifest, output.myGeneratedManifest) &&
+           Objects.equals(myOutputFile, output.myOutputFile);
+  }
+
+  @Override
+  protected boolean canEquals(Object other) {
+    return other instanceof IdeAndroidArtifactOutput;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), myAssembleTaskName, myGeneratedManifest, myOutputFile);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeAndroidArtifactOutput{" +
+           super.toString() +
+           ", myAssembleTaskName='" + myAssembleTaskName + '\'' +
+           ", myGeneratedManifest=" + myGeneratedManifest +
+           ", myOutputFile=" + myOutputFile +
+           "}";
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifactOutput;
@@ -33,7 +32,7 @@ public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
     this(Collections.singletonList(output));
   }
 
-  public AndroidArtifactOutputStub(@NonNull Collection<OutputFile> outputs) {
+  public AndroidArtifactOutputStub(@NotNull Collection<OutputFile> outputs) {
     myOutputs = outputs;
   }
 

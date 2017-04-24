@@ -197,8 +197,12 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof IdeBaseArtifact)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeBaseArtifact)) {
+      return false;
+    }
     IdeBaseArtifact artifact = (IdeBaseArtifact)o;
     return artifact.canEquals(this) &&
            Objects.equals(myName, artifact.myName) &&
