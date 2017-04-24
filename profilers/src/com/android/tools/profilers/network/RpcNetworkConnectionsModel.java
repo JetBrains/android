@@ -57,14 +57,15 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     NetworkProfiler.HttpRangeResponse response = myNetworkService.getHttpRange(request);
 
     List<HttpData> httpDataList = new ArrayList<>(response.getDataList().size());
-    for (NetworkProfiler.HttpConnectionData connection: response.getDataList()) {
+    for (NetworkProfiler.HttpConnectionData connection : response.getDataList()) {
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp());
       long endTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
       long downloadTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp());
       HttpData.Builder httpBuilder = new HttpData.Builder(connection.getConnId(), startTimeUs, endTimeUs, downloadTimeUs);
-      httpBuilder.setJavaThread(new HttpData.JavaThread(connection.getThread().getId(), connection.getThread().getName()));
 
       requestHttpRequest(connection.getConnId(), httpBuilder);
+      requestAccessingThreads(connection.getConnId(), httpBuilder);
+
       if (connection.getEndTimestamp() != 0) {
         requestHttpResponse(connection.getConnId(), httpBuilder);
         requestHttpResponseBody(connection.getConnId(), httpBuilder);
@@ -125,5 +126,17 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
 
     httpBuilder.setResponseFields(response.getResponse().getFields());
+  }
+
+  private void requestAccessingThreads(long connectionId, @NotNull HttpData.Builder httpBuilder) {
+    NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
+      .setConnId(connectionId)
+      .setSession(mySession)
+      .setType(NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS)
+      .build();
+    NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
+    for (NetworkProfiler.JavaThread thread : response.getAccessingThreads().getThreadList()) {
+      httpBuilder.addJavaThread(new HttpData.JavaThread(thread.getId(), thread.getName()));
+    }
   }
 }

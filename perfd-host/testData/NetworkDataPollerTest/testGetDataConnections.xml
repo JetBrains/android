@@ -181,6 +181,22 @@ type: RESPONSE_BODY
 }
 </message>
     </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetHttpDetails" Class="class com.android.tools.profiler.proto.NetworkProfiler$HttpDetailsRequest">
+        <Message>conn_id: 1
+type: ACCESSING_THREADS
+</Message>
+        <clazz>class com.android.tools.profiler.proto.NetworkProfiler$HttpDetailsRequest</clazz>
+        <functionCalled>profiler.proto.NetworkService/GetHttpDetails</functionCalled>
+        <message>conn_id: 1
+type: ACCESSING_THREADS
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetHttpDetails" Class="class com.android.tools.profiler.proto.NetworkProfiler$HttpDetailsResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.NetworkProfiler$HttpDetailsResponse</clazz>
+        <functionCalled>profiler.proto.NetworkService/GetHttpDetails</functionCalled>
+        <message></message>
+    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkStopRequest">
         <Message>process_id: 1234
 </Message>

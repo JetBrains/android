@@ -142,7 +142,11 @@ public class ProfilerColors {
 
   public static final Color NETWORK_TABLE_AXIS_SELECTED = JBColor.BLACK;
 
-  public static final Color NETWORK_TABLE_CONNECTIONS_NAME = new JBColor(new Color(255, 255, 255, (int)(0.74 * 255)), new Color(0x2b2d2e));
+  public static final Color NETWORK_THREADS_TABLE_SENDING = new JBColor(0xF1B34D, 0xF1B34D);
+
+  public static final Color NETWORK_THREADS_TABLE_RECEIVING = new JBColor(0x6E98F6, 0x6E98F6);
+
+  public static final Color NETWORK_THREADS_TABLE_WARNING = new JBColor(0xD32626, 0xD32626);
 
   public static final Color MEMORY_TOTAL = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
 
