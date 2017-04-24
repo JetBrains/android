@@ -73,6 +73,7 @@ public class PreviewIconsPanel extends JPanel {
     myRootPanel.setBackground(myTheme.getMainColor());
     myRootPanel.setOpaque(myTheme != Theme.TRANSPARENT);
     myTitleLabel.setForeground(myTheme.getAltColor());
+    setName("PreviewIconsPanel"); // for UI tests
   }
 
   public PreviewIconsPanel(@NotNull String title, @NotNull Theme theme, @NotNull CategoryIconMap.Filter filter) {

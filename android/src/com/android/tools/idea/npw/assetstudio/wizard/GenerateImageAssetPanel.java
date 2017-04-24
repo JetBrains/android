@@ -136,6 +136,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     myIconTypeCombo.setModel(supportedTypesModel);
     myIconTypeCombo.setVisible(supportedTypes.length > 1);
     myOutputIconType = new AsValueExpression<>(new SelectedItemProperty<>(myIconTypeCombo));
+    myOutputPreviewPanel.setName("PreviewIconsPanel"); // for UI Tests
 
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
@@ -268,6 +269,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
     PreviewIconsPanel iconsPanel = myOutputPreviewPanels.get(myOutputIconType.get());
     for (PreviewIconsPanel.IconPreviewInfo previewInfo : iconsPanel.getIconPreviewInfos()) {
       ImagePreviewPanel previewPanel = new ImagePreviewPanel();
+      previewPanel.getComponent().setName("IconPanel"); // for UI Tests
       previewPanel.setLabelText(previewInfo.getLabel());
       previewPanel.setImage(previewInfo.getImage());
       previewPanel.setImageBackground(previewInfo.getImageBackground());
