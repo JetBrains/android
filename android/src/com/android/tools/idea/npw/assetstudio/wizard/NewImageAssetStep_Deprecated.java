@@ -35,11 +35,9 @@ import java.util.Collections;
 public final class NewImageAssetStep_Deprecated extends ModelWizardStep<GenerateIconsModel> {
   @NotNull
   private static final String NEW_IMAGE_ASSET_STEP_DEPRECATED_ENABLED = "android.studio.new-image-asset-step-deprecated.enabled";
-  private static boolean myEnabled = true;
 
   public static boolean isEnabled() {
-    // Enabled by default (until the new image asset is in a good enough state)
-    return myEnabled && SystemProperties.getBooleanProperty(NEW_IMAGE_ASSET_STEP_DEPRECATED_ENABLED, true);
+    return SystemProperties.getBooleanProperty(NEW_IMAGE_ASSET_STEP_DEPRECATED_ENABLED, false);
   }
 
   @NotNull private final GenerateIconsPanel myGenerateIconsPanel;
