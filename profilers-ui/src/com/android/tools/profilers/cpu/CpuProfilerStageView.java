@@ -27,8 +27,8 @@ import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.adtui.model.Updater;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.UpdatableManager;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -203,7 +203,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     });
     JScrollPane scrollingThreads = new MyScrollPane();
     scrollingThreads.setViewportView(myThreads);
-    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, stage.getStudioProfilers().getUpdater()));
+    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
     myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
@@ -455,18 +455,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     private int myHoveredIndex = -1;
 
     /**
-     * Updater responsible for updating the threads state charts.
+     * {@link UpdatableManager} responsible for managing the threads state charts.
      */
-    private final Updater myUpdater;
+    private final UpdatableManager myUpdatableManager;
 
-    public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, Updater updater) {
+    public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, UpdatableManager updatableManager) {
       myLabel = new JLabel();
       myLabel.setFont(AdtUiUtils.FONT_DEFAULT);
       Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
       Border marginLeft = new EmptyBorder(0, 10, 0, 0);
       myLabel.setBorder(new CompoundBorder(rightSeparator, marginLeft));
       myLabel.setOpaque(true);
-      myUpdater = updater;
+      myUpdatableManager = updatableManager;
       myStateCharts = new HashMap<>();
       list.addMouseMotionListener(new MouseAdapter() {
         @Override
@@ -500,7 +500,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       if (myStateCharts.containsKey(tid) && !model.equals(myStateCharts.get(tid).getModel())) {
         // The model associated to the tid has changed. That might have happened because the tid was recycled and
         // assigned to another thread. The current model needs to be unregistered.
-        myUpdater.unregister(myStateCharts.get(tid).getModel());
+        myUpdatableManager.unregister(myStateCharts.get(tid).getModel());
       }
       StateChart<CpuProfilerStage.ThreadState> stateChart = getOrCreateStateChart(tid, model);
       // 1 is index of the selected color, 0 is of the non-selected
@@ -542,7 +542,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       StateChartData data = new StateChartData(stateChart, model);
       stateChart.setHeightGap(0.40f);
       myStateCharts.put(tid, data);
-      myUpdater.register(model);
+      myUpdatableManager.register(model);
       return stateChart;
     }
 

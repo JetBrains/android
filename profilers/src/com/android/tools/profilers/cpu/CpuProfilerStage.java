@@ -116,6 +116,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private int myProfilingSamplingIntervalUs = 1000;  // TODO: Make it configurable.
 
+  @NotNull
+  private final UpdatableManager myUpdatableManager;
+
   /**
    * A cache of already parsed captures, indexed by trace_id.
    */
@@ -164,6 +167,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     updateProfilingState();
 
     myCaptureModel = new CaptureModel(this);
+    myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
   }
 
   @NotNull
@@ -240,8 +244,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
     mySelectionModel.clearListeners();
+
+    myUpdatableManager.releaseAll();
   }
 
+  @NotNull
+  public UpdatableManager getUpdatableManager() {
+    return myUpdatableManager;
+  }
 
   public AspectModel<CpuProfilerAspect> getAspect() {
     return myAspect;
