@@ -19,6 +19,7 @@ package org.jetbrains.android.intentions;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -68,6 +69,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.detector.api.ResourceEvaluator.STRING_RES_ANNOTATION;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 public class AndroidAddStringResourceAction extends AbstractIntentionAction implements HighPriorityAction {
@@ -247,8 +249,6 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       }
     });
   }
-
-  private static final String STRING_RES_ANNOTATION = SUPPORT_ANNOTATIONS_PREFIX + "StringRes";
 
   private static boolean hasMethodOnlyOverloadedWithOneIntParameter(final PsiMethod method, int index) {
     if (method.getNameIdentifier() == null) {
