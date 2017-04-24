@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 import com.android.builder.model.BaseConfig;
 import com.android.builder.model.ClassField;
 import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,11 @@ public class BaseConfigStub implements BaseConfig {
   @NotNull private final Map<String, Object> myManifestPlaceholders;
   @Nullable private final String myApplicationIdSuffix;
   @Nullable private final String myVersionNameSuffix;
+
+  public BaseConfigStub() {
+    this("name", ImmutableMap.of("name", new ClassFieldStub()), Lists.newArrayList(new File("proguardFile")),
+         Lists.newArrayList(new File("consumerProguardFile")), ImmutableMap.of("key", "value"), "one", "two");
+  }
 
   public BaseConfigStub(@NotNull String name,
                         @NotNull Map<String, ClassField> values,

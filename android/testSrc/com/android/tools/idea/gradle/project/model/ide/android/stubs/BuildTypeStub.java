@@ -16,16 +16,10 @@
 package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.BuildType;
-import com.android.builder.model.ClassField;
 import com.android.builder.model.SigningConfig;
 import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.Map;
 import java.util.Objects;
 
 public final class BuildTypeStub extends BaseConfigStub implements BuildType {
@@ -37,25 +31,15 @@ public final class BuildTypeStub extends BaseConfigStub implements BuildType {
   private final boolean myZipAlignEnabled;
 
   public BuildTypeStub() {
-    this("name", ImmutableMap.of("name", new ClassFieldStub()), new File("proguardFile"), new File("consumerProguardFile"),
-         ImmutableMap.of("key", "value"), "one", "two", true, true, true, 1, true, true);
+    this(true, true, true, 1, true, true);
   }
 
-  public BuildTypeStub(@NotNull String name,
-                       @NotNull Map<String, ClassField> values,
-                       @NotNull File proguardFile,
-                       @NotNull File consumerProguardFile,
-                       @NotNull Map<String, Object> placeholders,
-                       @Nullable String applicationIdSuffix,
-                       @Nullable String versionNameSuffix,
-                       boolean debuggable,
+  public BuildTypeStub(boolean debuggable,
                        boolean jniDebuggable,
                        boolean renderscriptDebuggable,
                        int level,
                        boolean minifyEnabled,
                        boolean zipAlignEnabled) {
-    super(name, values, Lists.newArrayList(proguardFile), Lists.newArrayList(consumerProguardFile), placeholders, applicationIdSuffix,
-          versionNameSuffix);
     myDebuggable = debuggable;
     myJniDebuggable = jniDebuggable;
     myRenderscriptDebuggable = renderscriptDebuggable;
@@ -63,7 +47,6 @@ public final class BuildTypeStub extends BaseConfigStub implements BuildType {
     myMinifyEnabled = minifyEnabled;
     myZipAlignEnabled = zipAlignEnabled;
   }
-
 
   @Override
   @Nullable
@@ -125,7 +108,15 @@ public final class BuildTypeStub extends BaseConfigStub implements BuildType {
       return false;
     }
     BuildType that = (BuildType)o;
-    return isDebuggable() == that.isDebuggable() &&
+    //noinspection deprecation
+    return Objects.equals(getName(), that.getName()) &&
+           Objects.equals(getResValues(), that.getResValues()) &&
+           Objects.equals(getProguardFiles(), that.getProguardFiles()) &&
+           Objects.equals(getConsumerProguardFiles(), that.getConsumerProguardFiles()) &&
+           Objects.equals(getManifestPlaceholders(), that.getManifestPlaceholders()) &&
+           Objects.equals(getApplicationIdSuffix(), that.getApplicationIdSuffix()) &&
+           Objects.equals(getVersionNameSuffix(), that.getVersionNameSuffix()) &&
+           isDebuggable() == that.isDebuggable() &&
            isJniDebuggable() == that.isJniDebuggable() &&
            isRenderscriptDebuggable() == that.isRenderscriptDebuggable() &&
            getRenderscriptOptimLevel() == that.getRenderscriptOptimLevel() &&
@@ -135,7 +126,8 @@ public final class BuildTypeStub extends BaseConfigStub implements BuildType {
 
   @Override
   public int hashCode() {
-    return Objects.hash(isDebuggable(), isJniDebuggable(), isRenderscriptDebuggable(), getRenderscriptOptimLevel(), isMinifyEnabled(),
-                        isZipAlignEnabled());
+    return Objects.hash(getName(), getResValues(), getProguardFiles(), getConsumerProguardFiles(), getManifestPlaceholders(),
+                        getApplicationIdSuffix(), getVersionNameSuffix(), isDebuggable(), isJniDebuggable(), isRenderscriptDebuggable(),
+                        getRenderscriptOptimLevel(), isMinifyEnabled(), isZipAlignEnabled());
   }
 }
