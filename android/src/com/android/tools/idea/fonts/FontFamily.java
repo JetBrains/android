@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.Immutable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.io.URLUtil;
 import org.intellij.lang.annotations.Language;
@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -187,22 +188,18 @@ public class FontFamily implements Comparable<FontFamily> {
 
   @Nullable
   @Language("XML")
-  public static String toXml(@Nullable FontFamily fontFamily) {
-    if (fontFamily == null) {
-      return null;
-    }
-
+  public String toXml() {
     StringBuilder output = new StringBuilder("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                              "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\">");
     boolean hasAnyDownloadedFonts = false;
-    for (FontDetail detail : fontFamily.getFonts()) {
+    for (FontDetail detail : getFonts()) {
       File cachedFile = detail.getCachedFontFile();
       if (cachedFile == null || !cachedFile.exists()) {
         continue;
       }
       hasAnyDownloadedFonts = true;
       output.append(String.format("<font android:font=\"%1$s\" android:fontStyle=\"%2$s\" android:fontWeight=\"%3$d\" />",
-                                  detail.getCachedFontFile().getAbsolutePath(),
+                                  cachedFile.getAbsolutePath(),
                                   detail.getFontStyle(),
                                   detail.getWeight()));
     }
@@ -212,5 +209,15 @@ public class FontFamily implements Comparable<FontFamily> {
     output.append("</font-family>");
 
     return output.toString();
+  }
+
+  public void download() {
+    download(null, null);
+  }
+
+  // TODO: Replace the runnables with a Future<>
+  @VisibleForTesting
+  void download(@Nullable Runnable success, @Nullable Runnable failure) {
+    FontDownloadService.download(Collections.singletonList(this), false, success, failure);
   }
 }
