@@ -41,15 +41,12 @@ public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase 
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
                                              @Nullable LintFix fixData) {
-    if (fixData instanceof LintFix.DataMap) {
-      LintFix.DataMap map = (LintFix.DataMap)fixData;
-      String suggest = map.get(String.class);
-      if (suggest != null) {
-        return new AndroidLintQuickFix[]{ new ReplaceCallFix(suggest) };
-      }
+    String suggest = LintFix.getData(fixData, String.class);
+    if (suggest != null) {
+      return new AndroidLintQuickFix[]{ new ReplaceCallFix(suggest) };
     }
 
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 
   static class ReplaceCallFix extends DefaultLintQuickFix {

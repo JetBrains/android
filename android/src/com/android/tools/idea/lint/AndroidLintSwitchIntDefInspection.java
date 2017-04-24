@@ -16,6 +16,8 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AnnotationDetector;
+import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -24,10 +26,9 @@ import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase {
   public AndroidLintSwitchIntDefInspection() {
@@ -36,8 +37,12 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    final List<String> missingCases = AnnotationDetector.getMissingCases(message, RAW);
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    @SuppressWarnings("unchecked")
+    List<String> missingCases = LintFix.getData(fixData, List.class);
     if (missingCases != null && !missingCases.isEmpty()) {
       return new AndroidLintQuickFix[]{new AndroidLintQuickFix() {
         @Override
@@ -55,6 +60,8 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
             }
             PsiElement anchor = body.getLastChild();
             for (String constant : missingCases) {
+              // The list we get from lint is using raw formatting, surrounding constants like `this`
+              constant = TextFormat.RAW.convertTo(constant, TextFormat.TEXT);
               PsiElement parent = anchor.getParent();
               PsiStatement caseStatement = factory.createStatementFromText("case " + constant + ":", anchor);
               parent.addBefore(caseStatement, anchor);
@@ -80,6 +87,7 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
         }
       }};
     }
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

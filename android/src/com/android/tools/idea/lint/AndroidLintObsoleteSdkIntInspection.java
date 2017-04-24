@@ -99,7 +99,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       }
     }
 
-    return AndroidLintQuickFix.EMPTY_ARRAY;
+    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 
   /**

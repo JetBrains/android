@@ -25,8 +25,8 @@ import com.android.tools.lint.checks.UnusedResourceDetector;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.Scope;
-import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -199,7 +199,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                             List<ProblemData> problems = fileListMap.get(VfsUtilCore.virtualToIoFile(psiFile.getVirtualFile()));
                             if (problems != null) {
                               for (ProblemData problem : problems) {
-                                String unusedResource = UnusedResourceDetector.getUnusedResource(problem.getMessage(), TextFormat.RAW);
+                                String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
                                 if (unusedResource != null &&
                                     unusedResource.equals(SdkConstants.R_PREFIX + typeString + '.' + nameString)) {
                                   elements.add(applicationStatement);
@@ -313,7 +313,8 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     if (myFilter != null) {
       List<ProblemData> problems = fileListMap.get(file);
       for (ProblemData problem : problems) {
-        if (myFilter.equals(UnusedResourceDetector.getUnusedResource(problem.getMessage(), TextFormat.RAW))) {
+        String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
+        if (myFilter.equals(unusedResource)) {
           return true;
         }
       }
@@ -323,7 +324,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   private boolean matchesFilter(@NotNull ProblemData problem) {
-    return myFilter == null || myFilter.equals(UnusedResourceDetector.getUnusedResource(problem.getMessage(), TextFormat.RAW));
+    return myFilter == null || myFilter.equals(LintFix.getData(problem.getQuickfixData(), String.class));
   }
 
   @SuppressWarnings("SpellCheckingInspection")

@@ -35,15 +35,11 @@ public class AndroidLintUseCheckPermissionInspection extends AndroidLintInspecti
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
                                              @Nullable LintFix fixData) {
-    if (fixData instanceof LintFix.DataMap) {
-      LintFix.DataMap map = (LintFix.DataMap)fixData;
-
-      String suggested = map.get(String.class);
-      if (suggested != null) {
-        return new AndroidLintQuickFix[]{
-          new AndroidLintCheckResultInspection.ReplaceCallFix(suggested)
-        };
-      }
+    String suggested = LintFix.getData(fixData, String.class);
+    if (suggested != null) {
+      return new AndroidLintQuickFix[]{
+        new AndroidLintCheckResultInspection.ReplaceCallFix(suggested)
+      };
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);
