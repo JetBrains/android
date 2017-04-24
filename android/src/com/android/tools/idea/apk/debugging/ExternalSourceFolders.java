@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDetectionUtil.suggestRoots;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -51,10 +52,10 @@ public class ExternalSourceFolders {
     List<VirtualFile> roots = new ArrayList<>();
     List<ContentEntry> contentEntries = new ArrayList<>();
     for (VirtualFile file : files) {
-      if (isAlreadyAdded(file)) {
-        continue;
+      ContentEntry contentEntry = findParentContentEntry(virtualToIoFile(file), Arrays.stream(myModuleModel.getContentEntries()));
+      if (contentEntry == null) {
+        contentEntry = myModuleModel.addContentEntry(file);
       }
-      ContentEntry contentEntry = myModuleModel.addContentEntry(file);
       contentEntries.add(contentEntry);
     }
     if (!contentEntries.isEmpty()) {
@@ -68,16 +69,6 @@ public class ExternalSourceFolders {
       }
     }
     return roots;
-  }
-
-  private boolean isAlreadyAdded(@NotNull VirtualFile file) {
-    VirtualFile[] contentRoots = myModuleModel.getContentRoots();
-    for (VirtualFile contentRoot : contentRoots) {
-      if (contentRoot.equals(file)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private void addSourceRoots(@NotNull List<ContentEntry> contentEntries, @Nullable Runnable runOnFinish) {
