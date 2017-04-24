@@ -25,8 +25,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-
 @RunWith (GuiTestRunner.class)
 public class WatchpointTest extends DebuggerTestBase {
 
@@ -52,8 +50,8 @@ public class WatchpointTest extends DebuggerTestBase {
    */
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
-  public void testWatchpoint() throws IOException, ClassNotFoundException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeApp");
+  public void testWatchpoint() throws Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("WatchpointTestAppForUI");
 
     final IdeFrameFixture ideFrame = guiTest.ideFrame();
 
