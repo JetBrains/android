@@ -297,8 +297,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             }
 
             if (myProjectFonts != null) {
-              String fontFamilyXml = FontFamily.toXml(myProjectFonts.getFont(resourceValue.getResourceUrl().toString()));
+              FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
+              if (family == null) {
+                return null;
+              }
+              String fontFamilyXml = family.toXml();
               if (fontFamilyXml == null) {
+                family.download();
                 return null;
               }
 
