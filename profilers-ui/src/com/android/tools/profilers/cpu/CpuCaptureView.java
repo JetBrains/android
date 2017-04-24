@@ -42,6 +42,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeWillExpandListener;
@@ -70,6 +72,8 @@ class CpuCaptureView {
 
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));
+
+  private static final Border CPU_COLUMN_TREE_BORDER = new EmptyBorder(4, 10, 4, 0);
 
   @NotNull
   private final CpuProfilerStageView myView;
@@ -168,41 +172,51 @@ class CpuCaptureView {
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Name")
                    .setPreferredWidth(900)
+                   .setHeaderBorder(CPU_COLUMN_TREE_BORDER)
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setRenderer(new MethodNameRenderer())
                    .setComparator(new NameValueNodeComparator()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Self (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false))
+                   .setHeaderBorder(CPU_COLUMN_TREE_BORDER)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false, SwingConstants.RIGHT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
                    .setPreferredWidth(50)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true))
+                   .setHeaderBorder(CPU_COLUMN_TREE_BORDER)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true, SwingConstants.LEFT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Children (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false))
+                   .setHeaderBorder(CPU_COLUMN_TREE_BORDER)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false, SwingConstants.RIGHT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
                    .setPreferredWidth(50)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true))
+                   .setHeaderBorder(CPU_COLUMN_TREE_BORDER)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true, SwingConstants.LEFT))
                    .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Total (μs)")
                    .setPreferredWidth(100)
-                   .setHeaderAlignment(SwingConstants.RIGHT)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false))
+                   .setHeaderBorder(CPU_COLUMN_TREE_BORDER)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false, SwingConstants.RIGHT))
                    .setComparator(DEFAULT_SORT_ORDER))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("%")
                    .setPreferredWidth(50)
-                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true))
+                   .setHeaderBorder(CPU_COLUMN_TREE_BORDER)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.LEFT))
                    .setComparator(DEFAULT_SORT_ORDER))
       .setTreeSorter(sorter)
       .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
@@ -368,9 +382,10 @@ class CpuCaptureView {
     private final Function<CpuTreeNode, Double> myGetter;
     private final boolean myPercentage;
 
-    DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean percentage) {
+    public DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean percentage, int alignment) {
       myGetter = getter;
       myPercentage = percentage;
+      setTextAlign(alignment);
     }
 
     @Override
@@ -381,7 +396,6 @@ class CpuCaptureView {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      setTextAlign(SwingConstants.RIGHT);
       CpuTreeNode node = getNode(value);
       if (node != null) {
         double v = myGetter.apply(node);
