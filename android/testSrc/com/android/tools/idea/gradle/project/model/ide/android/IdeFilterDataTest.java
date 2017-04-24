@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.ApiVersion;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.ApiVersionStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.FilterDataStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,9 +29,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeApiVersion}.
+ * Tests for {@link IdeFilterData}.
  */
-public class IdeApiVersionTest {
+public class IdeFilterDataTest {
   private ModelCache myModelCache;
 
   @Before
@@ -42,25 +41,26 @@ public class IdeApiVersionTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeApiVersion.class).isAssignableTo(Serializable.class);
+    assertThat(IdeFilterData.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeApiVersion apiVersion = new IdeApiVersion(new ApiVersionStub(), myModelCache);
-    byte[] bytes = serialize(apiVersion);
+    IdeFilterData filterData = new IdeFilterData(new FilterDataStub(), myModelCache);
+    byte[] bytes = serialize(filterData);
     Object o = deserialize(bytes);
-    assertEquals(apiVersion, o);
+    assertEquals(filterData, o);
   }
 
   @Test
   public void constructor() throws Throwable {
-    ApiVersion original = new ApiVersionStub();
-    assertEqualsOrSimilar(original, new IdeApiVersion(original, myModelCache));
+    FilterDataStub original = new FilterDataStub();
+    assertEqualsOrSimilar(original, new IdeFilterData(original, myModelCache));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeApiVersion.class).verify();
+    EqualsVerifier.forClass(IdeFilterData.class).verify();
   }
+
 }
