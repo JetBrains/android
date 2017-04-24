@@ -172,6 +172,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       if (project.isDisposed()) {
         return state;
       }
+      if (DumbService.isDumb(project)) {
+        return state; // Lint cannot run in dumb mode.
+      }
 
       List<VirtualFile> files = Collections.singletonList(mainFile);
       LintRequest request = new LintIdeRequest(client, project, files,
