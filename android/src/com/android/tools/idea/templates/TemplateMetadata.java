@@ -100,6 +100,9 @@ public class TemplateMetadata {
   public static final String ATTR_HAS_MONOLITHIC_APP_WRAPPER = "hasMonolithicAppWrapper";
   public static final String ATTR_INSTANT_APP_PACKAGE_NAME = "instantAppPackageName";
 
+  public static final String ATTR_CLASS_NAME = "className";
+  public static final String ATTR_MAKE_IGNORE = "makeIgnore";
+
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";
 

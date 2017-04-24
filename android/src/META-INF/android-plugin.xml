@@ -1181,6 +1181,7 @@
     <captureType implementation="com.android.tools.idea.editors.vmtrace.VmTraceCaptureType"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.module.NewAndroidModuleDescriptionProvider"/>
+    <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewJavaModuleDescriptionProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.android">

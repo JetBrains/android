@@ -35,10 +35,18 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.LanguageLevelModuleExtension;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -125,6 +133,31 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_BUILD_API_STRING, buildVersion.getBuildApiLevelStr());
     myTemplateValues.put(ATTR_TARGET_API, buildVersion.getTargetApiLevel());
     myTemplateValues.put(ATTR_TARGET_API_STRING, buildVersion.getTargetApiLevelStr());
+
+    return this;
+  }
+
+  public TemplateValueInjector setJavaVersion(Project project) {
+    // We can't JUST look at the overall project level language level, since
+    // Gradle sync appears not to sync the overall project level; instead we
+    // have to take the min of all the modules
+    LanguageLevel min = ApplicationManager.getApplication().runReadAction((Computable<LanguageLevel>)() -> {
+      LanguageLevel minResult = null;
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        LanguageLevelModuleExtension moduleLevelExt = LanguageLevelModuleExtensionImpl.getInstance(module);
+        if (moduleLevelExt != null) {
+          LanguageLevel moduleLevel = moduleLevelExt.getLanguageLevel();
+          if (moduleLevel != null) {
+            if (minResult == null || moduleLevel.compareTo(minResult) < 0) {
+              minResult = moduleLevel;
+            }
+          }
+        }
+      }
+      return minResult == null ? LanguageLevelProjectExtension.getInstance(project).getLanguageLevel() : minResult;
+    });
+
+    myTemplateValues.put(ATTR_JAVA_VERSION, min.getCompilerComplianceDefaultOption());
 
     return this;
   }
