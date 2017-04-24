@@ -22,18 +22,16 @@ import com.android.builder.model.VectorDrawablesOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Creates a deep copy of {@link ProductFlavor}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link ProductFlavor}.
  */
-public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
-  @NotNull private final Map<String,String> myTestInstrumentationRunnerArguments;
+public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
+  @NotNull private final Map<String, String> myTestInstrumentationRunnerArguments;
   @NotNull private final Collection<String> myResourceConfigurations;
   @NotNull private final VectorDrawablesOptions myVectorDrawables;
   @Nullable private final String myDimension;
@@ -41,16 +39,10 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   @Nullable private final Integer myVersionCode;
   @Nullable private final String myVersionName;
   @Nullable private final ApiVersion myMinSdkVersion;
-  @Nullable private final ApiVersion myTargetedSdkVersion;
+  @Nullable private final ApiVersion myTargetSdkVersion;
   @Nullable private final Integer myMaxSdkVersion;
-  @Nullable private final Integer myRenderscriptTargetApi;
-  @Nullable private final Boolean myRenderscriptSupporModeEnabled;
-  @Nullable private final Boolean myRenderscriptSupporModeBlasEnabled;
-  @Nullable private final Boolean myRenderscriptNdkModeEnabled;
   @Nullable private final String myTestApplicationId;
   @Nullable private final String myTestInstrumentationRunner;
-  @Nullable private final Boolean myTestHandleProfiling;
-  @Nullable private final Boolean myTestFunctionalTest;
   @Nullable private final SigningConfig mySigningConfig;
   @Nullable private final Boolean myWearAppUnbundled;
 
@@ -66,25 +58,11 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
     myVersionCode = flavor.getVersionCode();
     myVersionName = flavor.getVersionName();
     myMinSdkVersion = copy(modelCache, flavor.getMinSdkVersion());
-    myTargetedSdkVersion = copy(modelCache, flavor.getTargetSdkVersion());
+    myTargetSdkVersion = copy(modelCache, flavor.getTargetSdkVersion());
     myMaxSdkVersion = flavor.getMaxSdkVersion();
-    myRenderscriptTargetApi = flavor.getRenderscriptTargetApi();
-    myRenderscriptSupporModeEnabled = flavor.getRenderscriptSupportModeEnabled();
-    myRenderscriptSupporModeBlasEnabled = flavor.getRenderscriptSupportModeBlasEnabled();
-    myRenderscriptNdkModeEnabled = flavor.getRenderscriptNdkModeEnabled();
     myTestApplicationId = flavor.getTestApplicationId();
     myTestInstrumentationRunner = flavor.getTestInstrumentationRunner();
-    myTestHandleProfiling = flavor.getTestHandleProfiling();
-    myTestFunctionalTest = flavor.getTestFunctionalTest();
-
-    SigningConfig signingConfig = flavor.getSigningConfig();
-    if (signingConfig != null) {
-      mySigningConfig = modelCache.computeIfAbsent(signingConfig, config -> new IdeSigningConfig(config, modelCache));
-    }
-    else {
-      mySigningConfig = null;
-    }
-
+    mySigningConfig = copy(modelCache, flavor.getSigningConfig());
     myWearAppUnbundled = flavor.getWearAppUnbundled();
   }
 
@@ -92,6 +70,14 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   private static IdeApiVersion copy(@NotNull ModelCache modelCache, @Nullable ApiVersion apiVersion) {
     if (apiVersion != null) {
       return modelCache.computeIfAbsent(apiVersion, version -> new IdeApiVersion(version, modelCache));
+    }
+    return null;
+  }
+
+  @Nullable
+  private static SigningConfig copy(@NotNull ModelCache modelCache, @Nullable SigningConfig signingConfig) {
+    if (signingConfig != null) {
+      return modelCache.computeIfAbsent(signingConfig, config -> new IdeSigningConfig(config, modelCache));
     }
     return null;
   }
@@ -147,7 +133,7 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   @Override
   @Nullable
   public ApiVersion getTargetSdkVersion() {
-    return myTargetedSdkVersion;
+    return myTargetSdkVersion;
   }
 
   @Override
@@ -159,25 +145,25 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   @Override
   @Nullable
   public Integer getRenderscriptTargetApi() {
-    return myRenderscriptTargetApi;
+    throw new UnusedModelMethodException("getRenderscriptTargetApi");
   }
 
   @Override
   @Nullable
   public Boolean getRenderscriptSupportModeEnabled() {
-    return myRenderscriptSupporModeEnabled;
+    throw new UnusedModelMethodException("getRenderscriptSupportModeEnabled");
   }
 
   @Override
   @Nullable
   public Boolean getRenderscriptSupportModeBlasEnabled() {
-    return myRenderscriptSupporModeBlasEnabled;
+    throw new UnusedModelMethodException("getRenderscriptSupportModeBlasEnabled");
   }
 
   @Override
   @Nullable
   public Boolean getRenderscriptNdkModeEnabled() {
-    return myRenderscriptNdkModeEnabled;
+    throw new UnusedModelMethodException("getRenderscriptNdkModeEnabled");
   }
 
   @Override
@@ -195,13 +181,13 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   @Override
   @Nullable
   public Boolean getTestHandleProfiling() {
-    return myTestHandleProfiling;
+    throw new UnusedModelMethodException("getTestHandleProfiling");
   }
 
   @Override
   @Nullable
   public Boolean getTestFunctionalTest() {
-    return myTestFunctionalTest;
+    throw new UnusedModelMethodException("getTestFunctionalTest");
   }
 
   @Override
@@ -214,5 +200,46 @@ public class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   @Nullable
   public Boolean getWearAppUnbundled() {
     return myWearAppUnbundled;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeProductFlavor)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    IdeProductFlavor flavor = (IdeProductFlavor)o;
+    return flavor.canEqual(this) &&
+           Objects.equals(myTestInstrumentationRunnerArguments, flavor.myTestInstrumentationRunnerArguments) &&
+           Objects.equals(myResourceConfigurations, flavor.myResourceConfigurations) &&
+           Objects.equals(myVectorDrawables, flavor.myVectorDrawables) &&
+           Objects.equals(myDimension, flavor.myDimension) &&
+           Objects.equals(myApplicationId, flavor.myApplicationId) &&
+           Objects.equals(myVersionCode, flavor.myVersionCode) &&
+           Objects.equals(myVersionName, flavor.myVersionName) &&
+           Objects.equals(myMinSdkVersion, flavor.myMinSdkVersion) &&
+           Objects.equals(myTargetSdkVersion, flavor.myTargetSdkVersion) &&
+           Objects.equals(myMaxSdkVersion, flavor.myMaxSdkVersion) &&
+           Objects.equals(myTestApplicationId, flavor.myTestApplicationId) &&
+           Objects.equals(myTestInstrumentationRunner, flavor.myTestInstrumentationRunner) &&
+           Objects.equals(mySigningConfig, flavor.mySigningConfig) &&
+           Objects.equals(myWearAppUnbundled, flavor.myWearAppUnbundled);
+  }
+
+  @Override
+  public boolean canEqual(Object other) {
+    return other instanceof IdeProductFlavor;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), myTestInstrumentationRunnerArguments, myResourceConfigurations, myVectorDrawables, myDimension,
+                        myApplicationId, myVersionCode, myVersionName, myMinSdkVersion, myTargetSdkVersion, myMaxSdkVersion,
+                        myTestApplicationId, myTestInstrumentationRunner, mySigningConfig, myWearAppUnbundled);
   }
 }

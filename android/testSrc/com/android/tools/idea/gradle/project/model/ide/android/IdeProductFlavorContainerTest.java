@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.SigningConfig;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.SigningConfigStub;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.ProductFlavorContainerStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,12 +27,12 @@ import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerifi
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
- * Tests for {@link IdeSigningConfig}.
+ * Tests for {@link IdeProductFlavorContainer}.
  */
-public class IdeSigningConfigTest {
+public class IdeProductFlavorContainerTest {
   private ModelCache myModelCache;
 
   @Before
@@ -42,26 +42,25 @@ public class IdeSigningConfigTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeSigningConfig.class).isAssignableTo(Serializable.class);
+    assertThat(IdeProductFlavorContainer.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeSigningConfig signingConfig = new IdeSigningConfig(new SigningConfigStub(), myModelCache);
-    byte[] bytes = serialize(signingConfig);
+    IdeProductFlavorContainer container = new IdeProductFlavorContainer(new ProductFlavorContainerStub(), myModelCache);
+    byte[] bytes = serialize(container);
     Object o = deserialize(bytes);
-    assertEquals(signingConfig, o);
+    assertEquals(container, o);
   }
 
   @Test
   public void constructor() throws Throwable {
-    SigningConfig original = new SigningConfigStub();
-    assertEqualsOrSimilar(original, new IdeSigningConfig(original, myModelCache));
+    ProductFlavorContainer original = new ProductFlavorContainerStub();
+    assertEqualsOrSimilar(original, new IdeProductFlavorContainer(original, myModelCache));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeSigningConfig.class).verify();
+    EqualsVerifier.forClass(IdeProductFlavorContainer.class).verify();
   }
-
 }

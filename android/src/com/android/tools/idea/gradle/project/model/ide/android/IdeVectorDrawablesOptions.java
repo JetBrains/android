@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.VectorDrawablesOptions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Set;
 
 /**
- * Creates a deep copy of {@link VectorDrawablesOptions}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link VectorDrawablesOptions}.
  */
-public class IdeVectorDrawablesOptions extends IdeModel implements VectorDrawablesOptions {
-  @Nullable private Set<String> myGeneratedDensities;
-  @Nullable private Boolean myUseSupportLibrary;
+public final class IdeVectorDrawablesOptions extends IdeModel implements VectorDrawablesOptions {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
+  @Nullable private final Set<String> myGeneratedDensities;
+  @Nullable private final Boolean myUseSupportLibrary;
 
   public IdeVectorDrawablesOptions(@NotNull VectorDrawablesOptions options, @NotNull ModelCache modelCache) {
     super(options, modelCache);
@@ -51,10 +52,27 @@ public class IdeVectorDrawablesOptions extends IdeModel implements VectorDrawabl
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof IdeVectorDrawablesOptions)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeVectorDrawablesOptions)) {
+      return false;
+    }
     IdeVectorDrawablesOptions options = (IdeVectorDrawablesOptions)o;
-    return Objects.equals(getGeneratedDensities(), options.getGeneratedDensities()) &&
-           Objects.equals(getUseSupportLibrary(), options.getUseSupportLibrary());
+    return Objects.equals(myGeneratedDensities, options.myGeneratedDensities) &&
+           Objects.equals(myUseSupportLibrary, options.myUseSupportLibrary);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myGeneratedDensities, myUseSupportLibrary);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeVectorDrawablesOptions{" +
+           "myGeneratedDensities=" + myGeneratedDensities +
+           ", myUseSupportLibrary=" + myUseSupportLibrary +
+           "}";
   }
 }

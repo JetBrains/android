@@ -200,6 +200,6 @@ public final class IdeLintOptions extends IdeModel implements LintOptions {
            "myBaselineFile=" + myBaselineFile +
            ", mySeverityOverrides=" + mySeverityOverrides +
            ", myCheckTestSources=" + myCheckTestSources +
-           "} " + super.toString();
+           "}";
   }
 }

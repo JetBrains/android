@@ -19,6 +19,8 @@ import com.android.builder.model.ApiVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public final class ApiVersionStub implements ApiVersion {
   @NotNull private final String myApiString;
   @Nullable private final String myCodename;
@@ -49,5 +51,24 @@ public final class ApiVersionStub implements ApiVersion {
   @Override
   public int getApiLevel() {
     return myApiLevel;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ApiVersion)) {
+      return false;
+    }
+    ApiVersion apiVersion = (ApiVersion)o;
+    return getApiLevel() == apiVersion.getApiLevel() &&
+           Objects.equals(getApiString(), apiVersion.getApiString()) &&
+           Objects.equals(getCodename(), apiVersion.getCodename());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getApiString(), getCodename(), getApiLevel());
   }
 }
