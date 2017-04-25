@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.adtui.model.updater;
 
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.StopwatchTimer;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;

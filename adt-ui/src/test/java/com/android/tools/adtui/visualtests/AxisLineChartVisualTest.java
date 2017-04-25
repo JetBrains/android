@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;

@@ -20,7 +20,7 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceParser;

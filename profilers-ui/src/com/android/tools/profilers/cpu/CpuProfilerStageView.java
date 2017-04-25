@@ -28,7 +28,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.UpdatableManager;
+import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
