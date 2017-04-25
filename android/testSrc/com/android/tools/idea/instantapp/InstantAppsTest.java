@@ -35,7 +35,7 @@ public class InstantAppsTest extends AndroidGradleTestCase {
 
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
-    assertEquals("http://example.com/parameter", getDefaultInstantAppUrl(myAndroidFacet));
+    assertEquals("http://example.com/example", getDefaultInstantAppUrl(myAndroidFacet));
   }
 
   public void testGetDefaultInstantAppUrlWithoutInstantApp() throws Exception {

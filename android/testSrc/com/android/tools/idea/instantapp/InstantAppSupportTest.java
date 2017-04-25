@@ -74,6 +74,6 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     LaunchOptionState launchOptionState = runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
     assertInstanceOf(launchOptionState, DeepLinkLaunch.State.class);
     DeepLinkLaunch.State deepLinkLaunchState = (DeepLinkLaunch.State)launchOptionState;
-    assertEquals("http://example.com/parameter", deepLinkLaunchState.DEEP_LINK);
+    assertEquals("http://example.com/example", deepLinkLaunchState.DEEP_LINK);
   }
 }

@@ -99,6 +99,7 @@ public class TemplateMetadata {
   public static final String ATTR_HAS_INSTANT_APP_WRAPPER = "hasInstantAppWrapper";
   public static final String ATTR_HAS_MONOLITHIC_APP_WRAPPER = "hasMonolithicAppWrapper";
   public static final String ATTR_INSTANT_APP_PACKAGE_NAME = "instantAppPackageName";
+  public static final String ATTR_COMPANY_DOMAIN = "companyDomain";
 
   public static final String ATTR_CLASS_NAME = "className";
   public static final String ATTR_MAKE_IGNORE = "makeIgnore";
