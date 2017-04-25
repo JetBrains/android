@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-public final class GraphItemStub implements GraphItem {
+public final class GraphItemStub extends BaseStub implements GraphItem {
   @NotNull private final String myArtifactAddress;
   @NotNull private final List<GraphItem> myDependencies;
   @Nullable private final String myRequestedCoordinates;

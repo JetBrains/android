@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Objects;
 
-public class ProductFlavorContainerStub implements ProductFlavorContainer {
+public class ProductFlavorContainerStub extends BaseStub implements ProductFlavorContainer {
   @NotNull private final ProductFlavor myProductFlavor;
   @NotNull private final SourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;

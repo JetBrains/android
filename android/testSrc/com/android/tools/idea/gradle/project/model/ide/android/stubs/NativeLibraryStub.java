@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
-public final class NativeLibraryStub implements NativeLibrary {
+public final class NativeLibraryStub extends BaseStub implements NativeLibrary {
   @NotNull private final String myName;
   @NotNull private final String myAbi;
   @NotNull private final String myToolchainName;
