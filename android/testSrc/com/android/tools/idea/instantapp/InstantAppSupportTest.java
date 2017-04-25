@@ -20,6 +20,7 @@ import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
 import com.android.tools.idea.run.editor.LaunchOptionState;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
@@ -33,6 +34,7 @@ import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.getIrSuppor
 import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIABaseFeature;
 import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.assertModuleIsValidAIAInstantApp;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 
@@ -75,5 +77,13 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     assertInstanceOf(launchOptionState, DeepLinkLaunch.State.class);
     DeepLinkLaunch.State deepLinkLaunchState = (DeepLinkLaunch.State)launchOptionState;
     assertEquals("http://example.com/example", deepLinkLaunchState.DEEP_LINK);
+  }
+
+  public void testAndroidRunConfigurationWithoutError() throws Exception {
+    loadProject(INSTANT_APP, "feature");
+    AndroidTestRunConfiguration
+      runConfiguration = createAndroidTestConfigurationFromClass(getProject(), "com.example.instantapp.ExampleInstrumentedTest");
+    assertNotNull(runConfiguration);
+    runConfiguration.checkConfiguration();
   }
 }
