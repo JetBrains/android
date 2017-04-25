@@ -448,6 +448,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable 
           return 6;
         case LEGACY_ROUND:
           return 7;
+        case WEB:
+          return 8;
         case NONE:
         default:
           return 1000;  // Arbitrary high value

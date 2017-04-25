@@ -228,14 +228,19 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
         return;
       }
     }
-    //myImagePreviewPanel.setVisible(false);
-    //myXmlPreviewPanel.setVisible(false);
+
+    // Reset properties of both preview panels
     myPreviewIcon.setVisible(false);
     myPreviewIcon.setIcon(null);
     myFileTypeTextField.setText("");
     mySizeDpTextField.setText("");
     mySizePxTextField.setText("");
     myDensityTextField.setText("");
+    // Activate the image preview by default: this is somewhat arbitrary, but the image preview
+    // is the most common one, so it alleviates flickering when changing the selection fast in
+    // the tree.
+    myImagePreviewPanel.setVisible(true);
+    myXmlPreviewPanel.setVisible(false);
   }
 
   @NotNull
