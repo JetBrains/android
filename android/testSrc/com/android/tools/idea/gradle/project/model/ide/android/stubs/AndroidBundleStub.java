@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
   @NotNull private final File myBundle;
@@ -115,5 +116,20 @@ public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
   @Nullable
   public String getProjectVariant() {
     return myProjectVariant;
+  }
+
+  @Override
+  public String toString() {
+    return "AndroidBundleStub{" +
+           "myBundle=" + myBundle +
+           ", myFolder=" + myFolder +
+           ", myLibraryDependencies=" + myLibraryDependencies +
+           ", myJavaDependencies=" + myJavaDependencies +
+           ", myManifest=" + myManifest +
+           ", myJarFile=" + myJarFile +
+           ", myResFolder=" + myResFolder +
+           ", myAssetsFolder=" + myAssetsFolder +
+           ", myProjectVariant='" + myProjectVariant + '\'' +
+           "} " + super.toString();
   }
 }

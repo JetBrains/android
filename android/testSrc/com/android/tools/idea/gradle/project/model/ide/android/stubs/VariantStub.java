@@ -139,4 +139,19 @@ public class VariantStub extends BaseStub implements Variant {
     return Objects.hash(getName(), getDisplayName(), getMainArtifact(), getExtraAndroidArtifacts(), getExtraJavaArtifacts(), getBuildType(),
                         getProductFlavors(), getMergedFlavor(), getTestedTargetVariants());
   }
+
+  @Override
+  public String toString() {
+    return "VariantStub{" +
+           "myName='" + myName + '\'' +
+           ", myDisplayName='" + myDisplayName + '\'' +
+           ", myMainArtifact=" + myMainArtifact +
+           ", myExtraAndroidArtifacts=" + myExtraAndroidArtifacts +
+           ", myExtraJavaArtifacts=" + myExtraJavaArtifacts +
+           ", myBuildType='" + myBuildType + '\'' +
+           ", myProductFlavors=" + myProductFlavors +
+           ", myMergedFlavor=" + myMergedFlavor +
+           ", myTestedTargetVariants=" + myTestedTargetVariants +
+           "}";
+  }
 }

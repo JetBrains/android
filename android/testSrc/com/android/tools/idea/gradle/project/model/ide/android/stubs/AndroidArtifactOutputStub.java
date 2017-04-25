@@ -79,4 +79,13 @@ public class AndroidArtifactOutputStub extends VariantOutputStub implements Andr
     return Objects.hash(getMainOutputFile(), getOutputs(), getOutputType(), getFilterTypes(), getFilters(), getVersionCode(),
                         getAssembleTaskName(), getGeneratedManifest(), getOutputFile());
   }
+
+  @Override
+  public String toString() {
+    return "AndroidArtifactOutputStub{" +
+           "myAssembleTaskName='" + myAssembleTaskName + '\'' +
+           ", myGeneratedManifest=" + myGeneratedManifest +
+           ", myOutputFile=" + myOutputFile +
+           "} " + super.toString();
+  }
 }

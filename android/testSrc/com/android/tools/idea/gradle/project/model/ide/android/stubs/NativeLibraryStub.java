@@ -171,4 +171,22 @@ public final class NativeLibraryStub extends BaseStub implements NativeLibrary {
                         getCppSystemIncludeDirs(), getCDefines(), getCppDefines(), getCCompilerFlags(), getCppCompilerFlags(),
                         getDebuggableLibraryFolders());
   }
+
+  @Override
+  public String toString() {
+    return "NativeLibraryStub{" +
+           "myName='" + myName + '\'' +
+           ", myAbi='" + myAbi + '\'' +
+           ", myToolchainName='" + myToolchainName + '\'' +
+           ", myCIncludeDirs=" + myCIncludeDirs +
+           ", myCppIncludeDirs=" + myCppIncludeDirs +
+           ", myCSystemIncludeDirs=" + myCSystemIncludeDirs +
+           ", myCppSystemIncludeDirs=" + myCppSystemIncludeDirs +
+           ", myCDefines=" + myCDefines +
+           ", myCppDefines=" + myCppDefines +
+           ", myCCompilerFlags=" + myCCompilerFlags +
+           ", myCppCompilerFlags=" + myCppCompilerFlags +
+           ", myDebuggableLibraryFolders=" + myDebuggableLibraryFolders +
+           "}";
+  }
 }

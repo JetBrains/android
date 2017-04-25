@@ -135,4 +135,19 @@ public final class SigningConfigStub extends BaseStub implements SigningConfig {
     return Objects.hash(getName(), getStoreFile(), getStorePassword(), getKeyAlias(), getKeyPassword(), getStoreType(),
                         isV1SigningEnabled(), isV2SigningEnabled(), isSigningReady());
   }
+
+  @Override
+  public String toString() {
+    return "SigningConfigStub{" +
+           "myName='" + myName + '\'' +
+           ", myStoreFile=" + myStoreFile +
+           ", myStorePassword='" + myStorePassword + '\'' +
+           ", myKeyAlias='" + myKeyAlias + '\'' +
+           ", myKeyPassword='" + myKeyPassword + '\'' +
+           ", myStoreType='" + myStoreType + '\'' +
+           ", myV1SigningEnabled=" + myV1SigningEnabled +
+           ", myV2SigningEnabled=" + myV2SigningEnabled +
+           ", mySigningReady=" + mySigningReady +
+           "}";
+  }
 }

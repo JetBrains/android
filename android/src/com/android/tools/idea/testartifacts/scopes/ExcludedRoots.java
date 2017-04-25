@@ -241,6 +241,8 @@ class ExcludedRoots {
   }
 
   @Nullable
+  @Deprecated
+  // TODO use IdeLibrary.getProject
   private static String getProject(@NotNull JavaLibrary library) {
     try {
       return library.getProject();

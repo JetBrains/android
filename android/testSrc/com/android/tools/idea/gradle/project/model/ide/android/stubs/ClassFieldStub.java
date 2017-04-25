@@ -85,4 +85,13 @@ public final class ClassFieldStub extends BaseStub implements ClassField {
   public int hashCode() {
     return Objects.hash(getName(), getType(), getValue());
   }
+
+  @Override
+  public String toString() {
+    return "ClassFieldStub{" +
+           "myName='" + myName + '\'' +
+           ", myType='" + myType + '\'' +
+           ", myValue='" + myValue + '\'' +
+           "}";
+  }
 }

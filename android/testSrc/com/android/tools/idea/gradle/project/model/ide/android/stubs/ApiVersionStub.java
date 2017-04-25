@@ -71,4 +71,13 @@ public final class ApiVersionStub extends BaseStub implements ApiVersion {
   public int hashCode() {
     return Objects.hash(getApiString(), getCodename(), getApiLevel());
   }
+
+  @Override
+  public String toString() {
+    return "ApiVersionStub{" +
+           "myApiString='" + myApiString + '\'' +
+           ", myCodename='" + myCodename + '\'' +
+           ", myApiLevel=" + myApiLevel +
+           "}";
+  }
 }

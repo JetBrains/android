@@ -79,4 +79,14 @@ public final class SyncIssueStub extends BaseStub implements SyncIssue {
   public int hashCode() {
     return Objects.hash(getMessage(), getData(), getSeverity(), getType());
   }
+
+  @Override
+  public String toString() {
+    return "SyncIssueStub{" +
+           "myMessage='" + myMessage + '\'' +
+           ", myData='" + myData + '\'' +
+           ", mySeverity=" + mySeverity +
+           ", myType=" + myType +
+           "}";
+  }
 }

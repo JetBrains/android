@@ -39,8 +39,19 @@ public abstract class IdeLibrary extends IdeModel implements Library {
     myResolvedCoordinates = modelCache.computeIfAbsent(library.getResolvedCoordinates(),
                                                        coordinates -> new IdeMavenCoordinates(coordinates, modelCache));
     myProject = getProject(library);
-    myName = library.getName();
+    myName = getName(library);
     myProvided = library.isProvided();
+  }
+
+  @Nullable
+  private static String getName(@NotNull Library library) {
+    try {
+      // Library.getName() was added in 2.2
+      return library.getName();
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
+    }
   }
 
   @Nullable

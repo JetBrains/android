@@ -62,4 +62,12 @@ public final class FilterDataStub extends BaseStub implements FilterData {
   public int hashCode() {
     return Objects.hash(getIdentifier(), getFilterType());
   }
+
+  @Override
+  public String toString() {
+    return "FilterDataStub{" +
+           "myIdentifier='" + myIdentifier + '\'' +
+           ", myFilterType='" + myFilterType + '\'' +
+           "}";
+  }
 }

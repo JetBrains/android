@@ -44,7 +44,7 @@ public final class CopyVerification {
         }
         Object valueInOriginal = methodInOriginal.invoke(original);
         if (!Objects.equals(valueInOriginal, valueInCopy)) {
-          throw new ComparisonFailure(name, original.toString(), copy.toString());
+          throw new ComparisonFailure(name, valueInOriginal.toString(), valueInCopy.toString());
         }
       }
     }

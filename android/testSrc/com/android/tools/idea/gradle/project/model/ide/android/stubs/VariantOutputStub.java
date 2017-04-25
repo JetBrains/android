@@ -85,4 +85,16 @@ public class VariantOutputStub extends BaseStub implements VariantOutput {
   public int getVersionCode() {
     return myVersionCode;
   }
+
+  @Override
+  public String toString() {
+    return "VariantOutputStub{" +
+           "myMainOutputFile=" + myMainOutputFile +
+           ", myOutputs=" + myOutputs +
+           ", myOutputType='" + myOutputType + '\'' +
+           ", myFilterTypes=" + myFilterTypes +
+           ", myFilters=" + myFilters +
+           ", myVersionCode=" + myVersionCode +
+           "}";
+  }
 }

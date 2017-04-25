@@ -145,4 +145,22 @@ public class BaseArtifactStub extends BaseStub implements BaseArtifact {
   public SourceProvider getMultiFlavorSourceProvider() {
     return myMultiFlavorSourceProvider;
   }
+
+  @Override
+  public String toString() {
+    return "BaseArtifactStub{" +
+           "myName='" + myName + '\'' +
+           ", myCompileTaskName='" + myCompileTaskName + '\'' +
+           ", myAssembleTaskName='" + myAssembleTaskName + '\'' +
+           ", myClassesFolder=" + myClassesFolder +
+           ", myJavaResourcesFolder=" + myJavaResourcesFolder +
+           ", myDependencies=" + myDependencies +
+           ", myCompileDependencies=" + myCompileDependencies +
+           ", myDependencyGraphs=" + myDependencyGraphs +
+           ", myIdeSetupTaskNames=" + myIdeSetupTaskNames +
+           ", myGeneratedSourceFolders=" + myGeneratedSourceFolders +
+           ", myVariantSourceProvider=" + myVariantSourceProvider +
+           ", myMultiFlavorSourceProvider=" + myMultiFlavorSourceProvider +
+           "}";
+  }
 }

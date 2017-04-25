@@ -282,6 +282,7 @@ public class AppResourceRepository extends MultiResourceRepository {
           File folder = library.getFolder();
           String name = folder.getName();
           if (modelVersion.getMajor() > 2 || modelVersion.getMajor() == 2 && modelVersion.getMinor() >= 2) {
+            // TODO: use IdeLibrary.getName()
             // Library.getName() was added in 2.2
             libraryName = library.getName();
           }
