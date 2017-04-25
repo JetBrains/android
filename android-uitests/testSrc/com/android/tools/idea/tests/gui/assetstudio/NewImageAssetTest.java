@@ -22,6 +22,7 @@ import com.android.testutils.filesystemdiff.FileSystemEntry;
 import com.android.testutils.filesystemdiff.Script;
 import com.android.testutils.filesystemdiff.TreeBuilder;
 import com.android.testutils.filesystemdiff.TreeDifferenceEngine;
+import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep_Deprecated;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -58,8 +59,26 @@ public class NewImageAssetTest {
   private void openAssetStudioWizard() {
     myDialog = guiTest.ideFrame().openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
     myStep = myDialog.getImageAssetStep();
+    if (!NewImageAssetStep_Deprecated.isEnabled()) {
+      myStep.selectIconType("Launcher Icons (Legacy)");
+    }
     assertThat(myDialog.findWizardButton("Next").isEnabled()).isTrue();
     // TODO there does not seem to be a error panel in the image asset config
+  }
+
+  @Test
+  public void testAdaptiveIconsPreviewPanelContents() {
+    openAssetStudioWizard();
+    Path projectDir = guiTest.getProjectPath().toPath();
+    FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
+
+    myStep.selectIconType("Adaptive Icons");
+    assertThat(myStep.getPreviewPanelCount()).isEqualTo(1);
+    assertThat(myStep.getPreviewPanelIconNames(0))
+      .containsExactly("Circle", "Squircle", "Rounded Square", "Square",
+                       "Full Bleed Layers", "Legacy (API \u2264 24)", "Round (API 25)", "Web")
+      .inOrder();
+    myDialog.clickCancel();
   }
 
   @Test

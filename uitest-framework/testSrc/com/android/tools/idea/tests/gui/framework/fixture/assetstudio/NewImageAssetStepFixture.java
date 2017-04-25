@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
-import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.ImageComponent;
@@ -42,8 +41,8 @@ public class NewImageAssetStepFixture extends AbstractWizardStepFixture<NewImage
     combo.selectItem(iconType);
   }
 
-  private List<PreviewIconsPanel> getPreviewPanels() {
-    return Lists.newArrayList(robot().finder().findAll(Matchers.byType(PreviewIconsPanel.class).andIsShowing()));
+  private List<JPanel> getPreviewPanels() {
+    return Lists.newArrayList(robot().finder().findAll(Matchers.byName(JPanel.class, "PreviewIconsPanel").andIsShowing()));
   }
 
   public int getPreviewPanelCount() {
@@ -51,7 +50,7 @@ public class NewImageAssetStepFixture extends AbstractWizardStepFixture<NewImage
   }
 
   public List<String> getPreviewPanelIconNames(int index) {
-    PreviewIconsPanel panel = getPreviewPanels().get(index);
+    JPanel panel = getPreviewPanels().get(index);
     List<JPanel> iconPanels = Lists.newArrayList(robot().finder().findAll(panel, Matchers.byName(JPanel.class, "IconPanel").andIsShowing()));
     List<String> names = new ArrayList<>();
     for (JPanel iconPanel : iconPanels) {
