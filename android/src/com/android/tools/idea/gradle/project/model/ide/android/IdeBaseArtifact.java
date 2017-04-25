@@ -39,11 +39,11 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   @NotNull private final String myCompileTaskName;
   @NotNull private final String myAssembleTaskName;
   @NotNull private final File myClassesFolder;
-  @NotNull private final File myJavaResourcesFolder;
   @NotNull private final Dependencies myDependencies;
   @NotNull private final Dependencies myCompileDependencies;
   @NotNull private final Set<String> myIdeSetupTaskNames;
   @NotNull private final Collection<File> myGeneratedSourceFolders;
+  @Nullable private final File myJavaResourcesFolder;
   @Nullable private final DependencyGraphs myDependencyGraphs;
   @Nullable private final IdeSourceProvider myVariantSourceProvider;
   @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
@@ -54,7 +54,7 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
     myCompileTaskName = artifact.getCompileTaskName();
     myAssembleTaskName = artifact.getAssembleTaskName();
     myClassesFolder = artifact.getClassesFolder();
-    myJavaResourcesFolder = artifact.getJavaResourcesFolder();
+    myJavaResourcesFolder = getJavaResourcesFolder(artifact);
     myDependencies = copy(artifact.getDependencies(), modelCache, modelVersion);
     //noinspection deprecation
     myCompileDependencies = copy(artifact.getCompileDependencies(), modelCache, modelVersion);
@@ -71,6 +71,16 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
     myGeneratedSourceFolders = new ArrayList<>(getGeneratedSourceFolders(artifact));
     myVariantSourceProvider = createSourceProvider(modelCache, artifact.getVariantSourceProvider());
     myMultiFlavorSourceProvider = createSourceProvider(modelCache, artifact.getMultiFlavorSourceProvider());
+  }
+
+  @Nullable
+  private static File getJavaResourcesFolder(@NotNull BaseArtifact artifact) {
+    try {
+      return artifact.getJavaResourcesFolder();
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
+    }
   }
 
   @NotNull
@@ -145,7 +155,10 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   @Override
   @NotNull
   public File getJavaResourcesFolder() {
-    return myJavaResourcesFolder;
+    if (myJavaResourcesFolder != null) {
+      return myJavaResourcesFolder;
+    }
+    throw new UnsupportedMethodException("getJavaResourcesFolder");
   }
 
   @Override

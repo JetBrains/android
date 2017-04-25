@@ -87,4 +87,14 @@ public final class DependencyGraphsStub extends BaseStub implements DependencyGr
   public int hashCode() {
     return Objects.hash(getCompileDependencies(), getPackageDependencies(), getProvidedLibraries(), getSkippedLibraries());
   }
+
+  @Override
+  public String toString() {
+    return "DependencyGraphsStub{" +
+           "myCompileDependencies=" + myCompileDependencies +
+           ", myPackageDependencies=" + myPackageDependencies +
+           ", myProvidedLibraries=" + myProvidedLibraries +
+           ", mySkippedLibraries=" + mySkippedLibraries +
+           "}";
+  }
 }

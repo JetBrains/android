@@ -73,4 +73,13 @@ public class NativeToolchainStub extends BaseStub implements NativeToolchain {
   public int hashCode() {
     return Objects.hash(getName(), getCCompilerExecutable(), getCppCompilerExecutable());
   }
+
+  @Override
+  public String toString() {
+    return "NativeToolchainStub{" +
+           "myName='" + myName + '\'' +
+           ", myCCompilerExecutable=" + myCCompilerExecutable +
+           ", myCppCompilerExecutable=" + myCppCompilerExecutable +
+           "}";
+  }
 }

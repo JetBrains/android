@@ -267,4 +267,30 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
                         getTestApplicationId(), getTestInstrumentationRunner(), getTestHandleProfiling(), getTestFunctionalTest(),
                         getSigningConfig(), getWearAppUnbundled());
   }
+
+  @Override
+  public String toString() {
+    return "ProductFlavorStub{" +
+           "myTestInstrumentationRunnerArguments=" + myTestInstrumentationRunnerArguments +
+           ", myResourceConfigurations=" + myResourceConfigurations +
+           ", myVectorDrawables=" + myVectorDrawables +
+           ", myDimension='" + myDimension + '\'' +
+           ", myApplicationId='" + myApplicationId + '\'' +
+           ", myVersionCode=" + myVersionCode +
+           ", myVersionName='" + myVersionName + '\'' +
+           ", myMinSdkVersion=" + myMinSdkVersion +
+           ", myTargetSdkVersion=" + myTargetSdkVersion +
+           ", myMaxSdkVersion=" + myMaxSdkVersion +
+           ", myRenderscriptTargetApi=" + myRenderscriptTargetApi +
+           ", myRenderscriptSupportModeEnabled=" + myRenderscriptSupportModeEnabled +
+           ", myRenderscriptSupportModeBlasEnabled=" + myRenderscriptSupportModeBlasEnabled +
+           ", myRenderscriptNdkModeEnabled=" + myRenderscriptNdkModeEnabled +
+           ", myTestApplicationId='" + myTestApplicationId + '\'' +
+           ", myTestInstrumentationRunner='" + myTestInstrumentationRunner + '\'' +
+           ", myTestHandleProfiling=" + myTestHandleProfiling +
+           ", myTestFunctionalTest=" + myTestFunctionalTest +
+           ", mySigningConfig=" + mySigningConfig +
+           ", myWearAppUnbundled=" + myWearAppUnbundled +
+           "} " + super.toString();
+  }
 }

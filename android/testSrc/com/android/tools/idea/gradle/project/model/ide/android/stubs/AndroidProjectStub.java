@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.*;
-import com.android.ide.common.repository.GradleVersion;
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.tooling.model.UnsupportedMethodException;
+import com.android.tools.idea.gradle.project.model.ide.android.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
 
-/**
- * Creates a deep copy of an {@link AndroidProject}.
- */
-public final class IdeAndroidProject extends IdeModel implements AndroidProject {
+public class AndroidProjectStub extends BaseStub implements AndroidProject {
   @NotNull private final String myModelVersion;
   @NotNull private final String myName;
   @NotNull private final ProductFlavorContainer myDefaultConfig;
@@ -39,7 +36,7 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
   @NotNull private final Collection<Variant> myVariants;
   @NotNull private final Collection<String> myFlavorDimensions;
   @NotNull private final String myCompileTarget;
-  @NotNull private final Collection<String> myBootClassPath;
+  @NotNull private final Collection<String> myBootClasspath;
   @NotNull private final Collection<NativeToolchain> myNativeToolchains;
   @NotNull private final Collection<SigningConfig> mySigningConfigs;
   @NotNull private final LintOptions myLintOptions;
@@ -53,60 +50,61 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
   private final int myPluginGeneration;
   private final boolean myBaseSplit;
 
-  public IdeAndroidProject(@NotNull AndroidProject project) {
-    this(project, new ModelCache());
+  public AndroidProjectStub(@NotNull String modelVersion) {
+    this(modelVersion, "name", new ProductFlavorContainerStub(), Lists.newArrayList(new BuildTypeContainerStub()),
+         Lists.newArrayList(new ProductFlavorContainerStub()), "buildToolsVersion", Lists.newArrayList(new SyncIssueStub()),
+         Lists.newArrayList(new VariantStub()), Lists.newArrayList("flavorDimension"), "compileTarget", Lists.newArrayList("bootClasspath"),
+         Lists.newArrayList(new NativeToolchainStub()), Lists.newArrayList(new SigningConfigStub()), new LintOptionsStub(),
+         Sets.newHashSet("unresolvedDependency"), new JavaCompileOptionsStub(), new File("buildFolder"), "resourcePrefix", 1, true, 2, 3,
+         true);
   }
 
-  @VisibleForTesting
-  IdeAndroidProject(@NotNull AndroidProject project, @NotNull ModelCache modelCache) {
-    super(project, modelCache);
-    myModelVersion = project.getModelVersion();
-    GradleVersion modelVersion = GradleVersion.parse(myModelVersion);
-
-    myName = project.getName();
-    myDefaultConfig = modelCache.computeIfAbsent(project.getDefaultConfig(),
-                                                 container -> new IdeProductFlavorContainer(container, modelCache));
-    myBuildTypes = copy(project.getBuildTypes(), modelCache, container -> new IdeBuildTypeContainer(container, modelCache));
-    myProductFlavors = copy(project.getProductFlavors(), modelCache, container -> new IdeProductFlavorContainer(container, modelCache));
-    myBuildToolsVersion = project.getBuildToolsVersion();
-    mySyncIssues = copy(project.getSyncIssues(), modelCache, issue -> new IdeSyncIssue(issue, modelCache));
-    myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariant(variant, modelCache, modelVersion));
-    myFlavorDimensions = getFlavorDimensions(project);
-    myCompileTarget = project.getCompileTarget();
-    myBootClassPath = new ArrayList<>(project.getBootClasspath());
-    myNativeToolchains = copy(project.getNativeToolchains(), modelCache, toolchain -> new IdeNativeToolchain(toolchain, modelCache));
-    mySigningConfigs = copy(project.getSigningConfigs(), modelCache, config -> new IdeSigningConfig(config, modelCache));
-    myLintOptions = modelCache.computeIfAbsent(project.getLintOptions(), options -> new IdeLintOptions(options, modelCache, modelVersion));
-    //noinspection deprecation
-    myUnresolvedDependencies = new HashSet<>(project.getUnresolvedDependencies());
-    myJavaCompileOptions = modelCache.computeIfAbsent(project.getJavaCompileOptions(),
-                                                      options -> new IdeJavaCompileOptions(options, modelCache));
-    myBuildFolder = project.getBuildFolder();
-    myResourcePrefix = project.getResourcePrefix();
-    myApiVersion = project.getApiVersion();
-    //noinspection deprecation
-    myLibrary = project.isLibrary();
-    myProjectType = getProjectType(project, modelVersion);
-    myPluginGeneration = project.getPluginGeneration();
-    myBaseSplit = project.isBaseSplit();
-  }
-
-  @NotNull
-  private static Collection<String> getFlavorDimensions(@NotNull AndroidProject androidProject) {
-    try {
-      return new ArrayList<>(androidProject.getFlavorDimensions());
-    }
-    catch (UnsupportedMethodException e) {
-      return Collections.emptyList();
-    }
-  }
-
-  private static int getProjectType(@NotNull AndroidProject project, @NotNull GradleVersion modelVersion) {
-    if (modelVersion.isAtLeast(2, 3, 0)) {
-      return project.getProjectType();
-    }
-    //noinspection deprecation
-    return project.isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
+  public AndroidProjectStub(@NotNull String modelVersion,
+                            @NotNull String name,
+                            @NotNull ProductFlavorContainer defaultConfig,
+                            @NotNull Collection<BuildTypeContainer> buildTypes,
+                            @NotNull Collection<ProductFlavorContainer> productFlavors,
+                            @NotNull String buildToolsVersion,
+                            @NotNull Collection<SyncIssue> syncIssues,
+                            @NotNull Collection<Variant> variants,
+                            @NotNull Collection<String> flavorDimensions,
+                            @NotNull String compileTarget,
+                            @NotNull Collection<String> bootClasspath,
+                            @NotNull Collection<NativeToolchain> nativeToolchains,
+                            @NotNull Collection<SigningConfig> signingConfigs,
+                            @NotNull LintOptions lintOptions,
+                            @NotNull Collection<String> unresolvedDependencies,
+                            @NotNull JavaCompileOptions javaCompileOptions,
+                            @NotNull File buildFolder,
+                            @Nullable String resourcePrefix,
+                            int apiVersion,
+                            boolean library,
+                            int projectType,
+                            int pluginGeneration,
+                            boolean baseSplit) {
+    myModelVersion = modelVersion;
+    myName = name;
+    myDefaultConfig = defaultConfig;
+    myBuildTypes = buildTypes;
+    myProductFlavors = productFlavors;
+    myBuildToolsVersion = buildToolsVersion;
+    mySyncIssues = syncIssues;
+    myVariants = variants;
+    myFlavorDimensions = flavorDimensions;
+    myCompileTarget = compileTarget;
+    myBootClasspath = bootClasspath;
+    myNativeToolchains = nativeToolchains;
+    mySigningConfigs = signingConfigs;
+    myLintOptions = lintOptions;
+    myUnresolvedDependencies = unresolvedDependencies;
+    myJavaCompileOptions = javaCompileOptions;
+    myBuildFolder = buildFolder;
+    myResourcePrefix = resourcePrefix;
+    myApiVersion = apiVersion;
+    myLibrary = library;
+    myProjectType = projectType;
+    myPluginGeneration = pluginGeneration;
+    myBaseSplit = baseSplit;
   }
 
   @Override
@@ -178,7 +176,7 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
   @Override
   @NotNull
   public Collection<String> getBootClasspath() {
-    return myBootClassPath;
+    return myBootClasspath;
   }
 
   @Override
@@ -211,7 +209,6 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
     return myLintOptions;
   }
 
-  @Deprecated
   @Override
   @NotNull
   public Collection<String> getUnresolvedDependencies() {
@@ -267,46 +264,47 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeAndroidProject)) {
+    if (!(o instanceof AndroidProject)) {
       return false;
     }
-    IdeAndroidProject project = (IdeAndroidProject)o;
-    return myApiVersion == project.myApiVersion &&
-           myLibrary == project.myLibrary &&
-           myProjectType == project.myProjectType &&
-           myPluginGeneration == project.myPluginGeneration &&
-           myBaseSplit == project.myBaseSplit &&
-           Objects.equals(myModelVersion, project.myModelVersion) &&
-           Objects.equals(myName, project.myName) &&
-           Objects.equals(myDefaultConfig, project.myDefaultConfig) &&
-           Objects.equals(myBuildTypes, project.myBuildTypes) &&
-           Objects.equals(myProductFlavors, project.myProductFlavors) &&
-           Objects.equals(myBuildToolsVersion, project.myBuildToolsVersion) &&
-           Objects.equals(mySyncIssues, project.mySyncIssues) &&
-           Objects.equals(myVariants, project.myVariants) &&
-           Objects.equals(myFlavorDimensions, project.myFlavorDimensions) &&
-           Objects.equals(myCompileTarget, project.myCompileTarget) &&
-           Objects.equals(myBootClassPath, project.myBootClassPath) &&
-           Objects.equals(myNativeToolchains, project.myNativeToolchains) &&
-           Objects.equals(mySigningConfigs, project.mySigningConfigs) &&
-           Objects.equals(myLintOptions, project.myLintOptions) &&
-           Objects.equals(myUnresolvedDependencies, project.myUnresolvedDependencies) &&
-           Objects.equals(myJavaCompileOptions, project.myJavaCompileOptions) &&
-           Objects.equals(myBuildFolder, project.myBuildFolder) &&
-           Objects.equals(myResourcePrefix, project.myResourcePrefix);
+    AndroidProject stub = (AndroidProject)o;
+    return getApiVersion() == stub.getApiVersion() &&
+           isLibrary() == stub.isLibrary() &&
+           getProjectType() == stub.getProjectType() &&
+           getPluginGeneration() == stub.getPluginGeneration() &&
+           isBaseSplit() == stub.isBaseSplit() &&
+           Objects.equals(getModelVersion(), stub.getModelVersion()) &&
+           Objects.equals(getName(), stub.getName()) &&
+           Objects.equals(getDefaultConfig(), stub.getDefaultConfig()) &&
+           Objects.equals(getBuildTypes(), stub.getBuildTypes()) &&
+           Objects.equals(getProductFlavors(), stub.getProductFlavors()) &&
+           Objects.equals(getBuildToolsVersion(), stub.getBuildToolsVersion()) &&
+           Objects.equals(getSyncIssues(), stub.getSyncIssues()) &&
+           Objects.equals(getVariants(), stub.getVariants()) &&
+           Objects.equals(getFlavorDimensions(), stub.getFlavorDimensions()) &&
+           Objects.equals(getCompileTarget(), stub.getCompileTarget()) &&
+           Objects.equals(getBootClasspath(), stub.getBootClasspath()) &&
+           Objects.equals(getNativeToolchains(), stub.getNativeToolchains()) &&
+           Objects.equals(getSigningConfigs(), stub.getSigningConfigs()) &&
+           Objects.equals(getLintOptions(), stub.getLintOptions()) &&
+           Objects.equals(getUnresolvedDependencies(), stub.getUnresolvedDependencies()) &&
+           Objects.equals(getJavaCompileOptions(), stub.getJavaCompileOptions()) &&
+           Objects.equals(getBuildFolder(), stub.getBuildFolder()) &&
+           Objects.equals(getResourcePrefix(), stub.getResourcePrefix());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myModelVersion, myName, myDefaultConfig, myBuildTypes, myProductFlavors, myBuildToolsVersion, mySyncIssues,
-                        myVariants, myFlavorDimensions, myCompileTarget, myBootClassPath, myNativeToolchains, mySigningConfigs,
-                        myLintOptions, myUnresolvedDependencies, myJavaCompileOptions, myBuildFolder, myResourcePrefix, myApiVersion,
-                        myLibrary, myProjectType, myPluginGeneration, myBaseSplit);
+    return Objects.hash(getModelVersion(), getName(), getDefaultConfig(), getBuildTypes(), getProductFlavors(), getBuildToolsVersion(),
+                        getSyncIssues(), getVariants(), getFlavorDimensions(), getCompileTarget(), getBootClasspath(),
+                        getNativeToolchains(), getSigningConfigs(), getLintOptions(), getUnresolvedDependencies(), getJavaCompileOptions(),
+                        getBuildFolder(), getResourcePrefix(), getApiVersion(), isLibrary(), getProjectType(), getPluginGeneration(),
+                        isBaseSplit());
   }
 
   @Override
   public String toString() {
-    return "IdeAndroidProject{" +
+    return "AndroidProjectStub{" +
            "myModelVersion='" + myModelVersion + '\'' +
            ", myName='" + myName + '\'' +
            ", myDefaultConfig=" + myDefaultConfig +
@@ -317,7 +315,7 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
            ", myVariants=" + myVariants +
            ", myFlavorDimensions=" + myFlavorDimensions +
            ", myCompileTarget='" + myCompileTarget + '\'' +
-           ", myBootClassPath=" + myBootClassPath +
+           ", myBootClasspath=" + myBootClasspath +
            ", myNativeToolchains=" + myNativeToolchains +
            ", mySigningConfigs=" + mySigningConfigs +
            ", myLintOptions=" + myLintOptions +

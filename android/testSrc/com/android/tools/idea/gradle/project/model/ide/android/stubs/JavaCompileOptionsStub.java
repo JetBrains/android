@@ -71,4 +71,13 @@ public final class JavaCompileOptionsStub extends BaseStub implements JavaCompil
   public int hashCode() {
     return Objects.hash(getEncoding(), getSourceCompatibility(), getTargetCompatibility());
   }
+
+  @Override
+  public String toString() {
+    return "JavaCompileOptionsStub{" +
+           "myEncoding='" + myEncoding + '\'' +
+           ", mySourceCompatibility='" + mySourceCompatibility + '\'' +
+           ", myTargetCompatibility='" + myTargetCompatibility + '\'' +
+           "}";
+  }
 }

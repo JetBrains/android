@@ -75,4 +75,13 @@ public final class GraphItemStub extends BaseStub implements GraphItem {
   public int hashCode() {
     return Objects.hash(getArtifactAddress(), getDependencies(), getRequestedCoordinates());
   }
+
+  @Override
+  public String toString() {
+    return "GraphItemStub{" +
+           "myArtifactAddress='" + myArtifactAddress + '\'' +
+           ", myDependencies=" + myDependencies +
+           ", myRequestedCoordinates='" + myRequestedCoordinates + '\'' +
+           "}";
+  }
 }

@@ -22,8 +22,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Objects;
 
-public final class AndroidLibraryStub extends AndroidBundleStub implements AndroidLibrary {
+public class AndroidLibraryStub extends AndroidBundleStub implements AndroidLibrary {
   @NotNull private final Collection<File> myLocalJars;
   @NotNull private final File myProguardRules;
   @NotNull private final File myLintJar;
@@ -101,5 +102,46 @@ public final class AndroidLibraryStub extends AndroidBundleStub implements Andro
   @Deprecated
   public boolean isOptional() {
     throw new UnusedModelMethodException("isOptional");
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof AndroidLibrary)) {
+      return false;
+    }
+    AndroidLibrary library = (AndroidLibrary)o;
+    return Objects.equals(getBundle(), library.getBundle()) &&
+           Objects.equals(getFolder(), library.getFolder()) &&
+           Objects.equals(getLibraryDependencies(), library.getLibraryDependencies()) &&
+           Objects.equals(getJavaDependencies(), library.getJavaDependencies()) &&
+           Objects.equals(getManifest(), library.getManifest()) &&
+           Objects.equals(getJarFile(), library.getJarFile()) &&
+           Objects.equals(getResFolder(), library.getResFolder()) &&
+           Objects.equals(getAssetsFolder(), library.getAssetsFolder()) &&
+           Objects.equals(getProjectVariant(), library.getProjectVariant()) &&
+           Objects.equals(getLocalJars(), library.getLocalJars()) &&
+           Objects.equals(getProguardRules(), library.getProguardRules()) &&
+           Objects.equals(getLintJar(), library.getLintJar()) &&
+           Objects.equals(getPublicResources(), library.getPublicResources());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getBundle(), getFolder(), getLibraryDependencies(), getJavaDependencies(), getManifest(), getJarFile(),
+                        getResFolder(), getAssetsFolder(), getProjectVariant(), getLocalJars(), getProguardRules(), getLintJar(),
+                        getPublicResources());
+  }
+
+  @Override
+  public String toString() {
+    return "AndroidLibraryStub{" +
+           "myLocalJars=" + myLocalJars +
+           ", myProguardRules=" + myProguardRules +
+           ", myLintJar=" + myLintJar +
+           ", myPublicResources=" + myPublicResources +
+           "} " + super.toString();
   }
 }

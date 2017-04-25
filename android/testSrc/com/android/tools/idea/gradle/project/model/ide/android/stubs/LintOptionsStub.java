@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class LintOptionsStub implements LintOptions {
+public class LintOptionsStub extends BaseStub implements LintOptions {
   @NotNull private final Set<String> myDisable;
   @NotNull private final Set<String> myEnable;
   @Nullable private final Set<String> myCheck;
@@ -248,30 +248,29 @@ public class LintOptionsStub implements LintOptions {
       return false;
     }
     LintOptions options = (LintOptions)o;
-    return isAbortOnError() == options.isAbortOnError() &&
-           isAbsolutePaths() == options.isAbsolutePaths() &&
-           isNoLines() == options.isNoLines() &&
-           isQuiet() == options.isQuiet() &&
-           isCheckAllWarnings() == options.isCheckAllWarnings() &&
-           isIgnoreWarnings() == options.isIgnoreWarnings() &&
-           isWarningsAsErrors() == options.isWarningsAsErrors() &&
-           isCheckTestSources() == options.isCheckTestSources() &&
-           isCheckGeneratedSources() == options.isCheckGeneratedSources() &&
-           isExplainIssues() == options.isExplainIssues() &&
-           isShowAll() == options.isShowAll() &&
-           getTextReport() == options.getTextReport() &&
-           getHtmlReport() == options.getHtmlReport() &&
-           getXmlReport() == options.getXmlReport() &&
-           isCheckReleaseBuilds() == options.isCheckReleaseBuilds() &&
-           Objects.equals(getDisable(), options.getDisable()) &&
-           Objects.equals(getEnable(), options.getEnable()) &&
-           Objects.equals(getCheck(), options.getCheck()) &&
-           Objects.equals(getLintConfig(), options.getLintConfig()) &&
-           Objects.equals(getTextOutput(), options.getTextOutput()) &&
-           Objects.equals(getHtmlOutput(), options.getHtmlOutput()) &&
-           Objects.equals(getXmlOutput(), options.getXmlOutput()) &&
-           Objects.equals(getBaselineFile(), options.getBaselineFile()) &&
-           Objects.equals(getSeverityOverrides(), options.getSeverityOverrides());
+    return equals(options, LintOptions::isAbortOnError) &&
+           equals(options, LintOptions::isAbsolutePaths) &&
+           equals(options, LintOptions::isNoLines) &&
+           equals(options, LintOptions::isQuiet) &&
+           equals(options, LintOptions::isCheckAllWarnings) &&
+           equals(options, LintOptions::isIgnoreWarnings) &&
+           equals(options, LintOptions::isWarningsAsErrors) &&
+           equals(options, LintOptions::isCheckGeneratedSources) &&
+           equals(options, LintOptions::isExplainIssues) &&
+           equals(options, LintOptions::isShowAll) &&
+           equals(options, LintOptions::getTextReport) &&
+           equals(options, LintOptions::getHtmlReport) &&
+           equals(options, LintOptions::getXmlReport) &&
+           equals(options, LintOptions::isCheckReleaseBuilds) &&
+           equals(options, LintOptions::getDisable) &&
+           equals(options, LintOptions::getEnable) &&
+           equals(options, LintOptions::getCheck) &&
+           equals(options, LintOptions::getLintConfig) &&
+           equals(options, LintOptions::getTextOutput) &&
+           equals(options, LintOptions::getHtmlOutput) &&
+           equals(options, LintOptions::getXmlOutput) &&
+           equals(options, LintOptions::getBaselineFile) &&
+           equals(options, LintOptions::getSeverityOverrides);
   }
 
   @Override
@@ -280,5 +279,35 @@ public class LintOptionsStub implements LintOptions {
                         getBaselineFile(), getSeverityOverrides(), isAbortOnError(), isAbsolutePaths(), isNoLines(), isQuiet(),
                         isCheckAllWarnings(), isIgnoreWarnings(), isWarningsAsErrors(), isCheckTestSources(), isCheckGeneratedSources(),
                         isExplainIssues(), isShowAll(), getTextReport(), getHtmlReport(), getXmlReport(), isCheckReleaseBuilds());
+  }
+
+  @Override
+  public String toString() {
+    return "LintOptionsStub{" +
+           "myDisable=" + myDisable +
+           ", myEnable=" + myEnable +
+           ", myCheck=" + myCheck +
+           ", myLintConfig=" + myLintConfig +
+           ", myTextOutput=" + myTextOutput +
+           ", myHtmlOutput=" + myHtmlOutput +
+           ", myXmlOutput=" + myXmlOutput +
+           ", myBaselineFile=" + myBaselineFile +
+           ", mySeverityOverrides=" + mySeverityOverrides +
+           ", myAbortOnError=" + myAbortOnError +
+           ", myAbsolutePaths=" + myAbsolutePaths +
+           ", myNoLines=" + myNoLines +
+           ", myQuiet=" + myQuiet +
+           ", myCheckAllWarnings=" + myCheckAllWarnings +
+           ", myIgnoreWarnings=" + myIgnoreWarnings +
+           ", myWarningsAsErrors=" + myWarningsAsErrors +
+           ", myCheckTestSources=" + myCheckTestSources +
+           ", myCheckGeneratedSources=" + myCheckGeneratedSources +
+           ", myExplainIssues=" + myExplainIssues +
+           ", myShowAll=" + myShowAll +
+           ", myTextReport=" + myTextReport +
+           ", myHtmlReport=" + myHtmlReport +
+           ", myXmlReport=" + myXmlReport +
+           ", myCheckReleaseBuilds=" + myCheckReleaseBuilds +
+           '}';
   }
 }

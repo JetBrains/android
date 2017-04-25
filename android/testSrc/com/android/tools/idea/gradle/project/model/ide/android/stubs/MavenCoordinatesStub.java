@@ -91,4 +91,13 @@ public class MavenCoordinatesStub extends BaseStub implements MavenCoordinates {
   public int hashCode() {
     return Objects.hash(getGroupId(), getArtifactId(), getVersion());
   }
+
+  @Override
+  public String toString() {
+    return "MavenCoordinatesStub{" +
+           "myGroupId='" + myGroupId + '\'' +
+           ", myArtifactId='" + myArtifactId + '\'' +
+           ", myVersion='" + myVersion + '\'' +
+           "}";
+  }
 }

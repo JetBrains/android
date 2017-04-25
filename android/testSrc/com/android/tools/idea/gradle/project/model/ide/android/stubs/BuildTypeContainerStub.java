@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Objects;
 
 public final class BuildTypeContainerStub extends BaseStub implements BuildTypeContainer {
   @NotNull private final BuildType myBuildType;
@@ -57,5 +58,33 @@ public final class BuildTypeContainerStub extends BaseStub implements BuildTypeC
   @NotNull
   public Collection<SourceProviderContainer> getExtraSourceProviders() {
     return myExtraSourceProviders;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof BuildTypeContainer)) {
+      return false;
+    }
+    BuildTypeContainer stub = (BuildTypeContainer)o;
+    return Objects.equals(getBuildType(), stub.getBuildType()) &&
+           Objects.equals(getSourceProvider(), stub.getSourceProvider()) &&
+           Objects.equals(getExtraSourceProviders(), stub.getExtraSourceProviders());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getBuildType(), getSourceProvider(), getExtraSourceProviders());
+  }
+
+  @Override
+  public String toString() {
+    return "BuildTypeContainerStub{" +
+           "myBuildType=" + myBuildType +
+           ", mySourceProvider=" + mySourceProvider +
+           ", myExtraSourceProviders=" + myExtraSourceProviders +
+           "}";
   }
 }
