@@ -197,12 +197,12 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Chart
     myCaptureDetailsCalled = false;
-    myStage.setCaptureDetails(CaptureModel.Details.Type.CHART);
+    myStage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART);
     assertTrue(myCaptureDetailsCalled);
 
     details = myStage.getCaptureDetails();
-    assertTrue(details instanceof CaptureModel.TreeChart);
-    assertNotNull(((CaptureModel.TreeChart)details).getNode());
+    assertTrue(details instanceof CaptureModel.CallChart);
+    assertNotNull(((CaptureModel.CallChart)details).getNode());
 
     // null
     myCaptureDetailsCalled = false;

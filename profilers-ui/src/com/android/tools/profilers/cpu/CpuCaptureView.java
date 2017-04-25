@@ -20,6 +20,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerColors;
@@ -63,12 +64,15 @@ class CpuCaptureView {
   private static final Map<String, CaptureModel.Details.Type> TABS = ImmutableMap.of(
     "Top Down", CaptureModel.Details.Type.TOP_DOWN,
     "Bottom Up", CaptureModel.Details.Type.BOTTOM_UP,
-    "Chart", CaptureModel.Details.Type.CHART);
+    "Call Chart", CaptureModel.Details.Type.CALL_CHART,
+    "Flame Chart", CaptureModel.Details.Type.FLAME_CHART);
 
+  // FIXME: Track Flame Chart
   private static final Map<CaptureModel.Details.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
     CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
     CaptureModel.Details.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
-    CaptureModel.Details.Type.CHART, FeatureTracker::trackSelectCaptureFlameChart);
+    CaptureModel.Details.Type.CALL_CHART, FeatureTracker::trackSelectCaptureFlameChart
+    );
 
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));
@@ -109,8 +113,8 @@ class CpuCaptureView {
     myBinder = new ViewBinder<>();
     myBinder.bind(CaptureModel.TopDown.class, TopDownView::new);
     myBinder.bind(CaptureModel.BottomUp.class, BottomUpView::new);
-    myBinder.bind(CaptureModel.TreeChart.class, TreeChartView::new);
-
+    myBinder.bind(CaptureModel.CallChart.class, TreeChartView::createCallChartView);
+    myBinder.bind(CaptureModel.FlameChart.class, TreeChartView::createFlameChartView);
     updateView();
   }
 
@@ -338,21 +342,32 @@ class CpuCaptureView {
   }
 
   private static class TreeChartView extends CaptureDetailsView {
-    private TreeChartView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TreeChart treeChart) {
-      HTreeChart<MethodModel> chart = new HTreeChart<>(treeChart.getRange());
+    private TreeChartView(@NotNull CpuProfilerStageView view, @NotNull Range range, @Nullable HNode<MethodModel> node,
+                          @NotNull HTreeChart.Orientation orientation) {
+      HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
       chart.setHRenderer(new SampledMethodUsageHRenderer());
-      chart.setHTree(treeChart.getNode());
+      chart.setHTree(node);
       myComponent = chart;
 
       view.getIdeComponents()
         .installNavigationContextMenu(chart, view.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
-          HNode<MethodModel> node = chart.getHoveredNode();
-          if (node == null || node.getData() == null) {
+          HNode<MethodModel> n = chart.getHoveredNode();
+          if (n == null || n.getData() == null) {
             return null;
           }
-          MethodModel method = node.getData();
+          MethodModel method = n.getData();
           return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
         });
+    }
+
+    @NotNull
+    private static TreeChartView createCallChartView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.CallChart callChart) {
+      return new TreeChartView(view, callChart.getRange(), callChart.getNode(), HTreeChart.Orientation.TOP_DOWN);
+    }
+
+    @NotNull
+    private static TreeChartView createFlameChartView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.FlameChart flameChart) {
+      return new TreeChartView(view, flameChart.getRange(), flameChart.getNode(), HTreeChart.Orientation.BOTTOM_UP);
     }
   }
 
