@@ -172,7 +172,7 @@ public class NewInstantAppTest {
       .open("feature/src/main/AndroidManifest.xml")
       .moveBetween("android:order=", "")
       .moveBetween("android:host=", "")
-      .moveBetween("android:path=", "")
+      .moveBetween("android:pathPattern=", "")
       .moveBetween("android:scheme=\"https", "")
       .moveBetween("android.intent.category.", "LAUNCHER");
   }
