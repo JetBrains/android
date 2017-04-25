@@ -81,8 +81,14 @@ public class RoomColumnConstraintImpl extends ASTWrapperPsiElement implements Ro
 
   @Override
   @Nullable
-  public PsiElement getNameLiteral() {
-    return findChildByType(NAME_LITERAL);
+  public PsiElement getIdentifier() {
+    return findChildByType(IDENTIFIER);
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getStringLiteral() {
+    return findChildByType(STRING_LITERAL);
   }
 
 }

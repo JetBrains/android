@@ -41,137 +41,147 @@ import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 EOL=\R
 WHITE_SPACE=\s+
 
-NUMERIC_LITERAL=([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?
-NAME_LITERAL=[a-z][a-zA-Z_0-9]*
-PARAMETER_NAME=:[a-z][a-zA-Z_0-9]*
-STRING_LITERAL=\"[^\"]*\"
-BLOB_LITERAL=x\"[^\"]*\"
-COMMENT=--[^\r\n]
+NUMERIC_LITERAL=(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)
+STRING_LITERAL=X?('(''|[^'])*'|\"(\"\"|[^\"])*\")
+IDENTIFIER=[:letter:]([:letter:]|[:digit:])*
+PARAMETER_NAME=:[:letter:]([:letter:]|[:digit:])*
+COMMENT="/"\*.*\*"/"
+LINE_COMMENT=--[^\r\n]*
 
 %%
 <YYINITIAL> {
   {WHITE_SPACE}                       { return WHITE_SPACE; }
 
-  "SELECT"                            { return SELECT; }
-  "FROM"                              { return FROM; }
-  "WHERE"                             { return WHERE; }
-  "DISTINCT"                          { return DISTINCT; }
-  "DELETE"                            { return DELETE; }
-  "INSERT"                            { return INSERT; }
-  "INTO"                              { return INTO; }
-  "VALUES"                            { return VALUES; }
-  "EXPLAIN"                           { return EXPLAIN; }
-  "QUERY"                             { return QUERY; }
-  "PLAN"                              { return PLAN; }
-  "ALTER"                             { return ALTER; }
-  "TABLE"                             { return TABLE; }
-  "RENAME"                            { return RENAME; }
-  "TO"                                { return TO; }
-  "ADD"                               { return ADD; }
-  "COLUMN"                            { return COLUMN; }
-  "ANALYZE"                           { return ANALYZE; }
-  "ATTACH"                            { return ATTACH; }
-  "DATABASE"                          { return DATABASE; }
-  "AS"                                { return AS; }
-  "BEGIN"                             { return BEGIN; }
-  "DEFERRED"                          { return DEFERRED; }
-  "IMMEDIATE"                         { return IMMEDIATE; }
-  "EXCLUSIVE"                         { return EXCLUSIVE; }
-  "TRANSACTION"                       { return TRANSACTION; }
-  "COMMIT"                            { return COMMIT; }
-  "END"                               { return END; }
-  "ROLLBACK"                          { return ROLLBACK; }
-  "SAVEPOINT"                         { return SAVEPOINT; }
-  "RELEASE"                           { return RELEASE; }
-  "CREATE"                            { return CREATE; }
-  "UNIQUE"                            { return UNIQUE; }
-  "INDEX"                             { return INDEX; }
-  "IF"                                { return IF; }
-  "NOT"                               { return NOT; }
-  "EXISTS"                            { return EXISTS; }
-  "ON"                                { return ON; }
-  "COLLATE"                           { return COLLATE; }
-  "ASC"                               { return ASC; }
-  "DESC"                              { return DESC; }
-  "TEMP"                              { return TEMP; }
-  "TEMPORARY"                         { return TEMPORARY; }
-  "WITHOUT"                           { return WITHOUT; }
-  "ROWID"                             { return ROWID; }
-  "CONSTRAINT"                        { return CONSTRAINT; }
-  "PRIMARY"                           { return PRIMARY; }
-  "KEY"                               { return KEY; }
-  "AUTOINCREMENT"                     { return AUTOINCREMENT; }
-  "NULL"                              { return NULL; }
-  "CHECK"                             { return CHECK; }
-  "DEFAULT"                           { return DEFAULT; }
-  "FOREIGN"                           { return FOREIGN; }
-  "REFERENCES"                        { return REFERENCES; }
-  "UPDATE"                            { return UPDATE; }
-  "SET"                               { return SET; }
-  "CASCADE"                           { return CASCADE; }
-  "RESTRICT"                          { return RESTRICT; }
-  "NO"                                { return NO; }
-  "ACTION"                            { return ACTION; }
-  "MATCH"                             { return MATCH; }
-  "DEFERRABLE"                        { return DEFERRABLE; }
-  "INITIALLY"                         { return INITIALLY; }
-  "CONFLICT"                          { return CONFLICT; }
   "ABORT"                             { return ABORT; }
-  "FAIL"                              { return FAIL; }
-  "IGNORE"                            { return IGNORE; }
-  "REPLACE"                           { return REPLACE; }
-  "TRIGGER"                           { return TRIGGER; }
-  "BEFORE"                            { return BEFORE; }
+  "ACTION"                            { return ACTION; }
+  "ADD"                               { return ADD; }
   "AFTER"                             { return AFTER; }
-  "INSTEAD"                           { return INSTEAD; }
-  "OF"                                { return OF; }
-  "FOR"                               { return FOR; }
-  "EACH"                              { return EACH; }
-  "ROW"                               { return ROW; }
-  "WHEN"                              { return WHEN; }
-  "VIEW"                              { return VIEW; }
-  "VIRTUAL"                           { return VIRTUAL; }
-  "USING"                             { return USING; }
-  "WITH"                              { return WITH; }
-  "RECURSIVE"                         { return RECURSIVE; }
-  "ORDER"                             { return ORDER; }
-  "BY"                                { return BY; }
-  "LIMIT"                             { return LIMIT; }
-  "OFFSET"                            { return OFFSET; }
-  "DETACH"                            { return DETACH; }
-  "DROP"                              { return DROP; }
-  "CAST"                              { return CAST; }
-  "CASE"                              { return CASE; }
-  "THEN"                              { return THEN; }
-  "ELSE"                              { return ELSE; }
-  "RAISE"                             { return RAISE; }
-  "CURRENT_TIME"                      { return CURRENT_TIME; }
-  "CURRENT_DATE"                      { return CURRENT_DATE; }
-  "CURRENT_TIMESTAMP"                 { return CURRENT_TIMESTAMP; }
-  "OR"                                { return OR; }
-  "PRAGMA"                            { return PRAGMA; }
-  "REINDEX"                           { return REINDEX; }
   "ALL"                               { return ALL; }
+  "ALTER"                             { return ALTER; }
+  "ANALYZE"                           { return ANALYZE; }
+  "AND"                               { return AND; }
+  "AS"                                { return AS; }
+  "ASC"                               { return ASC; }
+  "ATTACH"                            { return ATTACH; }
+  "AUTOINCREMENT"                     { return AUTOINCREMENT; }
+  "BEFORE"                            { return BEFORE; }
+  "BEGIN"                             { return BEGIN; }
+  "BETWEEN"                           { return BETWEEN; }
+  "BY"                                { return BY; }
+  "CASCADE"                           { return CASCADE; }
+  "CASE"                              { return CASE; }
+  "CAST"                              { return CAST; }
+  "CHECK"                             { return CHECK; }
+  "COLLATE"                           { return COLLATE; }
+  "COLUMN"                            { return COLUMN; }
+  "COMMIT"                            { return COMMIT; }
+  "CONFLICT"                          { return CONFLICT; }
+  "CONSTRAINT"                        { return CONSTRAINT; }
+  "CREATE"                            { return CREATE; }
+  "CROSS"                             { return CROSS; }
+  "CURRENT_DATE"                      { return CURRENT_DATE; }
+  "CURRENT_TIME"                      { return CURRENT_TIME; }
+  "CURRENT_TIMESTAMP"                 { return CURRENT_TIMESTAMP; }
+  "DATABASE"                          { return DATABASE; }
+  "DEFAULT"                           { return DEFAULT; }
+  "DEFERRABLE"                        { return DEFERRABLE; }
+  "DEFERRED"                          { return DEFERRED; }
+  "DELETE"                            { return DELETE; }
+  "DESC"                              { return DESC; }
+  "DETACH"                            { return DETACH; }
+  "DISTINCT"                          { return DISTINCT; }
+  "DROP"                              { return DROP; }
+  "EACH"                              { return EACH; }
+  "ELSE"                              { return ELSE; }
+  "END"                               { return END; }
+  "ESCAPE"                            { return ESCAPE; }
+  "EXCEPT"                            { return EXCEPT; }
+  "EXCLUSIVE"                         { return EXCLUSIVE; }
+  "EXISTS"                            { return EXISTS; }
+  "EXPLAIN"                           { return EXPLAIN; }
+  "FAIL"                              { return FAIL; }
+  "FOR"                               { return FOR; }
+  "FOREIGN"                           { return FOREIGN; }
+  "FROM"                              { return FROM; }
+  "GLOB"                              { return GLOB; }
   "GROUP"                             { return GROUP; }
   "HAVING"                            { return HAVING; }
+  "IF"                                { return IF; }
+  "IGNORE"                            { return IGNORE; }
+  "IMMEDIATE"                         { return IMMEDIATE; }
+  "IN"                                { return IN; }
+  "INDEX"                             { return INDEX; }
   "INDEXED"                           { return INDEXED; }
-  "NATURAL"                           { return NATURAL; }
-  "LEFT"                              { return LEFT; }
-  "OUTER"                             { return OUTER; }
+  "INITIALLY"                         { return INITIALLY; }
   "INNER"                             { return INNER; }
-  "CROSS"                             { return CROSS; }
-  "JOIN"                              { return JOIN; }
-  "UNION"                             { return UNION; }
+  "INSERT"                            { return INSERT; }
+  "INSTEAD"                           { return INSTEAD; }
   "INTERSECT"                         { return INTERSECT; }
-  "EXCEPT"                            { return EXCEPT; }
+  "INTO"                              { return INTO; }
+  "IS"                                { return IS; }
+  "ISNULL"                            { return ISNULL; }
+  "JOIN"                              { return JOIN; }
+  "KEY"                               { return KEY; }
+  "LEFT"                              { return LEFT; }
+  "LIKE"                              { return LIKE; }
+  "LIMIT"                             { return LIMIT; }
+  "MATCH"                             { return MATCH; }
+  "NATURAL"                           { return NATURAL; }
+  "NO"                                { return NO; }
+  "NOT"                               { return NOT; }
+  "NOTNULL"                           { return NOTNULL; }
+  "NULL"                              { return NULL; }
+  "OF"                                { return OF; }
+  "OFFSET"                            { return OFFSET; }
+  "ON"                                { return ON; }
+  "OR"                                { return OR; }
+  "ORDER"                             { return ORDER; }
+  "OUTER"                             { return OUTER; }
+  "PLAN"                              { return PLAN; }
+  "PRAGMA"                            { return PRAGMA; }
+  "PRIMARY"                           { return PRIMARY; }
+  "QUERY"                             { return QUERY; }
+  "RAISE"                             { return RAISE; }
+  "RECURSIVE"                         { return RECURSIVE; }
+  "REFERENCES"                        { return REFERENCES; }
+  "REGEXP"                            { return REGEXP; }
+  "REINDEX"                           { return REINDEX; }
+  "RELEASE"                           { return RELEASE; }
+  "RENAME"                            { return RENAME; }
+  "REPLACE"                           { return REPLACE; }
+  "RESTRICT"                          { return RESTRICT; }
+  "ROLLBACK"                          { return ROLLBACK; }
+  "ROW"                               { return ROW; }
+  "ROWID"                             { return ROWID; }
+  "SAVEPOINT"                         { return SAVEPOINT; }
+  "SELECT"                            { return SELECT; }
+  "SET"                               { return SET; }
+  "TABLE"                             { return TABLE; }
+  "TEMP"                              { return TEMP; }
+  "TEMPORARY"                         { return TEMPORARY; }
+  "THEN"                              { return THEN; }
+  "TO"                                { return TO; }
+  "TRANSACTION"                       { return TRANSACTION; }
+  "TRIGGER"                           { return TRIGGER; }
+  "UNION"                             { return UNION; }
+  "UNIQUE"                            { return UNIQUE; }
+  "UPDATE"                            { return UPDATE; }
+  "USING"                             { return USING; }
   "VACUUM"                            { return VACUUM; }
+  "VALUES"                            { return VALUES; }
+  "VIEW"                              { return VIEW; }
+  "VIRTUAL"                           { return VIRTUAL; }
+  "WHEN"                              { return WHEN; }
+  "WHERE"                             { return WHERE; }
+  "WITH"                              { return WITH; }
+  "WITHOUT"                           { return WITHOUT; }
 
+  {COMMENT}                           { return COMMENT; }
+  {IDENTIFIER}                        { return IDENTIFIER; }
+  {LINE_COMMENT}                      { return LINE_COMMENT; }
   {NUMERIC_LITERAL}                   { return NUMERIC_LITERAL; }
-  {NAME_LITERAL}                      { return NAME_LITERAL; }
   {PARAMETER_NAME}                    { return PARAMETER_NAME; }
   {STRING_LITERAL}                    { return STRING_LITERAL; }
-  {BLOB_LITERAL}                      { return BLOB_LITERAL; }
-  {COMMENT}                           { return COMMENT; }
 
 }
 

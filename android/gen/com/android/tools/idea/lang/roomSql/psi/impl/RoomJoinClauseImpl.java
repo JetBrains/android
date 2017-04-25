@@ -44,15 +44,15 @@ public class RoomJoinClauseImpl extends ASTWrapperPsiElement implements RoomJoin
   }
 
   @Override
-  @Nullable
-  public RoomJoinConstraint getJoinConstraint() {
-    return findChildByClass(RoomJoinConstraint.class);
+  @NotNull
+  public List<RoomJoinConstraint> getJoinConstraintList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomJoinConstraint.class);
   }
 
   @Override
-  @Nullable
-  public RoomJoinOperator getJoinOperator() {
-    return findChildByClass(RoomJoinOperator.class);
+  @NotNull
+  public List<RoomJoinOperator> getJoinOperatorList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, RoomJoinOperator.class);
   }
 
   @Override

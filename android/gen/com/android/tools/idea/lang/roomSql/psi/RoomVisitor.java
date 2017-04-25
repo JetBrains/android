@@ -24,12 +24,20 @@ import com.intellij.psi.PsiElement;
 
 public class RoomVisitor extends PsiElementVisitor {
 
+  public void visitAddExpr(@NotNull RoomAddExpr o) {
+    visitExpr(o);
+  }
+
   public void visitAlterTableStmt(@NotNull RoomAlterTableStmt o) {
     visitPsiElement(o);
   }
 
   public void visitAnalyzeStmt(@NotNull RoomAnalyzeStmt o) {
     visitPsiElement(o);
+  }
+
+  public void visitAndExpr(@NotNull RoomAndExpr o) {
+    visitExpr(o);
   }
 
   public void visitAttachStmt(@NotNull RoomAttachStmt o) {
@@ -40,8 +48,28 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitBetweenExpr(@NotNull RoomBetweenExpr o) {
+    visitExpr(o);
+  }
+
   public void visitBindParameter(@NotNull RoomBindParameter o) {
     visitPsiElement(o);
+  }
+
+  public void visitBitExpr(@NotNull RoomBitExpr o) {
+    visitExpr(o);
+  }
+
+  public void visitCaseExpr(@NotNull RoomCaseExpr o) {
+    visitExpr(o);
+  }
+
+  public void visitCastExpr(@NotNull RoomCastExpr o) {
+    visitExpr(o);
+  }
+
+  public void visitCollateExpr(@NotNull RoomCollateExpr o) {
+    visitExpr(o);
   }
 
   public void visitCollationName(@NotNull RoomCollationName o) {
@@ -64,6 +92,10 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitColumnRefExpr(@NotNull RoomColumnRefExpr o) {
+    visitExpr(o);
+  }
+
   public void visitCommitStmt(@NotNull RoomCommitStmt o) {
     visitPsiElement(o);
   }
@@ -72,8 +104,16 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitComparisonExpr(@NotNull RoomComparisonExpr o) {
+    visitExpr(o);
+  }
+
   public void visitCompoundOperator(@NotNull RoomCompoundOperator o) {
     visitPsiElement(o);
+  }
+
+  public void visitConcatExpr(@NotNull RoomConcatExpr o) {
+    visitExpr(o);
   }
 
   public void visitConflictClause(@NotNull RoomConflictClause o) {
@@ -136,8 +176,16 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitEquivalenceExpr(@NotNull RoomEquivalenceExpr o) {
+    visitExpr(o);
+  }
+
   public void visitErrorMessage(@NotNull RoomErrorMessage o) {
     visitPsiElement(o);
+  }
+
+  public void visitExistsExpr(@NotNull RoomExistsExpr o) {
+    visitExpr(o);
   }
 
   public void visitExpr(@NotNull RoomExpr o) {
@@ -152,8 +200,16 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitFunctionCallExpr(@NotNull RoomFunctionCallExpr o) {
+    visitExpr(o);
+  }
+
   public void visitFunctionName(@NotNull RoomFunctionName o) {
     visitPsiElement(o);
+  }
+
+  public void visitInExpr(@NotNull RoomInExpr o) {
+    visitExpr(o);
   }
 
   public void visitIndexName(@NotNull RoomIndexName o) {
@@ -168,6 +224,10 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitIsnullExpr(@NotNull RoomIsnullExpr o) {
+    visitExpr(o);
+  }
+
   public void visitJoinClause(@NotNull RoomJoinClause o) {
     visitPsiElement(o);
   }
@@ -178,6 +238,14 @@ public class RoomVisitor extends PsiElementVisitor {
 
   public void visitJoinOperator(@NotNull RoomJoinOperator o) {
     visitPsiElement(o);
+  }
+
+  public void visitLikeExpr(@NotNull RoomLikeExpr o) {
+    visitExpr(o);
+  }
+
+  public void visitLiteralExpr(@NotNull RoomLiteralExpr o) {
+    visitExpr(o);
   }
 
   public void visitLiteralValue(@NotNull RoomLiteralValue o) {
@@ -192,8 +260,20 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitMulExpr(@NotNull RoomMulExpr o) {
+    visitExpr(o);
+  }
+
+  public void visitOrExpr(@NotNull RoomOrExpr o) {
+    visitExpr(o);
+  }
+
   public void visitOrderingTerm(@NotNull RoomOrderingTerm o) {
     visitPsiElement(o);
+  }
+
+  public void visitParenExpr(@NotNull RoomParenExpr o) {
+    visitExpr(o);
   }
 
   public void visitPragmaName(@NotNull RoomPragmaName o) {
@@ -212,8 +292,8 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitRaiseFunction(@NotNull RoomRaiseFunction o) {
-    visitPsiElement(o);
+  public void visitRaiseFunctionExpr(@NotNull RoomRaiseFunctionExpr o) {
+    visitExpr(o);
   }
 
   public void visitReindexStmt(@NotNull RoomReindexStmt o) {
@@ -280,8 +360,8 @@ public class RoomVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitUnaryOperator(@NotNull RoomUnaryOperator o) {
-    visitPsiElement(o);
+  public void visitUnaryExpr(@NotNull RoomUnaryExpr o) {
+    visitExpr(o);
   }
 
   public void visitUpdateStmt(@NotNull RoomUpdateStmt o) {

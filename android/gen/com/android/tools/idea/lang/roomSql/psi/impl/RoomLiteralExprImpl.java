@@ -25,17 +25,16 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomRaiseFunctionImpl extends ASTWrapperPsiElement implements RoomRaiseFunction {
+public class RoomLiteralExprImpl extends RoomExprImpl implements RoomLiteralExpr {
 
-  public RoomRaiseFunctionImpl(ASTNode node) {
+  public RoomLiteralExprImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitRaiseFunction(this);
+    visitor.visitLiteralExpr(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -45,8 +44,14 @@ public class RoomRaiseFunctionImpl extends ASTWrapperPsiElement implements RoomR
 
   @Override
   @Nullable
-  public RoomErrorMessage getErrorMessage() {
-    return findChildByClass(RoomErrorMessage.class);
+  public RoomBindParameter getBindParameter() {
+    return findChildByClass(RoomBindParameter.class);
+  }
+
+  @Override
+  @Nullable
+  public RoomLiteralValue getLiteralValue() {
+    return findChildByClass(RoomLiteralValue.class);
   }
 
 }

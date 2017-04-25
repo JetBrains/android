@@ -438,7 +438,7 @@
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
-    <lang.parserDefinition language="Room SQL" implementationClass="com.android.tools.idea.lang.roomSql.psi.RoomSqlParserDefinition" />
+    <lang.parserDefinition language="Room SQL" implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition" />
 
     <lang.syntaxHighlighterFactory language="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />

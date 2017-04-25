@@ -24,37 +24,4 @@ import com.intellij.psi.PsiElement;
 
 public interface RoomExpr extends PsiElement {
 
-  @Nullable
-  RoomBindParameter getBindParameter();
-
-  @Nullable
-  RoomColumnName getColumnName();
-
-  @Nullable
-  RoomDatabaseName getDatabaseName();
-
-  @Nullable
-  RoomExpr getExpr();
-
-  @Nullable
-  RoomFunctionName getFunctionName();
-
-  @Nullable
-  RoomLiteralValue getLiteralValue();
-
-  @Nullable
-  RoomRaiseFunction getRaiseFunction();
-
-  @Nullable
-  RoomSelectStmt getSelectStmt();
-
-  @Nullable
-  RoomTableName getTableName();
-
-  @Nullable
-  RoomTypeName getTypeName();
-
-  @Nullable
-  RoomUnaryOperator getUnaryOperator();
-
 }

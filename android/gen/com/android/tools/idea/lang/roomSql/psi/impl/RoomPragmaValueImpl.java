@@ -51,8 +51,8 @@ public class RoomPragmaValueImpl extends ASTWrapperPsiElement implements RoomPra
 
   @Override
   @Nullable
-  public PsiElement getNameLiteral() {
-    return findChildByType(NAME_LITERAL);
+  public PsiElement getIdentifier() {
+    return findChildByType(IDENTIFIER);
   }
 
   @Override

@@ -28,7 +28,7 @@ import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomExprImpl extends ASTWrapperPsiElement implements RoomExpr {
+public abstract class RoomExprImpl extends ASTWrapperPsiElement implements RoomExpr {
 
   public RoomExprImpl(ASTNode node) {
     super(node);
@@ -41,72 +41,6 @@ public class RoomExprImpl extends ASTWrapperPsiElement implements RoomExpr {
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof RoomVisitor) accept((RoomVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public RoomBindParameter getBindParameter() {
-    return findChildByClass(RoomBindParameter.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomColumnName getColumnName() {
-    return findChildByClass(RoomColumnName.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomDatabaseName getDatabaseName() {
-    return findChildByClass(RoomDatabaseName.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomExpr getExpr() {
-    return findChildByClass(RoomExpr.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomFunctionName getFunctionName() {
-    return findChildByClass(RoomFunctionName.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomLiteralValue getLiteralValue() {
-    return findChildByClass(RoomLiteralValue.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomRaiseFunction getRaiseFunction() {
-    return findChildByClass(RoomRaiseFunction.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomSelectStmt getSelectStmt() {
-    return findChildByClass(RoomSelectStmt.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomTableName getTableName() {
-    return findChildByClass(RoomTableName.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomTypeName getTypeName() {
-    return findChildByClass(RoomTypeName.class);
-  }
-
-  @Override
-  @Nullable
-  public RoomUnaryOperator getUnaryOperator() {
-    return findChildByClass(RoomUnaryOperator.class);
   }
 
 }

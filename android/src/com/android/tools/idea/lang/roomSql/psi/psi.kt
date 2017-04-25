@@ -18,19 +18,9 @@ package com.android.tools.idea.lang.roomSql.psi
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_ICON
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_LANGUAGE
-import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
-import com.android.tools.idea.lang.roomSql.parser.RoomSqlParser
-import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*
 import com.intellij.extapi.psi.PsiFileBase
-import com.intellij.lang.ASTNode
-import com.intellij.lang.ParserDefinition
-import com.intellij.lang.PsiParser
-import com.intellij.lexer.Lexer
 import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
@@ -52,20 +42,7 @@ class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, RO
 
 val ROOM_SQL_FILE_NODE_TYPE = IFileElementType(ROOM_SQL_LANGUAGE)
 
-private val WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE)
-private val COMMENTS = TokenSet.create(RoomPsiTypes.COMMENT)
-private val STRING_LITERALS = TokenSet.create(RoomPsiTypes.STRING_LITERAL)
-
-class RoomSqlParserDefinition : ParserDefinition {
-  override fun createLexer(project: Project?): Lexer = RoomSqlLexer()
-  override fun createParser(project: Project?): PsiParser = RoomSqlParser()
-  override fun createElement(node: ASTNode?): PsiElement = RoomPsiTypes.Factory.createElement(node)
-  override fun createFile(viewProvider: FileViewProvider): PsiFile = RoomSqlFile(viewProvider)
-
-  override fun getFileNodeType(): IFileElementType = ROOM_SQL_FILE_NODE_TYPE
-  override fun getWhitespaceTokens(): TokenSet = WHITE_SPACES
-  override fun getCommentTokens(): TokenSet = COMMENTS
-  override fun getStringLiteralElements(): TokenSet = STRING_LITERALS
-  override fun spaceExistanceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
-}
+val WHITE_SPACES = TokenSet.create(TokenType.WHITE_SPACE)
+val COMMENTS = TokenSet.create(RoomPsiTypes.COMMENT, RoomPsiTypes.LINE_COMMENT)
+val STRING_LITERALS = TokenSet.create(RoomPsiTypes.STRING_LITERAL)
 

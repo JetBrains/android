@@ -16,31 +16,15 @@
 
 // ATTENTION: This file has been automatically generated from roomSql.bnf. Do not edit it manually.
 
-package com.android.tools.idea.lang.roomSql.psi.impl;
+package com.android.tools.idea.lang.roomSql.psi;
 
 import java.util.List;
 import org.jetbrains.annotations.*;
-import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.util.PsiTreeUtil;
-import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
-import com.android.tools.idea.lang.roomSql.psi.*;
 
-public class RoomUnaryOperatorImpl extends ASTWrapperPsiElement implements RoomUnaryOperator {
+public interface RoomAddExpr extends RoomExpr {
 
-  public RoomUnaryOperatorImpl(ASTNode node) {
-    super(node);
-  }
-
-  public void accept(@NotNull RoomVisitor visitor) {
-    visitor.visitUnaryOperator(this);
-  }
-
-  public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof RoomVisitor) accept((RoomVisitor)visitor);
-    else super.accept(visitor);
-  }
+  @NotNull
+  List<RoomExpr> getExprList();
 
 }

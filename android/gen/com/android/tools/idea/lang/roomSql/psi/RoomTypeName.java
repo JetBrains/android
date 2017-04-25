@@ -27,7 +27,10 @@ public interface RoomTypeName extends PsiElement {
   @NotNull
   List<RoomSignedNumber> getSignedNumberList();
 
-  @NotNull
-  PsiElement getNameLiteral();
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getStringLiteral();
 
 }
