@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
+import static com.intellij.openapi.util.io.FileUtil.fileHashCode;
+
 /**
  * Creates a deep copy of an {@link OutputFile}.
  */
@@ -108,22 +110,36 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
            Objects.equals(myFilters, file.myFilters) &&
            Objects.equals(myOutputFile, file.myOutputFile) &&
            Objects.equals(myOutputs, file.myOutputs)
-           && mainOutputFileEquals(file) ;
+           && mainOutputFileEquals(file);
   }
 
   private boolean mainOutputFileEquals(@NotNull IdeOutputFile file) {
     // Avoid stack overflow.
-    if (myMainOutputFile == this) {
-      return file.myMainOutputFile == file;
-    }
-    return myMainOutputFile.equals(file.myMainOutputFile);
+    return myMainOutputFile == this ? file.myMainOutputFile == file : myMainOutputFile.equals(file.myMainOutputFile);
   }
 
   @Override
   public int hashCode() {
-    // Avoid stack overflow.
-    int mainOutputFileHashCode = myMainOutputFile != this ? Objects.hashCode(myMainOutputFile) : System.identityHashCode(myMainOutputFile);
-    return Objects.hash(myOutputType, myFilterTypes, myFilters, myOutputFile, myOutputs, myVersionCode) + mainOutputFileHashCode;
+    int result = myOutputType.hashCode();
+    result = 31 * result + myFilterTypes.hashCode();
+    result = 31 * result + myFilters.hashCode();
+    result = 31 * result + fileHashCode(myOutputFile);
+    result = 31 * result + hashCode(myMainOutputFile);
+    result = 31 * result + hashCode(myOutputs);
+    result = 31 * result + myVersionCode;
+    return result;
+  }
+
+  private int hashCode(@NotNull Collection<? extends OutputFile> outputFiles) {
+    int hashCode = 1;
+    for (OutputFile outputFile : outputFiles) {
+      hashCode = 31 * hashCode + hashCode(outputFile);
+    }
+    return hashCode;
+  }
+
+  private int hashCode(@NotNull OutputFile outputFile) {
+    return outputFile != this ? Objects.hashCode(outputFile) : 1;
   }
 
   @Override

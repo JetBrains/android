@@ -479,7 +479,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  private SyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
+  protected SyncListener requestSync(@NotNull GradleSyncInvoker.Request request) throws Exception {
     SyncListener syncListener = new SyncListener();
     refreshProjectFiles();
 
@@ -533,14 +533,21 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }.execute().getResultObject();
   }
 
-  private static class SyncListener extends GradleSyncListener.Adapter {
+  public static class SyncListener extends GradleSyncListener.Adapter {
     @NotNull private final CountDownLatch myLatch;
 
+    boolean syncSkipped;
     boolean success;
     String failureMessage;
 
     SyncListener() {
       myLatch = new CountDownLatch(1);
+    }
+
+    @Override
+    public void syncSkipped(@NotNull Project project) {
+      syncSucceeded(project);
+      syncSkipped = true;
     }
 
     @Override
@@ -557,6 +564,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     void await() throws InterruptedException {
       myLatch.await(5, MINUTES);
+    }
+
+    public boolean isSyncSkipped() {
+      return syncSkipped;
     }
   }
 }

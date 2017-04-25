@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidArtifactOutput;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Objects;
@@ -28,14 +29,21 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
-  @NotNull private final String myAssembleTaskName;
   @NotNull private final File myGeneratedManifest;
   @NotNull private final File myOutputFile;
+  @Nullable private final String myAssembleTaskName;
 
   public IdeAndroidArtifactOutput(@NotNull AndroidArtifactOutput output, @NotNull ModelCache modelCache) {
     super(output, modelCache);
-    //noinspection deprecation
-    myAssembleTaskName = output.getAssembleTaskName();
+    String assembleTaskName;
+    try {
+      //noinspection deprecation
+      assembleTaskName = output.getAssembleTaskName();
+    }
+    catch (RuntimeException e) {
+      assembleTaskName = null;
+    }
+    myAssembleTaskName = assembleTaskName;
     myGeneratedManifest = output.getGeneratedManifest();
     myOutputFile = output.getOutputFile();
   }
@@ -43,7 +51,10 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
   @Override
   @NotNull
   public String getAssembleTaskName() {
-    return myAssembleTaskName;
+    if (myAssembleTaskName != null) {
+      return myAssembleTaskName;
+    }
+    throw new RuntimeException("Method 'getAssembleTaskName' is no longer supported");
   }
 
   @Override

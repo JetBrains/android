@@ -88,7 +88,7 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
     myLibrary = project.isLibrary();
     myProjectType = getProjectType(project, modelVersion);
     myPluginGeneration = project.getPluginGeneration();
-    myBaseSplit = project.isBaseSplit();
+    myBaseSplit = isBaseSplit(project);
   }
 
   @NotNull
@@ -107,6 +107,16 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
     }
     //noinspection deprecation
     return project.isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
+  }
+
+  private static boolean isBaseSplit(@NotNull AndroidProject project) {
+    try {
+      return project.isBaseSplit();
+    }
+    catch (UnsupportedMethodException ignored) {
+      // Have an extra safety net.
+    }
+    return false;
   }
 
   @Override
