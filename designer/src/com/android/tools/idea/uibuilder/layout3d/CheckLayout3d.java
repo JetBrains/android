@@ -33,7 +33,7 @@ import java.util.prefs.Preferences;
  * This is a simple test driver for the 3d engine
  */
 public class CheckLayout3d extends JPanel {
-  private static final boolean DEBUG_WITH_FILE = false;
+  private static final boolean DEBUG_WITH_FILE = true;
   Display3D myDisplay3D = new Display3D();
 
   public CheckLayout3d() {
@@ -46,7 +46,7 @@ public class CheckLayout3d extends JPanel {
     BufferedImage img = null;
    if (DEBUG_WITH_FILE) {
      try {
-       img = ImageIO.read(new File(""));
+       img = ImageIO.read(new File("/usr/local/google/home/hoford/phone.png"));
        return img;
      }
      catch (IOException e) {
@@ -111,6 +111,18 @@ public class CheckLayout3d extends JPanel {
     }
   }
 
+
+  public static void create(Layout.View views, BufferedImage img) {
+    JFrame f = new JFrame("CheckTriangles");
+    CheckLayout3d p = new CheckLayout3d();
+    f.setContentPane(p);
+    f.setBounds(100, 100, 512, 512);
+
+    p.myDisplay3D.setTriData(new Layout(img, views));
+
+    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    f.setVisible(true);
+  }
   public static void main(String[] args) {
     JFrame f = new JFrame("CheckTriangles");
     CheckLayout3d p = new CheckLayout3d();
