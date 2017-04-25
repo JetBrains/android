@@ -25,6 +25,7 @@ import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ProjectResourceRepository;

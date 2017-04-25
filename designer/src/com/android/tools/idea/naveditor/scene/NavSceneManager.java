@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.DummyAlgorithm;

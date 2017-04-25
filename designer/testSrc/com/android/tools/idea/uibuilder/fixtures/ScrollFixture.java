@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.fixtures;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScrollInteraction;
 import org.jetbrains.annotations.NotNull;

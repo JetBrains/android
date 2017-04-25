@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;

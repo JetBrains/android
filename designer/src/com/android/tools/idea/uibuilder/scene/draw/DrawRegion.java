@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 

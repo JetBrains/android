@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate
-import com.android.tools.idea.uibuilder.model.SwingCoordinate
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.uibuilder.scene.SceneContext
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand

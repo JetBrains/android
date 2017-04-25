@@ -18,19 +18,16 @@ package com.android.tools.idea.uibuilder.fixtures;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DragFixture {
   @NotNull private final DragDropInteraction myInteraction;

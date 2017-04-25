@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 

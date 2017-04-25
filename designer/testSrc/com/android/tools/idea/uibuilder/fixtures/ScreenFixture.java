@@ -17,9 +17,7 @@ package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
