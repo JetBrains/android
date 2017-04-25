@@ -101,4 +101,15 @@ public final class DependenciesStub extends BaseStub implements Dependencies {
   public int hashCode() {
     return Objects.hash(getAtoms(), getLibraries(), getJavaLibraries(), getProjects(), getBaseAtom());
   }
+
+  @Override
+  public String toString() {
+    return "DependenciesStub{" +
+           "myAtoms=" + myAtoms +
+           ", myLibraries=" + myLibraries +
+           ", myJavaLibraries=" + myJavaLibraries +
+           ", myProjects=" + myProjects +
+           ", myBaseAtom=" + myBaseAtom +
+           "}";
+  }
 }

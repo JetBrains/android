@@ -133,4 +133,17 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
   public File getMultiDexKeepProguard() {
     throw new UnusedModelMethodException("getMultiDexKeepProguard");
   }
+
+  @Override
+  public String toString() {
+    return "BaseConfigStub{" +
+           "myName='" + myName + '\'' +
+           ", myResValues=" + myResValues +
+           ", myProguardFiles=" + myProguardFiles +
+           ", myConsumerProguardFiles=" + myConsumerProguardFiles +
+           ", myManifestPlaceholders=" + myManifestPlaceholders +
+           ", myApplicationIdSuffix='" + myApplicationIdSuffix + '\'' +
+           ", myVersionNameSuffix='" + myVersionNameSuffix + '\'' +
+           "}";
+  }
 }

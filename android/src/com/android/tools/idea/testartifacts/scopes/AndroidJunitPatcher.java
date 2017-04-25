@@ -174,6 +174,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     if (testArtifact != null) {
       try {
+        // TODO use IdeBaseArtifact#getJavaResourcesFolder
         classPath.add(testArtifact.getJavaResourcesFolder());
       }
       catch (UnsupportedMethodException ignored) {

@@ -73,4 +73,13 @@ public class InstantRunStub extends BaseStub implements InstantRun {
   public int hashCode() {
     return Objects.hash(getInfoFile(), isSupportedByArtifact(), getSupportStatus());
   }
+
+  @Override
+  public String toString() {
+    return "InstantRunStub{" +
+           "myInfoFile=" + myInfoFile +
+           ", myIsSupportedByArtifact=" + myIsSupportedByArtifact +
+           ", mySupportStatus=" + mySupportStatus +
+           "}";
+  }
 }

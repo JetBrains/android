@@ -68,4 +68,11 @@ public final class JavaArtifactStub extends BaseArtifactStub implements JavaArti
                         getDependencies(), getCompileDependencies(), getDependencyGraphs(), getIdeSetupTaskNames(),
                         getGeneratedSourceFolders(), getVariantSourceProvider(), getMultiFlavorSourceProvider(), getMockablePlatformJar());
   }
+
+  @Override
+  public String toString() {
+    return "JavaArtifactStub{" +
+           "myMockablePlatformJar=" + myMockablePlatformJar +
+           "} " + super.toString();
+  }
 }

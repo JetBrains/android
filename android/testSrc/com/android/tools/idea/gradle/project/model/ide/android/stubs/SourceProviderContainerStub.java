@@ -63,4 +63,12 @@ public final class SourceProviderContainerStub extends BaseStub implements Sourc
   public int hashCode() {
     return Objects.hash(getArtifactName(), getSourceProvider());
   }
+
+  @Override
+  public String toString() {
+    return "SourceProviderContainerStub{" +
+           "myArtifactName='" + myArtifactName + '\'' +
+           ", mySourceProvider=" + mySourceProvider +
+           "}";
+  }
 }
