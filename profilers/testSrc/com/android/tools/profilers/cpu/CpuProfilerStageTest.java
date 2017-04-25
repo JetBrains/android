@@ -52,6 +52,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage = new CpuProfilerStage(profilers);
+    myStage.getStudioProfilers().setStage(myStage);
   }
 
   @Test
@@ -461,6 +462,30 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertEquals("10%", legends.getCpuLegend().getValue());
     assertEquals("40%", legends.getOthersLegend().getValue());
     assertEquals("1", legends.getThreadsLegend().getValue());
+  }
+
+  @Test
+  public void testElapsedTime() throws InterruptedException {
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
+    // When there is no capture in progress, elapsed time is set to Long.MAX_VALUE.
+    // As a result CpuProfilerStage#getCaptureElapsedTimeUs should return a negative value.
+    assertTrue(myStage.getCaptureElapsedTimeUs() < 0);
+
+    // Start capturing
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
+    myStage.startCapturing();
+    // Increment 3 seconds on data range
+    Range dataRange = myStage.getStudioProfilers().getTimeline().getDataRange();
+    dataRange.setMax(dataRange.getMax() + TimeUnit.SECONDS.toMicros(3));
+    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, myStage.getCaptureState());
+
+    // Check that we're capturing for three seconds
+    assertEquals(TimeUnit.SECONDS.toMicros(3), myStage.getCaptureElapsedTimeUs());
+
+    stopCapturing();
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
+    // Capture has finished. CpuProfilerStage#getCaptureElapsedTimeUs should return a negative value.
+    assertTrue(myStage.getCaptureElapsedTimeUs() < 0);
   }
 
   private void captureSuccessfully() throws InterruptedException {

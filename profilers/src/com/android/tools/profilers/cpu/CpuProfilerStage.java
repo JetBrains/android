@@ -37,10 +37,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -48,6 +45,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
+  private static final long INVALID_CAPTURE_START_TIME = Long.MAX_VALUE;
 
   private final CpuThreadsModel myThreadsStates;
   private final AxisComponentModel myCpuUsageAxis;
@@ -104,6 +102,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   private CaptureState myCaptureState;
 
+  /**
+   * If there is a capture in progress, stores its start time.
+   */
+  private long myCaptureStartTimeNs;
+
+  private CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable;
 
   @NotNull
   private CpuProfiler.CpuProfilingAppStartRequest.Mode myProfilingMode;
@@ -156,7 +160,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       }
     });
 
-    myCaptureState = isCapturing() ? CaptureState.CAPTURING : CaptureState.IDLE;
+    myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
+    updateProfilingState();
 
     myCaptureModel = new CaptureModel(this);
   }
@@ -213,6 +218,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myThreadsStates);
+    getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -229,6 +235,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myThreadsStates);
+    getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
@@ -265,6 +272,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
     else {
       setCaptureState(CaptureState.CAPTURING);
+      myCaptureStartTimeNs = currentTimeNs();
     }
   }
 
@@ -280,6 +288,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CompletableFuture.supplyAsync(
       () -> cpuService.stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
       .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
+  }
+
+  public long getCaptureElapsedTimeUs() {
+    return TimeUnit.NANOSECONDS.toMicros(currentTimeNs() - myCaptureStartTimeNs);
   }
 
   private void stopCapturingCallback(CpuProfiler.CpuProfilingAppStopResponse response) {
@@ -310,18 +322,37 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
   }
 
-  private boolean isCapturing() {
-    long currentTimeNs = TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax()) +
-                  TimeUnit.SECONDS.toNanos(StudioProfilers.TIMELINE_BUFFER);
+  /**
+   * Communicate with the device to retrieve the profiling state.
+   * Update the capture state and the capture start time (if there is a capture in progress) accordingly.
+   * This method should be called from the constructor.
+   */
+  private void updateProfilingState() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.ProfilingStateRequest request = CpuProfiler.ProfilingStateRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName())
       .setSession(getStudioProfilers().getSession())
-      .setTimestamp(currentTimeNs)
+      .setTimestamp(currentTimeNs())
       .build();
-
     // TODO: move this call to a separate thread if we identify it's not fast enough.
-    return cpuService.checkAppProfilingState(request).getBeingProfiled();
+    CpuProfiler.ProfilingStateResponse response = cpuService.checkAppProfilingState(request);
+
+    if (response.getBeingProfiled()) {
+      // Make sure to consider the elapsed profiling time, obtained from the device, when setting the capture start time
+      long elapsedTime = response.getCheckTimestamp() - response.getStartTimestamp();
+      myCaptureStartTimeNs = currentTimeNs() - elapsedTime;
+      myCaptureState = CaptureState.CAPTURING;
+    }
+    else {
+      // otherwise, invalidate capture start time
+      myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
+      myCaptureState = CaptureState.IDLE;
+    }
+  }
+
+  private long currentTimeNs() {
+    return TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax()) +
+           TimeUnit.SECONDS.toNanos(StudioProfilers.TIMELINE_BUFFER);
   }
 
   public void setCapture(@Nullable CpuCapture capture) {
@@ -374,6 +405,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setCaptureState(@NotNull CaptureState captureState) {
     myCaptureState = captureState;
+    // invalidate the capture start time when setting the capture state
+    myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
     myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
@@ -442,7 +475,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     setProfilerMode(ProfilerMode.NORMAL);
   }
 
-
+  private class CaptureElapsedTimeUpdatable implements Updatable {
+    @Override
+    public void update(long elapsedNs) {
+      if (myCaptureState == CaptureState.CAPTURING) {
+        myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
+      }
+    }
+  }
 
   @VisibleForTesting
   class CpuTraceDataSeries implements DataSeries<CpuCapture> {

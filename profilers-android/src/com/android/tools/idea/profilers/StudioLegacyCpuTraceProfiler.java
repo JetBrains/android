@@ -61,7 +61,6 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
   @Override
   public CpuProfilingAppStartResponse startProfilingApp(CpuProfilingAppStartRequest request) {
-    long timestamp = System.nanoTime();
     CpuProfilingAppStartResponse.Builder responseBuilder = CpuProfilingAppStartResponse.newBuilder();
     String appPkgName = request.getAppPkgName();
     Client client = myDevice.getClient(appPkgName);
@@ -81,7 +80,8 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       // because the class is not public. To set buffer size, we modify DdmPreferences which will be read by
       // client.startSamplingProfiler(..) and client.startMethodTracer().
       DdmPreferences.setProfilerBufferSizeMb(request.getBufferSizeInMb());
-      record = new LegacyProfilingRecord(request, timestamp, responseBuilder);
+      long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
+      record = new LegacyProfilingRecord(request, nowNs, responseBuilder);
       myLegacyProfilingRecord.put(appPkgName, record);
       try {
         if (request.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED) {
@@ -150,6 +150,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
   @Override
   public ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request) {
+    long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
     ProfilingStateResponse.Builder responseBuilder = ProfilingStateResponse.newBuilder();
     String appPkgName = request.getAppPkgName();
     Client client = myDevice.getClient(appPkgName);
@@ -167,6 +168,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
           .setBeingProfiled(true)
           .setStartRequest(record.myStartRequest)
           .setStartTimestamp(record.myStartRequestTimestamp)
+          .setCheckTimestamp(nowNs)
           .build();
       }
     }
