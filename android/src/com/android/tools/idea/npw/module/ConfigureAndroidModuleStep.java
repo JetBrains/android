@@ -68,7 +68,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private JTextField myAppName;
   private LabelWithEditButton myPackageName;
 
-  private RenderTemplateModel myRenderModel;
+  @NotNull private RenderTemplateModel myRenderModel;
 
   public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel,
                                     boolean isLibrary, boolean isInstantApp, @NotNull String title) {
@@ -119,15 +119,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     AndroidSourceSet dummySourceSet = GradleAndroidProjectPaths.createDummySourceSet();
 
-    myRenderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet,
-                                            message("android.wizard.activity.add", myFormFactor.id));
-
-    // Some changes on this step model trigger changes on the Render Model
-    myListeners.listenAll(moduleModel.getProject(), moduleModel.moduleName()).withAndFire(() -> {
-      String moduleName = moduleModel.moduleName().get();
-      myRenderModel.getSourceSet()
-        .set(GradleAndroidProjectPaths.createDefaultSourceSetAt(new File(project.getBasePath(), moduleName)));
-    });
+    myRenderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet, message("android.wizard.activity.add", myFormFactor.id));
 
     myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
 
@@ -168,6 +160,11 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   protected void onProceeding() {
     NewModuleModel moduleModel = getModel();
     moduleModel.getTemplateValues().put(myFormFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
+
+    // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
+    getModel().moduleName().set(myModuleName.getText());
+    File moduleRoot = new File(moduleModel.moduleName().get(), moduleModel.getProject().getValue().getBasePath());
+    myRenderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot));
 
     if (myIsLibrary) {
       moduleModel.setDefaultRenderTemplateValues(myRenderModel);
