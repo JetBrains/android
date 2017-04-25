@@ -76,6 +76,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 
@@ -165,7 +166,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
     if (!facet.isAppProject()) {
-      if (facet.isLibraryProject()) {
+      if (facet.isLibraryProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE) {
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {
           errors.add(ValidationError.fatal(result.getSecond()));

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.instantapp;
 
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
@@ -41,5 +43,12 @@ public class InstantAppsTest extends AndroidGradleTestCase {
   public void testGetDefaultInstantAppUrlWithoutInstantApp() throws Exception {
     loadProject(SIMPLE_APPLICATION, "app");
     assertEquals("<<ERROR - NO URL SET>>", getDefaultInstantAppUrl(myAndroidFacet));
+  }
+
+  public void testAndroidRunConfigurationWithoutError() throws Exception {
+    loadProject(INSTANT_APP, "feature");
+    AndroidTestRunConfiguration runConfiguration = createAndroidTestConfigurationFromClass(getProject(), "com.example.instantapp.ExampleInstrumentedTest");
+    assertNotNull(runConfiguration);
+    runConfiguration.checkConfiguration();
   }
 }
