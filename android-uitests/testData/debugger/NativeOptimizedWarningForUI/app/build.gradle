@@ -25,11 +25,11 @@ android {
             path "src/main/cpp/CMakeLists.txt"
         }
     }
-    productFlavors {
-        universal {
-            ndk {
-                abiFilters 'armeabi-v7a', 'mips', 'mips64', 'x86', 'x86_64'
-            }
-        }
-    }
+//    productFlavors {
+//        universal {
+//            ndk {
+//                abiFilters 'armeabi-v7a', 'mips', 'mips64', 'x86', 'x86_64'
+//            }
+//        }
+//    }
 }
