@@ -15,30 +15,47 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
-import com.android.annotations.Nullable;
 import com.android.builder.model.SigningConfig;
 import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Objects;
 
 public final class SigningConfigStub implements SigningConfig {
   @NotNull private final String myName;
   @Nullable private final File myStoreFile;
   @Nullable private final String myStorePassword;
   @Nullable private final String myKeyAlias;
+  @Nullable private final String myKeyPassword;
+  @Nullable private final String myStoreType;
   private final boolean myV1SigningEnabled;
+  private final boolean myV2SigningEnabled;
+  private final boolean mySigningReady;
+
+  public SigningConfigStub() {
+    this("name", new File("fake"), "psw", "alias", "kePsw", "storeType", true, true, true);
+  }
 
   public SigningConfigStub(@NotNull String name,
                            @Nullable File storeFile,
                            @Nullable String storePassword,
                            @Nullable String keyAlias,
-                           boolean v1SigningEnabled) {
+                           @Nullable String keyPassword,
+                           @Nullable String storeType,
+                           boolean v1SigningEnabled,
+                           boolean v2SigningEnabled,
+                           boolean signingReady) {
     myName = name;
     myStoreFile = storeFile;
     myStorePassword = storePassword;
     myKeyAlias = keyAlias;
+    myKeyPassword = keyPassword;
+    myStoreType = storeType;
     myV1SigningEnabled = v1SigningEnabled;
+    myV2SigningEnabled = v2SigningEnabled;
+    mySigningReady = signingReady;
   }
 
   @Override
@@ -68,13 +85,13 @@ public final class SigningConfigStub implements SigningConfig {
   @Override
   @Nullable
   public String getKeyPassword() {
-    throw new UnusedModelMethodException("getKeyPassword");
+    return myKeyPassword;
   }
 
   @Override
   @Nullable
   public String getStoreType() {
-    throw new UnusedModelMethodException("getStoreType");
+    return myStoreType;
   }
 
   @Override
@@ -84,11 +101,75 @@ public final class SigningConfigStub implements SigningConfig {
 
   @Override
   public boolean isV2SigningEnabled() {
-    throw new UnusedModelMethodException("isV2SigningEnabled");
+    return myV2SigningEnabled;
   }
 
   @Override
   public boolean isSigningReady() {
-    throw new UnusedModelMethodException("isSigningReady");
+    return mySigningReady;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SigningConfig)) {
+      return false;
+    }
+
+    SigningConfig config = (SigningConfig)o;
+
+    return isV1SigningEnabled() == config.isV1SigningEnabled() &&
+           v2SigningEnabledEquals(config) &&
+           signingReadyEquals(config) &&
+           Objects.equals(getName(), config.getName()) &&
+           Objects.equals(getStoreFile(), config.getStoreFile()) &&
+           Objects.equals(getStorePassword(), config.getStorePassword()) &&
+           Objects.equals(getKeyAlias(), config.getKeyAlias()) &&
+           keyPasswordEquals(config) &&
+           storeTypeEquals(config);
+  }
+
+  private boolean v2SigningEnabledEquals(@NotNull SigningConfig config) {
+    try {
+      return isV2SigningEnabled() == config.isV2SigningEnabled();
+    }
+    catch (UnusedModelMethodException ignored) {
+      return true;
+    }
+  }
+
+  private boolean signingReadyEquals(@NotNull SigningConfig config) {
+    try {
+      return isSigningReady() == config.isSigningReady();
+    }
+    catch (UnusedModelMethodException ignored) {
+      return true;
+    }
+  }
+
+  private boolean keyPasswordEquals(@NotNull SigningConfig config) {
+    try {
+      return getKeyPassword() == config.getKeyPassword();
+    }
+    catch (UnusedModelMethodException ignored) {
+      return true;
+    }
+  }
+
+  private boolean storeTypeEquals(@NotNull SigningConfig config) {
+    try {
+      return getStoreType() == config.getStoreType();
+    }
+    catch (UnusedModelMethodException ignored) {
+      return true;
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getStoreFile(), getStorePassword(), getKeyAlias(), getKeyPassword(), getStoreType(),
+                        isV1SigningEnabled(), isV2SigningEnabled(), isSigningReady());
   }
 }

@@ -27,9 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link Dependencies}.
- */
 public final class DependenciesStub implements Dependencies {
   @NotNull private final Collection<AndroidAtom> myAtoms;
   @NotNull private final Collection<AndroidLibrary> myLibraries;

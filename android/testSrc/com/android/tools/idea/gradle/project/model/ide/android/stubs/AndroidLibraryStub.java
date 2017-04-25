@@ -23,9 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Collection;
 
-/**
- * Creates a deep copy of an {@link AndroidLibrary}.
- */
 public final class AndroidLibraryStub extends AndroidBundleStub implements AndroidLibrary {
   @NotNull private final Collection<File> myLocalJars;
   @NotNull private final File myProguardRules;

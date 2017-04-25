@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.SigningConfig;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.SigningConfigStub;
+import com.android.builder.model.TestedTargetVariant;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.TestedTargetVariantStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,9 +30,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeSigningConfig}.
+ * Tests for {@link IdeTestedTargetVariant}.
  */
-public class IdeSigningConfigTest {
+public class IdeTestedTargetVariantTest {
   private ModelCache myModelCache;
 
   @Before
@@ -42,26 +42,25 @@ public class IdeSigningConfigTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeSigningConfig.class).isAssignableTo(Serializable.class);
+    assertThat(IdeTestedTargetVariant.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeSigningConfig signingConfig = new IdeSigningConfig(new SigningConfigStub(), myModelCache);
-    byte[] bytes = serialize(signingConfig);
+    IdeTestedTargetVariant targetVariant = new IdeTestedTargetVariant(new TestedTargetVariantStub(), myModelCache);
+    byte[] bytes = serialize(targetVariant);
     Object o = deserialize(bytes);
-    assertEquals(signingConfig, o);
+    assertEquals(targetVariant, o);
   }
 
   @Test
   public void constructor() throws Throwable {
-    SigningConfig original = new SigningConfigStub();
-    assertEqualsOrSimilar(original, new IdeSigningConfig(original, myModelCache));
+    TestedTargetVariant original = new TestedTargetVariantStub();
+    assertEqualsOrSimilar(original, new IdeTestedTargetVariant(original, myModelCache));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeSigningConfig.class).verify();
+    EqualsVerifier.forClass(IdeTestedTargetVariant.class).verify();
   }
-
 }

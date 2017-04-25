@@ -20,18 +20,16 @@ import com.android.ide.common.repository.GradleVersion;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 /**
- * Creates a deep copy of {@link Variant}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link Variant}.
  */
-public class IdeVariant extends IdeModel implements Variant {
+public final class IdeVariant extends IdeModel implements Variant {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myName;
   @NotNull private final String myDisplayName;
   @NotNull private final AndroidArtifact myMainArtifact;
@@ -62,7 +60,7 @@ public class IdeVariant extends IdeModel implements Variant {
   private static Collection<TestedTargetVariant> getTestedTargetVariants(@NotNull Variant variant, @NotNull ModelCache modelCache) {
     try {
       return copy(variant.getTestedTargetVariants(), modelCache,
-                  targetVariant -> new IdeTestedTargetVariants(targetVariant, modelCache));
+                  targetVariant -> new IdeTestedTargetVariant(targetVariant, modelCache));
     }
     catch (UnsupportedMethodException e) {
       return Collections.emptyList();
@@ -121,5 +119,46 @@ public class IdeVariant extends IdeModel implements Variant {
   @NotNull
   public Collection<TestedTargetVariant> getTestedTargetVariants() {
     return myTestedTargetVariants;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeVariant)) {
+      return false;
+    }
+    IdeVariant variant = (IdeVariant)o;
+    return Objects.equals(myName, variant.myName) &&
+           Objects.equals(myDisplayName, variant.myDisplayName) &&
+           Objects.equals(myMainArtifact, variant.myMainArtifact) &&
+           Objects.equals(myExtraAndroidArtifacts, variant.myExtraAndroidArtifacts) &&
+           Objects.equals(myExtraJavaArtifacts, variant.myExtraJavaArtifacts) &&
+           Objects.equals(myBuildType, variant.myBuildType) &&
+           Objects.equals(myProductFlavors, variant.myProductFlavors) &&
+           Objects.equals(myMergedFlavor, variant.myMergedFlavor) &&
+           Objects.equals(myTestedTargetVariants, variant.myTestedTargetVariants);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myName, myDisplayName, myMainArtifact, myExtraAndroidArtifacts, myExtraJavaArtifacts, myBuildType, myProductFlavors,
+                        myMergedFlavor, myTestedTargetVariants);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeVariant{" +
+           "myName='" + myName + '\'' +
+           ", myDisplayName='" + myDisplayName + '\'' +
+           ", myMainArtifact=" + myMainArtifact +
+           ", myExtraAndroidArtifacts=" + myExtraAndroidArtifacts +
+           ", myExtraJavaArtifacts=" + myExtraJavaArtifacts +
+           ", myBuildType='" + myBuildType + '\'' +
+           ", myProductFlavors=" + myProductFlavors +
+           ", myMergedFlavor=" + myMergedFlavor +
+           ", myTestedTargetVariants=" + myTestedTargetVariants +
+           "}";
   }
 }

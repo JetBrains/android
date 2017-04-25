@@ -23,11 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link VariantOutput}.
- */
 public class VariantOutputStub implements VariantOutput {
   @NotNull private final OutputFile myMainOutputFile;
   @NotNull private final Collection<? extends OutputFile> myOutputs;
