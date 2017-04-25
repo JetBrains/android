@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.java.model.JavaProject;
 import com.android.java.model.builder.JavaLibraryPlugin;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,16 +45,23 @@ import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelp
 import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
 
 public class CommandLineArgs {
-  private static final Logger LOG = Logger.getInstance(CommandLineArgs.class);
+  @NotNull private final ApplicationInfo myApplicationInfo;
+  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
+
   @Nullable private final File myClasspathInitScript;
 
   public CommandLineArgs(boolean generateClasspathInitScript) {
-    this(GradleInitScripts.getInstance(), generateClasspathInitScript);
+    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(), generateClasspathInitScript);
   }
 
   @VisibleForTesting
-  CommandLineArgs(@NotNull GradleInitScripts initScripts, boolean generateClasspathInitScript) {
+  CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
+                  @NotNull IdeInfo ideInfo,
+                  @NotNull GradleInitScripts initScripts,
+                  boolean generateClasspathInitScript) {
+    myApplicationInfo = applicationInfo;
+    myIdeInfo = ideInfo;
     myInitScripts = initScripts;
     if (generateClasspathInitScript) {
       myClasspathInitScript = getClasspathInitScript();
@@ -81,7 +90,7 @@ public class CommandLineArgs {
       return writeToFileGradleInitScript(initScriptContent, "sync.init");
     }
     catch (Exception e) {
-      LOG.warn("Unable to create init script.", e);
+      Logger.getInstance(CommandLineArgs.class).warn("Unable to create init script.", e);
       return null;
     }
   }
@@ -110,6 +119,10 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY, true));
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
+    if (myIdeInfo.isAndroidStudio()) {
+      // Example of version to pass: 2.4.0.6
+      args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
+    }
 
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
