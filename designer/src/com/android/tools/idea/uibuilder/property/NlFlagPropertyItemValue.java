@@ -19,15 +19,13 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.StarState;
-import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.StarState;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.TableCellRenderer;
 import java.util.List;
 
 public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {

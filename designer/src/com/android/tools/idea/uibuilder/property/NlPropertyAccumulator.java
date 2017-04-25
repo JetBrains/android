@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -85,7 +85,7 @@ class NlPropertyAccumulator {
     };
   }
 
-  static class AccumulatorGroupNode extends PTableGroupItem {
+  static class AccumulatorGroupNode extends NlPTableGroupItem {
     private final String myName;
     private final String myPrefix;
 

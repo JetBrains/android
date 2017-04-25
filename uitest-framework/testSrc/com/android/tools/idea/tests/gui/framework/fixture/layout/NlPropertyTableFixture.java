@@ -17,8 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
-import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.intellij.openapi.wm.IdeFocusManager;
+import com.android.tools.adtui.ptable.PTable;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;

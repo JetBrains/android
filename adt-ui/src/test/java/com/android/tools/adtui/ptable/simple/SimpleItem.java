@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.ptable.simple;
+package com.android.tools.adtui.ptable.simple;
 
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.StarState;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.StarState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

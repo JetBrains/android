@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.uibuilder.property.ptable.PNameRenderer;
-import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.StarState;
+import com.android.tools.adtui.ptable.PNameRenderer;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.StarState;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;

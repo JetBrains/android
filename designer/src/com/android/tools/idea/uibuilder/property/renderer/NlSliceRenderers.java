@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.tools.idea.uibuilder.property.ptable.PNameRenderer;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellRendererProvider;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PNameRenderer;
+import com.android.tools.adtui.ptable.PTableCellRendererProvider;
+import com.android.tools.adtui.ptable.PTableItem;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.TableCellRenderer;

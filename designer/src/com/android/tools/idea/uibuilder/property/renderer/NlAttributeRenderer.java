@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.renderer;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor;
-import com.android.tools.idea.uibuilder.property.ptable.PTable;
+import com.android.tools.adtui.ptable.PTable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;

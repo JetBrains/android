@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
+import com.android.tools.adtui.ptable.PTableModel;
 
 public class NlPropertiesModel extends PTableModel {
   private boolean myShowingExpertProperties;

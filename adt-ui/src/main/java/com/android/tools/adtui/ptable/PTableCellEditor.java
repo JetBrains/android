@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.ptable;
+package com.android.tools.adtui.ptable;
 
-/**
- * Indicates whether an item in a table is starred, can be starred, or cannot be starred.
- */
-public enum StarState {
-  STARRED, STAR_ABLE, NOT_STAR_ABLE;
+import com.intellij.util.ui.AbstractTableCellEditor;
 
-  public StarState opposite() {
-    switch (this) {
-      case STARRED:
-        return STAR_ABLE;
-      case STAR_ABLE:
-        return STARRED;
-      default:
-        return NOT_STAR_ABLE;
-    }
+import javax.swing.*;
+
+public abstract class PTableCellEditor extends AbstractTableCellEditor {
+  public JComponent getPreferredFocusComponent() {
+    return null;
+  }
+
+  public boolean isBooleanEditor() {
+    return false;
+  }
+
+  public void activate() {
   }
 }

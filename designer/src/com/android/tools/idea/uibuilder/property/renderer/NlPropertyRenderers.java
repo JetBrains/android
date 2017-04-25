@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.ptable.PNameRenderer;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellRendererProvider;
-import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PNameRenderer;
+import com.android.tools.adtui.ptable.PTableCellRendererProvider;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;

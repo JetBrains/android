@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.ptable;
+package com.android.tools.adtui.ptable;
 
-import com.android.annotations.VisibleForTesting;
-import com.intellij.codeInsight.completion.CompletionProcess;
-import com.intellij.codeInsight.completion.CompletionProgressIndicator;
-import com.intellij.codeInsight.completion.CompletionService;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.ui.Hint;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
@@ -46,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import javax.swing.plaf.TableUI;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
@@ -74,8 +62,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     this(model, CopyPasteManager.getInstance());
   }
 
-  @VisibleForTesting
-  PTable(@NotNull PTableModel model, @NotNull CopyPasteManager copyPasteManager) {
+  public PTable(@NotNull PTableModel model, @NotNull CopyPasteManager copyPasteManager) {
     super(model);
     myCopyPasteManager = copyPasteManager;
     myMouseHoverPoint = new Point(-1, -1);
@@ -131,25 +118,6 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   @Override
   public boolean surrendersFocusOnKeyStroke() {
     return false;
-  }
-
-  // The method editingCanceled is called from IDEEventQueue.EditingCanceller when a child component
-  // of a JTable receives a KeyEvent for the VK_ESCAPE key.
-  // However we do NOT want to stop editing the cell if our editor currently is showing completion
-  // results. The completion lookup is supposed to consume the key event but it cannot do that here
-  // because of the preprocessing performed in IDEEventQueue.
-  @Override
-  @SuppressWarnings("deprecation")  // For CompletionProgressIndicator
-  public void editingCanceled(@Nullable ChangeEvent event) {
-    CompletionProcess process = CompletionService.getCompletionService().getCurrentCompletion();
-    if (process instanceof CompletionProgressIndicator) {
-      Hint hint = ((CompletionProgressIndicator)process).getLookup();
-      if (hint != null) {
-        hint.hide();
-        return;
-      }
-    }
-    super.editingCanceled(event);
   }
 
   @Override
@@ -416,32 +384,12 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
       return;
     }
     if (item instanceof PTableGroupItem) {
-      deleteGroupValues(dataContext, (PTableGroupItem)item);
+      // TODO refactor how group delete is handled to deal with dataContext cleaner
+      ((PTableGroupItem) item).deleteGroupValues(dataContext);
     }
     else {
       item.setValue(null);
     }
-  }
-
-  private static void deleteGroupValues(@NotNull DataContext dataContext, @NotNull PTableGroupItem group) {
-    Project project = CommonDataKeys.PROJECT.getData(dataContext);
-    if (project == null) {
-      return;
-    }
-    VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-    if (file == null) {
-      return;
-    }
-    PsiFile containingFile = PsiManager.getInstance(project).findFile(file);
-    if (containingFile == null) {
-      return;
-    }
-    new WriteCommandAction.Simple(project, "Delete " + group.getName(), containingFile) {
-      @Override
-      protected void run() throws Throwable {
-        group.getChildren().forEach(item -> item.setValue(null));
-      }
-    }.execute();
   }
 
   // ---- Implements PasteProvider ----
