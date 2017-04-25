@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.ptable;
+package com.android.tools.adtui.ptable;
 
 import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.annotations.NotNull;

@@ -19,10 +19,10 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
-import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableModel;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.CopyProvider;
@@ -89,7 +89,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private PropertiesViewMode myPropertiesViewMode;
 
   public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
-    this(propertiesManager, parentDisposable, new PTable(new PTableModel()), null);
+    this(propertiesManager, parentDisposable, new NlPTable(new PTableModel()), null);
   }
 
   @VisibleForTesting

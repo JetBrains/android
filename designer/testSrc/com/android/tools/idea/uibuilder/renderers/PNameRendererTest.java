@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.ptable.renderers;
+package com.android.tools.idea.uibuilder.renderers;
 
-import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
-import com.android.tools.idea.uibuilder.property.ptable.StarState;
-import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleGroupItem;
-import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleItem;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.adtui.ptable.simple.SimpleGroupItem;
+import com.android.tools.adtui.ptable.simple.SimpleItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlTableNameRenderer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SimpleColoredComponent;

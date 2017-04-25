@@ -19,7 +19,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import com.android.tools.adtui.ptable.PTableCellEditor;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 

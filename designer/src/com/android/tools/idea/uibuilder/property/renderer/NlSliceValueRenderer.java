@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.tools.idea.uibuilder.property.NlResourceHeader;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.intellij.ui.*;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nullable;

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.uibuilder.property.ptable.PTable;
-import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableModel;
 import com.google.common.collect.Table;
 
 import javax.swing.*;

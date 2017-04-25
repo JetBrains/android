@@ -13,26 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.ptable;
+package com.android.tools.adtui.ptable.simple;
 
-import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.PTableItem;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.table.TableCellRenderer;
+import java.util.List;
 
-public interface PNameRenderer extends TableCellRenderer {
+public class SimpleGroupItem extends PTableGroupItem {
+  private String myName;
 
-  /**
-   * Returns true if the given coordinate is considered on a star icon.
-   */
-  default boolean hitTestStarIcon(@SwingCoordinate int x, @SwingCoordinate int y) {
-    return false;
+  public SimpleGroupItem(@NotNull String name, @NotNull List<PTableItem> children) {
+    myName = name;
+    setChildren(children);
   }
 
-  /**
-   * Returns true if the given coordinate is considered on the expand/collapse icon.
-   */
-  default boolean hitTestTreeNodeIcon(@NotNull PTableItem item, @SwingCoordinate int x, @SwingCoordinate int y) {
-    return false;
+  @NotNull
+  @Override
+  public String getChildLabel(@NotNull PTableItem item) {
+    return myName + "." + item.getName();
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return myName;
   }
 }

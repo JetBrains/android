@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.ptable;
+package com.android.tools.adtui.ptable;
 
-import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleGroupItem;
-import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleItem;
-import com.android.tools.idea.uibuilder.property.renderer.NlTableNameRenderer;
+import com.android.tools.adtui.ptable.simple.SimpleGroupItem;
+import com.android.tools.adtui.ptable.simple.SimpleItem;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.psi.PsiFile;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,7 +40,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class PTableTest extends AndroidTestCase {
+@RunWith(JUnit4.class)
+public class PTableTest {
   @Mock
   private DataContext myContext;
   @Mock
@@ -57,13 +54,9 @@ public class PTableTest extends AndroidTestCase {
   private SimpleItem myItem3;
   private PTable myTable;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     initMocks(this);
-    PsiFile xmlFile = myFixture.configureByText("res/layout/layout.xml", "<LinearLayout/>");
-    when(myContext.getData(CommonDataKeys.PROJECT.getName())).thenReturn(getProject());
-    when(myContext.getData(CommonDataKeys.VIRTUAL_FILE.getName())).thenReturn(xmlFile.getVirtualFile());
 
     mySimpleItem = new SimpleItem("simple", "value");
     myEmptyItem = new SimpleItem("empty", null);
@@ -76,6 +69,7 @@ public class PTableTest extends AndroidTestCase {
     myTable = new PTable(model, myCopyPasteManager);
   }
 
+  @Test
   public void testCopyIsNotAvailableWhenNothingIsSelected() {
     assertThat(myTable.isCopyVisible(myContext)).isTrue();
     assertThat(myTable.isCopyEnabled(myContext)).isFalse();
@@ -84,6 +78,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testCopyWithSimpleRowSelected() throws Exception {
     myTable.setRowSelectionInterval(0, 0);
     assertThat(myTable.isCopyVisible(myContext)).isTrue();
@@ -93,6 +88,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testCopyRowWithEmptyValueSelected() throws Exception {
     myTable.setRowSelectionInterval(1, 1);
     assertThat(myTable.isCopyVisible(myContext)).isTrue();
@@ -102,6 +98,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testCopyIsNotAvailableFromGroupNode() throws Exception {
     myTable.setRowSelectionInterval(2, 2);
     assertThat(myTable.isCopyVisible(myContext)).isTrue();
@@ -111,6 +108,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testPasteIsNotAvailableWhenNothingIsSelected() {
     when(myCopyPasteManager.getContents()).thenReturn(new StringSelection("new value"));
     assertThat(myTable.isPastePossible(myContext)).isFalse();
@@ -119,6 +117,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testPasteIsNotAvailableWhenNothingIsOnTheClipboard() {
     myTable.setRowSelectionInterval(0, 0);
     assertThat(myTable.isPastePossible(myContext)).isFalse();
@@ -127,6 +126,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testPasteIntoSimpleItem() {
     when(myCopyPasteManager.getContents()).thenReturn(new StringSelection("new value"));
     myTable.setRowSelectionInterval(0, 0);
@@ -137,6 +137,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValuesExceptFor(mySimpleItem);
   }
 
+  @Test
   public void testPasteIsNotAvailableToGroupNode() throws Exception {
     when(myCopyPasteManager.getContents()).thenReturn(new StringSelection("new value"));
     myTable.setRowSelectionInterval(2, 2);
@@ -146,6 +147,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testCutIsNotAvailableWhenNothingIsSelected() {
     assertThat(myTable.isCutVisible(myContext)).isTrue();
     assertThat(myTable.isCutEnabled(myContext)).isFalse();
@@ -154,6 +156,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testCutFromSimpleItem() throws Exception {
     myTable.setRowSelectionInterval(0, 0);
     assertThat(myTable.isCutVisible(myContext)).isTrue();
@@ -164,6 +167,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValuesExceptFor(mySimpleItem);
   }
 
+  @Test
   public void testCutIsNotAvailableWhenGroupIsSelected() {
     myTable.setRowSelectionInterval(2, 2);
     assertThat(myTable.isCutVisible(myContext)).isTrue();
@@ -173,6 +177,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testDeleteIsNotAvailableWhenNothingIsSelected() {
     assertThat(myTable.canDeleteElement(myContext)).isFalse();
     myTable.deleteElement(myContext);
@@ -180,6 +185,7 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValues();
   }
 
+  @Test
   public void testDeleteOfSimpleItem() {
     myTable.setRowSelectionInterval(0, 0);
     assertThat(myTable.canDeleteElement(myContext)).isTrue();
@@ -189,63 +195,18 @@ public class PTableTest extends AndroidTestCase {
     assertHasOriginalValuesExceptFor(mySimpleItem);
   }
 
-  public void testDeleteOfGroupItem() {
-    myTable.setRowSelectionInterval(2, 2);
-    assertThat(myTable.canDeleteElement(myContext)).isTrue();
-    myTable.deleteElement(myContext);
-    assertThat(myItem1.getValue()).isNull();
-    assertThat(myItem2.getValue()).isNull();
-    assertThat(myItem3.getValue()).isNull();
-    assertHasEmptyClipboard();
-    assertHasOriginalValuesExceptFor(myItem1, myItem2, myItem3);
-  }
-
-  public void testClickOnStar() {
-    NlTableNameRenderer renderer = new NlTableNameRenderer();
-    myTable.setRendererProvider(new PTableCellRendererProvider() {
-      @NotNull
-      @Override
-      public PNameRenderer getNameCellRenderer(@NotNull PTableItem item) {
-        return renderer;
-      }
-
-      @NotNull
-      @Override
-      public TableCellRenderer getValueCellRenderer(@NotNull PTableItem item) {
-        return renderer;
-      }
-    });
-    fireMousePressed(1, 0, 10);
-    assertThat(myEmptyItem.getStarState()).isEqualTo(StarState.STARRED);
-    fireMousePressed(1, 0, 10);
-    assertThat(myEmptyItem.getStarState()).isEqualTo(StarState.STAR_ABLE);
-  }
-
+  @Test
   public void testRestoreSelection() {
     assertThat(myTable.getSelectedItem()).isNull();
     myTable.restoreSelection(1, myEmptyItem);
     assertThat(myTable.getSelectedItem()).isSameAs(myEmptyItem);
   }
 
+  @Test
   public void testRestoreSelectionWhereRowDoesNotMatch() {
     assertThat(myTable.getSelectedItem()).isNull();
     myTable.restoreSelection(77, new SimpleItem("empty", null));
     assertThat(myTable.getSelectedItem()).isSameAs(myEmptyItem);
-  }
-
-  private void fireMousePressed(int row, int column, int xOffset) {
-    Rectangle bounds = myTable.getCellRect(row, column, false);
-    int x = bounds.x + xOffset;
-    int y = bounds.y + 5;
-    MouseEvent event = mock(MouseEvent.class);
-    when(event.getX()).thenReturn(x);
-    when(event.getY()).thenReturn(y);
-    when(event.getPoint()).thenReturn(new Point(x, y));
-    when(event.getComponent()).thenReturn(myTable);
-
-    for (MouseListener listener : myTable.getMouseListeners()) {
-      listener.mousePressed(event);
-    }
   }
 
   private void assertHasOriginalValues() {

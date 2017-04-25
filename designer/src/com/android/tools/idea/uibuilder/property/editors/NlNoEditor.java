@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
-import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
+import com.android.tools.adtui.ptable.PTableCellEditor;
 
 import javax.swing.*;
 import java.awt.*;

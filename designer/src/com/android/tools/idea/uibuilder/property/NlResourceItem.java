@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.editors.strings.StringsWriteUtils;
-import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
