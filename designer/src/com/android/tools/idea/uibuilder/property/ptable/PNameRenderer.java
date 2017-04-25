@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable;
 
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.TableCellRenderer;

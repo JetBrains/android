@@ -21,7 +21,7 @@ import com.android.tools.idea.naveditor.scene.draw.DrawAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;

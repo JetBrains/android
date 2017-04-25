@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
 import com.android.tools.idea.uibuilder.scene.draw.FancyStroke;
 import com.android.tools.sherpa.drawing.ColorSet;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;

@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.intellij.openapi.Disposable;
 
 import javax.swing.*;

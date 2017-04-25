@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.draw;
 
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
 import com.google.common.base.Joiner;
