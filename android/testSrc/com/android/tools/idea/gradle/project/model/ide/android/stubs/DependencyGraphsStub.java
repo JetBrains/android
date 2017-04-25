@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Objects;
 
-public final class DependencyGraphsStub implements DependencyGraphs {
+public final class DependencyGraphsStub extends BaseStub implements DependencyGraphs {
   @NotNull private final List<GraphItem> myCompileDependencies;
   @NotNull private final List<GraphItem> myPackageDependencies;
   @NotNull private final List<String> myProvidedLibraries;

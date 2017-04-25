@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public final class TestedTargetVariantStub implements TestedTargetVariant {
+public final class TestedTargetVariantStub extends BaseStub implements TestedTargetVariant {
   @NotNull private final String myTargetProjectPath;
   @NotNull private final String myTargetVariant;
 

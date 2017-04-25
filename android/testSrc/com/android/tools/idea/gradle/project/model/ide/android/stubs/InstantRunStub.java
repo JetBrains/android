@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * Stub implementation of {@link InstantRun} for testing.
  */
-public class InstantRunStub implements InstantRun {
+public class InstantRunStub extends BaseStub implements InstantRun {
   @NotNull private File myInfoFile;
   private boolean myIsSupportedByArtifact;
   private int mySupportStatus;

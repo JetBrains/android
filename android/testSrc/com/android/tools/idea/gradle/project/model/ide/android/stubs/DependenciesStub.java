@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Objects;
 
-public final class DependenciesStub implements Dependencies {
+public final class DependenciesStub extends BaseStub implements Dependencies {
   @NotNull private final Collection<AndroidAtom> myAtoms;
   @NotNull private final Collection<AndroidLibrary> myLibraries;
   @NotNull private final Collection<JavaLibrary> myJavaLibraries;

@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class SyncIssueStub implements SyncIssue {
+public final class SyncIssueStub extends BaseStub implements SyncIssue {
   @NotNull private final String myMessage;
   @Nullable private final String myData;
   private final int mySeverity;

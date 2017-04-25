@@ -16,14 +16,13 @@
 package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.SigningConfig;
-import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Objects;
 
-public final class SigningConfigStub implements SigningConfig {
+public final class SigningConfigStub extends BaseStub implements SigningConfig {
   @NotNull private final String myName;
   @Nullable private final File myStoreFile;
   @Nullable private final String myStorePassword;
@@ -121,50 +120,14 @@ public final class SigningConfigStub implements SigningConfig {
     SigningConfig config = (SigningConfig)o;
 
     return isV1SigningEnabled() == config.isV1SigningEnabled() &&
-           v2SigningEnabledEquals(config) &&
-           signingReadyEquals(config) &&
+           equals(config, SigningConfig::isV2SigningEnabled) &&
+           equals(config, SigningConfig::isSigningReady) &&
            Objects.equals(getName(), config.getName()) &&
            Objects.equals(getStoreFile(), config.getStoreFile()) &&
            Objects.equals(getStorePassword(), config.getStorePassword()) &&
            Objects.equals(getKeyAlias(), config.getKeyAlias()) &&
-           keyPasswordEquals(config) &&
-           storeTypeEquals(config);
-  }
-
-  private boolean v2SigningEnabledEquals(@NotNull SigningConfig config) {
-    try {
-      return isV2SigningEnabled() == config.isV2SigningEnabled();
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
-  }
-
-  private boolean signingReadyEquals(@NotNull SigningConfig config) {
-    try {
-      return isSigningReady() == config.isSigningReady();
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
-  }
-
-  private boolean keyPasswordEquals(@NotNull SigningConfig config) {
-    try {
-      return getKeyPassword() == config.getKeyPassword();
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
-  }
-
-  private boolean storeTypeEquals(@NotNull SigningConfig config) {
-    try {
-      return getStoreType() == config.getStoreType();
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
+           equals(config, SigningConfig::getKeyPassword) &&
+           equals(config, SigningConfig::getStoreType);
   }
 
   @Override

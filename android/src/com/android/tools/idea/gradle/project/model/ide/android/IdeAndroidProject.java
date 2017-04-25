@@ -26,9 +26,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 /**
- * Creates a deep copy of {@link AndroidProject}.
- *
- * Holds copy object of the Android-Gradle project, maintained for persisting the Android model data.
+ * Creates a deep copy of an {@link AndroidProject}.
  */
 public class IdeAndroidProject extends IdeModel implements AndroidProject {
   @NotNull private final String myModelVersion;
@@ -59,7 +57,6 @@ public class IdeAndroidProject extends IdeModel implements AndroidProject {
     this(project, new ModelCache());
   }
 
-  @SuppressWarnings("deprecation")
   private IdeAndroidProject(@NotNull AndroidProject project, @NotNull ModelCache modelCache) {
     super(project, modelCache);
     myModelVersion = project.getModelVersion();

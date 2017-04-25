@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class MavenCoordinatesStub implements MavenCoordinates {
+public class MavenCoordinatesStub extends BaseStub implements MavenCoordinates {
   @NotNull private final String myGroupId;
   @NotNull private final String myArtifactId;
   @NotNull private final String myVersion;

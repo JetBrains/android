@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public final class BuildTypeContainerStub implements BuildTypeContainer {
+public final class BuildTypeContainerStub extends BaseStub implements BuildTypeContainer {
   @NotNull private final BuildType myBuildType;
   @NotNull private final SourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
