@@ -93,7 +93,7 @@ public class BackgroundIconGenerator {
       assert !ApplicationManager.getApplication().isDispatchThread();
 
       if (myIconGenerator.sourceAsset().get().isPresent()) {
-        myGeneratorResult = myIconGenerator.generateIcons();
+        myGeneratorResult = myIconGenerator.generatePreviewIcons();
       }
     }
 

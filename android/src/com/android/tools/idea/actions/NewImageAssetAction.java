@@ -70,7 +70,7 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
       return getWizardMinimumSize();
     }
     else {
-      return JBUI.size(990, 680);
+      return JBUI.size(1020, 680);
     }
   }
 
