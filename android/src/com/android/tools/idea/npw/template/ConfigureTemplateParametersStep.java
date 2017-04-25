@@ -68,6 +68,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.tools.idea.npw.project.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -396,6 +397,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.get().getName());
       additionalValues
         .put(ATTR_IS_INSTANT_APP, (myFacet != null && (myFacet.getProjectType() == PROJECT_TYPE_FEATURE)) || getModel().instantApp().get());
+      additionalValues.put(ATTR_COMPANY_DOMAIN, getInitialDomain(false));
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 

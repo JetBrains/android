@@ -192,7 +192,7 @@ public final class InstantAppUrlFinder {
     @NotNull
     @VisibleForTesting
     public static String convertPatternToExample(String pattern) {
-      return pattern.replace(".*", "parameter");
+      return pattern.replace(".*", "example");
     }
 
     public boolean isValid() {
