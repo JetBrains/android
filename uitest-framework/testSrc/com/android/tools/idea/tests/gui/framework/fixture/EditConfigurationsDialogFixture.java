@@ -66,11 +66,11 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
   };
 
   @NotNull
-  public EditConfigurationsDialogFixture selectAutoDebugger() {
+  public EditConfigurationsDialogFixture selectDebuggerType(@NotNull String typeName) {
     clickDebugger();
     JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(), robot().finder().findByType(target(), JComboBox.class));
     comboBoxFixture.replaceCellReader(DEBUGGER_PICKER_READER);
-    comboBoxFixture.selectItem("Auto");
+    comboBoxFixture.selectItem(typeName);
     return this;
   }
 

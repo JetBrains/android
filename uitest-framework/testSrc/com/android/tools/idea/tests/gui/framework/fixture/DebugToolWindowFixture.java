@@ -17,8 +17,10 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.ui.content.Content;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DebugToolWindowFixture extends ExecutionToolWindowFixture {
   public DebugToolWindowFixture(@NotNull IdeFrameFixture frameFixture) {
@@ -33,6 +35,17 @@ public class DebugToolWindowFixture extends ExecutionToolWindowFixture {
   public DebugToolWindowFixture waitForBreakPointHit() {
     findDebugResumeButton();
     return this;
+  }
+
+  @Nullable
+  public Content getJavaDebuggerContent(@NotNull String contentName) {
+    Content[] contents = getContents();
+    for (Content content : contents) {
+      if (contentName.equals(content.getDisplayName())) {
+        return content;
+      }
+    }
+    return null;
   }
 
   private ActionButton findDebugResumeButton() {
