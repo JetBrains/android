@@ -28,7 +28,7 @@ import com.intellij.psi.tree.TokenSet
 import javax.swing.Icon
 
 class RoomTokenType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUAGE) {
-  override fun toString(): String = "RoomTokenType.${super.toString()}"
+  override fun toString(): String = "RoomTokenType(${super.toString()})"
 }
 
 class RoomAstNodeType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUAGE) {
