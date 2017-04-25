@@ -23,9 +23,9 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

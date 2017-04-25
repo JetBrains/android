@@ -20,6 +20,7 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.event.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

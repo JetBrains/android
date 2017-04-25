@@ -16,6 +16,7 @@
 package com.android.tools.adtui.model;
 
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.updater.Updater;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

@@ -24,6 +24,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
 import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;

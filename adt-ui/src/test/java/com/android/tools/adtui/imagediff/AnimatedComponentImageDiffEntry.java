@@ -16,9 +16,9 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Updater;
+import com.android.tools.adtui.model.updater.Updater;
 
 import javax.swing.*;
 import java.awt.*;

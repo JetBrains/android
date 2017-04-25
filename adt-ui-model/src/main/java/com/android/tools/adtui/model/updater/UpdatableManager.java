@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.adtui.model.updater;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +22,6 @@ import java.util.List;
 
 /**
  * Manages a subset of {@link Updatable} belonging to an {@link Updater}.
- * TODO: move Updater-related classes to a subpackage
  */
 public class UpdatableManager {
 

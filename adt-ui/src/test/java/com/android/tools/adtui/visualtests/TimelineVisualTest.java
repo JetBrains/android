@@ -17,7 +17,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
