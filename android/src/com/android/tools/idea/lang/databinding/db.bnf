@@ -37,6 +37,8 @@
   elementTypeClass="com.android.tools.idea.lang.databinding.psi.DbElementType"
   tokenTypeClass="com.android.tools.idea.lang.databinding.psi.DbTokenType"
 
+  classHeader='generatedFilesHeader.txt'
+
   extends(".*Expr")=expr
 
   tokens=[
