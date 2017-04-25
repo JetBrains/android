@@ -17,7 +17,8 @@ public class MainActivity extends Activity {
         TextView tv = new TextView(this);
 
         // Example of a call to a native method
-        tv.setText(stringFromJNI());
+        String s = stringFromJNI();
+        tv.setText(s);
         setContentView(tv);
     }
 
