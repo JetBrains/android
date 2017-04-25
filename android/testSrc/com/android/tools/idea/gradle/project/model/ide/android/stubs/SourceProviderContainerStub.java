@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public final class SourceProviderContainerStub implements SourceProviderContainer {
+public final class SourceProviderContainerStub extends BaseStub implements SourceProviderContainer {
   @NotNull private final String myArtifactName;
   @NotNull private final SourceProvider mySourceProvider;
 

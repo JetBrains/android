@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public final class JavaCompileOptionsStub implements JavaCompileOptions {
+public final class JavaCompileOptionsStub extends BaseStub implements JavaCompileOptions {
   @NotNull private final String myEncoding;
   @NotNull private final String mySourceCompatibility;
   @NotNull private final String myTargetCompatibility;

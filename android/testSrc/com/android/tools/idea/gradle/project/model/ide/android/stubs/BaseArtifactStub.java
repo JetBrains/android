@@ -28,7 +28,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
-public class BaseArtifactStub implements BaseArtifact {
+public class BaseArtifactStub extends BaseStub implements BaseArtifact {
   @NotNull private final String myName;
   @NotNull private final String myCompileTaskName;
   @NotNull private final String myAssembleTaskName;

@@ -19,13 +19,14 @@ import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.SigningConfig;
 import com.android.builder.model.VectorDrawablesOptions;
-import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 
 public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
   @NotNull private final Map<String, String> myTestInstrumentationRunnerArguments;
@@ -244,70 +245,16 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
            Objects.equals(getMinSdkVersion(), that.getMinSdkVersion()) &&
            Objects.equals(getTargetSdkVersion(), that.getTargetSdkVersion()) &&
            Objects.equals(getMaxSdkVersion(), that.getMaxSdkVersion()) &&
-           renderscriptTargetApiEquals(that) &&
-           renderscriptSupportModeEnabledEquals(that) &&
-           renderscriptSupportModeBlasEnabledEquals(that) &&
-           renderscriptNdkModeEnabledEquals(that) &&
+           equals(that, ProductFlavor::getRenderscriptTargetApi) &&
+           equals(that, ProductFlavor::getRenderscriptSupportModeEnabled) &&
+           equals(that, ProductFlavor::getRenderscriptSupportModeBlasEnabled) &&
+           equals(that, ProductFlavor::getRenderscriptNdkModeEnabled) &&
            Objects.equals(getTestApplicationId(), that.getTestApplicationId()) &&
            Objects.equals(getTestInstrumentationRunner(), that.getTestInstrumentationRunner()) &&
-           testHandleProfilingEquals(that) &&
-           testFunctionalTestEquals(that) &&
+           equals(that, ProductFlavor::getTestHandleProfiling) &&
+           equals(that, ProductFlavor::getTestFunctionalTest) &&
            Objects.equals(getSigningConfig(), that.getSigningConfig()) &&
            Objects.equals(getWearAppUnbundled(), that.getWearAppUnbundled());
-  }
-
-  private boolean renderscriptTargetApiEquals(@NotNull ProductFlavor productFlavor) {
-    try {
-      return Objects.equals(getRenderscriptTargetApi(), productFlavor.getRenderscriptTargetApi());
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
-  }
-
-  private boolean renderscriptSupportModeEnabledEquals(@NotNull ProductFlavor productFlavor) {
-    try {
-      return Objects.equals(getRenderscriptSupportModeEnabled(), productFlavor.getRenderscriptSupportModeEnabled());
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
-  }
-
-  private boolean renderscriptSupportModeBlasEnabledEquals(@NotNull ProductFlavor productFlavor) {
-    try {
-      return Objects.equals(getRenderscriptSupportModeBlasEnabled(), productFlavor.getRenderscriptSupportModeBlasEnabled());
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
-  }
-
-  private boolean renderscriptNdkModeEnabledEquals(@NotNull ProductFlavor productFlavor) {
-    try {
-      return Objects.equals(getRenderscriptNdkModeEnabled(), productFlavor.getRenderscriptNdkModeEnabled());
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
-  }
-
-  private boolean testHandleProfilingEquals(@NotNull ProductFlavor productFlavor) {
-    try {
-      return Objects.equals(getTestHandleProfiling(), productFlavor.getTestHandleProfiling());
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
-  }
-
-  private boolean testFunctionalTestEquals(@NotNull ProductFlavor productFlavor) {
-    try {
-      return Objects.equals(getTestFunctionalTest(), productFlavor.getTestFunctionalTest());
-    }
-    catch (UnusedModelMethodException ignored) {
-      return true;
-    }
   }
 
   @Override

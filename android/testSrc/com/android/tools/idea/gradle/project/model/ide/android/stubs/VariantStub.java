@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-public class VariantStub implements Variant {
+public class VariantStub extends BaseStub implements Variant {
   @NotNull private final String myName;
   @NotNull private final String myDisplayName;
   @NotNull private final AndroidArtifact myMainArtifact;

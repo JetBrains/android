@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class ApiVersionStub implements ApiVersion {
+public final class ApiVersionStub extends BaseStub implements ApiVersion {
   @NotNull private final String myApiString;
   @Nullable private final String myCodename;
   private final int myApiLevel;

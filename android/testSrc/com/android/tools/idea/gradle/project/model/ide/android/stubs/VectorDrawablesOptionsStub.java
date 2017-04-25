@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
 import java.util.Objects;
 import java.util.Set;
 
-public class VectorDrawablesOptionsStub implements VectorDrawablesOptions {
+public class VectorDrawablesOptionsStub extends BaseStub implements VectorDrawablesOptions {
   @Nullable private final Set<String> myGeneratedDensities;
   @Nullable private final Boolean myUseSupportLibrary;
 
