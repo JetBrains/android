@@ -23,9 +23,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link JavaLibrary}.
- */
 public final class JavaLibraryStub extends LibraryStub implements JavaLibrary {
   @NotNull private final File myJarFile;
   @NotNull private final List<JavaLibrary> myDependencies;

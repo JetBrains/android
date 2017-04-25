@@ -16,15 +16,15 @@
 package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
 
-/**
- * Creates a deep copy of {@link AndroidArtifact}.
- */
 public final class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final String myApplicationId;
@@ -37,6 +37,12 @@ public final class AndroidArtifactStub extends BaseArtifactStub implements Andro
   @Nullable private final Set<String> myAbiFilters;
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
   private final boolean mySigned;
+
+  public AndroidArtifactStub() {
+    this(Lists.newArrayList(new AndroidArtifactOutputStub()), "applicationId", "sourceGenTaskName",
+         ImmutableMap.of("buildConfigField", new ClassFieldStub()), ImmutableMap.of("resValue", new ClassFieldStub()), new InstantRunStub(),
+         "signingConfigName", Sets.newHashSet("filter"), Lists.newArrayList(new NativeLibraryStub()), true);
+  }
 
   public AndroidArtifactStub(@NotNull Collection<AndroidArtifactOutput> outputs,
                              @NotNull String applicationId,

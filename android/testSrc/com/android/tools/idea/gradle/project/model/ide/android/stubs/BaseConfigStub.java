@@ -26,9 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-/**
- * Creates a deep copy of a {@link BaseConfig}.
- */
 public class BaseConfigStub implements BaseConfig {
   @NotNull private final String myName;
   @NotNull private final Map<String, ClassField> myResValues;

@@ -18,16 +18,19 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.TestedTargetVariant;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 /**
- * Creates a deep copy of {@link TestedTargetVariant}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link TestedTargetVariant}.
  */
-public class IdeTestedTargetVariants extends IdeModel implements TestedTargetVariant {
+public final class IdeTestedTargetVariant extends IdeModel implements TestedTargetVariant {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final String myTargetProjectPath;
   @NotNull private final String myTargetVariant;
 
-  public IdeTestedTargetVariants(@NotNull TestedTargetVariant variant, @NotNull ModelCache modelCache) {
+  public IdeTestedTargetVariant(@NotNull TestedTargetVariant variant, @NotNull ModelCache modelCache) {
     super(variant, modelCache);
     myTargetProjectPath = variant.getTargetProjectPath();
     myTargetVariant = variant.getTargetVariant();
@@ -43,5 +46,31 @@ public class IdeTestedTargetVariants extends IdeModel implements TestedTargetVar
   @NotNull
   public String getTargetVariant() {
     return myTargetVariant;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeTestedTargetVariant)) {
+      return false;
+    }
+    IdeTestedTargetVariant variants = (IdeTestedTargetVariant)o;
+    return Objects.equals(myTargetProjectPath, variants.myTargetProjectPath) &&
+           Objects.equals(myTargetVariant, variants.myTargetVariant);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myTargetProjectPath, myTargetVariant);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeTestedTargetVariants{" +
+           "myTargetProjectPath='" + myTargetProjectPath + '\'' +
+           ", myTargetVariant='" + myTargetVariant + '\'' +
+           "}";
   }
 }

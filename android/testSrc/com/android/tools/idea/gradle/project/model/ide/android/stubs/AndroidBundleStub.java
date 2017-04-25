@@ -26,9 +26,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Creates a deep copy of an {@link AndroidBundle}.
- */
 public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
   @NotNull private final File myBundle;
   @NotNull private final File myFolder;

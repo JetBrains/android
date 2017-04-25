@@ -21,9 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link SourceProviderContainer}.
- */
 public final class SourceProviderContainerStub implements SourceProviderContainer {
   @NotNull private final String myArtifactName;
   @NotNull private final SourceProvider mySourceProvider;
