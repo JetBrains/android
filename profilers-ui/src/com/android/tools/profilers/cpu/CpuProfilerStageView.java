@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Updater;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -91,7 +92,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     stage.getAspect().addDependency(this)
       .onChange(CpuProfilerAspect.CAPTURE, this::updateCaptureState)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
-      .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails);
+      .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
+      .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
 
     stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this)
       .onChange(Range.Aspect.RANGE, this::selectionChanged);
@@ -317,14 +319,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     switch (myStage.getCaptureState()) {
       case IDLE:
         myCaptureButton.setEnabled(true);
-        myCaptureButton.setText("Record");
+        myCaptureButton.setText("");
         myCaptureButton.setIcon(ProfilerIcons.RECORD);
+        // TODO: replace with loading icon
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RECORD));
         break;
       case CAPTURING:
         myCaptureButton.setEnabled(true);
-        myCaptureButton.setText("Stop Recording");
+        myCaptureButton.setText("");
         myCaptureButton.setIcon(ProfilerIcons.STOP_RECORDING);
+        // TODO: replace with loading icon
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.STOP_RECORDING));
         break;
       case PARSING:
@@ -333,7 +337,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         break;
       case STARTING:
         myCaptureButton.setEnabled(false);
-        myCaptureButton.setText("Starting record...");
+        myCaptureButton.setText("");
         break;
       case STOPPING:
         myCaptureButton.setEnabled(false);
@@ -347,6 +351,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     else {
       myCaptureView = new CpuCaptureView(this);
       mySplitter.setSecondComponent(myCaptureView.getComponent());
+    }
+  }
+
+  private void updateCaptureElapsedTime() {
+    if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
+      long elapsedTimeUs = myStage.getCaptureElapsedTimeUs();
+      myCaptureButton.setText("Recording - " + TimeAxisFormatter.DEFAULT.getFormattedString(elapsedTimeUs, elapsedTimeUs, true));
     }
   }
 
