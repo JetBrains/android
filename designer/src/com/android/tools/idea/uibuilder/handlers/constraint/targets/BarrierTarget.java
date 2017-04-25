@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Implements the drag behaviour for ConstraintLayout Guideline
  */
-public class BarrierTarget extends DragTarget {
+public class BarrierTarget extends ConstraintDragTarget {
   int myDirection;
   private static int GAP = 6;
   public static final int TOP = 1;
@@ -116,7 +116,7 @@ public class BarrierTarget extends DragTarget {
     myComponent.setSelected(true);
   }
   @Override
-  protected void updateAttributes(AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
 
 
   }

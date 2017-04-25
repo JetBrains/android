@@ -17,16 +17,14 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarget;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +37,7 @@ import java.util.List;
  */
 public class SceneDragHandler extends DragHandler {
 
-  private SceneComponent myComponent;
+  @Nullable protected SceneComponent myComponent;
 
   public SceneDragHandler(@NotNull ViewEditor editor,
                           @NotNull ViewGroupHandler handler,
@@ -50,7 +48,7 @@ public class SceneDragHandler extends DragHandler {
       NlComponent component = components.get(0);
       myComponent = new TemporarySceneComponent(layout.getScene(), component);
       myComponent.setSize(editor.pxToDp(component.w), editor.pxToDp(component.h), false);
-      myComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(new DragDndTarget()), false);
+      myComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(new ConstraintDragDndTarget()), false);
       myComponent.setDrawState(SceneComponent.DrawState.DRAG);
       layout.addChild(myComponent);
     }
@@ -62,13 +60,13 @@ public class SceneDragHandler extends DragHandler {
     if (myComponent == null) {
       return;
     }
-    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
+    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
     scene.needsRebuildList();
     @AndroidDpCoordinate int dx = x - myComponent.getDrawWidth() / 2;
     @AndroidDpCoordinate int dy = y - myComponent.getDrawHeight() / 2;
     for (Target target : myComponent.getTargets()) {
-      if (target instanceof DragDndTarget) {
-        target.mouseDown(editor.pxToDp(dx), editor.pxToDp(dy));
+      if (target instanceof ConstraintDragDndTarget) {
+        target.mouseDown(dx, dy);
         break;
       }
     }
@@ -81,18 +79,16 @@ public class SceneDragHandler extends DragHandler {
     if (myComponent == null) {
       return "undefined";
     }
-    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
+    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
     @AndroidDpCoordinate int dx = x - myComponent.getDrawWidth() / 2;
     @AndroidDpCoordinate int dy = y - myComponent.getDrawHeight() / 2;
     myComponent.setPosition(dx, dy);
-    if (myComponent != null) {
-      List<Target> targets = myComponent.getTargets();
-      for (int i = 0; i < targets.size(); i++) {
-        if (targets.get(i) instanceof DragDndTarget) {
-          DragDndTarget target = (DragDndTarget) targets.get(i);
-          target.mouseDrag(dx, dy, targets);
-          break;
-        }
+    List<Target> targets = myComponent.getTargets();
+    for (int i = 0; i < targets.size(); i++) {
+      if (targets.get(i) instanceof ConstraintDragDndTarget) {
+        ConstraintDragDndTarget target = (ConstraintDragDndTarget)targets.get(i);
+        target.mouseDrag(dx, dy, targets);
+        break;
       }
     }
     scene.checkRequestLayoutStatus();
@@ -101,13 +97,15 @@ public class SceneDragHandler extends DragHandler {
 
   @Override
   public void cancel() {
-    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
-    scene.removeComponent(myComponent);
+    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    if (myComponent != null) {
+      scene.removeComponent(myComponent);
+    }
   }
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
+    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
     if (myComponent != null) {
       NlComponent root = myComponent.getNlComponent().getRoot();
       NlModel model = editor.getModel();
@@ -120,8 +118,8 @@ public class SceneDragHandler extends DragHandler {
       @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
       @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
       for (Target target : myComponent.getTargets()) {
-        if (target instanceof DragDndTarget) {
-          ((DragDndTarget)target).mouseRelease(dx, dy, components.get(0));
+        if (target instanceof ConstraintDragDndTarget) {
+          ((ConstraintDragDndTarget)target).mouseRelease(dx, dy, components.get(0));
           break;
         }
       }
@@ -130,10 +128,4 @@ public class SceneDragHandler extends DragHandler {
     scene.removeComponent(myComponent);
     scene.checkRequestLayoutStatus();
   }
-
-  @Override
-  public void paint(@NotNull NlGraphics graphics) {
-    // Do nothing for now
-  }
-
 }

@@ -18,14 +18,13 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.Notch;
+import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.intellij.openapi.application.ApplicationManager;
@@ -113,7 +112,16 @@ public class SceneComponent {
 
   @Override
   public String toString() {
-    return getNlComponent().toString() + " [ " + myCurrentLeft + ", " + myCurrentTop + " - " + myCurrentRight + ", " + myCurrentBottom + "]";
+    return getNlComponent().toString() +
+           " [ " +
+           myCurrentLeft +
+           ", " +
+           myCurrentTop +
+           " - " +
+           myCurrentRight +
+           ", " +
+           myCurrentBottom +
+           "]";
   }
 
   //endregion
@@ -403,7 +411,8 @@ public class SceneComponent {
       if (isFromModel) {
         myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
         myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
-      } else {
+      }
+      else {
         myScene.needsRebuildList();
       }
     }
@@ -427,7 +436,8 @@ public class SceneComponent {
       if (isFromModel) {
         myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
         myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
-      } else {
+      }
+      else {
         myScene.needsRebuildList();
       }
     }
@@ -444,7 +454,8 @@ public class SceneComponent {
       if (isFromModel) {
         myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
         myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
-      } else {
+      }
+      else {
         myScene.needsRebuildList();
       }
     }
@@ -465,7 +476,7 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawWidth.setTarget(width, time);
       myAnimatedDrawHeight.setTarget(height, time);
-      if(isFromModel) {
+      if (isFromModel) {
         myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
         myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
       }
@@ -862,16 +873,5 @@ public class SceneComponent {
    */
   public void setModelUpdateAuthorized(boolean modelUpdateAuthorized) {
     myIsModelUpdateAuthorized = modelUpdateAuthorized;
-  }
-
-  /**
-   * If false, it indicates that the size and coordinates of this {@link SceneComponent}
-   * should not be updated from a model update because they are being updated by something else, like
-   * a drag event.
-   *
-   * @return true is a
-   */
-  public boolean isModelUpdateAuthorized() {
-    return myIsModelUpdateAuthorized;
   }
 }

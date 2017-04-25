@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.linear;
+package com.android.tools.idea.uibuilder.handlers.linear.actions;
 
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import icons.AndroidDesignerIcons;
 import org.intellij.lang.annotations.JdkConstants;
@@ -26,21 +27,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_BASELINE_ALIGNED;
-import static com.android.SdkConstants.VALUE_FALSE;
-
-/**
- * Action to set the {@linkplain ATTR_BASELINE_ALIGNED} value.
- */
-class BaselineAction extends DirectViewAction {
-  @Override
-  public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                      @NotNull List<NlComponent> selectedChildren, @JdkConstants.InputEventMask int modifiers) {
-    boolean align = !isBaselineAligned(component);
-    component.setAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED, align ? null : VALUE_FALSE);
+public class DistributeWeightsAction extends DirectViewAction {
+  public DistributeWeightsAction() {
+    super(AndroidDesignerIcons.DistributeWeights, "Distribute Weights Evenly");
   }
-
 
   @Override
   public void updatePresentation(@NotNull ViewActionPresentation presentation,
@@ -49,13 +39,16 @@ class BaselineAction extends DirectViewAction {
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @JdkConstants.InputEventMask int modifiers) {
-    boolean align = !isBaselineAligned(component);
-    presentation.setIcon(align ? AndroidDesignerIcons.Baseline : AndroidDesignerIcons.NoBaseline);
-    presentation.setLabel(align ? "Align with the baseline" : "Do not align with the baseline");
+    presentation.setVisible(selectedChildren.size() > 1);
   }
 
-  private static boolean isBaselineAligned(NlComponent component) {
-    String value = component.getAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED);
-    return value == null ? true : Boolean.valueOf(value);
+  @Override
+  public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+                      @NotNull List<NlComponent> selectedChildren, @JdkConstants.InputEventMask int modifiers) {
+
+
+    assert handler instanceof LinearLayoutHandler;
+    LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+    linearLayoutHandler.distributeWeights(component, selectedChildren);
   }
 }

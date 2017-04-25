@@ -18,25 +18,29 @@ package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.List;
 
 /**
  * Implements a target managing dragging on a dnd temporary widget
  */
-public class DragDndTarget extends DragTarget {
+public class ConstraintDragDndTarget extends ConstraintDragTarget {
 
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     if (myComponent instanceof TemporarySceneComponent) {
-      gatherNotches();
-    } else {
+      getTargetNotchSnapper().gatherNotches(myComponent);
+    }
+    else {
       super.mouseDown(x, y);
     }
   }
@@ -45,13 +49,19 @@ public class DragDndTarget extends DragTarget {
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
     if (myComponent instanceof TemporarySceneComponent) {
       Scene scene = myComponent.getScene();
-      int dx = snapX(x);
-      int dy = snapY(y);
+      int dx = getTargetNotchSnapper().trySnapX(x);
+      int dy = getTargetNotchSnapper().trySnapY(y);
       myComponent.setPosition(dx, dy);
       scene.needsRebuildList();
-    } else {
+    }
+    else {
       super.mouseDrag(x, y, closestTarget);
     }
+  }
+
+  @Override
+  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
+    super.render(list, sceneContext);
   }
 
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull NlComponent component) {
@@ -60,22 +70,8 @@ public class DragDndTarget extends DragTarget {
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
       int dy = y - myOffsetY;
-      if (myCurrentNotchX != null) {
-        dx = myCurrentNotchX.apply(dx);
-        if (myComponent.allowsAutoConnect()) {
-          myCurrentNotchX.apply(attributes);
-        }
-        myCurrentNotchX = null;
-      }
-      if (myCurrentNotchY != null) {
-        dy = myCurrentNotchY.apply(dy);
-        if (myComponent.allowsAutoConnect()) {
-          myCurrentNotchY.apply(attributes);
-        }
-        myCurrentNotchY = null;
-      }
-      updateAttributes(attributes, dx, dy);
-      ConstraintComponentUtilities.cleanup(attributes, myComponent);
+      Point snappedCoordinates = getTargetNotchSnapper().applyNotches(myComponent, attributes, dx, dy);
+      updateAttributes(attributes, snappedCoordinates.x, snappedCoordinates.y);
       attributes.apply();
       attributes.commit();
     }
