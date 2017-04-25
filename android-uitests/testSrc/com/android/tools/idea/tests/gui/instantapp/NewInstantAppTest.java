@@ -57,7 +57,8 @@ public class NewInstantAppTest {
   }
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
-  private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName) {
+  private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName,
+                                              @Nullable String activityName) {
     //TODO: There is some commonality between this code, the code in NewProjectTest and further tests I am planning, but there are also
     //      differences. Once AIA tests are completed this should be factored out into the NewProjectWizardFixture
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
@@ -86,6 +87,7 @@ public class NewInstantAppTest {
 
     newProjectWizard
       .clickNext() // Complete configuration of Instant App Module
+      .chooseActivity(activityName == null ? "Empty Activity" : activityName)
       .clickNext() // Complete "Add Activity" step
       .clickFinish();
 
@@ -95,7 +97,7 @@ public class NewInstantAppTest {
   @Test
   public void testNoWarningsInDefaultNewInstantAppProjects() throws IOException {
     String projectName = "Warning";
-    createAndOpenDefaultAIAProject(projectName, null);
+    createAndOpenDefaultAIAProject(projectName, null, null);
 
     String inspectionResults = guiTest.ideFrame()
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
@@ -157,14 +159,27 @@ public class NewInstantAppTest {
 
   @Test
   public void testCanBuildDefaultNewInstantAppProjects() throws IOException {
-    createAndOpenDefaultAIAProject("BuildApp", null);
+    createAndOpenDefaultAIAProject("BuildApp", null, null);
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
+  public void testCanBuildNewInstantAppProjectsWithLoginActivity() throws IOException {
+    createAndOpenDefaultAIAProject("BuildApp", null, "Login Activity");
+    guiTest.ideFrame().getEditor()
+      .open("feature/src/main/res/layout/activity_login.xml")
+      .open("feature/src/main/AndroidManifest.xml")
+      .moveBetween("android:order=", "")
+      .moveBetween("android:host=", "")
+      .moveBetween("android:path=", "")
+      .moveBetween("android:scheme=\"https", "")
+      .moveBetween("android.intent.category.", "LAUNCHER");
+  }
+
+  @Test
   public void testValidPathInDefaultNewInstantAppProjects() throws IOException {
-    createAndOpenDefaultAIAProject("RouteApp", "routefeature");
+    createAndOpenDefaultAIAProject("RouteApp", "routefeature", null);
 
     Module module = guiTest.ideFrame().getModule("routefeature");
     AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -174,7 +189,7 @@ public class NewInstantAppTest {
 
   @Test
   public void testCanCustomiseFeatureModuleInNewInstantAppProjects() throws IOException {
-    createAndOpenDefaultAIAProject("SetFeatureNameApp", "testfeaturename");
+    createAndOpenDefaultAIAProject("SetFeatureNameApp", "testfeaturename", null);
 
     guiTest.ideFrame().getModule("testfeaturename");
     guiTest.ideFrame().getModule("testfeaturenamesplit");
