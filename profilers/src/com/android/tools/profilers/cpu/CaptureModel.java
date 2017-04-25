@@ -224,7 +224,8 @@ class CaptureModel {
     enum Type {
       TOP_DOWN(TopDown::new),
       BOTTOM_UP(BottomUp::new),
-      CHART(TreeChart::new);
+      CALL_CHART(CallChart::new),
+      FLAME_CHART(FlameChart::new);
 
       @NotNull
       private final BiFunction<Range, HNode<MethodModel>, Details> myBuilder;
@@ -277,11 +278,11 @@ class CaptureModel {
     }
   }
 
-  public static class TreeChart implements Details {
+  public static class CallChart implements Details {
     @NotNull private final Range myRange;
     @Nullable private HNode<MethodModel> myNode;
 
-    public TreeChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+    public CallChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
       myRange = range;
       myNode = node;
     }
@@ -298,7 +299,53 @@ class CaptureModel {
 
     @Override
     public Type getType() {
-      return Type.CHART;
+      return Type.CALL_CHART;
+    }
+  }
+
+  public static class FlameChart implements Details {
+    @NotNull private final Range myRange;
+    @Nullable private final HNode<MethodModel> myNode;
+    @Nullable private final Range myCaptureRange;
+
+    public FlameChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myRange = range;
+      if (node != null) {
+        myCaptureRange = new Range(node.getStart(), node.getEnd());
+        myNode = convertToHNode(new TopDownNode(node), node.getStart(), 0);
+      } else {
+        myNode = null;
+        myCaptureRange = null;
+      }
+    }
+
+    @NotNull
+    public Range getRange() {
+      return myRange;
+    }
+
+    @Nullable
+    public HNode<MethodModel> getNode() {
+      return myNode;
+    }
+
+    @Override
+    public Type getType() {
+      return Type.FLAME_CHART;
+    }
+
+    private HNode<MethodModel> convertToHNode(@NotNull TopDownNode topDown, double start, int depth) {
+      assert myCaptureRange != null;
+      topDown.update(myCaptureRange);
+
+      HNode<MethodModel> node = new HNode<>(topDown.getNodes().get(0).getData(), (long)start, (long)(start + topDown.getTotal()));
+      node.setDepth(depth);
+
+      for (TopDownNode child: topDown.getChildren()) {
+        node.addHNode(convertToHNode(child, start, depth + 1));
+        start += child.getTotal();
+      }
+      return node;
     }
   }
 }
