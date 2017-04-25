@@ -37,6 +37,8 @@ val KEYWORDS = setOf(ABORT, ACTION, ADD, AFTER, ALL, ALTER, ANALYZE, AND, AS, AS
     SAVEPOINT, SELECT, SET, TABLE, TEMP, TEMPORARY, THEN, TO, TRANSACTION, TRIGGER, UNION, UNIQUE, UPDATE, USING, VACUUM, VALUES, VIEW,
     VIRTUAL, WHEN, WHERE, WITH, WITHOUT)
 
+val OPERATORS = setOf(AMP, BAR, CONCAT, DIV, EQ, EQEQ, GT, GTE, LT, LTE, MINUS, MOD, NOT_EQ, PLUS, SHL, SHR, STAR, TILDE, UNEQ)
+
 enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
   KEYWORD(DefaultLanguageHighlighterColors.KEYWORD),
@@ -45,6 +47,11 @@ enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
   STRING(DefaultLanguageHighlighterColors.STRING),
   BLOCK_COMMENT(DefaultLanguageHighlighterColors.BLOCK_COMMENT),
   LINE_COMMENT(DefaultLanguageHighlighterColors.LINE_COMMENT),
+  OPERATOR(DefaultLanguageHighlighterColors.OPERATION_SIGN),
+  PARENTHESES(DefaultLanguageHighlighterColors.PARENTHESES),
+  DOT(DefaultLanguageHighlighterColors.DOT),
+  COMMA(DefaultLanguageHighlighterColors.COMMA),
+  SEMICOLON(DefaultLanguageHighlighterColors.SEMICOLON),
   ;
 
   val key = TextAttributesKey.createTextAttributesKey("ROOM_SQL_${name}", fallback)
@@ -58,11 +65,16 @@ class RoomSqlSyntaxHighlighter : SyntaxHighlighterBase() {
 
   override fun getTokenHighlights(tokenType: IElementType?): Array<TextAttributesKey> = when (tokenType) {
     in KEYWORDS -> RoomSqlTextAttributes.KEYWORD.keys
+    in OPERATORS -> RoomSqlTextAttributes.OPERATOR.keys
     STRING_LITERAL -> RoomSqlTextAttributes.STRING.keys
     NUMERIC_LITERAL -> RoomSqlTextAttributes.NUMBER.keys
     PARAMETER_NAME -> RoomSqlTextAttributes.PARAMETER.keys
     LINE_COMMENT -> RoomSqlTextAttributes.LINE_COMMENT.keys
     COMMENT -> RoomSqlTextAttributes.BLOCK_COMMENT.keys
+    LPAREN, RPAREN -> RoomSqlTextAttributes.PARENTHESES.keys
+    DOT -> RoomSqlTextAttributes.DOT.keys
+    COMMA -> RoomSqlTextAttributes.COMMA.keys
+    SEMICOLON -> RoomSqlTextAttributes.SEMICOLON.keys
     TokenType.BAD_CHARACTER -> RoomSqlTextAttributes.BAD_CHARACTER.keys
     else -> EMPTY_KEYS
   }

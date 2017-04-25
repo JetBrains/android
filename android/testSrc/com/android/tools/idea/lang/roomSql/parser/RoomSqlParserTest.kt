@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.roomSql.parser
 
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
 import com.intellij.psi.PsiErrorElement
+import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
 import junit.framework.AssertionFailedError
@@ -31,8 +32,16 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
   private fun check(text: String) {
     val psiFile = createPsiFile("in-memory", text)
     ensureParsed(psiFile)
+
     val parseTreeText = toParseTreeText(psiFile, false, false)
     assertNull(parseTreeText, PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java))
+
+    val lexer = RoomSqlLexer()
+    lexer.start(text)
+    while (lexer.tokenType != null) {
+      assert(lexer.tokenType != TokenType.BAD_CHARACTER, { "BAD_CHARACTER ${lexer.tokenText}"})
+      lexer.advance()
+    }
   }
 
   fun testSanity() {
@@ -132,5 +141,9 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
     check("select X'111'") // Blob literal.
 
     check("select foo, t, t2, T3, :mójArgument from MyTable join ę2")
+  }
+
+  fun testMultipleExpressions() {
+    check("select a from b where f(c); select 42")
   }
 }

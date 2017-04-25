@@ -51,8 +51,33 @@
     IDENTIFIER='regexp:[:letter:]([:letter:]|[:digit:])*'
     PARAMETER_NAME='regexp::[:letter:]([:letter:]|[:digit:])*' // TODO: Does Room support other notations?
 
-    COMMENT='regexp:/\*.*\*/'
+    COMMENT='regexp:/\*.*\*/' // This is manually replaced in the lexer.
     LINE_COMMENT='regexp:--[^\r\n]*'
+
+    AMP='&'
+    BAR='|'
+    COMMA=','
+    CONCAT='||'
+    DIV='/'
+    DOT='.'
+    EQ='='
+    EQEQ='=='
+    GT='>'
+    GTE='>='
+    LPAREN='('
+    LT='<'
+    LTE='<='
+    MINUS='-'
+    MOD='%'
+    NOT_EQ='!='
+    PLUS='+'
+    RPAREN=')'
+    SEMICOLON=';'
+    SHL='<<'
+    SHR='>>'
+    STAR='*'
+    TILDE='~'
+    UNEQ='<>'
 
     // Grammar-Kit's live preview emulates PsiBuilder's behavior of ignoring whitespace, by
     // looking for a token type that matches a space and is not used otherwise. Here's one:

@@ -38,20 +38,40 @@ import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 %unicode
 %caseless
 
-EOL=\R
 WHITE_SPACE=\s+
 
 NUMERIC_LITERAL=(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)
 STRING_LITERAL=X?('(''|[^'])*'|\"(\"\"|[^\"])*\")
 IDENTIFIER=[:letter:]([:letter:]|[:digit:])*
 PARAMETER_NAME=:[:letter:]([:letter:]|[:digit:])*
-COMMENT="/"\*.*\*"/"
+COMMENT="/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
 LINE_COMMENT=--[^\r\n]*
 
 %%
 <YYINITIAL> {
   {WHITE_SPACE}                       { return WHITE_SPACE; }
 
+  "!="                                { return NOT_EQ; }
+  "%"                                 { return MOD; }
+  "&"                                 { return AMP; }
+  "("                                 { return LPAREN; }
+  ")"                                 { return RPAREN; }
+  "*"                                 { return STAR; }
+  "+"                                 { return PLUS; }
+  ","                                 { return COMMA; }
+  "-"                                 { return MINUS; }
+  "."                                 { return DOT; }
+  "/"                                 { return DIV; }
+  ";"                                 { return SEMICOLON; }
+  "<"                                 { return LT; }
+  "<<"                                { return SHL; }
+  "<="                                { return LTE; }
+  "<>"                                { return UNEQ; }
+  "="                                 { return EQ; }
+  "=="                                { return EQEQ; }
+  ">"                                 { return GT; }
+  ">="                                { return GTE; }
+  ">>"                                { return SHR; }
   "ABORT"                             { return ABORT; }
   "ACTION"                            { return ACTION; }
   "ADD"                               { return ADD; }
@@ -175,6 +195,9 @@ LINE_COMMENT=--[^\r\n]*
   "WHERE"                             { return WHERE; }
   "WITH"                              { return WITH; }
   "WITHOUT"                           { return WITHOUT; }
+  "|"                                 { return BAR; }
+  "||"                                { return CONCAT; }
+  "~"                                 { return TILDE; }
 
   {COMMENT}                           { return COMMENT; }
   {IDENTIFIER}                        { return IDENTIFIER; }

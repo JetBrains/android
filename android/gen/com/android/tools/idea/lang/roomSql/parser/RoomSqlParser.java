@@ -291,7 +291,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -375,7 +375,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     r = r && table_or_index_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -602,10 +602,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "column_constraint_1_3")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, CHECK);
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, CHECK, LPAREN);
     r = r && expr(b, l + 1, -1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -638,9 +637,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "column_constraint_1_4_1_2")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && expr(b, l + 1, -1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -761,10 +760,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, COMMON_TABLE_EXPRESSION, "<common table expression>");
     r = table_name(b, l + 1);
     r = r && common_table_expression_1(b, l + 1);
-    r = r && consumeToken(b, AS);
-    r = r && consumeToken(b, "(");
+    r = r && consumeTokens(b, 0, AS, LPAREN);
     r = r && select_stmt(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -781,10 +779,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "common_table_expression_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && column_name(b, l + 1);
     r = r && common_table_expression_1_0_2(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -806,7 +804,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "common_table_expression_1_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -895,10 +893,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     r = r && index_name(b, l + 1);
     r = r && consumeToken(b, ON);
     r = r && table_name(b, l + 1);
-    r = r && consumeToken(b, "(");
+    r = r && consumeToken(b, LPAREN);
     r = r && indexed_column(b, l + 1);
     r = r && create_index_stmt_10(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && create_index_stmt_12(b, l + 1);
     exit_section_(b, m, CREATE_INDEX_STMT, r);
     return r;
@@ -941,7 +939,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -963,7 +961,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "create_index_stmt_10_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && indexed_column(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1055,7 +1053,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1076,11 +1074,11 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "create_table_stmt_6_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && column_def(b, l + 1);
     r = r && create_table_stmt_6_0_2(b, l + 1);
     r = r && create_table_stmt_6_0_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && create_table_stmt_6_0_5(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1103,7 +1101,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "create_table_stmt_6_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_def(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1126,7 +1124,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "create_table_stmt_6_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && table_constraint(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1185,8 +1183,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     r = r && create_trigger_stmt_11(b, l + 1);
     r = r && consumeToken(b, BEGIN);
     r = r && create_trigger_stmt_13(b, l + 1);
-    r = r && consumeToken(b, ";");
-    r = r && consumeToken(b, END);
+    r = r && consumeTokens(b, 0, SEMICOLON, END);
     exit_section_(b, m, CREATE_TRIGGER_STMT, r);
     return r;
   }
@@ -1239,7 +1236,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1322,7 +1319,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "create_trigger_stmt_7_2_1_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1444,7 +1441,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1499,7 +1496,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1516,10 +1513,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "create_virtual_table_stmt_8_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && module_argument(b, l + 1);
     r = r && create_virtual_table_stmt_8_0_2(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1541,7 +1538,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "create_virtual_table_stmt_8_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && module_argument(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1572,10 +1569,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "cte_table_name_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && column_name(b, l + 1);
     r = r && cte_table_name_1_0_2(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1597,7 +1594,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "cte_table_name_1_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1778,7 +1775,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "delete_stmt_limited_5_0_0_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && ordering_term(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -1808,7 +1805,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, OFFSET);
-    if (!r) r = consumeToken(b, ",");
+    if (!r) r = consumeToken(b, COMMA);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1879,7 +1876,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1929,7 +1926,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -1979,7 +1976,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2029,7 +2026,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2089,10 +2086,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "foreign_key_clause_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && column_name(b, l + 1);
     r = r && foreign_key_clause_2_0_2(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2114,7 +2111,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "foreign_key_clause_2_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -2419,7 +2416,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2436,10 +2433,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "insert_stmt_5_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && column_name(b, l + 1);
     r = r && insert_stmt_5_0_2(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2461,7 +2458,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "insert_stmt_5_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -2484,11 +2481,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "insert_stmt_6_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, VALUES);
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, VALUES, LPAREN);
     r = r && expr(b, l + 1, -1);
     r = r && insert_stmt_6_0_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && insert_stmt_6_0_5(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -2511,7 +2507,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "insert_stmt_6_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -2534,11 +2530,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "insert_stmt_6_0_5_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, COMMA, LPAREN);
     r = r && expr(b, l + 1, -1);
     r = r && insert_stmt_6_0_5_0_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2560,7 +2555,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "insert_stmt_6_0_5_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -2642,11 +2637,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "join_constraint_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, USING);
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, USING, LPAREN);
     r = r && column_name(b, l + 1);
     r = r && join_constraint_1_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2668,7 +2662,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "join_constraint_1_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -2680,7 +2674,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "join_operator")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, JOIN_OPERATOR, "<join operator>");
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     if (!r) r = join_operator_1(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
@@ -2876,7 +2870,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2904,7 +2898,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "pragma_stmt_3_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "=");
+    r = consumeToken(b, EQ);
     r = r && pragma_value(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -2915,9 +2909,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "pragma_stmt_3_0_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && pragma_value(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -2962,7 +2956,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -3051,7 +3045,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -3090,26 +3084,26 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // '*'
-  //   | table_name '.*' // TODO: spaces between dot and star?
+  //   | table_name '.' '*'
   //   | expr ( ( AS )? column_alias )?
   public static boolean result_column(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "result_column")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, RESULT_COLUMN, "<result column>");
-    r = consumeToken(b, "*");
+    r = consumeToken(b, STAR);
     if (!r) r = result_column_1(b, l + 1);
     if (!r) r = result_column_2(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
-  // table_name '.*'
+  // table_name '.' '*'
   private static boolean result_column_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "result_column_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = table_name(b, l + 1);
-    r = r && consumeToken(b, ".*");
+    r = r && consumeTokens(b, 0, DOT, STAR);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -3292,7 +3286,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_0_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && common_table_expression(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -3367,7 +3361,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_1_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && result_column(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -3430,7 +3424,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_1_0_4_0_1_1_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && table_or_subquery(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -3491,7 +3485,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_1_0_6_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -3520,11 +3514,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_1_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, VALUES);
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, VALUES, LPAREN);
     r = r && expr(b, l + 1, -1);
     r = r && select_stmt_1_1_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && select_stmt_1_1_5(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -3547,7 +3540,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_1_1_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -3570,11 +3563,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_1_1_5_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, COMMA, LPAREN);
     r = r && expr(b, l + 1, -1);
     r = r && select_stmt_1_1_5_0_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -3596,7 +3588,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_1_1_5_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -3699,7 +3691,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_2_0_1_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && result_column(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -3762,7 +3754,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_2_0_1_0_4_0_1_0_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && table_or_subquery(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -3823,7 +3815,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_2_0_1_0_6_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -3852,11 +3844,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_2_0_1_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, VALUES);
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, VALUES, LPAREN);
     r = r && expr(b, l + 1, -1);
     r = r && select_stmt_2_0_1_1_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && select_stmt_2_0_1_1_5(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -3879,7 +3870,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_2_0_1_1_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -3902,11 +3893,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_2_0_1_1_5_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, COMMA, LPAREN);
     r = r && expr(b, l + 1, -1);
     r = r && select_stmt_2_0_1_1_5_0_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -3928,7 +3918,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_2_0_1_1_5_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -3970,7 +3960,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "select_stmt_3_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && ordering_term(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4019,7 +4009,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, OFFSET);
-    if (!r) r = consumeToken(b, ",");
+    if (!r) r = consumeToken(b, COMMA);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -4048,8 +4038,8 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "signed_number_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "+");
-    if (!r) r = consumeToken(b, "-");
+    r = consumeToken(b, PLUS);
+    if (!r) r = consumeToken(b, MINUS);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -4237,7 +4227,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "sql_stmt_list_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ";");
+    r = consumeToken(b, SEMICOLON);
     r = r && sql_stmt_list_1_0_1(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4325,10 +4315,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = table_constraint_1_0_0(b, l + 1);
-    r = r && consumeToken(b, "(");
+    r = r && consumeToken(b, LPAREN);
     r = r && indexed_column(b, l + 1);
     r = r && table_constraint_1_0_3(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && conflict_clause(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4362,7 +4352,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "table_constraint_1_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && indexed_column(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4373,10 +4363,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "table_constraint_1_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, CHECK);
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, CHECK, LPAREN);
     r = r && expr(b, l + 1, -1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -4386,11 +4375,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "table_constraint_1_2")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokens(b, 0, FOREIGN, KEY);
-    r = r && consumeToken(b, "(");
+    r = consumeTokens(b, 0, FOREIGN, KEY, LPAREN);
     r = r && column_name(b, l + 1);
     r = r && table_constraint_1_2_4(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && foreign_key_clause(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4413,7 +4401,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "table_constraint_1_2_4_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4484,7 +4472,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -4548,9 +4536,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "table_or_subquery_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && table_or_subquery_1_1(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -4594,7 +4582,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "table_or_subquery_1_1_0_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && table_or_subquery(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4605,9 +4593,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "table_or_subquery_2")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && select_stmt(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && table_or_subquery_2_3(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -4686,9 +4674,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "type_name_1_0_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && signed_number(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -4698,11 +4686,11 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "type_name_1_0_1")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, "(");
+    r = consumeToken(b, LPAREN);
     r = r && signed_number(b, l + 1);
-    r = r && consumeToken(b, ",");
+    r = r && consumeToken(b, COMMA);
     r = r && signed_number(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -4721,7 +4709,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     r = r && qualified_table_name(b, l + 1);
     r = r && consumeToken(b, SET);
     r = r && column_name(b, l + 1);
-    r = r && consumeToken(b, "=");
+    r = r && consumeToken(b, EQ);
     r = r && expr(b, l + 1, -1);
     r = r && update_stmt_8(b, l + 1);
     r = r && update_stmt_9(b, l + 1);
@@ -4784,9 +4772,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "update_stmt_8_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
-    r = r && consumeToken(b, "=");
+    r = r && consumeToken(b, EQ);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -4826,7 +4814,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     r = r && qualified_table_name(b, l + 1);
     r = r && consumeToken(b, SET);
     r = r && column_name(b, l + 1);
-    r = r && consumeToken(b, "=");
+    r = r && consumeToken(b, EQ);
     r = r && expr(b, l + 1, -1);
     r = r && update_stmt_limited_8(b, l + 1);
     r = r && update_stmt_limited_9(b, l + 1);
@@ -4890,9 +4878,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "update_stmt_limited_8_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && column_name(b, l + 1);
-    r = r && consumeToken(b, "=");
+    r = r && consumeToken(b, EQ);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -4974,7 +4962,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "update_stmt_limited_10_0_0_0_3_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && ordering_term(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -5004,7 +4992,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = consumeToken(b, OFFSET);
-    if (!r) r = consumeToken(b, ",");
+    if (!r) r = consumeToken(b, COMMA);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5043,10 +5031,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, WITH);
     r = r && with_clause_1(b, l + 1);
     r = r && cte_table_name(b, l + 1);
-    r = r && consumeToken(b, AS);
-    r = r && consumeToken(b, "(");
+    r = r && consumeTokens(b, 0, AS, LPAREN);
     r = r && select_stmt(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     r = r && with_clause_7(b, l + 1);
     exit_section_(b, m, WITH_CLAUSE, r);
     return r;
@@ -5076,12 +5063,11 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "with_clause_7_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, ",");
+    r = consumeToken(b, COMMA);
     r = r && cte_table_name(b, l + 1);
-    r = r && consumeToken(b, AS);
-    r = r && consumeToken(b, "(");
+    r = r && consumeTokens(b, 0, AS, LPAREN);
     r = r && select_stmt(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5181,7 +5167,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
         r = expr(b, l, 15);
         exit_section_(b, l, m, MUL_EXPR, r, true, null);
       }
-      else if (g < 16 && consumeTokenSmart(b, "||")) {
+      else if (g < 16 && consumeTokenSmart(b, CONCAT)) {
         r = expr(b, l, 16);
         exit_section_(b, l, m, CONCAT_EXPR, r, true, null);
       }
@@ -5203,10 +5189,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!nextTokenIsSmart(b, RAISE)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, RAISE);
-    r = r && consumeToken(b, "(");
+    r = consumeTokensSmart(b, 0, RAISE, LPAREN);
     r = r && raise_function_expr_2(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, RAISE_FUNCTION_EXPR, r);
     return r;
   }
@@ -5228,7 +5213,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = raise_function_expr_2_1_0(b, l + 1);
-    r = r && consumeToken(b, ",");
+    r = r && consumeToken(b, COMMA);
     r = r && error_message(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -5321,9 +5306,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, EXISTS_EXPR, "<exists expr>");
     r = exists_expr_0(b, l + 1);
-    r = r && consumeToken(b, "(");
+    r = r && consumeToken(b, LPAREN);
     r = r && select_stmt(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -5388,9 +5373,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "in_expr_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, "(");
+    r = consumeTokenSmart(b, LPAREN);
     r = r && in_expr_0_2_0_1(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5441,7 +5426,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "in_expr_0_2_0_1_0_1_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, ",");
+    r = consumeTokenSmart(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -5471,7 +5456,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5542,23 +5527,12 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!nextTokenIsSmart(b, CAST)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, null);
-    r = cast_expr_0(b, l + 1);
+    r = parseTokensSmart(b, 0, CAST, LPAREN);
     p = r;
     r = p && expr(b, l, 6);
     r = p && report_error_(b, cast_expr_1(b, l + 1)) && r;
     exit_section_(b, l, m, CAST_EXPR, r, p, null);
     return r || p;
-  }
-
-  // CAST '('
-  private static boolean cast_expr_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "cast_expr_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, CAST);
-    r = r && consumeToken(b, "(");
-    exit_section_(b, m, null, r);
-    return r;
   }
 
   // AS type_name ')'
@@ -5568,19 +5542,20 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b);
     r = consumeToken(b, AS);
     r = r && type_name(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, m, null, r);
     return r;
   }
 
   public static boolean paren_expr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "paren_expr")) return false;
+    if (!nextTokenIsSmart(b, LPAREN)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, null);
-    r = consumeTokenSmart(b, "(");
+    r = consumeTokenSmart(b, LPAREN);
     p = r;
     r = p && expr(b, l, 7);
-    r = p && report_error_(b, consumeToken(b, ")")) && r;
+    r = p && report_error_(b, consumeToken(b, RPAREN)) && r;
     exit_section_(b, l, m, PAREN_EXPR, r, p, null);
     return r || p;
   }
@@ -5592,9 +5567,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, FUNCTION_CALL_EXPR, "<function call expr>");
     r = function_name(b, l + 1);
-    r = r && consumeToken(b, "(");
+    r = r && consumeToken(b, LPAREN);
     r = r && function_call_expr_2(b, l + 1);
-    r = r && consumeToken(b, ")");
+    r = r && consumeToken(b, RPAREN);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
@@ -5612,7 +5587,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = function_call_expr_2_0_0(b, l + 1);
-    if (!r) r = consumeTokenSmart(b, "*");
+    if (!r) r = consumeTokenSmart(b, STAR);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5653,7 +5628,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "function_call_expr_2_0_0_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, ",");
+    r = consumeTokenSmart(b, COMMA);
     r = r && expr(b, l + 1, -1);
     exit_section_(b, m, null, r);
     return r;
@@ -5664,10 +5639,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "equivalence_expr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, "==");
-    if (!r) r = consumeTokenSmart(b, "=");
-    if (!r) r = consumeTokenSmart(b, "!=");
-    if (!r) r = consumeTokenSmart(b, "<>");
+    r = consumeTokenSmart(b, EQEQ);
+    if (!r) r = consumeTokenSmart(b, EQ);
+    if (!r) r = consumeTokenSmart(b, NOT_EQ);
+    if (!r) r = consumeTokenSmart(b, UNEQ);
     if (!r) r = equivalence_expr_0_4(b, l + 1);
     if (!r) r = consumeTokenSmart(b, IN);
     if (!r) r = consumeTokenSmart(b, LIKE);
@@ -5730,10 +5705,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "comparison_expr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, "<");
-    if (!r) r = consumeTokenSmart(b, "<=");
-    if (!r) r = consumeTokenSmart(b, ">");
-    if (!r) r = consumeTokenSmart(b, ">=");
+    r = consumeTokenSmart(b, LT);
+    if (!r) r = consumeTokenSmart(b, LTE);
+    if (!r) r = consumeTokenSmart(b, GT);
+    if (!r) r = consumeTokenSmart(b, GTE);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5743,10 +5718,10 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "bit_expr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, "<<");
-    if (!r) r = consumeTokenSmart(b, ">>");
-    if (!r) r = consumeTokenSmart(b, "&");
-    if (!r) r = consumeTokenSmart(b, "|");
+    r = consumeTokenSmart(b, SHL);
+    if (!r) r = consumeTokenSmart(b, SHR);
+    if (!r) r = consumeTokenSmart(b, AMP);
+    if (!r) r = consumeTokenSmart(b, BAR);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5756,8 +5731,8 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "add_expr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, "+");
-    if (!r) r = consumeTokenSmart(b, "-");
+    r = consumeTokenSmart(b, PLUS);
+    if (!r) r = consumeTokenSmart(b, MINUS);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5767,9 +5742,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "mul_expr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, "*");
-    if (!r) r = consumeTokenSmart(b, "/");
-    if (!r) r = consumeTokenSmart(b, "%");
+    r = consumeTokenSmart(b, STAR);
+    if (!r) r = consumeTokenSmart(b, DIV);
+    if (!r) r = consumeTokenSmart(b, MOD);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -5790,9 +5765,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "unary_expr_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeTokenSmart(b, "-");
-    if (!r) r = consumeTokenSmart(b, "+");
-    if (!r) r = consumeTokenSmart(b, "~");
+    r = consumeTokenSmart(b, MINUS);
+    if (!r) r = consumeTokenSmart(b, PLUS);
+    if (!r) r = consumeTokenSmart(b, TILDE);
     if (!r) r = consumeTokenSmart(b, NOT);
     exit_section_(b, m, null, r);
     return r;
@@ -5830,9 +5805,9 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = database_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     r = r && table_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -5844,7 +5819,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b);
     r = table_name(b, l + 1);
-    r = r && consumeToken(b, ".");
+    r = r && consumeToken(b, DOT);
     r = r && column_name(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
