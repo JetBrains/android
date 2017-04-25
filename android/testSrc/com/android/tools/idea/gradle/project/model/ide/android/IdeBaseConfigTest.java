@@ -16,18 +16,9 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseConfig;
-import com.android.builder.model.ClassField;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseConfigStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.ClassFieldStub;
-import com.google.common.collect.Lists;
 import nl.jqno.equalsverifier.EqualsVerifier;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
 
@@ -37,22 +28,8 @@ import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerifi
 public class IdeBaseConfigTest {
   @Test
   public void constructor() throws Throwable {
-    BaseConfig original = createStub();
+    BaseConfig original = new BaseConfigStub();
     assertEqualsOrSimilar(original, new IdeBaseConfig(original, new ModelCache()) {});
-  }
-
-  @NotNull
-  private static BaseConfigStub createStub() {
-    Map<String, ClassField> values = new HashMap<>();
-    values.put("name", new ClassFieldStub());
-
-    Collection<File> proguardFiles = Lists.newArrayList(new File("proguardFile"));
-    Collection<File> consumerProguardFiles = Lists.newArrayList(new File("consumerProguardFile"));
-
-    Map<String, Object> placeHolders = new HashMap<>();
-    placeHolders.put("key", "value");
-
-    return new BaseConfigStub("name", values, proguardFiles, consumerProguardFiles, placeHolders, "one", "two");
   }
 
   @Test

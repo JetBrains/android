@@ -17,43 +17,64 @@ package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.BaseConfig;
 import com.android.builder.model.ClassField;
-import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class BaseConfigStub extends BaseStub implements BaseConfig {
   @NotNull private final String myName;
+  @NotNull private final Map<String,ClassField> myBuildConfigFields;
   @NotNull private final Map<String, ClassField> myResValues;
   @NotNull private final Collection<File> myProguardFiles;
   @NotNull private final Collection<File> myConsumerProguardFiles;
+  @NotNull private final Collection<File> myTestProguardFiles;
   @NotNull private final Map<String, Object> myManifestPlaceholders;
+  @NotNull private final List<File> myJarJarRuleFiles;
   @Nullable private final String myApplicationIdSuffix;
   @Nullable private final String myVersionNameSuffix;
+  @Nullable private final Boolean myMultiDexEnabled;
+  @Nullable private final File myMultiDexKeepFile;
+  @Nullable private final File myMultiDexKeepProguard;
 
   public BaseConfigStub() {
-    this("name", ImmutableMap.of("name", new ClassFieldStub()), Lists.newArrayList(new File("proguardFile")),
-         Lists.newArrayList(new File("consumerProguardFile")), ImmutableMap.of("key", "value"), "one", "two");
+    this("name", ImmutableMap.of("buildConfigField", new ClassFieldStub()), ImmutableMap.of("resValue", new ClassFieldStub()),
+         Lists.newArrayList(new File("proguardFile")), Lists.newArrayList(new File("consumerProguardFile")),
+         Lists.newArrayList(new File("testProguardFile")), ImmutableMap.of("key", "value"), Lists.newArrayList(new File("jarJarRuleFile")),
+         "one", "two", true, new File("multiDexKeepFile"), new File("multiDexKeepProguard"));
   }
 
   public BaseConfigStub(@NotNull String name,
-                        @NotNull Map<String, ClassField> values,
+                        @NotNull Map<String, ClassField> buildConfigFields,
+                        @NotNull Map<String, ClassField> resValues,
                         @NotNull Collection<File> proguardFiles,
                         @NotNull Collection<File> consumerProguardFiles,
-                        @NotNull Map<String, Object> placeholders,
+                        @NotNull Collection<File> testProguardFiles,
+                        @NotNull Map<String, Object> manifestPlaceholders,
+                        @NotNull List<File> jarJarRuleFiles,
                         @Nullable String applicationIdSuffix,
-                        @Nullable String versionNameSuffix) {
+                        @Nullable String versionNameSuffix,
+                        @Nullable Boolean multiDexEnabled,
+                        @Nullable File multiDexKeepFile,
+                        @Nullable File multiDexKeepProguard) {
     myName = name;
-    myResValues = values;
+    myBuildConfigFields = buildConfigFields;
+    myResValues = resValues;
     myProguardFiles = proguardFiles;
     myConsumerProguardFiles = consumerProguardFiles;
-    myManifestPlaceholders = placeholders;
+    myTestProguardFiles = testProguardFiles;
+    myManifestPlaceholders = manifestPlaceholders;
+    myJarJarRuleFiles = jarJarRuleFiles;
     myApplicationIdSuffix = applicationIdSuffix;
     myVersionNameSuffix = versionNameSuffix;
+    myMultiDexEnabled = multiDexEnabled;
+    myMultiDexKeepFile = multiDexKeepFile;
+    myMultiDexKeepProguard = multiDexKeepProguard;
   }
 
   @Override
@@ -65,7 +86,7 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
   @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
-    throw new UnusedModelMethodException("getBuildConfigFields");
+    return myBuildConfigFields;
   }
 
   @Override
@@ -89,7 +110,7 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
   @Override
   @NotNull
   public Collection<File> getTestProguardFiles() {
-    throw new UnusedModelMethodException("getTestProguardFiles");
+    return myTestProguardFiles;
   }
 
   @Override
@@ -101,7 +122,7 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
   @Override
   @NotNull
   public List<File> getJarJarRuleFiles() {
-    throw new UnusedModelMethodException("getJarJarRuleFiles");
+    return myJarJarRuleFiles;
   }
 
   @Override
@@ -119,19 +140,19 @@ public class BaseConfigStub extends BaseStub implements BaseConfig {
   @Override
   @Nullable
   public Boolean getMultiDexEnabled() {
-    throw new UnusedModelMethodException("getMultiDexEnabled");
+    return myMultiDexEnabled;
   }
 
   @Override
   @Nullable
   public File getMultiDexKeepFile() {
-    throw new UnusedModelMethodException("getMultiDexKeepFile");
+    return myMultiDexKeepFile;
   }
 
   @Override
   @Nullable
   public File getMultiDexKeepProguard() {
-    throw new UnusedModelMethodException("getMultiDexKeepProguard");
+    return myMultiDexKeepProguard;
   }
 
   @Override

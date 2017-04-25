@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.ComparisonFailure;
 
@@ -37,7 +38,7 @@ public final class CopyVerification {
         }
         catch (InvocationTargetException e) {
           Throwable exception = e.getTargetException();
-          if (exception instanceof UnusedModelMethodException) {
+          if (exception instanceof UnusedModelMethodException || exception instanceof UnsupportedMethodException) {
             continue;
           }
           throw exception != null ? exception : e;
