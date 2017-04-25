@@ -74,7 +74,9 @@ public class WatchpointTest extends DebuggerTestBase {
     DebugToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
 
     JBPopupMenu popupMenu = contentFixture.rightClickVariableInDebuggerVariables(ideFrame, "write");
-    contentFixture.addWatchpoint(ideFrame, popupMenu);
+    contentFixture.findWatchpointConfig(ideFrame, popupMenu)
+        .selectAccessType("Write")
+        .clickDone();
 
     MiscUtils.invokeMenuPathOnRobotIdle(ideFrame, "Run", "Resume Program");
 
