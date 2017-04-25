@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-public class BaseConfigStub implements BaseConfig {
+public class BaseConfigStub extends BaseStub implements BaseConfig {
   @NotNull private final String myName;
   @NotNull private final Map<String, ClassField> myResValues;
   @NotNull private final Collection<File> myProguardFiles;

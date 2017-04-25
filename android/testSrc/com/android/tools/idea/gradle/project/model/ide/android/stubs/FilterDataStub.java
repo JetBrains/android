@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public final class FilterDataStub implements FilterData {
+public final class FilterDataStub extends BaseStub implements FilterData {
   @NotNull private final String myIdentifier;
   @NotNull private final String myFilterType;
 

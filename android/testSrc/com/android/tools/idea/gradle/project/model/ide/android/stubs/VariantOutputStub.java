@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-public class VariantOutputStub implements VariantOutput {
+public class VariantOutputStub extends BaseStub implements VariantOutput {
   @NotNull private final OutputFile myMainOutputFile;
   @NotNull private final Collection<? extends OutputFile> myOutputs;
   @NotNull private final String myOutputType;

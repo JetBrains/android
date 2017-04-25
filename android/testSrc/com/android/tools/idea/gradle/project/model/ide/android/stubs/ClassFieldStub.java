@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.Set;
 
-public final class ClassFieldStub implements ClassField {
+public final class ClassFieldStub extends BaseStub implements ClassField {
   @NotNull private final String myName;
   @NotNull private final String myType;
   @NotNull private final String myValue;

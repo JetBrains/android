@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Objects;
 
-public class NativeToolchainStub implements NativeToolchain {
+public class NativeToolchainStub extends BaseStub implements NativeToolchain {
   @NotNull private final String myName;
   @Nullable private final File myCCompilerExecutable;
   @Nullable private final File myCppCompilerExecutable;

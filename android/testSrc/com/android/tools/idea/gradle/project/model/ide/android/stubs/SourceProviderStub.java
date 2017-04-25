@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Objects;
 
-public final class SourceProviderStub implements SourceProvider {
+public final class SourceProviderStub extends BaseStub implements SourceProvider {
   @NotNull private final String myName;
   @NotNull private final File myManifestFile;
   @NotNull private final Collection<File> myJavaDirectories;

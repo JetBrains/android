@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
-public class LibraryStub implements Library, Serializable {
+public class LibraryStub extends BaseStub implements Library {
   @NotNull private final MavenCoordinates myResolvedCoordinates;
   @Nullable private final String myProject;
   @Nullable private final String myName;

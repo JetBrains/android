@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
-public final class OutputFileStub implements OutputFile {
+public final class OutputFileStub extends BaseStub implements OutputFile {
   @NotNull private final String myOutputType;
   @NotNull private final Collection<String> myFilterTypes;
   @NotNull private final Collection<FilterData> myFilters;
