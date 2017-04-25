@@ -30,7 +30,7 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 public class NativeDebuggerGuiTestRule extends GuiTestRule {
   /** Environment variable containing the full path to an NDK install */
   private static final String TEST_NDK_PATH_ENV = "ANDROID_NDK_HOME";
-  private static final String TEST_DATA_DIR_PATH = PathManager.getHomePath() + "/../vendor/google/android-ndk/testData/guiTests/debugger/";
+  private static final String TEST_DATA_DIR_PATH = PathManager.getHomePath() + "/../adt/idea/android-uitests/testData/debugger/";
 
   @Override
   @NotNull

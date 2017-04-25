@@ -57,7 +57,7 @@ public class NativeOptimizedWarningTest extends TestWithEmulator {
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void test() throws IOException, ClassNotFoundException, InterruptedException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("NativeOptimizedWarning");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("NativeOptimizedWarningForUI");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
