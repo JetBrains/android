@@ -58,15 +58,19 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.WeakHashMap;
+import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
@@ -79,6 +83,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static com.android.SdkConstants.ANDROID_HOME_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
@@ -99,6 +104,8 @@ public class AvdManagerConnection {
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
+  // TODO: jameskaye Update this when we know what verison of emulator supports "-studio-params"
+  protected static Revision EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS = Revision.parseRevision("99.0.0");
 
   private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2 = {
     new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 2),
@@ -451,7 +458,7 @@ public class AvdManagerConnection {
   /**
    * Adds necessary parameters to {@code commandLine}.
    */
-  protected void addParameters(@NotNull AvdInfo info, GeneralCommandLine commandLine) {
+  protected void addParameters(@NotNull AvdInfo info, @NotNull GeneralCommandLine commandLine) {
     Map<String, String> properties = info.getProperties();
     String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
     String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
@@ -463,7 +470,97 @@ public class AvdManagerConnection {
       commandLine.addParameters("-netspeed", netSpeed);
     }
 
+    writeParameterFile(commandLine);
+
     commandLine.addParameters("-avd", info.getName());
+  }
+
+  /**
+   * Indicates if the Emulator's version is at least {@code desired}
+   * @return true if the Emulator version is the desired version or higher
+   */
+  @VisibleForTesting
+  public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
+    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
+    LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log);
+    if (sdkPackage == null) {
+      sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, log);
+    }
+    if (sdkPackage == null) {
+      return false;
+    }
+    return (sdkPackage.getVersion().compareTo(desired) >= 0);
+  }
+
+  /**
+   * Write HTTP Proxy information to a temporary file.
+   * Put the file's name on the command line.
+   */
+  protected void writeParameterFile(@NotNull GeneralCommandLine commandLine) {
+    if (!emulatorVersionIsAtLeast(EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS)) {
+      // Older versions of the emulator don't accept this information.
+      return;
+    }
+    HttpConfigurable httpInstance = HttpConfigurable.getInstance();
+    if (httpInstance == null) {
+      return; // No proxy info to send
+    }
+
+    // Extract the proxy information
+    List<String> proxyParameters = new ArrayList<String>();
+
+    List<Pair<String, String>> myPropList = httpInstance.getJvmProperties(false, null);
+    for (Pair<String, String> kv : myPropList) {
+      switch (kv.getFirst()) {
+        case "http.proxyHost":
+        case "http.proxyPort":
+        case "https.proxyHost":
+        case "https.proxyPort":
+        case "proxy.authentication.username":
+        case "proxy.authentication.password":
+          proxyParameters.add(kv.getFirst() + "=" + kv.getSecond() + "\n");
+          break;
+        default:
+          break; // Don't care about anything else
+      }
+    }
+
+    if (proxyParameters.isEmpty()) {
+      return; // No values to send
+    }
+
+    File emuTempFile = null;
+    try {
+      // Create a temporary file in /temp under $ANDROID_HOME.
+      String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
+      if (androidHomeValue == null) {
+        // Fall back to the user's home directory
+        androidHomeValue = System.getProperty("user.home");
+      }
+      File tempDir = new File(androidHomeValue + "/temp");
+      tempDir.mkdirs(); // Create if necessary
+      if (!tempDir.exists()) {
+        return; // Give up
+      }
+      emuTempFile = File.createTempFile("emu", ".tmp", tempDir);
+      emuTempFile.deleteOnExit(); // File disappears when Studio exits
+      emuTempFile.setReadable(false, false); // Non-owner cannot read
+      emuTempFile.setReadable(true, true); // Owner can read
+
+      BufferedWriter tempFileWriter = new BufferedWriter(new FileWriter(emuTempFile));
+
+      for (String proxyLine : proxyParameters) {
+        tempFileWriter.write(proxyLine);
+      }
+      tempFileWriter.close();
+      // Put the name of this file on the emulator's command line
+      commandLine.addParameters("-studio-params", emuTempFile.getAbsolutePath());
+    } catch (IOException ex) {
+      // Try to remove the temporary file
+      if (emuTempFile != null) {
+        emuTempFile.delete(); // Ignore the return value
+      }
+    }
   }
 
   /**
