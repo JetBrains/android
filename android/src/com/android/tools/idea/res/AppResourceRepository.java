@@ -31,9 +31,10 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
@@ -66,6 +67,7 @@ import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModul
  */
 public class AppResourceRepository extends MultiResourceRepository {
   private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
+  private static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
 
   private AndroidFacet myFacet;
   private List<FileResourceRepository> myLibraries;
@@ -123,6 +125,18 @@ public class AppResourceRepository extends MultiResourceRepository {
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
+  }
+
+  /**
+   * Return true if this project is build with Gradle but the AndroidModuleModel did not exist when the resources were cached.
+   * And reset the state.
+   */
+  public static boolean testAndClearTempResourceCached(@NotNull Project project) {
+    if (project.getUserData(TEMPORARY_RESOURCE_CACHE) != Boolean.TRUE) {
+      return false;
+    }
+    project.putUserData(TEMPORARY_RESOURCE_CACHE, null);
+    return true;
   }
 
   public Multimap<String, VirtualFile> getAllResourceDirs() {
@@ -204,14 +218,9 @@ public class AppResourceRepository extends MultiResourceRepository {
       assert modelVersion != null;
       return findAarLibrariesFromGradle(modelVersion, dependentFacets, libraries);
     }
-    if (GradleProjectInfo.getInstance(facet.getModule().getProject()).isBuildWithGradle()) {
-      Exception problem = new RuntimeException("Resources not ready to load");
-      if (ApplicationManager.getApplication().isInternal()) {
-        LOG.error(problem);
-      }
-      else {
-        LOG.warn(problem);
-      }
+    Project project = facet.getModule().getProject();
+    if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      project.putUserData(TEMPORARY_RESOURCE_CACHE, true);
     }
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
