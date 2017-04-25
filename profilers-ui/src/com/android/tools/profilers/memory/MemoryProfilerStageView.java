@@ -80,7 +80,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     myHeapDumpButton = new FlatButton(ProfilerIcons.HEAP_DUMP);
     myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.HEAP_DUMP));
-    myHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
+    myHeapDumpButton.setToolTipText("Dump Java heap");
     myHeapDumpButton.addActionListener(e -> {
       getStage().requestHeapDump(SwingUtilities::invokeLater);
       getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
@@ -190,16 +190,16 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private void allocationTrackingChanged() {
     //TODO enable/disable hprof/allocation if they cannot be performed
     if (getStage().isTrackingAllocations()) {
-      myAllocationButton.setText("Stop Recording");
+      myAllocationButton.setText("Stop recording");
       myAllocationButton.setIcon(ProfilerIcons.STOP_RECORDING);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.STOP_RECORDING));
-      myAllocationButton.setToolTipText("Stops recording of memory allocations");
+      myAllocationButton.setToolTipText("Stop recording memory allocations");
     }
     else {
       myAllocationButton.setText("Record");
       myAllocationButton.setIcon(ProfilerIcons.RECORD);
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RECORD));
-      myAllocationButton.setToolTipText("Starts recording of memory allocation");
+      myAllocationButton.setToolTipText("Start recording memory allocations");
     }
   }
 
@@ -265,7 +265,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))
         .setLabelProvider(data -> String
-          .format("Allocation Record (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
+          .format("Allocation record (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
