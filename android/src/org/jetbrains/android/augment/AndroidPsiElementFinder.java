@@ -37,7 +37,7 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
     ApplicationManager.getApplication().getMessageBus().connect(project).subscribe(
       ProjectJdkTable.JDK_TABLE_TOPIC, new ProjectJdkTable.Adapter() {
         @Override
-        public void jdkRemoved(final Sdk sdk) {
+        public void jdkRemoved(@NotNull final Sdk sdk) {
           synchronized (myLock) {
             myInternalRClasses.remove(sdk);
           }
