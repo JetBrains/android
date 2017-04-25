@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ResizeInteraction;

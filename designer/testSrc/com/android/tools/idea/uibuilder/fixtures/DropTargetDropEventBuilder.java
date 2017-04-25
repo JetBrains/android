@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.adtui.common.SwingCoordinate;
 
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;

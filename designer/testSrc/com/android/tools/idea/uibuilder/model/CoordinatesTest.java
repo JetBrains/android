@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import junit.framework.TestCase;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
