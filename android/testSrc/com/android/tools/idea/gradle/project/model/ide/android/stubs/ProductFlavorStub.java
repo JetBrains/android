@@ -27,9 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-/**
- * Creates a deep copy of a {@link ProductFlavor}.
- */
 public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
   @NotNull private final Map<String, String> myTestInstrumentationRunnerArguments;
   @NotNull private final Collection<String> myResourceConfigurations;

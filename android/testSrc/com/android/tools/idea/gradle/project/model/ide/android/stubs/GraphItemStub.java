@@ -24,11 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Creates a deep copy of {@link GraphItem}.
- *
- * @see IdeAndroidProject
- */
 public final class GraphItemStub implements GraphItem {
   @NotNull private final String myArtifactAddress;
   @NotNull private final List<GraphItem> myDependencies;

@@ -23,9 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
-/**
- * Creates a deep copy of a {@link Library}.
- */
 public class LibraryStub implements Library, Serializable {
   @NotNull private final MavenCoordinates myResolvedCoordinates;
   @Nullable private final String myProject;
