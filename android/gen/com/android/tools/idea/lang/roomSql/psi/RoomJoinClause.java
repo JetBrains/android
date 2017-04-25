@@ -24,11 +24,11 @@ import com.intellij.psi.PsiElement;
 
 public interface RoomJoinClause extends PsiElement {
 
-  @Nullable
-  RoomJoinConstraint getJoinConstraint();
+  @NotNull
+  List<RoomJoinConstraint> getJoinConstraintList();
 
-  @Nullable
-  RoomJoinOperator getJoinOperator();
+  @NotNull
+  List<RoomJoinOperator> getJoinOperatorList();
 
   @NotNull
   List<RoomTableOrSubquery> getTableOrSubqueryList();

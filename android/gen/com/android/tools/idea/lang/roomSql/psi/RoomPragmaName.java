@@ -24,7 +24,10 @@ import com.intellij.psi.PsiElement;
 
 public interface RoomPragmaName extends PsiElement {
 
-  @NotNull
-  PsiElement getNameLiteral();
+  @Nullable
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getStringLiteral();
 
 }

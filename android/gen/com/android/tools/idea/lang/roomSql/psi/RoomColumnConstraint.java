@@ -43,6 +43,9 @@ public interface RoomColumnConstraint extends PsiElement {
   RoomSignedNumber getSignedNumber();
 
   @Nullable
-  PsiElement getNameLiteral();
+  PsiElement getIdentifier();
+
+  @Nullable
+  PsiElement getStringLiteral();
 
 }

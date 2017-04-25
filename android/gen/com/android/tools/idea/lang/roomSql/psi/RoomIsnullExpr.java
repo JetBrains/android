@@ -22,9 +22,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface RoomRaiseFunction extends PsiElement {
+public interface RoomIsnullExpr extends RoomExpr {
 
-  @Nullable
-  RoomErrorMessage getErrorMessage();
+  @NotNull
+  RoomExpr getExpr();
 
 }

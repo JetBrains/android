@@ -45,12 +45,6 @@ public class RoomLiteralValueImpl extends ASTWrapperPsiElement implements RoomLi
 
   @Override
   @Nullable
-  public PsiElement getBlobLiteral() {
-    return findChildByType(BLOB_LITERAL);
-  }
-
-  @Override
-  @Nullable
   public PsiElement getNumericLiteral() {
     return findChildByType(NUMERIC_LITERAL);
   }

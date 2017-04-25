@@ -15,6 +15,30 @@
  */
 package com.android.tools.idea.lang.roomSql.parser
 
+import com.android.tools.idea.lang.roomSql.psi.*
+import com.intellij.lang.ASTNode
+import com.intellij.lang.ParserDefinition
+import com.intellij.lang.PsiParser
 import com.intellij.lexer.FlexAdapter
+import com.intellij.lexer.Lexer
+import com.intellij.openapi.project.Project
+import com.intellij.psi.FileViewProvider
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.tree.IFileElementType
+import com.intellij.psi.tree.TokenSet
 
 class RoomSqlLexer : FlexAdapter(_RoomSqlLexer())
+
+class RoomSqlParserDefinition : ParserDefinition {
+  override fun createLexer(project: Project?): Lexer = RoomSqlLexer()
+  override fun createParser(project: Project?): PsiParser = RoomSqlParser()
+  override fun createElement(node: ASTNode?): PsiElement = RoomPsiTypes.Factory.createElement(node)
+  override fun createFile(viewProvider: FileViewProvider): PsiFile = RoomSqlFile(viewProvider)
+
+  override fun getFileNodeType(): IFileElementType = ROOM_SQL_FILE_NODE_TYPE
+  override fun getWhitespaceTokens(): TokenSet = WHITE_SPACES
+  override fun getCommentTokens(): TokenSet = COMMENTS
+  override fun getStringLiteralElements(): TokenSet = STRING_LITERALS
+  override fun spaceExistanceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) = ParserDefinition.SpaceRequirements.MAY
+}
