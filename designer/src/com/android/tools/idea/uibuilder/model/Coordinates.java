@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.resources.Density;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
