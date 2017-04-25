@@ -176,7 +176,7 @@ public class StudioProfilersView extends AspectObserver {
     rightToolbar.add(resetZoom);
     rightToolbar.add(new FlatSeparator());
 
-    myGoLive = new FlatToggleButton("Go live", ProfilerIcons.GOTO_LIVE);
+    myGoLive = new FlatToggleButton("Live", ProfilerIcons.GOTO_LIVE);
     myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.GOTO_LIVE));
     myGoLive.setToolTipText("See realtime profiler data");
     myGoLive.addActionListener(event -> {

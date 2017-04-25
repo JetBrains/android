@@ -320,6 +320,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       case IDLE:
         myCaptureButton.setEnabled(true);
         myCaptureButton.setText("");
+        myCaptureButton.setToolTipText("Record a method trace");
         myCaptureButton.setIcon(ProfilerIcons.RECORD);
         // TODO: replace with loading icon
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RECORD));
@@ -327,6 +328,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       case CAPTURING:
         myCaptureButton.setEnabled(true);
         myCaptureButton.setText("");
+        myCaptureButton.setToolTipText("Stop recording");
         myCaptureButton.setIcon(ProfilerIcons.STOP_RECORDING);
         // TODO: replace with loading icon
         myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.STOP_RECORDING));
@@ -338,10 +340,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       case STARTING:
         myCaptureButton.setEnabled(false);
         myCaptureButton.setText("");
+        myCaptureButton.setToolTipText("");
         break;
       case STOPPING:
         myCaptureButton.setEnabled(false);
         myCaptureButton.setText("Stopping record...");
+        myCaptureButton.setToolTipText("");
     }
     CpuCapture capture = myStage.getCapture();
     if (capture == null) {
