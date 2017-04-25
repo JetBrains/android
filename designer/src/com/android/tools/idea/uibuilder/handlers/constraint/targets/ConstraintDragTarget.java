@@ -16,107 +16,27 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.*;
-import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
+import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.util.*;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
  */
 @SuppressWarnings("ForLoopReplaceableByForEach")
-public class DragTarget extends BaseTarget implements MultiComponentTarget {
+public class ConstraintDragTarget extends DragBaseTarget  implements MultiComponentTarget {
 
-  private static final boolean DEBUG_RENDERER = false;
   @AndroidDpCoordinate protected int myOffsetX;
   @AndroidDpCoordinate protected int myOffsetY;
-  @AndroidDpCoordinate protected int myFirstMouseX;
-  @AndroidDpCoordinate protected int myFirstMouseY;
-  protected boolean myChangedComponent;
 
-  ArrayList<Notch> myHorizontalNotches = new ArrayList<>();
-  ArrayList<Notch> myVerticalNotches = new ArrayList<>();
-  Notch myCurrentNotchX = null;
-  Notch myCurrentNotchY = null;
-
-  private ChainChecker myChainChecker = new ChainChecker();
-
-  /////////////////////////////////////////////////////////////////////////////
-  //region Layout
-  /////////////////////////////////////////////////////////////////////////////
-
-  @Override
-  public boolean canChangeSelection() {
-    return true;
-  }
-
-  @Override
-  public boolean layout(@NotNull SceneContext sceneTransform,
-                        @AndroidDpCoordinate int l,
-                        @AndroidDpCoordinate int t,
-                        @AndroidDpCoordinate int r,
-                        @AndroidDpCoordinate int b) {
-    int minWidth = 16;
-    int minHeight = 16;
-    if (r - l < minWidth) {
-      int d = (minWidth - (r - l)) / 2;
-      l -= d;
-      r += d;
-    }
-    if (b - t < minHeight) {
-      int d = (minHeight - (b - t)) / 2;
-      t -= d;
-      b += d;
-    }
-    myLeft = l;
-    myTop = t;
-    myRight = r;
-    myBottom = b;
-    return false;
-  }
-
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
-  //region Display
-  /////////////////////////////////////////////////////////////////////////////
-
-  @SuppressWarnings("UseJBColor")
-  @Override
-  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (DEBUG_RENDERER) {
-      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
-      list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
-      list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
-    }
-    if (myCurrentNotchX != null) {
-      myCurrentNotchX.render(list, sceneContext, myComponent);
-    }
-    if (myCurrentNotchY != null) {
-      myCurrentNotchY.render(list, sceneContext, myComponent);
-    }
-  }
-
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
-  //region Utilities
-  /////////////////////////////////////////////////////////////////////////////
+  private final ChainChecker myChainChecker = new ChainChecker();
 
   @Nullable
   private SceneComponent getTargetComponent(@NotNull String uri, @NotNull ArrayList<String> attributes) {
@@ -147,7 +67,8 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF) != null) {
       if (isInRtl) {
         origin = target.getDrawX();
-      } else {
+      }
+      else {
         origin += target.getDrawWidth();
       }
     }
@@ -163,7 +84,8 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
     if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF) != null) {
       if (isInRtl) {
         origin = target.getDrawX();
-      } else {
+      }
+      else {
         origin += target.getDrawWidth();
       }
     }
@@ -212,7 +134,8 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
     return ConstraintComponentUtilities.getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
   }
 
-  protected void updateAttributes(AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  @Override
+  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     SceneComponent targetStartComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourStartAttributes);
     SceneComponent targetEndComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourEndAttributes);
     SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
@@ -239,13 +162,15 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
       if (targetEndComponent != null) {
         dx2 = getRightTargetOrigin(targetEndComponent) - getMarginValue(targetEndMargin);
       }
-    } else {
+    }
+    else {
       if (targetStartComponent != null) {
         dx1 = getStartTargetOrigin(targetStartComponent, isInRTL);
         int margin = getMarginValue(targetStartMargin);
         if (isInRTL) {
           dx1 -= margin;
-        } else {
+        }
+        else {
           dx1 += margin;
         }
       }
@@ -254,7 +179,8 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
         int margin = getMarginValue(targetEndMargin);
         if (isInRTL) {
           dx2 += margin;
-        } else {
+        }
+        else {
           dx2 -= margin;
         }
       }
@@ -293,7 +219,8 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
       if (useStartEnd) {
         if (isInRTL) {
           dx = getStartTargetOrigin(targetStartComponent, isInRTL) - (x + myComponent.getDrawWidth());
-        } else {
+        }
+        else {
           dx = x - getStartTargetOrigin(targetStartComponent, isInRTL);
         }
       }
@@ -304,7 +231,8 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
       if (useStartEnd) {
         if (isInRTL) {
           dx = x - getEndTargetOrigin(targetEndComponent, isInRTL);
-        } else {
+        }
+        else {
           dx = getEndTargetOrigin(targetEndComponent, isInRTL) - (x + myComponent.getDrawWidth());
         }
       }
@@ -355,6 +283,7 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
       String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
     }
+    ConstraintComponentUtilities.cleanup(attributes, myComponent);
   }
 
   private void applyMargin(AttributesTransaction attributes, String attribute, @AndroidDpCoordinate int currentValue) {
@@ -366,170 +295,12 @@ public class DragTarget extends BaseTarget implements MultiComponentTarget {
     }
     if (marginValue != -1 && marginValue == currentValue) {
       attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginString);
-    } else {
+    }
+    else {
       String marginY = String.format(SdkConstants.VALUE_N_DP, currentValue);
       attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginY);
     }
   }
 
   //endregion
-  /////////////////////////////////////////////////////////////////////////////
-  //region Mouse Handling
-  /////////////////////////////////////////////////////////////////////////////
-
-  @Override
-  public int getPreferenceLevel() { return Target.DRAG_LEVEL; }
-
-  @Override
-  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    if (myComponent.getParent() == null) {
-      return;
-    }
-    myFirstMouseX = x;
-    myFirstMouseY = y;
-    myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
-    myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
-    myChangedComponent = false;
-    gatherNotches();
-  }
-
-  protected void gatherNotches() {
-    myCurrentNotchX = null;
-    myCurrentNotchY = null;
-    myHorizontalNotches.clear();
-    myVerticalNotches.clear();
-    SceneComponent parent = myComponent.getParent();
-    if (parent == null) {
-      return;
-    }
-    assert parent != null;
-    Notch.Provider notchProvider = parent.getNotchProvider();
-    if (notchProvider != null) {
-      notchProvider.fill(parent, myComponent, myHorizontalNotches, myVerticalNotches);
-    }
-    int count = parent.getChildCount();
-    for (int i = 0; i < count; i++) {
-      SceneComponent child = parent.getChild(i);
-      if (child == myComponent) {
-        continue;
-      }
-      Notch.Provider provider = child.getNotchProvider();
-      if (provider != null) {
-        provider.fill(child, myComponent, myHorizontalNotches, myVerticalNotches);
-      }
-    }
-  }
-
-  @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
-    if (myComponent.getParent() == null) {
-      return;
-    }
-    myComponent.setDragging(true);
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    int dx = x - myOffsetX;
-    int dy = y - myOffsetY;
-    dx = snapX(dx);
-    dy = snapY(dy);
-    updateAttributes(attributes, dx, dy);
-    ConstraintComponentUtilities.cleanup(attributes, myComponent);
-    attributes.apply();
-    component.fireLiveChangeEvent();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
-    myChangedComponent = true;
-  }
-
-  protected int snapX(int dx) {
-    int count = myHorizontalNotches.size();
-    for (int i = 0; i < count; i++) {
-      Notch notch = myHorizontalNotches.get(i);
-      int x = notch.apply(dx);
-      if (notch.didApply()) {
-        myCurrentNotchX = notch;
-        return x;
-      }
-    }
-    myCurrentNotchX = null;
-    return dx;
-  }
-
-  protected int snapY(int dy) {
-    int count = myVerticalNotches.size();
-    for (int i = 0; i < count; i++) {
-      Notch notch = myVerticalNotches.get(i);
-      int y = notch.apply(dy);
-      if (notch.didApply()) {
-        myCurrentNotchY = notch;
-        return y;
-      }
-    }
-    myCurrentNotchY = null;
-    return dy;
-  }
-
-  @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
-    if (!myComponent.isDragging()) {
-      return;
-    }
-    myComponent.setDragging(false);
-    if (myComponent.getParent() != null) {
-      boolean commitChanges = true;
-      if (Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1) {
-        commitChanges = false;
-      }
-      NlComponent component = myComponent.getAuthoritativeNlComponent();
-      AttributesTransaction attributes = component.startAttributeTransaction();
-      int dx = x - myOffsetX;
-      int dy = y - myOffsetY;
-      if (myCurrentNotchX != null) {
-        dx = myCurrentNotchX.apply(dx);
-        if (myComponent.allowsAutoConnect()) {
-          myCurrentNotchX.apply(attributes);
-        }
-        myCurrentNotchX = null;
-      }
-      if (myCurrentNotchY != null) {
-        dy = myCurrentNotchY.apply(dy);
-        if (myComponent.allowsAutoConnect()) {
-          myCurrentNotchY.apply(attributes);
-        }
-        myCurrentNotchY = null;
-      }
-      updateAttributes(attributes, dx, dy);
-      ConstraintComponentUtilities.cleanup(attributes, myComponent);
-      attributes.apply();
-
-      if (commitChanges) {
-        NlModel nlModel = component.getModel();
-        Project project = nlModel.getProject();
-        XmlFile file = nlModel.getFile();
-
-        String label = "Component dragged";
-        WriteCommandAction action = new WriteCommandAction(project, label, file) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            attributes.commit();
-          }
-        };
-        action.execute();
-      }
-    }
-    if (myChangedComponent) {
-      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
-    }
-  }
-
-  public boolean hasChangedComponent() {
-    return myChangedComponent;
-  }
-
-  @Override
-  public Cursor getMouseCursor() {
-    return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-  }
-
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
 }

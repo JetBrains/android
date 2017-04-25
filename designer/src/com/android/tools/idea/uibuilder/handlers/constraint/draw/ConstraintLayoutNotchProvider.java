@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.Notch;
+import com.android.tools.idea.uibuilder.scene.target.Notch;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
   }
 
-  private boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
+  private static boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -63,33 +63,33 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
     return false;
   }
 
-  private boolean hasLeft(@NotNull AttributesTransaction transaction) {
+  private static boolean hasLeft(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourLeftAttributes);
   }
 
-  private boolean hasTop(@NotNull AttributesTransaction transaction) {
+  private static boolean hasTop(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourTopAttributes);
   }
 
-  private boolean hasRight(@NotNull AttributesTransaction transaction) {
+  private static boolean hasRight(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourRightAttributes);
   }
 
-  private boolean hasBottom(@NotNull AttributesTransaction transaction) {
+  private static boolean hasBottom(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourBottomAttributes);
   }
 
-  private boolean hasBaseline(@NotNull AttributesTransaction transaction) {
+  private static boolean hasBaseline(@NotNull AttributesTransaction transaction) {
     return transaction.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
   }
 
   @Override
-  public void fill(@NotNull SceneComponent component, @NotNull SceneComponent target,
+  public void fill(@NotNull SceneComponent owner, @NotNull SceneComponent snappableComponent,
                    @NotNull ArrayList<Notch> horizontalNotches, @NotNull ArrayList<Notch> verticalNotches) {
-    int x1 = component.getDrawX();
-    int x2 = x1 + component.getDrawWidth();
-    int midX = x1 + (x2 - x1) / 2 - target.getDrawWidth() / 2;
-    horizontalNotches.add(new Notch.Horizontal(component, midX, x1 + (x2 - x1) / 2, (AttributesTransaction attributes) -> {
+    int x1 = owner.getDrawX();
+    int x2 = x1 + owner.getDrawWidth();
+    int midX = x1 + (x2 - x1) / 2 - snappableComponent.getDrawWidth() / 2;
+    horizontalNotches.add(new Notch.Horizontal(owner, midX, x1 + (x2 - x1) / 2, (AttributesTransaction attributes) -> {
       if (hasLeft(attributes) || hasRight(attributes)) {
         return;
       }
@@ -100,7 +100,7 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
     }));
-    horizontalNotches.add(new Notch.Horizontal(component, x1 + 16, x1 + 16, (AttributesTransaction attributes) -> {
+    horizontalNotches.add(new Notch.Horizontal(owner, x1 + 16, x1 + 16, (AttributesTransaction attributes) -> {
       if (hasLeft(attributes) || hasRight(attributes)) {
         return;
       }
@@ -109,7 +109,7 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       // TODO: fix RTL handling
       // attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, String.format(SdkConstants.VALUE_N_DP, 16));
     }));
-    horizontalNotches.add(new Notch.Horizontal(component, x2 - target.getDrawWidth() - 16, x2 - 16, (AttributesTransaction attributes) -> {
+    horizontalNotches.add(new Notch.Horizontal(owner, x2 - snappableComponent.getDrawWidth() - 16, x2 - 16, (AttributesTransaction attributes) -> {
       if (hasLeft(attributes) || hasRight(attributes)) {
         return;
       }
@@ -119,10 +119,10 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       // attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, String.format(SdkConstants.VALUE_N_DP, 16));
     }));
 
-    int y1 = component.getDrawY();
-    int y2 = y1 + component.getDrawHeight();
-    int midY = y1 + (y2 - y1) / 2 - target.getDrawHeight() / 2;
-    verticalNotches.add(new Notch.Vertical(component, midY, y1 + (y2 - y1) / 2, (AttributesTransaction attributes) -> {
+    int y1 = owner.getDrawY();
+    int y2 = y1 + owner.getDrawHeight();
+    int midY = y1 + (y2 - y1) / 2 - snappableComponent.getDrawHeight() / 2;
+    verticalNotches.add(new Notch.Vertical(owner, midY, y1 + (y2 - y1) / 2, (AttributesTransaction attributes) -> {
       if (hasTop(attributes) || hasBottom(attributes) || hasBaseline(attributes)) {
         return;
       }
@@ -131,14 +131,14 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
     }));
-    verticalNotches.add(new Notch.Vertical(component, y1 + 16, y1 + 16, (AttributesTransaction attributes) -> {
+    verticalNotches.add(new Notch.Vertical(owner, y1 + 16, y1 + 16, (AttributesTransaction attributes) -> {
       if (hasTop(attributes) || hasBottom(attributes) || hasBaseline(attributes)) {
         return;
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent");
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, String.format(SdkConstants.VALUE_N_DP, 16));
     }));
-    verticalNotches.add(new Notch.Vertical(component, y2 - target.getDrawHeight() - 16, y2 - 16, (AttributesTransaction attributes) -> {
+    verticalNotches.add(new Notch.Vertical(owner, y2 - snappableComponent.getDrawHeight() - 16, y2 - 16, (AttributesTransaction attributes) -> {
       if (hasTop(attributes) || hasBottom(attributes) || hasBaseline(attributes)) {
         return;
       }

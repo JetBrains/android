@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -37,7 +38,7 @@ import java.util.List;
 /**
  * Base class for dragging targets.
  */
-public abstract class DragBaseTarget extends BaseTarget {
+public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappable, MultiComponentTarget {
 
   private static final boolean DEBUG_RENDERER = false;
 
@@ -46,6 +47,18 @@ public abstract class DragBaseTarget extends BaseTarget {
   @AndroidDpCoordinate protected int myFirstMouseX;
   @AndroidDpCoordinate protected int myFirstMouseY;
   protected boolean myChangedComponent;
+
+  private final Point mySnappedCoordinates = new Point();
+  private final TargetSnapper myTargetSnapper;
+
+  public DragBaseTarget(@NotNull TargetSnapper targetSnapper) {
+    super();
+    myTargetSnapper = targetSnapper;
+  }
+
+  public DragBaseTarget() {
+    this(new TargetSnapper());
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -93,6 +106,7 @@ public abstract class DragBaseTarget extends BaseTarget {
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, JBColor.red);
     }
+    myTargetSnapper.renderCurrentNotches(list, sceneContext, myComponent);
   }
 
   protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
@@ -105,7 +119,9 @@ public abstract class DragBaseTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public int getPreferenceLevel() { return Target.DRAG_LEVEL; }
+  public int getPreferenceLevel() {
+    return Target.DRAG_LEVEL;
+  }
 
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
@@ -117,6 +133,7 @@ public abstract class DragBaseTarget extends BaseTarget {
     myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
     myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
     myChangedComponent = false;
+    getTargetNotchSnapper().gatherNotches(myComponent);
   }
 
   @Override
@@ -127,7 +144,9 @@ public abstract class DragBaseTarget extends BaseTarget {
     myComponent.setDragging(true);
     NlComponent component = myComponent.getAuthoritativeNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
-    updateAttributes(attributes, x - myOffsetX, y - myOffsetY);
+    mySnappedCoordinates.x = myTargetSnapper.trySnapX(x - myOffsetX);
+    mySnappedCoordinates.y = myTargetSnapper.trySnapY(y - myOffsetY);
+    updateAttributes(attributes, mySnappedCoordinates.x, mySnappedCoordinates.y);
     attributes.apply();
     component.fireLiveChangeEvent();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
@@ -136,6 +155,9 @@ public abstract class DragBaseTarget extends BaseTarget {
 
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+    if (!myComponent.isDragging()) {
+      return;
+    }
     myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
       boolean commitChanges = true;
@@ -144,7 +166,10 @@ public abstract class DragBaseTarget extends BaseTarget {
       }
       NlComponent component = myComponent.getAuthoritativeNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
-      updateAttributes(attributes, x - myOffsetX, y - myOffsetY);
+      mySnappedCoordinates.x = myTargetSnapper.trySnapX(x - myOffsetX);
+      mySnappedCoordinates.y = myTargetSnapper.trySnapY(y - myOffsetY);
+      myTargetSnapper.applyNotches(myComponent, attributes, mySnappedCoordinates);
+      updateAttributes(attributes, mySnappedCoordinates.x, mySnappedCoordinates.y);
       attributes.apply();
 
       if (commitChanges) {
@@ -166,6 +191,8 @@ public abstract class DragBaseTarget extends BaseTarget {
       myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
     }
   }
+  //endregion
+  /////////////////////////////////////////////////////////////////////////////
 
   @Override
   public Cursor getMouseCursor() {
@@ -173,9 +200,12 @@ public abstract class DragBaseTarget extends BaseTarget {
   }
 
   @Override
-  public String getToolTipText(){
-    return "View";
+  @NotNull
+  public TargetSnapper getTargetNotchSnapper() {
+    return myTargetSnapper;
   }
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
+
+  public boolean hasChangedComponent() {
+    return myChangedComponent;
+  }
 }

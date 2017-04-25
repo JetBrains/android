@@ -74,7 +74,7 @@ public interface Target {
    * Implementing classes should use this method to add a hit region to the provided {@link ScenePicker} that can handle the interaction.
    *
    * @param context The {@link SceneContext} used to transform coodinates when adding a region to the {@link ScenePicker}
-   * @param picker The picker to add the hii region too
+   * @param picker  The picker to add the hii region too
    */
   void addHit(@NotNull SceneContext context, @NotNull ScenePicker picker);
 
@@ -105,7 +105,7 @@ public interface Target {
   /**
    * Implement this method to react to mouse down events
    *
-   * @param x X coordinate of the mouse in DP relative
+   * @param x X coordinate of the mouse in DP
    * @param y Y coordinate of the mouse in DP
    */
   default void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
@@ -113,7 +113,8 @@ public interface Target {
 
   /**
    * Implement this method to react to mouse drag events
-   *  @param x             X coordinate of the mouse in DP
+   *
+   * @param x             X coordinate of the mouse in DP
    * @param y             Y coordinate of the mouse in DP
    * @param closestTarget Closest target from the mouse if there is one
    */
@@ -144,7 +145,8 @@ public interface Target {
 
   /**
    * Notified when the underlying component changes selection
+   *
    * @param selection
    */
-  public void setComponentSelection(boolean selection);
+  void setComponentSelection(boolean selection);
 }

@@ -15,36 +15,40 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.command.WriteCommandAction;
+import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Target to handle the drag of LinearLayout's children
  */
 public class LinearDragTarget extends DragBaseTarget {
 
-
   private final LinearLayoutHandler myHandler;
+  private final boolean myIsDragFromPalette;
   private LinearSeparatorTarget myClosest;
+  private boolean myDragHandled;
 
-  public LinearDragTarget(LinearLayoutHandler handler) {
+  public LinearDragTarget(@NotNull LinearLayoutHandler handler) {
+    this(handler, false);
+  }
+
+  /**
+   * @param fromPalette set to true if the drag is coming from the palette
+   */
+  public LinearDragTarget(@NotNull LinearLayoutHandler handler, boolean fromPalette) {
     myHandler = handler;
+    myIsDragFromPalette = fromPalette;
   }
 
   @Override
@@ -54,74 +58,87 @@ public class LinearDragTarget extends DragBaseTarget {
 
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    super.mouseDown(x, y);
-    myComponent.setModelUpdateAuthorized(false);
     SceneComponent parent = myComponent.getParent();
     assert parent != null;
-    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
-    myComponent.getScene().repaint();
+    myHandler.setDragging(true);
+    // Need to call this to update the targetsProvider when moving from one layout to another during a drag
+    // but we should have a better scenario to recreate the targets
+    parent.getScene().getSceneManager().addTargets(myComponent);
+    parent.updateTargets(true);
+    myDragHandled = false;
+    super.mouseDown(x, y);
+    myComponent.setModelUpdateAuthorized(false);
   }
 
   @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
-    myComponent.setDragging(true);
     SceneComponent sceneParent = myComponent.getParent();
     assert sceneParent != null;
+    TargetSnapper snapper = getTargetNotchSnapper();
+    Notch snappedNotch;
+    Target closestTarget = null;
+    myComponent.setDragging(true);
+
+    x -= myOffsetX;
+    y -= myOffsetY;
     if (myHandler.isVertical(sceneParent.getNlComponent())) {
-      y -= myOffsetY;
-      myComponent.setPosition(myComponent.getDrawX(), Math.max(y, 0), false);
+      myComponent.setPosition(myIsDragFromPalette ? x : myComponent.getDrawX(), snapper.trySnapY(Math.max(y, 0)), false);
+      snappedNotch = snapper.getSnappedNotchY();
     }
     else {
-      x -= myOffsetX - sceneParent.getDrawX();
-      myComponent.setPosition(Math.max(x, 0), myComponent.getDrawY(), false);
+      myComponent.setPosition(snapper.trySnapX(Math.max(x, 0)), myIsDragFromPalette ? y : myComponent.getDrawY(), false);
+      snappedNotch = snapper.getSnappedNotchX();
     }
 
-    // Reset previous closest Target
-    if (myClosest != null) {
-      myClosest.setHighlight(false);
-      myClosest = null;
+    // We get the snapped Notch
+    if (snappedNotch != null) {
+      closestTarget = snappedNotch.getTarget();
     }
 
-    Target closestTarget = null;
-    for (Target target : closestTargets) {
-      if (target instanceof LinearSeparatorTarget && target != this) {
-        closestTarget = target;
-        break;
+    if (myClosest != closestTarget) {
+      // Reset previous closest Target
+      if (myClosest != null) {
+        myClosest.setHighlight(false);
+      }
+
+      if (closestTarget != null && closestTarget instanceof LinearSeparatorTarget) {
+        myClosest = (LinearSeparatorTarget)closestTarget;
+        myClosest.setHighlight(true, myComponent.getDrawWidth(), myComponent.getDrawHeight());
+      }
+      else {
+        myClosest = null;
       }
     }
 
-    if (closestTarget != null) {
-      myClosest = (LinearSeparatorTarget)closestTarget;
-      myClosest.setHighlight(true);
-    }
-
-    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
     myComponent.getScene().repaint();
   }
 
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
     super.mouseRelease(x, y, closestTarget);
+    myComponent.setModelUpdateAuthorized(true);
+    myHandler.setDragging(false);
     if (myClosest != null) {
-      SceneComponent sceneParent = myComponent.getParent();
-      if (sceneParent == null) {
+      myClosest.setHighlight(false);
+      if (!LinearLayoutHandler.insertComponentAtTarget(myComponent, myClosest, myIsDragFromPalette)) {
+        myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
         return;
       }
-      NlComponent parent = sceneParent.getNlComponent();
-      NlModel model = parent.getModel();
-
-      Runnable swapComponent = () -> {
-        ImmutableList<NlComponent> nlComponentImmutableList = ImmutableList.of(myComponent.getNlComponent());
-        parent.getModel().addComponents(
-          nlComponentImmutableList,
-          parent,
-          !myClosest.isAtEnd() ? myClosest.getComponent().getNlComponent() : null,
-          InsertType.MOVE_WITHIN);
-      };
-      WriteCommandAction.runWriteCommandAction(model.getProject(), "Move component",
-                                               null, swapComponent, model.getFile());
+      myDragHandled = true;
     }
-    myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
-    myComponent.setModelUpdateAuthorized(true);
+    else {
+      myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+    }
+  }
+
+  public boolean isDragHandled() {
+    return myDragHandled;
+  }
+
+  public void cancel() {
+    myHandler.setDragging(false);
+    if (myClosest != null) {
+      myClosest.setHighlight(false);
+    }
   }
 }

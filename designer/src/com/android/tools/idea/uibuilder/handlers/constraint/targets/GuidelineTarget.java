@@ -33,7 +33,7 @@ import java.awt.*;
 /**
  * Implements the drag behaviour for ConstraintLayout Guideline
  */
-public class GuidelineTarget extends DragTarget {
+public class GuidelineTarget extends ConstraintDragTarget {
   boolean myIsHorizontal = true;
   int myBegin = 20;
   int myEnd = -1;
@@ -122,7 +122,7 @@ public class GuidelineTarget extends DragTarget {
   }
 
   @Override
-  protected void updateAttributes(AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
@@ -157,6 +157,7 @@ public class GuidelineTarget extends DragTarget {
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentStringValue);
     }
+    ConstraintComponentUtilities.cleanup(attributes, myComponent);
   }
 
   @Override

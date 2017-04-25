@@ -15,24 +15,85 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear;
 
+import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.handlers.common.GenericLinearDragHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearDragTarget;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
+import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/**
- * {@link GenericLinearDragHandler} for LinearLayout
- */
-class LinearDragHandler extends GenericLinearDragHandler {
+class LinearDragHandler extends DragHandler {
+
+  private final SceneComponent myComponent;
+  private final LinearDragTarget myDragTarget;
+  private static final List<Target> ourEmptyTargetList = ImmutableList.of();
+
   public LinearDragHandler(@NotNull ViewEditor editor,
+                           @NotNull LinearLayoutHandler handler,
                            @NotNull SceneComponent layout,
                            @NotNull List<NlComponent> components,
-                           @NotNull DragType type,
-                           @NotNull LinearLayoutHandler linearLayoutHandler) {
-    super(editor, layout, components, type, linearLayoutHandler, linearLayoutHandler.isVertical(layout.getNlComponent()));
+                           @NotNull DragType type) {
+    super(editor, handler, layout, components, type);
+
+    assert !components.isEmpty();
+    NlComponent dragged = components.get(0);
+    myComponent = new TemporarySceneComponent(layout.getScene(), components.get(0));
+    myDragTarget = new LinearDragTarget(handler, true);
+    myComponent.setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false);
+    myComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(myDragTarget), false);
+    myComponent.setDrawState(SceneComponent.DrawState.DRAG);
+    layout.addChild(myComponent);
+  }
+
+  @Override
+  public void start(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+    super.start(x, y, modifiers);
+    myDragTarget.mouseDown(x, y);
+  }
+
+  @Override
+  public void cancel() {
+    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    scene.removeComponent(myComponent);
+    myDragTarget.cancel();
+  }
+
+  @Nullable
+  @Override
+  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
+    String result = super.update(x, y, modifiers);
+    @AndroidDpCoordinate int dx = x + startX - myComponent.getDrawWidth() / 2;
+    @AndroidDpCoordinate int dy = y + startY - myComponent.getDrawHeight() / 2;
+    myDragTarget.mouseDrag(dx, dy, ourEmptyTargetList);
+    return result;
+  }
+
+  @Override
+  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+    Scene scene = ((ViewEditorImpl)editor).getSceneView().getScene();
+    if (myComponent != null) {
+      @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
+      @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
+      myDragTarget.mouseRelease(dx, dy, ourEmptyTargetList);
+      scene.removeComponent(myComponent);
+      if (!myDragTarget.isDragHandled()) {
+        // If the target didn't handled the insertion, we delegate
+        // the insertion to the drag handler
+        super.commit(x, y, modifiers, insertType);
+      }
+      scene.checkRequestLayoutStatus();
+    }
   }
 }
