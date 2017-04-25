@@ -69,4 +69,12 @@ public final class JavaLibraryStub extends LibraryStub implements JavaLibrary {
   public int hashCode() {
     return Objects.hash(getResolvedCoordinates(), getProject(), getName(), isProvided(), getJarFile(), getDependencies());
   }
+
+  @Override
+  public String toString() {
+    return "JavaLibraryStub{" +
+           "myJarFile=" + myJarFile +
+           ", myDependencies=" + myDependencies +
+           "} " + super.toString();
+  }
 }

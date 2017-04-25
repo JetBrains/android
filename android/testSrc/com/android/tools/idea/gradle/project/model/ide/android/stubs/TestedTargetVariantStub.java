@@ -62,4 +62,12 @@ public final class TestedTargetVariantStub extends BaseStub implements TestedTar
   public int hashCode() {
     return Objects.hash(getTargetProjectPath(), getTargetVariant());
   }
+
+  @Override
+  public String toString() {
+    return "TestedTargetVariantStub{" +
+           "myTargetProjectPath='" + myTargetProjectPath + '\'' +
+           ", myTargetVariant='" + myTargetVariant + '\'' +
+           "}";
+  }
 }

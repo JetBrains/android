@@ -21,8 +21,6 @@ import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethod
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
-
 public class LibraryStub extends BaseStub implements Library {
   @NotNull private final MavenCoordinates myResolvedCoordinates;
   @Nullable private final String myProject;
@@ -72,5 +70,15 @@ public class LibraryStub extends BaseStub implements Library {
   @Override
   public boolean isProvided() {
     return myProvided;
+  }
+
+  @Override
+  public String toString() {
+    return "LibraryStub{" +
+           "myResolvedCoordinates=" + myResolvedCoordinates +
+           ", myProject='" + myProject + '\'' +
+           ", myName='" + myName + '\'' +
+           ", myProvided=" + myProvided +
+           "}";
   }
 }

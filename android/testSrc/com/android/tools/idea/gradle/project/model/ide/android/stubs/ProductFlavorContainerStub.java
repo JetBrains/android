@@ -78,4 +78,13 @@ public class ProductFlavorContainerStub extends BaseStub implements ProductFlavo
   public int hashCode() {
     return Objects.hash(getProductFlavor(), getSourceProvider(), getExtraSourceProviders());
   }
+
+  @Override
+  public String toString() {
+    return "ProductFlavorContainerStub{" +
+           "myProductFlavor=" + myProductFlavor +
+           ", mySourceProvider=" + mySourceProvider +
+           ", myExtraSourceProviders=" + myExtraSourceProviders +
+           "}";
+  }
 }

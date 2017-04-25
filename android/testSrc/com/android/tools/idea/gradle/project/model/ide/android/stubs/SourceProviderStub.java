@@ -165,9 +165,26 @@ public final class SourceProviderStub extends BaseStub implements SourceProvider
 
   @Override
   public int hashCode() {
-    return Objects
-      .hash(getName(), getManifestFile(), getJavaDirectories(), getResourcesDirectories(), getAidlDirectories(),
-            getRenderscriptDirectories(), getCDirectories(), getCppDirectories(), getResDirectories(), getAssetsDirectories(),
-            getJniLibsDirectories(), getShadersDirectories());
+    return Objects.hash(getName(), getManifestFile(), getJavaDirectories(), getResourcesDirectories(), getAidlDirectories(),
+                        getRenderscriptDirectories(), getCDirectories(), getCppDirectories(), getResDirectories(), getAssetsDirectories(),
+                        getJniLibsDirectories(), getShadersDirectories());
+  }
+
+  @Override
+  public String toString() {
+    return "SourceProviderStub{" +
+           "myName='" + myName + '\'' +
+           ", myManifestFile=" + myManifestFile +
+           ", myJavaDirectories=" + myJavaDirectories +
+           ", myResourcesDirectories=" + myResourcesDirectories +
+           ", myAidlDirectories=" + myAidlDirectories +
+           ", myRenderscriptDirectories=" + myRenderscriptDirectories +
+           ", myCDirectories=" + myCDirectories +
+           ", myCppDirectories=" + myCppDirectories +
+           ", myResDirectories=" + myResDirectories +
+           ", myAssetsDirectories=" + myAssetsDirectories +
+           ", myJniLibsDirectories=" + myJniLibsDirectories +
+           ", myShadersDirectories=" + myShadersDirectories +
+           "}";
   }
 }

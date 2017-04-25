@@ -118,4 +118,16 @@ public final class OutputFileStub extends BaseStub implements OutputFile {
   public int hashCode() {
     return Objects.hash(getOutputType(), getFilterTypes(), getFilters(), getOutputFile(), getOutputs(), getVersionCode());
   }
+
+  @Override
+  public String toString() {
+    return "OutputFileStub{" +
+           "myOutputType='" + myOutputType + '\'' +
+           ", myFilterTypes=" + myFilterTypes +
+           ", myFilters=" + myFilters +
+           ", myOutputFile=" + myOutputFile +
+           ", myOutputs=" + myOutputs +
+           ", myVersionCode=" + myVersionCode +
+           "}";
+  }
 }

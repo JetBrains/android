@@ -217,6 +217,8 @@ public class ProjectStructureUsageTracker {
   }
 
   @NotNull
+  @Deprecated
+  // TODO use IdeAndroidProject#getFlavorDimensions.
   private static Collection<String> getFlavorDimensions(@NotNull AndroidModuleModel androidModel) {
     AndroidProject androidProject = androidModel.getAndroidProject();
     try {

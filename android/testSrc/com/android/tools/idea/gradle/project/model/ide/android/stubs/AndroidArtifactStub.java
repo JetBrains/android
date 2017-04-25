@@ -174,4 +174,21 @@ public final class AndroidArtifactStub extends BaseArtifactStub implements Andro
             getSourceGenTaskName(), getGeneratedResourceFolders(), getBuildConfigFields(), getResValues(), getInstantRun(),
             getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned());
   }
+
+  @Override
+  public String toString() {
+    return "AndroidArtifactStub{" +
+           "myOutputs=" + myOutputs +
+           ", myApplicationId='" + myApplicationId + '\'' +
+           ", mySourceGenTaskName='" + mySourceGenTaskName + '\'' +
+           ", myGeneratedResourceFolders=" + myGeneratedResourceFolders +
+           ", myBuildConfigFields=" + myBuildConfigFields +
+           ", myResValues=" + myResValues +
+           ", myInstantRun=" + myInstantRun +
+           ", mySigningConfigName='" + mySigningConfigName + '\'' +
+           ", myAbiFilters=" + myAbiFilters +
+           ", myNativeLibraries=" + myNativeLibraries +
+           ", mySigned=" + mySigned +
+           "} " + super.toString();
+  }
 }

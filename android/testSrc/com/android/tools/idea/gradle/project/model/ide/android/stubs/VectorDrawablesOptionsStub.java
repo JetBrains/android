@@ -64,4 +64,12 @@ public class VectorDrawablesOptionsStub extends BaseStub implements VectorDrawab
   public int hashCode() {
     return Objects.hash(getGeneratedDensities(), getUseSupportLibrary());
   }
+
+  @Override
+  public String toString() {
+    return "VectorDrawablesOptionsStub{" +
+           "myGeneratedDensities=" + myGeneratedDensities +
+           ", myUseSupportLibrary=" + myUseSupportLibrary +
+           "}";
+  }
 }

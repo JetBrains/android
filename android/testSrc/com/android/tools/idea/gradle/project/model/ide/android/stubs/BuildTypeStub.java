@@ -130,4 +130,16 @@ public final class BuildTypeStub extends BaseConfigStub implements BuildType {
                         getApplicationIdSuffix(), getVersionNameSuffix(), isDebuggable(), isJniDebuggable(), isRenderscriptDebuggable(),
                         getRenderscriptOptimLevel(), isMinifyEnabled(), isZipAlignEnabled());
   }
+
+  @Override
+  public String toString() {
+    return "BuildTypeStub{" +
+           "myDebuggable=" + myDebuggable +
+           ", myJniDebuggable=" + myJniDebuggable +
+           ", myRenderscriptDebuggable=" + myRenderscriptDebuggable +
+           ", myRenderscriptOptimLevel=" + myRenderscriptOptimLevel +
+           ", myMinifyEnabled=" + myMinifyEnabled +
+           ", myZipAlignEnabled=" + myZipAlignEnabled +
+           "} " + super.toString();
+  }
 }
