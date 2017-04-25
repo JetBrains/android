@@ -22,13 +22,15 @@ import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link ProductFlavorContainer}.
- *
- * @see IdeAndroidProject
+ * Creates a deep copy of a {@link ProductFlavorContainer}.
  */
-public class IdeProductFlavorContainer extends IdeModel implements ProductFlavorContainer {
+public final class IdeProductFlavorContainer extends IdeModel implements ProductFlavorContainer {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 1L;
+
   @NotNull private final ProductFlavor myProductFlavor;
   @NotNull private final SourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
@@ -57,5 +59,33 @@ public class IdeProductFlavorContainer extends IdeModel implements ProductFlavor
   @NotNull
   public Collection<SourceProviderContainer> getExtraSourceProviders() {
     return myExtraSourceProviders;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof IdeProductFlavorContainer)) {
+      return false;
+    }
+    IdeProductFlavorContainer container = (IdeProductFlavorContainer)o;
+    return Objects.equals(myProductFlavor, container.myProductFlavor) &&
+           Objects.equals(mySourceProvider, container.mySourceProvider) &&
+           Objects.equals(myExtraSourceProviders, container.myExtraSourceProviders);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myProductFlavor, mySourceProvider, myExtraSourceProviders);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeProductFlavorContainer{" +
+           "myProductFlavor=" + myProductFlavor +
+           ", mySourceProvider=" + mySourceProvider +
+           ", myExtraSourceProviders=" + myExtraSourceProviders +
+           "}";
   }
 }

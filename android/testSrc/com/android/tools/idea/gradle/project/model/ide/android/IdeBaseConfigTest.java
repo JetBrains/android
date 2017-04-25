@@ -58,5 +58,6 @@ public class IdeBaseConfigTest {
   @Test
   public void equalsAndHashCode() {
     EqualsVerifier.forClass(IdeBaseConfig.class).withRedefinedSubclass(IdeBuildType.class).verify();
+    EqualsVerifier.forClass(IdeBaseConfig.class).withRedefinedSubclass(IdeProductFlavor.class).verify();
   }
 }

@@ -20,9 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link JavaCompileOptions}.
- */
 public final class JavaCompileOptionsStub implements JavaCompileOptions {
   @NotNull private final String myEncoding;
   @NotNull private final String mySourceCompatibility;

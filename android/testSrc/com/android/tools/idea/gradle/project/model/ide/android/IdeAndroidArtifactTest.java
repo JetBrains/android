@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.SigningConfig;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.SigningConfigStub;
+import com.android.builder.model.AndroidArtifact;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidArtifactStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,41 +28,42 @@ import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerifi
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
- * Tests for {@link IdeSigningConfig}.
+ * Tests for {@link IdeAndroidArtifact}.
  */
-public class IdeSigningConfigTest {
+public class IdeAndroidArtifactTest {
   private ModelCache myModelCache;
+  private GradleVersion myGradleVersion;
 
   @Before
   public void setUp() throws Exception {
     myModelCache = new ModelCache();
+    myGradleVersion = GradleVersion.parse("3.2");
   }
 
   @Test
   public void serializable() {
-    assertThat(IdeSigningConfig.class).isAssignableTo(Serializable.class);
+    assertThat(IdeAndroidArtifact.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeSigningConfig signingConfig = new IdeSigningConfig(new SigningConfigStub(), myModelCache);
-    byte[] bytes = serialize(signingConfig);
+    IdeAndroidArtifact artifact = new IdeAndroidArtifact(new AndroidArtifactStub(), myModelCache, myGradleVersion);
+    byte[] bytes = serialize(artifact);
     Object o = deserialize(bytes);
-    assertEquals(signingConfig, o);
+    assertEquals(artifact, o);
   }
 
   @Test
   public void constructor() throws Throwable {
-    SigningConfig original = new SigningConfigStub();
-    assertEqualsOrSimilar(original, new IdeSigningConfig(original, myModelCache));
+    AndroidArtifact original = new AndroidArtifactStub();
+    assertEqualsOrSimilar(original, new IdeAndroidArtifact(original, myModelCache, myGradleVersion));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeSigningConfig.class).verify();
+    EqualsVerifier.forClass(IdeAndroidArtifact.class).withRedefinedSuperclass().verify();
   }
-
 }

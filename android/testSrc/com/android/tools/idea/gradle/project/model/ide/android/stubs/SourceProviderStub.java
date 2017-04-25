@@ -23,9 +23,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Objects;
 
-/**
- * Creates a deep copy of a {@link SourceProvider}.
- */
 public final class SourceProviderStub implements SourceProvider {
   @NotNull private final String myName;
   @NotNull private final File myManifestFile;
