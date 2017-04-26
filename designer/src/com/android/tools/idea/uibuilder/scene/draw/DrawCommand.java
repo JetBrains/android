@@ -26,10 +26,14 @@ import java.awt.*;
  * Which can expand the serialization of the of the command
  */
 public interface DrawCommand extends Comparable {
-  int COMPONENT_LEVEL = 20;
-  int TARGET_LEVEL = 30;
   int CONNECTION_LEVEL = 10 ;
-  int TOP_LEVEL = 50;
+  int COMPONENT_LEVEL = 20;
+  int COMPONENT_SELECTED_LEVEL = 30;
+  int CONNECTION_SELECTED_LEVEL = 40 ;
+  int TARGET_LEVEL = 50;
+  int CONNECTION_HOVER_LEVEL = 60;
+  int CONNECTION_DELETE_LEVEL = 70;
+  int TOP_LEVEL = 80;
   int CLIP_LEVEL =  0;
   int UNCLIP_LEVEL =  1000;
   int POST_CLIP_LEVEL =  1010;

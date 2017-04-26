@@ -32,6 +32,7 @@ public class DrawConnectionUtils {
   public static final int MARGIN_SPACING = 3;
 
   private static final boolean DEBUG = false;
+  private static final boolean DRAW_ARROW = false;
 
   private static Polygon sLeftArrow;
   private static Polygon sTopArrow;
@@ -40,7 +41,6 @@ public class DrawConnectionUtils {
 
   static Font sFont = new Font("Helvetica", Font.PLAIN, 12);
   static Font sFontReference = new Font("Helvetica", Font.ITALIC | Font.BOLD, 12);
-
 
   private static Font sSmallFont = new Font("Helvetica", Font.PLAIN, 8);
 
@@ -54,6 +54,8 @@ public class DrawConnectionUtils {
 
   public static final int ARROW_SIDE = 6;
   public static final int CONNECTION_ARROW_SIZE = 5;
+  public static final int SMALL_ARROW_SIDE = 4;
+  public static final int SMALL_ARROW_SIZE = 3;
 
   /**
    * Utility function to draw a circle text centered at coordinates (x, y)
@@ -180,17 +182,25 @@ public class DrawConnectionUtils {
     if (w <= padding) {
       g.drawLine(x1, y, x2, y);
       g.drawString(text, x1 + w + padding, y + offset);
-      g.drawLine(x1, y - CONNECTION_ARROW_SIZE, x1, y + CONNECTION_ARROW_SIZE);
-      g.drawLine(x2, y - CONNECTION_ARROW_SIZE, x2, y + CONNECTION_ARROW_SIZE);
+      g.drawLine(x1, y, x1, y);
+      g.drawLine(x2, y, x2, y);
     }
     else {
       g.drawLine(x1, y, x1 + w, y);
       g.drawLine(x2 - w, y, x2, y);
       g.drawString(text, x1 + w + padding, (int)(y + (bounds.getHeight() / 2)));
-      g.drawLine(x1, y, x1 + CONNECTION_ARROW_SIZE, y - CONNECTION_ARROW_SIZE);
-      g.drawLine(x1, y, x1 + CONNECTION_ARROW_SIZE, y + CONNECTION_ARROW_SIZE);
-      g.drawLine(x2, y, x2 - CONNECTION_ARROW_SIZE, y - CONNECTION_ARROW_SIZE);
-      g.drawLine(x2, y, x2 - CONNECTION_ARROW_SIZE, y + CONNECTION_ARROW_SIZE);
+      if (DRAW_ARROW) {
+        g.drawLine(x1, y, x1 + CONNECTION_ARROW_SIZE, y - CONNECTION_ARROW_SIZE);
+        g.drawLine(x1, y, x1 + CONNECTION_ARROW_SIZE, y + CONNECTION_ARROW_SIZE);
+        g.drawLine(x2, y, x2 - CONNECTION_ARROW_SIZE, y - CONNECTION_ARROW_SIZE);
+        g.drawLine(x2, y, x2 - CONNECTION_ARROW_SIZE, y + CONNECTION_ARROW_SIZE);
+      }
+      else {
+        g.drawLine(x1 + 1, y, x1 + 1, y - CONNECTION_ARROW_SIZE);
+        g.drawLine(x1 + 1, y, x1 + 1, y + CONNECTION_ARROW_SIZE);
+        g.drawLine(x2 - 1, y, x2 - 1, y - CONNECTION_ARROW_SIZE);
+        g.drawLine(x2 - 1, y, x2 - 1, y + CONNECTION_ARROW_SIZE);
+      }
     }
     g.setFont(previousFont);
   }
@@ -217,10 +227,18 @@ public class DrawConnectionUtils {
     }
     if (text == null) {
       g.drawLine(x, y1, x, y2);
-      g.drawLine(x, y1, x - CONNECTION_ARROW_SIZE, y1 + CONNECTION_ARROW_SIZE);
-      g.drawLine(x, y1, x + CONNECTION_ARROW_SIZE, y1 + CONNECTION_ARROW_SIZE);
-      g.drawLine(x, y2, x - CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
-      g.drawLine(x, y2, x + CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
+      if (DRAW_ARROW) {
+        g.drawLine(x, y1, x - CONNECTION_ARROW_SIZE, y1 + CONNECTION_ARROW_SIZE);
+        g.drawLine(x, y1, x + CONNECTION_ARROW_SIZE, y1 + CONNECTION_ARROW_SIZE);
+        g.drawLine(x, y2, x - CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
+        g.drawLine(x, y2, x + CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
+      }
+      else {
+        g.drawLine(x, y1, x - CONNECTION_ARROW_SIZE, y1);
+        g.drawLine(x, y1, x + CONNECTION_ARROW_SIZE, y1);
+        g.drawLine(x, y2, x - CONNECTION_ARROW_SIZE, y2);
+        g.drawLine(x, y2, x + CONNECTION_ARROW_SIZE, y2);
+      }
       return;
     }
     Canvas c = new Canvas();
@@ -245,10 +263,18 @@ public class DrawConnectionUtils {
       g.drawLine(x, y1, x, y1 + h);
       g.drawLine(x, y2 - h, x, y2);
       g.drawString(text, (int)(x - bounds.getWidth() / 2), y2 - h - padding);
-      g.drawLine(x, y1, x - CONNECTION_ARROW_SIZE, y1 + CONNECTION_ARROW_SIZE);
-      g.drawLine(x, y1, x + CONNECTION_ARROW_SIZE, y1 + CONNECTION_ARROW_SIZE);
-      g.drawLine(x, y2, x - CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
-      g.drawLine(x, y2, x + CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
+      if (DRAW_ARROW) {
+        g.drawLine(x, y1, x - CONNECTION_ARROW_SIZE, y1 + CONNECTION_ARROW_SIZE);
+        g.drawLine(x, y1, x + CONNECTION_ARROW_SIZE, y1 + CONNECTION_ARROW_SIZE);
+        g.drawLine(x, y2, x - CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
+        g.drawLine(x, y2, x + CONNECTION_ARROW_SIZE, y2 - CONNECTION_ARROW_SIZE);
+      }
+      else {
+        g.drawLine(x, y1 + 1, x - CONNECTION_ARROW_SIZE, y1 + 1);
+        g.drawLine(x, y1 + 1, x + CONNECTION_ARROW_SIZE, y1 + 1);
+        g.drawLine(x, y2 - 1, x - CONNECTION_ARROW_SIZE, y2 - 1);
+        g.drawLine(x, y2 - 1, x + CONNECTION_ARROW_SIZE, y2 - 1);
+      }
     }
     g.setFont(previousFont);
   }
@@ -303,6 +329,41 @@ public class DrawConnectionUtils {
     }
   }
 
+  public static void getSmallArrow(int direction,
+                                   @SwingCoordinate int x,
+                                   @SwingCoordinate int y,
+                                   @SwingCoordinate int[] xPoints,
+                                   @SwingCoordinate int[] yPoints) {
+    xPoints[0] = x;
+    yPoints[0] = y;
+    switch (direction) {
+      case DrawConnection.DIR_BOTTOM:
+        xPoints[1] = x - SMALL_ARROW_SIZE;
+        xPoints[2] = x + SMALL_ARROW_SIZE;
+        yPoints[1] = y + SMALL_ARROW_SIDE;
+        yPoints[2] = y + SMALL_ARROW_SIDE;
+        break;
+      case DrawConnection.DIR_TOP:
+        xPoints[1] = x - SMALL_ARROW_SIZE;
+        xPoints[2] = x + SMALL_ARROW_SIZE;
+        yPoints[1] = y - SMALL_ARROW_SIDE;
+        yPoints[2] = y - SMALL_ARROW_SIDE;
+        break;
+      case DrawConnection.DIR_LEFT:
+        xPoints[1] = x - SMALL_ARROW_SIDE;
+        xPoints[2] = x - SMALL_ARROW_SIDE;
+        yPoints[1] = y - SMALL_ARROW_SIZE;
+        yPoints[2] = y + SMALL_ARROW_SIZE;
+        break;
+      case DrawConnection.DIR_RIGHT:
+        xPoints[1] = x + SMALL_ARROW_SIDE;
+        xPoints[2] = x + SMALL_ARROW_SIDE;
+        yPoints[1] = y - SMALL_ARROW_SIZE;
+        yPoints[2] = y + SMALL_ARROW_SIZE;
+        break;
+    }
+  }
+
   /**
    * This is used to draw ageneral path
    *
@@ -322,9 +383,9 @@ public class DrawConnectionUtils {
    * removes a zigzag (veering to right and left alternately.) from the list of points.
    * the point are modified and the shortened length is returned
    *
-   * @param xPoints the x coordinates
-   * @param yPoints the y coordinates
-   * @param length the number of element in xPoints and yPoints
+   * @param xPoints  the x coordinates
+   * @param yPoints  the y coordinates
+   * @param length   the number of element in xPoints and yPoints
    * @param distance maximum distance to be considered a zigzag
    * @return the new length
    */
@@ -336,32 +397,34 @@ public class DrawConnectionUtils {
     int len2 = distance;
     int len3 = distance;
     int remove = -1;
-    for (int i = 0; i <length-1; i++) {
-      int dx = xPoints[i+1] - xPoints[i];
-      int dy = xPoints[i+1] - xPoints[i];
+    for (int i = 0; i < length - 1; i++) {
+      int dx = xPoints[i + 1] - xPoints[i];
+      int dy = xPoints[i + 1] - xPoints[i];
       if (dx == 0) {
-        dir4 =  (dy>0)? 0:2;
-      } else {
-        dir4 =  (dx>0)? 1:3;
+        dir4 = (dy > 0) ? 0 : 2;
       }
-      int len4 = (dx==0)?dy:dx;
+      else {
+        dir4 = (dx > 0) ? 1 : 3;
+      }
+      int len4 = (dx == 0) ? dy : dx;
       if (dir1 >= 0) {
         if (dir1 == dir3 && dir2 == dir4 && distance > len2) { // if we move in the same direction
-          remove = i-2;
+          remove = i - 2;
           if (dir1 == 0 || dir1 == 2) {
             yPoints[i - 2] = yPoints[i];
-          } else {
-            xPoints[i-2] = xPoints[i];
           }
-          for (int j = i+1; j < length; j++) {
-            xPoints[j-2] = xPoints[j];
-            yPoints[j-2] = yPoints[j];
+          else {
+            xPoints[i - 2] = xPoints[i];
           }
-          return length -2;
+          for (int j = i + 1; j < length; j++) {
+            xPoints[j - 2] = xPoints[j];
+            yPoints[j - 2] = yPoints[j];
+          }
+          return length - 2;
         }
       }
 
-      dir1= dir2;
+      dir1 = dir2;
       dir2 = dir3;
       dir3 = dir4;
       len2 = len3;
@@ -369,7 +432,6 @@ public class DrawConnectionUtils {
     }
     return length;
   }
-
 
   /**
    * This will generate a rounded path for a path described by xPoints and yPoints.
@@ -547,7 +609,6 @@ public class DrawConnectionUtils {
       ep1y = ep2y;
     }
   }
-
 
   /**
    * Add an vertical spring between (x0, y1) and (x0, y1) to the given path object
@@ -734,6 +795,7 @@ public class DrawConnectionUtils {
 
   /**
    * Get horizontal gap needed to draw the margin
+   *
    * @param g
    * @param string
    * @return
@@ -744,6 +806,7 @@ public class DrawConnectionUtils {
 
   /**
    * draw the horizontal margin text and line
+   *
    * @param g
    * @param string
    * @param x1
@@ -770,7 +833,6 @@ public class DrawConnectionUtils {
   }
 
   /**
-   *
    * @param g
    * @param string
    * @param x

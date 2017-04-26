@@ -275,7 +275,6 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       return mPrevious[direction];
     }
 
-
     int getCurrentMode(int direction) {
       if (time[direction] == -1) {
         if (mSelected) {
@@ -322,7 +321,6 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     int modeFrom = 0;
     connectStatus.getConnectionInfo(child.getNlComponent(), viewSelected);
 
-
     // Extract Scene Components constraints from cache (Table speeds up next step)
     ConnectionType[] connectionTypes = new ConnectionType[ourDirections.length];
     SceneComponent[] connectionTo = new SceneComponent[ourDirections.length];
@@ -331,9 +329,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       connectionTo[i] = (SceneComponent)child.myCache.get(ourDirections[i]);
     }
 
-
     for (int i = 0; i < ourDirections.length; i++) { // For each direction (not including baseline
-      Long  otherChangeStart = null;
+      Long otherChangeStart = null;
       int otherPreviousMode = 0, otherCurrentMode = 0;
       mode = (viewSelected) ? DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
       ConnectionType type = connectionTypes[i];
@@ -386,10 +383,12 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         }
         if (marginString == null) {
           if (i == 0) { // left check if it is start
-            marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
+            marginString =
+              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
           }
           else if (i == 1) { // right check if it is end
-            marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
+            marginString =
+              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
           }
         }
         if (marginString != null) {
@@ -417,10 +416,19 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         changeStart = connectStatus.getTime(i);
         int previousMode = connectStatus.getPreviousMode(i);
         int currentMode = connectStatus.getCurrentMode(i);
-
-        DrawConnection
-          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
-                            isMarginReference, bias, previousMode, currentMode, changeStart);
+        int x1 = getX(source_rect, i);
+        int x2 = getX(dest_rect, connect);
+        int y1 = getY(source_rect, i);
+        int y2 = getY(dest_rect, connect);
+        boolean overlap = (i != connect
+                           && (( Math.abs(x1 - x2) < 4 && Math.abs(y1 - y2) < dest_rect.height / 2)
+                               || ( Math.abs(y1 -y2) < 4&& Math.abs(x1 - x2) < dest_rect.width / 2)));
+        if (overlap) {
+          connectType = DrawConnection.TYPE_ADJACENT;
+        }
+          DrawConnection
+            .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
+                              isMarginReference, bias, previousMode, currentMode, changeStart);
       }
     }
 
@@ -446,5 +454,33 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
                           false, 0, 0, false,
                           0f, previousMode, currentMode, changeStart);
     }
+  }
+
+  static int getX(Rectangle rectangle, int direction) {
+    switch (direction) {
+      case DrawConnection.DIR_LEFT:
+        return rectangle.x;
+      case DrawConnection.DIR_RIGHT:
+        return rectangle.x + rectangle.width + 1;
+      case DrawConnection.DIR_TOP:
+        return rectangle.x + rectangle.width / 2;
+      case DrawConnection.DIR_BOTTOM:
+        return rectangle.x + rectangle.width / 2;
+    }
+    return 0;
+  }
+
+  static int getY(Rectangle rectangle, int direction) {
+    switch (direction) {
+      case DrawConnection.DIR_LEFT:
+        return rectangle.y + rectangle.height / 2;
+      case DrawConnection.DIR_RIGHT:
+        return rectangle.y + rectangle.height / 2;
+      case DrawConnection.DIR_TOP:
+        return rectangle.y;
+      case DrawConnection.DIR_BOTTOM:
+        return rectangle.y + rectangle.height + 1;
+    }
+    return 0;
   }
 }

@@ -37,21 +37,22 @@ public class SwitchDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawSwitch(int x, int y, int width, int height, int baseLineOffset, String string) {
-      super(x, y, width, height, baseLineOffset, string);
+    DrawSwitch(int x, int y, int width, int height, int mode, int baseLineOffset, String string) {
+      super(x, y, width, height, mode, baseLineOffset, string);
     }
 
     DrawSwitch(int x,
                int y,
                int width,
                int height,
+               int mode,
                int baseLineOffset,
                boolean singleLine,
                boolean toUpperCase,
                int alignmentX,
                int alignmentY,
                String string) {
-      super(x, y, width, height, baseLineOffset, string, singleLine, toUpperCase, alignmentX, alignmentY, DEFAULT_FONT_SIZE, DEFAULT_SCALE);
+      super(x, y, width, height, mode, baseLineOffset, string, singleLine, toUpperCase, alignmentX, alignmentY, DEFAULT_FONT_SIZE, DEFAULT_SCALE);
     }
 
     @NotNull
@@ -62,6 +63,7 @@ public class SwitchDecorator extends SceneDecorator {
       int y = Integer.parseInt(sp[c++]);
       int width = Integer.parseInt(sp[c++]);
       int height = Integer.parseInt(sp[c++]);
+      int mode = Integer.parseInt(sp[c++]);
       int baseLineOffset = Integer.parseInt(sp[c++]);
       boolean singleLine = Boolean.parseBoolean(sp[c++]);
       boolean toUpperCase = Boolean.parseBoolean(sp[c++]);
@@ -69,7 +71,7 @@ public class SwitchDecorator extends SceneDecorator {
       int alignmentY = Integer.parseInt(sp[c++]);
       String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
 
-      return new DrawSwitch(x, y, width, height, baseLineOffset,  text);
+      return new DrawSwitch(x, y, width, height, mode, baseLineOffset,  text);
     }
 
     @Override
@@ -109,6 +111,7 @@ public class SwitchDecorator extends SceneDecorator {
     if (text == null) {
       text = "";
     }
-    list.add(new DrawSwitch(l, t, w, h, baseLineOffset, text));
+    int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
+    list.add(new DrawSwitch(l, t, w, h, mode, baseLineOffset, text));
   }
 }

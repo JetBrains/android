@@ -32,14 +32,15 @@ public class DrawNlComponentFrame extends DrawRegion {
 
   static Stroke myNormalStroke = new BasicStroke(1);
   static Stroke myProblemStroke = new BasicStroke(2);
-  static Stroke myWrapStroke =  new BasicStroke(2);
-  static Stroke myMatchParentStroke = new BasicStroke(2);
+  static Stroke myWrapStroke =  new BasicStroke(1);
+  static Stroke myMatchParentStroke = new BasicStroke(1);
   static Stroke myDragReceiverStroke = new BasicStroke(3);
-  static Stroke myMatchConstraintStroke = new FancyStroke(FancyStroke.Type.SPRING, 2, 2, 2);
+  static Stroke myMatchConstraintStroke = new FancyStroke(FancyStroke.Type.SPRING, 2, 2, 1);
 
   int myMode;
   int myLayoutWidth;
   int myLayoutHeight;
+  int myLevel = COMPONENT_LEVEL;
 
   public DrawNlComponentFrame(String s) {
     String[] sp = s.split(",");
@@ -52,7 +53,7 @@ public class DrawNlComponentFrame extends DrawRegion {
 
   @Override
   public int getLevel() {
-    return COMPONENT_LEVEL;
+    return myLevel;
   }
 
   public DrawNlComponentFrame(@AndroidDpCoordinate int x,
@@ -66,6 +67,9 @@ public class DrawNlComponentFrame extends DrawRegion {
     myMode = mode;
     myLayoutWidth = layout_width;
     myLayoutHeight = layout_height;
+    if (mode == SELECTED) {
+      myLevel = COMPONENT_SELECTED_LEVEL;
+    }
   }
 
   private Stroke getStroke(int dim) {

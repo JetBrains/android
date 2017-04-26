@@ -54,6 +54,19 @@ public class ColorTheme {
     }
 
     /**
+     * Utility function returning a new color with an updated brightness
+     *
+     * @param color the source color
+     * @param factor the brightness factor
+     * @return a new color with updated brightness
+     */
+    public static Color updateBrightness(Color color, float factor, int alpha) {
+        float[] hsb = new float[3];
+        Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);
+        return new Color((Color.HSBtoRGB(hsb[0], hsb[1], Math.min(1.0f, hsb[2] * factor)) & 0xFFFFFF) | (alpha << 24), true);
+    }
+
+    /**
      * Utility function returning a new color faded to a target color
      *
      * @param source the source color

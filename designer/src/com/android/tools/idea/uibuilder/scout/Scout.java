@@ -139,6 +139,9 @@ public class Scout {
 
     ArrayList<NlComponent> list = new ArrayList<>(root.getChildren());
     list.add(0, root);
+    if (list.size() == 1) {
+      return;
+    }
 
     NlComponent[] widgets = list.toArray(new NlComponent[list.size()]);
     ScoutWidget.computeConstraints(ScoutWidget.create(widgets));

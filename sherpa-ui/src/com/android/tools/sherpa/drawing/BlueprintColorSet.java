@@ -44,6 +44,7 @@ public class BlueprintColorSet extends ColorSet {
         //mConstraints = new Color(102, 129, 204);
         mConstraints = new Color(106, 161, 211);
         mSoftConstraintColor = new Color(102, 129, 204, 80);
+        mButtonBackground  = new Color(51, 105, 153, 160);
         mMargins = new Color(150, 150, 180);
         mText = new Color(220, 220, 220);
         mSnapGuides = new Color(220, 220, 220);
