@@ -17,11 +17,10 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.ComponentProvider;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.Language;
@@ -30,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.dnd.DropTargetDropEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -109,6 +110,20 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   @Override
   public void clearAttributes(@NotNull NlComponent component) {
     myHandler.clearAttributes(component);
+  }
+
+  @Override
+  public ComponentProvider getComponentProvider(@NotNull SceneComponent component) {
+    return myHandler.getComponentProvider(component);
+  }
+
+  @Override
+  public void performDrop(@NotNull NlModel model,
+                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlComponent receiver,
+                          @NotNull List<NlComponent> dragged,
+                          @Nullable NlComponent before, @NotNull InsertType type) {
+    myHandler.performDrop(model, event, receiver, dragged, before, type);
   }
 
   // ViewHandler
@@ -234,5 +249,11 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   @Override
   public double getPreviewScale(@NotNull String tagName) {
     return myHandler.getPreviewScale(tagName);
+  }
+
+  @Override
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
+    return myHandler.createTargets(sceneComponent,isParent);
   }
 }

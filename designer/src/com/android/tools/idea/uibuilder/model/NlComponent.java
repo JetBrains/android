@@ -605,6 +605,30 @@ public class NlComponent implements NlAttributesHolder {
     return false;
   }
 
+  /**
+   * Returns the class within the className set that is the
+   * the most derived (specific) class that matches NlComponent's class
+   *
+   * @param classNames Set of class names to search
+   */
+  public String getMostSpecificClass(@NotNull Set<String> classNames) {
+
+    if (viewInfo != null) {
+      Object viewObject = viewInfo.getViewObject();
+      if (viewObject == null) {
+        return null;
+      }
+      Class<?> viewClass = viewObject.getClass();
+      while (viewClass != Object.class) {
+        if (classNames.contains(viewClass.getName())) {
+          return viewClass.getName();
+        }
+        viewClass = viewClass.getSuperclass();
+      }
+    }
+    return null;
+  }
+
   @Nullable
   public NlComponent getParent() {
     return myParent;
