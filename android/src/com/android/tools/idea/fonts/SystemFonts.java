@@ -106,7 +106,7 @@ class SystemFonts {
     return new FontFamily(GoogleFontProvider.INSTANCE, SYSTEM, systemFontName, best.getFontUrl(), null, filtered);
   }
 
-  static FontDetail findBestMatch(@NotNull List<FontDetail> fonts, @NotNull FontDetail.Builder wanted) {
+  static FontDetail findBestMatch(@NotNull Collection<FontDetail> fonts, @NotNull FontDetail.Builder wanted) {
     FontDetail best = null;
     int bestMatch = Integer.MAX_VALUE;
     for (FontDetail detail : fonts) {
