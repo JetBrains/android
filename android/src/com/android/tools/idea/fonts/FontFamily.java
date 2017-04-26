@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -90,7 +91,7 @@ public class FontFamily implements Comparable<FontFamily> {
                                           @NotNull FontSource source,
                                           @NotNull String name,
                                           @NotNull String menu,
-                                          @NotNull List<FontDetail> fonts) {
+                                          @NotNull Collection<FontDetail> fonts) {
     return new FontFamily(provider, source, name, menu, null, ImmutableList.copyOf(fonts));
   }
 
