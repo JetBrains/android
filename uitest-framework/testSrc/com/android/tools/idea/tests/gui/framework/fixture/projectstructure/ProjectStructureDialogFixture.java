@@ -89,6 +89,12 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   }
 
   @NotNull
+  public PropertiesTabFixture selectPropertiesTab() {
+    selectTab("Properties");
+    return new PropertiesTabFixture(myDialog, myIdeFrameFixture);
+  }
+
+  @NotNull
   @Override
   public JDialog target() {
     return myDialog;
