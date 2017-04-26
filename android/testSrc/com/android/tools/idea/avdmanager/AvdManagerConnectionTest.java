@@ -57,8 +57,7 @@ public class AvdManagerConnectionTest extends TestCase {
       AvdManager.getInstance(
         mAndroidSdkHandler,
         new File(ANDROID_HOME, AndroidLocation.FOLDER_AVD),
-        new NullLogger(),
-        mFileOp);
+        new NullLogger());
 
     mAvdFolder =
       AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), mFileOp, false);
