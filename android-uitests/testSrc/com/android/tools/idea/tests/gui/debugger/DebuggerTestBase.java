@@ -52,7 +52,7 @@ public class DebuggerTestBase {
     contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 70);
   }
 
-  void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern) {
+  public static void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern) {
     Wait.seconds(5).expecting("variable patterns to match")
         .until(() -> verifyVariablesAtBreakpoint(ideFrame, expectedPattern, DEBUG_CONFIG_NAME));
   }
@@ -63,7 +63,7 @@ public class DebuggerTestBase {
     contentFixture.clickResumeButton();
   }
 
-  private boolean verifyVariablesAtBreakpoint(IdeFrameFixture ideFrame, String[] expectedVariablePatterns, String debugConfigName) {
+  private static boolean verifyVariablesAtBreakpoint(IdeFrameFixture ideFrame, String[] expectedVariablePatterns, String debugConfigName) {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
 
@@ -81,7 +81,7 @@ public class DebuggerTestBase {
   }
 
   @NotNull
-  static String variableToSearchPattern(String name, String type, String value) {
+  public static String variableToSearchPattern(String name, String type, String value) {
     return String.format("%s = \\{%s\\} %s", name, type, value);
   }
 
@@ -90,7 +90,7 @@ public class DebuggerTestBase {
    * in the Variables window in Android Studio.
    */
   @NotNull
-  static String variableToSearchPattern(String name, String value) {
+  public static String variableToSearchPattern(String name, String value) {
     return String.format("%s = %s", name, value);
   }
 
