@@ -39,9 +39,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.testFramework.BinaryLightVirtualFile;
@@ -113,10 +115,10 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), apkVirtualFile.getExtension());
       Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
       myArchive = Archives.open(copyOfApk);
-      myApkViewPanel = new ApkViewPanel(myArchive, new ApkParser(myArchive, ApkSizeCalculator.getDefault(copyOfApk)));
+      myApkViewPanel = new ApkViewPanel(new ApkParser(myArchive, ApkSizeCalculator.getDefault()));
       myApkViewPanel.setListener(this);
       mySplitter.setFirstComponent(myApkViewPanel.getContainer());
-      selectionChanged(myArchive, null);
+      selectionChanged(null);
     }
     catch (IOException e) {
       Logger.getInstance(ApkEditor.class).error(e);
@@ -129,20 +131,12 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
    * Changes the editor displayed based on the path selected in the tree.
    */
   @Override
-  public void selectionChanged(@NotNull Archive archive, @Nullable ArchiveTreeNode[] entry) {
+  public void selectionChanged(@Nullable ArchiveTreeNode[] entries) {
     if (myCurrentEditor != null) {
       Disposer.dispose(myCurrentEditor);
     }
-    Path[] paths;
-    if (entry == null) {
-      paths = new Path[0];
-    } else {
-      paths = new Path[entry.length];
-      for (int i = 0; i < entry.length; i++) {
-        paths[i] = entry[i].getData().getPath();
-      }
-    }
-    myCurrentEditor = getEditor(archive, paths);
+
+    myCurrentEditor = getEditor(entries);
     mySplitter.setSecondComponent(myCurrentEditor.getComponent());
   }
 
@@ -257,29 +251,34 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   @NotNull
-  private ApkFileEditorComponent getEditor(@NotNull Archive archive, @Nullable Path[] paths) {
-    if (paths == null || paths.length == 0) {
+  private ApkFileEditorComponent getEditor(@Nullable ArchiveTreeNode[] nodes) {
+    if (nodes == null || nodes.length == 0) {
       return new EmptyPanel();
     }
 
     //check if multiple dex files are selected
     //and return a multiple dex viewer
     boolean allDex = true;
-    for (Path path : paths) {
-      if (!path.getFileName().toString().endsWith(SdkConstants.EXT_DEX)){
+    for (ArchiveTreeNode path : nodes) {
+       if (!path.getData().getPath().getFileName().toString().endsWith(SdkConstants.EXT_DEX)){
         allDex = false;
         break;
       }
     }
 
     if (allDex){
+      Path[] paths = new Path[nodes.length];
+      for (int i = 0; i < nodes.length; i++) {
+        paths[i] = nodes[i].getData().getPath();
+      }
       return new DexFileViewer(myProject, paths, myBaseFile.getParent());
     }
 
     //only one file or many files with different extensions are selected
     //we can only show a single editor for a single filetype,
     //so arbitrarily pick the first file:
-    Path p = paths[0];
+    ArchiveTreeNode n = nodes[0];
+    Path p = n.getData().getPath();
     Path fileName = p.getFileName();
     if ("resources.arsc".equals(fileName.toString())) {
       byte[] arscContent;
@@ -296,12 +295,12 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       return new DexFileViewer(myProject, new Path[]{p}, myBaseFile.getParent());
     }
 
-    VirtualFile file = createVirtualFile(archive, p);
+    VirtualFile file = createVirtualFile(n.getData().getArchive(), p);
     Optional<FileEditorProvider> providers = getFileEditorProviders(file);
     if (!providers.isPresent()) {
       return new EmptyPanel();
     }
-    else {
+    else if (file != null) {
       FileEditor editor = providers.get().createEditor(myProject, file);
       return new ApkFileEditorComponent() {
         @NotNull
@@ -315,6 +314,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           Disposer.dispose(editor);
         }
       };
+    } else {
+      return new EmptyPanel();
     }
   }
 
@@ -327,12 +328,17 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
     try {
       byte[] content = Files.readAllBytes(p);
-
       if (archive.isBinaryXml(p, content)) {
         content = BinaryXmlParser.decodeXml(name.toString(), content);
+        return new BinaryLightVirtualFile(name.toString(), content);
+      } else {
+        VirtualFile file = JarFileSystem.getInstance().findLocalVirtualFileByPath(archive.getPath().toString());
+        if (file != null) {
+          return file.findFileByRelativePath(p.toString());
+        } else {
+          return new BinaryLightVirtualFile(name.toString(), content);
+        }
       }
-
-      return new BinaryLightVirtualFile(name.toString(), content);
     }
     catch (IOException e) {
       return null;

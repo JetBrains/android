@@ -83,13 +83,13 @@ public class ApkParser {
 
   @NotNull
   public synchronized ListenableFuture<Long> getUncompressedApkSize() {
-    return ourExecutorService.submit(myApkSizeCalculator::getFullApkRawSize);
+    return ourExecutorService.submit(() -> myApkSizeCalculator.getFullApkRawSize(myArchive.getPath()));
   }
 
   @NotNull
   public synchronized ListenableFuture<Long> getCompressedFullApkSize() {
     if (myCompressedFullApkSize == null) {
-      myCompressedFullApkSize = ourExecutorService.submit(myApkSizeCalculator::getFullApkDownloadSize);
+      myCompressedFullApkSize = ourExecutorService.submit(() -> myApkSizeCalculator.getFullApkDownloadSize(myArchive.getPath()));
     }
 
     return myCompressedFullApkSize;

@@ -59,7 +59,6 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 public class ApkViewPanel implements TreeSelectionListener {
-  private Archive myArchive;
   private JPanel myContainer;
   @SuppressWarnings("unused") // added to the container in the form
   private JScrollPane myColumnTreePane;
@@ -74,13 +73,11 @@ public class ApkViewPanel implements TreeSelectionListener {
   private Listener myListener;
 
   public interface Listener {
-    void selectionChanged(@NotNull Archive archive, @Nullable ArchiveTreeNode[] entry);
+    void selectionChanged(@Nullable ArchiveTreeNode[] entry);
     void selectApkAndCompare();
   }
 
-  public ApkViewPanel(@NotNull Archive archive, @NotNull ApkParser apkParser) {
-    myArchive = archive;
-
+  public ApkViewPanel(@NotNull ApkParser apkParser) {
     // construct the main tree along with the uncompressed sizes
     ListenableFuture<ArchiveNode> treeStructureFuture = apkParser.constructTreeStructure();
     FutureCallBackAdapter<ArchiveNode> setRootNode = new FutureCallBackAdapter<ArchiveNode>() {
@@ -134,9 +131,11 @@ public class ApkViewPanel implements TreeSelectionListener {
                         new FutureCallBackAdapter<List<Long>>() {
                           @Override
                           public void onSuccess(List<Long> result) {
-                            long uncompressed = result.get(0);
-                            Long compressed = result.get(1);
-                            setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
+                            if (result != null) {
+                              long uncompressed = result.get(0);
+                              Long compressed = result.get(1);
+                              setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
+                            }
                           }
                         }, EdtExecutor.INSTANCE);
 
@@ -296,13 +295,13 @@ public class ApkViewPanel implements TreeSelectionListener {
         components = new ArchiveTreeNode[paths.length];
         for (int i = 0; i < paths.length; i++) {
           if (!(paths[i].getLastPathComponent() instanceof ArchiveTreeNode)) {
-            myListener.selectionChanged(myArchive, null);
+            myListener.selectionChanged(null);
             return;
           }
           components[i] = (ArchiveTreeNode)paths[i].getLastPathComponent();
         }
       }
-      myListener.selectionChanged(myArchive, components);
+      myListener.selectionChanged(components);
     }
   }
 
