@@ -32,7 +32,6 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.keymap.KeymapManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
@@ -61,8 +60,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ProjectViewFixture extends ToolWindowFixture {
-  ProjectViewFixture(@NotNull Project project, @NotNull Robot robot) {
-    super("Project", project, robot);
+
+  @NotNull private final IdeFrameFixture ideFrameFixture;
+
+  public ProjectViewFixture(@NotNull IdeFrameFixture ideFrameFixture) {
+    super("Project", ideFrameFixture.getProject(), ideFrameFixture.robot());
+    this.ideFrameFixture = ideFrameFixture;
   }
 
   @NotNull
@@ -129,15 +132,17 @@ public class ProjectViewFixture extends ToolWindowFixture {
       changePane(name);
     }
 
-    return new PaneFixture(projectView.getCurrentProjectViewPane(), myRobot);
+    return new PaneFixture(ideFrameFixture, projectView.getCurrentProjectViewPane(), myRobot);
   }
 
   public static class PaneFixture {
+    @NotNull private final IdeFrameFixture myIdeFrameFixture;
     @NotNull private final AbstractProjectViewPane myPane;
     @NotNull private final Robot myRobot;
     @NotNull private final JTreeFixture myTree;
 
-    PaneFixture(@NotNull AbstractProjectViewPane pane, @NotNull Robot robot) {
+    PaneFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull AbstractProjectViewPane pane, @NotNull Robot robot) {
+      myIdeFrameFixture = ideFrameFixture;
       myPane = pane;
       myRobot = robot;
       myTree = new JTreeFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(ProjectViewTree.class)));
@@ -180,11 +185,11 @@ public class ProjectViewFixture extends ToolWindowFixture {
       return new NodeFixture(node, treeStructure);
     }
 
-    public void clickPath(@NotNull final String... paths) {
-      clickPath(MouseButton.LEFT_BUTTON, paths);
+    public IdeFrameFixture clickPath(@NotNull final String... paths) {
+      return clickPath(MouseButton.LEFT_BUTTON, paths);
     }
 
-    public void clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
+    public IdeFrameFixture clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
       waitForTreeToFinishLoading(myRobot, myTree.target());
       StringBuilder totalPath = new StringBuilder(paths[0]);
       for (int i = 1; i < paths.length; i++) {
@@ -192,6 +197,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
         totalPath.append('/').append(paths[i]);
       }
       myTree.clickPath(totalPath.toString(), button);
+      return myIdeFrameFixture;
     }
   }
 

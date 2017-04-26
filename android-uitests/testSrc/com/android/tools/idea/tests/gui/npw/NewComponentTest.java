@@ -34,10 +34,11 @@ public class NewComponentTest {
 
   @Test
   public void testNewValueWizard() throws IOException {
-    guiTest.importSimpleApplication();
-
-    guiTest.ideFrame().getProjectView().selectAndroidPane().clickPath("app");
-    guiTest.ideFrame().invokeMenuPath("File", "New", "XML", "Values XML File");
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .invokeMenuPath("File", "New", "XML", "Values XML File");
 
     final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(guiTest.robot());
     final JButtonFixture finishFixture = wizardFixture.findWizardButton("Finish");
