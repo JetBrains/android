@@ -148,7 +148,8 @@ etc.) at the push of a button. See `Tools > Firebase` for a working example.
     ```xml
     <actions>
        <!-- TIP: You can reference IntelliJ icons (AllIcons) or AndroidIcons. If you want to declare
-       your own icons, then see: http://www.jetbrains.org/intellij/sdk/docs/reference_guide/work_with_icons_and_images.html
+       your own icons, you have to declare your icon file under the package "icons " in order to reference it from xml.
+       (see: http://www.jetbrains.org/intellij/sdk/docs/reference_guide/work_with_icons_and_images.html)
         -->
        <action
            id="ID_RETURNED_FROM_AssistantBundleCreator#getBundleId"
