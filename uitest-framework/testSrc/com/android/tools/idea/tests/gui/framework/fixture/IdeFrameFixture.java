@@ -38,30 +38,21 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEv
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
-import com.intellij.openapi.compiler.CompilationStatusListener;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.util.PathUtil;
 import com.intellij.util.ThreeState;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -73,7 +64,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -83,20 +73,15 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.util.Strings.quote;
@@ -172,39 +157,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     throw new AssertionError("Unable to find AndroidGradleModel for module " + quote(name));
   }
 
-  /**
-   * Returns a list of system independent paths
-   */
-  @NotNull
-  public Collection<String> getSourceFolderRelativePaths(@NotNull String moduleName, @NotNull JpsModuleSourceRootType<?> sourceType) {
-    Set<String> paths = Sets.newHashSet();
-
-    Module module = getModule(moduleName);
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-
-    GuiTask.execute(
-      () -> {
-        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-        try {
-          for (ContentEntry contentEntry : rootModel.getContentEntries()) {
-            for (SourceFolder folder : contentEntry.getSourceFolders()) {
-              JpsModuleSourceRootType<?> rootType = folder.getRootType();
-              if (rootType.equals(sourceType)) {
-                String path = urlToPath(folder.getUrl());
-                String relativePath = getRelativePath(myProjectPath, toSystemDependentPath(path));
-                paths.add(PathUtil.toSystemIndependentName(relativePath));
-              }
-            }
-          }
-        }
-        finally {
-          rootModel.dispose();
-        }
-      });
-
-    return paths;
-  }
-
   @NotNull
   public Module getModule(@NotNull String name) {
     return myModules.getModule(name);
@@ -268,36 +220,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, failTask);
     selectProjectMakeAction();
     return this;
-  }
-
-  @NotNull
-  public CompileContext invokeProjectMakeUsingJps() {
-    Project project = getProject();
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = false;
-
-    AtomicReference<CompileContext> contextRef = new AtomicReference<>();
-    CompilerManager compilerManager = CompilerManager.getInstance(project);
-
-    Disposable disposable = new NoOpDisposable();
-    compilerManager.addCompilationStatusListener(new CompilationStatusListener() {
-      @Override
-      public void compilationFinished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
-        contextRef.set(compileContext);
-      }
-    }, disposable);
-
-    try {
-      selectProjectMakeAction();
-
-      Wait.seconds(10).expecting("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'")
-        .until(() -> contextRef.get() != null);
-
-      return contextRef.get();
-    }
-    finally {
-      Disposer.dispose(disposable);
-    }
   }
 
   /**
