@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -53,6 +54,8 @@ public class DrawTextRegion extends DrawRegion {
 
   static boolean DO_WRAP = false;
   protected final int mFontSize;
+  protected final int mMode;
+  protected int mLevel = COMPONENT_LEVEL;
   protected final float mScale;
   protected final int myBaseLineOffset;
   @SwingCoordinate protected int mHorizontalPadding = 0;
@@ -96,6 +99,11 @@ public class DrawTextRegion extends DrawRegion {
     }
   }
 
+  @Override
+  public int getLevel() {
+    return mLevel;
+  }
+
   public static DrawTextRegion createFromString(String string) {
     String[] sp = string.split(",");
     int c = 0;
@@ -103,6 +111,7 @@ public class DrawTextRegion extends DrawRegion {
     int y = Integer.parseInt(sp[c++]);
     int width = Integer.parseInt(sp[c++]);
     int height = Integer.parseInt(sp[c++]);
+    int mode = Integer.parseInt(sp[c++]);
     int baseLineOffset = Integer.parseInt(sp[c++]);
     boolean singleLine = Boolean.parseBoolean(sp[c++]);
     boolean toUpperCase = Boolean.parseBoolean(sp[c++]);
@@ -112,7 +121,7 @@ public class DrawTextRegion extends DrawRegion {
     float scale = java.lang.Float.parseFloat(sp[c++]);
     String text = string.substring(string.indexOf('\"') + 1, string.lastIndexOf('\"'));
 
-    return new DrawTextRegion(x, y, width, height, baseLineOffset, text, singleLine, toUpperCase, alignmentX, alignmentY, fontSize, scale);
+    return new DrawTextRegion(x, y, width, height, mode, baseLineOffset, text, singleLine, toUpperCase, alignmentX, alignmentY, fontSize, scale);
   }
 
   @Override
@@ -126,6 +135,8 @@ public class DrawTextRegion extends DrawRegion {
            width +
            "," +
            height +
+           "," +
+           mMode +
            "," +
            myBaseLineOffset +
            "," +
@@ -149,6 +160,7 @@ public class DrawTextRegion extends DrawRegion {
                         @SwingCoordinate int y,
                         @SwingCoordinate int width,
                         @SwingCoordinate int height,
+                        int mode,
                         int baseLineOffset,
                         String text,
                         boolean singleLine,
@@ -157,6 +169,7 @@ public class DrawTextRegion extends DrawRegion {
                         int textAlignmentY,
                         int fontSize, float scale) {
     super(x, y, width, height);
+    mMode = mode;
     mText = text;
     myBaseLineOffset = baseLineOffset;
     mSingleLine = singleLine;
@@ -170,20 +183,25 @@ public class DrawTextRegion extends DrawRegion {
 
     mTextPane = new JTextPane();
     mTextPane.setBackground(TEXT_PANE_BACKGROUND);
+    switch (mMode) {
+      case DecoratorUtilities.ViewStates.SELECTED_VALUE:
+        mLevel = COMPONENT_SELECTED_LEVEL;
+    }
   }
 
   public DrawTextRegion(@SwingCoordinate int x,
                         @SwingCoordinate int y,
                         @SwingCoordinate int width,
                         @SwingCoordinate int height,
+                        int mode,
                         int baseLineOffset,
                         String text) {
-    this(x, y, width, height, baseLineOffset, text, false, false, TEXT_ALIGNMENT_TEXT_START, TEXT_ALIGNMENT_TEXT_START, DEFAULT_FONT_SIZE,
+    this(x, y, width, height, mode, baseLineOffset, text, false, false, TEXT_ALIGNMENT_TEXT_START, TEXT_ALIGNMENT_TEXT_START, DEFAULT_FONT_SIZE,
          DEFAULT_SCALE);
   }
 
   @Override
-  public void paint(Graphics2D g, SceneContext sceneContext) {
+  public void paint(Graphics2D g2d, SceneContext sceneContext) {
     int tx = x;
     int ty = y;
     int h = height;
@@ -195,10 +213,10 @@ public class DrawTextRegion extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     int horizontalPadding = mHorizontalPadding + mHorizontalMargin;
     int verticalPadding = mVerticalPadding + mVerticalMargin;
-    g.setFont(mFont);
-    FontMetrics fontMetrics = g.getFontMetrics();
+    g2d.setFont(mFont);
+    FontMetrics fontMetrics = g2d.getFontMetrics();
     Color color = colorSet.getFrames();
-    g.setColor(color);
+    g2d.setColor(color);
     String string = mText;
     if (mToUpperCase) {
       string = string.toUpperCase();
@@ -236,12 +254,12 @@ public class DrawTextRegion extends DrawRegion {
           break;
       }
       doc.setParagraphAttributes(0, doc.getLength(), attributeSet, false);
-      g.translate(tx, ty);
-      Shape clip = g.getClip();
-      g.clipRect(0, 0, w, h);
-      mTextPane.paint(g);
-      g.setClip(clip);
-      g.translate(-tx, -ty);
+      g2d.translate(tx, ty);
+      Shape clip = g2d.getClip();
+      g2d.clipRect(0, 0, w, h);
+      mTextPane.paint(g2d);
+      g2d.setClip(clip);
+      g2d.translate(-tx, -ty);
     }
     else {
       int alignX = switchAlignment(string, mAlignmentX);
@@ -266,13 +284,12 @@ public class DrawTextRegion extends DrawRegion {
       }
       fty = myBaseLineOffset + ty;
 
-      Shape clip = g.getClip();
-      g.clipRect(tx, ty, w, h);
-      g.drawString(string, ftx, fty);
-      g.setClip(clip);
+      Shape clip = g2d.getClip();
+      g2d.clipRect(tx, ty, w, h);
+      g2d.drawString(string, ftx, fty);
+      g2d.setClip(clip);
     }
   }
-
 
   private static int switchAlignment(String string, int alignmentX) {
     if (string.isEmpty()) {

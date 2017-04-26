@@ -126,7 +126,7 @@ public class ImageViewDecorator extends SceneDecorator {
 
         Graphics2D clipGraphics = ((Graphics2D)g.create(x, y, width, height));
 
-        clipGraphics.setColor(ColorTheme.updateBrightness(sceneContext.getColorSet().getBackground(), 0.8f));
+        clipGraphics.setColor(ColorTheme.updateBrightness(sceneContext.getColorSet().getBackground(), 0.8f, 64));
 
         shape = sClosedPath2D.createTransformedShape(mTransform);
         clipGraphics.fill(shape);

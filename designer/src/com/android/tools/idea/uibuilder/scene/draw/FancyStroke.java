@@ -136,6 +136,7 @@ public class FancyStroke implements Stroke {
       }
       it.next();
     }
+    result.lineTo(x1, y1);
     return myBasicStroke.createStrokedShape(result);
   }
 
