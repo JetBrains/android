@@ -1,4 +1,21 @@
-// This is a generated file. Not intended for manual editing.
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// ATTENTION: This file has been automatically generated from db.bnf. Do not edit it manually.
+
 package com.android.tools.idea.lang.databinding.parser;
 
 import com.intellij.lang.PsiBuilder;
@@ -149,8 +166,7 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "classOrInterfaceType_2_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, DOT);
-    r = r && consumeToken(b, IDENTIFIER);
+    r = consumeTokens(b, 0, DOT, IDENTIFIER);
     r = r && classOrInterfaceType_2_0_2(b, l + 1);
     exit_section_(b, m, null, r);
     return r;
@@ -216,9 +232,7 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!nextTokenIs(b, COMMA)) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && consumeToken(b, DEFAULT_KEYWORD);
-    r = r && consumeToken(b, EQ);
+    r = consumeTokens(b, 0, COMMA, DEFAULT_KEYWORD, EQ);
     r = r && constantValue(b, l + 1);
     exit_section_(b, m, DEFAULTS, r);
     return r;
@@ -328,8 +342,7 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "inferredFormalParameterList_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && consumeToken(b, IDENTIFIER);
+    r = consumeTokens(b, 0, COMMA, IDENTIFIER);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -537,8 +550,7 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "type_0_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, LBRACKET);
-    r = r && consumeToken(b, RBRACKET);
+    r = consumeTokens(b, 0, LBRACKET, RBRACKET);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -571,8 +583,7 @@ public class DbParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(b, l, "type_1_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, LBRACKET);
-    r = r && consumeToken(b, RBRACKET);
+    r = consumeTokens(b, 0, LBRACKET, RBRACKET);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -887,8 +898,7 @@ public class DbParser implements PsiParser, LightPsiParser {
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, CLASS_EXTRACTION_EXPR, "<class extraction expr>");
     r = type(b, l + 1);
-    r = r && consumeToken(b, DOT);
-    r = r && consumeToken(b, CLASS_KEYWORD);
+    r = r && consumeTokensSmart(b, 0, DOT, CLASS_KEYWORD);
     exit_section_(b, l, m, r, false, null);
     return r;
   }

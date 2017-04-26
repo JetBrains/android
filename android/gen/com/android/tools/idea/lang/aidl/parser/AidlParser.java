@@ -1,4 +1,21 @@
-// This is a generated file. Not intended for manual editing.
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// ATTENTION: This file has been automatically generated from Aidl.bnf. Do not edit it manually.
+
 package com.android.tools.idea.lang.aidl.parser;
 
 import com.intellij.lang.PsiBuilder;
@@ -9,9 +26,10 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
+import com.intellij.lang.LightPsiParser;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
-public class AidlParser implements PsiParser {
+public class AidlParser implements PsiParser, LightPsiParser {
 
   public ASTNode parse(IElementType t, PsiBuilder b) {
     parseLight(t, b);
@@ -88,14 +106,14 @@ public class AidlParser implements PsiParser {
   // declaration*
   public static boolean body(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "body")) return false;
-    Marker m = enter_section_(b, l, _NONE_, "<body>");
+    Marker m = enter_section_(b, l, _NONE_, BODY, "<body>");
     int c = current_position_(b);
     while (true) {
       if (!declaration(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "body", c)) break;
       c = current_position_(b);
     }
-    exit_section_(b, l, m, BODY, true, false, null);
+    exit_section_(b, l, m, true, false, null);
     return true;
   }
 
@@ -105,11 +123,11 @@ public class AidlParser implements PsiParser {
     if (!recursion_guard_(b, l, "classOrInterfaceType")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_, CLASS_OR_INTERFACE_TYPE, null);
     r = qualifiedName(b, l + 1);
     p = r; // pin = 1
     r = r && classOrInterfaceType_1(b, l + 1);
-    exit_section_(b, l, m, CLASS_OR_INTERFACE_TYPE, r, p, null);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -125,10 +143,10 @@ public class AidlParser implements PsiParser {
   static boolean declaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "declaration")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_);
     r = parcelableDeclaration(b, l + 1);
     if (!r) r = interfaceDeclaration(b, l + 1);
-    exit_section_(b, l, m, null, r, false, declarationRecover_parser_);
+    exit_section_(b, l, m, r, false, declarationRecover_parser_);
     return r;
   }
 
@@ -149,9 +167,9 @@ public class AidlParser implements PsiParser {
   static boolean declarationRecover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "declarationRecover")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NOT_, null);
+    Marker m = enter_section_(b, l, _NOT_);
     r = !declarationRecover_0(b, l + 1);
-    exit_section_(b, l, m, null, r, false, null);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -171,11 +189,11 @@ public class AidlParser implements PsiParser {
   public static boolean direction(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "direction")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, "<direction>");
+    Marker m = enter_section_(b, l, _NONE_, DIRECTION, "<direction>");
     r = consumeToken(b, IN_KEYWORD);
     if (!r) r = consumeToken(b, OUT_KEYWORD);
     if (!r) r = consumeToken(b, INOUT_KEYWORD);
-    exit_section_(b, l, m, DIRECTION, r, false, null);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -184,11 +202,11 @@ public class AidlParser implements PsiParser {
   static boolean document(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "document")) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_);
     r = headers(b, l + 1);
     p = r; // pin = 1
     r = r && body(b, l + 1);
-    exit_section_(b, l, m, null, r, p, null);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -197,10 +215,10 @@ public class AidlParser implements PsiParser {
   public static boolean headers(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "headers")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, "<headers>");
+    Marker m = enter_section_(b, l, _NONE_, HEADERS, "<headers>");
     r = headers_0(b, l + 1);
     r = r && headers_1(b, l + 1);
-    exit_section_(b, l, m, HEADERS, r, false, null);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -234,12 +252,12 @@ public class AidlParser implements PsiParser {
     if (!recursion_guard_(b, l, "importStatement")) return false;
     if (!nextTokenIs(b, IMPORT_KEYWORD)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_, IMPORT_STATEMENT, null);
     r = consumeToken(b, IMPORT_KEYWORD);
     p = r; // pin = 1
     r = r && report_error_(b, qualifiedName(b, l + 1));
     r = p && consumeToken(b, SEMICOLON) && r;
-    exit_section_(b, l, m, IMPORT_STATEMENT, r, p, null);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -248,14 +266,14 @@ public class AidlParser implements PsiParser {
   public static boolean interfaceDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interfaceDeclaration")) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, "<interface declaration>");
+    Marker m = enter_section_(b, l, _NONE_, INTERFACE_DECLARATION, "<interface declaration>");
     r = interfaceHeader(b, l + 1);
     p = r; // pin = 1
     r = r && report_error_(b, declarationName(b, l + 1));
     r = p && report_error_(b, consumeToken(b, LCURLY)) && r;
     r = p && report_error_(b, methodDeclarations(b, l + 1)) && r;
     r = p && consumeToken(b, RCURLY) && r;
-    exit_section_(b, l, m, INTERFACE_DECLARATION, r, p, null);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -264,19 +282,9 @@ public class AidlParser implements PsiParser {
   static boolean interfaceDeclarationRecover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "interfaceDeclarationRecover")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NOT_, null);
-    r = !interfaceDeclarationRecover_0(b, l + 1);
-    exit_section_(b, l, m, null, r, false, null);
-    return r;
-  }
-
-  // ('}')
-  private static boolean interfaceDeclarationRecover_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "interfaceDeclarationRecover_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, RCURLY);
-    exit_section_(b, m, null, r);
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !consumeToken(b, RCURLY);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -298,7 +306,7 @@ public class AidlParser implements PsiParser {
   public static boolean methodDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "methodDeclaration")) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, "<method declaration>");
+    Marker m = enter_section_(b, l, _NONE_, METHOD_DECLARATION, "<method declaration>");
     r = methodDeclaration_0(b, l + 1);
     r = r && type(b, l + 1);
     p = r; // pin = 2
@@ -306,7 +314,7 @@ public class AidlParser implements PsiParser {
     r = p && report_error_(b, parameters(b, l + 1)) && r;
     r = p && report_error_(b, methodDeclaration_4(b, l + 1)) && r;
     r = p && consumeToken(b, SEMICOLON) && r;
-    exit_section_(b, l, m, METHOD_DECLARATION, r, p, methodDeclarationRecover_parser_);
+    exit_section_(b, l, m, r, p, methodDeclarationRecover_parser_);
     return r || p;
   }
 
@@ -329,8 +337,7 @@ public class AidlParser implements PsiParser {
     if (!recursion_guard_(b, l, "methodDeclaration_4_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, EQUALS);
-    r = r && consumeToken(b, IDVALUE);
+    r = consumeTokens(b, 0, EQUALS, IDVALUE);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -340,9 +347,9 @@ public class AidlParser implements PsiParser {
   static boolean methodDeclarationRecover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "methodDeclarationRecover")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NOT_, null);
+    Marker m = enter_section_(b, l, _NOT_);
     r = !methodDeclarationRecover_0(b, l + 1);
-    exit_section_(b, l, m, null, r, false, null);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -365,14 +372,14 @@ public class AidlParser implements PsiParser {
   // methodDeclaration*
   static boolean methodDeclarations(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "methodDeclarations")) return false;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_);
     int c = current_position_(b);
     while (true) {
       if (!methodDeclaration(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "methodDeclarations", c)) break;
       c = current_position_(b);
     }
-    exit_section_(b, l, m, null, true, false, interfaceDeclarationRecover_parser_);
+    exit_section_(b, l, m, true, false, interfaceDeclarationRecover_parser_);
     return true;
   }
 
@@ -394,12 +401,12 @@ public class AidlParser implements PsiParser {
     if (!recursion_guard_(b, l, "packageStatement")) return false;
     if (!nextTokenIs(b, PACKAGE_KEYWORD)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_, PACKAGE_STATEMENT, null);
     r = consumeToken(b, PACKAGE_KEYWORD);
     p = r; // pin = 1
     r = r && report_error_(b, qualifiedName(b, l + 1));
     r = p && consumeToken(b, SEMICOLON) && r;
-    exit_section_(b, l, m, PACKAGE_STATEMENT, r, p, null);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -408,12 +415,12 @@ public class AidlParser implements PsiParser {
   public static boolean parameter(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parameter")) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, "<parameter>");
+    Marker m = enter_section_(b, l, _NONE_, PARAMETER, "<parameter>");
     r = parameter_0(b, l + 1);
     r = r && type(b, l + 1);
     p = r; // pin = 2
     r = r && consumeToken(b, IDENTIFIER);
-    exit_section_(b, l, m, PARAMETER, r, p, null);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -429,10 +436,10 @@ public class AidlParser implements PsiParser {
   static boolean parameterList(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parameterList")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_);
     r = parameter(b, l + 1);
     r = r && parameterList_1(b, l + 1);
-    exit_section_(b, l, m, null, r, false, parameterListRecover_parser_);
+    exit_section_(b, l, m, r, false, parameterListRecover_parser_);
     return r;
   }
 
@@ -464,19 +471,9 @@ public class AidlParser implements PsiParser {
   static boolean parameterListRecover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "parameterListRecover")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NOT_, null);
-    r = !parameterListRecover_0(b, l + 1);
-    exit_section_(b, l, m, null, r, false, null);
-    return r;
-  }
-
-  // (')')
-  private static boolean parameterListRecover_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "parameterListRecover_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, RPARENTH);
-    exit_section_(b, m, null, r);
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !consumeToken(b, RPARENTH);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -486,12 +483,12 @@ public class AidlParser implements PsiParser {
     if (!recursion_guard_(b, l, "parameters")) return false;
     if (!nextTokenIs(b, LPARENTH)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_);
     r = consumeToken(b, LPARENTH);
     p = r; // pin = 1
     r = r && report_error_(b, parameters_1(b, l + 1));
     r = p && consumeToken(b, RPARENTH) && r;
-    exit_section_(b, l, m, null, r, p, null);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -509,12 +506,12 @@ public class AidlParser implements PsiParser {
     if (!recursion_guard_(b, l, "parcelableDeclaration")) return false;
     if (!nextTokenIs(b, "<parcelable declaration>", FLATTENABLE_KEYWORD, PARCELABLE_KEYWORD)) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, "<parcelable declaration>");
+    Marker m = enter_section_(b, l, _NONE_, PARCELABLE_DECLARATION, "<parcelable declaration>");
     r = parcelableDeclaration_0(b, l + 1);
-    if (!r) r = parcelableDeclaration_1(b, l + 1);
+    if (!r) r = parseTokens(b, 0, PARCELABLE_KEYWORD, SEMICOLON);
     if (!r) r = parcelableDeclaration_2(b, l + 1);
-    if (!r) r = parcelableDeclaration_3(b, l + 1);
-    exit_section_(b, l, m, PARCELABLE_DECLARATION, r, false, null);
+    if (!r) r = parseTokens(b, 0, FLATTENABLE_KEYWORD, SEMICOLON);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -525,17 +522,6 @@ public class AidlParser implements PsiParser {
     Marker m = enter_section_(b);
     r = consumeToken(b, PARCELABLE_KEYWORD);
     r = r && declarationName(b, l + 1);
-    r = r && consumeToken(b, SEMICOLON);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
-  // PARCELABLE_KEYWORD ';'
-  private static boolean parcelableDeclaration_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "parcelableDeclaration_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, PARCELABLE_KEYWORD);
     r = r && consumeToken(b, SEMICOLON);
     exit_section_(b, m, null, r);
     return r;
@@ -553,17 +539,6 @@ public class AidlParser implements PsiParser {
     return r;
   }
 
-  // FLATTENABLE_KEYWORD ';'
-  private static boolean parcelableDeclaration_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "parcelableDeclaration_3")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, FLATTENABLE_KEYWORD);
-    r = r && consumeToken(b, SEMICOLON);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
   /* ********************************************************** */
   // BOOLEAN_KEYWORD
   //   |   BYTE_KEYWORD
@@ -576,7 +551,7 @@ public class AidlParser implements PsiParser {
   public static boolean primitiveType(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "primitiveType")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, "<primitive type>");
+    Marker m = enter_section_(b, l, _NONE_, PRIMITIVE_TYPE, "<primitive type>");
     r = consumeToken(b, BOOLEAN_KEYWORD);
     if (!r) r = consumeToken(b, BYTE_KEYWORD);
     if (!r) r = consumeToken(b, CHAR_KEYWORD);
@@ -585,7 +560,7 @@ public class AidlParser implements PsiParser {
     if (!r) r = consumeToken(b, LONG_KEYWORD);
     if (!r) r = consumeToken(b, FLOAT_KEYWORD);
     if (!r) r = consumeToken(b, DOUBLE_KEYWORD);
-    exit_section_(b, l, m, PRIMITIVE_TYPE, r, false, null);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 
@@ -630,10 +605,10 @@ public class AidlParser implements PsiParser {
   public static boolean type(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, "<type>");
+    Marker m = enter_section_(b, l, _COLLAPSE_, TYPE, "<type>");
     r = consumeToken(b, VOID_KEYWORD);
     if (!r) r = type_1(b, l + 1);
-    exit_section_(b, l, m, TYPE, r, false, type_recover_parser_);
+    exit_section_(b, l, m, r, false, type_recover_parser_);
     return r;
   }
 
@@ -676,8 +651,7 @@ public class AidlParser implements PsiParser {
     if (!recursion_guard_(b, l, "type_1_1_0")) return false;
     boolean r;
     Marker m = enter_section_(b);
-    r = consumeToken(b, LBRACKET);
-    r = r && consumeToken(b, RBRACKET);
+    r = consumeTokens(b, 0, LBRACKET, RBRACKET);
     exit_section_(b, m, null, r);
     return r;
   }
@@ -688,13 +662,13 @@ public class AidlParser implements PsiParser {
     if (!recursion_guard_(b, l, "typeArguments")) return false;
     if (!nextTokenIs(b, LT)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, null);
+    Marker m = enter_section_(b, l, _NONE_, TYPE_ARGUMENTS, null);
     r = consumeToken(b, LT);
     p = r; // pin = 1
     r = r && report_error_(b, type(b, l + 1));
     r = p && report_error_(b, typeArguments_2(b, l + 1)) && r;
     r = p && consumeToken(b, GT) && r;
-    exit_section_(b, l, m, TYPE_ARGUMENTS, r, p, null);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -726,9 +700,9 @@ public class AidlParser implements PsiParser {
   static boolean type_recover(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "type_recover")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NOT_, null);
+    Marker m = enter_section_(b, l, _NOT_);
     r = !type_recover_0(b, l + 1);
-    exit_section_(b, l, m, null, r, false, null);
+    exit_section_(b, l, m, r, false, null);
     return r;
   }
 

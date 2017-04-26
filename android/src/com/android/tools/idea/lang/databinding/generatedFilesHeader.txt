@@ -16,15 +16,3 @@
 
 // ATTENTION: This file has been automatically generated from db.bnf. Do not edit it manually.
 
-package com.android.tools.idea.lang.databinding.psi;
-
-import java.util.List;
-import org.jetbrains.annotations.*;
-import com.intellij.psi.PsiElement;
-
-public interface PsiDbTypeArguments extends PsiElement {
-
-  @NotNull
-  List<PsiDbType> getTypeList();
-
-}
