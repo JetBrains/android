@@ -45,6 +45,12 @@ public class RoomColumnAliasImpl extends ASTWrapperPsiElement implements RoomCol
 
   @Override
   @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getIdentifier() {
     return findChildByType(IDENTIFIER);
   }

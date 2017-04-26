@@ -45,6 +45,12 @@ public class RoomDatabaseNameImpl extends ASTWrapperPsiElement implements RoomDa
 
   @Override
   @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getIdentifier() {
     return findChildByType(IDENTIFIER);
   }

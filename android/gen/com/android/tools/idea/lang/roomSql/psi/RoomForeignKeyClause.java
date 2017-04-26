@@ -31,6 +31,9 @@ public interface RoomForeignKeyClause extends PsiElement {
   RoomForeignTable getForeignTable();
 
   @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
   PsiElement getIdentifier();
 
   @Nullable

@@ -28,6 +28,9 @@ public interface RoomPragmaValue extends PsiElement {
   RoomSignedNumber getSignedNumber();
 
   @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
   PsiElement getIdentifier();
 
   @Nullable

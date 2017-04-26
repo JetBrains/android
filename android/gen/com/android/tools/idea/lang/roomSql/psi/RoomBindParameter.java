@@ -24,7 +24,7 @@ import com.intellij.psi.PsiElement;
 
 public interface RoomBindParameter extends PsiElement {
 
-  @NotNull
+  @Nullable
   PsiElement getParameterName();
 
 }

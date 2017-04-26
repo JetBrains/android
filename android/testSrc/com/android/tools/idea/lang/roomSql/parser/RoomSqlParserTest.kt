@@ -69,7 +69,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
     check("select *, myTable.*, foo, 'bar', 12 from myTable")
     check("select foo from bar, baz")
     check("select foo from bar join baz")
-    check("select foo from bar natural cross join baz on x")
+    check("select foo from bar natural cross join baz on x left outer join quux")
     check("select foo as f from bar left outer join baz on foo.x = baz.x")
     check("select foo from myTable where bar > 17")
     check("select foo from myTable group by bar")
@@ -114,6 +114,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
     check("select * from user where name is null")
     check("select * from user where name is not null")
     check("select * from user where name like 'Joe'")
+    check("select * from user where name like ?")
     check("select cast(name as text) from foo")
     check("select * from t where c in ('foo', 'bar', 'baz')")
     check("select 0xff, 'Mike''s car', :foo")
@@ -141,6 +142,8 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
     check("select X'111'") // Blob literal.
 
     check("select foo, t, t2, T3, :mójArgument from MyTable join ę2")
+    check("select [table].[column] from [database].[column]")
+    check("""CREATE TABLE "TABLE"("#!@""'☺\", "");""")
   }
 
   fun testMultipleExpressions() {
