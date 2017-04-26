@@ -120,7 +120,9 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private final Map<GraphicGenerator.Shape, String> myShapeNames = ImmutableMap.of(
     GraphicGenerator.Shape.NONE, "None",
     GraphicGenerator.Shape.CIRCLE, "Circle",
-    GraphicGenerator.Shape.SQUARE, "Square");
+    GraphicGenerator.Shape.SQUARE, "Square",
+    GraphicGenerator.Shape.VRECT, "Vertical",
+    GraphicGenerator.Shape.HRECT, "Horizontal");
 
   private JPanel myRootPanel;
   private JBLabel myOutputNameLabel;
