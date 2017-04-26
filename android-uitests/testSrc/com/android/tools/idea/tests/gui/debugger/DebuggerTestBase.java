@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.ndk.MiscUtils;
 import com.google.common.collect.Lists;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.timing.Wait;
@@ -54,19 +53,15 @@ public class DebuggerTestBase extends TestWithEmulator {
     contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 70);
   }
 
-  void checkBreakPointsAreHit(IdeFrameFixture ideFrame, String[][] expectedPatterns) {
-    // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns
-    for (String[] patterns : expectedPatterns) {
-      checkAppIsPaused(ideFrame, patterns, true);
-    }
+  void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern) {
+    Wait.seconds(5).expecting("variable patterns to match")
+        .until(() -> verifyVariablesAtBreakpoint(ideFrame, expectedPattern, DEBUG_CONFIG_NAME));
   }
 
-  void checkAppIsPaused(IdeFrameFixture ideFrame, String[] expectedPattern, boolean resumeProgram) {
-    Wait.seconds(5).expecting("the debugger tree to appear")
-        .until(() -> verifyVariablesAtBreakpoint(ideFrame, expectedPattern, DEBUG_CONFIG_NAME));
-    if (resumeProgram) {
-      MiscUtils.invokeMenuPathOnRobotIdle(ideFrame, "Run", "Resume Program");
-    }
+  protected static void resume(@NotNull String debugConfigName, IdeFrameFixture ideFrame) {
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
+    final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
+    contentFixture.clickResumeButton();
   }
 
   private boolean verifyVariablesAtBreakpoint(IdeFrameFixture ideFrame, String[] expectedVariablePatterns, String debugConfigName) {
