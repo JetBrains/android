@@ -25,7 +25,6 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -98,11 +97,6 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     Content content = contents[0];
     JComboBox comboBox = myRobot.finder().findByType(content.getComponent(), JComboBox.class, true);
     return new JComboBoxFixture(myRobot, comboBox);
-  }
-
-  @Nullable
-  public String getSelectedTestArtifact() {
-    return getTestArtifactComboBox().selectedItem();
   }
 
   @NotNull
