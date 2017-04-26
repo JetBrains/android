@@ -20,6 +20,7 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

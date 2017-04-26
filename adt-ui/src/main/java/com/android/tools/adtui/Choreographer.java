@@ -19,7 +19,8 @@ package com.android.tools.adtui;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.FpsTimer;
 import com.android.tools.adtui.model.StopwatchTimer;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -32,7 +33,7 @@ import java.util.List;
  * running at a specific frame rate. This ensures all UI components and model classes are reading
  * and displaying consistent information at any given time.
  *
- * Deprecated. Please use {@link com.android.tools.adtui.model.Updater} instead.
+ * Deprecated. Please use {@link Updater} instead.
  */
 @Deprecated
 public class Choreographer implements StopwatchTimer.TickHandler {

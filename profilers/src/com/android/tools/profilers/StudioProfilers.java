@@ -17,6 +17,8 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfiler;

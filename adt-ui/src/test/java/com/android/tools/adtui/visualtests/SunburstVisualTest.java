@@ -17,7 +17,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
 import com.google.common.collect.ImmutableList;

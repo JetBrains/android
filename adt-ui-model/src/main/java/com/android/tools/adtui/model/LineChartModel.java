@@ -15,7 +15,8 @@
  */
 package com.android.tools.adtui.model;
 
-import com.intellij.util.containers.ImmutableList;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
