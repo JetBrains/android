@@ -25,8 +25,11 @@ import javax.swing.*;
 
 public class DexPackageNode extends DexElementNode {
 
-  public DexPackageNode(@NotNull String name) {
+  @Nullable private final String packageName;
+
+  public DexPackageNode(@NotNull String name, @Nullable String packageName) {
     super(name, true);
+    this.packageName = packageName;
   }
 
   @NotNull
@@ -45,7 +48,7 @@ public class DexPackageNode extends DexElementNode {
       String nextSegment = qualifiedClassName.substring(i + 1);
       DexPackageNode packageNode = getChildByType(segment, DexPackageNode.class);
       if (packageNode == null){
-        packageNode = new DexPackageNode(segment);
+        packageNode = new DexPackageNode(segment, combine(parentPackage, segment));
         add(packageNode);
       }
       return packageNode.getOrCreateClass(combine(parentPackage, segment), nextSegment, typeReference);
@@ -77,5 +80,10 @@ public class DexPackageNode extends DexElementNode {
     setRemoved(isRemoved);
     setMethodDefinitionsCount(methodDefinitions);
     setMethodReferencesCount(methodReferences);
+  }
+
+  @Nullable
+  public String getPackageName() {
+    return packageName;
   }
 }
