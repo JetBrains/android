@@ -18,7 +18,7 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.model.FpsTimer;
 import com.android.tools.adtui.model.StopwatchTimer;
-import com.android.tools.adtui.model.Updater;
+import com.android.tools.adtui.model.updater.Updater;
 import com.intellij.ide.ui.laf.darcula.DarculaLaf;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;

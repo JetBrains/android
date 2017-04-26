@@ -21,6 +21,8 @@ import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -116,6 +118,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private int myProfilingSamplingIntervalUs = 1000;  // TODO: Make it configurable.
 
+  @NotNull
+  private final UpdatableManager myUpdatableManager;
+
   /**
    * A cache of already parsed captures, indexed by trace_id.
    */
@@ -164,6 +169,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     updateProfilingState();
 
     myCaptureModel = new CaptureModel(this);
+    myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
   }
 
   @NotNull
@@ -240,8 +246,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
     mySelectionModel.clearListeners();
+
+    myUpdatableManager.releaseAll();
   }
 
+  @NotNull
+  public UpdatableManager getUpdatableManager() {
+    return myUpdatableManager;
+  }
 
   public AspectModel<CpuProfilerAspect> getAspect() {
     return myAspect;

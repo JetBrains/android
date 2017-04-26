@@ -17,13 +17,12 @@
 package com.android.tools.adtui.visualtests.threadgraph;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.chart.hchart.Method;
-import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;

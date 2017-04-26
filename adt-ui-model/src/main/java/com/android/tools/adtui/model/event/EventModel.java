@@ -17,7 +17,7 @@ package com.android.tools.adtui.model.event;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 
 public class EventModel<E> extends AspectModel<EventModel.Aspect> implements Updatable {

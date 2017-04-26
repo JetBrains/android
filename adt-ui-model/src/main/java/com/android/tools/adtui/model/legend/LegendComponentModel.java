@@ -16,7 +16,7 @@
 package com.android.tools.adtui.model.legend;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

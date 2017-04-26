@@ -21,6 +21,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 

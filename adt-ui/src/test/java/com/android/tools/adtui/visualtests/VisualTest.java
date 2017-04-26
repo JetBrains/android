@@ -18,8 +18,8 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.model.FpsTimer;
-import com.android.tools.adtui.model.Updatable;
-import com.android.tools.adtui.model.Updater;
+import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.adtui.model.updater.Updater;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
 
