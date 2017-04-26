@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.lint;
 
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
@@ -40,6 +46,8 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   private final String myName;
   @RegEx private final String myRegexp;
   private final String myNewValue;
+  private boolean myShortenNames;
+  private boolean myFormat;
 
   /**
    * Creates a new lint quickfix which can replace string contents at the given PSI element
@@ -55,6 +63,18 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
       regexp = "(" + Pattern.quote(regexp) + ")";
     }
     myRegexp = regexp;
+  }
+
+  /** Sets whether the replace operation should attempt to shorten class names after the replacement */
+  public ReplaceStringQuickFix setShortenNames(boolean shortenNames) {
+    myShortenNames = shortenNames;
+    return this;
+  }
+
+  /** Sets whether the replace operation should attempt to shorten class names after the replacement */
+  public ReplaceStringQuickFix setFormat(boolean format) {
+    myFormat = format;
+    return this;
   }
 
   @NotNull
@@ -79,14 +99,37 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
 
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-    Document document = FileDocumentManager.getInstance().getDocument(startElement.getContainingFile().getVirtualFile());
+    PsiFile file = startElement.getContainingFile();
+    Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
     String newValue = getNewValue();
     if (document != null && newValue != null) {
       editBefore(document);
       TextRange range = getRange(startElement, endElement);
       if (range != null) {
-        document.replaceString(range.getStartOffset(), range.getEndOffset(), newValue);
+        int startOffset = range.getStartOffset();
+        int endOffset = range.getEndOffset();
+        document.replaceString(startOffset, endOffset, newValue);
+        endOffset = startOffset + newValue.length();
         editAfter(document);
+        if (myShortenNames || myFormat) {
+          Project project = startElement.getProject();
+          PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
+          documentManager.commitDocument(document);
+
+          PsiElement element = file.findElementAt(startOffset);
+          if (element == null) {
+            return;
+          }
+          if (myShortenNames && element.getLanguage() == JavaLanguage.INSTANCE) {
+            PsiElement parent = element.getParent();
+            parent = JavaCodeStyleManager.getInstance(project).shortenClassReferences(parent);
+            if (myFormat) {
+              CodeStyleManager.getInstance(project).reformat(parent);
+            }
+          } else if (myFormat) {
+            CodeStyleManager.getInstance(project).reformatRange(element, startOffset, endOffset);
+          }
+        }
       }
     }
   }
