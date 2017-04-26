@@ -254,14 +254,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
-  /** Similar to runApp except doesn't wait for a DeployTargetPickerDialog after. */
-  @NotNull
-  public IdeFrameFixture runNonAndroidApp(@NotNull String appName) {
-    selectApp(appName);
-    findActionButtonByActionId("Run").click();
-    return this;
-  }
-
   @NotNull
   public IdeFrameFixture stopApp() {
     return invokeMenuPath("Run", "Stop \'app\'");

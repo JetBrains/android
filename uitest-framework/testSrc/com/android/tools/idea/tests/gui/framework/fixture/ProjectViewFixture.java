@@ -32,7 +32,6 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.keymap.KeymapManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -148,23 +147,6 @@ public class ProjectViewFixture extends ToolWindowFixture {
     public PaneFixture expand() {
       GuiTask.execute(() -> TreeUtil.expandAll(myPane.getTree()));
       return this;
-    }
-
-    /* Returns {@code true} if the tree root has a child {@link Module} with {@code name}, {@code false} otherwise. */
-    public boolean hasModuleRootNode(@NotNull String name) {
-      final AbstractTreeStructure treeStructure = getTreeStructure();
-      return GuiQuery.getNonNull(
-        () -> {
-          Object[] childElements = treeStructure.getChildElements(treeStructure.getRootElement());
-          for (Object child : childElements) {
-            ProjectViewNode childNode = (ProjectViewNode)child;
-            Object value = childNode.getValue();
-            if (value instanceof Module && ((Module)value).getName().equals(name)) {
-              return true;
-            }
-          }
-          return false;
-        });
     }
 
     @NotNull
