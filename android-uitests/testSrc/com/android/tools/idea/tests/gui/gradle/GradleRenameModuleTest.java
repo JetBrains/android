@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDepend
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.InputDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
@@ -48,17 +47,13 @@ public class GradleRenameModuleTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath("SimpleApplication", "app")
-      .invokeMenuPath("Refactor", "Rename...");
-
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
-    selectRefactoringDialog.selectRenameModule();
-    selectRefactoringDialog.clickOk();
-
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
-    renameModuleDialog.enterTextAndClickOk("app2");
-    renameModuleDialog.waitUntilNotShowing();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
+      .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
+      .selectRenameModule()
+      .clickOk()
+      .enterText("app2")
+      .clickOk()
+      .waitForGradleProjectSyncToStart()
+      .waitForGradleProjectSyncToFinish();
     assertThat(guiTest.ideFrame().hasModule("app2")).named("app2 module exists").isTrue();
     assertThat(guiTest.ideFrame().hasModule("app")).named("app module exists").isFalse();
   }
@@ -69,14 +64,11 @@ public class GradleRenameModuleTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath("MultiModule", "library")
-      .invokeMenuPath("Refactor", "Rename...");
-
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
-    selectRefactoringDialog.selectRenameModule();
-    selectRefactoringDialog.clickOk();
-
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
-    renameModuleDialog.enterTextAndClickOk("newLibrary");
+      .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
+      .selectRenameModule()
+      .clickOk()
+      .enterText("newLibrary")
+      .clickOk();
 
     guiTest.waitForBackgroundTasks();
     assertThat(guiTest.ideFrame().hasModule("newLibrary")).named("newLibrary module exists").isTrue();
@@ -99,15 +91,9 @@ public class GradleRenameModuleTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath("SimpleApplication")
-      .invokeMenuPath("Refactor", "Rename...");
-
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
-    renameModuleDialog.enterTextAndClickOk("SimpleApplication2");
-
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), "Rename Module");
-    errorMessage.requireMessageContains("Can't rename root module");
-
-    errorMessage.clickOk();
+      .openFromMenu(InputDialogFixture::find, "Refactor", "Rename...")
+      .enterText("SimpleApplication2")
+      .clickOkAndRequireError("Can't rename root module");
   }
 
   @Test
@@ -116,20 +102,11 @@ public class GradleRenameModuleTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath("MultiModule", "app")
-      .invokeMenuPath("Refactor", "Rename...");
-
-    SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
-    selectRefactoringDialog.selectRenameModule();
-    selectRefactoringDialog.clickOk();
-
-    InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
-    renameModuleDialog.enterTextAndClickOk("library2");
-
-    MessagesFixture errorMessage = MessagesFixture.findByTitle(guiTest.robot(), "Rename Module");
-    errorMessage.requireMessageContains("Module named 'library2' already exist");
-
-    errorMessage.clickOk();
-    // In this case, the rename dialog will let you choose another name, click cancel to close the dialog
-    renameModuleDialog.clickCancel();
+      .openFromMenu(SelectRefactoringDialogFixture::find, "Refactor", "Rename...")
+      .selectRenameModule()
+      .clickOk()
+      .enterText("library2")
+      .clickOkAndRequireError("Module named 'library2' already exist")
+      .clickCancel();
   }
 }
