@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewVectorAssetStepFixture;
 import org.junit.Before;
@@ -38,10 +37,11 @@ public class NewVectorAssetTest {
 
   @Before
   public void openAssetStudioWizard() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    frame.getProjectView().selectAndroidPane().clickPath("app");
-
-    myDialog = frame.openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
+    myDialog = guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
     myStep = myDialog.getVectorAssetStep();
 
     assertThat(myDialog.findWizardButton("Next").isEnabled()).isTrue();

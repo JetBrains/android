@@ -85,8 +85,7 @@ public class FlavorsExecutionTest extends TestWithEmulator {
     guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
-      .clickPath("SimpleApplication", "app");
-    guiTest.ideFrame()
+      .clickPath("SimpleApplication", "app")
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Basic Activity")
       .getConfigureActivityStep()
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME, FIRST_ACTIVITY_NAME)
@@ -98,8 +97,7 @@ public class FlavorsExecutionTest extends TestWithEmulator {
     guiTest.ideFrame()
       .getProjectView()
       .selectProjectPane()
-      .clickPath("SimpleApplication", "app");
-    guiTest.ideFrame()
+      .clickPath("SimpleApplication", "app")
       .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Basic Activity")
       .getConfigureActivityStep()
       .enterTextFieldValue(ConfigureBasicActivityStepFixture.ActivityTextField.NAME, SECOND_ACTIVITY_NAME)

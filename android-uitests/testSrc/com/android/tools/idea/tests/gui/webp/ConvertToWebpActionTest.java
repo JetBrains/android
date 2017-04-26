@@ -58,8 +58,8 @@ public class ConvertToWebpActionTest {
     guiTest.ideFrame()
       .getProjectView()
       .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png");
-    guiTest.ideFrame().invokeMenuPath("Convert to WebP...");
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
+      .invokeMenuPath("Convert to WebP...");
 
     WebpConversionDialogFixture.findDialog(guiTest.robot())
       .selectLossless()
@@ -87,8 +87,8 @@ public class ConvertToWebpActionTest {
     guiTest.ideFrame()
       .getProjectView()
       .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png");
-    guiTest.ideFrame().invokeMenuPath("Convert to WebP...");
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
+      .invokeMenuPath("Convert to WebP...");
 
     // Settings dialog
     WebpConversionDialogFixture.findDialog(guiTest.robot())
@@ -128,8 +128,8 @@ public class ConvertToWebpActionTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
       .getProjectView()
       .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png");
-    guiTest.ideFrame().invokeMenuPath("Convert to WebP...");
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
+      .invokeMenuPath("Convert to WebP...");
 
     WebpConversionDialogFixture.findDialog(guiTest.robot())
       .clickOk();
@@ -173,8 +173,8 @@ public class ConvertToWebpActionTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
       .getProjectView()
       .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test2.webp");
-    guiTest.ideFrame().invokeMenuPath("Convert to PNG...");
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test2.webp")
+      .invokeMenuPath("Convert to PNG...");
 
     MessagesFixture.findByTitle(guiTest.robot(), "Convert from WebP to PNG")
       .clickYes();

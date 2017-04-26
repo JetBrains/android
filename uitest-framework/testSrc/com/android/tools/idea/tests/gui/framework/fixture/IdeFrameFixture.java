@@ -555,7 +555,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ProjectViewFixture getProjectView() {
-    return new ProjectViewFixture(getProject(), robot());
+    return new ProjectViewFixture(this);
   }
 
   @NotNull
