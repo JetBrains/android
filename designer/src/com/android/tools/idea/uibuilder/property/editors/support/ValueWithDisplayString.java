@@ -30,7 +30,6 @@ public class ValueWithDisplayString {
   public static final ValueWithDisplayString UNSET = new ValueWithDisplayString("none", null);
 
   private final String myDisplayString;
-  private final Icon myDisplayIcon;
   private final String myValue;
   private final String myHint;
   private final ValueSelector mySelector;
@@ -41,16 +40,14 @@ public class ValueWithDisplayString {
   }
 
   public ValueWithDisplayString(@Nullable String displayString, @Nullable String value, @Nullable String hint) {
-    this(displayString, null, value, hint, null);
+    this(displayString, value, hint, null);
   }
 
   public ValueWithDisplayString(@Nullable String displayString,
-                                @Nullable Icon displayIcon,
                                 @Nullable String value,
                                 @Nullable String hint,
                                 @Nullable ValueSelector selector) {
     myDisplayString = StringUtil.notNullize(displayString);
-    myDisplayIcon = displayIcon;
     myValue = value;
     myHint = hint;
     mySelector = selector;
@@ -65,11 +62,6 @@ public class ValueWithDisplayString {
   @NotNull
   public String getDisplayString() {
     return myDisplayString;
-  }
-
-  @Nullable
-  public Icon getDisplayIcon() {
-    return myDisplayIcon;
   }
 
   @Nullable

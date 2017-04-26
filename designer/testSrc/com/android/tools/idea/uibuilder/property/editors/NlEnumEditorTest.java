@@ -23,26 +23,32 @@ import static com.android.SdkConstants.*;
 import static java.awt.event.KeyEvent.*;
 
 public class NlEnumEditorTest extends PropertyTestCase {
-  private NlEnumEditorFixture myFixture;
+  private NlEnumEditorFixture myEditorFixture;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myFixture = NlEnumEditorFixture.create();
+    myFixture.setTestDataPath(getTestDataPath());
+    myEditorFixture = NlEnumEditorFixture.create();
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      myFixture.tearDown();
+      myEditorFixture.tearDown();
     }
     finally {
       super.tearDown();
     }
   }
 
+  @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
+  public static String getTestDataPath() {
+    return getAndroidPluginHome() + "/testData";
+  }
+
   public void testEscapeRestoresOriginalAfterTyping() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .expectText("wrap_content")
       .expectSelectedText(null)
@@ -56,7 +62,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEscapeRestoresOriginalSelecting() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .expectText("wrap_content")
       .expectSelectedText(null)
@@ -77,7 +83,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testFocusLoss() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .expectText("wrap_content")
       .expectSelectedText(null)
@@ -93,7 +99,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testReplaceAddedValue() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .expectText("wrap_content")
       .expectSelectedText(null)
@@ -114,7 +120,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectItemThroughModel() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .gainFocus()
       .setSelectedModelItem("60")
@@ -126,7 +132,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterSimpleDimension() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .expectText("wrap_content")
       .expectSelectedText(null)
@@ -142,7 +148,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterDimensionFromResourceValue() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .gainFocus()
       .type("@android:dimen/notification_large_icon_width")
@@ -160,7 +166,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectFromDimensionList() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .gainFocus()
       .type("@android:dimen/notification_large_icon_width")
@@ -195,7 +201,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectFromRadioGroupChoices() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myRadioGroup, ATTR_CHECKED_BUTTON))
       .expectSelectedText(null)
       .expectText("none")
@@ -215,7 +221,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterId() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myRadioGroup, ATTR_CHECKED_BUTTON))
       .expectSelectedText(null)
       .expectText("none")
@@ -248,7 +254,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectTextAppearance() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall"))
       .expectSelectedText(null)
       .expectText("Small")
@@ -271,7 +277,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterTextAppearanceFoundInModel() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall"))
       .expectSelectedText(null)
       .expectText("Small")
@@ -287,7 +293,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterTextAppearanceNotFoundInModel() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall"))
       .expectSelectedText(null)
       .expectText("Small")
@@ -321,7 +327,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectTextAppearanceInSwitch() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_SWITCH_TEXT_APPEARANCE, "@style/TextAppearance.Material.Widget.Switch"))
       .expectSelectedText(null)
       .expectText("Material.Widget.Switch")
@@ -345,7 +351,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterTextAppearanceInSwitchFoundInModel() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_SWITCH_TEXT_APPEARANCE, "@style/TextAppearance.Material.Widget.Switch"))
       .expectSelectedText(null)
       .expectText("Material.Widget.Switch")
@@ -361,7 +367,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterTextAppearanceInSwitchNotFoundInModel() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_SWITCH_TEXT_APPEARANCE, "@style/TextAppearance.Material.Widget.Switch"))
       .expectSelectedText(null)
       .expectText("Material.Widget.Switch")
@@ -376,7 +382,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectStyleInSwitch() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_STYLE, "?android:switchStyle"))
       .expectSelectedText(null)
       .expectText("Widget.CompoundButton.Switch")
@@ -396,7 +402,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterStyleInSwitchFoundInModel() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_STYLE, "?android:switchStyle"))
       .expectSelectedText(null)
       .expectText("Widget.CompoundButton.Switch")
@@ -411,7 +417,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterStyleInSwitchNotFoundInModel() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_STYLE, "?android:switchStyle"))
       .expectSelectedText(null)
       .expectText("Widget.CompoundButton.Switch")
@@ -426,7 +432,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectFontFamily() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_FONT_FAMILY, "@string/font_family_body_1_material"))
       .expectSelectedText(null)
       .expectText("sans-serif")
@@ -453,8 +459,44 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectValue("serif");
   }
 
+  public void testFontFamilyPopupContentUpdatedOnShowPopup() {
+    myEditorFixture
+      .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_FONT_FAMILY, "sans-serif"))
+      .gainFocus()
+      .showPopup()
+      .expectChoices("sans-serif", null,
+                     "sans-serif", "sans-serif",
+                     "sans-serif-condensed", "sans-serif-condensed",
+                     "serif", "serif",
+                     "monospace", "monospace",
+                     "serif-monospace", "serif-monospace",
+                     "casual", "casual",
+                     "cursive", "cursive",
+                     "sans-serif-smallcaps", "sans-serif-smallcaps")
+      .hidePopup();
+
+    // Add another font to the project:
+    myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf");
+
+    // Verify that this font shows up in the popup list:
+    myEditorFixture
+      .showPopup()
+      .expectChoices("sans-serif", null,
+                     "customfont", "@font/customfont",
+                     "-", "-",
+                     "sans-serif", "sans-serif",
+                     "sans-serif-condensed", "sans-serif-condensed",
+                     "serif", "serif",
+                     "monospace", "monospace",
+                     "serif-monospace", "serif-monospace",
+                     "casual", "casual",
+                     "cursive", "cursive",
+                     "sans-serif-smallcaps", "sans-serif-smallcaps")
+      .hidePopup();
+  }
+
   public void testSelectTypeface() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_TYPEFACE))
       .expectSelectedText(null)
       .expectText("none")
@@ -477,7 +519,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectTextSize() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_TEXT_SIZE, "@dimen/text_size_small_material"))
       .expectSelectedText(null)
       .expectText("14sp")
@@ -504,7 +546,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterTextSize() {
-    myFixture
+    myEditorFixture
       .setProperty(getPropertyWithDefaultValue(myTextView, ATTR_TEXT_SIZE, "@dimen/text_size_small_material"))
       .expectSelectedText(null)
       .expectText("14sp")
@@ -529,7 +571,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectLineSpacing() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LINE_SPACING_EXTRA))
       .expectSelectedText(null)
       .expectText("none")
@@ -556,7 +598,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterLineSpacing() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LINE_SPACING_EXTRA))
       .expectSelectedText(null)
       .expectText("none")
@@ -581,7 +623,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectWidth() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
       .expectText("wrap_content")
       .gainFocus()
@@ -599,7 +641,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectHeight() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myTextView, ATTR_LAYOUT_HEIGHT))
       .expectText("wrap_content")
       .gainFocus()
@@ -617,7 +659,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectDropDownWidth() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myAutoCompleteTextView, ATTR_DROPDOWN_WIDTH))
       .expectText("none")
       .gainFocus()
@@ -636,7 +678,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectDropDownHeight() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myAutoCompleteTextView, ATTR_DROPDOWN_HEIGHT))
       .expectText("none")
       .gainFocus()
@@ -655,7 +697,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectOnClick() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myButton, ATTR_ON_CLICK))
       .expectText("none")
       .gainFocus()
@@ -669,7 +711,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testEnterOnClick() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myButton, ATTR_ON_CLICK))
       .expectText("none")
       .gainFocus()
@@ -682,7 +724,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSelectVisibility() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myButton, ATTR_VISIBILITY))
       .expectText("none")
       .gainFocus()
@@ -702,7 +744,7 @@ public class NlEnumEditorTest extends PropertyTestCase {
   }
 
   public void testSetEmptyProperty() {
-    myFixture
+    myEditorFixture
       .setProperty(getProperty(myButton, ATTR_VISIBILITY))
       .setProperty(EmptyProperty.INSTANCE);
   }
