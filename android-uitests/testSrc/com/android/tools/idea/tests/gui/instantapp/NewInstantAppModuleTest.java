@@ -51,7 +51,7 @@ import static org.junit.Assert.assertNull;
 /**
  * Test that newly created Instant App modules do not have errors in them
  */
-@RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NewInstantAppModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
