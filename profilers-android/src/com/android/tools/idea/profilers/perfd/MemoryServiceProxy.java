@@ -162,10 +162,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
     }
     else {
       // Post-O tracking - goes straight to perfd.
-      response = myServiceStub.trackAllocations(TrackAllocationsRequest.newBuilder()
-                                                  .setProcessId(request.getProcessId())
-                                                  .setEnabled(request.getEnabled())
-                                                  .build());
+      response = myServiceStub.trackAllocations(request);
     }
 
     responseObserver.onNext(response);

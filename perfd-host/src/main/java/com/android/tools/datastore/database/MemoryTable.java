@@ -89,16 +89,16 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Id = ?"),
 
     // O+ Allocation Tracking
-    INSERT_CLASS("INSERT INTO Memory_AllocatedClass (Pid, Session, TrackingStartTime, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?, ?)"),
+    INSERT_CLASS("INSERT INTO Memory_AllocatedClass (Pid, Session, CaptureTime, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?, ?)"),
     INSERT_ALLOC(
-      "INSERT INTO Memory_AllocationEvents (Pid, Session, TrackingStartTime, Tag, ClassTag, AllocTime, FreeTime, Size, Length) " +
+      "INSERT INTO Memory_AllocationEvents (Pid, Session, CaptureTime, Tag, ClassTag, AllocTime, FreeTime, Size, Length) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"),
     UPDATE_ALLOC(
-      "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND TrackingStartTime = ? AND Tag = ?"),
-    QUERY_CLASS("SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ?"),
+      "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND Tag = ?"),
+    QUERY_CLASS("SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND CaptureTime = ?"),
     // XORing (AllocTime >= startTime AND AllocTime < endTime) and (FreeTime >= startTime AND FreeTime < endTime)
     QUERY_ALLOC_SNAPSHOT("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length FROM Memory_AllocationEvents " +
-                         "WHERE Pid = ? AND Session = ? AND AllocTime < ? AND FreeTime >= ? AND " +
+                         "WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND AllocTime < ? AND FreeTime >= ? AND " +
                          "((AllocTime >= ? OR FreeTime < ?) AND " +
                          "NOT (AllocTime >= ? AND FreeTime < ?))");
 
@@ -135,14 +135,13 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
                   "EndTime INTEGER", "Status INTEGER", "InfoData BLOB", "DumpData BLOB", "PRIMARY KEY(Pid, Session, StartTime)");
 
       // O+ Allocation Tracking
-      createTable("Memory_AllocatedClass", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "TrackingStartTime INTEGER",
+      createTable("Memory_AllocatedClass", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "CaptureTime INTEGER",
                   "Tag INTEGER", "AllocTime INTEGER", "Name TEXT",
-                  "PRIMARY KEY(Pid, Session, TrackingStartTime, Tag)");
-      createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "TrackingStartTime INTEGER",
+                  "PRIMARY KEY(Pid, Session, CaptureTime, Tag)");
+      createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "CaptureTime INTEGER",
                   "Tag INTEGER", "ClassTag INTEGER", "AllocTime INTEGER", "FreeTime INTERGER", "Size INTEGER", "Length INTEGER",
-                  "PRIMARY KEY(Pid, Session, TrackingStartTime, Tag)");
-      // TODO: including TrackingStartTime. Currently value is invalid coming from perfd+perfa.
-      createIndex("Memory_AllocationEvents", "Pid", "Session", "AllocTime", "FreeTime");
+                  "PRIMARY KEY(Pid, Session, CaptureTime, Tag)");
+      createIndex("Memory_AllocationEvents", "Pid", "Session", "CaptureTime", "AllocTime", "FreeTime");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -384,12 +383,16 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     return builder.build();
   }
 
-  public BatchAllocationSample getAllocationSnapshot(int pid, Common.Session session, long startTime, long endTime) {
+  public BatchAllocationSample getAllocationSnapshot(int pid,
+                                                     Common.Session session,
+                                                     long captureTime,
+                                                     long startTime,
+                                                     long endTime) {
     BatchAllocationSample.Builder sampleBuilder = BatchAllocationSample.newBuilder();
     try {
       // Query all the classes
       // TODO: only return classes that are valid for current snapshot?
-      ResultSet klassResult = executeQuery(QUERY_CLASS, pid, session);
+      ResultSet klassResult = executeQuery(QUERY_CLASS, pid, session, captureTime);
       while (klassResult.next()) {
         long allocTime = klassResult.getLong(2);
         AllocationEvent event = AllocationEvent.newBuilder()
@@ -400,7 +403,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
       // Then get all allocation events that are valid for requestTime.
       ResultSet allocResult =
-        executeQuery(QUERY_ALLOC_SNAPSHOT, pid, session, endTime, startTime, startTime, endTime, startTime, endTime);
+        executeQuery(QUERY_ALLOC_SNAPSHOT, pid, session, captureTime, endTime, startTime, startTime, endTime, startTime, endTime);
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
         long freeTime = allocResult.getLong(4);
@@ -448,17 +451,17 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
         switch (currentCase) {
           case CLASS_DATA:
             AllocationEvent.Klass klass = event.getClassData();
-            applyParams(currentStatement, pid, session, event.getTrackingStartTime(), klass.getTag(), event.getTimestamp(),
+            applyParams(currentStatement, pid, session, event.getCaptureTime(), klass.getTag(), event.getTimestamp(),
                         jniToJavaName(klass.getName()));
             break;
           case ALLOC_DATA:
             AllocationEvent.Allocation allocation = event.getAllocData();
-            applyParams(currentStatement, pid, session, event.getTrackingStartTime(), allocation.getTag(), allocation.getClassTag(),
+            applyParams(currentStatement, pid, session, event.getCaptureTime(), allocation.getTag(), allocation.getClassTag(),
                         event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength());
             break;
           case FREE_DATA:
             AllocationEvent.Deallocation free = event.getFreeData();
-            applyParams(currentStatement, event.getTimestamp(), pid, session, event.getTrackingStartTime(), free.getTag());
+            applyParams(currentStatement, event.getTimestamp(), pid, session, event.getCaptureTime(), free.getTag());
             break;
           default:
             assert false;
