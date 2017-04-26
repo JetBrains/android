@@ -93,6 +93,14 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
         AndroidGradleProjectComponent projectComponent = AndroidGradleProjectComponent.getInstance(myProject);
         projectComponent.configureGradleProject();
       }
+      if (mySyncListener != null) {
+        if (mySyncSkipped) {
+          mySyncListener.syncSkipped(myProject);
+        }
+        else {
+          mySyncListener.syncSucceeded(myProject);
+        }
+      }
     };
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       runnable.run();
@@ -113,16 +121,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
     IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-    task.populateProject(projectInfo, mySetupRequest, () -> {
-      if (mySyncListener != null) {
-        if (mySyncSkipped) {
-          mySyncListener.syncSkipped(myProject);
-        }
-        else {
-          mySyncListener.syncSucceeded(myProject);
-        }
-      }
-    }, mySelectModulesToImport);
+    task.populateProject(projectInfo, mySetupRequest, mySelectModulesToImport);
   }
 
   @Override
