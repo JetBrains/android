@@ -267,6 +267,95 @@ public class MemoryTableTest {
     assertEquals(0, response.getAllocationStacksCount());
   }
 
+  @Test
+  public void testInsertAndQueryAllocationData() throws Exception {
+    // Handcraft a BatchAllocationSample and test that querying snapshot returns the corrent result.
+    final int KLASS1_TAG = 1;
+    final int KLASS2_TAG = 2;
+    final int KLASS1_INSTANCE1_TAG = 100;
+    final int KLASS2_INSTANCE1_TAG = 101;
+    final String JNI_KLASS1_NAME = "Ljava/lang/Klass1;";
+    final String JNI_KLASS2_NAME = "[[Ljava/lang/Klass2;";
+    final String JAVA_KLASS1_NAME = "java.lang.Klass1";
+    final String JAVA_KLASS2_NAME = "java.lang.Klass2[][]";
+
+    // A class that is loaded since the beginning (t = 0, tag = 1)
+    AllocationEvent klass1 =
+      AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JNI_KLASS1_NAME).setTag(KLASS1_TAG))
+        .setTimestamp(0).build();
+    // A class that is loaded at t=5 (tag = 2)
+    AllocationEvent klass2 =
+      AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JNI_KLASS2_NAME).setTag(KLASS2_TAG))
+        .setTimestamp(5).build();
+    // A klass1 instance allocation event (t = 0, tag = 100)
+    AllocationEvent alloc1 = AllocationEvent.newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG)).setTimestamp(0).build();
+    // A klass1 instance free event (t = 7, tag = 100)
+    AllocationEvent free1 = AllocationEvent.newBuilder()
+      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG)).setTimestamp(7).build();
+    // A klass2 instance allocation event (t = 6, tag = 101)
+    AllocationEvent alloc2 = AllocationEvent.newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG)).setTimestamp(6).build();
+
+    BatchAllocationSample insertSample = BatchAllocationSample.newBuilder()
+      .addEvents(klass1)
+      .addEvents(klass2)
+      .addEvents(alloc1)
+      .addEvents(free1)
+      .addEvents(alloc2).build();
+    myTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
+
+    // Deallocated events would have their free time lumped into the AllocData messsage.
+    AllocationEvent expectedAlloc1 = AllocationEvent.newBuilder()
+      .setAllocData(
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).setFreeTimestamp(7))
+      .setTimestamp(0).build();
+    // Ongoing allocation events would have their FreeTime set to Long.MAX_VALUE.
+    AllocationEvent expectedAlloc2 = AllocationEvent.newBuilder()
+      .setAllocData(
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG).setFreeTimestamp(Long.MAX_VALUE))
+      .setTimestamp(6).build();
+    AllocationEvent expectedKlass1 =
+      AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS1_NAME).setTag(KLASS1_TAG))
+        .setTimestamp(0).build();
+    // A class that is loaded at t=5 (tag = 2)
+    AllocationEvent expectedKlass2 =
+      AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS2_NAME).setTag(KLASS2_TAG))
+        .setTimestamp(5).build();
+
+    // A query that asks for live objects.
+    BatchAllocationSample querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    // .... should returns class data + klass 2 instance
+    assertEquals(3, querySample.getEventsCount());
+    assertEquals(expectedKlass1, querySample.getEvents(0));
+    assertEquals(expectedKlass2, querySample.getEvents(1));
+    assertEquals(expectedAlloc2, querySample.getEvents(2));
+
+    // A query that asks for live objects between t=0 and t=7
+    querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, 0, 7);
+    // .... should returns class data + both class instances
+    assertEquals(4, querySample.getEventsCount());
+    assertEquals(expectedKlass1, querySample.getEvents(0));
+    assertEquals(expectedKlass2, querySample.getEvents(1));
+    assertEquals(expectedAlloc1, querySample.getEvents(2));
+    assertEquals(expectedAlloc2, querySample.getEvents(3));
+
+    // A query that asks for live objects between t=1 and t=6
+    querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, 1, 6);
+    // .... should returns class data only - since no allocation/free has occurred over the timespan.
+    assertEquals(2, querySample.getEventsCount());
+    assertEquals(expectedKlass1, querySample.getEvents(0));
+    assertEquals(expectedKlass2, querySample.getEvents(1));
+
+    // A query that asks for live objects between t=7 and t=MAX_VALUE
+    querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, 7, Long.MAX_VALUE);
+    // .... should returns class data + klass1 instance (free event)
+    assertEquals(3, querySample.getEventsCount());
+    assertEquals(expectedKlass1, querySample.getEvents(0));
+    assertEquals(expectedKlass2, querySample.getEvents(1));
+    assertEquals(expectedAlloc1, querySample.getEvents(2));
+  }
+
   private static void verifyMemoryDataResultCounts(@NotNull MemoryData result,
                                                    int numMemSample,
                                                    int numAllocStatsSample,

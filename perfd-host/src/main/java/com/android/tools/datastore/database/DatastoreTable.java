@@ -47,7 +47,7 @@ public abstract class DatastoreTable<T extends Enum> {
     myConnection = connection;
   }
 
-  private Map<T, PreparedStatement> getStatementMap() {
+  protected Map<T, PreparedStatement> getStatementMap() {
     if (myStatementMap.get() == null) {
       myStatementMap.set(new HashMap());
       prepareStatements(myConnection);
@@ -74,9 +74,15 @@ public abstract class DatastoreTable<T extends Enum> {
     executeUniqueStatement(statement, columns);
   }
 
-  protected void createIndex(String table, String... indexList) throws SQLException {
+  protected void createUniqueIndex(String table, String... indexList) throws SQLException {
     StringBuilder statement = new StringBuilder();
     statement.append(String.format("CREATE UNIQUE INDEX IF NOT EXISTS idx_%s_pk ON %s", table, table));
+    executeUniqueStatement(statement, indexList);
+  }
+
+  protected void createIndex(String table, String... indexList) throws SQLException {
+    StringBuilder statement = new StringBuilder();
+    statement.append(String.format("CREATE INDEX IF NOT EXISTS idx_%s_pk ON %s", table, table));
     executeUniqueStatement(statement, indexList);
   }
 
@@ -122,7 +128,7 @@ public abstract class DatastoreTable<T extends Enum> {
     return stmt.executeQuery();
   }
 
-  private void applyParams(PreparedStatement statement, Object... params) throws SQLException {
+  protected void applyParams(PreparedStatement statement, Object... params) throws SQLException {
     for (int i = 0; params != null && i < params.length; i++) {
       if (params[i] == null) {
         continue;

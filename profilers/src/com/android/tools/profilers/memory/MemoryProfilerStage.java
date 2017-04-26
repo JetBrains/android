@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;

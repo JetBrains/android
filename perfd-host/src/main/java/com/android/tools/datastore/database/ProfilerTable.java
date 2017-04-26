@@ -63,9 +63,9 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
       createTable("Profiler_Devices", "Session STRING", "Data BLOB");
       createTable("Profiler_Processes", "Session INTEGER", "ProcessId INTEGER", "StartTime INTEGER", "EndTime INTEGER",
                   "HasAgent INTEGER", "LastKnownAttachedTime INTEGER", "Data BLOB");
-      createIndex("Profiler_Processes", "Session", "ProcessId", "StartTime");
-      createIndex("Profiler_Bytes", "Id", "Session");
-      createIndex("Profiler_Devices", "Session");
+      createUniqueIndex("Profiler_Processes", "Session", "ProcessId", "StartTime");
+      createUniqueIndex("Profiler_Bytes", "Id", "Session");
+      createUniqueIndex("Profiler_Devices", "Session");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
