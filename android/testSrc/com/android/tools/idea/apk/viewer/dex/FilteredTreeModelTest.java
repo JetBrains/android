@@ -58,24 +58,24 @@ public class FilteredTreeModelTest {
                  "      Integer: 0,1\n" +
                  "        java.lang.Integer valueOf(int): 0,1\n" +
                  "      Object: 0,1\n" +
-                 "        void <init>(): 0,1\n" +
+                 "        <init>(): 0,1\n" +
                  "      Boolean: 0,1\n" +
                  "        java.lang.Boolean valueOf(boolean): 0,1\n" +
                  "    util: 0,1\n" +
                  "      Collections: 0,1\n" +
                  "        java.util.List emptyList(): 0,1\n" +
                  "  Test2: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "    a aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
                  "  TestSubclass: 2,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    java.util.List getList(): 0,1\n" +
                  "  a: 1,1\n" +
-                 "    void <init>(): 1,1\n", sb.toString());
+                 "    <init>(): 1,1\n", sb.toString());
   }
 
   @Test
@@ -119,16 +119,16 @@ public class FilteredTreeModelTest {
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
     assertEquals("root: 6,11\n" +
                  "  Test2: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "    a aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
                  "  TestSubclass: 2,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "  a: 1,1\n" +
-                 "    void <init>(): 1,1\n", sb.toString());
+                 "    <init>(): 1,1\n", sb.toString());
   }
 
   @Test
@@ -149,22 +149,22 @@ public class FilteredTreeModelTest {
                  "      Integer: 0,1\n" +
                  "        java.lang.Integer valueOf(int): 0,1\n" +
                  "      Object: 0,1\n" +
-                 "        void <init>(): 0,1\n" +
+                 "        <init>(): 0,1\n" +
                  "      Boolean: 0,1\n" +
                  "        java.lang.Boolean valueOf(boolean): 0,1\n" +
                  "    util: 0,1\n" +
                  "      Collections: 0,1\n" +
                  "        java.util.List emptyList(): 0,1\n" +
                  "  Test2: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "  TestSubclass: 2,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    java.util.List getList(): 0,1\n" +
                  "  a: 1,1\n" +
-                 "    void <init>(): 1,1\n", sb.toString());
+                 "    <init>(): 1,1\n", sb.toString());
   }
 
   @Test
@@ -199,24 +199,24 @@ public class FilteredTreeModelTest {
                  "      Integer: 0,1\n" +
                  "        java.lang.Integer valueOf(int): 0,1\n" +
                  "      Object: 0,1\n" +
-                 "        void <init>(): 0,1\n" +
+                 "        <init>(): 0,1\n" +
                  "      Boolean: 0,1\n" +
                  "        java.lang.Boolean valueOf(boolean): 0,1\n" +
                  "    util: 0,1\n" +
                  "      Collections: 0,1\n" +
                  "        java.util.List emptyList(): 0,1\n" +
                  "  Test2: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "    AnotherClass aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
                  "  TestSubclass: 2,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    java.util.List getList(): 0,1\n" +
                  "  AnotherClass: 1,1\n" +
-                 "    void <init>(): 1,1\n", sb.toString());
+                 "    <init>(): 1,1\n", sb.toString());
 
     options.setShowRemovedNodes(true);
     sb.setLength(0);
@@ -227,24 +227,24 @@ public class FilteredTreeModelTest {
                  "      Integer: 0,1\n" +
                  "        java.lang.Integer valueOf(int): 0,1\n" +
                  "      Object: 0,1\n" +
-                 "        void <init>(): 0,1\n" +
+                 "        <init>(): 0,1\n" +
                  "      Boolean: 0,1\n" +
                  "        java.lang.Boolean valueOf(boolean): 0,1\n" +
                  "    util: 0,1\n" +
                  "      Collections: 0,1\n" +
                  "        java.util.List emptyList(): 0,1\n" +
                  "  Test2: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
                  "    java.util.List getList(): 1,1\n" +
                  "    AnotherClass aClassField: 0,0\n" +
                  "    int aField: 0,0\n" +
                  "  TestSubclass: 2,3\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    java.util.List getList(): 0,1\n" +
                  "  AnotherClass: 1,1\n" +
-                 "    void <init>(): 1,1\n" +
+                 "    <init>(): 1,1\n" +
                  "    AnotherClass(int,TestSubclass): 0,0\n" +
                  "  RemovedSubclass: 0,0\n", sb.toString());
   }
