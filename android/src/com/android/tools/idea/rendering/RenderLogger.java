@@ -22,7 +22,10 @@ import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
 import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -292,14 +295,13 @@ public class RenderLogger extends LayoutLog {
                        "down to API 21";
       }
 
-      if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
+      if (description.isEmpty()) {
+        description = "Exception raised during rendering";
+      }
+      else if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
       }
-      else if (message == null) {
-        LOG.warn("Empty error message", throwable);
-        return;
-      }
-      else if (message.equals("onMeasure error") &&
+      else if (message != null && message.equals("onMeasure error") &&
                throwable.toString()
                  .startsWith("java.lang.NoSuchMethodError: android.support.constraint.solver.widgets.Guideline.setRelative")) {
         RenderProblem.Html problem = RenderProblem.create(WARNING);
@@ -318,7 +320,7 @@ public class RenderLogger extends LayoutLog {
         addMessage(problem);
         return;
       }
-      else if (message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
+      else if (message != null && message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
         // See if it looks like a mismatched bitmap/color; if so, make a more intuitive error message
         StackTraceElement[] frames = throwable.getStackTrace();
         for (StackTraceElement frame : frames) {
@@ -363,7 +365,8 @@ public class RenderLogger extends LayoutLog {
           }
         }
       }
-      else if (message.startsWith("Failed to parse file ") && throwable instanceof XmlPullParserException) {
+      else if (message != null && message.startsWith("Failed to parse file ")
+               && throwable instanceof XmlPullParserException) {
         XmlPullParserException e = (XmlPullParserException)throwable;
         String msg = e.getMessage();
         if (msg.startsWith("Binary XML file ")) {
