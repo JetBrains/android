@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.instantrun;
 
+import com.android.tools.idea.tests.gui.debugger.DebuggerTestBase;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -23,6 +24,7 @@ import com.google.common.base.Strings;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -317,6 +319,87 @@ public class InstantRunTest {
       .getRunToolWindow()
       .findContent(APP_NAME)
       .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+  }
+
+  private void clickButtonAndWaitForVerification(IdeFrameFixture ideFrameFixtures, String[] expectedPatterns) {
+    Wait.seconds(30).expecting("The app is ready and the button is clicked").until(() -> {
+      try {
+        emulator.getEmulatorConnection().tapRunningAvd(100, 300);
+        DebuggerTestBase.checkAppIsPaused(ideFrameFixtures, expectedPatterns);
+        return true;
+      } catch (WaitTimedOutError e) {
+        return false;
+      }
+    });
+  }
+
+  /**
+   * Verifies that changes to the variable value should reflect during an active debug session (b.android.com/204792)
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14606155
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import Project204792
+   *   2. Open TestJava.java file and set breakpoints to line #16
+   *   3. Debug App on emulator/device
+   *   4. Click on Button which makes debugger stop at line #16
+   *   5. Verify 1
+   *   6. Change 'x' value to 150
+   *   7. Debug again
+   *   8. Click on Button
+   *   9. Verify 2
+   *   Verify:
+   *   1. Variable console should print x value (as 100)
+   *   2. Variable console should print x value (as 150)
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37912103
+  @Test
+  public void modifyVariableDuringDebugSession() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProject("Project204792");
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+
+    final String TEST_FILE = "app/src/main/java/com/bug204792/myapplication/TestJava.java";
+    final Pattern pattern = Pattern.compile(".*Connecting to com.bug204792.myapplication.*", Pattern.DOTALL);
+
+    ideFrameFixture
+      .getEditor()
+      .open(TEST_FILE)
+      .waitUntilErrorAnalysisFinishes()
+      .moveBetween("", "}")
+      .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
+
+    ideFrameFixture.debugApp(APP_NAME)
+      .selectDevice(emulator.getAvdName())
+      .clickOk();
+
+    ideFrameFixture.getDebugToolWindow()
+      .findContent(APP_NAME)
+      .waitForOutput(new PatternTextMatcher(pattern), 120);
+
+    String[] expectedPatterns = new String[]{
+      DebuggerTestBase.variableToSearchPattern("x", "100"),
+    };
+    clickButtonAndWaitForVerification(ideFrameFixture, expectedPatterns);
+
+    ideFrameFixture
+      .getEditor()
+      .open(TEST_FILE)
+      .select("(100)")
+      .enterText("150");
+
+    ideFrameFixture.findDebugApplicationButton().click();
+    ideFrameFixture.getDebugToolWindow()
+      .findContent(APP_NAME)
+      .waitForOutput(new PatternTextMatcher(pattern), 120);
+
+    expectedPatterns = new String[]{
+      DebuggerTestBase.variableToSearchPattern("x", "150"),
+    };
+    clickButtonAndWaitForVerification(ideFrameFixture, expectedPatterns);
   }
 
   /**

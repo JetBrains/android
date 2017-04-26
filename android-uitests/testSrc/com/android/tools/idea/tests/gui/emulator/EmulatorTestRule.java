@@ -68,7 +68,7 @@ public class EmulatorTestRule extends ExternalResource {
               new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"));
   }
 
-  protected MockAvdManagerConnection getEmulatorConnection() {
+  public MockAvdManagerConnection getEmulatorConnection() {
     return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
   }
 }
