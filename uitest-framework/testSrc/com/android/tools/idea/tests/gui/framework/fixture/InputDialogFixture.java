@@ -21,21 +21,23 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-
+// TODO(dahlstrom): rename to RenameModuleDialogFixture in separate Change Id7163a5d to preserve history
 public class InputDialogFixture extends IdeaDialogFixture<DialogWrapper> {
+
+  @NotNull private final IdeFrameFixture ideFrameFixture;
+
   @NotNull
-  public static InputDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title) {
+  public static InputDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     final Ref<DialogWrapper> wrapperRef = new Ref<>();
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, title).and(
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Rename Module").and(
       new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
@@ -50,17 +52,33 @@ public class InputDialogFixture extends IdeaDialogFixture<DialogWrapper> {
           return false;
         }
       }));
-    return new InputDialogFixture(robot, dialog, wrapperRef.get());
+    return new InputDialogFixture(ideFrameFixture, dialog, wrapperRef.get());
   }
 
-  public void enterTextAndClickOk(@NotNull String text) {
+  @NotNull
+  public InputDialogFixture enterText(@NotNull String text) {
     JTextComponent input = robot().finder().find(target(), JTextComponentMatcher.any());
-    JTextComponentFixture inputFixture = new JTextComponentFixture(robot(), input);
-    inputFixture.enterText(text);
-    findAndClickOkButton(this);
+    new JTextComponentFixture(robot(), input).enterText(text);
+    return this;
   }
 
-  private InputDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull DialogWrapper dialogWrapper) {
-    super(robot, target, dialogWrapper);
+  @NotNull
+  public IdeFrameFixture clickOk() {
+    GuiTests.findAndClickOkButton(this);
+    Wait.seconds(1).expecting(target().getTitle() + " dialog to disappear").until(() -> !target().isShowing());
+    return ideFrameFixture;
+  }
+
+  @NotNull
+  public InputDialogFixture clickOkAndRequireError(@NotNull String message) {
+    GuiTests.findAndClickOkButton(this);
+    MessagesFixture.findByTitle(robot(), "Rename Module").requireMessageContains(message).clickOk();
+    return this;
+  }
+
+  private InputDialogFixture(
+    @NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog target, @NotNull DialogWrapper dialogWrapper) {
+    super(ideFrameFixture.robot(), target, dialogWrapper);
+    this.ideFrameFixture = ideFrameFixture;
   }
 }
