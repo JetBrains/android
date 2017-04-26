@@ -72,15 +72,8 @@ public class IdeaSyncPopulateProjectTask {
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
                               boolean allowModuleSelection) {
-    populateProject(projectInfo, setupRequest, null, allowModuleSelection);
-  }
-
-  public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
-                              @Nullable PostSyncProjectSetup.Request setupRequest,
-                              @Nullable Runnable syncFinishedCallback,
-                              boolean allowModuleSelection) {
     Collection<DataNode<ModuleData>> activeModules = getActiveModules(projectInfo, allowModuleSelection);
-    populateProject(projectInfo, activeModules, setupRequest, syncFinishedCallback);
+    populateProject(projectInfo, activeModules, setupRequest);
   }
 
   @NotNull
@@ -125,24 +118,17 @@ public class IdeaSyncPopulateProjectTask {
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
                               @NotNull Collection<DataNode<ModuleData>> activeModules,
                               @Nullable PostSyncProjectSetup.Request setupRequest) {
-    populateProject(projectInfo, activeModules, setupRequest, null);
-  }
-
-  public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
-                              @NotNull Collection<DataNode<ModuleData>> activeModules,
-                              @Nullable PostSyncProjectSetup.Request setupRequest,
-                              @Nullable Runnable syncFinishedCallback) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeProjectMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(projectInfo, activeModules, new EmptyProgressIndicator(), setupRequest, syncFinishedCallback);
+      populate(projectInfo, activeModules, new EmptyProgressIndicator(), setupRequest);
       return;
     }
 
     Task.Backgroundable task = new Task.Backgroundable(myProject, "Project Setup", false) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        populate(projectInfo, activeModules, indicator, setupRequest, syncFinishedCallback);
+        populate(projectInfo, activeModules, indicator, setupRequest);
       }
     };
     task.queue();
@@ -151,15 +137,11 @@ public class IdeaSyncPopulateProjectTask {
   private void populate(@NotNull DataNode<ProjectData> projectInfo,
                         @NotNull Collection<DataNode<ModuleData>> activeModules,
                         @NotNull ProgressIndicator indicator,
-                        @Nullable PostSyncProjectSetup.Request setupRequest,
-                        @Nullable Runnable syncFinishedCallback) {
+                        @Nullable PostSyncProjectSetup.Request setupRequest) {
     disableExcludedModules(projectInfo, activeModules);
     doSelectiveImport(activeModules, myProject, setupRequest);
     if (setupRequest != null) {
       PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator);
-    }
-    if (syncFinishedCallback != null) {
-      syncFinishedCallback.run();
     }
   }
 
