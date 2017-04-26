@@ -31,7 +31,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -314,8 +314,8 @@ public class Scene implements SelectionListener {
    * @param time
    * @return true if we need to repaint the screen
    */
-  public void buildDisplayList(@NotNull DisplayList displayList, long time, ScreenView screenView) {
-    buildDisplayList(displayList, time, SceneContext.get(screenView));
+  public void buildDisplayList(@NotNull DisplayList displayList, long time, SceneView sceneView) {
+    buildDisplayList(displayList, time, SceneContext.get(sceneView));
   }
 
   /**

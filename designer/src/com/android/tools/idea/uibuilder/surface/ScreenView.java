@@ -96,6 +96,26 @@ public class ScreenView extends SceneView {
     return dimension;
   }
 
+  /**
+   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+   *                  returned.
+   */
+  @Override
+  @NotNull
+  @SwingCoordinate
+  public Dimension getSize(@Nullable Dimension dimension) {
+    if (dimension == null) {
+      dimension = new Dimension();
+    }
+
+    Dimension preferred = getPreferredSize(dimension);
+    double scale = mySurface.getScale();
+
+    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
+    return dimension;
+  }
+
   public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
     x = screenX;
     y = screenY;

@@ -16,34 +16,41 @@
 package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.Map;
 
 /**
  * {@link DrawCommand} that draws a screen in the navigation editor.
- *
- * TODO: actually implement it
  */
 public class DrawNavScreen implements DrawCommand {
+  public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
+    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
+    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
+    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
+  );
+
   @SwingCoordinate private int myX;
   @SwingCoordinate private int myY;
   @SwingCoordinate private int myWidth;
   @SwingCoordinate private int myHeight;
-  @NotNull private String myText;
+  @NotNull private ImagePool.Image myImage;
   boolean mySelected;
 
   public DrawNavScreen(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height,
-                       @NotNull String text, boolean selected) {
+                       @NotNull ImagePool.Image image, boolean selected) {
     myX = x;
     myY = y;
     myWidth = width;
     myHeight = height;
     mySelected = selected;
-    myText = text;
+    myImage = image;
   }
 
   @Override
@@ -53,12 +60,11 @@ public class DrawNavScreen implements DrawCommand {
 
   @Override
   public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    Color previousColor = g.getColor();
+    g.setRenderingHints(HQ_RENDERING_HITS);
     Shape previousClip = g.getClip();
-    g.setClip(myX, myY, myWidth, myHeight);
-    g.setColor(mySelected ? sceneContext.getColorSet().getSelectedText() : sceneContext.getColorSet().getText());
-    g.drawString(myText, myX, myY + 24);
-    g.setColor(previousColor);
+    g.clipRect(myX, myY, myWidth, myHeight);
+    // TODO: better scaling (similar to ScreenViewLayer)
+    myImage.drawImageTo(g, myX, myY, myWidth, myHeight);
     g.setClip(previousClip);
   }
 
@@ -70,7 +76,6 @@ public class DrawNavScreen implements DrawCommand {
       myX,
       myY,
       myWidth,
-      myHeight,
-      myText);
+      myHeight);
   }
 }

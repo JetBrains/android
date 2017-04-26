@@ -32,6 +32,7 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.idea.IdeaTestApplication;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -53,6 +54,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -141,6 +143,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
       ensureSdkManagerAvailable();
     }
+    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
+    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
   }
 
   protected void setUpSdks(@NotNull Project project) {
