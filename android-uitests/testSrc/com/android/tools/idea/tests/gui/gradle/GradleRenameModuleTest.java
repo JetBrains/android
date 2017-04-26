@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.InputDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
@@ -45,11 +44,11 @@ public class GradleRenameModuleTest {
 
   @Test
   public void testRenameModule() throws IOException {
-    guiTest.importSimpleApplication();
-
-    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
-    paneFixture.clickPath("SimpleApplication", "app");
-    invokeRefactor();
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectProjectPane()
+      .clickPath("SimpleApplication", "app")
+      .invokeMenuPath("Refactor", "Rename...");
 
     SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
     selectRefactoringDialog.selectRenameModule();
@@ -66,11 +65,11 @@ public class GradleRenameModuleTest {
 
   @Test
   public void testRenameModuleAlsoChangeReferencesInBuildFile() throws IOException {
-    guiTest.importMultiModule();
-
-    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
-    paneFixture.clickPath("MultiModule", "library");
-    invokeRefactor();
+    guiTest.importMultiModule()
+      .getProjectView()
+      .selectProjectPane()
+      .clickPath("MultiModule", "library")
+      .invokeMenuPath("Refactor", "Rename...");
 
     SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
     selectRefactoringDialog.selectRenameModule();
@@ -96,11 +95,11 @@ public class GradleRenameModuleTest {
 
   @Test
   public void testCannotRenameRootModule() throws IOException {
-    guiTest.importSimpleApplication();
-
-    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
-    paneFixture.clickPath("SimpleApplication");
-    invokeRefactor();
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectProjectPane()
+      .clickPath("SimpleApplication")
+      .invokeMenuPath("Refactor", "Rename...");
 
     InputDialogFixture renameModuleDialog = InputDialogFixture.findByTitle(guiTest.robot(), "Rename Module");
     renameModuleDialog.enterTextAndClickOk("SimpleApplication2");
@@ -113,11 +112,11 @@ public class GradleRenameModuleTest {
 
   @Test
   public void testCannotRenameToExistingFile() throws IOException {
-    guiTest.importMultiModule();
-
-    ProjectViewFixture.PaneFixture paneFixture = guiTest.ideFrame().getProjectView().selectProjectPane();
-    paneFixture.clickPath("MultiModule", "app");
-    invokeRefactor();
+    guiTest.importMultiModule()
+      .getProjectView()
+      .selectProjectPane()
+      .clickPath("MultiModule", "app")
+      .invokeMenuPath("Refactor", "Rename...");
 
     SelectRefactoringDialogFixture selectRefactoringDialog = SelectRefactoringDialogFixture.findByTitle(guiTest.robot());
     selectRefactoringDialog.selectRenameModule();
@@ -132,9 +131,5 @@ public class GradleRenameModuleTest {
     errorMessage.clickOk();
     // In this case, the rename dialog will let you choose another name, click cancel to close the dialog
     renameModuleDialog.clickCancel();
-  }
-
-  private void invokeRefactor() {
-    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
   }
 }
