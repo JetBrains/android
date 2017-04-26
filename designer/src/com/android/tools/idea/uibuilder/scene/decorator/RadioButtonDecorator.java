@@ -44,10 +44,11 @@ public class RadioButtonDecorator extends SceneDecorator {
                     @SwingCoordinate int y,
                     @SwingCoordinate int width,
                     @SwingCoordinate int height,
+                    int mode,
                     int baselineOffset,
                     float scale,
                     String text) {
-      super(x, y, width, height, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
+      super(x, y, width, height, mode, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
             DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32, scale);
     }
 
@@ -59,11 +60,12 @@ public class RadioButtonDecorator extends SceneDecorator {
       int y = Integer.parseInt(sp[c++]);
       int width = Integer.parseInt(sp[c++]);
       int height = Integer.parseInt(sp[c++]);
+      int mode = Integer.parseInt(sp[c++]);
       int baseLineOffset = Integer.parseInt(sp[c++]);
       float scale = java.lang.Float.parseFloat(sp[c++]);
       String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
 
-      return new DrawRadioButton(x, y, width, height, baseLineOffset, scale, text);
+      return new DrawRadioButton(x, y, width, height, mode, baseLineOffset, scale, text);
     }
 
     @Override
@@ -77,6 +79,8 @@ public class RadioButtonDecorator extends SceneDecorator {
              width +
              "," +
              height +
+             "," +
+             mMode +
              "," +
              myBaseLineOffset +
              "," +
@@ -115,6 +119,7 @@ public class RadioButtonDecorator extends SceneDecorator {
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
     float scale = (float)sceneContext.getScale();
-    list.add(new DrawRadioButton(l, t, w, h, baseLineOffset, scale, text));
+    int mode = component.isSelected() ? DecoratorUtilities.ViewStates.SELECTED_VALUE : DecoratorUtilities.ViewStates.NORMAL_VALUE;
+    list.add(new DrawRadioButton(l, t, w, h, mode, baseLineOffset, scale, text));
   }
 }
