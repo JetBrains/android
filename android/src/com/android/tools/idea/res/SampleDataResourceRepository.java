@@ -20,7 +20,6 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.sampledata.AddSampleDataDialog;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -40,6 +39,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.android.SdkConstants.FD_SAMPLE_DATA;
+
 
 public class SampleDataResourceRepository extends LocalResourceRepository {
   private final ResourceTable myFullTable;
@@ -51,10 +52,10 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
       throw new IOException("Unable to find content root");
     }
 
-    VirtualFile sampleDataDir = contentRoot.findFileByRelativePath("/sampledata");
+    VirtualFile sampleDataDir = contentRoot.findFileByRelativePath("/" + FD_SAMPLE_DATA);
     if (sampleDataDir == null && create) {
         sampleDataDir = WriteCommandAction.runWriteCommandAction(androidFacet.getModule().getProject(),
-                                                                 (ThrowableComputable<VirtualFile, IOException>)() -> contentRoot.createChildDirectory(androidFacet, "sampledata"));
+                                                                 (ThrowableComputable<VirtualFile, IOException>)() -> contentRoot.createChildDirectory(androidFacet, FD_SAMPLE_DATA));
     }
 
     return sampleDataDir;
