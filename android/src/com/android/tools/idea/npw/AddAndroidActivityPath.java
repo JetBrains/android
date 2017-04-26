@@ -23,7 +23,6 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.templates.*;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.android.tools.idea.wizard.template.TemplateWizard;
@@ -65,6 +64,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.WizardConstants.COMPANY_DOMAIN_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
@@ -88,7 +88,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(ATTR_PACKAGE_NAME);
   public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(ATTR_PARENT_ACTIVITY_CLASS);
   public static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
-  public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME, IS_INSTANT_APP_KEY);
+  public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME, IS_INSTANT_APP_KEY,
+                                                                        COMPANY_DOMAIN_KEY);
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
   public static final String CUSTOMIZE_ACTIVITY_TITLE = "Customize the Activity";
