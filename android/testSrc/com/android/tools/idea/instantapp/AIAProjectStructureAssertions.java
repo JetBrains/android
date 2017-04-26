@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,27 +42,20 @@ public class AIAProjectStructureAssertions {
   /**
    * Asserts that the given module is an app module with dependencies on the given library projects and no invalid split dependencies
    */
-  public static void assertModuleIsValidAIAApp(@NotNull Module module, @NotNull Collection<String> libraryDependencies)
+  public static void assertModuleIsValidAIAApp(@NotNull Module module, @NotNull Collection<String> expectedDependencies)
     throws InterruptedException {
-    assertModuleIsValidForAIA(module, libraryDependencies, ImmutableList.of(), null, PROJECT_TYPE_APP);
-  }
-
-  /**
-   * Asserts that the given module is a library module with dependencies on the given library projects and no invalid split dependencies
-   */
-  public static void assertModuleIsValidAIALibrary(@NotNull Module module, @NotNull Collection<String> libraryDependencies)
-    throws InterruptedException {
-    assertModuleIsValidForAIA(module, libraryDependencies, ImmutableList.of(), null, PROJECT_TYPE_LIBRARY);
+    assertModuleIsValidForAIA(module, expectedDependencies, PROJECT_TYPE_APP, false);
   }
 
   /**
    * Asserts that the given module is an instant app module with the given base split and dependencies on the given split projects
    */
   public static void assertModuleIsValidAIAInstantApp(@NotNull Module module,
-                                                      @NotNull String baseSplitName,
-                                                      @NotNull Collection<String> splitDependencies)
+                                                      @NotNull Collection<String> expectedDependencies)
     throws InterruptedException {
-    assertModuleIsValidForAIA(module, ImmutableList.of(), splitDependencies, baseSplitName, PROJECT_TYPE_INSTANTAPP);
+    // At the moment we have no way to actually get InstantApp module dependencies (they aren't reported in the model) so we can't check
+    // them. Hence expectedDependencies is replaced with ImmutableList.of() below
+    assertModuleIsValidForAIA(module, ImmutableList.of(), PROJECT_TYPE_INSTANTAPP, false);
   }
 
   /**
@@ -71,25 +63,22 @@ public class AIAProjectStructureAssertions {
    * projects
    */
   public static void assertModuleIsValidAIAFeature(@NotNull Module module,
-                                                   @SuppressWarnings("SameParameterValue") @NotNull String baseSplitName,
-                                                   @NotNull Collection<String> libraryDependencies,
-                                                   @NotNull Collection<String> splitDependencies) throws InterruptedException {
-    assertModuleIsValidForAIA(module, libraryDependencies, splitDependencies, baseSplitName, PROJECT_TYPE_FEATURE);
+                                                   @NotNull Collection<String> expectedDependencies) throws InterruptedException {
+    assertModuleIsValidForAIA(module, expectedDependencies, PROJECT_TYPE_FEATURE, false);
   }
 
   /**
    * Asserts that the given module is a base split module with dependencies on the given library projects
    */
   public static void assertModuleIsValidAIABaseFeature(@NotNull Module module,
-                                                       @NotNull Collection<String> libraryDependencies) throws InterruptedException {
-    assertModuleIsValidForAIA(module, libraryDependencies, ImmutableList.of(), null, PROJECT_TYPE_FEATURE);
+                                                       @NotNull Collection<String> expectedDependencies) throws InterruptedException {
+    assertModuleIsValidForAIA(module, expectedDependencies, PROJECT_TYPE_FEATURE, true);
   }
 
   private static void assertModuleIsValidForAIA(@NotNull Module module,
-                                                @NotNull Collection<String> libraryDependencies,
-                                                @NotNull Collection<String> splitDependencies,
-                                                @Nullable String expectedBaseSplit,
-                                                int moduleType) throws InterruptedException {
+                                                @NotNull Collection<String> expectedDependencies,
+                                                int moduleType,
+                                                boolean isBaseSplit) throws InterruptedException {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     assertNotNull(model);
     int projectType = model.getProjectType();
@@ -99,9 +88,9 @@ public class AIAProjectStructureAssertions {
     List<String> libraries =
       dependencies.getLibraries().stream().map(AndroidLibrary::getProject).filter(Objects::nonNull).collect(Collectors.toList());
 
-    assertEquals(libraryDependencies.size(), libraries.size());
-    assertTrue(libraries.stream().allMatch(libraryDependencies::contains));
+    assertEquals(expectedDependencies.size(), libraries.size());
+    assertTrue(libraries.stream().allMatch(expectedDependencies::contains));
 
-    // TODO - add dependency checking once dependencies are correctly reported by the model
+    assertEquals(isBaseSplit, model.getAndroidProject().isBaseSplit());
   }
 }
