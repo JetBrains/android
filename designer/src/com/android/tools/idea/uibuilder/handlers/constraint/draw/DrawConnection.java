@@ -38,12 +38,15 @@ public class DrawConnection implements DrawCommand {
   public static final int TYPE_CENTER = 4; // connected on both sides to the same anchor
   public static final int TYPE_BASELINE = 5;  // connected such that anchor connects back
   public static final int TYPE_CENTER_WIDGET = 6; // connected on both sides to same widget different anchors
+  public static final int TYPE_ADJACENT = 7; // Anchors are very close to each other
+
   private static final long MILISECONDS = 1000000; // 1 mill in nano seconds
   // modes define the the Color potentially style of
   public static final int MODE_NORMAL = DecoratorUtilities.ViewStates.NORMAL_VALUE;
   public static final int MODE_SELECTED = DecoratorUtilities.ViewStates.SELECTED_VALUE;
   public static final int MODE_COMPUTED = DecoratorUtilities.ViewStates.INFERRED_VALUE;
   public static final int MODE_WILL_DESTROY = DecoratorUtilities.ViewStates.WILL_DESTROY_VALUE;
+  public static final int MODE_WILL_HOVER = DecoratorUtilities.ViewStates.HOVER_VALUE;
   public static final int MODE_SUBDUED = DecoratorUtilities.ViewStates.SUBDUED_VALUE;
 
   public static final int TOTAL_MODES = 3;
@@ -78,14 +81,22 @@ public class DrawConnection implements DrawCommand {
   int myModeTo;
   long myStateChangeTime;
   static Stroke myBackgroundStroke = new BasicStroke(8);
-  static Stroke myDashStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
+  static Stroke myDashStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
   static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
   static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, 2.5f, 9, 1);
   static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, 2.5f, 9, 1);
 
   @Override
   public int getLevel() {
-    return (MODE_WILL_DESTROY == myModeTo) ? TARGET_LEVEL : CONNECTION_LEVEL;
+    switch(myModeTo) {
+      case MODE_WILL_DESTROY:
+        return CONNECTION_DELETE_LEVEL;
+      case MODE_SELECTED:
+        return CONNECTION_SELECTED_LEVEL;
+      case MODE_WILL_HOVER:
+        return CONNECTION_HOVER_LEVEL;
+    }
+    return CONNECTION_LEVEL;
   }
 
   @Override
@@ -368,6 +379,20 @@ public class DrawConnection implements DrawCommand {
         g.setStroke(flip_chain?myChainStroke1:myChainStroke2);
         g.draw(ourPath);
         g.setStroke(defaultStroke);
+        break;
+      case TYPE_ADJACENT:
+        g.setColor(constraintColor);
+
+        DrawConnectionUtils.getSmallArrow(dir, startx-dx/2, starty-dy/2, xPoints, yPoints);
+        g.fillPolygon(xPoints, yPoints, 3);
+        if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
+          startx = (startx+endx)/2;
+          endx = startx;
+        } else {
+          starty = (starty+endy)/2;
+          endy = starty;
+        }
+        g.drawLine(startx, starty, endx, endy);
         break;
       case TYPE_SPRING:
         boolean drawArrow = true;

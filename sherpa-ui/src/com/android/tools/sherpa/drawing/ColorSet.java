@@ -87,6 +87,7 @@ public class ColorSet {
 
     protected Color mWidgetActionBackground;
     protected Color mWidgetActionSelectedBackground;
+    protected Color mButtonBackground;
 
     protected Color mSelectionColor;
 
@@ -136,6 +137,8 @@ public class ColorSet {
     public Color getBackground() { return mBackground; }
 
     public Color getComponentBackground() { return mComponentBackground; }
+
+    public Color getButtonBackground() { return mButtonBackground; }
 
     public Color getComponentObligatoryBackground() { return mComponentObligatoryBackground; }
 

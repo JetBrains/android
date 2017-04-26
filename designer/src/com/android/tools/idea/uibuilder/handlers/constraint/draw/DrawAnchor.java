@@ -78,7 +78,7 @@ public class DrawAnchor extends DrawRegion {
     }
     ColorSet colorSet = sceneContext.getColorSet();
     Color background = colorSet.getComponentObligatoryBackground();
-    Color color = colorSet.getFrames();
+    Color color = colorSet.getSelectedFrames();
 
     if (myMode == OVER) {
       if (myIsConnected) {
