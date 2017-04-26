@@ -23,6 +23,7 @@ import com.android.tools.datastore.database.MemoryTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
@@ -218,6 +219,15 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void getData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
     MemoryData response = myMemoryTable.getData(request);
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getAllocationSnaphot(AllocationSnapshotRequest request,
+                                   StreamObserver<BatchAllocationSample> responseObserver) {
+    BatchAllocationSample response =
+      myMemoryTable.getAllocationSnapshot(request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
