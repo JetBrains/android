@@ -136,8 +136,7 @@ public class NewProjectTest {
   @Test
   public void changeLibraryModuleSettings() throws  Exception {
     newProject("MyTestApp").withMinSdk("24").create();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame
+    guiTest.ideFrame()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
@@ -146,9 +145,9 @@ public class NewProjectTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, "MyTestApp", "library-module");
-    ideFrame.invokeMenuPath("Open Module Settings");
 
-    String gradleFileContents = ProjectStructureDialogFixture.find(ideFrame)
+    String gradleFileContents = guiTest.ideFrame()
+      .openFromMenu(ProjectStructureDialogFixture::find, "Open Module Settings")
       .selectPropertiesTab()
       .setCompileSdkVersion("API 24: Android 7.0 (Nougat)")
       .setBuildToolsVersion("25.0.1")
