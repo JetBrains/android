@@ -28,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 public class InstallPlatformHyperlink extends NotificationHyperlink {
   @NotNull private final AndroidVersion[] myAndroidVersions;
 
@@ -48,7 +50,7 @@ public class InstallPlatformHyperlink extends NotificationHyperlink {
     }
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
     }
   }
 }

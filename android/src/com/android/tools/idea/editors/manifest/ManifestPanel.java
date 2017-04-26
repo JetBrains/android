@@ -24,10 +24,10 @@ import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
@@ -92,6 +92,7 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 // TODO for permission if not from main file
 // TODO then have option to tools:node="remove" tools:selector="com.example.lib1"
@@ -765,7 +766,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
-              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null);
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null, TRIGGER_PROJECT_MODIFIED);
             }
           }.execute();
         }
@@ -787,7 +788,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
 
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null);
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null, TRIGGER_PROJECT_MODIFIED);
           }
         }.execute();
       }

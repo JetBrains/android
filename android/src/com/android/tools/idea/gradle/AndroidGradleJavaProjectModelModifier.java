@@ -64,6 +64,7 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigu
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
@@ -231,7 +232,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @NotNull
   private static Promise<Void> requestProjectSync(@NotNull Project project) {
     AsyncPromise<Void> promise = new AsyncPromise<>();
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
+      TRIGGER_PROJECT_MODIFIED);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
