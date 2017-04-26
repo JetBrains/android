@@ -237,6 +237,17 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       return new WatchpointConfigFixture(myRobot, out.get());
     }
 
+    public void clickResumeButton() {
+      for (ActionButton button : getToolbarButtons()) {
+        if ("com.intellij.xdebugger.impl.actions.ResumeAction".equals(button.getAction().getClass().getCanonicalName())) {
+          myRobot.click(button);
+          return;
+        }
+      }
+
+      throw new IllegalStateException("Could not find the Resume button.");
+    }
+
     @NotNull
     private JComponent getTabContent(@NotNull final JComponent root,
                                      final Class<? extends JBTabsImpl> parentComponentType,

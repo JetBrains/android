@@ -69,7 +69,7 @@ public class WatchpointTest extends DebuggerTestBase {
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
     waitForSessionStart(debugToolWindowFixture);
-    checkAppIsPaused(ideFrame, expectedPattern, false);
+    checkAppIsPaused(ideFrame, expectedPattern);
 
     DebugToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
 
@@ -78,10 +78,10 @@ public class WatchpointTest extends DebuggerTestBase {
         .selectAccessType("Write")
         .clickDone();
 
-    MiscUtils.invokeMenuPathOnRobotIdle(ideFrame, "Run", "Resume Program");
+    resume("app", ideFrame);
 
     String[] newExpectedPattern = {variableToSearchPattern("write", "int", "8")};
-    checkAppIsPaused(ideFrame, newExpectedPattern, true);
+    checkAppIsPaused(ideFrame, newExpectedPattern);
 
     stopDebugSession(debugToolWindowFixture);
   }
