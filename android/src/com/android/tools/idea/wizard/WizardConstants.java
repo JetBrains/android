@@ -74,7 +74,7 @@ public class WizardConstants {
   // TODO After the wizard migration delete as many of these keys as possible
   public static final Key<String> APPLICATION_NAME_KEY = createKey(ATTR_APP_TITLE, WIZARD, String.class);
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
-  public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", WIZARD, String.class);
+  public static final Key<String> COMPANY_DOMAIN_KEY = createKey(ATTR_COMPANY_DOMAIN, WIZARD, String.class);
   public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
   @SuppressWarnings("unchecked") public static final Key<SetMultimap<String, String>> DEPENDENCIES_KEY =
     createKey(ATTR_DEPENDENCIES_MULTIMAP, WIZARD, (Class<SetMultimap<String, String>>)(Class)SetMultimap.class);
