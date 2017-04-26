@@ -25,8 +25,6 @@ import com.android.testutils.filesystemdiff.TreeDifferenceEngine;
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep_Deprecated;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
@@ -69,8 +67,6 @@ public class NewImageAssetTest {
   @Test
   public void testAdaptiveIconsPreviewPanelContents() {
     openAssetStudioWizard();
-    Path projectDir = guiTest.getProjectPath().toPath();
-    FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
 
     myStep.selectIconType("Adaptive Icons");
     assertThat(myStep.getPreviewPanelCount()).isEqualTo(1);
