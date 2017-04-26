@@ -119,7 +119,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
               }
             }
           }
-          else if (resourceType == ResourceType.MOCK && myElement.getParent() instanceof XmlAttribute) {
+          else if (resourceType == ResourceType.SAMPLE_DATA && myElement.getParent() instanceof XmlAttribute) {
             // The mock references can only be applied to tools: attributes
             XmlAttribute attribute = (XmlAttribute)myElement.getParent();
             if (TOOLS_URI.equals(attribute.getNamespace())) {

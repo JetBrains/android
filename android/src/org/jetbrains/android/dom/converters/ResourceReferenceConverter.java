@@ -303,7 +303,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
     if (Features.NELE_MOCK_DATA && TOOLS_URI.equals(element.getXmlElementNamespace())) {
       // For tools: attributes, we also add the mock types
-      types.add(ResourceType.MOCK);
+      types.add(ResourceType.SAMPLE_DATA);
     }
     return types;
   }
