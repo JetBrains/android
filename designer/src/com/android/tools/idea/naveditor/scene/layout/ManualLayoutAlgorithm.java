@@ -48,7 +48,8 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
   @Override
   public void layout(@NotNull SceneComponent component) {
     // TODO: support other destination types
-    if (mySchema.getDestinationType(component.getNlComponent().getTagName()) != NavigationSchema.DestinationType.FRAGMENT) {
+    NavigationSchema.DestinationType type = mySchema.getDestinationType(component.getNlComponent().getTagName());
+    if (type != NavigationSchema.DestinationType.FRAGMENT && type != NavigationSchema.DestinationType.ACTIVITY) {
       return;
     }
     NlComponent nlComponent = component.getNlComponent();

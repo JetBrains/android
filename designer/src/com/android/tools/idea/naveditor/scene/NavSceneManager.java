@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.tools.adtui.common.SwingCoordinate;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
+import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.DummyAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.ModelListener;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
@@ -34,6 +36,7 @@ import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +55,7 @@ public class NavSceneManager extends SceneManager {
 
   private SceneDecoratorFactory myDecoratorFactory;
   private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
+  private static final int SCREEN_WIDTH = 100;
 
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
     super(model, surface);
@@ -103,7 +107,10 @@ public class NavSceneManager extends SceneManager {
           break;
         case FRAGMENT:
         case ACTIVITY:
-          sceneComponent.setSize(50, 50, true);
+          Screen screen = getModel().getConfiguration().getDeviceState().getHardware().getScreen();
+          // TODO: is this conversion correct?
+          double scale = (double)Coordinates.getAndroidDimension(getDesignSurface(), SCREEN_WIDTH)/screen.getXDimension();
+          sceneComponent.setSize((int)(scale * screen.getXDimension()), (int)(scale * screen.getYDimension()), true);
           sceneComponent.setTargetProvider(myScreenTargetProvider, false);
           break;
         default:
@@ -151,10 +158,6 @@ public class NavSceneManager extends SceneManager {
       SceneComponent root = updateFromComponent(rootComponent, new HashSet<>());
 
       getScene().setRoot(root);
-      @SwingCoordinate Dimension surfaceSize = getDesignSurface().getSize();
-      root.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), (int)surfaceSize.getWidth()),
-                   Coordinates.getAndroidDimensionDip(getDesignSurface(), (int)surfaceSize.getHeight()),
-                   false);
       layoutAll(root);
     }
     getScene().needsRebuildList();

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -1297,5 +1298,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       myViewEditor = new ViewEditorImpl(currentSceneView);
     }
     return myViewEditor;
+  }
+
+  @Nullable
+  @Override
+  public Configuration getConfiguration() {
+    return getCurrentSceneView() != null ? getCurrentSceneView().getConfiguration() : null;
   }
 }

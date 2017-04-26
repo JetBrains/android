@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.designer;
 
 import com.android.tools.idea.configurations.Configuration;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,6 +29,7 @@ public abstract class EditorDesignSurface extends JPanel {
     super(layout);
   }
 
+  @Nullable
   abstract public Configuration getConfiguration();
 
   abstract public void requestRender();

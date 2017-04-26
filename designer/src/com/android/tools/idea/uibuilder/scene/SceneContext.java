@@ -28,6 +28,7 @@ import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.intellij.reference.SoftReference;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.WeakHashMap;
@@ -134,6 +135,7 @@ public class SceneContext {
 
   private static WeakHashMap<SceneView, SoftReference<SceneViewTransform>> cache = new WeakHashMap<>();
 
+  @Nullable
   public DesignSurface getSurface() {
     return null;
   }
@@ -167,6 +169,8 @@ public class SceneContext {
     public void setToolTip(@Nullable String toolTip) {
       mySceneView.setToolTip(toolTip);
     }
+
+    @NotNull
     @Override
     public DesignSurface getSurface() {
       return mySceneView.getSurface();
