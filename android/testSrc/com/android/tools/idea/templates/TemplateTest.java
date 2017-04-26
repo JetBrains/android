@@ -110,6 +110,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * <li>Test creating a project <b>without</b> a template</li>
  * </ul>
  */
+@SuppressWarnings("deprecation") // We need to move away from the old Wizard framework usage
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TemplateTest extends AndroidGradleTestCase {
   /**
@@ -132,7 +133,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    * Whether we should enforce that lint passes cleanly on the projects
    */
   private static final boolean CHECK_LINT = false; // Needs work on closing projects cleanly
-  private static final boolean ALLOW_WARNINGS = true; // TODO: Provide finer granularity
 
   /**
    * Manual sdk version selections
@@ -156,9 +156,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     KNOWN_BROKEN.add("WatchFaceService");
     KNOWN_BROKEN.add("BlankWearActivity");
     KNOWN_BROKEN.add("GoogleMapsWearActivity");
-
-    // Prebuilts are not at latest version so disable this template until they are updated and this test can work again
-    KNOWN_BROKEN.add("NavigationDrawerActivity");
 
     // See http://b.android.com/253296
     if (SystemInfo.isWindows) {
@@ -341,13 +338,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "BlankWearActivity", true);
   }
 
-  // http://b/35788310
-  public void /*test*/NewNavigationDrawerActivity() throws Exception {
+  public void testNewNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", false);
   }
 
-  // http://b/35788310
-  public void /*test*/NewProjectWithNavigationDrawerActivity() throws Exception {
+  public void testNewProjectWithNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", true);
   }
 
@@ -623,8 +618,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     VirtualFile desired = fileSystem.findFileByIoFile(new File(getTestDataPath(),
                                                                FileUtil.join("templates", "TestTemplate", "MergedStringsFile.xml")));
+    assertNotNull(desired);
     VirtualFile actual = fileSystem.findFileByIoFile(new File(myFixture.getTempDirPath(),
                                                               FileUtil.join("values", "TestTargetResourceFile.xml")));
+    assertNotNull(actual);
     desired.refresh(false, false);
     actual.refresh(false, false);
     PlatformTestUtil.assertFilesEqual(desired, actual);
@@ -632,18 +629,20 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testRelatedParameters() throws Exception {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")));
-    Parameter layoutName = template.getMetadata().getParameter("layoutName");
-    Parameter activityClass = template.getMetadata().getParameter("activityClass");
-    Parameter mainFragment = template.getMetadata().getParameter("mainFragment");
-    Parameter activityTitle = template.getMetadata().getParameter("activityTitle");
-    Parameter detailsActivity = template.getMetadata().getParameter("detailsActivity");
-    Parameter detailsLayoutName = template.getMetadata().getParameter("detailsLayoutName");
-    assertSameElements(template.getMetadata().getRelatedParams(layoutName), detailsLayoutName);
-    assertSameElements(template.getMetadata().getRelatedParams(activityClass), detailsActivity, mainFragment);
-    assertSameElements(template.getMetadata().getRelatedParams(mainFragment), detailsActivity, activityClass);
-    assertEmpty(template.getMetadata().getRelatedParams(activityTitle));
-    assertSameElements(template.getMetadata().getRelatedParams(detailsActivity), activityClass, mainFragment);
-    assertSameElements(template.getMetadata().getRelatedParams(detailsLayoutName), layoutName);
+    TemplateMetadata templateMetadata = template.getMetadata();
+    assertNotNull(templateMetadata);
+    Parameter layoutName = templateMetadata.getParameter("layoutName");
+    Parameter activityClass = templateMetadata.getParameter("activityClass");
+    Parameter mainFragment = templateMetadata.getParameter("mainFragment");
+    Parameter activityTitle = templateMetadata.getParameter("activityTitle");
+    Parameter detailsActivity = templateMetadata.getParameter("detailsActivity");
+    Parameter detailsLayoutName = templateMetadata.getParameter("detailsLayoutName");
+    assertSameElements(templateMetadata.getRelatedParams(layoutName), detailsLayoutName);
+    assertSameElements(templateMetadata.getRelatedParams(activityClass), detailsActivity, mainFragment);
+    assertSameElements(templateMetadata.getRelatedParams(mainFragment), detailsActivity, activityClass);
+    assertEmpty(templateMetadata.getRelatedParams(activityTitle));
+    assertSameElements(templateMetadata.getRelatedParams(detailsActivity), activityClass, mainFragment);
+    assertSameElements(templateMetadata.getRelatedParams(detailsLayoutName), layoutName);
   }
 
   // ---- Test support code below ----
@@ -1049,10 +1048,16 @@ public class TemplateTest extends AndroidGradleTestCase {
                             @NonNull NewProjectWizardState projectValues,
                             @Nullable TemplateWizardState templateValues) throws Exception {
 
-    boolean checkLib = templateValues != null &&
-                       "Activity".equals(templateValues.getTemplate().getMetadata().getCategory()) &&
-                       "Mobile".equals(templateValues.getTemplate().getMetadata().getFormFactor()) &&
-                       !projectValues.getBoolean(ATTR_CREATE_ACTIVITY);
+    boolean checkLib = false;
+    if (templateValues != null) {
+      Template template = templateValues.getTemplate();
+      assert (template != null);
+      TemplateMetadata templateMetadata = template.getMetadata();
+      assert (templateMetadata != null);
+      checkLib = "Activity".equals(templateMetadata.getCategory()) &&
+                 "Mobile".equals(templateMetadata.getFormFactor()) &&
+                 !projectValues.getBoolean(ATTR_CREATE_ACTIVITY);
+    }
 
     if (checkLib) {
       projectValues.put(ATTR_IS_LIBRARY_MODULE, false);
@@ -1115,6 +1120,7 @@ public class TemplateTest extends AndroidGradleTestCase {
           if (templateValues.getTemplateMetadata() != null && templateValues.getTemplateMetadata().getIconName() != null) {
             File drawableFolder = new File(FileUtil.join(templateValues.getString(ATTR_RES_OUT)),
                                            FileUtil.join("drawable"));
+            //noinspection ResultOfMethodCallIgnored
             drawableFolder.mkdirs();
             String fileName = myStringEvaluator.evaluate(templateValues.getTemplateMetadata().getIconName(),
                                                          templateValues.getParameters());
