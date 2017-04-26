@@ -648,7 +648,6 @@ public class EditorFixture {
     ESCAPE("EditorEscape"),
     GOTO_DECLARATION("GotoDeclaration"),
     GOTO_IMPLEMENTATION("GotoImplementation"),
-    RUN_FROM_CONTEXT("RunClass"),
     SAVE("SaveAll"),
     SELECT_ALL("$SelectAll"),
     SHOW_INTENTION_ACTIONS("ShowIntentionActions"),

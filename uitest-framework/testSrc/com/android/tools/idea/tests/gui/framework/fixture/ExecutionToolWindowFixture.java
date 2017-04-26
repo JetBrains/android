@@ -19,7 +19,6 @@ import com.android.annotations.Nullable;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.execution.impl.ConsoleViewImpl;
-import com.intellij.execution.testframework.TestTreeView;
 import com.intellij.execution.ui.layout.impl.GridImpl;
 import com.intellij.execution.ui.layout.impl.JBRunnerTabs;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -109,11 +108,6 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     @NotNull
     public JComponent getTabComponent(@NotNull final String tabName) {
       return getTabContent(myParentToolWindow.myToolWindow.getComponent(), JBRunnerTabs.class, GridImpl.class, tabName);
-    }
-
-    @NotNull
-    public UnitTestTreeFixture getUnitTestTree() {
-      return new UnitTestTreeFixture(this, myRobot.finder().findByType(myContent.getComponent(), TestTreeView.class));
     }
 
     // Returns the debugger tree or null.
