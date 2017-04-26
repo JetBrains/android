@@ -45,6 +45,12 @@ public class RoomModuleArgumentImpl extends ASTWrapperPsiElement implements Room
 
   @Override
   @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getIdentifier() {
     return findChildByType(IDENTIFIER);
   }

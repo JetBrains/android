@@ -44,9 +44,9 @@ public class RoomBindParameterImpl extends ASTWrapperPsiElement implements RoomB
   }
 
   @Override
-  @NotNull
+  @Nullable
   public PsiElement getParameterName() {
-    return findNotNullChildByType(PARAMETER_NAME);
+    return findChildByType(PARAMETER_NAME);
   }
 
 }

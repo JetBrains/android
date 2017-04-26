@@ -45,6 +45,12 @@ public class RoomFunctionNameImpl extends ASTWrapperPsiElement implements RoomFu
 
   @Override
   @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getIdentifier() {
     return findChildByType(IDENTIFIER);
   }
