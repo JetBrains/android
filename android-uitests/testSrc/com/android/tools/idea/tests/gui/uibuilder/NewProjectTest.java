@@ -135,8 +135,7 @@ public class NewProjectTest {
   @RunIn(TestGroup.QA)
   @Test
   public void changeLibraryModuleSettings() throws  Exception {
-    newProject("MyTestApp").withMinSdk("24").create();
-    String gradleFileContents = guiTest.ideFrame()
+    String gradleFileContents = newProject("MyTestApp").withMinSdk("24").create()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
