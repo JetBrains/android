@@ -18,10 +18,16 @@ package com.android.tools.idea.startup;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.*;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceClassRegistry;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +38,7 @@ import java.util.Objects;
 /**
  * Delay the initialization of various tasks until the build state is known.
  */
-public class DelayedInitialization extends GradleBuildListener.Adapter {
+public class DelayedInitialization {
   private final Project myProject;
   private final GradleSyncState mySyncState;
   private final GradleSyncInvoker mySyncInvoker;
@@ -55,7 +61,9 @@ public class DelayedInitialization extends GradleBuildListener.Adapter {
     mySyncInvoker = syncInvoker;
     myBuildState = buildState;
     myRunnables = new ArrayList<>();
-    GradleBuildState.subscribe(project, this);
+    GradleBuildState.subscribe(project, new BuildListener());
+    GradleSyncState.subscribe(project, new SyncListener());
+    runAfterBuild(this::clearResourceCache, null);
   }
 
   /**
@@ -90,8 +98,7 @@ public class DelayedInitialization extends GradleBuildListener.Adapter {
     }
   }
 
-  @Override
-  public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
+  private void afterBuild() {
     boolean buildError = getBuildStatus() != GradleBuildStatus.BUILD_SUCCESS;
     List<RunnablePair> runnables = new ArrayList<>();
     synchronized (myLock) {
@@ -101,6 +108,20 @@ public class DelayedInitialization extends GradleBuildListener.Adapter {
       }
     }
     runnables.stream().map(pair -> buildError ? pair.failure : pair.success).filter(Objects::nonNull).forEach(Runnable::run);
+  }
+
+  /**
+   * Dump the cached resources if we have accessed the resources before the build was ready.
+   * Clear the file based resources and attributes that may have been created based on those resources.
+   */
+  private void clearResourceCache() {
+    if (AppResourceRepository.testAndClearTempResourceCached(myProject)) {
+      ResourceClassRegistry.get(myProject).clearCache();
+      for (AndroidFacet facet : AndroidUtils.getApplicationFacets(myProject)) {
+        facet.refreshResources();
+        ModuleResourceManagers.getInstance(facet).getLocalResourceManager().invalidateAttributeDefinitions();
+      }
+    }
   }
 
   private GradleBuildStatus getBuildStatus() {
@@ -126,6 +147,25 @@ public class DelayedInitialization extends GradleBuildListener.Adapter {
     BUILD_NEEDED,
     BUILD_ERROR,
     BUILD_SUCCESS
+  }
+
+  private class SyncListener extends GradleSyncListener.Adapter {
+    @Override
+    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+      afterBuild();
+    }
+
+    @Override
+    public void syncSkipped(@NotNull Project project) {
+      afterBuild();
+    }
+  }
+
+  private class BuildListener extends GradleBuildListener.Adapter {
+    @Override
+    public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
+      afterBuild();
+    }
   }
 
   private static class RunnablePair {
