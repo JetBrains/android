@@ -285,7 +285,7 @@ public class InstantRunTest extends TestWithEmulator {
    *   1. Clicking on re-run should not do a clean build just install application to emulator/device
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37506663
   @Test
   public void unnecessaryCleanCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
