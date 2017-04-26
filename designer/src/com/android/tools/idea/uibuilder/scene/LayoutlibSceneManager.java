@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
@@ -102,6 +103,12 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public SceneDecoratorFactory getSceneDecoratorFactory() {
     return DECORATOR_FACTORY;
+  }
+
+  @Override
+  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
+    // make sure we render in this situation
+    requestRender();
   }
 
   /**

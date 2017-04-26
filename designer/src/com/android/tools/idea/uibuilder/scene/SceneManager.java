@@ -21,6 +21,8 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -35,7 +37,7 @@ import java.util.Set;
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
-abstract public class SceneManager implements Disposable {
+abstract public class SceneManager implements Disposable, DesignSurfaceListener {
   private final NlModel myModel;
   final private DesignSurface myDesignSurface;
   private Scene myScene;
@@ -43,6 +45,7 @@ abstract public class SceneManager implements Disposable {
   public SceneManager(NlModel model, DesignSurface surface) {
     myModel = model;
     myDesignSurface = surface;
+    myDesignSurface.addListener(this);
     Disposer.register(model, this);
   }
 
@@ -161,4 +164,27 @@ abstract public class SceneManager implements Disposable {
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
 
   public abstract Map<Object, PropertiesMap> getDefaultProperties();
+
+
+  // DesignSurfaceListener
+
+  @Override
+  public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
+    // do nothing
+  }
+
+  @Override
+  public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
+    // do nothing
+  }
+
+  @Override
+  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    // do nothing
+  }
+
+  @Override
+  public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    return false;
+  }
 }
