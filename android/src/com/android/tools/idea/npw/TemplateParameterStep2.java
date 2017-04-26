@@ -76,8 +76,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.IS_LIBRARY_KEY;
+import static com.android.tools.idea.npw.project.NewProjectModel.getInitialDomain;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
@@ -537,6 +537,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   @Override
   public void init() {
     super.init();
+    myState.put(COMPANY_DOMAIN_KEY, getInitialDomain(false));
     if (mySourceProviders.length > 0) {
       myState.put(AddAndroidActivityPath.KEY_SOURCE_PROVIDER, mySourceProviders[0]);
       myState.put(AddAndroidActivityPath.KEY_SOURCE_PROVIDER_NAME, mySourceProviders[0].getName());
