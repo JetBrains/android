@@ -18,8 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
@@ -35,6 +33,8 @@ import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
@@ -800,7 +800,7 @@ public class RenderTask implements IImageFactory {
           if (result.getException() != null) {
             reportException(result.getException());
           }
-          myLogger.error(null, result.getErrorMessage(), result.getException(), null);
+          myLogger.error(null, result.getErrorMessage(), result.getException(), null, null);
         }
         return Futures.immediateFuture(renderResult);
       }
@@ -812,8 +812,10 @@ public class RenderTask implements IImageFactory {
         myRenderSession.render();
         RenderResult result =
           RenderResult.create(this, myRenderSession, myPsiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
-        if (result.getRenderResult().getException() != null) {
-          reportException(result.getRenderResult().getException());
+        Result renderResult = result.getRenderResult();
+        if (renderResult.getException() != null) {
+          reportException(renderResult.getException());
+          myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
         }
         return result;
       });
