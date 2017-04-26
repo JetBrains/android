@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.projectstructure;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.options.Configurable;
@@ -87,18 +86,6 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
     return myIdeFrameFixture.waitForGradleProjectSyncToFinish();
-  }
-
-  @NotNull
-  public ProjectStructureDialogFixture setServiceEnabled(String item, boolean checked) {
-    selectConfigurable(item);
-    JCheckBoxFixture checkBoxFixture =
-      new JCheckBoxFixture(robot(), robot().finder().findByName(myDialog, "enableService", JCheckBox.class));
-    checkBoxFixture.setSelected(checked);
-    if (!checked) {
-      MessagesFixture.findByTitle(robot(), "Confirm Uninstall Service").clickYes();
-    }
-    return this;
   }
 
   @NotNull
