@@ -56,6 +56,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 /**
  * Replaces the {@linkplain MarkLibraryRootAction} for Android-Gradle projects. This action, given an input of a number of
  * {@linkplain VirtualFile} instances, examines them to see if they are jarfiles and could be added to a library as a dependency.
@@ -210,7 +212,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
           }
         }
       });
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
 
       super.doOKAction();
     }

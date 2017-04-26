@@ -57,6 +57,8 @@ import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.util.ThreeState.YES;
 
@@ -173,14 +175,15 @@ public class PostProjectBuildTasksExecutor {
       syncJavaLangLevel();
 
       if (isSyncNeeded(buildMode, errorCount)) {
-        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
+          TRIGGER_PROJECT_MODIFIED);
         GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, null);
       }
 
       if (isSyncRequestedDuringBuild(myProject)) {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync.
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_USER_REQUEST);
       }
     }
   }

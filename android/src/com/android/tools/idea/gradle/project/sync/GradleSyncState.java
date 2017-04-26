@@ -24,6 +24,7 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
@@ -45,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -79,7 +81,12 @@ public class GradleSyncState {
   @GuardedBy("myLock")
   private boolean mySyncInProgress;
 
+  // Negative numbers mean that the events have not finished
   private long mySyncStartedTimestamp = -1L;
+  private long mySyncSetupStartedTimeStamp = -1L;
+  private long mySyncEndedTimeStamp = -1L;
+  private long mySyncFailedTimeStamp = -1L;
+  private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
 
   @NotNull
   public static MessageBusConnection subscribe(@NotNull Project project, @NotNull GradleSyncListener listener) {
@@ -139,8 +146,8 @@ public class GradleSyncState {
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
    */
-  public boolean skippedSyncStarted(boolean notifyUser) {
-    return syncStarted(true, notifyUser);
+  public boolean skippedSyncStarted(boolean notifyUser, GradleSyncStats.Trigger trigger) {
+    return syncStarted(true, notifyUser, trigger);
   }
 
   /**
@@ -150,11 +157,11 @@ public class GradleSyncState {
    * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
    * current request cannot continue because there is already one in progress.
    */
-  public boolean syncStarted(boolean notifyUser) {
-    return syncStarted(false, notifyUser);
+  public boolean syncStarted(boolean notifyUser, GradleSyncStats.Trigger trigger) {
+    return syncStarted(false, notifyUser, trigger);
   }
 
-  private boolean syncStarted(boolean syncSkipped, boolean notifyUser) {
+  private boolean syncStarted(boolean syncSkipped, boolean notifyUser, GradleSyncStats.Trigger trigger) {
     synchronized (myLock) {
       if (mySyncInProgress) {
         LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
@@ -165,7 +172,7 @@ public class GradleSyncState {
     }
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
 
-    mySyncStartedTimestamp = System.currentTimeMillis();
+    setSyncStartedTimeStamp(System.currentTimeMillis(), trigger);
     addInfoToEventLog("Gradle sync started");
 
     if (notifyUser) {
@@ -175,14 +182,39 @@ public class GradleSyncState {
     mySummary.reset();
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject));
 
-    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_STARTED);
+    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_STARTED);
     UsageTracker.getInstance().log(event);
 
     return true;
   }
 
+  @VisibleForTesting
+  void setSyncStartedTimeStamp(long timeStampMs, GradleSyncStats.Trigger trigger) {
+    mySyncStartedTimestamp = timeStampMs;
+    mySyncSetupStartedTimeStamp = -1;
+    mySyncEndedTimeStamp = -1;
+    mySyncFailedTimeStamp = -1;
+    myTrigger = trigger;
+  }
+
+  @VisibleForTesting
+  void setSyncSetupStartedTimeStamp(long timeStampMs) {
+    mySyncSetupStartedTimeStamp = timeStampMs;
+  }
+
+  @VisibleForTesting
+  void setSyncEndedTimeStamp(long timeStampMs) {
+    mySyncEndedTimeStamp = timeStampMs;
+  }
+
+  @VisibleForTesting
+  void setSyncFailedTimeStamp(long timeStampMs) {
+    mySyncFailedTimeStamp = timeStampMs;
+  }
+
   public void syncSkipped(long lastSyncTimestamp) {
     long syncEndTimestamp = System.currentTimeMillis();
+    setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s (from cached state)", getFormattedSyncDuration(syncEndTimestamp));
     addInfoToEventLog(msg);
     LOG.info(msg);
@@ -193,7 +225,7 @@ public class GradleSyncState {
 
     enableNotifications();
 
-    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_SKIPPED);
+    AndroidStudioEvent.Builder event =generateSyncEvent(GRADLE_SYNC_SKIPPED);
     UsageTracker.getInstance().log(event);
   }
 
@@ -209,6 +241,7 @@ public class GradleSyncState {
 
   public void syncFailed(@NotNull String message) {
     long syncEndTimestamp = System.currentTimeMillis();
+    setSyncFailedTimeStamp(syncEndTimestamp);
     String msg = "Gradle sync failed";
     if (isNotEmpty(message)) {
       msg += String.format(": %1$s", message);
@@ -217,17 +250,18 @@ public class GradleSyncState {
     addToEventLog(msg, ERROR);
     LOG.info(msg);
 
-    syncFinished(System.currentTimeMillis());
+    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_FAILURE);
+    UsageTracker.getInstance().log(event);
+
+    syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
 
     mySummary.setSyncErrorsFound(true);
-
-    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_FAILURE);
-    UsageTracker.getInstance().log(event);
   }
 
   public void syncEnded() {
     long syncEndTimestamp = System.currentTimeMillis();
+    setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s", getFormattedSyncDuration(syncEndTimestamp));
     addInfoToEventLog(msg);
     LOG.info(msg);
@@ -237,23 +271,72 @@ public class GradleSyncState {
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     LintUtils.sTryPrefixLookup = true;
 
-    syncFinished(syncEndTimestamp);
-    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
 
     GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
     String gradleVersionString = gradleVersion != null ? gradleVersion.toString() : "";
 
     // @formatter:off
-    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC)
-                                                                      .setKind(GRADLE_SYNC_ENDED)
-                                                                      .setGradleVersion(gradleVersionString);
+    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_ENDED).setGradleVersion(gradleVersionString);
     // @formatter:on
     UsageTracker.getInstance().log(event);
+
+    syncFinished(syncEndTimestamp);
+    syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
+  }
+
+  private GradleSyncStats.Trigger getTrigger() {
+    return myTrigger;
+  }
+
+  private long getSyncDurationMS(long syncEndTimestamp) {
+    return syncEndTimestamp - mySyncStartedTimestamp;
+  }
+
+  @VisibleForTesting
+  long getSyncGradleTimeMs() {
+    if (mySyncSetupStartedTimeStamp >= 0) {
+      return mySyncSetupStartedTimeStamp - mySyncStartedTimestamp;
+    }
+    // Gradle part has not been done
+    return -1;
+  }
+
+  @VisibleForTesting
+  long getSyncIdeTimeMs() {
+    if (mySyncEndedTimeStamp >= 0) {
+      // Sync finished
+      if (mySyncSetupStartedTimeStamp >= 0) {
+        return mySyncEndedTimeStamp - mySyncSetupStartedTimeStamp;
+      }
+      // Sync was done from cache (no gradle nor IDE part was done)
+      return -1;
+    }
+    // Since Ide part is the last one, it did not started or it failed
+    return -1;
+  }
+
+  @VisibleForTesting
+  long getSyncTotalTimeMs() {
+    if (mySyncEndedTimeStamp >= 0) {
+      // Sync was successful
+      return  mySyncEndedTimeStamp - mySyncStartedTimestamp;
+    }
+    if (mySyncFailedTimeStamp >= 0) {
+      // Sync failed
+      return mySyncFailedTimeStamp - mySyncStartedTimestamp;
+    }
+    // If more sync steps are added, they should be checked in reverse order
+    if (mySyncSetupStartedTimeStamp >= 0) {
+      // Only Gradle part has finished
+      return mySyncSetupStartedTimeStamp - mySyncStartedTimestamp;
+    }
+    // Nothing has finished yet
+    return 0;
   }
 
   @NotNull
   private String getFormattedSyncDuration(long syncEndTimestamp) {
-    long duration = syncEndTimestamp - mySyncStartedTimestamp;
+    long duration = getSyncDurationMS(syncEndTimestamp);
     long seconds = MILLISECONDS.toSeconds(duration);
     return String.format("%ds %dms", seconds, duration - SECONDS.toMillis(seconds));
   }
@@ -362,11 +445,13 @@ public class GradleSyncState {
   }
 
   public void setupStarted() {
+    long syncSetupTimestamp = System.currentTimeMillis();
+    setSyncSetupStartedTimeStamp(syncSetupTimestamp);
     addInfoToEventLog("Project setup started");
     LOG.info(String.format("Started setup of project '%1$s'.", myProject.getName()));
 
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
-    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_SETUP_STARTED);
+    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SETUP_STARTED);
     UsageTracker.getInstance().log(event);
   }
 
@@ -396,5 +481,16 @@ public class GradleSyncState {
         BuildVariantView.getInstance(myProject).updateContents();
       });
     }
+  }
+
+  private AndroidStudioEvent.Builder generateSyncEvent(AndroidStudioEvent.EventKind kind) {
+    return AndroidStudioEvent.newBuilder()
+      .setCategory(GRADLE_SYNC)
+      .setKind(kind)
+      .setGradleSyncStats(GradleSyncStats.newBuilder()
+        .setTotalTimeMs(getSyncTotalTimeMs())
+        .setIdeTimeMs(getSyncIdeTimeMs())
+        .setGradleTimeMs(getSyncGradleTimeMs())
+        .setTrigger(getTrigger()));
   }
 }

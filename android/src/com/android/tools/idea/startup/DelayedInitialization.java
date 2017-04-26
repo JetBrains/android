@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 /**
  * Delay the initialization of various tasks until the build state is known.
  */
@@ -83,7 +85,7 @@ public class DelayedInitialization {
       case BUILDING:
         break;
       case BUILD_NEEDED:
-        mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null);
+        mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
         break;
       case BUILD_ERROR:
         if (buildFailure != null) {

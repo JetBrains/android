@@ -36,6 +36,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 public class GradleBuildSystemService extends BuildSystemService {
   @Override
   public boolean isApplicable(@NotNull Project project) {
@@ -51,11 +54,12 @@ public class GradleBuildSystemService extends BuildSystemService {
   public void syncProject(@NotNull Project project) {
     if (project.isInitialized()) {
       BuildVariantView.getInstance(project).projectImportStarted();
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      // TODO Can this be called directly by the user? If yes, then need to add something to tell what triggered sync
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
     }
     else {
       StartupManager.getInstance(project)
-        .runWhenProjectIsInitialized(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null));
+        .runWhenProjectIsInitialized(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_LOADED));
     }
   }
 

@@ -38,6 +38,7 @@ import java.util.Collection;
 import static com.android.SdkConstants.FD_CMAKE;
 import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public class InstallCMakeHyperlink extends NotificationHyperlink {
@@ -69,7 +70,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
           if (cmakePackage != null) {
             ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()));
             if (dialog != null && dialog.showAndGet()) {
-              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
             }
             return;
           }

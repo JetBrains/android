@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
@@ -58,7 +59,7 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
     runWriteCommandAction(project, buildModel::applyChanges);
 
     if (requestSync) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
     }
   }
 }
