@@ -32,12 +32,10 @@ import static org.fest.util.Preconditions.checkNotNull;
 
 class FixedColumnTableFixture extends JTableFixture {
 
-  final FixedColumnTable myTable;
   final JTableFixture myFixed;
 
   public FixedColumnTableFixture(@NotNull Robot robot, @NotNull FixedColumnTable target) {
     super(robot, target);
-    myTable = target;
     myFixed = new JTableFixture(robot, (JTable)((JScrollPane)target.getParent().getParent()).getRowHeader().getView());
   }
 
