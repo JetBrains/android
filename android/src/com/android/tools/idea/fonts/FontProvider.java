@@ -23,34 +23,58 @@ import java.net.URL;
 
 /**
  * A {@link FontProvider} is a service that provides a font directory with links
- * to individual font *.ttf files that can be downloaded an cached.
+ * to individual font *.ttf files that can be downloaded an cached.`
  */
 @Immutable
 public class FontProvider implements Comparable<FontProvider> {
-  public static final FontProvider EMPTY_PROVIDER = new FontProvider("", "", "");
+  public static final FontProvider EMPTY_PROVIDER = new FontProvider("", "", "", "", "");
 
   private final String myName;
   private final String myAuthority;
+  private final String myPackageName;
   private final String myUrl;
+  private final String myCertificate;
 
   public FontProvider(@NotNull String name,
                       @NotNull String authority,
-                      @NotNull String url) {
+                      @NotNull String packageName,
+                      @NotNull String url,
+                      @NotNull String certificate) {
     myName = name;
     myAuthority = authority;
+    myPackageName = packageName;
     myUrl = url;
+    myCertificate = certificate;
   }
 
+  @NotNull
   public String getName() {
     return myName;
   }
 
+  @NotNull
   public String getAuthority() {
     return myAuthority;
   }
 
+  @NotNull
+  public String getPackageName() {
+    return myPackageName;
+  }
+
+  @NotNull
   public String getUrl() {
     return myUrl;
+  }
+
+  @NotNull
+  public String getCertificate() {
+    return myCertificate;
+  }
+
+  @NotNull
+  public String getCertificateResourceName() {
+    return myAuthority.replace('.', '_') + "_certs";
   }
 
   public URL getFallbackResourceUrl() {
