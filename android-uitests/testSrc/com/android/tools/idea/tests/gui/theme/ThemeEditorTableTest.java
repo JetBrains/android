@@ -26,7 +26,6 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -246,58 +245,6 @@ public class ThemeEditorTableTest {
     cellFont.requireBold();
     assertEquals("android:textColorPrimary", themeEditorTable.attributeNameAt(cell));
     assertEquals("@color/text_color_primary", themeEditorTable.valueAt(cell));
-  }
-
-  /**
-   * Test the text completion for attribute values
-   */
-  @Ignore("http://wpie20.hot.corp.google.com:8200/builders/ubuntu-studio-master-dev-uitests/builds/28/")
-  @Test
-  public void testResourceCompletion() throws IOException {
-    guiTest.importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
-    final ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
-
-    final TableCell cell = row(3).column(0);
-
-    FontFixture cellFont = themeEditorTable.fontAt(cell);
-    cellFont.requireNotBold();
-    assertEquals("android:colorBackground", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@android:color/background_holo_light", themeEditorTable.valueAt(cell));
-
-    JTableCellFixture tableCell = themeEditorTable.cell(cell);
-    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)tableCell.editor());
-    tableCell.startEditing();
-    EditorTextFieldFixture textComponent = resourceComponent.getTextField();
-    textComponent.requireText("@android:color/background_holo_light");
-    textComponent.enterText("invalid");
-    tableCell.stopEditing();
-    Wait.seconds(1).expecting("warning icon to be loaded").until(() -> themeEditorTable.hasWarningIconAt(cell));
-
-    tableCell.startEditing();
-    textComponent = resourceComponent.getTextField();
-    String prefix = "@android:color/back";
-    textComponent.replaceText(prefix);
-
-    JListFixture completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(guiTest.robot());
-    String[] suggestions = completionPopup.contents();
-    assertThat(suggestions).isNotEmpty();
-    for (String suggestion : suggestions) {
-      assertThat(suggestion).startsWith(prefix);
-    }
-
-    prefix = "@color/back";
-    textComponent.replaceText(prefix);
-    completionPopup = ThemeEditorGuiTestUtils.getCompletionPopup(guiTest.robot());
-    suggestions = completionPopup.contents();
-    assertThat(suggestions).isNotEmpty();
-    for (String suggestion : suggestions) {
-      assertThat(suggestion).startsWith(prefix);
-    }
-
-    completionPopup.item(0).doubleClick();
-    tableCell.stopEditing();
-    assertEquals(suggestions[0], themeEditorTable.valueAt(cell));
   }
 
   /**
