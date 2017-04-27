@@ -59,6 +59,14 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
         tag = parentTag;
       }
     }
+
+    String className = component.getMostSpecificClass(ourConstructorMap.keySet());
+    if (className != null) {
+      SceneDecorator decorator = get(className).orElse(BASIC_DECORATOR);
+      decorator.setFrameFactory(FRAME_FRACTORY);
+      return decorator;
+    }
+
     SceneDecorator decorator = get(tag).orElse(BASIC_DECORATOR);
     decorator.setFrameFactory(FRAME_FRACTORY);
     return decorator;
