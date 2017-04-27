@@ -100,5 +100,6 @@
     <orderEntry type="module" module-name="java-lib-model" />
     <orderEntry type="module" module-name="java-lib-model-builder" />
     <orderEntry type="module" module-name="layoutinspector" />
+    <orderEntry type="module" module-name="instantapp-deploy" />
   </component>
 </module>

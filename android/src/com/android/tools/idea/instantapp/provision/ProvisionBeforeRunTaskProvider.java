@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.instantapp.provision;
 
+import com.android.annotations.NonNull;
 import com.android.ddmlib.IDevice;
+import com.android.instantapp.provision.ProvisionException;
+import com.android.instantapp.provision.ProvisionListener;
+import com.android.instantapp.provision.ProvisionRunner;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -40,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -48,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.tools.idea.instantapp.InstantApps.getInstantAppSdk;
 import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 
 /**
@@ -149,11 +155,37 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
         AtomicBoolean tryAgain = new AtomicBoolean(true);
         Set<IDevice> succeededProvisioned = new HashSet<>();
         try {
+          ProvisionRunner provisionRunner = new ProvisionRunner(getInstantAppSdk(), new ProvisionListener() {
+            @Override
+            public void printMessage(@NonNull String message) {
+              indicator.setText2(message);
+            }
+
+            @Override
+            public void logMessage(@NonNull String message, ProvisionException e) {
+              if (e == null) {
+                getLogger().info(message);
+              }
+              else {
+                getLogger().warn(message, e);
+              }
+            }
+
+            @Override
+            public void setProgress(double fraction) {
+              indicator.setFraction(fraction);
+            }
+
+            @Override
+            public boolean isCancelled() {
+              return indicator.isCanceled();
+            }
+          });
+          indicator.setIndeterminate(true);
+          indicator.setText("Provisioning device");
+
           while (tryAgain.get()) {
             try {
-              indicator.setIndeterminate(true);
-              ProvisionRunner provisionRunner = new ProvisionRunner(indicator);
-
               for (ListenableFuture<IDevice> deviceListenableFuture : deviceFutures.get()) {
                 IDevice device = waitForDevice(deviceListenableFuture, indicator);
                 if (device == null) {
@@ -162,6 +194,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
                 }
 
                 if (!succeededProvisioned.contains(device)) {
+                  indicator.setIndeterminate(false);
                   provisionRunner.runProvision(device);
                   succeededProvisioned.add(device);
                 }
@@ -169,12 +202,13 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
               tryAgain.set(false);
             }
             catch (ProvisionException e) {
-              getLogger().warn("Error while provisioning devices", e);
-
               ApplicationManager.getApplication().invokeAndWait(() -> {
                 int choice = Messages
                   .showYesNoDialog("Provision failed with message: " + e.getMessage() + ". Do you want to retry?", "Instant Apps", null);
-                if (choice != Messages.OK) {
+                if (choice == Messages.OK) {
+                  provisionRunner.clearCache();
+                }
+                else {
                   tryAgain.set(false);
                   // If there was an error while provisioning, we stop running the RunConfiguration
                   result.set(false);
@@ -182,6 +216,10 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
               });
             }
           }
+        }
+        catch (FileNotFoundException | ProvisionException e) {
+          getLogger().warn("Error while provisioning devices", e);
+          result.set(false);
         }
         finally {
           // In case an unknown exception (e.g. runtime) is thrown, the countDownLatch unblocks the other thread so the user doesn't expect the timeout
