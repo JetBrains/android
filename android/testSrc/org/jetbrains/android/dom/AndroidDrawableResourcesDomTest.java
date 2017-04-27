@@ -326,7 +326,7 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     doTestCompletionVariants(getTestName(true) + ".xml", "selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition",
                              "inset", "clip", "color", "scale", "shape", "animation-list", "animated-rotate", "rotate",
                              // API 21:
-                             "ripple", "vector", "animated-vector", "animated-selector",
+                             "ripple", "vector", "animated-vector", "animated-selector", "drawable",
                              // API 26:
                              "adaptive-icon", "maskable-icon");
   }
@@ -341,6 +341,22 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     final VirtualFile javaFile = copyFileToProject("IdsClass.java", "src/p1/p2/IdsClass.java");
     myFixture.configureFromExistingVirtualFile(javaFile);
     myFixture.checkHighlighting(true, false, false);
+  }
+
+  public void testDrawableHighlighting() throws Throwable {
+    final VirtualFile javaFile = copyFileToProject("TestDrawable.java", "src/p1/p2/TestDrawable.java");
+    myFixture.configureFromExistingVirtualFile(javaFile);
+    doTestHighlighting();
+  }
+
+  public void testDrawableCompletion1() throws Throwable {
+    toTestFirstCompletion("drawableCompletion1.xml", "drawableCompletion1_after.xml");
+  }
+
+  public void testDrawableCompletion2() throws Throwable {
+    final VirtualFile javaFile = copyFileToProject("TestDrawable.java", "src/p1/p2/TestDrawable.java");
+    myFixture.configureFromExistingVirtualFile(javaFile);
+    toTestFirstCompletion("drawableCompletion2.xml", "drawableCompletion2_after.xml");
   }
 
   private void doTestOnlyDrawableReferences() throws IOException {
