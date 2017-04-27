@@ -529,7 +529,14 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       } else {
         regexp = null;
       }
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(data.getDisplayName(), regexp, data.replacement)};
+      ReplaceStringQuickFix fix = new ReplaceStringQuickFix(data.getDisplayName(), regexp, data.replacement);
+      if (data.shortenNames) {
+        fix.setShortenNames(true);
+      }
+      if (data.reformat) {
+        fix.setFormat(true);
+      }
+      return new AndroidLintQuickFix[]{fix};
     } else if (lintFix instanceof SetAttribute) {
       SetAttribute data = (SetAttribute)lintFix;
       if (data.value == null) {
