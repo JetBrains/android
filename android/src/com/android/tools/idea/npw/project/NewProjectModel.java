@@ -26,6 +26,7 @@ import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -35,6 +36,8 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -42,12 +45,15 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -64,7 +70,6 @@ import java.util.regex.Pattern;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
-
 
 public class NewProjectModel extends WizardModel {
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
@@ -190,30 +195,27 @@ public class NewProjectModel extends WizardModel {
       final String projectLocation = projectLocation().get();
       final String projectName = applicationName().get();
 
-      boolean couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction(null, new Computable<Boolean>() {
-        @Override
-        public Boolean compute() {
-          // We generally assume that the path has passed a fair amount of prevalidation checks
-          // at the project configuration step before. Write permissions check can be tricky though in some cases,
-          // e.g., consider an unmounted device in the middle of wizard execution or changed permissions.
-          // Anyway, it seems better to check that we were really able to create the target location and are able to
-          // write to it right here when the wizard is about to close, than running into some internal IDE errors
-          // caused by these problems downstream
-          // Note: this change was originally caused by http://b.android.com/219851, but then
-          // during further discussions that a more important bug was in path validation in the old wizards,
-          // where File.canWrite() always returned true as opposed to the correct Files.isWritable(), which is
-          // already used in new wizard's PathValidator.
-          // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
-          try {
-            if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(new File(projectLocation))) {
-              return true;
-            }
+      boolean couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction(null, (Computable<Boolean>)() -> {
+        // We generally assume that the path has passed a fair amount of prevalidation checks
+        // at the project configuration step before. Write permissions check can be tricky though in some cases,
+        // e.g., consider an unmounted device in the middle of wizard execution or changed permissions.
+        // Anyway, it seems better to check that we were really able to create the target location and are able to
+        // write to it right here when the wizard is about to close, than running into some internal IDE errors
+        // caused by these problems downstream
+        // Note: this change was originally caused by http://b.android.com/219851, but then
+        // during further discussions that a more important bug was in path validation in the old wizards,
+        // where File.canWrite() always returned true as opposed to the correct Files.isWritable(), which is
+        // already used in new wizard's PathValidator.
+        // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
+        try {
+          if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(new File(projectLocation))) {
+            return true;
           }
-          catch (Exception e) {
-            getLogger().error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
-          }
-          return false;
         }
+        catch (Exception e) {
+          getLogger().error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
+        }
+        return false;
       });
       if (!couldEnsureLocationExists) {
         String msg =
@@ -248,7 +250,7 @@ public class NewProjectModel extends WizardModel {
       ApplicationManager.getApplication().invokeLater(this::performGradleImport);
     }
 
-    private boolean performCreateProject(boolean dryRun) {
+    private void performCreateProject(boolean dryRun) {
       Project project = project().getValue();
 
       // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
@@ -274,7 +276,8 @@ public class NewProjectModel extends WizardModel {
         .withParams(params)
         .build();
       // @formatter:on
-      return projectTemplate.render(context);
+
+      projectTemplate.render(context);
     }
 
     private void performGradleImport() {
@@ -321,13 +324,37 @@ public class NewProjectModel extends WizardModel {
 
         // The GradleSyncListener will take care of creating the Module top level module and opening Android Studio if gradle sync fails,
         // otherwise the project will be created but Android studio will not open - http://b.android.com/335265
-        projectImporter.importProject(applicationName().get(), rootLocation, request,
-                                      new NewProjectImportGradleSyncListener() {
-                                      });
+        projectImporter.importProject(applicationName().get(), rootLocation, request, new ReformattingGradleSyncListener());
       }
       catch (IOException | ConfigurationException e) {
         Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));
         getLogger().error(e);
+      }
+    }
+  }
+
+  private static final class ReformattingGradleSyncListener extends NewProjectImportGradleSyncListener {
+    @Override
+    public void syncSucceeded(@NotNull Project project) {
+      WriteCommandAction.runWriteCommandAction(project, () -> reformat(project));
+    }
+
+    private static void reformat(@NotNull Project project) {
+      VirtualFileVisitor visitor = new VirtualFileVisitor() {
+        @Override
+        public boolean visitFile(@NotNull VirtualFile file) {
+          if (!file.isDirectory()) {
+            TemplateUtils.reformatAndRearrange(project, file);
+          }
+
+          return true;
+        }
+      };
+
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        for (VirtualFile root : ModuleRootManager.getInstance(module).getSourceRoots()) {
+          VfsUtilCore.visitChildrenRecursively(root, visitor);
+        }
       }
     }
   }
