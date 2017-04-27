@@ -20,11 +20,13 @@ package com.android.tools.idea.fonts;
  */
 public class GoogleFontProvider extends FontProvider {
   public static final String GOOGLE_FONT_NAME = "Google Fonts";
-  public static final String GOOGLE_FONT_AUTHORITY = "com.google.android.gms.fonts.provider.fontprovider";
+  public static final String GOOGLE_FONT_AUTHORITY = "com.google.android.gms.fonts";
+  public static final String GOOGLE_FONT_PACKAGE_NAME = "com.google.android.gms";
   public static final String GOOGLE_FONT_URL = "https://fonts.gstatic.com/s/a/directory.xml";
+  public static final String GOOGLE_FONT_CERTIFICATE = "67f20865aaa676c9ac84ae022aea8d4a37003665";
   public static final FontProvider INSTANCE = new GoogleFontProvider();
 
   private GoogleFontProvider() {
-    super(GOOGLE_FONT_NAME, GOOGLE_FONT_AUTHORITY, GOOGLE_FONT_URL);
+    super(GOOGLE_FONT_NAME, GOOGLE_FONT_AUTHORITY, GOOGLE_FONT_PACKAGE_NAME, GOOGLE_FONT_URL, GOOGLE_FONT_CERTIFICATE);
   }
 }
