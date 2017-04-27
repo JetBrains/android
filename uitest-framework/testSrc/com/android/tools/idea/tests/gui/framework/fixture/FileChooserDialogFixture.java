@@ -31,21 +31,6 @@ import javax.swing.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialogImpl> {
-  @NotNull
-  public static FileChooserDialogFixture findOpenProjectDialog(@NotNull Robot robot) {
-    return findDialog(robot, Matchers.byTitle(JDialog.class, "Open File or Project"));
-  }
-
-  @NotNull
-  public static FileChooserDialogFixture findImportProjectDialog(@NotNull Robot robot) {
-    return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog dialog) {
-        String title = dialog.getTitle();
-        return title != null && title.startsWith("Select") && title.endsWith("Project to Import");
-      }
-    });
-  }
 
   @NotNull
   public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull final GenericTypeMatcher<JDialog> matcher) {
