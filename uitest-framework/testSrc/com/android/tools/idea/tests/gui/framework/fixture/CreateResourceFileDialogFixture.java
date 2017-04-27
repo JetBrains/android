@@ -16,12 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiTask;
 import org.jetbrains.android.actions.CreateResourceFileDialogBase;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.awt.event.KeyEvent;
 
 import static org.junit.Assert.assertEquals;
 
@@ -37,15 +33,6 @@ public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateRes
 
   public CreateResourceFileDialogFixture requireName(@NotNull String name) {
     assertEquals(name, getDialogWrapper().getFileName());
-    return this;
-  }
-
-  @NotNull
-  public CreateResourceFileDialogFixture setFileName(@NotNull final String newName) {
-    final Component field = robot().finder().findByLabel(getDialogWrapper().getContentPane(), "File name:");
-    GuiTask.execute(() -> field.requestFocus());
-    robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
-    robot().enterText(newName, target());
     return this;
   }
 }
