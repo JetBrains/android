@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
@@ -29,8 +31,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -38,10 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.npw.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.npw.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
@@ -52,6 +53,7 @@ import static com.android.tools.idea.wizard.WizardConstants.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
 /**
  * Module creation for a given form factor
@@ -73,8 +75,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Key<String> MANIFEST_OUT_KEY = createKey(ATTR_MANIFEST_OUT, PATH, String.class);
   private static final Key<String> TEST_OUT_KEY = createKey(ATTR_TEST_OUT, PATH, String.class);
 
-  private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
-  private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
+  private static final String RELATIVE_SRC_ROOT = join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
+  private static final String RELATIVE_TEST_ROOT = join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
   private final FormFactor myFormFactor;
   private final File myTemplateFile;
@@ -165,14 +167,14 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private String calculateSrcDir() {
     String packageSegment = myState.get(PACKAGE_NAME_KEY);
     packageSegment = (packageSegment == null) ? "" : packageSegment.replace('.', File.separatorChar);
-    return FileUtil.join(RELATIVE_SRC_ROOT, packageSegment);
+    return join(RELATIVE_SRC_ROOT, packageSegment);
   }
 
   @NotNull
   private String calculateTestDir() {
     String packageSegment = myState.get(PACKAGE_NAME_KEY);
     packageSegment = (packageSegment == null) ? "" : packageSegment.replace('.', File.separatorChar);
-    return FileUtil.join(RELATIVE_TEST_ROOT, packageSegment);
+    return join(RELATIVE_TEST_ROOT, packageSegment);
   }
 
   @Override
@@ -183,7 +185,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     boolean basePathModified = modified.contains(PROJECT_LOCATION_KEY) || modified.contains(myModuleNameKey);
     if (basePathModified) {
-      myState.put(MODULE_LOCATION_KEY, FileUtil.join(myState.get(PROJECT_LOCATION_KEY), myState.get(myModuleNameKey)));
+      myState.put(MODULE_LOCATION_KEY, join(myState.get(PROJECT_LOCATION_KEY), myState.get(myModuleNameKey)));
     }
     if (modified.contains(SRC_DIR_KEY) || modified.contains(PACKAGE_NAME_KEY)) {
       myState.put(SRC_DIR_KEY, calculateSrcDir());
@@ -306,7 +308,29 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     if (myState.getNotNull(IS_INSTANT_APP_KEY, false)) {
       templateState.put(ATTR_IS_LIBRARY_MODULE, true);
 
-      if (getProject() != null) {
+      Project project = getProject();
+      if (project != null) {
+        String defaultResourceSuffix = join("src", "main", "res");
+        File baseModuleRoot;
+        File baseModuleResourceRoot;
+        Module baseFeature = InstantApps.findBaseFeature(project);
+        if (baseFeature == null) {
+          baseModuleRoot = new File(projectRoot, moduleName);
+          baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+          templateState.put(ATTR_IS_BASE_SPLIT, true);
+        }
+        else {
+          AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
+          assert moduleModel != null;
+          baseModuleRoot = moduleModel.getRootDirPath();
+          Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
+          assert resDirectories.size() > 0;
+          baseModuleResourceRoot = resDirectories.iterator().next();
+        }
+
+        templateState.put(ATTR_BASE_LIB_NAME, baseModuleRoot.getName());
+        templateState.put(ATTR_BASE_LIB_DIR, baseModuleRoot.getPath());
+        templateState.put(ATTR_BASE_LIB_RES_DIR, baseModuleResourceRoot.getPath());
         templateState.put(ATTR_HAS_MONOLITHIC_APP_WRAPPER, false);
         templateState.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
       }

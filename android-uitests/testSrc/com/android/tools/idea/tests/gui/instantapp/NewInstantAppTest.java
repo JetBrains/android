@@ -76,7 +76,7 @@ public class NewInstantAppTest {
     newProjectWizard
       .clickNext() // Complete project configuration
       .getConfigureFormFactorStep()
-      .selectMinimumSdkApi(MOBILE, "16")
+      .selectMinimumSdkApi(MOBILE, "23")
       .selectInstantAppSupport(MOBILE);
 
     newProjectWizard
@@ -108,51 +108,26 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
-                               "    Android\n" +
-                               "        Android Resources Validation\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                Unresolved class 'MainActivity'\n" +
-                               "        Unknown Android XML attribute\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                Unknown attribute split\n" +
                                "    Android Lint: Correctness\n" +
                                "        Gradle Dynamic Version\n" +
                                "            build.gradle\n" +
                                "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:25.+)\n" +
-                               "        Missing Android XML namespace\n" +
+                               "    Android Lint: Security\n" +
+                               "        AllowBackup/FullBackupContent Problems\n" +
                                "            AndroidManifest.xml\n" +
-                               "                Attribute is missing the Android namespace prefix\n" +
-                               "        Obsolete Gradle Dependency\n" +
-                               "            build.gradle\n" +
-                               "                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
+                               "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>\n" +
                                "    Declaration redundancy\n" +
                                "        Unnecessary module dependency\n" +
                                "            app\n" +
                                "                Module 'app' sources do not depend on module 'base' sources\n" +
                                "                Module 'app' sources do not depend on module 'feature' sources\n" +
-                               "            basesplit\n" +
-                               "                Module 'basesplit' sources do not depend on module 'base' sources\n" +
                                "            feature\n" +
                                "                Module 'feature' sources do not depend on module 'base' sources\n" +
-                               "            featuresplit\n" +
-                               "                Module 'featuresplit' sources do not depend on module 'base' sources\n" +
-                               "                Module 'featuresplit' sources do not depend on module 'basesplit' sources\n" +
-                               "                Module 'featuresplit' sources do not depend on module 'feature' sources\n" +
-                               "            instantapp\n" +
-                               "                Module 'instantapp' sources do not depend on module 'basesplit' sources\n" +
-                               "                Module 'instantapp' sources do not depend on module 'featuresplit' sources\n" +
-                               "    Spelling\n" +
-                               "        Typo\n" +
-                               "            AndroidManifest.xml\n" +
-                               "                Typo: In word 'baselib'\n" +
-                               "                Typo: In word 'featuresplit'\n" +
-                               "                Typo: In word 'instantapp'\n" +
-                               "                Typo: In word 'instantapps'\n" +
-                               "                Typo: In word 'instantapps'\n" +
                                "    XML\n" +
                                "        Unused XML schema declaration\n" +
                                "            AndroidManifest.xml\n" +
-                               "            activity_main.xml\n" +
+                               "                Namespace declaration is never used\n" +
+                               "            AndroidManifest.xml\n" +
                                "                Namespace declaration is never used\n" +
                                "        XML tag empty body\n" +
                                "            strings.xml\n" +
@@ -195,7 +170,6 @@ public class NewInstantAppTest {
     createAndOpenDefaultAIAProject("SetFeatureNameApp", "testfeaturename", null);
 
     guiTest.ideFrame().getModule("testfeaturename");
-    guiTest.ideFrame().getModule("testfeaturenamesplit");
   }
 
   // With warnings coming from multiple projects the order of warnings is not deterministic, also there are some warnings that show up only

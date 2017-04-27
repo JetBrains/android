@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
@@ -52,7 +53,9 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePa
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.*;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -435,24 +438,39 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
    * Merge the URLs from our gradle template into the target module's build.gradle file
    */
   private void mergeDependenciesIntoGradle() throws Exception {
-    File gradleBuildFile = getGradleBuildFilePath(myContext.getModuleRoot());
-    String destinationContents = gradleBuildFile.exists() ? nullToEmpty(readTextFile(gradleBuildFile)) : "";
-    Object buildApi = getParamMap().get(TemplateMetadata.ATTR_BUILD_API);
-    String supportLibVersionFilter = buildApi != null ? buildApi.toString() : "";
-    String result = myIO.mergeBuildFiles(formatDependencies(), destinationContents, myContext.getProject(), supportLibVersionFilter);
-    myIO.writeFile(this, result, gradleBuildFile);
+    boolean isInstantApp = (Boolean)getParamMap().getOrDefault(ATTR_IS_INSTANT_APP, false);
+    String baseSplitRoot = (String)getParamMap().getOrDefault(ATTR_BASE_LIB_DIR, "");
+    if (!isInstantApp || isNullOrEmpty(baseSplitRoot)) {
+      writeDependencies(myContext.getModuleRoot(), x -> true);
+    }
+    else {
+      writeDependencies(new File(baseSplitRoot), x -> x.equals("compile"));
+      writeDependencies(myContext.getModuleRoot(), x -> !x.equals("compile"));
+    }
     myNeedsSync = true;
   }
 
-  private String formatDependencies() {
+  private void writeDependencies(File targetPath, Predicate<String> configurationFilter) throws IOException {
+    File gradleBuildFile = getGradleBuildFilePath(targetPath);
+    String destinationContents = gradleBuildFile.exists() ? nullToEmpty(readTextFile(gradleBuildFile)) : "";
+    Object buildApi = getParamMap().get(ATTR_BUILD_API);
+    String supportLibVersionFilter = buildApi != null ? buildApi.toString() : "";
+    String result =
+      myIO.mergeBuildFiles(formatDependencies(configurationFilter), destinationContents, myContext.getProject(), supportLibVersionFilter);
+    myIO.writeFile(this, result, gradleBuildFile);
+  }
+
+  private String formatDependencies(Predicate<String> configurationFilter) {
     StringBuilder dependencies = new StringBuilder();
     dependencies.append("dependencies {\n");
     for (Map.Entry<String, String> dependency : myContext.getDependencies().entries()) {
-      dependencies.append("  ")
-        .append(dependency.getKey())
-        .append(" '")
-        .append(dependency.getValue())
-        .append("'\n");
+      if (configurationFilter.test(dependency.getKey())) {
+        dependencies.append("  ")
+          .append(dependency.getKey())
+          .append(" '")
+          .append(dependency.getValue())
+          .append("'\n");
+      }
     }
     dependencies.append("}\n");
     return dependencies.toString();
