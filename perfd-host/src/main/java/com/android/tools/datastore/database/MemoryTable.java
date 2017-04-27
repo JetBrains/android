@@ -89,7 +89,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Id = ?"),
 
     // O+ Allocation Tracking
-    INSERT_CLASS("INSERT INTO Memory_AllocatedClass (Pid, Session, CaptureTime, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?, ?)"),
+    INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, CaptureTime, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?, ?)"),
     INSERT_ALLOC(
       "INSERT INTO Memory_AllocationEvents (Pid, Session, CaptureTime, Tag, ClassTag, AllocTime, FreeTime, Size, Length) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"),
