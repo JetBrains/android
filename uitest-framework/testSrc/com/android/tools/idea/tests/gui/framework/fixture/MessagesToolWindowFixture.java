@@ -150,18 +150,6 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     }
   }
 
-  public class BuildContentFixture extends ContentFixture {
-    BuildContentFixture(@NotNull Content content) {
-      super(content);
-    }
-
-    @Override
-    @NotNull
-    protected MessageFixture createFixture(@NotNull ErrorTreeElement element) {
-      throw new UnsupportedOperationException();
-    }
-  }
-
   public abstract static class MessageFixture {
     private static final Pattern ANCHOR_TAG_PATTERN = Pattern.compile("<a href=\"(.*?)\">([^<]+)</a>");
 
