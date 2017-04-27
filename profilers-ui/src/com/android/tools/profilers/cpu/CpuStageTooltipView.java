@@ -37,9 +37,9 @@ class CpuStageTooltipView extends ProfilerTooltipView {
 
     LegendComponent legend = new LegendComponent(legends, 0);
     legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_LEGEND));
-    legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_LEGEND));
-    legend.configure(legends.getThreadsLegend(), new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_LEGEND));
+    legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE));
+    legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_USAGE));
+    legend.configure(legends.getThreadsLegend(), new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT));
 
     legend.setOrientation(LegendComponent.Orientation.VERTICAL);
     return legend;
