@@ -107,7 +107,7 @@ public abstract class ToolWindowFixture {
   }
 
   @NotNull
-  private Content[] getContents() {
+  protected Content[] getContents() {
     return myToolWindow.getContentManager().getContents();
   }
 
