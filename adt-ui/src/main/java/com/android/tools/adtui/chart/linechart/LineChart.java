@@ -128,14 +128,6 @@ public class LineChart extends AnimatedComponent {
   }
 
   /**
-   * Removes all existing lines in the line chart.
-   */
-  public void clearConfigs() {
-    myLinesConfig.clear();
-    myCustomRenderers.clear();
-  }
-
-  /**
    * Creates a {@link LegendConfig} instance. The configuration will be derived based on the {@link LineConfig} associated
    * with the input series used in this {@link LineChart} instance. If the series is not part of the LineChart, defaults will be chosen.
    *
