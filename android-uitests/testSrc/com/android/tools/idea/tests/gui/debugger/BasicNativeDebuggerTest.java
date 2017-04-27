@@ -24,7 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class BasicNativeDebuggerTest extends DebuggerTestBase {
@@ -33,10 +33,15 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
-  public void testSessionRestart() throws IOException, ClassNotFoundException {
+  public void testSessionRestart() throws Exception{
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
+
+    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Auto")
+      .clickOk();
 
     // Setup breakpoints
     openAndToggleBreakPoints(projectFrame,
@@ -65,10 +70,20 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
-  public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
+  public void testMultiBreakAndResume() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
+
+    projectFrame.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectDebuggerType("Native")
+      .clickOk();
+
+    // Set breakpoint in java code, but it wouldn't be hit when it is native debugger type.
+    openAndToggleBreakPoints(projectFrame,
+                             "app/src/main/java/com/example/basiccmakeapp/MainActivity.java",
+                             "setContentView(tv);");
 
     openAndToggleBreakPoints(projectFrame,
                              "app/src/main/jni/native-lib.c",
@@ -132,7 +147,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
       variableToSearchPattern("quotient", "int", "512")
     };
     checkAppIsPaused(projectFrame, expectedPatterns);
-
+    assertThat(debugToolWindowFixture.getJavaDebuggerContent("app-java")).isNull();
     stopDebugSession(debugToolWindowFixture);
   }
 
@@ -145,7 +160,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import BasicJniApp.
+   *   1. Import BasicCmakeAppForUI.
    *   2. Select auto debugger on Edit Configurations dialog.
    *   3. Set breakpoints both in Java and C++ code.
    *   4. Debug on a device running M or earlier.
@@ -163,7 +178,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
     ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
     EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectAutoDebugger()
+      .selectDebuggerType("Dual")
       .clickOk();
 
     // Setup C++ and Java breakpoints.
@@ -190,7 +205,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
       variableToSearchPattern("s", "\"Success. Sum = 55, Product = 3628800, Quotient = 512\""),
     };
     checkAppIsPaused(ideFrameFixture, expectedPatterns);
-
+    assertThat(debugToolWindowFixture.getJavaDebuggerContent("app-java")).isNotNull();
     // TODO Stop the session.
   }
 
