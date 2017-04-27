@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.diagnostics.crash;
 
+import com.android.SdkConstants;
 import com.google.common.base.Joiner;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.project.IndexNotReadyException;
-import groovy.json.internal.Charsets;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
@@ -39,6 +39,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.net.ServerSocket;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,6 +66,7 @@ public class GoogleCrashTest {
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   private static final Throwable ourIndexNotReadyException = createExceptionFromDesc(SAMPLE_EXCEPTION, new IndexNotReadyException());
+  private static final Charset UTF_8 = Charset.forName(SdkConstants.UTF_8);
 
   // Most of the tests do a future.get(), but since they are uploaded to a local server, they should complete relatively quickly.
   // This rule enforces a shorter timeout for the tests. If you are debugging, you probably want to comment this out.
@@ -119,7 +121,7 @@ public class GoogleCrashTest {
 
       return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
                                          HttpResponseStatus.OK,
-                                         Unpooled.wrappedBuffer(expectedReportId.getBytes(Charsets.UTF_8)));
+                                         Unpooled.wrappedBuffer(expectedReportId.getBytes(UTF_8)));
     });
 
     CrashReport report = CrashReport.Builder.createForException(ourIndexNotReadyException)
@@ -155,7 +157,7 @@ public class GoogleCrashTest {
     assertEquals("2.3.0.0\n1.8.0_73-b02\n\n2.3.0.1\n1.8.0_73-b02", attributes.get("crashDesc"));
 
     Path testData = Paths.get(AndroidTestBase.getTestDataPath());
-    List<String> threadDump = Files.readAllLines(testData.resolve(Paths.get("threadDumps", "1.txt")), Charsets.UTF_8);
+    List<String> threadDump = Files.readAllLines(testData.resolve(Paths.get("threadDumps", "1.txt")), UTF_8);
     report = CrashReport.Builder.createForPerfReport("td.txt", Joiner.on('\n').join(threadDump)).build();
 
     attributes.clear();
