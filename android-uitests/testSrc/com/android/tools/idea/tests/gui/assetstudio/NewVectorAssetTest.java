@@ -24,26 +24,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.truth.Truth.assertThat;
-
 @RunWith(GuiTestRunner.class)
 public class NewVectorAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Test
-  public void testNameValidation() throws Exception {
-    String errorMessage = guiTest.importSimpleApplication()
-      .getProjectView()
-      .selectAndroidPane()
-      .clickPath("app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
-      .getVectorAssetStep()
-      .setName("my name")
-      .getError();
-
-    assertThat(errorMessage).isEqualTo("' ' is not a valid resource name character");
-    AssetStudioWizardFixture.find(guiTest.ideFrame()).clickCancel();
-  }
 
   @Test
   public void testSaveDefaultMaterialIcon() throws Exception {
