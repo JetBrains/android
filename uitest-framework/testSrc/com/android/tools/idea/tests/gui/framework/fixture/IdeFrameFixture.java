@@ -77,7 +77,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
@@ -360,28 +359,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       assertNotNull("Unable to find file with relative path " + quote(relativePath), file);
     }
     return file;
-  }
-
-  @NotNull
-  public IdeFrameFixture requestProjectSyncAndExpectFailure() {
-    requestProjectSync();
-    return waitForGradleProjectSyncToFail();
-  }
-
-  @NotNull
-  public IdeFrameFixture requestProjectSyncAndSimulateError(@NotNull String error) {
-    registerSyncErrorToSimulate(error);
-    // When simulating the error, we don't have to wait for sync to happen. Sync never happens because the error is thrown before it (sync)
-    // is started.
-    return requestProjectSync();
-  }
-
-  @NotNull
-  public IdeFrameFixture requestProjectSyncAndSimulateError(@NotNull Throwable error) {
-    registerSyncErrorToSimulate(error);
-    // When simulating the error, we don't have to wait for sync to happen. Sync never happens because the error is thrown before it (sync)
-    // is started.
-    return requestProjectSync();
   }
 
   @NotNull
