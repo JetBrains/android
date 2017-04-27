@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,8 +92,17 @@ public class ActionTarget extends BaseTarget {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
+
     if (myIsVisible) {
-      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myIcon, mIsOver);
+      Rectangle src = new Rectangle();
+      myComponent.fillRect(src);
+      int mouseX = sceneContext.getMouseX();
+      int mouseY = sceneContext.getMouseY();
+      src.x = sceneContext.getSwingDimension(src.x);
+      src.y = sceneContext.getSwingDimension(src.y);
+      src.width = sceneContext.getSwingDimension(src.width);
+      src.height = sceneContext.getSwingDimension(src.height);
+      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, src, myIcon, mIsOver);
     }
   }
 

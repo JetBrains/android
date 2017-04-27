@@ -47,7 +47,7 @@ public class ButtonDecorator extends SceneDecorator {
                int fontSize,
                String string) {
       super(x, y, width, height, mode, baseLineOffset, string, true, true,
-            TEXT_ALIGNMENT_VIEW_START, TEXT_ALIGNMENT_VIEW_START, fontSize, scale);
+            TEXT_ALIGNMENT_CENTER, TEXT_ALIGNMENT_VIEW_START, fontSize, scale);
       mHorizontalPadding = (int)(4 * scale);
       mVerticalPadding = (int)(8 * scale);
       mHorizontalMargin = (int)(8 * scale);
@@ -101,11 +101,14 @@ public class ButtonDecorator extends SceneDecorator {
       if (colorSet.drawBackground()) {
         int round = sceneContext.getSwingDimension(5);
         Stroke stroke = g.getStroke();
-        int strokeWidth = sceneContext.getSwingDimension(3);
+        int strokeWidth = sceneContext.getSwingDimension(2);
         g.setStroke(new BasicStroke(strokeWidth));
         g.setColor(colorSet.getButtonBackground());
         g.fillRect(x + mHorizontalMargin, y + mVerticalMargin,
                    width - mHorizontalMargin * 2 + 1, height - mVerticalMargin * 2 + 1);
+        g.setColor(colorSet.getFakeUI());
+        g.drawRect(x + mHorizontalMargin, y + mVerticalMargin,
+                   width - mHorizontalMargin * 2, height - mVerticalMargin * 2);
         g.setStroke(stroke);
       }
       super.paint(g, sceneContext);
