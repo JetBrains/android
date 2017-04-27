@@ -56,10 +56,10 @@ public class SelectRefactoringDialogFixture extends IdeaDialogFixture<DialogWrap
     return this;
   }
 
-  public InputDialogFixture clickOk() {
+  public RenameModuleDialogFixture clickOk() {
     findAndClickOkButton(this);
     Wait.seconds(1).expecting(target().getTitle() + " dialog to disappear").until(() -> !target().isShowing());
-    return InputDialogFixture.find(ideFrameFixture);
+    return RenameModuleDialogFixture.find(ideFrameFixture);
   }
 
   private SelectRefactoringDialogFixture(

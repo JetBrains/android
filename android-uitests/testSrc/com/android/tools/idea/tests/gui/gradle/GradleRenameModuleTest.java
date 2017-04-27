@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.InputDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.RenameModuleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import org.junit.Before;
@@ -91,7 +91,7 @@ public class GradleRenameModuleTest {
       .getProjectView()
       .selectProjectPane()
       .clickPath("SimpleApplication")
-      .openFromMenu(InputDialogFixture::find, "Refactor", "Rename...")
+      .openFromMenu(RenameModuleDialogFixture::find, "Refactor", "Rename...")
       .enterText("SimpleApplication2")
       .clickOkAndRequireError("Can't rename root module");
   }
