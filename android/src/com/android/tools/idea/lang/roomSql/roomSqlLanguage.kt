@@ -22,12 +22,15 @@ import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.AndroidIcons
 import javax.swing.Icon
 
+val ROOM_SQL_DESCRIPTION = "Android Room SQL"
 
-object ROOM_SQL_LANGUAGE : Language("Room SQL")
+object ROOM_SQL_LANGUAGE : Language("RoomSql") {
+  override fun getDisplayName(): String = ROOM_SQL_DESCRIPTION
+}
 
 object ROOM_SQL_FILE_TYPE : LanguageFileType(ROOM_SQL_LANGUAGE) {
-  override fun getName(): String = "Room SQL"
-  override fun getDescription(): String = "SQL dialect used by Room"
+  override fun getName(): String = ROOM_SQL_DESCRIPTION
+  override fun getDescription(): String = ROOM_SQL_DESCRIPTION
   override fun getDefaultExtension(): String = "rsql"
   override fun getIcon(): Icon = ROOM_SQL_ICON
 }
