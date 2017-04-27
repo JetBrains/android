@@ -27,7 +27,10 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -193,7 +196,11 @@ public class NlDesignSurface extends DesignSurface {
       }
       // do request a render, as if coming from the blueprint mode we might not have the latest rendered image
       if (screenMode != ScreenMode.BLUEPRINT_ONLY) {
-        getSceneManager().requestRender();
+        SceneManager manager = getSceneManager();
+
+        if (manager != null) {
+          manager.requestRender();
+        }
       }
     }
   }
@@ -529,7 +536,9 @@ public class NlDesignSurface extends DesignSurface {
   @SwingCoordinate
   @Override
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
+    assert myScreenView != null;
     Dimension preferredSize = myScreenView.getPreferredSize();
+
     int requiredWidth = preferredSize.width;
     int requiredHeight = preferredSize.height;
     if (myScreenMode == ScreenMode.BOTH) {
@@ -555,7 +564,9 @@ public class NlDesignSurface extends DesignSurface {
     public void paint(@NotNull Graphics2D g2d) {
       Composite oldComposite = g2d.getComposite();
 
+      assert myScreenView != null;
       RenderResult result = myScreenView.getResult();
+
       myPaintedFrame = false;
       if (myDeviceFrames && result != null && result.hasImage()) {
         Configuration configuration = myScreenView.getConfiguration();
