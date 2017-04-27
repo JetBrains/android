@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.roomSql.parser
 
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
 import com.intellij.psi.PsiErrorElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
@@ -29,20 +30,28 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
    *
    * For now the PSI hierarchy is not finalized, so there's no point checking the tree shape.
    */
-  private fun check(text: String) {
-    val psiFile = createPsiFile("in-memory", text)
+  private fun check(input: String) {
+    val psiFile = createPsiFile("in-memory", input)
     ensureParsed(psiFile)
 
     val parseTreeText = toParseTreeText(psiFile, false, false)
-    assertNull(parseTreeText, PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java))
+    assertNull(parseTreeText, getErrorMessage(psiFile))
 
     val lexer = RoomSqlLexer()
-    lexer.start(text)
+    lexer.start(input)
     while (lexer.tokenType != null) {
       assert(lexer.tokenType != TokenType.BAD_CHARACTER, { "BAD_CHARACTER ${lexer.tokenText}"})
       lexer.advance()
     }
   }
+
+  private fun getErrorMessage(input: String): String? {
+    val psiFile = createPsiFile("in-memory", input)
+    ensureParsed(psiFile)
+    return getErrorMessage(psiFile)
+  }
+
+  private fun getErrorMessage(psiFile: PsiFile?) = PsiTreeUtil.findChildOfType(psiFile, PsiErrorElement::class.java)?.errorDescription
 
   fun testSanity() {
     try {
@@ -148,5 +157,9 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
   fun testMultipleExpressions() {
     check("select a from b where f(c); select 42")
+  }
+
+  fun testErrorMessages() {
+    assertEquals("<sql stmt> or semicolon expected, got 'foo'", getErrorMessage("foo"))
   }
 }
