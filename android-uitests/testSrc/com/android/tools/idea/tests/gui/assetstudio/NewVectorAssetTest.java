@@ -20,8 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewVectorAssetStepFixture;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,41 +30,33 @@ import static com.google.common.truth.Truth.assertThat;
 public class NewVectorAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  private AssetStudioWizardFixture myDialog;
-  private NewVectorAssetStepFixture myStep;
-
-  @Before
-  public void openAssetStudioWizard() throws Exception {
-    myDialog = guiTest.importSimpleApplication()
+  @Test
+  public void testNameValidation() throws Exception {
+    String errorMessage = guiTest.importSimpleApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
-    myStep = myDialog.getVectorAssetStep();
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+      .getVectorAssetStep()
+      .setName("my name")
+      .getError();
 
-    assertThat(myDialog.findWizardButton("Next").isEnabled()).isTrue();
-    assertThat(myStep.getError()).isEqualTo("");
+    assertThat(errorMessage).isEqualTo("' ' is not a valid resource name character");
+    AssetStudioWizardFixture.find(guiTest.ideFrame()).clickCancel();
   }
 
   @Test
-  public void testNameValidation() {
-    myStep.setName("");
-
-    assertThat(myDialog.findWizardButton("Next").isEnabled()).isFalse();
-    assertThat(myStep.getError()).isEqualTo("Enter a new name");
-
-    myStep.setName("my name");
-
-    assertThat(myDialog.findWizardButton("Next").isEnabled()).isFalse();
-    assertThat(myStep.getError()).isEqualTo("' ' is not a valid resource name character");
-    myDialog.clickCancel();
-  }
-
-  @Test
-  public void testSaveDefaultMaterialIcon() {
-    myDialog.clickNext();
-    myDialog.clickFinish();
-    guiTest.ideFrame().getEditor().open("app/src/main/res/drawable/ic_android_black_24dp.xml");
+  public void testSaveDefaultMaterialIcon() throws Exception {
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+      .clickNext()
+      .clickFinish();
+    guiTest.ideFrame()
+      .getEditor()
+      .open("app/src/main/res/drawable/ic_android_black_24dp.xml");
   }
 
   // TODO: There is no tests to cover non default icons, different sizes or a Local SVG File

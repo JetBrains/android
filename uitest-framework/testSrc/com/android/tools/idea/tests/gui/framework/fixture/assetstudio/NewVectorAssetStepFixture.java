@@ -30,8 +30,9 @@ public class NewVectorAssetStepFixture extends AbstractWizardStepFixture<NewVect
     super(NewVectorAssetStepFixture.class, robot, target);
   }
 
-  public void setName(@NotNull String name) {
+  public NewVectorAssetStepFixture setName(@NotNull String name) {
     replaceText(findTextFieldWithLabel("Name:"), name);
+    return this;
   }
 
   @NotNull
