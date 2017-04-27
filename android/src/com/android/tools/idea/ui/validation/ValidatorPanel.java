@@ -140,10 +140,11 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   }
 
   private void updateValidationLabel() {
-    myHasErrors.set(false);
     myValidationLabel.setIcon(null);
     myValidationLabel.setText(BLANK);
 
+    boolean hasErrors = false;
+    // The loop assumes that less serious issues are visited first (ie more serious problems are displayed first)
     for (Validator.Severity severity : Validator.Severity.values()) {
       Iterator<String> messages = myMessages.row(severity).values().iterator();
       if (messages.hasNext()) {
@@ -151,10 +152,12 @@ public final class ValidatorPanel extends JPanel implements Disposable {
         myValidationLabel.setIcon(severity.getIcon());
 
         if (severity == Validator.Severity.ERROR) {
-          myHasErrors.set(true);
+          hasErrors = true;
+          break;
         }
       }
     }
+    myHasErrors.set(hasErrors);
   }
 
   @Override

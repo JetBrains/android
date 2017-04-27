@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.instantapp;
 
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
@@ -41,7 +40,6 @@ public class ConfigureInstantAppModuleStep extends SkippableWizardStep<NewInstan
   @NotNull private final StudioWizardStepPanel myRootPanel;
   @NotNull private ValidatorPanel myValidatorPanel;
   private final BindingsManager myBindings = new BindingsManager();
-  private final ListenerManager myListeners = new ListenerManager();
 
   private JPanel myPanel;
   private JTextField myModuleName;
@@ -55,7 +53,6 @@ public class ConfigureInstantAppModuleStep extends SkippableWizardStep<NewInstan
     ModuleValidator moduleValidator = new ModuleValidator(model.getProject());
     myModuleName.setText(WizardUtils.getUniqueName(model.moduleName().get(), moduleValidator));
     TextProperty moduleNameText = new TextProperty(myModuleName);
-    myBindings.bind(model.moduleName(), moduleNameText, myValidatorPanel.hasErrors().not());
 
     myBindings.bindTwoWay(new SelectedProperty(myCreateIgnoreFile), model.createGitIgnore());
 
@@ -77,6 +74,12 @@ public class ConfigureInstantAppModuleStep extends SkippableWizardStep<NewInstan
     return myValidatorPanel.hasErrors().not();
   }
 
+  @Override
+  protected void onProceeding() {
+    // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
+    getModel().moduleName().set(myModuleName.getText());
+  }
+
   @NotNull
   @Override
   protected JComponent getComponent() {
@@ -92,6 +95,5 @@ public class ConfigureInstantAppModuleStep extends SkippableWizardStep<NewInstan
   @Override
   public void dispose() {
     myBindings.releaseAll();
-    myListeners.releaseAll();
   }
 }
