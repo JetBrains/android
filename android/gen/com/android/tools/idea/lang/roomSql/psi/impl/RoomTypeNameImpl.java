@@ -51,6 +51,12 @@ public class RoomTypeNameImpl extends ASTWrapperPsiElement implements RoomTypeNa
 
   @Override
   @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getIdentifier() {
     return findChildByType(IDENTIFIER);
   }

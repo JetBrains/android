@@ -28,6 +28,9 @@ public interface RoomTypeName extends PsiElement {
   List<RoomSignedNumber> getSignedNumberList();
 
   @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
   PsiElement getIdentifier();
 
   @Nullable

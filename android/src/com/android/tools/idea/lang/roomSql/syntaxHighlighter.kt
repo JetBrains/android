@@ -27,19 +27,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.TokenSet
 
-val KEYWORDS = setOf(ABORT, ACTION, ADD, AFTER, ALL, ALTER, ANALYZE, AND, AS, ASC, ATTACH, AUTOINCREMENT, BEFORE, BEGIN, BETWEEN, BY,
-    CASCADE, CASE, CAST, CHECK, COLLATE, COLUMN, COMMIT, CONFLICT, CONSTRAINT, CREATE, CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP,
-    DATABASE, DEFAULT, DEFERRABLE, DEFERRED, DELETE, DESC, DETACH, DISTINCT, DROP, EACH, ELSE, END, ESCAPE, EXCEPT, EXCLUSIVE, EXISTS,
-    EXPLAIN, FAIL, FOR, FOREIGN, FROM, GLOB, GROUP, HAVING, IF, IGNORE, IMMEDIATE, IN, INDEX, INDEXED, INITIALLY, INNER, INSERT, INSTEAD,
-    INTERSECT, INTO, IS, ISNULL, JOIN, KEY, LEFT, LIKE, LIMIT, MATCH, NATURAL, NO, NOT, NOTNULL, NULL, OF, OFFSET, ON, OR, ORDER, OUTER,
-    PLAN, PRAGMA, PRIMARY, QUERY, RAISE, RECURSIVE, REFERENCES, REGEXP, REINDEX, RELEASE, RENAME, REPLACE, RESTRICT, ROLLBACK, ROW, ROWID,
-    SAVEPOINT, SELECT, SET, TABLE, TEMP, TEMPORARY, THEN, TO, TRANSACTION, TRIGGER, UNION, UNIQUE, UPDATE, USING, VACUUM, VALUES, VIEW,
-    VIRTUAL, WHEN, WHERE, WITH, WITHOUT)
+private val KEYWORDS = TokenSet.create(
+    ABORT, ACTION, ADD, AFTER, ALL, ALTER, ANALYZE, AND, AS, ASC, ATTACH, AUTOINCREMENT, BEFORE, BEGIN, BETWEEN, BY, CASCADE, CASE, CAST,
+    CHECK, COLLATE, COLUMN, COMMIT, CONFLICT, CONSTRAINT, CREATE, CROSS, DATABASE, DEFAULT, DEFERRABLE, DEFERRED, DELETE, DESC, DETACH,
+    DISTINCT, DROP, EACH, ELSE, END, ESCAPE, EXCEPT, EXCLUSIVE, EXISTS, EXPLAIN, FAIL, FOR, FOREIGN, FROM, GLOB, GROUP, HAVING, IF, IGNORE,
+    IMMEDIATE, IN, INDEX, INDEXED, INITIALLY, INNER, INSERT, INSTEAD, INTERSECT, INTO, IS, ISNULL, JOIN, KEY, LEFT, LIKE, LIMIT, MATCH,
+    NATURAL, NO, NOT, NOTNULL, NULL, OF, OFFSET, ON, OR, ORDER, OUTER, PLAN, PRAGMA, PRIMARY, QUERY, RAISE, RECURSIVE, REFERENCES, REGEXP,
+    REINDEX, RELEASE, RENAME, REPLACE, RESTRICT, ROLLBACK, ROW, ROWID, SAVEPOINT, SELECT, SET, TABLE, TEMP, TEMPORARY, THEN, TO,
+    TRANSACTION, TRIGGER, UNION, UNIQUE, UPDATE, USING, VACUUM, VALUES, VIEW, VIRTUAL, WHEN, WHERE, WITH, WITHOUT)
 
-val OPERATORS = setOf(AMP, BAR, CONCAT, DIV, EQ, EQEQ, GT, GTE, LT, LTE, MINUS, MOD, NOT_EQ, PLUS, SHL, SHR, STAR, TILDE, UNEQ)
+private val OPERATORS =
+    TokenSet.create(AMP, BAR, CONCAT, DIV, EQ, EQEQ, GT, GTE, LT, LTE, MINUS, MOD, NOT_EQ, PLUS, SHL, SHR, STAR, TILDE, UNEQ)
 
-enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
+private val CONSTANTS = TokenSet.create(CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP)
+
+private enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
   BAD_CHARACTER(HighlighterColors.BAD_CHARACTER),
   KEYWORD(DefaultLanguageHighlighterColors.KEYWORD),
   NUMBER(DefaultLanguageHighlighterColors.NUMBER),
@@ -52,13 +56,14 @@ enum class RoomSqlTextAttributes(fallback: TextAttributesKey) {
   DOT(DefaultLanguageHighlighterColors.DOT),
   COMMA(DefaultLanguageHighlighterColors.COMMA),
   SEMICOLON(DefaultLanguageHighlighterColors.SEMICOLON),
+  CONSTANT(DefaultLanguageHighlighterColors.CONSTANT),
   ;
 
   val key = TextAttributesKey.createTextAttributesKey("ROOM_SQL_${name}", fallback)
   val keys = arrayOf(key)
 }
 
-val EMPTY_KEYS = emptyArray<TextAttributesKey>()
+private val EMPTY_KEYS = emptyArray<TextAttributesKey>()
 
 class RoomSqlSyntaxHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = RoomSqlLexer()
@@ -66,7 +71,8 @@ class RoomSqlSyntaxHighlighter : SyntaxHighlighterBase() {
   override fun getTokenHighlights(tokenType: IElementType?): Array<TextAttributesKey> = when (tokenType) {
     in KEYWORDS -> RoomSqlTextAttributes.KEYWORD.keys
     in OPERATORS -> RoomSqlTextAttributes.OPERATOR.keys
-    STRING_LITERAL -> RoomSqlTextAttributes.STRING.keys
+    in CONSTANTS -> RoomSqlTextAttributes.CONSTANT.keys
+    STRING_LITERAL, BRACKET_LITERAL -> RoomSqlTextAttributes.STRING.keys
     NUMERIC_LITERAL -> RoomSqlTextAttributes.NUMBER.keys
     PARAMETER_NAME -> RoomSqlTextAttributes.PARAMETER.keys
     LINE_COMMENT -> RoomSqlTextAttributes.LINE_COMMENT.keys

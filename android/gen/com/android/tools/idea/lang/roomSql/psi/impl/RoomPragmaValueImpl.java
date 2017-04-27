@@ -51,6 +51,12 @@ public class RoomPragmaValueImpl extends ASTWrapperPsiElement implements RoomPra
 
   @Override
   @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getIdentifier() {
     return findChildByType(IDENTIFIER);
   }
