@@ -180,6 +180,7 @@ public abstract class SceneView {
   }
 
   public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    SceneContext.get(this).setMouseLocation(x, y);
     getScene().mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
     mySurface.setCursor(getScene().getMouseCursor());
   }
