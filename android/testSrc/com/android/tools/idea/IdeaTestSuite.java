@@ -61,12 +61,6 @@ import java.nio.file.Paths;
   // http://b/35788260
   com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
 
-  // http://b/35788310
-  com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
-  com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
-  com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
-  com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
-
   // http://b/36872873
   com.android.tools.idea.ddms.adb.AdbServiceTest.class,
 })
