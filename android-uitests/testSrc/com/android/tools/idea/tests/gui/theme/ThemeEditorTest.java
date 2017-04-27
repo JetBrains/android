@@ -29,16 +29,13 @@ import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -96,23 +93,6 @@ public class ThemeEditorTest {
 
     guiTest.ideFrame().getEditor().close();
     checkNoErrors();
-  }
-
-  @Ignore("go/studio-builder/builders/ubuntu-studio-master-dev-uitests/builds/71")
-  @Test
-  public void testConfigurationToolbar() throws IOException {
-    guiTest.importSimpleApplication();
-    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
-
-    JButton apiButton = themeEditor.findToolbarButton("Android version to use when rendering layouts in the IDE");
-    guiTest.robot().click(apiButton);
-    clickPopupMenuItem("API 21", "21", apiButton, guiTest.robot());
-
-    JButton deviceButton = themeEditor.findToolbarButton("The virtual device to render the layout with");
-    guiTest.robot().click(deviceButton);
-    clickPopupMenuItem("Nexus 6P", "Nexus 6P", deviceButton, guiTest.robot());
-
-    themeEditor.getPreviewComponent().requireApi(21).requireDevice("Nexus 6P");
   }
 
   @Test
