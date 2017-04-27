@@ -194,15 +194,6 @@ public abstract class RenderTestBase extends AndroidTestCase {
     }
   }
 
-  @NotNull
-  public static File getTempDir() {
-    if (System.getProperty("os.name").equals("Mac OS X")) {
-      return new File("/tmp"); //$NON-NLS-1$
-    }
-
-    return new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
-  }
-
   /**
    * Waits for any RenderTask dispose threads to finish
    */
