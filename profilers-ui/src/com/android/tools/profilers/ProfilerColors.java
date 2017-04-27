@@ -30,16 +30,9 @@ public class ProfilerColors {
 
   public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x386550);
 
-  //TODO: Remove *_LEGEND colors as they should be the same as the line colors.
-  public static final Color CPU_USAGE_LEGEND = CPU_USAGE;
-
   public static final Color CPU_OTHER_USAGE = new JBColor(0xD8EAF0, 0x363E46);
 
-  public static final Color CPU_OTHER_LEGEND = CPU_OTHER_USAGE;
-
   public static final Color THREADS_COUNT = new JBColor(0x6AA78A, 0x5E9A7D);
-
-  public static final Color THREADS_COUNT_LEGEND = THREADS_COUNT;
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
