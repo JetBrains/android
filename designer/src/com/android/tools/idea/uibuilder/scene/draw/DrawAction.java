@@ -30,7 +30,7 @@ import java.awt.*;
 public class DrawAction extends DrawRegion {
   private final NlIcon myIcon;
   private boolean myIsOver;
-  @SwingCoordinate private int myMySrcX;
+  @SwingCoordinate private int mySrcX;
   @SwingCoordinate private int mySrcY;
   @SwingCoordinate private int mySrcWidth;
   @SwingCoordinate private int mySrcHeight;
@@ -56,7 +56,7 @@ public class DrawAction extends DrawRegion {
     super(x, y, width, height);
     myIcon = icon;
     myIsOver = isOver;
-    myMySrcX = src_x;
+    mySrcX = src_x;
     mySrcY = src_y;
     mySrcWidth = src_width;
     mySrcHeight = src_height;
@@ -65,7 +65,7 @@ public class DrawAction extends DrawRegion {
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     int r = (int)(width * 0.3);
-    float distance = distance(sceneContext.getMouseX(), sceneContext.getMouseY(), myMySrcX, mySrcY, mySrcWidth, y + height - mySrcY);
+    float distance = distance(sceneContext.getMouseX(), sceneContext.getMouseY(), mySrcX, mySrcY, mySrcWidth, y + height - mySrcY);
     if (distance>20) {
       return;
     }

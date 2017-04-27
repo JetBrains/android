@@ -327,6 +327,10 @@ public class AnchorTarget extends BaseTarget {
     if (!myComponent.getScene().allowsTarget(this)) {
       return;
     }
+    if (myComponent.isDragging() && !isConnected()) {
+      return;
+    }
+
     if (DEBUG_RENDERER) {
       list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? Color.yellow : Color.green);
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, Color.red);
