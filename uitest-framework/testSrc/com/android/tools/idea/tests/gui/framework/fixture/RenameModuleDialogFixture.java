@@ -29,13 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-// TODO(dahlstrom): rename to RenameModuleDialogFixture in separate Change Id7163a5d to preserve history
-public class InputDialogFixture extends IdeaDialogFixture<DialogWrapper> {
+public class RenameModuleDialogFixture extends IdeaDialogFixture<DialogWrapper> {
 
   @NotNull private final IdeFrameFixture ideFrameFixture;
 
   @NotNull
-  public static InputDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+  public static RenameModuleDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
     final Ref<DialogWrapper> wrapperRef = new Ref<>();
     JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Rename Module").and(
       new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -52,11 +51,11 @@ public class InputDialogFixture extends IdeaDialogFixture<DialogWrapper> {
           return false;
         }
       }));
-    return new InputDialogFixture(ideFrameFixture, dialog, wrapperRef.get());
+    return new RenameModuleDialogFixture(ideFrameFixture, dialog, wrapperRef.get());
   }
 
   @NotNull
-  public InputDialogFixture enterText(@NotNull String text) {
+  public RenameModuleDialogFixture enterText(@NotNull String text) {
     JTextComponent input = robot().finder().find(target(), JTextComponentMatcher.any());
     new JTextComponentFixture(robot(), input).enterText(text);
     return this;
@@ -70,13 +69,13 @@ public class InputDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   }
 
   @NotNull
-  public InputDialogFixture clickOkAndRequireError(@NotNull String message) {
+  public RenameModuleDialogFixture clickOkAndRequireError(@NotNull String message) {
     GuiTests.findAndClickOkButton(this);
     MessagesFixture.findByTitle(robot(), "Rename Module").requireMessageContains(message).clickOk();
     return this;
   }
 
-  private InputDialogFixture(
+  private RenameModuleDialogFixture(
     @NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog target, @NotNull DialogWrapper dialogWrapper) {
     super(ideFrameFixture.robot(), target, dialogWrapper);
     this.ideFrameFixture = ideFrameFixture;
