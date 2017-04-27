@@ -82,7 +82,7 @@ public class DrawConnection implements DrawCommand {
   long myStateChangeTime;
   static Stroke myBackgroundStroke = new BasicStroke(8);
   static Stroke myDashStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
-  static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
+  static Stroke mySpringStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
   static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, 2.5f, 9, 1);
   static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, 2.5f, 9, 1);
 
@@ -379,6 +379,10 @@ public class DrawConnection implements DrawCommand {
         g.setStroke(flip_chain?myChainStroke1:myChainStroke2);
         g.draw(ourPath);
         g.setStroke(defaultStroke);
+        if (modeTo == MODE_WILL_DESTROY) {
+          DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
+          g.fillPolygon(xPoints, yPoints, 3);
+        }
         break;
       case TYPE_ADJACENT:
         g.setColor(constraintColor);
@@ -428,10 +432,12 @@ public class DrawConnection implements DrawCommand {
           if (endx == startx) {
             g.setColor(constraintColor);
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, springEndY);
+            g.fillRect(startx - 4, springEndY, 9, 1);
           }
           else {
             g.setColor(constraintColor);
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, springEndX, endy);
+            g.fillRect(springEndX, endy - 4, 1, 9);
           }
         }
         else {
@@ -444,6 +450,8 @@ public class DrawConnection implements DrawCommand {
             drawArrow = false;
             g.drawLine(endx, starty, endx, endy);
             g.setStroke(defaultStroke);
+            g.fillRoundRect(endx-2,endy-2,5,5,2,2);
+
           }
           else {
             g.setColor(constraintColor);
@@ -453,6 +461,7 @@ public class DrawConnection implements DrawCommand {
             drawArrow = false;
             g.drawLine(startx, endy, endx, endy);
             g.setStroke(defaultStroke);
+            g.fillRoundRect(endx-2,endy-2,5,5,2,2);
           }
         }
         g.setColor(constraintColor);

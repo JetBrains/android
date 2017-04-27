@@ -40,6 +40,7 @@ import java.util.WeakHashMap;
 public class SceneContext {
   ColorSet myColorSet;
   Long myTime;
+  @SwingCoordinate int myMouseX = -1, myMouseY = -1;
   private boolean myShowOnlySelection = false;
 
   private SceneContext() {
@@ -56,6 +57,31 @@ public class SceneContext {
 
   public void setTime(long time) {
     myTime = time;
+  }
+
+  public void setMouseLocation(@SwingCoordinate int x, @SwingCoordinate int y) {
+    myMouseX = x;
+    myMouseY = y;
+  }
+
+  /**
+   * Get the X location of the mouse
+   *
+   * @return
+   */
+  @SwingCoordinate
+  public int getMouseX() {
+    return myMouseX;
+  }
+
+  /**
+   * Get the Y location of the mouse
+   *
+   * @return
+   */
+  @SwingCoordinate
+  public int getMouseY() {
+    return myMouseY;
   }
 
   /**

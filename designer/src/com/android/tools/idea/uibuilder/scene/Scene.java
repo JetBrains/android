@@ -668,6 +668,7 @@ public class Scene implements SelectionListener {
       myHoverListener.find(transform, myRoot, x, y);
       mySnapListener.find(transform, myRoot, x, y);
     }
+    repaint();
     Target closestTarget = myHoverListener.getClosestTarget();
     if (myOverTarget != closestTarget) {
       if (myOverTarget != null) {
