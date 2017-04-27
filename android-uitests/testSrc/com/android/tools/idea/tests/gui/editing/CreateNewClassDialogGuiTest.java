@@ -21,14 +21,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplate
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Kind;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture.Modifier;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.JavaOverrideImplementMemberChooserFixture;
 import com.android.tools.idea.actions.CreateFileFromTemplateDialog.Visibility;
 import com.android.tools.idea.actions.CreateNewClassDialogValidatorExImpl;
-import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.query.ComponentVisibleQuery;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -473,17 +470,5 @@ public class CreateNewClassDialogGuiTest {
     dialog.clickOk();
     dialog.waitForErrorMessageToAppear(CreateNewClassDialogValidatorExImpl.NOT_A_VALID_CLASS + runnableInterface);
     dialog.clickCancel();
-  }
-
-  // Overrides dialog tests.
-  @Ignore("Causes next test method to fail with error: File already exists.")
-  @Test
-  public void showOverridesDialog() throws IOException {
-    CreateFileFromTemplateDialogFixture newFileDialog = invokeNewFileDialog();
-    newFileDialog.setName(THING_NAME);
-    JCheckBoxFixture overridesCheckBox = newFileDialog.findCheckBox("overrides_check_box");
-    overridesCheckBox.setSelected(true);
-    newFileDialog.clickOk();
-    JavaOverrideImplementMemberChooserFixture.find(guiTest.robot()).clickCancel();
   }
 }
