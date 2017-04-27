@@ -120,7 +120,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       formFactorInfo.newRenderModel = renderModel;
 
       if (formFactorInfo.controls.getInstantAppCheckbox().isVisible()) {
-        allSteps.add(new ConfigureInstantModuleStep(moduleModel));
+        allSteps.add(new ConfigureInstantModuleStep(moduleModel, getModel().projectLocation()));
         myListeners.receive(moduleModel.instantApp(), value ->  checkValidity());
       }
       formFactorInfo.step = new ChooseActivityTypeStep(moduleModel, renderModel, formFactor, Lists.newArrayList());
@@ -132,7 +132,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       myListeners.receive(renderModel.androidSdkInfo(), value ->  checkValidity());
       myBindings.bindTwoWay(renderModel.androidSdkInfo(), new SelectedItemProperty<>(controls.getMinSdkCombobox()));
 
-      myListeners.listenAll(myEnabledFormFactors).withAndFire(() -> {
+      myListeners.listenAll(myEnabledFormFactors, moduleModel.instantApp()).withAndFire(() -> {
         String moduleName = myEnabledFormFactors.get() <= 1 ? SdkConstants.APP_PREFIX : getModuleName(formFactor);
         moduleModel.moduleName().set(moduleName);
       });
