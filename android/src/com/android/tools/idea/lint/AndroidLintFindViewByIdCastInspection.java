@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ import com.android.tools.lint.checks.ViewTypeDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
-public class AndroidLintWrongViewCastInspection extends AndroidLintInspectionBase {
-  public AndroidLintWrongViewCastInspection() {
-    super(AndroidBundle.message("android.lint.inspections.wrong.view.cast"), ViewTypeDetector.WRONG_VIEW_CAST);
+public class AndroidLintFindViewByIdCastInspection extends AndroidLintInspectionBase {
+  public AndroidLintFindViewByIdCastInspection() {
+    super(AndroidBundle.message("android.lint.inspections.find.view.by.id.cast"), ViewTypeDetector.ADD_CAST);
   }
 }
