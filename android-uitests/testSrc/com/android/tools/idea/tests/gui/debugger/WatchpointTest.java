@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.ndk.MiscUtils;
 import com.intellij.openapi.ui.JBPopupMenu;
 import org.junit.Rule;
 import org.junit.Test;
