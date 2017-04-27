@@ -300,15 +300,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
-  /**
-   * Returns whether a menu path is enabled
-   *
-   * @param path the series of menu names, e.g. {@link isMenuPathEnabled("Build", "Make Project ")}
-   */
-  public boolean isMenuPathEnabled(@NotNull String... path) {
-    return getMenuFixture().isMenuPathEnabled(path);
-  }
-
   @NotNull
   private MenuFixture getMenuFixture() {
     return new MenuFixture(robot(), target());
