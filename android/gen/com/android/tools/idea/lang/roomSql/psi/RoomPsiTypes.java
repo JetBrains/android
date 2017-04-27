@@ -133,6 +133,7 @@ public interface RoomPsiTypes {
   IElementType BEFORE = new RoomTokenType("BEFORE");
   IElementType BEGIN = new RoomTokenType("BEGIN");
   IElementType BETWEEN = new RoomTokenType("BETWEEN");
+  IElementType BRACKET_LITERAL = new RoomTokenType("BRACKET_LITERAL");
   IElementType BY = new RoomTokenType("BY");
   IElementType CASCADE = new RoomTokenType("CASCADE");
   IElementType CASE = new RoomTokenType("CASE");
@@ -221,6 +222,7 @@ public interface RoomPsiTypes {
   IElementType OR = new RoomTokenType("OR");
   IElementType ORDER = new RoomTokenType("ORDER");
   IElementType OUTER = new RoomTokenType("OUTER");
+  IElementType PARAMETER = new RoomTokenType("?");
   IElementType PARAMETER_NAME = new RoomTokenType("PARAMETER_NAME");
   IElementType PLAN = new RoomTokenType("PLAN");
   IElementType PLUS = new RoomTokenType("+");

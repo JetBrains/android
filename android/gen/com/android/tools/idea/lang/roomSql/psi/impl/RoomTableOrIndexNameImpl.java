@@ -45,6 +45,12 @@ public class RoomTableOrIndexNameImpl extends ASTWrapperPsiElement implements Ro
 
   @Override
   @Nullable
+  public PsiElement getBracketLiteral() {
+    return findChildByType(BRACKET_LITERAL);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getIdentifier() {
     return findChildByType(IDENTIFIER);
   }

@@ -25,6 +25,9 @@ import com.intellij.psi.PsiElement;
 public interface RoomIndexName extends PsiElement {
 
   @Nullable
+  PsiElement getBracketLiteral();
+
+  @Nullable
   PsiElement getIdentifier();
 
   @Nullable

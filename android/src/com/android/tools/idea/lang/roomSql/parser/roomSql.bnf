@@ -46,13 +46,13 @@
 
     NUMERIC_LITERAL='regexp:(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)'
     STRING_LITERAL="regexp:X?('(''|[^'])*'|\"(\"\"|[^\"])*\")"
+    BRACKET_LITERAL="regexp:\[[^\]]*\]"
 
     // Some approximation of what's actually allowed. This doesn't seem to be defined anywhere.
-    IDENTIFIER='regexp:[:letter:]([:letter:]|[:digit:])*'
-    PARAMETER_NAME='regexp::[:letter:]([:letter:]|[:digit:])*' // TODO: Does Room support other notations?
-
-    COMMENT='regexp:/\*.*\*/' // This is manually replaced in the lexer.
-    LINE_COMMENT='regexp:--[^\r\n]*'
+    IDENTIFIER='regexp:([:letter:]|_)([:letter:]|[:digit:]|_)*'
+    PARAMETER_NAME='regexp::\w+' // Simple regexp for Live Preview, this is tweaked in the flex file.
+    COMMENT='regexp:/\*.*\*/' // Simple regexp for Live Preview, this is tweaked in the flex file.
+    LINE_COMMENT='regexp:--[^r\n]*'
 
     AMP='&'
     BAR='|'
@@ -78,6 +78,7 @@
     STAR='*'
     TILDE='~'
     UNEQ='<>'
+    PARAMETER='?'
 
     // Grammar-Kit's live preview emulates PsiBuilder's behavior of ignoring whitespace, by
     // looking for a token type that matches a space and is not used otherwise. Here's one:
@@ -320,7 +321,7 @@ column_ref_expr ::=
 
 function_name ::= entity_name
 
-bind_parameter ::= PARAMETER_NAME
+bind_parameter ::= PARAMETER | PARAMETER_NAME
 
 raise_function_expr ::= RAISE '(' ( IGNORE | ( ROLLBACK | ABORT | FAIL ) ',' error_message ) ')'
 
@@ -397,4 +398,4 @@ qualified_table_name ::= ( database_name '.' )? table_name ( INDEXED BY index_na
 
 vacuum_stmt ::= VACUUM
 
-private entity_name ::= IDENTIFIER | STRING_LITERAL
+private entity_name ::= IDENTIFIER | STRING_LITERAL | BRACKET_LITERAL

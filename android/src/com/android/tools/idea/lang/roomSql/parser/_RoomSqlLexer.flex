@@ -40,12 +40,13 @@ import static com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*;
 
 WHITE_SPACE=\s+
 
-NUMERIC_LITERAL=(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)
-STRING_LITERAL=X?('(''|[^'])*'|\"(\"\"|[^\"])*\")
-IDENTIFIER=[:letter:]([:letter:]|[:digit:])*
-PARAMETER_NAME=:[:letter:]([:letter:]|[:digit:])*
+BRACKET_LITERAL=\[[^\]]*\]
 COMMENT="/*" ( ([^"*"]|[\r\n])* ("*"+ [^"*""/"] )? )* ("*" | "*"+"/")?
+IDENTIFIER=([:letter:]|_)([:letter:]|[:digit:]|_)*
 LINE_COMMENT=--[^\r\n]*
+NUMERIC_LITERAL=(([0-9]+(\.[0-9]*)?|\.[0-9]+)(E(\+|-)?[0-9]+)?)|(0x[0-9a-f]+)
+PARAMETER_NAME=:{IDENTIFIER}
+STRING_LITERAL=X?('(''|[^'])*'|\"(\"\"|[^\"])*\")
 
 %%
 <YYINITIAL> {
@@ -72,6 +73,7 @@ LINE_COMMENT=--[^\r\n]*
   ">"                                 { return GT; }
   ">="                                { return GTE; }
   ">>"                                { return SHR; }
+  "?"                                 { return PARAMETER; }
   "ABORT"                             { return ABORT; }
   "ACTION"                            { return ACTION; }
   "ADD"                               { return ADD; }
@@ -199,6 +201,7 @@ LINE_COMMENT=--[^\r\n]*
   "||"                                { return CONCAT; }
   "~"                                 { return TILDE; }
 
+  {BRACKET_LITERAL}                   { return BRACKET_LITERAL; }
   {COMMENT}                           { return COMMENT; }
   {IDENTIFIER}                        { return IDENTIFIER; }
   {LINE_COMMENT}                      { return LINE_COMMENT; }
