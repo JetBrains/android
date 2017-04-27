@@ -15,56 +15,40 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.State;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.Locale;
-import java.util.function.Predicate;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static com.android.tools.idea.uibuilder.surface.PanZoomPanel.TITLE;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
  */
 public class NlRhsToolbarFixture {
-  private final Robot myRobot;
-  private final ActionToolbar myToolBar;
-  private final EditorDesignSurface mySurface;
 
-  public NlRhsToolbarFixture(@NotNull Robot robot, @NotNull EditorDesignSurface surface, @NotNull ActionToolbar toolbar) {
-    myRobot = robot;
+  @NotNull private final NlEditorFixture myNlEditorFixture;
+  @NotNull private final ActionToolbar myToolBar;
+
+  NlRhsToolbarFixture(@NotNull NlEditorFixture nlEditorFixture, @NotNull ActionToolbar toolbar) {
+    myNlEditorFixture = nlEditorFixture;
     myToolBar = toolbar;
-    mySurface = surface;
   }
 
-  public void openPanZoomWindow() {
-    ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton component) {
-        String text = component.getAction().getTemplatePresentation().getText();
-        return text != null && text.contains("Pan and Zoom");
-      }
-    });
-    new ActionButtonFixture(myRobot, button).click();
-  }
-
-  @NotNull
-  private JButton findToolbarButton(@NotNull final String tooltip) {
-    return waitUntilShowing(myRobot, Matchers.byTooltip(JButton.class, tooltip));
+  public void openPanZoomPanel() {
+    Robot robot = myNlEditorFixture.robot();
+    ActionButton button = GuiTests.waitUntilShowing(
+      robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+        @Override
+        protected boolean isMatching(@NotNull ActionButton component) {
+          String text = component.getAction().getTemplatePresentation().getText();
+          return text != null && text.contains("Pan and Zoom");
+        }
+      });
+    new ActionButtonFixture(robot, button).click();
+    GuiTests.waitUntilShowing(robot, Matchers.byType(PanZoomPanel.class)); // don't return a fixture; just make sure this shows
   }
 }

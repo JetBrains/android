@@ -128,7 +128,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public NlRhsToolbarFixture getRhsToolbar() {
     ActionToolbarImpl toolbar = robot().finder().findByName(target(), "NlRhsToolbar", ActionToolbarImpl.class);
-    return new NlRhsToolbarFixture(robot(), myDesignSurfaceFixture.target(), toolbar);
+    return new NlRhsToolbarFixture(this, toolbar);
   }
 
   @NotNull

@@ -18,61 +18,22 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
-import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.awt.*;
-
-import static org.junit.Assert.assertEquals;
-
-/**
- * UI tests for moving the application window when the panel is open
- */
 @RunWith(GuiTestRunner.class)
 public class PanZoomPanelTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  @Ignore
   public void openPanAndZoom() throws Exception {
-    IdeFrameFixture application = guiTest.importSimpleApplication();
-
-    NlEditorFixture layoutEditor = application
+    guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false);
-
-    layoutEditor
+      .getLayoutEditor(false)
       .getRhsToolbar()
-      .openPanZoomWindow();
-
-    PanZoomPanel panel;
-
-    // Check panel is open
-    panel = guiTest.robot().finder().findByType(PanZoomPanel.class, true);
-
-    // Check panel moves with windows
-    IdeFrameImpl frame = guiTest.ideFrame().target();
-    Point panelLocationOnScreen = panel.getLocationOnScreen();
-    Point panelExpectedLocationOnScreen = new Point(panelLocationOnScreen.x - 10, panelLocationOnScreen.y - 10);
-    guiTest.robot().pressMouse(frame, new Point());
-    guiTest.robot().moveMouse(frame, new Point(-10, -10));
-    guiTest.robot().releaseMouseButtons();
-    assertEquals(panelExpectedLocationOnScreen, panel.getLocationOnScreen());
-
-    // Check panel is still visible when switching editor
-    application.getEditor()
-      .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false);
-    panel = guiTest.robot().finder().findByType(PanZoomPanel.class, true);
-
-    guiTest.robot().click(panel); // Ensure that the focus is on the application otherwise the tear down fails
+      .openPanZoomPanel();
   }
 }
