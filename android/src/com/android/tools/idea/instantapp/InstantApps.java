@@ -24,6 +24,7 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -88,8 +89,23 @@ public class InstantApps {
    */
   @Nullable
   public static Module findBaseFeature(@NotNull AndroidFacet facet) {
+    return findBaseFeature(findFeatureModules(facet));
+  }
+
+  /**
+   * This method will find and return a base feature if one exists in the given project.
+   *
+   * @param project the {@link Project} for the Instant App application module whose base feature module you want to find.
+   * @return The {@link Module} corresponding with the base feature module or {@code null} if none is found.
+   */
+  @Nullable
+  public static Module findBaseFeature(@NotNull Project project) {
+    return findBaseFeature(AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_FEATURE));
+  }
+
+  @Nullable
+  private static Module findBaseFeature(@NotNull List<Module> featureModules) {
     Module baseFeature = null;
-    List<Module> featureModules = findFeatureModules(facet);
     for (Module module : featureModules) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null && androidModel.getAndroidProject().isBaseSplit()) {
