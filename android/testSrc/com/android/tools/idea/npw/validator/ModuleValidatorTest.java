@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.validator;
 
+import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import org.junit.After;
 import org.junit.Before;
@@ -33,7 +34,7 @@ public final class ModuleValidatorTest {
   public void createModuleValidator() {
     // Test dir needs to writable, but can't be more that 100 chars long. Tmp dir is to long on build bots
     myTmpDir = new File(System.getProperty("user.home"));
-    myModuleValidator = new ModuleValidator(myTmpDir.getAbsolutePath());
+    myModuleValidator = new ModuleValidator(new StringValueProperty(myTmpDir.getAbsolutePath()));
   }
 
   @After

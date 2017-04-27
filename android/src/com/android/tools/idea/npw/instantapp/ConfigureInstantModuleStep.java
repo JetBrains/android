@@ -17,14 +17,15 @@ package com.android.tools.idea.npw.instantapp;
 
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableString;
+import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.swing.util.FormScalingUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,16 +41,16 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
 
+  @NotNull private StudioWizardStepPanel myRootPanel;
+  @NotNull private ValidatorPanel myValidatorPanel;
+
   private JTextField mySplitNameField;
   private JPanel myPanel;
   private LabelWithEditButton myPackageName;
 
-  public ConfigureInstantModuleStep(@NotNull NewModuleModel moduleModel) {
-    super(moduleModel, message("android.wizard.module.new.instant.app"));
-  }
+  public ConfigureInstantModuleStep(@NotNull NewModuleModel moduleModel, StringProperty projectLocation) {
+    super(moduleModel, message("android.wizard.module.new.instant.app.title"));
 
-  @Override
-  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     NewModuleModel model = getModel();
     TextProperty splitFieldText = new TextProperty(mySplitNameField);
     TextProperty packageNameText = new TextProperty(myPackageName);
@@ -59,17 +60,20 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
     myBindings.bind(model.packageName(), packageNameText, model.instantApp());
     myBindings.bind(packageNameText, computedFeatureModulePackageName, isPackageNameSynced);
 
-    myBindings.bind(model.moduleName(), splitFieldText, model.instantApp());
-    myBindings.bind(model.splitName(), splitFieldText);
+    myBindings.bindTwoWay(splitFieldText, model.splitName());
     myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedFeatureModulePackageName.get())));
 
-    splitFieldText.set("feature");
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
+    myValidatorPanel.registerValidator(splitFieldText, new ModuleValidator(projectLocation));
+
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.wizard.module.new.instant.app.header"));
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myPanel;
+    return myRootPanel;
   }
 
   @Nullable
@@ -81,6 +85,19 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   @Override
   protected boolean shouldShow() {
     return getModel().instantApp().get();
+  }
+
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return myValidatorPanel.hasErrors().not();
+  }
+
+  @Override
+  protected void onProceeding() {
+    // For instant apps, the Module name is the same as the split name.
+    // Doing the assignment during onProceeding guarantees a valid module name and also that we are an instant app
+    getModel().moduleName().set(getModel().splitName().get());
   }
 
   @Override
