@@ -28,12 +28,16 @@ import com.intellij.psi.tree.TokenSet
 import javax.swing.Icon
 
 class RoomTokenType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUAGE) {
-  override fun toString(): String = "RoomTokenType(${super.toString()})"
+  override fun toString(): String = when (super.toString()) {
+    "," -> "comma"
+    ";" -> "semicolon"
+    "'" -> "single quote"
+    "\"" -> "double quote"
+    else -> super.toString()
+  }
 }
 
-class RoomAstNodeType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUAGE) {
-  override fun toString(): String = "RoomAstNodeType.${super.toString()}"
-}
+class RoomAstNodeType(debugName: String) : IElementType(debugName, ROOM_SQL_LANGUAGE)
 
 class RoomSqlFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, ROOM_SQL_LANGUAGE) {
   override fun getFileType(): FileType = ROOM_SQL_FILE_TYPE
