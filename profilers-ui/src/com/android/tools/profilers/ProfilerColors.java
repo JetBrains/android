@@ -28,17 +28,11 @@ public class ProfilerColors {
   private ProfilerColors() {
   }
 
-  public static final Color CPU_USAGE = new JBColor(0x57D9B2, 0x387358);
+  public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x386550);
 
-  public static final Color CPU_USAGE_LEGEND = new JBColor(0x53B5A0, 0x44B67F);
-
-  public static final Color CPU_OTHER_USAGE = new JBColor(0xE8F2F6, 0x313537);
-
-  public static final Color CPU_OTHER_LEGEND = new JBColor(0xD8EAF0, 0x444B53);
+  public static final Color CPU_OTHER_USAGE = new JBColor(0xD8EAF0, 0x363E46);
 
   public static final Color THREADS_COUNT = new JBColor(0x6AA78A, 0x5E9A7D);
-
-  public static final Color THREADS_COUNT_LEGEND = new JBColor(0x558A71, 0x71D7A6);
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
@@ -120,11 +114,11 @@ public class ProfilerColors {
 
   public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(new Color(0xB4E6A082, true), new Color(0x7FAC8C7E, true));
 
-  public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x5983E0, 0x5983E0);
+  public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x6B98E7, 0x6895E5);
 
   public static final Color NETWORK_RECEIVING_SELECTED_COLOR = new JBColor(0x8ebdff, 0x8ebdff);
 
-  public static final Color NETWORK_SENDING_COLOR = new JBColor(0xEF9F5C, 0xEF9F5C);
+  public static final Color NETWORK_SENDING_COLOR = new JBColor(0xF4AF6F, 0xF4AF6F);
 
   public static final Color NETWORK_WAITING_COLOR = new JBColor(0xAAAAAA, 0xAAAAAA);
 
@@ -144,21 +138,21 @@ public class ProfilerColors {
 
   public static final Color NETWORK_TABLE_CONNECTIONS_NAME = new JBColor(new Color(255, 255, 255, (int)(0.74 * 255)), new Color(0x2b2d2e));
 
-  public static final Color MEMORY_TOTAL = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
+  public static final Color MEMORY_TOTAL = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
 
-  public static final Color MEMORY_JAVA = new JBColor(new Color(69, 165, 207), new Color(60, 158, 201));
+  public static final Color MEMORY_JAVA = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
 
-  public static final Color MEMORY_NATIVE = new JBColor(new Color(71, 142, 178), new Color(48, 126, 163));
+  public static final Color MEMORY_NATIVE = new JBColor(new Color(0x56A5CB), new Color(0x226484));
 
-  public static final Color MEMORY_CODE = new JBColor(new Color(107, 207, 191), new Color(103, 208, 165));
+  public static final Color MEMORY_CODE = new JBColor(new Color(0x80EDDC), new Color(0x4EA783));
 
-  public static final Color MEMORY_STACK = new JBColor(new Color(63, 177, 160), new Color(71, 169, 129));
+  public static final Color MEMORY_STACK = new JBColor(new Color(0x50CBB8), new Color(0x348866));
 
-  public static final Color MEMORY_GRAPHICS = new JBColor(new Color(226, 191, 138), new Color(203, 167, 109));
+  public static final Color MEMORY_GRAPHICS = new JBColor(new Color(0xF4DEA2), new Color(0xA8825C));
 
-  public static final Color MEMORY_OTHERS = new JBColor(new Color(68, 107, 127), new Color(99, 122, 133));
+  public static final Color MEMORY_OTHERS = new JBColor(new Color(0x517C91), new Color(0x4E616B));
 
-  public static final Color MEMORY_OBJECTS = new JBColor(new Color(84, 110, 121), new Color(159, 190, 213));
+  public static final Color MEMORY_OBJECTS = new JBColor(new Color(0x5C7A86), new Color(0xD8DBDE));
 
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 
