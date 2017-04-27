@@ -30,7 +30,10 @@ import java.awt.*;
 public class DrawAction extends DrawRegion {
   private final NlIcon myIcon;
   private boolean myIsOver;
-
+  @SwingCoordinate private int myMySrcX;
+  @SwingCoordinate private int mySrcY;
+  @SwingCoordinate private int mySrcWidth;
+  @SwingCoordinate private int mySrcHeight;
   int myMode;
 
   protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
@@ -44,16 +47,28 @@ public class DrawAction extends DrawRegion {
                     @SwingCoordinate int y,
                     @SwingCoordinate int width,
                     @SwingCoordinate int height,
+                    @SwingCoordinate int src_x,
+                    @SwingCoordinate int src_y,
+                    @SwingCoordinate int src_width,
+                    @SwingCoordinate int src_height,
                     NlIcon icon,
                     boolean isOver) {
     super(x, y, width, height);
     myIcon = icon;
     myIsOver = isOver;
+    myMySrcX = src_x;
+    mySrcY = src_y;
+    mySrcWidth = src_width;
+    mySrcHeight = src_height;
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     int r = (int)(width * 0.3);
+    float distance = distance(sceneContext.getMouseX(), sceneContext.getMouseY(), myMySrcX, mySrcY, mySrcWidth, y + height - mySrcY);
+    if (distance>20) {
+      return;
+    }
     ColorSet colorSet = sceneContext.getColorSet();
     g.setColor(colorSet.getComponentObligatoryBackground());
     g.fillRoundRect(x - 2, y - 2, width + 4, height + 4, r, r);
@@ -102,12 +117,17 @@ public class DrawAction extends DrawRegion {
                          @AndroidDpCoordinate float top,
                          @AndroidDpCoordinate float right,
                          @AndroidDpCoordinate float bottom,
+                         Rectangle src,
                          NlIcon icon,
                          boolean isOver) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawAction(l, t, w, h, icon, isOver));
+    src.x = transform.getSwingX(src.x);
+    src.y = transform.getSwingY(src.y);
+    src.width = transform.getSwingDimension(src.width);
+    src.height = transform.getSwingDimension(src.height);
+    list.add(new DrawAction(l, t, w, h, src.x, src.y, src.width, src.height, icon, isOver));
   }
 }

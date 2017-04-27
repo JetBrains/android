@@ -790,6 +790,7 @@ public class DrawConnectionUtils {
   }
 
   public static int getVerticalMarginGap(Graphics2D g) {
+    g.setFont(sFont);
     return g.getFontMetrics().getHeight() + 2 * MARGIN_SPACING;
   }
 
@@ -801,6 +802,7 @@ public class DrawConnectionUtils {
    * @return
    */
   public static int getHorizontalMarginGap(Graphics2D g, String string) {
+    g.setFont(sFont);
     return (int)(g.getFontMetrics().getStringBounds(string, g).getWidth() + 2 * MARGIN_SPACING);
   }
 
@@ -820,6 +822,7 @@ public class DrawConnectionUtils {
                                           @SwingCoordinate int x2,
                                           int y) {
     Font previousFont = g.getFont();
+    g.setFont(sFont);
     FontMetrics metrics = g.getFontMetrics();
     Rectangle2D rect = metrics.getStringBounds(string, g);
     float sx = (float)((x1 + x2) / 2 - rect.getWidth() / 2);
@@ -846,6 +849,7 @@ public class DrawConnectionUtils {
                                         @SwingCoordinate int y1,
                                         @SwingCoordinate int y2) {
     Font previousFont = g.getFont();
+    g.setFont(sFont);
     FontMetrics metrics = g.getFontMetrics();
     Rectangle2D rect = metrics.getStringBounds(string, g);
     g.drawLine(x, y1, x, y2);

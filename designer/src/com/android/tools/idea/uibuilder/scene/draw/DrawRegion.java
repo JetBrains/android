@@ -25,6 +25,66 @@ import java.awt.*;
  */
 public class DrawRegion extends Rectangle implements DrawCommand {
 
+  /**
+   * distance from rectangle to point
+   * 0 inside the rectangle
+   * @param mx
+   * @param my
+   * @return
+   */
+
+  public static  boolean inside(int px, int py, int x, int y, int width, int height) {
+    int w = width;
+    int h = height;
+    if ((w | h) < 0) {
+      return false;
+    }
+    if (px < x || py < y) {
+      return false;
+    }
+    w += x;
+    h += y;
+    //    overflow || intersect
+    return ((w < x || w > px) &&
+            (h < y || h > py));
+  }
+
+  public static float distance(int mx,int my, int x, int y, int width, int height) {
+
+    if (inside(mx, my, x,  y,  width,  height)) {
+      return 0;
+    }
+    else {
+      if (mx > x && mx < x + width) {
+        return Math.min(Math.abs(my - y), Math.abs(my - (y + height)));
+      }
+      else if (my > y && my < y + height) {
+        return Math.min(Math.abs(mx - x), Math.abs(mx - (x + width)));
+      }
+      else if (mx <= x && my <= y) {
+        float dx = mx - x;
+        float dy = my - y;
+        return (float)Math.hypot(dx, dy);
+      }
+      else if (mx <= x && my >= y + height) {
+        float dx = mx - x;
+        float dy = my - (y + height);
+        return (float)Math.hypot(dx, dy);
+      }
+      else if (mx >= x + width && my <= y) {
+        float dx = mx - (x + width);
+        float dy = my - y;
+        return(float)Math.hypot(dx, dy);
+      }
+      else if (mx >= x + width && my >= y + height) {
+        float dx = mx - (x + width);
+        float dy = my - (y + height);
+        return (float)Math.hypot(dx, dy);
+      }
+    }
+    return 0;
+  }
+
   @Override
   public String serialize() {
     return this.getClass().getSimpleName()+"," + x + "," + y + "," + width + "," + height;
