@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.projectstructure;
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.SelectModuleFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectPathFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
@@ -39,18 +38,6 @@ public class DependencyTabFixture extends ProjectStructureDialogFixture {
 
     SelectPathFixture.find(getIdeFrameFixture())
       .selectPath(jarFile)
-      .clickOK();
-
-    return this;
-  }
-
-  @NotNull
-  public DependencyTabFixture addModuleDependency(@NotNull String moduleName) {
-    clickAddButtonImpl();
-    new JListFixture(robot(), waitForPopup(robot())).clickItem("Module dependency");
-
-    SelectModuleFixture.find(getIdeFrameFixture())
-      .selectModule(moduleName)
       .clickOK();
 
     return this;
