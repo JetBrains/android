@@ -40,7 +40,6 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigu
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
 import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -108,9 +107,7 @@ public class AndroidPluginVersionUpdater {
       // Update successful. Sync project.
       mySyncState.syncEnded();
 
-      // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject(true).setTrigger(
-        TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject(true);
       mySyncInvoker.requestProjectSync(myProject, request, null);
     }
   }

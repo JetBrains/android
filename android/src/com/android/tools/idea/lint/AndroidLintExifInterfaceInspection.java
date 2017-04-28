@@ -41,7 +41,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBase {
   public static final String NEW_EXIT_INTERFACE = "android.support.media.ExifInterface";
@@ -95,8 +94,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
                     }
                   });
                 }
-                GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
-                  TRIGGER_PROJECT_MODIFIED);
+                GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
                 GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
                   @Override
                   public void syncSucceeded(@NotNull Project project) {

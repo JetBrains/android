@@ -32,7 +32,6 @@ import org.mockito.verification.VerificationMode;
 import java.io.File;
 import java.io.IOException;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static org.mockito.Mockito.*;
 
@@ -173,8 +172,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     // @formatter:off
     syncRequest.setGenerateSourcesOnSuccess(importSettings.isGenerateSourcesOnSuccess())
                .setNewProject(true)
-               .setRunInBackground(false)
-               .setTrigger(TRIGGER_PROJECT_LOADED);
+               .setRunInBackground(false);
     // @formatter:on
 
     verify(mySyncInvoker, times(1)).requestProjectSync(getProject(), syncRequest, syncListener);

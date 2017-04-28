@@ -33,7 +33,6 @@ import javax.swing.event.HyperlinkListener;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * The configuration panel for the Android profiler settings.
@@ -107,9 +106,7 @@ public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListe
     AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion);
     if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
       // Request a sync
-      // TODO change to plugin upgrade trigger if it is created
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false).setTrigger(
-        TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false);
       GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, this);
     } else {
       updateHyperlink("(Update failed)");

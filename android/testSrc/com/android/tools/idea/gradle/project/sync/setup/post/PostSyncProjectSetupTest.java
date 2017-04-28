@@ -43,7 +43,6 @@ import org.mockito.Mock;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -129,7 +128,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup.setUpProject(request, myProgressIndicator);
 
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp);
-    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), null, TRIGGER_PROJECT_LOADED);
+    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), null);
     verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
   }
 
