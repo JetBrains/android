@@ -113,8 +113,12 @@ public class GuiTestRule implements TestRule {
         @Override
         public void evaluate() throws Throwable {
           System.out.println("Starting " + description.getDisplayName());
-          assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
-          assumeOnlyWelcomeFrameShowing();
+          try {
+            assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
+            assumeOnlyWelcomeFrameShowing();
+          } catch (Throwable e) {
+            new ScreenshotOnFailure().failed(e, description);
+          }
           setUp();
           List<Throwable> errors = new ArrayList<>();
           try {
