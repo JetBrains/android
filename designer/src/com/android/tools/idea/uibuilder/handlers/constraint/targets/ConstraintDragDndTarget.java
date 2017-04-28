@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -22,12 +24,15 @@ import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.scout.Scout;
+import com.android.tools.idea.uibuilder.scout.ScoutArrange;
+import com.android.tools.idea.uibuilder.scout.ScoutWidget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -72,6 +77,29 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
       int dy = y - myOffsetY;
       Point snappedCoordinates = getTargetNotchSnapper().applyNotches(myComponent, attributes, dx, dy);
       updateAttributes(attributes, snappedCoordinates.x, snappedCoordinates.y);
+
+      boolean horizontalMatchParent = false;
+      boolean verticalMatchParent = false;
+      if (component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH).equals(SdkConstants.VALUE_MATCH_PARENT)) {
+        horizontalMatchParent = true;
+      }
+      if (component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT).equals(SdkConstants.VALUE_MATCH_PARENT)) {
+        verticalMatchParent = true;
+      }
+      if (horizontalMatchParent || verticalMatchParent) {
+        float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+        component.x = (int)(dx * dpiFactor);
+        component.y = (int)(dy * dpiFactor);
+        ScoutWidget parentScoutWidget = new ScoutWidget(myComponent.getParent().getNlComponent(), null);
+        ScoutWidget[] scoutWidgets = ScoutWidget.create(Arrays.asList(component), parentScoutWidget);
+        int margin = Scout.getMargin();
+        if (horizontalMatchParent) {
+          ScoutArrange.expandHorizontally(scoutWidgets, parentScoutWidget, margin, false);
+        }
+        if (verticalMatchParent) {
+          ScoutArrange.expandVertically(scoutWidgets, parentScoutWidget, margin, false);
+        }
+      }
       attributes.apply();
       attributes.commit();
     }
