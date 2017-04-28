@@ -41,7 +41,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * Path for creating a plain Java Module
  */
 public class InstantAppModuleDynamicPath extends DynamicWizardPath implements NewModuleDynamicPath {
-  public static final String JAVA_LIBRARY = "Instant Application";
+  public static final String JAVA_LIBRARY = "Instant App";
   private static final ScopedStateStore.Key<String> PACKAGE_NAME =
     ScopedStateStore.createKey(ATTR_PACKAGE_NAME, ScopedStateStore.Scope.PATH, String.class);
 

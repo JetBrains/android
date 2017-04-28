@@ -112,7 +112,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @NotNull private TemplateHandle myTemplateHandle;
 
     ApplicationTemplateGalleryEntry() {
-      myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, "Instant Application"));
+      myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, "Instant App"));
     }
 
     @Nullable
