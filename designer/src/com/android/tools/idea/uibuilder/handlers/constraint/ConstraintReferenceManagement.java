@@ -119,6 +119,9 @@ class ConstraintReferenceManagement {
    */
   public static void updateConstraints(@NotNull NlComponent primary, @NotNull Scene scene) {
     SceneComponent component = scene.getSceneComponent(primary);
+    if (component == null) {
+      return;
+    }
     SceneComponent parent = component.getParent();
     if (parent == null) {
       return;

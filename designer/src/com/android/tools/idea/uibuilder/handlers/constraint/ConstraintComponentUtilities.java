@@ -1235,20 +1235,20 @@ public final class ConstraintComponentUtilities {
     return (int)(0.5f + margin / dpiFactor);
   }
 
-  public static void setScoutAbsoluteDpX(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setScoutAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, dp);
+  public static void setScoutAbsoluteDpX(@NotNull NlComponent component, @AndroidDpCoordinate int dp, boolean apply) {
+    setScoutAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, dp, apply);
   }
 
-  public static void setScoutAbsoluteDpY(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setScoutAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, dp);
+  public static void setScoutAbsoluteDpY(@NotNull NlComponent component, @AndroidDpCoordinate int dp, boolean apply) {
+    setScoutAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, dp, apply);
   }
 
-  public static void setScoutAbsoluteDpWidth(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setScoutAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_WIDTH, dp);
+  public static void setScoutAbsoluteDpWidth(@NotNull NlComponent component, @AndroidDpCoordinate int dp, boolean apply) {
+    setScoutAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_WIDTH, dp, apply);
   }
 
-  public static void setScoutAbsoluteDpHeight(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setScoutAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_HEIGHT, dp);
+  public static void setScoutAbsoluteDpHeight(@NotNull NlComponent component, @AndroidDpCoordinate int dp, boolean apply) {
+    setScoutAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_HEIGHT, dp, apply);
   }
 
   public static void setScoutVerticalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
@@ -1264,14 +1264,16 @@ public final class ConstraintComponentUtilities {
   }
 
   public static void setScoutAttributeValue(@NotNull NlComponent component, @NotNull String uri,
-                                            @NotNull String attribute, @AndroidDpCoordinate int dp) {
+                                            @NotNull String attribute, @AndroidDpCoordinate int dp, boolean apply) {
     if (dp <= 0) {
       return;
     }
     String position = String.format(VALUE_N_DP, dp);
     AttributesTransaction transaction = component.startAttributeTransaction();
     transaction.setAttribute(uri, attribute, position);
-    transaction.apply();
+    if (apply) {
+      transaction.apply();
+    }
   }
 
   public static void scoutClearAttributes(@NotNull NlComponent component, ArrayList<String> attributes) {
