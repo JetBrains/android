@@ -42,9 +42,10 @@ public interface Target {
   int DRAG_LEVEL = 20;
   int GUIDELINE_ANCHOR_LEVEL = 30;
   int GUIDELINE_LEVEL = 40;
-  int RESIZE_LEVEL = 50;
-  int ANCHOR_LEVEL = 60;
-  int ACTION_LEVEL = 70;
+  int SIDE_RESIZE_LEVEL = 50;
+  int RESIZE_LEVEL = 60;
+  int ANCHOR_LEVEL = 70;
+  int ACTION_LEVEL = 80;
 
   /**
    * Set priority of the {@link Target} so the {@link com.android.tools.idea.uibuilder.scene.Scene} knows which one to use.

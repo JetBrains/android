@@ -540,7 +540,6 @@ public class NlDesignSurface extends DesignSurface {
 
   private class MyBottomLayer extends Layer {
 
-
     private boolean myPaintedFrame;
 
     @Override
