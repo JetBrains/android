@@ -29,6 +29,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 /**
  * Target to handle the drag of LinearLayout's children
  */
@@ -60,7 +63,7 @@ public class LinearDragTarget extends DragBaseTarget {
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     SceneComponent parent = myComponent.getParent();
     assert parent != null;
-    myHandler.setDragging(true);
+    myHandler.setDragging(myComponent, true);
     // Need to call this to update the targetsProvider when moving from one layout to another during a drag
     // but we should have a better scenario to recreate the targets
     parent.getScene().getSceneManager().addTargets(myComponent);
@@ -82,11 +85,19 @@ public class LinearDragTarget extends DragBaseTarget {
     x -= myOffsetX;
     y -= myOffsetY;
     if (myHandler.isVertical(sceneParent.getNlComponent())) {
-      myComponent.setPosition(myIsDragFromPalette ? x : myComponent.getDrawX(), snapper.trySnapY(Math.max(y, 0)), false);
+      int middle = myComponent.getDrawHeight() / 2;
+      int parentHeight = sceneParent.getDrawHeight();
+      int nx = myIsDragFromPalette ? x : myComponent.getDrawX();
+      int ny = snapper.trySnapY(min(max(y, -middle), parentHeight + middle));
+      myComponent.setPosition(nx, ny, false);
       snappedNotch = snapper.getSnappedNotchY();
     }
     else {
-      myComponent.setPosition(snapper.trySnapX(Math.max(x, 0)), myIsDragFromPalette ? y : myComponent.getDrawY(), false);
+      int middle = myComponent.getDrawWidth() / 2;
+      int parentWidth = sceneParent.getDrawWidth();
+      int nx = snapper.trySnapX(min(max(x, -middle), parentWidth + middle));
+      int ny = myIsDragFromPalette ? y : myComponent.getDrawY();
+      myComponent.setPosition(nx, ny, false);
       snappedNotch = snapper.getSnappedNotchX();
     }
 
@@ -117,7 +128,10 @@ public class LinearDragTarget extends DragBaseTarget {
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
     super.mouseRelease(x, y, closestTarget);
     myComponent.setModelUpdateAuthorized(true);
-    myHandler.setDragging(false);
+    myHandler.setDragging(myComponent, false);
+    SceneComponent parent = myComponent.getParent();
+    assert parent != null;
+    parent.updateTargets(true);
     if (myClosest != null) {
       myClosest.setHighlight(false);
       if (!LinearLayoutHandler.insertComponentAtTarget(myComponent, myClosest, myIsDragFromPalette)) {
@@ -136,7 +150,7 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   public void cancel() {
-    myHandler.setDragging(false);
+    myHandler.setDragging(myComponent, false);
     if (myClosest != null) {
       myClosest.setHighlight(false);
     }

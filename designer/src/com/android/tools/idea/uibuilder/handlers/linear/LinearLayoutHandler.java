@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -48,6 +48,8 @@ import static com.android.utils.XmlUtils.formatFloatAttribute;
  * Handler for the {@code <LinearLayout>} layout
  */
 public class LinearLayoutHandler extends ViewGroupHandler {
+
+  HashMap<SceneComponent, SceneComponent> myDraggingComponents = new HashMap<>();
 
   @NotNull
   @Override
@@ -286,8 +288,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     addToolbarActionsToMenu("LinearLayout", actions);
   }
 
-  /*------------- NEW ARCHITECTURE ---------------*/
-
   @Nullable
   @Override
   public Interaction createInteraction(@NotNull ScreenView sceneView, @NotNull NlComponent layout) {
@@ -305,22 +305,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   /**
-   * Paint the component and its children on the given context
-   *
-   * @param gc         graphics context
-   * @param screenView the current screen view
-   * @param component  the component to draw
-   * @return true to indicate that we will need to be repainted
-   */
-  @Override
-  public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
-                           @NotNull NlComponent component) {
-    return false;
-  }
-
-  boolean myStateDragging = false;
-
-  /**
    * Creates the {@link LinearDragTarget}, {@link LinearSeparatorTarget}s, and {@link LinearResizeTarget}s
    * for the children.
    *
@@ -335,27 +319,53 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       return super.createTargets(sceneComponent, true);
     }
 
-    // TODO Only display the Resize target in the direction that can be resized depending on the gravity
     ImmutableList.Builder<Target> listBuilder = ImmutableList.builder();
-    listBuilder
-      .add(new LinearDragTarget(this))
-      .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
-      .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
-      .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
-      .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+    listBuilder.add(new LinearDragTarget(this));
+    createResizeTarget(listBuilder);
+    createSeparatorTargets(sceneComponent, listBuilder);
+    return listBuilder.build();
+  }
 
-    if (myStateDragging) {
-      SceneComponent parent = sceneComponent.getParent();
-      assert parent != null;
+  private void createSeparatorTargets(@NotNull SceneComponent sceneComponent, @NotNull ImmutableList.Builder<Target> listBuilder) {
+    SceneComponent parent = sceneComponent.getParent();
+    assert parent != null;
+    SceneComponent draggingComponent = myDraggingComponents.get(parent);
+    if (draggingComponent != null && draggingComponent != sceneComponent) {
+
       boolean isLayoutOrientationVertical = isVertical(parent.getNlComponent());
-      listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, false));
+      if (canReceiveBefore(parent, sceneComponent, draggingComponent)) {
+        listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, false));
+      }
 
       if (isLastChild(parent, sceneComponent)) {
         listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, true));
       }
     }
+  }
 
-    return listBuilder.build();
+  private static void createResizeTarget(@NotNull ImmutableList.Builder<Target> listBuilder) {
+    // TODO Only display the Resize target in the direction that can be resized depending on the gravity
+    listBuilder
+      .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
+      .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
+      .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
+      .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+  }
+
+  /**
+   * Check if the draggingComponent can be inserted before nextSibling
+   *
+   * @param parent            The common parent of nextSibling and draggingComponent
+   * @param nextSibling       The potential future next sibling of draggingComponent
+   * @param draggingComponent The component beingDragged
+   * @return tire if draggingComponent can be inserted before nextSibling
+   */
+  private static boolean canReceiveBefore(@NotNull SceneComponent parent,
+                                          @NotNull SceneComponent nextSibling,
+                                          @NotNull SceneComponent draggingComponent) {
+    List<NlComponent> children = parent.getNlComponent().getChildren();
+    int i = children.indexOf(nextSibling.getNlComponent());
+    return i > -1 && (i == 0 || children.get(i - 1) != draggingComponent.getNlComponent());
   }
 
   /**
@@ -404,7 +414,12 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return true;
   }
 
-  public void setDragging(boolean dragging) {
-    myStateDragging = dragging;
+  public void setDragging(@NotNull SceneComponent draggedComponent, boolean isDragging) {
+    if (isDragging && !myDraggingComponents.containsKey(draggedComponent.getParent())) {
+      myDraggingComponents.put(draggedComponent.getParent(), draggedComponent);
+    }
+    else if (!isDragging && myDraggingComponents.containsKey(draggedComponent.getParent())) {
+      myDraggingComponents.remove(draggedComponent.getParent());
+    }
   }
 }

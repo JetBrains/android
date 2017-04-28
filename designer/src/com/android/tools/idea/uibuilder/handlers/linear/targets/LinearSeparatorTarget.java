@@ -24,13 +24,16 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawComponentBackground;
 import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * Displays a separator in between LinearLayout's children and used as a target when dropping
@@ -43,12 +46,17 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
   private final boolean myAtEnd;
   private boolean myIsHighlight;
   private int myHighLightSize;
+  @Nullable private SceneComponent myParent;
+  /**
+   * True if the placeholder won't be hidden outside the parent
+   */
+  private boolean myCanDisplayPlaceholderAfter;
 
   /**
    * Create a new separator for linear layout
    *
    * @param layoutVertical is the orientation of the parent LinearLayout
-   * @param atEnd          if true, a separator will be drawn at both ends of the component
+   * @param atEnd          if true, a separator will be drawn at the end of the component
    */
   public LinearSeparatorTarget(boolean layoutVertical, boolean atEnd) {
     super();
@@ -67,32 +75,42 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    SceneComponent parent = myComponent.getParent();
-    assert parent != null : "This target cannot be added to a root component";
+    myParent = myComponent.getParent();
+    assert myParent != null : "This target cannot be added to a root component";
     NlComponent nlComponent = myComponent.getNlComponent();
     if (myLayoutVertical) {
-      myLeft = parent.getDrawX();
-      myRight = myLeft + parent.getDrawWidth();
-      myTop = myBottom = context.pxToDp(nlComponent.y) + (myAtEnd ? context.pxToDp(nlComponent.h) : 0);
+      int parentMin = myParent.getDrawY() + DrawLinearSeparator.STROKE_SIZE / 2;
+      int parentMax = parentMin + myParent.getDrawHeight() - DrawLinearSeparator.STROKE_SIZE;
+      myLeft = myParent.getDrawX();
+      myRight = myLeft + myParent.getDrawWidth();
+      float y = context.pxToDp(nlComponent.y) + (myAtEnd ? context.pxToDp(nlComponent.h) : 0);
+      myTop = myBottom = max(parentMin, min(parentMax, y));
+      myCanDisplayPlaceholderAfter = myComponent.getDrawY() + myComponent.getDrawHeight() < parentMax;
     }
     else {
-      myLeft = myRight = context.pxToDp(nlComponent.x) + (myAtEnd ? context.pxToDp(nlComponent.w) : 0);
-      myTop = parent.getDrawY();
-      myBottom = myTop + parent.getDrawHeight();
+      int parentMin = myParent.getDrawX() + DrawLinearSeparator.STROKE_SIZE / 2;
+      int parentMax = parentMin + myParent.getDrawWidth() - DrawLinearSeparator.STROKE_SIZE;
+      float x = context.pxToDp(nlComponent.x) + (myAtEnd ? context.pxToDp(nlComponent.w) : 0);
+      myLeft = myRight = max(parentMin, min(parentMax, x));
+      myTop = myParent.getDrawY();
+      myBottom = myTop + myParent.getDrawHeight();
+      myCanDisplayPlaceholderAfter = myComponent.getDrawX() + myComponent.getDrawWidth() < parentMax;
     }
+
     return false;
   }
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (myComponent.isDragging()) {
+    if (myComponent.isDragging() || myParent == null) {
       return;
     }
+
 
     if (myIsHighlight) {
       DrawLinearPlaceholder.add(list, sceneContext,
                                 myLayoutVertical,
-                                myAtEnd,
+                                myAtEnd && myCanDisplayPlaceholderAfter,
                                 myHighLightSize,
                                 myLeft, myTop, myRight, myBottom);
     }
@@ -155,16 +173,20 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       int value = owner.getDrawY();
       int displayValue = owner.getDrawY();
       if (myAtEnd) {
-        value += owner.getDrawHeight();
-        displayValue += owner.getDrawHeight();
+        if (myCanDisplayPlaceholderAfter) {
+          value += owner.getDrawHeight();
+          displayValue += owner.getDrawHeight();
+        }
+        else {
+          value += owner.getDrawHeight() - snappableComponent.getDrawHeight() / 2;
+          displayValue += owner.getDrawHeight() - snappableComponent.getDrawHeight() / 2;
+        }
       }
       else {
         value -= snappableComponent.getDrawHeight() / 2f + 0.5f;
       }
       Notch.Vertical notch = new Notch.Vertical(owner, value, displayValue, action);
-      if(myAtEnd) {
-        notch.setGap(owner.getDrawHeight() / 2);
-      }
+      notch.setGap(owner.getDrawHeight() / 2);
       notch.setTarget(this);
       verticalNotches.add(notch);
     }
@@ -172,16 +194,20 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       int value = owner.getDrawX();
       int displayValue = owner.getDrawX();
       if (myAtEnd) {
-        value += owner.getDrawWidth();
-        displayValue += owner.getDrawWidth();
+        if (myCanDisplayPlaceholderAfter) {
+          value += owner.getDrawWidth();
+          displayValue += owner.getDrawWidth();
+        }
+        else {
+          value += owner.getDrawWidth() - snappableComponent.getDrawWidth() / 2;
+          displayValue += owner.getDrawWidth() - snappableComponent.getDrawWidth() / 2;
+        }
       }
       else {
         value -= snappableComponent.getDrawWidth() / 2f + 0.5f;
       }
       Notch.Horizontal notch = new Notch.Horizontal(owner, value, displayValue, action);
-      if(myAtEnd) {
-        notch.setGap(owner.getDrawWidth() / 2);
-      }
+      notch.setGap(owner.getDrawWidth() / 2);
       notch.setTarget(this);
       horizontalNotches.add(notch);
     }

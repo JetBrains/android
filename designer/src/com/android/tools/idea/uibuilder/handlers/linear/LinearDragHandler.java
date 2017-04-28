@@ -50,7 +50,7 @@ class LinearDragHandler extends DragHandler {
     assert !components.isEmpty();
     NlComponent dragged = components.get(0);
     myComponent = new TemporarySceneComponent(layout.getScene(), components.get(0));
-    myDragTarget = new LinearDragTarget(handler, true);
+    myDragTarget = new LinearDragTarget(handler, type.equals(DragType.CREATE));
     myComponent.setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false);
     myComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(myDragTarget), false);
     myComponent.setDrawState(SceneComponent.DrawState.DRAG);
