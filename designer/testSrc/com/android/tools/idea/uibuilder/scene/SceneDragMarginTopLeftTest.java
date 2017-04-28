@@ -60,7 +60,7 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"750dp\"\n" +
+                 "    android:layout_marginLeft=\"748dp\"\n" +
                  "    android:layout_marginTop=\"200dp\"/>");
   }
 
@@ -75,7 +75,7 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
                  "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    android:layout_marginLeft=\"100dp\"\n" +
-                 "    android:layout_marginTop=\"490dp\"/>");
+                 "    android:layout_marginTop=\"488dp\"/>");
   }
 
   public void testDragBottomRight() {
@@ -88,7 +88,7 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    android:layout_marginLeft=\"750dp\"\n" +
-                 "    android:layout_marginTop=\"490dp\"/>");
+                 "    android:layout_marginLeft=\"748dp\"\n" +
+                 "    android:layout_marginTop=\"488dp\"/>");
   }
 }
