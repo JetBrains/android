@@ -271,7 +271,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       // For Templates with an Android FormFactor or that have a class/package name, we allow the user to select the programming language
       if (templateMetadata.getFormFactor() != null || templateMetadata.getParameter(ATTR_CLASS_NAME) != null ||
           templateMetadata.getParameter(ATTR_PACKAGE_NAME) != null) {
-        RowEntry row = new RowEntry<>("Source Language:", new LanguageSetComboProvider());
+        RowEntry row = new RowEntry<>("Source Language", new LanguageSetComboProvider());
         if (isNpwModelWizardEnabled(Feature.KOTLIN)) {
           row.addToPanel(myParametersPanel);
         }
