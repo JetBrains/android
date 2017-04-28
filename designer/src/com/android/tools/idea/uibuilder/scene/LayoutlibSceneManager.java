@@ -214,7 +214,7 @@ public class LayoutlibSceneManager extends SceneManager {
     public void modelDerivedDataChanged(@NotNull NlModel model) {
       DesignSurface surface = getDesignSurface();
       if (surface instanceof NlDesignSurface && ((NlDesignSurface)surface).getScreenMode() == NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
-        layout(false);
+        layout(true);
       }
       else {
         render();

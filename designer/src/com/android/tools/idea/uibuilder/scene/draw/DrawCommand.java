@@ -33,7 +33,8 @@ public interface DrawCommand extends Comparable {
   int TARGET_LEVEL = 50;
   int CONNECTION_HOVER_LEVEL = 60;
   int CONNECTION_DELETE_LEVEL = 70;
-  int TOP_LEVEL = 80;
+  int TARGET_OVER_LEVEL = 80;
+  int TOP_LEVEL = 100;
   int CLIP_LEVEL =  0;
   int UNCLIP_LEVEL =  1000;
   int POST_CLIP_LEVEL =  1010;
