@@ -56,7 +56,7 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
       androidLibrary.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
       if (isInstantAppSdkEnabled()) {
         CreateModuleTemplate androidFeatureModule =
-          new CreateModuleTemplate(metadata, formFactor, "Feature Module", AndroidIcons.ModuleTemplates.Android);
+          new CreateModuleTemplate(metadata, formFactor, "Feature Module", AndroidIcons.ModuleTemplates.FeatureModule);
         androidFeatureModule.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
         androidFeatureModule.setCustomValue(WizardConstants.IS_INSTANT_APP_KEY, true);
         return ImmutableSet.of(androidApplication, androidLibrary, androidFeatureModule);
