@@ -30,9 +30,9 @@ import java.awt.*;
  */
 public class DrawLinearSeparator extends DrawRegion {
 
-  private static final int STROKE_SIZE = 2;
+  public static final int STROKE_SIZE = 2;
   private static final Stroke STROKE = new BasicStroke(STROKE_SIZE, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-                                                       0, new float[]{2, 3}, 0);
+                                                       0, new float[]{8, 6}, 0);
 
   public DrawLinearSeparator(boolean layoutVertical,
                              @SwingCoordinate int x,
@@ -40,10 +40,10 @@ public class DrawLinearSeparator extends DrawRegion {
                              @SwingCoordinate int length) {
     setLocation(x, y);
     if (layoutVertical) {
-      setSize(length, STROKE_SIZE);
+      setSize(length, 0);
     }
     else {
-      setSize(STROKE_SIZE, length);
+      setSize(0, length);
     }
   }
 
@@ -52,7 +52,6 @@ public class DrawLinearSeparator extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     Stroke defStroke = g.getStroke();
     Color defColor = g.getColor();
-
     g.setStroke(STROKE);
     g.setColor(colorSet.getDragReceiverFrames());
     g.drawLine(x, y, x + width, y + height);
