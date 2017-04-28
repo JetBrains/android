@@ -274,6 +274,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       // The device has changed and we need to reset the process.
       // First, stop profiling the current process.
+      // There might be a side effect of calling stopProfiling() twice when switching the device. First, it is called
+      // by setDevice() here; second, it is called by setProcess(null) shortly after. The second call has inconsistent
+      // arguments because it combines new session and old process, but it is harmless. Calling stopProfiling() over
+      // a dead or non-being-profiled process is noop in all of our profilers.
       if (previousDevice != null && myProcess != null &&
           previousDevice.getState() == Profiler.Device.State.ONLINE &&
           myProcess.getState() == Profiler.Process.State.ALIVE) {
@@ -305,6 +309,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
+      if (myDevice != null && myProcess != null &&
+          myDevice.getState() == Profiler.Device.State.ONLINE &&
+          myProcess.getState() == Profiler.Process.State.ALIVE) {
+        myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
+      }
       boolean onlyStateChanged = isSameProcess(myProcess, process);
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
