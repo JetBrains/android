@@ -25,9 +25,14 @@ import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -59,14 +64,18 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
   @Override
   public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
     CodeAndResourcesReferenceCollector scanner = new CodeAndResourcesReferenceCollector(project);
-    scanner.accumulate(elements);
+
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      () -> ApplicationManager.getApplication().runReadAction(
+        () -> scanner.accumulate(elements)), "Computing References", false, project);
 
     AndroidMoveWithResourcesProcessor processor =
       new AndroidMoveWithResourcesProcessor(project,
                                             elements,
                                             scanner.getClassReferences(),
                                             scanner.getResourceReferences(),
-                                            scanner.getManifestReferences());
+                                            scanner.getManifestReferences(),
+                                            scanner.getReferenceGraph());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       Module targetModule = TARGET_MODULE.getData(dataContext);
@@ -89,7 +98,7 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
     private final Set<ResourceItem> myResourceRefSet = new LinkedHashSet<>(RESOURCE_SET_INITIAL_SIZE);
     private final Set<PsiElement> myManifestRefSet = new HashSet<>();
     private final Queue<PsiElement> myVisitQueue = new ArrayDeque<>();
-
+    private final AndroidCodeAndResourcesGraph.Builder myGraphBuilder = new AndroidCodeAndResourcesGraph.Builder();
 
     public CodeAndResourcesReferenceCollector(@NotNull Project project) {
       myProject = project;
@@ -103,6 +112,7 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
           (element instanceof PsiClass) ? (PsiClass)element : PsiTreeUtil.getParentOfType(element, PsiClass.class);
         if (myClassRefSet.add(ownerClass)) {
           myVisitQueue.add(ownerClass);
+          myGraphBuilder.addRoot(ownerClass);
         }
       }
 
@@ -115,7 +125,7 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
         }
 
         if (element instanceof PsiClass) {
-          element.accept(new JavaReferenceVisitor(facet));
+          element.accept(new JavaReferenceVisitor(facet, element));
 
           // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
           GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProvider.getManifestFiles(facet));
@@ -125,14 +135,17 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
             tag = PsiTreeUtil.getParentOfType(tag, XmlTag.class);
 
             if (tag != null) {
-              myManifestRefSet.add(tag);
-              // Scan the tag because we might have references to other resources.
-              myVisitQueue.offer(tag);
+              if (myManifestRefSet.add(tag)) {
+                // Scan the tag because we might have references to other resources.
+                myVisitQueue.offer(tag);
+              }
+
+              myGraphBuilder.markReference(element, tag);
             }
           });
         }
         else {
-          element.accept(new XmlResourceReferenceVisitor(facet));
+          element.accept(new XmlResourceReferenceVisitor(facet, element));
         }
       }
     }
@@ -152,6 +165,11 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
       return myManifestRefSet;
     }
 
+    @NotNull
+    public AndroidCodeAndResourcesGraph getReferenceGraph() {
+      return myGraphBuilder.build();
+    }
+
     @Nullable
     private PsiElement getResourceDefinition(ResourceItem resource) {
       PsiFile psiFile = LocalResourceRepository.getItemPsiFile(myProject, resource);
@@ -168,10 +186,12 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
 
     private class XmlResourceReferenceVisitor extends XmlRecursiveElementWalkingVisitor {
       private final AndroidFacet myFacet;
+      private final PsiElement mySource;
       private final ProjectResourceRepository myResourceRepository;
 
-      XmlResourceReferenceVisitor(@NotNull AndroidFacet facet) {
+      XmlResourceReferenceVisitor(@NotNull AndroidFacet facet, @NotNull PsiElement source) {
         myFacet = facet;
+        mySource = source;
         myResourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
       }
 
@@ -192,9 +212,11 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
             List<ResourceItem> matches = myResourceRepository.getResourceItem(url.type, url.name);
             if (matches != null) {
               for (ResourceItem match : matches) {
+                PsiElement target = getResourceDefinition(match);
                 if (myResourceRefSet.add(match)) {
-                  myVisitQueue.offer(getResourceDefinition(match));
+                  myVisitQueue.offer(target);
                 }
+                myGraphBuilder.markReference(mySource, target);
               }
             }
           }
@@ -206,6 +228,7 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
             if (myClassRefSet.add(target)) {
               myVisitQueue.offer(target);
             }
+            myGraphBuilder.markReference(mySource, target);
           }
         }
       }
@@ -213,10 +236,12 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
 
     private class JavaReferenceVisitor extends JavaRecursiveElementWalkingVisitor {
       private final AndroidFacet myFacet;
+      private final PsiElement mySource;
       private final ProjectResourceRepository myResourceRepository;
 
-      JavaReferenceVisitor(@NotNull AndroidFacet facet) {
+      JavaReferenceVisitor(@NotNull AndroidFacet facet, @NotNull PsiElement source) {
         myFacet = facet;
+        mySource = source;
         myResourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
       }
 
@@ -235,9 +260,11 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
               List<ResourceItem> matches = myResourceRepository.getResourceItem(type, name);
               if (matches != null) {
                 for (ResourceItem match : matches) {
+                  PsiElement target = getResourceDefinition(match);
                   if (myResourceRefSet.add(match)) {
-                    myVisitQueue.offer(getResourceDefinition(match));
+                    myVisitQueue.offer(target);
                   }
+                  myGraphBuilder.markReference(mySource, target);
                 }
               }
             }
@@ -251,13 +278,16 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
       public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
         PsiElement target = reference.advancedResolve(false).getElement();
         if (target instanceof PsiClass) {
-          if (!(target instanceof PsiTypeParameter)) {
+          if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {
             VirtualFile source = target.getContainingFile().getVirtualFile();
             for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
               if (sourceProvider.containsFile(source)) {
                 // This is a local source file, therefore a candidate to be moved
                 if (myClassRefSet.add((PsiClass)target)) {
                   myVisitQueue.add(target);
+                }
+                if (target != mySource) { // Don't add self-references
+                  myGraphBuilder.markReference(mySource, target);
                 }
                 return; // We had a reference match, nothing further to do
               }

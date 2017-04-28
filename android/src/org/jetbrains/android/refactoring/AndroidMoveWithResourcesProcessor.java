@@ -22,9 +22,11 @@ import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -45,13 +47,12 @@ import com.intellij.usageView.UsageViewUtil;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.refactoring.ui.AndroidMoveWithResourcesPreviewPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.swing.*;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 
@@ -64,22 +65,33 @@ public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor 
   private final Set<PsiClass> myClasses;
   private final Set<ResourceItem> myResources;
   private final Set<PsiElement> myManifestEntries;
+  private final AndroidCodeAndResourcesGraph myReferenceGraph;
   private Module myTargetModule;
 
   protected AndroidMoveWithResourcesProcessor(@NotNull Project project,
                                               @NotNull PsiElement[] roots,
                                               @NotNull Set<PsiClass> classes,
                                               @NotNull Set<ResourceItem> resources,
-                                              @NotNull Set<PsiElement> manifestEntries) {
+                                              @NotNull Set<PsiElement> manifestEntries,
+                                              @NotNull AndroidCodeAndResourcesGraph referenceGraph) {
     super(project);
     myRoots = roots;
     myClasses = classes;
     myResources = resources;
     myManifestEntries = manifestEntries;
+    myReferenceGraph = referenceGraph;
   }
 
   public void setTargetModule(@NotNull Module module) {
     myTargetModule = module;
+  }
+
+  public int getClassesCount() {
+    return myClasses.size();
+  }
+
+  public int getResourcesCount() {
+    return myResources.size();
   }
 
   @NotNull
@@ -164,6 +176,14 @@ public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor 
     }
 
     return UsageViewUtil.removeDuplicatedUsages(result.toArray(new UsageInfo[result.size()]));
+  }
+
+  @Override
+  protected void previewRefactoring(@NotNull UsageInfo[] usages) {
+    PreviewDialog previewDialog = new PreviewDialog(myProject, myReferenceGraph, usages);
+    if (previewDialog.showAndGet()) {
+      TransactionGuard.getInstance().submitTransactionAndWait(() -> execute(previewDialog.getSelectedUsages()));
+    }
   }
 
   @Override
@@ -339,7 +359,7 @@ public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor 
   }
 
 
-  static class ResourceXmlUsageInfo extends UsageInfo {
+  public static class ResourceXmlUsageInfo extends UsageInfo {
 
     private final ResourceItem myResourceItem;
 
@@ -358,6 +378,30 @@ public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor 
     @NotNull
     public ResourceItem getResourceItem() {
       return myResourceItem;
+    }
+  }
+
+  static class PreviewDialog extends DialogWrapper {
+
+    private final AndroidMoveWithResourcesPreviewPanel myPanel;
+
+    protected PreviewDialog(@Nullable Project project, @NotNull AndroidCodeAndResourcesGraph graph, @NotNull UsageInfo[] infos) {
+      super(project, true);
+
+      myPanel = new AndroidMoveWithResourcesPreviewPanel(graph, infos);
+      setTitle("Preview Classes and Resources to Be Moved");
+      init();
+    }
+
+    @Nullable
+    @Override
+    protected JComponent createCenterPanel() {
+      return myPanel.getPanel();
+    }
+
+    @NotNull
+    public UsageInfo[] getSelectedUsages() {
+      return myPanel.getSelectedUsages();
     }
   }
 }
