@@ -86,17 +86,6 @@ public class SceneChainCycleTest extends SceneTest {
                  "    app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
                  "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "    tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      app:layout_constraintHorizontal_chainStyle=\"spread\" />");
-    myInteraction.mouseDown("button", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button", ChainCycleTarget.class, 0);
-    myScreen.get("@id/button2")
-      .expectXml("<Button\n" +
-                 "    android:id=\"@id/button2\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
-                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
-                 "    tools:layout_editor_absoluteY=\"200dp\"\n" +
                  "      app:layout_constraintHorizontal_chainStyle=\"spread_inside\" />");
     myInteraction.mouseDown("button", ChainCycleTarget.class, 0);
     myInteraction.mouseRelease("button", ChainCycleTarget.class, 0);
@@ -120,21 +109,21 @@ public class SceneChainCycleTest extends SceneTest {
                  "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "    tools:layout_editor_absoluteY=\"200dp\"\n" +
                  "      app:layout_constraintHorizontal_chainStyle=\"spread\" />");
+    myInteraction.mouseDown("button", ChainCycleTarget.class, 0);
+    myInteraction.mouseRelease("button", ChainCycleTarget.class, 0);
+    myScreen.get("@id/button2")
+      .expectXml("<Button\n" +
+                 "    android:id=\"@id/button2\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
+                 "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+                 "    tools:layout_editor_absoluteY=\"200dp\"\n" +
+                 "      app:layout_constraintHorizontal_chainStyle=\"spread_inside\" />");
   }
 
   public void testVerticalCycle() {
     myInteraction.select("button3", true);
-    myInteraction.mouseDown("button3", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button3", ChainCycleTarget.class, 0);
-    myScreen.get("@id/button4")
-      .expectXml("<Button\n" +
-                 "    android:id=\"@id/button4\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\"\n" +
-                 "    app:layout_constraintBottom_toTopOf=\"@+id/button3\"\n" +
-                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "    tools:layout_editor_absoluteX=\"800dp\"\n" +
-                 "      app:layout_constraintVertical_chainStyle=\"spread\" />");
     myInteraction.mouseDown("button3", ChainCycleTarget.class, 0);
     myInteraction.mouseRelease("button3", ChainCycleTarget.class, 0);
     myScreen.get("@id/button4")
@@ -168,6 +157,17 @@ public class SceneChainCycleTest extends SceneTest {
                  "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "    tools:layout_editor_absoluteX=\"800dp\"\n" +
                  "      app:layout_constraintVertical_chainStyle=\"spread\" />");
+    myInteraction.mouseDown("button3", ChainCycleTarget.class, 0);
+    myInteraction.mouseRelease("button3", ChainCycleTarget.class, 0);
+    myScreen.get("@id/button4")
+      .expectXml("<Button\n" +
+                 "    android:id=\"@id/button4\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    app:layout_constraintBottom_toTopOf=\"@+id/button3\"\n" +
+                 "    app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "    tools:layout_editor_absoluteX=\"800dp\"\n" +
+                 "      app:layout_constraintVertical_chainStyle=\"spread_inside\" />");
   }
 
 }
