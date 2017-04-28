@@ -23,20 +23,12 @@ import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.testFramework.ThreadTracker;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 /**
  * Tests for the nav editor Scene.
  */
 public class NavSceneTest extends NavigationTestCase {
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    // temporarily disable this until we figure out why it's happening
-    ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "google-crash-pool");
-  }
 
   public void testDisplayList() {
     SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
