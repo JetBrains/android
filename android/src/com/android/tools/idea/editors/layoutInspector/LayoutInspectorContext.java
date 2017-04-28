@@ -20,9 +20,15 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.HandleViewDebug;
 import com.android.ddmlib.IDevice;
-import com.android.layoutinspector.model.ViewNodeTableModel;
-import com.android.layoutinspector.model.ViewNode;
 import com.android.layoutinspector.model.ClientWindow;
+import com.android.layoutinspector.model.ViewNode;
+import com.android.layoutinspector.model.ViewProperty;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.adtui.workbench.ToolWindowDefinition;
+import com.android.tools.idea.editors.layoutInspector.ptable.LITableGroupItem;
+import com.android.tools.idea.editors.layoutInspector.ptable.LITableRendererProvider;
 import com.android.tools.idea.editors.layoutInspector.ui.RollOverTree;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeActiveDisplay;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeTreeRenderer;
@@ -36,7 +42,6 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.Key;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.TableSpeedSearch;
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -52,6 +57,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.*;
 
 public class LayoutInspectorContext implements Disposable, DataProvider, ViewNodeActiveDisplay.ViewNodeActiveDisplayListener,
                                                TreeSelectionListener, RollOverTree.TreeHoverListener,
@@ -75,8 +81,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   private final RollOverTree myNodeTree;
 
   // Right Section: Properties Table
-  private final ViewNodeTableModel myTableModel;
-  private final JBTable myPropertiesTable;
+  private final PTableModel myTableModel;
+  private final PTable myPropertiesTable;
 
   // Node popup menu
   private final JBPopupMenu myNodePopup;
@@ -92,8 +98,10 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     myNodeTree.addTreeSelectionListener(this);
     myNodeTree.addTreeHoverListener(this);
 
-    myTableModel = new ViewNodeTableModel();
-    myPropertiesTable = new JBTable(myTableModel);
+    myTableModel = new PTableModel();
+    myPropertiesTable = new PTable(myTableModel);
+    myPropertiesTable.getColumnModel().getColumn(0).setMinWidth((int)(ToolWindowDefinition.DEFAULT_SIDE_WIDTH * 0.6));
+    myPropertiesTable.setRendererProvider(LITableRendererProvider.getInstance());
     myPropertiesTable.setFillsViewportHeight(true);
     myPropertiesTable.getTableHeader().setReorderingAllowed(false);
     TableSpeedSearch propertiesSpeedSearch = new TableSpeedSearch(myPropertiesTable, (object, cell) -> {
@@ -101,8 +109,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
         return null;
       }
 
-      assert object instanceof String : "The model is expected to return String instances as values";
-      return (String)object;
+      assert object instanceof PTableItem : "Items in inspector properties table expected to be a PTableItem";
+      return ((PTableItem)object).getName();
     });
     propertiesSpeedSearch.setComparator(new SpeedSearchComparator(false, false));
 
@@ -146,8 +154,13 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   public
   @NotNull
-  JBTable getPropertiesTable() {
+  PTable getPropertiesTable() {
     return myPropertiesTable;
+  }
+
+  @NotNull
+  public PTableModel getTableModel() {
+    return myTableModel;
   }
 
   @Override
@@ -172,11 +185,22 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   public void valueChanged(@NotNull TreeSelectionEvent event) {
     ViewNode selection = (ViewNode)myNodeTree.getLastSelectedPathComponent();
     if (selection != null) {
-      myTableModel.setNode(selection);
+      myTableModel.setItems(convertToItems(selection.groupedProperties));
       if (myPreview != null) {
         myPreview.setSelectedNode(selection);
       }
     }
+  }
+
+  @NotNull
+  public static List<PTableItem> convertToItems(@NotNull Map<String, List<ViewProperty>> properties) {
+    List<PTableItem> items = new ArrayList<>();
+    List<String> sortedKeys = new ArrayList<>(properties.keySet());
+    Collections.sort(sortedKeys, String::compareToIgnoreCase);
+    for (String key : sortedKeys) {
+      items.add(new LITableGroupItem(key, properties.get(key)));
+    }
+    return items;
   }
 
   @Override
