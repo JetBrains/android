@@ -136,7 +136,7 @@ public class AddPropertyItem extends PTableItem {
   @Override
   public void setValue(@Nullable Object value) {
     if (!isPropertyNameSelected()) {
-      myName = value == null ? "" : value.toString();
+      myName = value == null ? "" : value.toString().trim();
     }
     else {
       myProperty.setValue(value);

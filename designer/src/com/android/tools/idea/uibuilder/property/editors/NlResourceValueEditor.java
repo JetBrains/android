@@ -20,7 +20,10 @@ import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.adtui.ptable.PTableCellEditor;
+import com.android.tools.idea.uibuilder.property.renderer.NlSliceValueRenderer;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -29,6 +32,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.util.EnumSet;
+
+import static com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor.*;
 
 public class NlResourceValueEditor extends PTableCellEditor {
   private final TextEditorWithAutoCompletion myTextEditorWithAutoCompletion;
@@ -41,13 +46,19 @@ public class NlResourceValueEditor extends PTableCellEditor {
 
   private NlResourceValueEditor(@NotNull Project project) {
     //noinspection UseDPIAwareInsets
-    myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, new Insets(0, 0, 0, 0));
+    myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
+                                                                                              HORIZONTAL_PADDING,
+                                                                                              VERTICAL_SPACING + VERTICAL_PADDING,
+                                                                                              HORIZONTAL_PADDING));
     myTextEditorWithAutoCompletion.registerKeyboardAction(event -> enter(),
                                                           KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0),
                                                           JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     myTextEditorWithAutoCompletion.registerKeyboardAction(event -> cancel(),
                                                           KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                                                           JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    myTextEditorWithAutoCompletion.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+    myTextEditorWithAutoCompletion.setFontStyle(Font.BOLD);
+    myTextEditorWithAutoCompletion.setTextColor(NlSliceValueRenderer.VALUE_COLOR);
     myTextEditorWithAutoCompletion.addFocusListener(new FocusListener() {
       @Override
       public void focusGained(@NotNull FocusEvent event) {
