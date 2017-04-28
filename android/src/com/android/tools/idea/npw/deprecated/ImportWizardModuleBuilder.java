@@ -45,6 +45,7 @@ import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.npw.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 @Deprecated
 public class ImportWizardModuleBuilder
@@ -169,7 +170,7 @@ public class ImportWizardModuleBuilder
     WizardPath path = myWizardState.getActiveWizardPath();
     path.createModule();
     if (performGradleSync && myProject != null) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
     }
   }
 

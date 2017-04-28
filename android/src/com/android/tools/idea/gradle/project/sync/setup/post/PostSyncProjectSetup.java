@@ -68,6 +68,7 @@ import static com.android.tools.idea.gradle.util.Projects.getPluginVersionsPerMo
 import static com.android.tools.idea.gradle.util.Projects.storePluginVersionsPerModule;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
@@ -198,7 +199,8 @@ public class PostSyncProjectSetup {
       syncTimestamp = System.currentTimeMillis();
     }
     mySyncState.syncSkipped(syncTimestamp);
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null);
+    // TODO add a new trigger for this?
+    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_LOADED);
   }
 
   private void failTestsIfSyncIssuesPresent() {
