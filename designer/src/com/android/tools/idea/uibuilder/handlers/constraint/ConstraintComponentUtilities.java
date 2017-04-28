@@ -1090,7 +1090,7 @@ public final class ConstraintComponentUtilities {
       }
     }
     else {
-      chainStyle = ATTR_LAYOUT_CHAIN_SPREAD;
+      chainStyle = ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
     }
     AttributesTransaction transaction = chainHead.startAttributeTransaction();
     transaction.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
