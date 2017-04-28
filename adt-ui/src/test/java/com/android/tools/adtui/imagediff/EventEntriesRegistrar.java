@@ -40,11 +40,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     register(new ActivityEventImageDiffEntry("add_activity_event_baseline.png") {
       @Override
       protected void generateComponent() {
-        // Set a reasonable thickness to the line so it can fill a good portion of the screen.
-        float lineThickness = 7f;
         // Set the height to a low value to reduce the amount of unused space of the component.
         int mainComponentHeight = 50;
-        setUpActivityComponent(mainComponentHeight, lineThickness);
+        setUpActivityComponent(mainComponentHeight);
       }
 
       @Override
@@ -60,11 +58,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     register(new ActivityEventImageDiffEntry("add_running_activity_event_baseline.png") {
       @Override
       protected void generateComponent() {
-        // Set a reasonable thickness to the line so it can fill a good portion of the screen.
-        float lineThickness = 7f;
         // Set the height to a low value to reduce the amount of unused space of the component.
         int mainComponentHeight = 50;
-        setUpActivityComponent(mainComponentHeight, lineThickness);
+        setUpActivityComponent(mainComponentHeight);
       }
 
       @Override
@@ -80,11 +76,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     register(new ActivityEventImageDiffEntry("add_activity_before_start_event_baseline.png") {
       @Override
       protected void generateComponent() {
-        // Set a reasonable thickness to the line so it can fill a good portion of the screen.
-        float lineThickness = 7f;
         // Set the height to a low value to reduce the amount of unused space of the component.
         int mainComponentHeight = 50;
-        setUpActivityComponent(mainComponentHeight, lineThickness);
+        setUpActivityComponent(mainComponentHeight);
       }
 
       @Override
@@ -101,11 +95,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     register(new ActivityEventImageDiffEntry("add_multiple_stacked_activities_event_baseline.png") {
       @Override
       protected void generateComponent() {
-        // Set a reasonable thickness to the line so it can fill a good portion of the screen.
-        float lineThickness = 5f;
         // Set the height to a low value to reduce the amount of unused space of the component.
         int mainComponentHeight = 50;
-        setUpActivityComponent(mainComponentHeight, lineThickness);
+        setUpActivityComponent(mainComponentHeight);
       }
 
       @Override
@@ -123,11 +115,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     register(new ActivityEventImageDiffEntry("add_multiple_inline_activities_event_baseline.png") {
       @Override
       protected void generateComponent() {
-        // Set a reasonable thickness to the line so it can fill a good portion of the screen.
-        float lineThickness = 7f;
         // Set the height to a low value to reduce the amount of unused space of the component.
         int mainComponentHeight = 50;
-        setUpActivityComponent(mainComponentHeight, lineThickness);
+        setUpActivityComponent(mainComponentHeight);
       }
 
       @Override
@@ -191,9 +181,8 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       myComponents.add(myStackedEventModel);
     }
 
-    protected void setUpActivityComponent(int contentPaneHeight, float eventComponentLineThickness) {
+    protected void setUpActivityComponent(int contentPaneHeight) {
       myStackedEventComponent.setFont(ImageDiffUtil.getDefaultFont());
-      myStackedEventComponent.setLineThickness(eventComponentLineThickness);
       Dimension contentPaneDimension = new Dimension(myContentPane.getWidth(), contentPaneHeight);
       myContentPane.setSize(contentPaneDimension);
       myContentPane.setPreferredSize(contentPaneDimension);
