@@ -16,8 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.uibuilder.error.IssueView;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -32,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
@@ -42,12 +44,12 @@ import static org.junit.Assert.assertTrue;
 
 public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, NlDesignSurface> {
   private final JPanel myProgressPanel;
-  private final IssuePanelFixture myIssuePanelFixture;
+  private final RenderErrorPanel myRenderErrorPanel;
 
   public DesignSurfaceFixture(@NotNull Robot robot, @NotNull NlDesignSurface designSurface) {
     super(DesignSurfaceFixture.class, robot, designSurface);
     myProgressPanel = robot.finder().findByName(target(), "Layout Editor Progress Panel", JPanel.class, false);
-    myIssuePanelFixture = new IssuePanelFixture(robot, designSurface.getIssuePanel());
+    myRenderErrorPanel = robot.finder().findByName(target(), "Layout Editor Error Panel", RenderErrorPanel.class, false);
   }
 
   public void waitForRenderToFinish(@NotNull Wait waitForRender) {
@@ -62,31 +64,39 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
         return false;
       }
       if (result.getLogger().hasErrors()) {
-        return target().isShowing() && myIssuePanelFixture.hasRenderError();
+        return target().isShowing() && myRenderErrorPanel.isShowing();
       }
-      return target().isShowing() && !myIssuePanelFixture.hasRenderError();
+      return target().isShowing() && !myRenderErrorPanel.isShowing();
     });
     // Wait for the animation to finish
     pause(SceneComponent.ANIMATION_DURATION);
   }
 
   public boolean hasRenderErrors() {
-    return myIssuePanelFixture.hasRenderError();
+    return myRenderErrorPanel.isShowing();
   }
 
   public void waitForErrorPanelToContain(@NotNull String errorText) {
-    Wait.seconds(1)
-      .expecting("the error panel to contain: " + errorText)
-      .until(() -> myIssuePanelFixture.containsText(errorText));
+    Wait.seconds(1).expecting("the error panel to contain: " + errorText).until(() -> {
+      Document doc = myRenderErrorPanel.getHtmlDetailPane().getDocument();
+      try {
+        return doc.getText(0, doc.getLength()).contains(errorText);
+      }
+      catch (BadLocationException e) {
+        return false;
+      }
+    });
   }
 
   @Nullable
   public String getErrorText() {
-    IssueView view = myIssuePanelFixture.target().getSelectedIssueView();
-    if (view == null) {
+    Document doc = myRenderErrorPanel.getHtmlDetailPane().getDocument();
+    try {
+      return doc.getText(0, doc.getLength());
+    }
+    catch (BadLocationException e) {
       return null;
     }
-    return view.getIssueDescription();
   }
 
   /**
@@ -126,10 +136,6 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
 
     NlComponent component = components.get(occurrence);
     return createComponentFixture(component);
-  }
-
-  public IssuePanelFixture getIssuePanelFixture() {
-    return myIssuePanelFixture;
   }
 
   @NotNull

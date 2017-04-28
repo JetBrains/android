@@ -58,7 +58,6 @@ public class NlLintHighlightingPass implements HighlightingPass {
     }
 
     sceneView.getModel().setLintAnnotationsModel(myLintAnnotationsModel);
-    mySurface.getIssueModel().setLintAnnotationsModel(myLintAnnotationsModel);
     // Ensure that the layers are repainted to reflect the latest model
     // (updating the lint annotations associated with a model doesn't actually rev the model
     // version.)
