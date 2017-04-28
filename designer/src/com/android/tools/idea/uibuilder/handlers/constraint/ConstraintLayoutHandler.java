@@ -519,7 +519,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             @Override
             @Nullable
             public String getToolTipText() {
-              return "Edit Baselines";
+              return "Edit Baseline";
             }
           };
         result.add(baselineActionTarget);
