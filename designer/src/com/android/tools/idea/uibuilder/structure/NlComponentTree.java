@@ -77,6 +77,7 @@ import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private static final Insets INSETS = new JBInsets(0, 6, 0, 6);
+  private static final Color LINE_COLOR = ColorUtil.brighter(UIUtil.getTreeSelectionBackground(), 10);
 
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
@@ -336,7 +337,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     RenderingHints savedHints = g2D.getRenderingHints();
     Color savedColor = g2D.getColor();
     try {
-      g2D.setColor(ColorUtil.softer(UIUtil.getTreeSelectionBackground()));
+      g2D.setColor(LINE_COLOR);
       g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       paintInsertionRectangle(g2D,
@@ -362,7 +363,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     triangle.addPoint(x, y + indicatorSize / 2);
     triangle.addPoint(x, y - indicatorSize / 2);
     Stroke stroke = g.getStroke();
-    g.setStroke(NlConstants.DOTTED_STROKE);
     g.drawLine(x, y, x + width, y);
     g.setStroke(stroke);
     g.drawPolygon(triangle);
@@ -370,26 +370,21 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private static void paintColumnLine(@NotNull Graphics2D g, int x, int y1, int y2) {
-    int columnMargin = JBUI.scale(6);
+    int columnMargin = JBUI.scale(13);
     x -= columnMargin;
     Stroke stroke = g.getStroke();
-    g.setStroke(NlConstants.DOTTED_STROKE);
+    g.setStroke(NlConstants.DASHED_STROKE);
     g.drawLine(x, y1, x, y2);
     g.drawLine(x, y2, x + columnMargin, y2);
     g.setStroke(stroke);
   }
 
   private static void paintInsertionRectangle(@NotNull Graphics2D g, int x, int y, int width, int height) {
-    x += JBUI.scale(2);
-    y += JBUI.scale(2);
-    width -= JBUI.scale(6);
+    x += JBUI.scale(1);
+    y += JBUI.scale(1);
+    width -= JBUI.scale(3);
     height -= JBUI.scale(4);
-    int arc = JBUI.scale(6);
-    g.drawRoundRect(x, y, width, height, arc, arc);
-    Composite composite = g.getComposite();
-    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-    g.fillRoundRect(x, y, width, height, arc, arc);
-    g.setComposite(composite);
+    g.drawRect(x, y, width, height);
   }
 
   /**
