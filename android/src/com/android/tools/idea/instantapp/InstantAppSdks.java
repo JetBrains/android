@@ -44,7 +44,7 @@ public class InstantAppSdks {
   @NotNull public static final String INSTANT_APP_SDK_PROPERTY = "android.instant_app_sdk_location";
 
   @Nullable private File mySdk = null;
-  @Nullable private Boolean myInstantAppSdkAvailable = null;
+  private boolean myInstantAppSdkAvailable = false;
 
   @NotNull
   public static InstantAppSdks getInstance() {
@@ -108,8 +108,7 @@ public class InstantAppSdks {
   // Used to verify if the user has access to an Instant App SDK. This is temporary and should be deleted once the SDK becomes public.
   // If we use #getInstantAppSdk to verify if it's available, the user will be showed a dialog each time, which we don't want during startup, for example.
   public boolean isInstantAppSdkEnabled() {
-    if (myInstantAppSdkAvailable == null) {
-      myInstantAppSdkAvailable = false;
+    if (! myInstantAppSdkAvailable) {
       String sdkUrl = System.getenv("SDK_TEST_BASE_URL");
       if (getInstantAppSdk(false) != null) {
         myInstantAppSdkAvailable = true;
