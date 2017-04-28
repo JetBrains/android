@@ -229,7 +229,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
     final JLabel stageHeader = new JLabel(getStage().getName());
-    stageHeader.setFont(AdtUiUtils.FONT_PROFILER_TITLE);
+    stageHeader.setFont(AdtUiUtils.getFontProfilerTitle());
     stageHeader.setBorder(MONITOR_LABEL_PADDING);
     stageHeader.setVerticalAlignment(SwingConstants.TOP);
     stageHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);

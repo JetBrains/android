@@ -189,13 +189,13 @@ public class ConnectionDetailsView extends JPanel {
 
   private static JLabel createTitleLabel(String text) {
     JLabel sectionTitle = new JLabel(text);
-    sectionTitle.setFont(AdtUiUtils.FONT_DEFAULT_TITLE);
+    sectionTitle.setFont(AdtUiUtils.getFontDefaultTitle());
     return sectionTitle;
   }
 
   private static JLabel createLabel(String text) {
     JLabel sectionTitle = new JLabel(text);
-    sectionTitle.setFont(AdtUiUtils.FONT_DEFAULT);
+    sectionTitle.setFont(AdtUiUtils.getFontDefault());
     return sectionTitle;
   }
 
@@ -203,7 +203,7 @@ public class ConnectionDetailsView extends JPanel {
 
   private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
     JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(SECTION_VGAP));
-    myFieldsPanel.setFont(AdtUiUtils.FONT_DEFAULT);
+    myFieldsPanel.setFont(AdtUiUtils.getFontDefault());
     int row = 0;
     myFieldsPanel.add(createTitleLabel("Request"), new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(createLabel(HttpData.getUrlName(httpData.getUrl())), new TabularLayout.Constraint(row, 2));
@@ -318,7 +318,7 @@ public class ConnectionDetailsView extends JPanel {
     panel.setBorder(BorderFactory.createEmptyBorder(0, HGAP, 0, 0));
 
     JLabel titleLabel = new JLabel(title);
-    titleLabel.setFont(AdtUiUtils.FONT_SECTION_TITLE);
+    titleLabel.setFont(AdtUiUtils.getFontSectionTitle());
     panel.add(titleLabel, new TabularLayout.Constraint(0, 0));
 
     if (map.isEmpty()) {
@@ -332,10 +332,10 @@ public class ConnectionDetailsView extends JPanel {
       for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
         JPanel valuesRowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0,5));
         JLabel sectionTitle = new JLabel(entry.getKey() + ": ");
-        sectionTitle.setFont(AdtUiUtils.FONT_DEFAULT_TITLE);
+        sectionTitle.setFont(AdtUiUtils.getFontDefaultTitle());
         valuesRowPanel.add(sectionTitle);
         JLabel valueLabel = new JLabel(entry.getValue());
-        valueLabel.setFont(AdtUiUtils.FONT_DEFAULT);
+        valueLabel.setFont(AdtUiUtils.getFontDefault());
         valuesRowPanel.add(valueLabel);
         labelsContainer.add(valuesRowPanel);
       }

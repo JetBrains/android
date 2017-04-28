@@ -322,7 +322,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
     mRight = Math.max(LEFT_MARGIN, dim.width - RIGHT_MARGIN);
 
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2d.setFont(AdtUiUtils.FONT_DEFAULT);
+    g2d.setFont(getFont());
     g2d.setClip(0, 0, dim.width, dim.height);
     g2d.setColor(getBackground());
     g2d.fillRect(0, 0, dim.width, dim.height);
@@ -343,7 +343,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
   protected void debugDraw(Graphics2D g2d) {
     super.debugDraw(g2d);
     int drawn = 0;
-    g2d.setFont(AdtUiUtils.FONT_TIMELINE);
+    g2d.setFont(AdtUiUtils.getFontTimeline());
     for (int i = 0; i < mSize; ++i) {
       if (mTimes[i] > mBeginTime && mTimes[i] < mEndTime) {
         for (int j = 0; j < mStreamComponents.size(); ++j) {
@@ -545,7 +545,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
   }
 
   private void drawLabels(Graphics2D g2d) {
-    g2d.setFont(AdtUiUtils.FONT_DEFAULT);
+    g2d.setFont(getFont());
     FontMetrics metrics = g2d.getFontMetrics();
     int y = TOP_MARGIN + 15;
     for (int i = mLabelRows.size() - 1; i >= 0 && mSize > 0; i--, y += 20) {
@@ -581,7 +581,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
   }
 
   private void drawTimeMarkers(Graphics2D g2d) {
-    g2d.setFont(AdtUiUtils.FONT_DEFAULT);
+    g2d.setFont(getFont());
     g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
     FontMetrics metrics = g2d.getFontMetrics();
     float offset = metrics.stringWidth("000") * 0.5f;
@@ -627,7 +627,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
     drawMarkers(g2d, -1.0f, mCurrentMin);
     if (mCurrentMin < 0) {
       int zeroY = (int)valueToY(0);
-      int minimumGap = getFontMetrics(AdtUiUtils.FONT_DEFAULT).getAscent();
+      int minimumGap = getFontMetrics(getFont()).getAscent();
       // Draw the zero marker if it is not overlapped by other markers.
       if (mBottom - zeroY > minimumGap && zeroY - TOP_MARGIN > minimumGap) {
         drawValueMarker(0, zeroY, g2d);
@@ -666,7 +666,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
   }
 
   private void drawValueMarker(float value, int y, Graphics2D g2d) {
-    FontMetrics metrics = getFontMetrics(AdtUiUtils.FONT_DEFAULT);
+    FontMetrics metrics = getFontMetrics(getFont());
     String marker = String.format("%.2f %s", value, mUnits);
     g2d.drawString(marker, LEFT_MARGIN - 10 - metrics.stringWidth(marker), y + metrics.getAscent() * 0.5f);
   }
@@ -821,7 +821,7 @@ public final class TimelineComponent extends LegacyAnimatedComponent {
       }
 
       // Animate the fade in/out of markers.
-      FontMetrics metrics = getFontMetrics(AdtUiUtils.FONT_DEFAULT);
+      FontMetrics metrics = getFontMetrics(getFont());
       int ascent = metrics.getAscent();
       float distance = mMarkerSeparation * mYScale;
       float evenMarkersTarget = 1.0f;

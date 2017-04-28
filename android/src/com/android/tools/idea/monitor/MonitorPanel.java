@@ -271,7 +271,7 @@ class MonitorPanel extends JPanel {
       new Dimension(titleSize + borderInsets.left + borderInsets.right, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height));
     titleLabel.setPreferredSize(titleLabel.getMinimumSize());
     titleLabel.setMaximumSize(titleLabel.getMinimumSize());
-    titleLabel.setFont(AdtUiUtils.FONT_MONITOR_TITLE);
+    titleLabel.setFont(AdtUiUtils.getFontMonitorTitle());
 
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.add(titleLabel, BorderLayout.WEST);

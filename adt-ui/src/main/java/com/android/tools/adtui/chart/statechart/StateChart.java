@@ -86,7 +86,6 @@ public class StateChart<E extends Enum<E>> extends MouseAdapterComponent<Long> {
     mRenderMode = RenderMode.BAR;
     myConfig = config;
     myRender = true;
-    setFont(AdtUiUtils.FONT_DEFAULT);
     setModel(model);
     setHeightGap(myConfig.getHeightGap());
   }

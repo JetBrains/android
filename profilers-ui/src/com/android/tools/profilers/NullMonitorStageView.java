@@ -55,13 +55,13 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     myTitle.setHorizontalAlignment(SwingConstants.CENTER);
     myTitle.setVerticalAlignment(SwingConstants.TOP);
     myTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-    myTitle.setFont(AdtUiUtils.FONT_NULL_STAGE_TITLE);
+    myTitle.setFont(AdtUiUtils.getFontNullStateTitle());
     myTitle.setForeground(new JBColor(0x000000, 0xFFFFFF));
     topPanel.add(myTitle);
     topPanel.add(Box.createRigidArea(new Dimension(1, 15)));
 
     myDisabledMessage = new HtmlLabel();
-    Font font = AdtUiUtils.FONT_NULL_STAGE_MESSAGE;
+    Font font = AdtUiUtils.getFontNullStageMessage();
     HtmlLabel.setUpAsHtmlLabel(myDisabledMessage, font, ProfilerColors.MESSAGE_COLOR);
     topPanel.add(myDisabledMessage);
     topPanel.add(Box.createVerticalGlue());
