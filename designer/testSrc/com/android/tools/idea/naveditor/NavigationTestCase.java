@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor;
 
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.naveditor.scene.TestableThumbnailManager;
+import com.android.tools.idea.naveditor.scene.ThumbnailManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -53,6 +55,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
+    TestableThumbnailManager.register(myAndroidFacet);
   }
 
   private static AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
@@ -62,6 +65,10 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      ThumbnailManager thumbnailManager = ThumbnailManager.getInstance(myAndroidFacet);
+      if (thumbnailManager instanceof TestableThumbnailManager) {
+        ((TestableThumbnailManager)thumbnailManager).deregister();
+      }
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
     }
