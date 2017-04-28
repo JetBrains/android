@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -77,6 +79,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFA
  */
 public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider {
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
+  private static final String PROPERTY_ERROR_PANEL_SPLITTER = DesignSurface.class.getCanonicalName() + ".error.panel.split";
 
   private final Project myProject;
 
@@ -104,6 +107,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final JBSplitter myErrorPanelSplitter;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
+  private float mySavedErrorPanelProportion;
 
   public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
@@ -136,18 +140,31 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     myIssuePanel = new IssuePanel(myIssueModel);
     Disposer.register(this, myIssuePanel);
-    myIssuePanel.setMinimizeListener((isMinimized) -> {
-      NlUsageTrackerManager.getInstance(this).logAction(
-        isMinimized ? LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL
-                    : LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
-      updateErrorPanelSplitterUi(isMinimized);
-    });
+
 
     // The error panel can only take up to 50% of the surface and it will take a 25% by default
     myErrorPanelSplitter = new OnePixelSplitter(true, 0.75f, 0.5f, 1f);
+    myErrorPanelSplitter.setAndLoadSplitterProportionKey(PROPERTY_ERROR_PANEL_SPLITTER);
     myErrorPanelSplitter.setHonorComponentsMinimumSize(true);
     myErrorPanelSplitter.setFirstComponent(myScrollPane);
     myErrorPanelSplitter.setSecondComponent(myIssuePanel);
+
+    mySavedErrorPanelProportion = myErrorPanelSplitter.getProportion();
+    myIssuePanel.setMinimizeListener((isMinimized) -> {
+      NlUsageTracker tracker = NlUsageTrackerManager.getInstance(this);
+      if (isMinimized) {
+        tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL);
+        mySavedErrorPanelProportion = myErrorPanelSplitter.getProportion();
+        myErrorPanelSplitter.setProportion(1f);
+      }
+      else {
+        tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
+        myErrorPanelSplitter.setProportion(mySavedErrorPanelProportion);
+      }
+      updateErrorPanelSplitterUi(isMinimized);
+    });
+
+    setShowIssuePanel(myIssuePanel.isMinimized());
     add(myErrorPanelSplitter);
 
     // TODO: Do this as part of the layout/validate operation instead
@@ -1210,6 +1227,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @NotNull
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public IssuePanel getIssuePanel() {
     return myIssuePanel;
   }
@@ -1242,11 +1260,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     if (isMinimized) {
       myErrorPanelSplitter.setProportion(1f);
-    }
-    else {
-      int height = myIssuePanel.getSuggestedHeight();
-      float proportion = 1 - (height / (float)getHeight());
-      myErrorPanelSplitter.setProportion(Math.max(0.5f, proportion));
     }
   }
 }

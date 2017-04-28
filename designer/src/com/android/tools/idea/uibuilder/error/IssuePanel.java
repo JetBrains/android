@@ -16,8 +16,6 @@
 package com.android.tools.idea.uibuilder.error;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.google.common.collect.HashBiMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -25,45 +23,36 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
 /**
- * Panel that displays a list of {@link NlIssue}.
+ * Panel that displays a list of rendering errors.
+ *
+ * {@see RenderErrorModel}
  */
 public class IssuePanel extends JPanel implements Disposable {
   public static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
-  public static final ItemListener SHOW_ISSUE_CHECKBOX_LISTENER = e -> AndroidEditorSettings.getInstance().getGlobalState()
-    .setShowLint(e.getStateChange() == ItemEvent.SELECTED);
   private static final String PROPERTY_MINIMIZED = IssuePanel.class.getCanonicalName() + ".minimized";
   private static final String TITLE_NO_ISSUES = "No issues";
   private static final String TITLE_NO_IMPORTANT_ISSUE = "Issues";
   private static final String WARNING = "Warning";
   private static final String ERROR = "Error";
-  private static final String ACTION_PREVIOUS = "PREVIOUS";
-  private static final String ACTION_NEXT = "next";
-  private static final String ACTION_EXPAND = "expand";
-  private static final String ACTION_COLLAPSE = "collapse";
-  public static final String SHOW_ISSUES_CHECKBOX_TEXT = "Show issues on the preview";
 
-  private final HashBiMap<NlIssue, IssueView> myDisplayedError = HashBiMap.create();
+  private final HashMap<NlIssue, IssueView> myDisplayedError = new HashMap<>();
   private final IssueModel myIssueModel;
   private final JPanel myErrorListPanel;
   private final JBLabel myTitleLabel;
   private final IssueModel.IssueModelListener myIssueModelListener;
-  private final JBScrollPane myScrollPane;
   @Nullable private MinimizeListener myMinimizeListener;
   @Nullable private IssueView mySelectedIssueView;
 
@@ -79,128 +68,32 @@ public class IssuePanel extends JPanel implements Disposable {
     myIssueModel = issueModel;
 
     myTitleLabel = createTitleLabel();
-    JComponent titlePanel = createTitlePanel(myTitleLabel);
+    JComponent titlePanel = createTitlePanel(createToolbar(), myTitleLabel);
     add(titlePanel, BorderLayout.NORTH);
 
     myErrorListPanel = createErrorListPanel();
-    myScrollPane = createListScrollPane(myErrorListPanel);
-    add(myScrollPane, BorderLayout.CENTER);
+    add(createListScrollPane(myErrorListPanel), BorderLayout.CENTER);
+    setMinimized(PropertiesComponent.getInstance().getBoolean(PROPERTY_MINIMIZED, false));
     updateTitlebarStyle();
 
     myIssueModelListener = this::updateErrorList;
     myIssueModel.addErrorModelListener(myIssueModelListener);
     updateErrorList();
-
-    setFocusable(true);
-    setRequestFocusEnabled(true);
-    registerKeyboardActions();
-    addFocusListener(createFocusListener());
-    setMinimized(true);
-  }
-
-  @NotNull
-  private FocusListener createFocusListener() {
-    return new FocusListener() {
-
-      @Override
-      public void focusGained(FocusEvent e) {
-        if (mySelectedIssueView != null) {
-          mySelectedIssueView.setFocused(true);
-        }
-      }
-
-      @Override
-      public void focusLost(FocusEvent e) {
-        if (mySelectedIssueView != null) {
-          mySelectedIssueView.setFocused(false);
-        }
-      }
-    };
-  }
-
-  private void registerKeyboardActions() {
-    getActionMap().put(ACTION_PREVIOUS, new AbstractAction() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        keyboardSelect(-1);
-      }
-    });
-    getActionMap().put(ACTION_NEXT, new AbstractAction() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        keyboardSelect(1);
-      }
-    });
-    getActionMap().put(ACTION_EXPAND, new AbstractAction() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        expandSelectedIssue(true);
-      }
-    });
-    getActionMap().put(ACTION_COLLAPSE, new AbstractAction() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        expandSelectedIssue(false);
-      }
-    });
-    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), ACTION_PREVIOUS);
-    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ACTION_NEXT);
-    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), ACTION_EXPAND);
-    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), ACTION_COLLAPSE);
-  }
-
-  private void expandSelectedIssue(boolean expanded) {
-    if (mySelectedIssueView != null) {
-      mySelectedIssueView.setExpanded(expanded);
-    }
-  }
-
-  private void keyboardSelect(int direction) {
-    if (!myDisplayedError.isEmpty()) {
-      if (mySelectedIssueView == null) {
-        Component component = myErrorListPanel.getComponent(0);
-        if (component instanceof IssueView) {
-          setSelectedIssue((IssueView)component);
-          return;
-        }
-      }
-    }
-    Component[] components = myErrorListPanel.getComponents();
-    for (int i = 0; i < components.length; i++) {
-      Component component = components[i];
-      if (component == mySelectedIssueView) {
-        int selectedIndex = (i + (direction >= 0 ? 1 : -1)) % myDisplayedError.size();
-        if (selectedIndex < 0) selectedIndex += myDisplayedError.size();
-        assert components[i] instanceof IssueView;
-        setSelectedIssue(((IssueView)components[selectedIndex]));
-        mySelectedIssueView.scrollRectToVisible(mySelectedIssueView.getBounds());
-        myScrollPane.getViewport().setViewPosition(mySelectedIssueView.getLocation());
-        return;
-      }
-    }
   }
 
   @NotNull
   private ActionToolbar createToolbar() {
-    DefaultActionGroup actionGroup = new DefaultActionGroup();
-    actionGroup.add(new MinimizeAction());
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
-    toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, createActionGroup(), true);
+    toolbar.setMiniMode(true);
     return toolbar;
   }
 
   @NotNull
-  private JComponent createTitlePanel(@NotNull JBLabel titleLabel) {
-    JBCheckBox checkBox = new JBCheckBox(SHOW_ISSUES_CHECKBOX_TEXT,
-                                         AndroidEditorSettings.getInstance().getGlobalState().isShowLint());
-    checkBox.addItemListener(SHOW_ISSUE_CHECKBOX_LISTENER);
-    JPanel titlePanel = new JPanel(new BorderLayout());
-    titlePanel.add(titleLabel, BorderLayout.WEST);
-    JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    rightPanel.add(checkBox);
-    rightPanel.add(createToolbar().getComponent());
-    titlePanel.add(rightPanel, BorderLayout.EAST);
-    titlePanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+  private static JComponent createTitlePanel(@NotNull ActionToolbar toolbar, @NotNull JBLabel label) {
+    JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
+    titlePanel.add(toolbar.getComponent());
+    titlePanel.add(label);
+    titlePanel.setAlignmentX(CENTER_ALIGNMENT);
     return titlePanel;
   }
 
@@ -215,6 +108,7 @@ public class IssuePanel extends JPanel implements Disposable {
   @NotNull
   private static JPanel createErrorListPanel() {
     JPanel panel = new JPanel(null, true);
+    panel.setBorder(IdeBorderFactory.createBorder(SideBorder.TOP));
     panel.setBackground(UIUtil.getEditorPaneBackground());
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     return panel;
@@ -225,6 +119,13 @@ public class IssuePanel extends JPanel implements Disposable {
     JBLabel label = new JBLabel(TITLE_NO_IMPORTANT_ISSUE, SwingConstants.LEFT);
     label.setBorder(JBUI.Borders.empty(0, 5, 0, 20));
     return label;
+  }
+
+  @NotNull
+  private ActionGroup createActionGroup() {
+    DefaultActionGroup actionGroup = new DefaultActionGroup();
+    actionGroup.add(new MinimizeAction());
+    return actionGroup;
   }
 
   private void updateErrorList() {
@@ -294,10 +195,8 @@ public class IssuePanel extends JPanel implements Disposable {
     Iterator<Map.Entry<NlIssue, IssueView>> iterator = myDisplayedError.entrySet().iterator();
     while (iterator.hasNext()) {
       Map.Entry<NlIssue, IssueView> entry = iterator.next();
-      NlIssue nlIssue = entry.getKey();
-      if (!nlIssues.contains(nlIssue)) {
-        IssueView issueView = entry.getValue();
-        myErrorListPanel.remove(issueView);
+      if (!nlIssues.contains(entry.getKey())) {
+        myErrorListPanel.remove(entry.getValue().getComponent());
         iterator.remove();
       }
     }
@@ -307,25 +206,12 @@ public class IssuePanel extends JPanel implements Disposable {
     if (myErrorListPanel.getComponentCount() == 0) {
       myErrorListPanel.add(Box.createVerticalGlue(), -1);
     }
-    IssueView issueView = new IssueView(error, this);
+    IssueView issueView = IssueView.createFromNlError(error, this);
     myDisplayedError.put(error, issueView);
-    myErrorListPanel.add(issueView, getInsertionIndex(issueView));
-  }
-
-  private int getInsertionIndex(IssueView issueView) {
-    int insertIndex = 0;
-    for (int i = 0; i < myErrorListPanel.getComponentCount(); i++) {
-      Component component = myErrorListPanel.getComponent(i);
-      if (component instanceof IssueView) {
-        if (((IssueView)component).getDisplayPriority() <= issueView.getDisplayPriority()) {
-          insertIndex++;
-        }
-        else {
-          break;
-        }
-      }
+    myErrorListPanel.add(issueView.getComponent(), myErrorListPanel.getComponentCount() - 1); // We want to keep the glue at the end
+    if (myDisplayedError.size() == 1) {
+      setSelectedIssue(issueView);
     }
-    return insertIndex;
   }
 
   @Nullable
@@ -386,7 +272,6 @@ public class IssuePanel extends JPanel implements Disposable {
     return isMinimized;
   }
 
-
   public void setSelectedIssue(@Nullable IssueView selectedIssue) {
     if (mySelectedIssueView != selectedIssue) {
       if (mySelectedIssueView != null) {
@@ -395,14 +280,6 @@ public class IssuePanel extends JPanel implements Disposable {
       mySelectedIssueView = selectedIssue;
       if (mySelectedIssueView != null) {
         mySelectedIssueView.setSelected(true);
-        NlIssue issue = myDisplayedError.inverse().get(mySelectedIssueView);
-        if (issue == null) {
-          return;
-        }
-        NlComponent source = issue.getSource();
-        if (source != null) {
-          source.getModel().getSelectionModel().setSelection(Collections.singletonList(source));
-        }
       }
     }
   }
@@ -417,57 +294,11 @@ public class IssuePanel extends JPanel implements Disposable {
     return myIssueModel;
   }
 
-  /**
-   * Lookup the title and description of every shown error and tries to find the provided text
-   */
   @VisibleForTesting
   public boolean containsErrorWithText(@NotNull String text) {
     return myDisplayedError.values()
       .stream()
       .anyMatch(view -> view.getIssueTitle().contains(text) || view.getIssueDescription().contains(text));
-  }
-
-  /**
-   * Select the first issue related to the provided component and scroll the viewport to this issue
-   *
-   * @param component      The component owning the issue to show
-   * @param collapseOthers if true, all other issues will be collapsed
-   */
-  public void showIssueForComponent(NlComponent component, boolean collapseOthers) {
-    NlIssue issue = myIssueModel.findIssue(component);
-    if (issue != null) {
-      IssueView issueView = myDisplayedError.get(issue);
-      if (issueView != null) {
-        setMinimized(false);
-        setSelectedIssue(issueView);
-        issueView.setExpanded(true);
-        myScrollPane.getViewport().setViewPosition(issueView.getLocation());
-
-        // Collapse all other issue
-        if (collapseOthers) {
-          for (IssueView other : myDisplayedError.values()) {
-            if (other != issueView) {
-              other.setExpanded(false);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * @return The height that the panel should take to display the selected issue if there is one
-   * or the full list of collapsed issues
-   */
-  public int getSuggestedHeight() {
-    int suggestedHeight = myTitleLabel.getHeight();
-    if (mySelectedIssueView != null) {
-      suggestedHeight += mySelectedIssueView.getHeight();
-    }
-    else {
-      suggestedHeight += myDisplayedError.size() * 30;
-    }
-    return Math.max(getHeight(), suggestedHeight);
   }
 
   public interface MinimizeListener {
