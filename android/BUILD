@@ -8,6 +8,7 @@ iml_module(
         "src",
         "gen",
     ],
+    javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
