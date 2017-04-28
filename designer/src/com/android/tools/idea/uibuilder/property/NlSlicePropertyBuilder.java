@@ -83,6 +83,8 @@ public class NlSlicePropertyBuilder {
 
     int selectedRow = myTable.getSelectedRow();
     PTableItem selectedItem = myTable.getSelectedItem();
+    int editingRow = myTable.getEditingRow();
+    PTableItem editingItem = editingRow >= 0 ? myTable.getItemAt(editingRow) : null;
 
     myTable.getModel().setItems(items);
     myTable.setRendererProvider(NlSliceRenderers.getInstance());
@@ -90,6 +92,7 @@ public class NlSlicePropertyBuilder {
 
     if (myTable.getRowCount() > 0) {
       myTable.restoreSelection(selectedRow, selectedItem);
+      restoreEditing(editingRow, editingItem);
     }
     return true;
   }
@@ -120,9 +123,19 @@ public class NlSlicePropertyBuilder {
     }
   }
 
+  private void restoreEditing(int editingRow, PTableItem editingItem) {
+    if (editingRow < 0) {
+      return;
+    }
+    PTableItem currentItem = editingRow >= 0 ? myTable.getItemAt(editingRow) : null;
+    if (currentItem == null || !editingItem.getClass().equals(currentItem.getClass())) {
+      myTable.editingCanceled(null);
+    }
+  }
+
   @Nullable
   private static ResourceItem findUserDefinedResourceItem(@NotNull ProjectResourceRepository resourceRepository, @NotNull ResourceValue resource) {
-    if (resource.isFramework() || resource.getLibraryName() != null || resource.getResourceType() != null) {
+    if (resource.isFramework() || resource.getLibraryName() != null || resource.getResourceType() == null) {
       return null;
     }
     List<ResourceItem> items = resourceRepository.getResourceItem(resource.getResourceType(), resource.getName());

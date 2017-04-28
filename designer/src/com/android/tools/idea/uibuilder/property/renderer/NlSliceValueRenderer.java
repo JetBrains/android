@@ -36,6 +36,7 @@ public class NlSliceValueRenderer extends ColoredTableCellRenderer {
   protected void customizeCellRenderer(JTable table, @Nullable Object tableValue, boolean selected, boolean hasFocus, int row, int column) {
     if (tableValue instanceof NlResourceHeader) {
       setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+      setBackground(JBColor.border());
     }
     else if (hasFocus) {
       setBorder(UIUtil.getTableFocusCellHighlightBorder());

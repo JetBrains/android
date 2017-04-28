@@ -15,22 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.tools.idea.uibuilder.property.NlResourceHeader;
 import com.android.tools.adtui.ptable.PNameRenderer;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.NlResourceHeader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
 import java.awt.*;
 
 import static com.android.SdkConstants.*;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_BOLD;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER;
+import static com.intellij.ui.SimpleTextAttributes.*;
 
 public class NlSliceNameRenderer extends ColoredTableCellRenderer implements PNameRenderer {
   public static final JBColor NAMESPACE_COLOR = new JBColor(new Color(128, 0, 128), new Color(151, 118, 169));
@@ -43,11 +40,11 @@ public class NlSliceNameRenderer extends ColoredTableCellRenderer implements PNa
     if (item == null) {
       return;
     }
-    JBColor color = ATTRIBUTE_COLOR;
+    Color color = ATTRIBUTE_COLOR;
     if (item instanceof NlResourceHeader) {
       color = TAG_COLOR;
-      setBorder(
-        BorderFactory.createCompoundBorder(
+      setBackground(JBColor.border());
+      setBorder(BorderFactory.createCompoundBorder(
           IdeBorderFactory.createBorder(SideBorder.BOTTOM),
           BorderFactory.createEmptyBorder(6, 0, 0, 0)));
     }

@@ -219,7 +219,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     return getPropertiesPanel().getInspector();
   }
 
-  @Nullable
+  @NotNull
   private MergingUpdateQueue getUpdateQueue() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
@@ -365,16 +365,12 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
       return;
     }
 
-    MergingUpdateQueue queue = getUpdateQueue();
-    if (queue == null) {
-      return;
-    }
-
     if (!newSelection.isEmpty() && myFirstLoad) {
       myFirstLoad = false;
       getLoadingPanel().startLoading();
     }
     myLoading = true;
+    MergingUpdateQueue queue = getUpdateQueue();
     queue.queue(new Update("updateProperties") {
       @Override
       public void run() {
@@ -413,6 +409,11 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
+    getPropertiesPanel().modelRendered(this);
+  }
+
+  @Override
+  public void modelChanged(@NotNull NlModel model) {
     getPropertiesPanel().modelRendered(this);
   }
 
