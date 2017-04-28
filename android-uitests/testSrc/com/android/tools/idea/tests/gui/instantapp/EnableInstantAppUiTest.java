@@ -91,7 +91,7 @@ public class EnableInstantAppUiTest {
     JListFixture listFixture =
       new JListFixture(guiTest.robot(), guiTest.robot().finder().findByType(wizardFixture.target(), ASGallery.class));
     List<String> listContents = Arrays.asList(listFixture.contents());
-    assertThat(listContents).doesNotContain("Instant Application");
+    assertThat(listContents).doesNotContain("Instant App");
     assertThat(listContents).doesNotContain("Feature Module");
 
     wizardFixture.clickCancel();
@@ -108,7 +108,7 @@ public class EnableInstantAppUiTest {
 
     JListFixture listFixture =
       new JListFixture(guiTest.robot(), guiTest.robot().finder().findByType(wizardFixture.target(), ASGallery.class));
-    listFixture.selectItem("Instant Application");
+    listFixture.selectItem("Instant App");
     listFixture.selectItem("Feature Module");
 
     wizardFixture.clickCancel();

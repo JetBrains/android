@@ -117,7 +117,7 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
       outerLoop:
       for (ModuleTemplateProvider provider : myModuleTypesProviders) {
         for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
-          if (moduleTemplate.getName().equals("Instant Application")) {
+          if (moduleTemplate.getName().equals("Instant App")) {
             // This is horrible, however this code is only temporary until we move over to the new NewModuleWizard where all this can be
             // handled more explicitly...
             instantAppTemplate = moduleTemplate;
@@ -154,7 +154,7 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
           }
         }
         else {
-          if (templateName.equals("Instant Application")) {
+          if (templateName.equals("Instant App")) {
             continue;
           }
           extrasTemplates.add(moduleTemplate);
