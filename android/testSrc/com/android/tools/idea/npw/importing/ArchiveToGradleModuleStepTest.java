@@ -22,22 +22,17 @@ import com.android.tools.idea.ui.properties.TestInvokeStrategy;
 import com.android.tools.idea.ui.validation.Validator;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
-import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
+import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 
-@Ignore("http://b/35788310")
 public class ArchiveToGradleModuleStepTest extends AndroidGradleTestCase {
-  public void testFake() {
-  }
 
   private TestInvokeStrategy myInvokeStrategy;
   private ArchiveToGradleModuleModel myModel;
@@ -45,7 +40,7 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleTestCase {
   private ArchiveToGradleModuleStep.GradleValidator myGradleValidator;
 
   private static File createFileOutsideOfProject(@NotNull String filename) throws IOException {
-    File newFile = new File(FileUtil.createTempDirectory("directoryOutsideOfProject", null), filename);
+    File newFile = new File(createTempDirectory("directoryOutsideOfProject", null), filename);
     Files.touch(newFile);
     return newFile;
   }
@@ -68,7 +63,7 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      UIUtil.dispatchAllInvocationEvents();
+      dispatchAllInvocationEvents();
       BatchInvoker.clearOverrideStrategy();
     }
     finally {
@@ -77,55 +72,55 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleTestCase {
     }
   }
 
-  public void /*test*/ValidateArchivePathEmpty() throws IOException {
-    assertThat(myArchiveValidator.validate("").getMessage())
-      .isEqualTo(AndroidBundle.message("android.wizard.module.import.library.no.path"));
+  public void testValidateArchivePathEmpty() throws IOException {
+    String message = myArchiveValidator.validate("").getMessage();
+    assertEquals(AndroidBundle.message("android.wizard.module.import.library.no.path"), message);
   }
 
-  public void /*test*/ValidateArchivePathInvalidPath() throws IOException {
-    assertThat(myArchiveValidator.validate("/not/a/real/path.jar").getMessage())
-      .isEqualTo(AndroidBundle.message("android.wizard.module.import.library.bad.path"));
+  public void testValidateArchivePathInvalidPath() throws IOException {
+    String message = myArchiveValidator.validate("/not/a/real/path.jar").getMessage();
+    assertEquals(AndroidBundle.message("android.wizard.module.import.library.bad.path"), message);
   }
 
-  public void /*test*/ValidateArchivePathNotAJarOrAar() throws IOException {
+  public void testValidateArchivePathNotAJarOrAar() throws IOException {
     File notAJarOrAArFile = createFileOutsideOfProject("test.abc");
-    assertThat(myArchiveValidator.validate(notAJarOrAArFile.getPath()).getMessage())
-      .isEqualTo(AndroidBundle.message("android.wizard.module.import.library.bad.extension"));
+    String message = myArchiveValidator.validate(notAJarOrAArFile.getPath()).getMessage();
+    assertEquals(AndroidBundle.message("android.wizard.module.import.library.bad.extension"), message);
   }
 
-  public void /*test*/ValidateArchivePathValidJar() throws IOException {
+  public void testValidateArchivePathValidJar() throws IOException {
     File aJarFile = createFileOutsideOfProject("test.jar");
     assertEquals(Validator.Result.OK, myArchiveValidator.validate(aJarFile.getPath()));
   }
 
-  public void /*test*/ValidateArchivePathValidAar() throws IOException {
+  public void testValidateArchivePathValidAar() throws IOException {
     File anAarFile = createFileOutsideOfProject("test.aar");
     assertEquals(Validator.Result.OK, myArchiveValidator.validate(anAarFile.getPath()));
   }
 
-  public void /*test*/ValidateSubprojectNameEmpty() throws Exception {
-    assertThat(myGradleValidator.validate("").getMessage())
-      .isEqualTo(AndroidBundle.message("android.wizard.module.import.library.no.name"));
+  public void testValidateSubprojectNameEmpty() throws Exception {
+    String message = myGradleValidator.validate("").getMessage();
+    assertEquals(AndroidBundle.message("android.wizard.module.import.library.no.name"), message);
   }
 
-  public void /*test*/ValidateSubprojectNameInvalidForwardSlash() throws Exception {
-    assertThat(myGradleValidator.validate("not/valid").getMessage())
-      .isEqualTo(AndroidBundle.message("android.wizard.module.import.library.bad.name", "/"));
+  public void testValidateSubprojectNameInvalidForwardSlash() throws Exception {
+    String message = myGradleValidator.validate("not/valid").getMessage();
+    assertEquals(AndroidBundle.message("android.wizard.module.import.library.bad.name", "/"), message);
   }
 
-  public void /*test*/ValidateSubprojectNameInvalidBackslash() throws Exception {
-    assertThat(myGradleValidator.validate("also\\invalid").getMessage())
-      .isEqualTo(AndroidBundle.message("android.wizard.module.import.library.bad.name", "\\"));
+  public void testValidateSubprojectNameInvalidBackslash() throws Exception {
+    String message = myGradleValidator.validate("also\\invalid").getMessage();
+    assertEquals(AndroidBundle.message("android.wizard.module.import.library.bad.name", "\\"), message);
   }
 
-  public void /*test*/ValidateSubprojectNameAlreadyUsed() throws Exception {
+  public void testValidateSubprojectNameAlreadyUsed() throws Exception {
     String moduleName = "simple";
     loadProject(IMPORTING);
-    assertThat(myGradleValidator.validate(moduleName).getMessage())
-      .isEqualTo(AndroidBundle.message("android.wizard.module.import.library.taken.name", moduleName));
+    String message = myGradleValidator.validate(moduleName).getMessage();
+    assertEquals(AndroidBundle.message("android.wizard.module.import.library.taken.name", moduleName), message);
   }
 
-  public void /*test*/InitialiseNameFromPath() {
+  public void testInitialiseNameFromPath() {
     myModel.archive().set("");
     myModel.gradlePath().set("");
     myInvokeStrategy.updateAllSteps();

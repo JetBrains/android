@@ -13,5 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-include ':unused' // The test framework needs an android project.
-include ':simple', ':nested', ':nested:sourcemodule', ':withdependency', ':withmultipledependencies'
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.1"
+    defaultConfig {
+        applicationId "test.application"
+    }
+}
+
+dependencies {
+}
+
