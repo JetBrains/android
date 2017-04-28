@@ -301,8 +301,8 @@ public class NlUsageTrackerManager implements NlUsageTracker {
         .count());
 
       RenderErrorModel errorModel = RenderErrorModelFactory.createErrorModel(result, null);
-      builder.setTotalIssueCount(errorModel.getSize());
-      if (errorModel.getSize() > 0) {
+      builder.setTotalIssueCount(errorModel.getIssues().size());
+      if (!errorModel.getIssues().isEmpty()) {
         int errorCount = 0;
         int fidelityWarningCount = 0;
         for (RenderErrorModel.Issue issue : errorModel.getIssues()) {

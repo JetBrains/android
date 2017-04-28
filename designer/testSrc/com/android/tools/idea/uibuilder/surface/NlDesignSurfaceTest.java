@@ -39,7 +39,8 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(mySurface);
-    } finally {
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -58,21 +59,21 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     mySurface.requestRender();
     assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
-    assertTrue(mySurface.getErrorModel().getIssues().isEmpty());
+    assertFalse(mySurface.getIssueModel().hasRenderError());
   }
 
   public void testRenderWhileBuilding() {
     ModelBuilder modelBuilder = model("absolute.xml",
-                          component(ABSOLUTE_LAYOUT)
-                            .withBounds(0, 0, 1000, 1000)
-                            .matchParentWidth()
-                            .matchParentHeight()
-                            .children(
-                              component("custom.view.not.present.yet")
-                                .withBounds(100, 100, 100, 100)
-                                .matchParentWidth()
-                                .matchParentHeight()
-                            ));
+                                      component(ABSOLUTE_LAYOUT)
+                                        .withBounds(0, 0, 1000, 1000)
+                                        .matchParentWidth()
+                                        .matchParentHeight()
+                                        .children(
+                                          component("custom.view.not.present.yet")
+                                            .withBounds(100, 100, 100, 100)
+                                            .matchParentWidth()
+                                            .matchParentHeight()
+                                        ));
 
     NlModel model = modelBuilder.build();
     // Simulate that we are in the middle of a build
@@ -83,8 +84,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
 
     mySurface.requestRender();
-    assertEquals(1, mySurface.getErrorModel().getIssues().size());
-    assertEquals("The project is still building", mySurface.getErrorModel().getIssues().get(0).getSummary());
 
     // Now finish the build, and try to build again. The "project is still building" should be gone.
     BuildSettings.getInstance(getProject()).setBuildMode(null);
@@ -96,10 +95,10 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Because there is a missing view, some other extra errors will be generated about missing styles. This is caused by
     // MockView (which is based on TextView) that depends on some Material styles.
     // We only care about the missing class error.
-    assertTrue(mySurface.getErrorModel().getIssues().stream()
-                   .anyMatch(issue -> issue.getSummary().startsWith("Missing classes")));
-    assertFalse(mySurface.getErrorModel().getIssues().stream()
-                 .anyMatch(issue -> issue.getSummary().startsWith("The project is still building")));
+    assertTrue(mySurface.getIssueModel().getNlErrors().stream()
+                 .anyMatch(issue -> issue.getSummary().startsWith("Missing classes")));
+    assertFalse(mySurface.getIssueModel().getNlErrors().stream()
+                  .anyMatch(issue -> issue.getSummary().startsWith("The project is still building")));
   }
 
   // https://code.google.com/p/android/issues/detail?id=227931

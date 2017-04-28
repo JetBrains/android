@@ -142,6 +142,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
     setScreenView(designSurface != null ? designSurface.getCurrentSceneView() : null);
+    myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
   }
 
   private void setScreenView(@Nullable ScreenView screenView) {
@@ -199,7 +200,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         }
       }
     };
-    renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+    renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 10));
     return renderer;
   }
 
