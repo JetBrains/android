@@ -34,13 +34,10 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Helper methods for checking modules in an AIA-enabled project are created correctly by a project sync.
- *
- * Note: Splits were previously called atoms, and not all the Apis have bee updated to the new terminology, hence there is some mixed
- * naming.
  */
 public class AIAProjectStructureAssertions {
   /**
-   * Asserts that the given module is an app module with dependencies on the given library projects and no invalid split dependencies
+   * Asserts that the given module is an app module and that it has dependencies that match the given set of expected dependencies.
    */
   public static void assertModuleIsValidAIAApp(@NotNull Module module, @NotNull Collection<String> expectedDependencies)
     throws InterruptedException {
@@ -48,7 +45,7 @@ public class AIAProjectStructureAssertions {
   }
 
   /**
-   * Asserts that the given module is an instant app module with the given base split and dependencies on the given split projects
+   * Asserts that the given module is an instant app module and that it has dependencies that match the given set of expected dependencies.
    */
   public static void assertModuleIsValidAIAInstantApp(@NotNull Module module,
                                                       @NotNull Collection<String> expectedDependencies)
@@ -59,7 +56,7 @@ public class AIAProjectStructureAssertions {
   }
 
   /**
-   * Asserts that the given module is a split module with the given base split and dependencies on the given library projects and split
+   * Asserts that the given module is a feature module and that it has dependencies that match the given set of expected dependencies.
    * projects
    */
   public static void assertModuleIsValidAIAFeature(@NotNull Module module,
@@ -68,7 +65,7 @@ public class AIAProjectStructureAssertions {
   }
 
   /**
-   * Asserts that the given module is a base split module with dependencies on the given library projects
+   * Asserts that the given module is a base feature module and that it has dependencies that match the given set of expected dependencies.
    */
   public static void assertModuleIsValidAIABaseFeature(@NotNull Module module,
                                                        @NotNull Collection<String> expectedDependencies) throws InterruptedException {
@@ -78,7 +75,7 @@ public class AIAProjectStructureAssertions {
   private static void assertModuleIsValidForAIA(@NotNull Module module,
                                                 @NotNull Collection<String> expectedDependencies,
                                                 int moduleType,
-                                                boolean isBaseSplit) throws InterruptedException {
+                                                boolean isBaseFeature) throws InterruptedException {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     assertNotNull(model);
     int projectType = model.getProjectType();
@@ -91,6 +88,6 @@ public class AIAProjectStructureAssertions {
     assertEquals(expectedDependencies.size(), libraries.size());
     assertTrue(libraries.stream().allMatch(expectedDependencies::contains));
 
-    assertEquals(isBaseSplit, model.getAndroidProject().isBaseSplit());
+    assertEquals(isBaseFeature, model.getAndroidProject().isBaseSplit());
   }
 }
