@@ -439,12 +439,12 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
    */
   private void mergeDependenciesIntoGradle() throws Exception {
     boolean isInstantApp = (Boolean)getParamMap().getOrDefault(ATTR_IS_INSTANT_APP, false);
-    String baseSplitRoot = (String)getParamMap().getOrDefault(ATTR_BASE_LIB_DIR, "");
-    if (!isInstantApp || isNullOrEmpty(baseSplitRoot)) {
+    String baseFeatureRoot = (String)getParamMap().getOrDefault(ATTR_BASE_FEATURE_DIR, "");
+    if (!isInstantApp || isNullOrEmpty(baseFeatureRoot)) {
       writeDependencies(myContext.getModuleRoot(), x -> true);
     }
     else {
-      writeDependencies(new File(baseSplitRoot), x -> x.equals("compile"));
+      writeDependencies(new File(baseFeatureRoot), x -> x.equals("compile"));
       writeDependencies(myContext.getModuleRoot(), x -> !x.equals("compile"));
     }
     myNeedsSync = true;

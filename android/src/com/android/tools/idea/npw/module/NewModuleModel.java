@@ -236,7 +236,7 @@ public final class NewModuleModel extends WizardModel {
             if (baseFeature == null) {
               baseModuleRoot = new File(projectRoot, myModuleName.get());
               baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
-              renderTemplateValues.put(ATTR_IS_BASE_SPLIT, true);
+              renderTemplateValues.put(ATTR_IS_BASE_FEATURE, true);
             }
             else {
               AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
@@ -248,9 +248,9 @@ public final class NewModuleModel extends WizardModel {
             }
           }
 
-          renderTemplateValues.put(ATTR_BASE_LIB_NAME, baseModuleRoot.getName());
-          renderTemplateValues.put(ATTR_BASE_LIB_DIR, baseModuleRoot.getPath());
-          renderTemplateValues.put(ATTR_BASE_LIB_RES_DIR, baseModuleResourceRoot.getPath());
+          renderTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
+          renderTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
+          renderTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
         }
 
         if (myCreateInExistingProject) {
