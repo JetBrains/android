@@ -17,7 +17,8 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
@@ -25,14 +26,15 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.error.IssueModel;
-import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
+import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProviders;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -44,13 +46,13 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -59,6 +61,7 @@ import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,8 +85,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private static final String PROPERTY_ERROR_PANEL_SPLITTER = DesignSurface.class.getCanonicalName() + ".error.panel.split";
 
   private final Project myProject;
+  private final JBSplitter myErrorPanelSplitter;
 
   private boolean myZoomFitted = true;
+  /**
+   * {@link LintNotificationPanel} currently being displayed
+   */
+  private WeakReference<JBPopup> myLintTooltipPopup = new WeakReference<>(null);
 
   protected double myScale = 1;
   @NotNull protected final JScrollPane myScrollPane;
@@ -92,22 +100,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected final List<Layer> myLayers = Lists.newArrayList();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
+  protected final RenderErrorPanel myErrorPanel;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
+  @SuppressWarnings("CanBeFinal") private float mySavedErrorPanelProportion;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   protected NlModel myModel;
   protected Scene myScene;
   private SceneManager mySceneManager;
   private final SelectionModel mySelectionModel;
   private ViewEditorImpl myViewEditor;
-
-  private final IssueModel myIssueModel = new IssueModel();
-  private final IssuePanel myIssuePanel;
-  private final JBSplitter myErrorPanelSplitter;
-  private final Object myErrorQueueLock = new Object();
-  private MergingUpdateQueue myErrorQueue;
-  private float mySavedErrorPanelProportion;
 
   public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
@@ -138,19 +141,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myScrollPane.getHorizontalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
     myScrollPane.getVerticalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
 
-    myIssuePanel = new IssuePanel(myIssueModel);
-    Disposer.register(this, myIssuePanel);
-
+    myErrorPanel = new RenderErrorPanel();
+    Disposer.register(this, myErrorPanel);
+    myErrorPanel.setName("Layout Editor Error Panel");
 
     // The error panel can only take up to 50% of the surface and it will take a 25% by default
-    myErrorPanelSplitter = new OnePixelSplitter(true, 0.75f, 0.5f, 1f);
+    myErrorPanelSplitter = new JBSplitter(true, 0.75f, 0.5f, 1f);
     myErrorPanelSplitter.setAndLoadSplitterProportionKey(PROPERTY_ERROR_PANEL_SPLITTER);
     myErrorPanelSplitter.setHonorComponentsMinimumSize(true);
     myErrorPanelSplitter.setFirstComponent(myScrollPane);
-    myErrorPanelSplitter.setSecondComponent(myIssuePanel);
+    myErrorPanelSplitter.setSecondComponent(myErrorPanel);
 
     mySavedErrorPanelProportion = myErrorPanelSplitter.getProportion();
-    myIssuePanel.setMinimizeListener((isMinimized) -> {
+    myErrorPanel.setMinimizeListener((isMinimized) -> {
       NlUsageTracker tracker = NlUsageTrackerManager.getInstance(this);
       if (isMinimized) {
         tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL);
@@ -164,7 +167,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       updateErrorPanelSplitterUi(isMinimized);
     });
 
-    setShowIssuePanel(myIssuePanel.isMinimized());
+    updateErrorPanelSplitterUi(myErrorPanel.isMinimized());
     add(myErrorPanelSplitter);
 
     // TODO: Do this as part of the layout/validate operation instead
@@ -209,6 +212,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected abstract SceneManager createSceneManager(@NotNull NlModel model);
 
   protected abstract void layoutContent();
+
+  private void updateErrorPanelSplitterUi(boolean isMinimized) {
+    boolean showDivider = myErrorPanel.isVisible() && !isMinimized;
+    myErrorPanelSplitter.setShowDividerIcon(showDivider);
+    myErrorPanelSplitter.setShowDividerControls(showDivider);
+    myErrorPanelSplitter.setResizeEnabled(showDivider);
+
+    if (isMinimized) {
+      myErrorPanelSplitter.setProportion(1f);
+    }
+  }
 
   @NotNull
   public Project getProject() {
@@ -406,6 +420,50 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     for (Layer layer : myLayers) {
       layer.hover(x, y);
     }
+
+    if (myErrorPanel.isVisible() && hasProblems()) {
+      // don't show any warnings on hover if there is already some errors that are being displayed
+      // TODO: we should really move this logic into the error panel itself
+      return;
+    }
+
+    // Currently, we use the hover action only to check whether we need to show a warning.
+    if (AndroidEditorSettings.getInstance().getGlobalState().isShowLint()) {
+      SceneView currentSceneView = getCurrentSceneView();
+      LintAnnotationsModel lintModel = currentSceneView != null ? currentSceneView.getModel().getLintAnnotationsModel() : null;
+      if (lintModel != null) {
+        for (Layer layer : myLayers) {
+          String tooltip = layer.getTooltip(x, y);
+          if (tooltip != null) {
+            JBPopup lintPopup = myLintTooltipPopup.get();
+            if (lintPopup == null || !lintPopup.isVisible()) {
+              NlUsageTrackerManager.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.LINT_TOOLTIP);
+              LintNotificationPanel lintPanel = new LintNotificationPanel(getCurrentSceneView(), lintModel);
+              lintPanel.selectIssueAtPoint(Coordinates.getAndroidX(getCurrentSceneView(), x),
+                                           Coordinates.getAndroidY(getCurrentSceneView(), y));
+
+              Point point = new Point(x, y);
+              SwingUtilities.convertPointToScreen(point, this);
+              myLintTooltipPopup = new WeakReference<>(lintPanel.showInScreenPosition(myProject, this, point));
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  protected boolean hasProblems() {
+    return false;
+  }
+
+  public void resetHover() {
+    if (hasProblems()) {
+      return;
+    }
+    // if we were showing some warnings, then close it.
+    // TODO: similar to hover() method above, this logic of warning/error should be inside the error panel itself
+    myErrorPanel.setVisible(false);
   }
 
   /**
@@ -816,7 +874,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public abstract InspectorProviders getInspectorProviders(@NotNull NlPropertiesManager propertiesManager,
                                                            @NotNull Disposable parentDisposable);
 
-
   private static class MyScrollPane extends JBScrollPane {
     private MyScrollPane() {
       super(0);
@@ -959,6 +1016,29 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return null;
     }
   }
+
+  public void setShowErrorPanel(boolean show) {
+    UIUtil.invokeLaterIfNeeded(() -> {
+      myErrorPanel.setVisible(show);
+      updateErrorPanelSplitterUi(myErrorPanel.isMinimized());
+      revalidate();
+      repaint();
+    });
+  }
+
+  @NotNull
+  protected MergingUpdateQueue getErrorQueue() {
+    synchronized (myErrorQueueLock) {
+      if (myErrorQueue == null) {
+        myErrorQueue = new MergingUpdateQueue("android.error.computation", 200, true, null, myProject, null,
+                                              Alarm.ThreadToUse.POOLED_THREAD);
+      }
+      return myErrorQueue;
+    }
+  }
+
+  private final Object myErrorQueueLock = new Object();
+  private MergingUpdateQueue myErrorQueue;
 
   private static class GlassPane extends JComponent {
     private static final long EVENT_FLAGS = AWTEvent.KEY_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK;
@@ -1197,6 +1277,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return null;
   }
 
+  @VisibleForTesting
+  RenderErrorModel getErrorModel() {
+    return myErrorPanel.getModel();
+  }
+
   /**
    * Returns true we shouldn't currently try to relayout our content (e.g. if some other operations is in progress).
    */
@@ -1219,47 +1304,5 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public Configuration getConfiguration() {
     return getCurrentSceneView() != null ? getCurrentSceneView().getConfiguration() : null;
-  }
-
-  @NotNull
-  public IssueModel getIssueModel() {
-    return myIssueModel;
-  }
-
-  @NotNull
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
-  public IssuePanel getIssuePanel() {
-    return myIssuePanel;
-  }
-
-  public void setShowIssuePanel(boolean show) {
-    UIUtil.invokeLaterIfNeeded(() -> {
-      myIssuePanel.setMinimized(!show);
-      updateErrorPanelSplitterUi(myIssuePanel.isMinimized());
-      revalidate();
-      repaint();
-    });
-  }
-
-  @NotNull
-  protected MergingUpdateQueue getErrorQueue() {
-    synchronized (myErrorQueueLock) {
-      if (myErrorQueue == null) {
-        myErrorQueue = new MergingUpdateQueue("android.error.computation", 200, true, null, myProject, null,
-                                              Alarm.ThreadToUse.POOLED_THREAD);
-      }
-      return myErrorQueue;
-    }
-  }
-
-  private void updateErrorPanelSplitterUi(boolean isMinimized) {
-    boolean showDivider = !isMinimized;
-    myErrorPanelSplitter.setShowDividerIcon(showDivider);
-    myErrorPanelSplitter.setShowDividerControls(showDivider);
-    myErrorPanelSplitter.setResizeEnabled(showDivider);
-
-    if (isMinimized) {
-      myErrorPanelSplitter.setProportion(1f);
-    }
   }
 }

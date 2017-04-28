@@ -254,8 +254,4 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   public Point getScrollPosition() {
     return myDesignSurfaceFixture.target().getScrollPosition();
   }
-
-  public IssuePanelFixture getErrorPanel() {
-    return myDesignSurfaceFixture.getIssuePanelFixture();
-  }
 }

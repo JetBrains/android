@@ -19,7 +19,7 @@ import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.BothModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
 import com.android.tools.idea.configurations.*;
-import com.android.tools.idea.uibuilder.actions.IssueNotificationAction;
+import com.android.tools.idea.uibuilder.actions.LintNotificationAction;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.actions.TogglePanningDialogAction;
 import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
@@ -71,7 +71,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new TogglePanningDialogAction((NlDesignSurface)mySurface));
     group.addSeparator();
 
-    group.add(new IssueNotificationAction((NlDesignSurface)mySurface));
+    group.add(new LintNotificationAction((NlDesignSurface)mySurface));
     return group;
   }
 }
