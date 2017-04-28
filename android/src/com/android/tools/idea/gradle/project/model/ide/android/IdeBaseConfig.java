@@ -38,6 +38,7 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   @NotNull private final Map<String, Object> myManifestPlaceholders;
   @Nullable private final String myApplicationIdSuffix;
   @Nullable private final String myVersionNameSuffix;
+  @Nullable private final Boolean myMultiDexEnabled;
 
   protected IdeBaseConfig(@NotNull BaseConfig config, @NotNull ModelCache modelCache) {
     super(config, modelCache);
@@ -48,12 +49,23 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
     myManifestPlaceholders = new HashMap<>(config.getManifestPlaceholders());
     myApplicationIdSuffix = config.getApplicationIdSuffix();
     myVersionNameSuffix = getVersionNameSuffix(config);
+    myMultiDexEnabled = getMultiDexEnabled(config);
   }
 
   @Nullable
   private static String getVersionNameSuffix(@NotNull BaseConfig config) {
     try {
       return config.getVersionNameSuffix();
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
+    }
+  }
+
+  @Nullable
+  private static Boolean getMultiDexEnabled(@NotNull BaseConfig config) {
+    try {
+      return config.getMultiDexEnabled();
     }
     catch (UnsupportedMethodException e) {
       return null;
@@ -123,7 +135,7 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   @Override
   @Nullable
   public Boolean getMultiDexEnabled() {
-    throw new UnusedModelMethodException("getMultiDexEnabled");
+    return myMultiDexEnabled;
   }
 
   @Override
@@ -154,7 +166,8 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
            Objects.deepEquals(myConsumerProguardFiles, config.myConsumerProguardFiles) &&
            Objects.deepEquals(myManifestPlaceholders, config.myManifestPlaceholders) &&
            Objects.equals(myApplicationIdSuffix, config.myApplicationIdSuffix) &&
-           Objects.equals(myVersionNameSuffix, config.myVersionNameSuffix);
+           Objects.equals(myVersionNameSuffix, config.myVersionNameSuffix) &&
+           Objects.equals(myMultiDexEnabled, config.myMultiDexEnabled);
   }
 
   public boolean canEqual(Object other) {
@@ -165,7 +178,7 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   @Override
   public int hashCode() {
     return Objects.hash(myName, myResValues, myProguardFiles, myConsumerProguardFiles, myManifestPlaceholders, myApplicationIdSuffix,
-                        myVersionNameSuffix);
+                        myVersionNameSuffix, myMultiDexEnabled);
   }
 
   @Override
@@ -176,6 +189,7 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
            ", myConsumerProguardFiles=" + myConsumerProguardFiles +
            ", myManifestPlaceholders=" + myManifestPlaceholders +
            ", myApplicationIdSuffix='" + myApplicationIdSuffix + '\'' +
-           ", myVersionNameSuffix='" + myVersionNameSuffix + '\'';
+           ", myVersionNameSuffix='" + myVersionNameSuffix + '\'' +
+           ", myMultiDexEnabled=" + myMultiDexEnabled;
   }
 }
