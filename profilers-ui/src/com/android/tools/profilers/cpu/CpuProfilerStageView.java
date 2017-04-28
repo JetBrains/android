@@ -166,7 +166,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     final JLabel stageHeader = new JLabel(getStage().getName());
     stageHeader.setBorder(MONITOR_LABEL_PADDING);
-    stageHeader.setFont(AdtUiUtils.FONT_PROFILER_TITLE);
+    stageHeader.setFont(AdtUiUtils.getFontProfilerTitle());
     stageHeader.setVerticalAlignment(SwingConstants.TOP);
     stageHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
@@ -465,7 +465,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, UpdatableManager updatableManager) {
       myLabel = new JLabel();
-      myLabel.setFont(AdtUiUtils.FONT_DEFAULT);
+      myLabel.setFont(AdtUiUtils.getFontDefault());
       Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
       Border marginLeft = new EmptyBorder(0, 10, 0, 0);
       myLabel.setBorder(new CompoundBorder(rightSeparator, marginLeft));

@@ -61,7 +61,6 @@ public class StackedEventComponent extends MouseAdapterComponent {
   public StackedEventComponent(@NotNull EventModel<StackedEventType> model) {
     super(DEFAULT_LINE_THICKNESS, EXPANDED_LINE_THICKNESS);
     myModel = model;
-    setFont(AdtUiUtils.FONT_DEFAULT);
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
   }
@@ -128,7 +127,7 @@ public class StackedEventComponent extends MouseAdapterComponent {
       renderActivity();
       myRender = false;
     }
-    g2d.setFont(AdtUiUtils.FONT_DEFAULT);
+    g2d.setFont(AdtUiUtils.getFontDefault());
     drawActivity(g2d, dim);
   }
 

@@ -109,7 +109,6 @@ public class LegendComponent extends AnimatedComponent {
     myVerticalPadding = verticalPadding;
     myModel.addDependency(myAspectObserver)
       .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
-    setFont(AdtUiUtils.FONT_DEFAULT);
     modelChanged();
   }
 

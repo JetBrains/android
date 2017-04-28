@@ -45,7 +45,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     container.setLayout(new TabularLayout("*", "*"));
 
     JLabel stageHeader = new JLabel(getMonitor().getName());
-    stageHeader.setFont(AdtUiUtils.FONT_PROFILER_TITLE);
+    stageHeader.setFont(AdtUiUtils.getFontProfilerTitle());
     stageHeader.setBorder(MONITOR_LABEL_PADDING);
     stageHeader.setVerticalAlignment(JLabel.TOP);
     stageHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);

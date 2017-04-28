@@ -89,7 +89,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     setFocusable(true);
     addMouseListener(this);
     initializeInputMap();
-    setFont(AdtUiUtils.FONT_DEFAULT);
 
     xRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
     changed();
