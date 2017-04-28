@@ -32,6 +32,8 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
@@ -59,8 +61,8 @@ final class ThreadsView {
     myThreadsTable.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        myThreadsTable.getColumnModel().getColumn(0).setPreferredWidth((int)(myThreadsTable.getWidth() * 1.0/8));
-        myThreadsTable.getColumnModel().getColumn(1).setPreferredWidth((int)(myThreadsTable.getWidth() * 7.0/8));
+        myThreadsTable.getColumnModel().getColumn(0).setPreferredWidth((int)(myThreadsTable.getWidth() * 1.0 / 8));
+        myThreadsTable.getColumnModel().getColumn(1).setPreferredWidth((int)(myThreadsTable.getWidth() * 7.0 / 8));
       }
     });
 
@@ -98,17 +100,20 @@ final class ThreadsView {
       List<HttpData> dataList = myStage.getConnectionsModel().getData(selection);
       Map<Long, List<HttpData>> threads = new HashMap<>();
       for (HttpData data : dataList) {
-        if (!threads.containsKey(data.getJavaThread().getId())) {
-          threads.put(data.getJavaThread().getId(), new ArrayList<>());
+        if (data.getJavaThreads().isEmpty()) {
+          continue;
         }
-        threads.get(data.getJavaThread().getId()).add(data);
+        if (!threads.containsKey(data.getJavaThreads().get(0).getId())) {
+          threads.put(data.getJavaThreads().get(0).getId(), new ArrayList<>());
+        }
+        threads.get(data.getJavaThreads().get(0).getId()).add(data);
       }
 
       // Sort by thread name, so that they're consistently displayed in alphabetical order.
       // TODO: Implement sorting mechanism in JList and move this responsibility to the JList.
       threads.values().stream().sorted((o1, o2) -> {
-        HttpData.JavaThread thread1 = o1.get(0).getJavaThread();
-        HttpData.JavaThread thread2 = o2.get(0).getJavaThread();
+        HttpData.JavaThread thread1 = o1.get(0).getJavaThreads().get(0);
+        HttpData.JavaThread thread2 = o2.get(0).getJavaThreads().get(0);
         int nameCompare = thread1.getName().compareTo(thread2.getName());
         return (nameCompare != 0) ? nameCompare : Long.compare(thread1.getId(), thread2.getId());
       }).forEach(myThreads::add);
@@ -129,8 +134,9 @@ final class ThreadsView {
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
       if (columnIndex == 0) {
-        return myThreads.get(rowIndex).get(0).getJavaThread().getName();
-      } else {
+        return myThreads.get(rowIndex).get(0).getJavaThreads().get(0).getName();
+      }
+      else {
         return myThreads.get(rowIndex);
       }
     }
@@ -156,10 +162,6 @@ final class ThreadsView {
       for (int index = 0; index < myTable.getModel().getRowCount(); ++index) {
         List<HttpData> data = (List<HttpData>)myTable.getModel().getValueAt(index, 1);
         assert !data.isEmpty();
-
-        ConnectionsStateChart chart = new ConnectionsStateChart(data, myTimeline.getSelectionRange());
-        chart.setHeightGap(0.2f);
-
         AxisComponent axis = createAxis();
         axis.setMarkerLengths(myTable.getRowHeight(), 0);
         // If it is the first row show labels.
@@ -168,8 +170,7 @@ final class ThreadsView {
         JPanel panel = new JPanel(new TabularLayout("*", "*"));
         panel.setPreferredSize(new Dimension((int)panel.getPreferredSize().getWidth(), myTable.getRowHeight()));
         panel.add(axis, new TabularLayout.Constraint(0, 0));
-        panel.add(new ConnectionNamesComponent(data, myTimeline.getSelectionRange()), new TabularLayout.Constraint(0, 0));
-        panel.add(chart.getComponent(), new TabularLayout.Constraint(0, 0));
+        panel.add(new ConnectionsInfoComponent(data, myTimeline.getSelectionRange()), new TabularLayout.Constraint(0, 0));
         myRows.add(panel);
       }
     }
@@ -195,43 +196,99 @@ final class ThreadsView {
   }
 
   /**
-   * A component that responsible for rendering the given connections name.
+   * A component that responsible for rendering information of the given connections,
+   * such as connection names, warnings, and lifecycle states.
    */
-  private static final class ConnectionNamesComponent extends JComponent {
+  private static final class ConnectionsInfoComponent extends JComponent {
     private static final int PADDING = 6;
-
+    private static final int STATE_HEIGHT = 15;
+    private static final int WARNING_SIZE = 10;
     @NotNull private final List<HttpData> myDataList;
     @NotNull private final Range myRange;
 
-    private ConnectionNamesComponent(@NotNull List<HttpData> data, @NotNull Range range) {
+    private ConnectionsInfoComponent(@NotNull List<HttpData> data, @NotNull Range range) {
       myDataList = data;
       myRange = range;
       setFont(AdtUiUtils.FONT_DEFAULT_TITLE);
-      setForeground(ProfilerColors.NETWORK_TABLE_CONNECTIONS_NAME);
+      setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
+      setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
       Graphics2D g2d = (Graphics2D)g.create();
-      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g2d.setFont(getFont());
-      g2d.setColor(getForeground());
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+      g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-      for (HttpData data : myDataList) {
-        float start = (float)((data.getStartTimeUs() - myRange.getMin()) / myRange.getLength() * getWidth());
-        float end = getWidth();
-        if (data.getEndTimeUs() != 0) {
-          end = (float)((data.getEndTimeUs() - myRange.getMin()) / myRange.getLength() * getWidth());
+      for (int i = 0; i < myDataList.size(); ++i) {
+        HttpData data = myDataList.get(i);
+        float endLimit = (i + 1 < myDataList.size()) ? rangeToPosition(myDataList.get(i + 1).getStartTimeUs()) : getWidth();
+
+        drawState(g2d,  data, endLimit);
+
+        if (data.getJavaThreads().size() > 1) {
+          drawWarning(g2d, data, endLimit);
         }
 
-        FontMetrics metrics = getFontMetrics(getFont());
-        String text = AdtUiUtils.getFittedString(metrics, HttpData.getUrlName(data.getUrl()), end - start - 2 * PADDING, 1);
-        float availableSpace = (end - start - metrics.stringWidth(text));
-        g2d.drawString(text, start + availableSpace / 2, (getHeight() - metrics.getHeight()) * 0.5f + metrics.getAscent());
+        drawConnectionName(g2d, data, endLimit);
       }
 
       g2d.dispose();
+    }
+
+    private void drawState(@NotNull Graphics2D g2d, @NotNull HttpData data, float endLimit) {
+      float prev = rangeToPosition(data.getStartTimeUs());
+      g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_SENDING);
+
+      if (data.getDownloadingTimeUs() > 0) {
+        float download = rangeToPosition(data.getDownloadingTimeUs());
+        // draw sending
+        g2d.fill(new Rectangle2D.Float(prev, (getHeight() - STATE_HEIGHT) / 2, download - prev, STATE_HEIGHT));
+        g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_RECEIVING);
+        prev = download;
+      }
+
+      float end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
+      g2d.fill(new Rectangle2D.Float(prev, (getHeight() - STATE_HEIGHT) / 2, end - prev, STATE_HEIGHT));
+    }
+
+    private void drawWarning(@NotNull Graphics2D g2d, @NotNull HttpData data, float endLimit) {
+      float start = rangeToPosition(data.getStartTimeUs());
+      float end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
+
+      float stateY = (getHeight() - STATE_HEIGHT) / 2;
+
+      Path2D.Float triangle = new Path2D.Float();
+      triangle.moveTo(end - Math.min(end - start, WARNING_SIZE), stateY);
+      triangle.lineTo(end, stateY);
+      triangle.lineTo(end, stateY + WARNING_SIZE);
+      triangle.closePath();
+
+      g2d.setColor(getBackground());
+      g2d.setStroke(new BasicStroke(2));
+      g2d.draw(triangle);
+
+      g2d.setColor(ProfilerColors.NETWORK_THREADS_TABLE_WARNING);
+      g2d.fill(triangle);
+    }
+
+    private void drawConnectionName(@NotNull Graphics2D g2d, @NotNull HttpData data, float endLimit) {
+      g2d.setFont(getFont());
+      g2d.setColor(getForeground());
+      float start = rangeToPosition(data.getStartTimeUs());
+      float end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
+
+      FontMetrics metrics = getFontMetrics(getFont());
+      String text =
+        AdtUiUtils.getFittedString(metrics, HttpData.getUrlName(data.getUrl()), end - start - 2 * PADDING, 1);
+
+      float availableSpace = (end - start - metrics.stringWidth(text));
+      g2d.drawString(text, start + availableSpace / 2, (getHeight() - metrics.getHeight()) * 0.5f + metrics.getAscent());
+    }
+
+    private float rangeToPosition(float r) {
+      return (float)((r - myRange.getMin()) / myRange.getLength() * getWidth());
     }
   }
 }

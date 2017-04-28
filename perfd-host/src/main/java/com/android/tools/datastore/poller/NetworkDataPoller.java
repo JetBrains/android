@@ -83,6 +83,7 @@ public class NetworkDataPoller extends PollRunner {
       NetworkProfiler.HttpDetailsResponse request = initialData;
       NetworkProfiler.HttpDetailsResponse responseData = null;
       NetworkProfiler.HttpDetailsResponse body = null;
+      NetworkProfiler.HttpDetailsResponse threads = null;
       if (initialData == null) {
         request = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
       }
@@ -90,7 +91,8 @@ public class NetworkDataPoller extends PollRunner {
         responseData = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
         body = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
       }
-      myNetworkTable.insertOrReplace(myProcessId, mySession, request, responseData, body, data);
+      threads = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
+      myNetworkTable.insertOrReplace(myProcessId, mySession, request, responseData, body, threads, data);
     }
   }
 
