@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,18 +32,17 @@ public class CanvasResizeTest {
 
   @Test
   public void resizeAndSnap() throws Exception {
-    NlEditorFixture layoutEditor = guiTest.importSimpleApplication()
+    guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
       .waitForRenderToFinish()
-      .showOnlyDesignView();
-
-    layoutEditor.getConfigToolbar()
+      .showOnlyDesignView()
+      .getConfigToolbar()
       .switchOrientation()
-      .requireOrientation("Landscape");
-
-    layoutEditor.startResizeInteraction()
+      .requireOrientation("Landscape")
+      .leaveConfigToolbar()
+      .startResizeInteraction()
       .resizeToAndroidSize(365, 638) // Size of Nexus 5 in portrait is (360 x 640)
       .endResizeInteraction()
       .waitForRenderToFinish()

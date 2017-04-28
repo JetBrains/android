@@ -38,14 +38,23 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
  * Fixture representing the configuration toolbar above an associated layout editor
  */
 public class NlConfigurationToolbarFixture<ParentFixture> {
+
+  @NotNull private final ParentFixture myParentFixture;
   private final Robot myRobot;
   private final ActionToolbar myToolBar;
   private final EditorDesignSurface mySurface;
 
-  public NlConfigurationToolbarFixture(@NotNull Robot robot, @NotNull EditorDesignSurface surface, @NotNull ActionToolbar toolbar) {
+  NlConfigurationToolbarFixture(
+    @NotNull ParentFixture parentFixture, @NotNull Robot robot, @NotNull EditorDesignSurface surface, @NotNull ActionToolbar toolbar) {
+    myParentFixture = parentFixture;
     myRobot = robot;
     myToolBar = toolbar;
     mySurface = surface;
+  }
+
+  @NotNull
+  public ParentFixture leaveConfigToolbar() {
+    return myParentFixture;
   }
 
   /**
