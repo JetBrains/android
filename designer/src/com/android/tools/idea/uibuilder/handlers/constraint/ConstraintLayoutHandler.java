@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayou
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
 import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
@@ -39,19 +38,13 @@ import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Computable;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -562,7 +555,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new SceneDragHandler(editor, this, layout, components, type);
+    return new ConstraintDragHandler(editor, this, layout, components, type);
   }
 
   /**

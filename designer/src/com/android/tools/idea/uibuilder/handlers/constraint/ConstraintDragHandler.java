@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene;
+package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.*;
@@ -23,6 +23,9 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Result;
@@ -35,14 +38,14 @@ import java.util.List;
 /**
  * Handles drag'n drop on a Scene
  */
-public class SceneDragHandler extends DragHandler {
+public class ConstraintDragHandler extends DragHandler {
 
   @Nullable protected SceneComponent myComponent;
 
-  public SceneDragHandler(@NotNull ViewEditor editor,
-                          @NotNull ViewGroupHandler handler,
-                          @NotNull SceneComponent layout,
-                          @NotNull List<NlComponent> components, DragType type) {
+  public ConstraintDragHandler(@NotNull ViewEditor editor,
+                               @NotNull ViewGroupHandler handler,
+                               @NotNull SceneComponent layout,
+                               @NotNull List<NlComponent> components, DragType type) {
     super(editor, handler, layout, components, type);
     if (components.size() == 1) {
       NlComponent component = components.get(0);

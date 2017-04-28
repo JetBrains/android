@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.absolute;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneDragHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintDragHandler;
 import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
@@ -40,7 +40,7 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new SceneDragHandler(editor, this, layout, components, type);
+    return new ConstraintDragHandler(editor, this, layout, components, type);
   }
 
   @Override
