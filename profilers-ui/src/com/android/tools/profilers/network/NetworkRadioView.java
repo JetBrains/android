@@ -17,7 +17,9 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.chart.statechart.DefaultStateChartReducer;
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
@@ -32,13 +34,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
 
-import static com.android.tools.profilers.ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
+import static com.android.tools.profilers.ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS;
 import static com.android.tools.profilers.network.NetworkRadioDataSeries.RadioState;
 
 public class NetworkRadioView {
   private static final String LABEL = "RADIO";
   private static final int MINIMUM_HEIGHT = JBUI.scale(45);
+  private static final double STATE_CHART_HEIGHT_RATIO = .6;
+  private static final double STATE_CHART_OVER_HEIGHT_RATIO = 1;
+  private static final float STATE_CHART_OFFSET = .1f;
 
   private static final EnumMap<RadioState, Color> RADIO_STATE_COLOR = new EnumMap<>(RadioState.class);
 
@@ -55,8 +60,9 @@ public class NetworkRadioView {
   @NotNull private final JComponent myComponent;
 
   public NetworkRadioView(@NotNull NetworkProfilerStageView stageView) {
-    myRadioChart = new StateChart<>(stageView.getStage().getRadioState(), RADIO_STATE_COLOR);
-    myRadioChart.setHeightGap(0.4f);
+    StateChartConfig config =
+      new StateChartConfig(new DefaultStateChartReducer(), STATE_CHART_HEIGHT_RATIO, STATE_CHART_OVER_HEIGHT_RATIO, STATE_CHART_OFFSET);
+    myRadioChart = new StateChart<>(stageView.getStage().getRadioState(), RADIO_STATE_COLOR, config);
 
     myComponent = new JPanel();
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
