@@ -214,6 +214,18 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     myAddedValueIndex = -1; // nothing added
   }
 
+  private void updateModel() {
+    ValueWithDisplayString selected = myCombo.getSelectedItem();
+    ValueWithDisplayString added = myAddedValueIndex >= 0 ? myCombo.getModel().getElementAt(myAddedValueIndex) : null;
+    setModel(myProperty);
+    if (added != null) {
+      DefaultComboBoxModel<ValueWithDisplayString> model = (DefaultComboBoxModel<ValueWithDisplayString>)myCombo.getModel();
+      myAddedValueIndex = findBestInsertionPoint(added);
+      model.insertElementAt(added, myAddedValueIndex);
+    }
+    myCombo.setSelectedItem(selected);
+  }
+
   @Override
   @NotNull
   public NlProperty getProperty() {
@@ -413,6 +425,10 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     @Override
     protected void customizeCellRenderer(@NotNull JList list, ValueWithDisplayString value, int index, boolean selected, boolean hasFocus) {
       if (value != null) {
+        boolean skipDefault = myEnumSupport.customizeCellRenderer(this, value, selected);
+        if (skipDefault) {
+          return;
+        }
         String displayString = value.getDisplayString();
         String actualValue = value.getValue();
         String hint = value.getHint();
@@ -436,7 +452,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         else if (actualValue != null) {
           append(actualValue);
         }
-        setIcon(value.getDisplayIcon());
       }
     }
   }
@@ -452,6 +467,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     @Override
     public void popupMenuWillBecomeVisible(PopupMenuEvent event) {
       myPopupValueChanged = false;
+      updateModel();
     }
 
     @Override

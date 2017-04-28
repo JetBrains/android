@@ -16,12 +16,15 @@
 package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
+import com.android.tools.idea.fonts.FontFamily;
 import com.android.tools.idea.fonts.MoreFontsDialog;
+import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString.ValueSelector;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.ColoredListCellRenderer;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -34,30 +37,70 @@ import java.util.List;
 import static com.android.tools.idea.uibuilder.property.ToggleDownloadableFontsAction.ENABLE_DOWNLOADABLE_FONTS;
 
 public class FontEnumSupport extends EnumSupport {
+  private ProjectFonts myProjectFonts;
 
   public FontEnumSupport(@NotNull NlProperty property) {
     super(property);
+    myProjectFonts = new ProjectFonts(myProperty.getResolver());
   }
 
   @NotNull
   @Override
   public List<ValueWithDisplayString> getAllValues() {
     List<ValueWithDisplayString> values = new ArrayList<>();
+    List<FontFamily> fonts = myProjectFonts.getFonts();
+    for (FontFamily font : fonts) {
+      values.add(new ValueWithDisplayString(font.getName(), "@font/" + font.getName()));
+    }
+    if (!values.isEmpty()) {
+      values.add(ValueWithDisplayString.SEPARATOR);
+    }
     for (String stringValue : AndroidDomUtil.AVAILABLE_FAMILIES) {
       values.add(new ValueWithDisplayString(stringValue, stringValue));
     }
     AndroidFacet facet = myProperty.getModel().getFacet();
     ResourceResolver resolver = myProperty.getResolver();
     if (resolver != null) {
-      for (String font : resolver.getProjectResources().get(ResourceType.FONT).keySet()) {
-        values.add(new ValueWithDisplayString(font, "@font/" + font));
-      }
       if (PropertiesComponent.getInstance().getBoolean(ENABLE_DOWNLOADABLE_FONTS)) {
-        values.add(new ValueWithDisplayString("More Fonts...", null, null, null,
+        values.add(ValueWithDisplayString.SEPARATOR);
+        values.add(new ValueWithDisplayString("More Fonts...", null, null,
                                               new MoreFontSelector(facet, resolver)));
       }
     }
     return values;
+  }
+
+  @Override
+  public boolean customizeCellRenderer(@NotNull ColoredListCellRenderer<ValueWithDisplayString> renderer,
+                                       @NotNull ValueWithDisplayString value,
+                                       boolean selected) {
+    String fontValue = value.getValue();
+    if (fontValue == null && value.getValueSelector() == null) {
+      fontValue = myProperty.resolveValue(null);
+    }
+    if (fontValue == null) {
+      return false;
+    }
+    FontFamily fontFamily = myProjectFonts.getFont(fontValue);
+    switch (fontFamily.getFontSource()) {
+      case SYSTEM:
+        renderer.setIcon(AndroidIcons.Android);
+        break;
+      case PROJECT:
+        if (fontFamily.getMenu().startsWith(FontFamily.FILE_PROTOCOL_START)) {
+          renderer.setIcon(AndroidIcons.FontFile);
+        }
+        else if (fontFamily.getMenu().startsWith(FontFamily.HTTPS_PROTOCOL_START)) {
+          renderer.setIcon(AndroidIcons.NeleIcons.Link);
+        }
+        else {
+          renderer.setIcon(AllIcons.General.BalloonError);
+        }
+        break;
+      default:
+        break;
+    }
+    return false;
   }
 
   @NotNull

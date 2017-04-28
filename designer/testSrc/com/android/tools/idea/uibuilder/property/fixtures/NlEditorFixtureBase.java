@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,7 +127,8 @@ public abstract class NlEditorFixtureBase {
       Object value = args[1];
       NlProperty property = editor.getProperty();
       assertThat(property).isNotNull();
-      editor.getProperty().setValue(value);
+      property.setValue(value);
+      UIUtil.dispatchAllInvocationEvents();
       return null;
     }).when(listener).stopEditing(any(NlComponentEditor.class), any());
     return listener;
