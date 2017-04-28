@@ -857,7 +857,6 @@ public class Scene implements SelectionListener {
       myHitListener.skipTarget(myHitTarget);
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets);
-      myHitTarget.getComponent().setDragging(true);
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
