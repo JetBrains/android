@@ -879,7 +879,7 @@ public class RenderTask implements IImageFactory {
       ILayoutPullParser layoutEmbeddedParser = myLayoutlibCallback.getLayoutEmbeddedParser();
       if (layoutEmbeddedParser != null) {  // Should have been nulled out if used
         myLogger.error(null, String.format("The surrounding layout (%1$s) did not actually include this layout. " +
-                                           "Remove tools:" + SdkConstants.ATTR_RENDER_IN + "=... from the root tag.",
+                                           "Remove tools:" + SdkConstants.ATTR_SHOW_IN + "=... from the root tag.",
                                            myIncludedWithin.getFromResourceUrl()), null);
       }
     }
