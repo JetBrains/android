@@ -37,7 +37,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
  */
-public class NlConfigurationToolbarFixture {
+public class NlConfigurationToolbarFixture<ParentFixture> {
   private final Robot myRobot;
   private final ActionToolbar myToolBar;
   private final EditorDesignSurface mySurface;
@@ -52,7 +52,7 @@ public class NlConfigurationToolbarFixture {
    * Requires the orientation name to be the given name (typically Portrait or Landscape)
    */
   @NotNull
-  public NlConfigurationToolbarFixture requireOrientation(@NotNull String name)  {
+  public NlConfigurationToolbarFixture<ParentFixture> requireOrientation(@NotNull String name)  {
     Wait.seconds(1).expecting("configuration to be updated").until(() -> {
       Configuration configuration = mySurface.getConfiguration();
       if (configuration != null) {
@@ -83,7 +83,7 @@ public class NlConfigurationToolbarFixture {
    * Requires the device id to be the given id
    */
   @NotNull
-  public NlConfigurationToolbarFixture requireDevice(@NotNull String id)  {
+  public NlConfigurationToolbarFixture<ParentFixture> requireDevice(@NotNull String id)  {
     Wait.seconds(1).expecting("configuration to be updated").until(() -> {
       Configuration configuration = mySurface.getConfiguration();
       if (configuration != null) {
@@ -98,7 +98,7 @@ public class NlConfigurationToolbarFixture {
   /**
    * Click on the "Show Design" button
    */
-  public NlConfigurationToolbarFixture showDesign() {
+  public NlConfigurationToolbarFixture<ParentFixture> showDesign() {
     ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
@@ -112,7 +112,7 @@ public class NlConfigurationToolbarFixture {
   /**
    * Click on the "Show Blueprint" button
    */
-  public NlConfigurationToolbarFixture showBlueprint() {
+  public NlConfigurationToolbarFixture<ParentFixture> showBlueprint() {
     ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
@@ -126,7 +126,7 @@ public class NlConfigurationToolbarFixture {
   /**
    * Click on the "Orientation in Editor" button
    */
-  public NlConfigurationToolbarFixture switchOrientation() {
+  public NlConfigurationToolbarFixture<ParentFixture> switchOrientation() {
     new JButtonFixture(myRobot, findToolbarButton("Orientation in Editor")).click();
     return this;
   }
