@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -47,9 +48,14 @@ public class ThumbnailManager extends AndroidFacetScopedService {
     ThumbnailManager manager = facet.getUserData(KEY);
     if (manager == null) {
       manager = new ThumbnailManager(facet);
-      facet.putUserData(KEY, manager);
+      setInstance(facet, manager);
     }
     return manager;
+  }
+
+  @VisibleForTesting
+  public static void setInstance(@NotNull AndroidFacet facet, @Nullable ThumbnailManager manager) {
+    facet.putUserData(KEY, manager);
   }
 
   protected ThumbnailManager(@NotNull AndroidFacet facet) {
@@ -66,7 +72,7 @@ public class ThumbnailManager extends AndroidFacetScopedService {
 
     RenderService renderService = RenderService.getInstance(getFacet());
     RenderLogger logger = renderService.createLogger();
-    RenderTask task = renderService.createTask(file, configuration, logger, surface);
+    RenderTask task = createTask(file, surface, configuration, renderService, logger);
     CompletableFuture<ImagePool.Image> result = new CompletableFuture<>();
     if (task != null) {
       ListenableFuture<RenderResult> renderResult = task.render();
@@ -85,6 +91,13 @@ public class ThumbnailManager extends AndroidFacetScopedService {
       result.complete(null);
     }
     return result;
+  }
+
+  protected RenderTask createTask(@NotNull XmlFile file,
+                                  @NotNull DesignSurface surface,
+                                  @NotNull Configuration configuration,
+                                  RenderService renderService, RenderLogger logger) {
+    return renderService.createTask(file, configuration, logger, surface);
   }
 
   @Override
