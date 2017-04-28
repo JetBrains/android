@@ -42,15 +42,13 @@ import static com.android.tools.idea.fonts.SystemFonts.findBestMatch;
 public class ProjectFonts {
   private final DownloadableFontCacheServiceImpl myService;
   private final ResourceResolver myResolver;
-  private final ResourceValueMap myFonts;
   private final Map<String, FontFamily> myProjectFonts;
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
-  public ProjectFonts(@NotNull ResourceResolver resolver) {
+  public ProjectFonts(@Nullable ResourceResolver resolver) {
     myService = DownloadableFontCacheServiceImpl.getInstance();
     myResolver = resolver;
-    myFonts = resolver.getProjectResources().get(ResourceType.FONT);
     myProjectFonts = new TreeMap<>();
     myParseResults = new HashMap<>();
     myDefinitions = new ArrayList<>();
@@ -59,8 +57,13 @@ public class ProjectFonts {
   /**
    * Return a list of {@link FontFamily} defined in the project.
    */
+  @NotNull
   public List<FontFamily> getFonts() {
+    if (myResolver == null) {
+      return Collections.emptyList();
+    }
     List<FontFamily> fonts = new ArrayList<>();
+    ResourceValueMap myFonts = myResolver.getProjectResources().get(ResourceType.FONT);
     List<String> names = myFonts.keySet().stream().sorted().collect(Collectors.toList());
     for (String name : names) {
       fonts.add(resolveFont("@font/" + name));
@@ -71,7 +74,7 @@ public class ProjectFonts {
   /**
    * Return the font family for a given name.
    */
-  @Nullable
+  @NotNull
   public FontFamily getFont(@NotNull String name) {
     return resolveFont(name);
   }
@@ -198,6 +201,10 @@ public class ProjectFonts {
     if (isKnownFont(name)) {
       return;
     }
+    if (myResolver == null) {
+      return;
+    }
+    ResourceValueMap myFonts = myResolver.getProjectResources().get(ResourceType.FONT);
     String fontName = StringUtil.trimStart(name, "@font/");
     ResourceValue resourceValue = myFonts.get(fontName);
     if (resourceValue == null) {
