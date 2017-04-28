@@ -26,7 +26,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Mockito.*;
 
 /**
@@ -70,7 +69,7 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
 
   public void testSyncProject() {
     myService.syncProject(myProject);
-    verify(GradleSyncInvoker.getInstance()).requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+    verify(GradleSyncInvoker.getInstance()).requestProjectSyncAndSourceGeneration(myProject, null);
   }
 
   public void testBuildProject() {

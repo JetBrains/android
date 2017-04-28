@@ -44,7 +44,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 
 public class GradleDependencyManager {
@@ -236,8 +235,7 @@ public class GradleDependencyManager {
       // This is needed since the designer cannot display correctly with source generation.
       GradleBuildInvoker.getInstance(project).add(new GradleCompletionTask(project, callback));
     }
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(true).setTrigger(
-      TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(true);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
 

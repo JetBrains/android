@@ -30,7 +30,6 @@ import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 
 public class GradleAndroidSdkEventListener implements IdeSdks.AndroidSdkEventListener {
@@ -69,7 +68,7 @@ public class GradleAndroidSdkEventListener implements IdeSdks.AndroidSdkEventLis
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
     }
   }
 

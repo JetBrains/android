@@ -24,10 +24,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -61,9 +61,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
@@ -141,7 +140,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     else if (IdeInfo.getInstance().isAndroidStudio() &&
              myProject.getBaseDir() != null &&
              canImportAsGradleProject(myProject.getBaseDir())) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_LOADED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
     }
   }
 

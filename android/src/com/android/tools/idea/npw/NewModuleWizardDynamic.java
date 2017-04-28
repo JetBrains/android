@@ -43,9 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
  * {@linkplain NewModuleWizardDynamic} guides the user through adding a new module to an existing project. It has a template-based flow and as the
@@ -165,7 +163,7 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       assert filesToOpen != null;
 
       TemplateUtils.openEditors(project, filesToOpen, true);
-    }), TRIGGER_PROJECT_MODIFIED);
+    }));
   }
 
   @NotNull

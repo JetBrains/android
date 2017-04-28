@@ -27,7 +27,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
@@ -58,6 +57,6 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
     myDependency.setVersion(latest.toString());
     runWriteCommandAction(project, myBuildModel::applyChanges);
 
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
   }
 }

@@ -24,8 +24,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
-
 /**
  * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
  */
@@ -52,7 +50,7 @@ public class SyncProjectAction extends AndroidStudioGradleAction {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
     try {
-      mySyncInvoker.requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST);
+      mySyncInvoker.requestProjectSyncAndSourceGeneration(project, null);
     }
     finally {
       presentation.setEnabled(true);

@@ -36,7 +36,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
@@ -200,8 +199,7 @@ public class GradleProjectImporter {
     request.setGenerateSourcesOnSuccess(importProjectSettings.isGenerateSourcesOnSuccess())
            .setRunInBackground(false)
            .setUseCachedGradleModels(false)
-           .setNewProject(true)
-           .setTrigger(TRIGGER_PROJECT_LOADED);
+           .setNewProject(true);
     // @formatter:on
     return request;
   }

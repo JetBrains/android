@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class InstallArtifactHyperlink extends NotificationHyperlink {
   @NotNull private final String myPath;
@@ -43,7 +42,7 @@ public class InstallArtifactHyperlink extends NotificationHyperlink {
     if (dialog != null) {
       dialog.setTitle("Install Missing Components");
       if (dialog.showAndGet()) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
       }
     }
   }
