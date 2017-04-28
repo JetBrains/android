@@ -324,6 +324,8 @@ public class AndroidIcons {
     public static final Icon VerticalCenter = load("/icons/sherpa/center-constraints-vertically_b.png");
     public static final Icon VerticalCenterParentB = load("/icons/sherpa/center-vertically-in-parent.png");
     public static final Icon VerticalCenterParent = load("/icons/sherpa/center-vertically-in-parent_b.png");
+    public static final Icon CreateHorizontalChain = load("/icons/sherpa/create-horizontal-chain.png");
+    public static final Icon CreateVerticalChain = load("/icons/sherpa/create-vertical-chain.png");
     public static final Icon VerticalExpandB = load("/icons/sherpa/expand-vertically.png");
     public static final Icon VerticalExpand = load("/icons/sherpa/expand-vertically_b.png");
     public static final Icon verticallyDistributeB = load("/icons/sherpa/distribute-vertically.png");

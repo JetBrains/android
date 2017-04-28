@@ -107,8 +107,8 @@ public class ButtonDecorator extends SceneDecorator {
         g.fillRect(x + mHorizontalMargin, y + mVerticalMargin,
                    width - mHorizontalMargin * 2 + 1, height - mVerticalMargin * 2 + 1);
         g.setColor(colorSet.getFakeUI());
-        g.drawRect(x + mHorizontalMargin, y + mVerticalMargin,
-                   width - mHorizontalMargin * 2, height - mVerticalMargin * 2);
+        g.drawRoundRect(x + mHorizontalMargin, y + mVerticalMargin,
+                   width - mHorizontalMargin * 2, height - mVerticalMargin * 2,2,2);
         g.setStroke(stroke);
       }
       super.paint(g, sceneContext);
