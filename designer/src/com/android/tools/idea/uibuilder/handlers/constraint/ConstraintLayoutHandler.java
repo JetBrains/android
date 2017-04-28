@@ -488,6 +488,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     if (showAnchors) {
       ConstraintDragTarget dragTarget = new ConstraintDragTarget();
       result.add(dragTarget);
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.TOP));
+      result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.BOTTOM));
       result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
       result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
       result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));

@@ -305,57 +305,57 @@ public class DisplayList {
     myCommands.add(cmd);
   }
 
-  public UNClip addClip(SceneContext transform, @AndroidDpCoordinate Rectangle r) {
-    int l = transform.getSwingX(r.x);
-    int t = transform.getSwingY(r.y);
-    int w = transform.getSwingDimension(r.width);
-    int h = transform.getSwingDimension(r.height);
+  public UNClip addClip(SceneContext context, @AndroidDpCoordinate Rectangle r) {
+    int l = context.getSwingX(r.x);
+    int t = context.getSwingY(r.y);
+    int w = context.getSwingDimension(r.width);
+    int h = context.getSwingDimension(r.height);
     Clip c = new Clip(l, t, w, h);
     myCommands.add(c);
     return new UNClip(c);
   }
 
-  public void addRect(SceneContext transform, @AndroidDpCoordinate Rectangle r, Color color) {
-    int l = transform.getSwingX(r.x);
-    int t = transform.getSwingY(r.y);
-    int w = transform.getSwingDimension(r.width);
-    int h = transform.getSwingDimension(r.height);
+  public void addRect(SceneContext context, @AndroidDpCoordinate Rectangle r, Color color) {
+    int l = context.getSwingX(r.x);
+    int t = context.getSwingY(r.y);
+    int w = context.getSwingDimension(r.width);
+    int h = context.getSwingDimension(r.height);
     myCommands.add(new Rect(l, t, w, h, color));
   }
 
-  public void addRect(SceneContext transform,
+  public void addRect(SceneContext context,
                       @AndroidDpCoordinate float left,
                       @AndroidDpCoordinate float top,
                       @AndroidDpCoordinate float right,
                       @AndroidDpCoordinate float bottom,
                       Color color) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
-    int h = transform.getSwingDimension(bottom - top);
+    int l = context.getSwingX(left);
+    int t = context.getSwingY(top);
+    int w = context.getSwingDimension(right - left);
+    int h = context.getSwingDimension(bottom - top);
     add(new Rect(l, t, w, h, color));
   }
 
-  public void addConnection(SceneContext transform,
+  public void addConnection(SceneContext context,
                             @AndroidDpCoordinate float x1,
                             @AndroidDpCoordinate float y1,
                             @AndroidDpCoordinate float x2,
                             @AndroidDpCoordinate float y2,
                             int direction) {
-    int sx1 = transform.getSwingX(x1);
-    int sy1 = transform.getSwingY(y1);
-    int sx2 = transform.getSwingX(x2);
-    int sy2 = transform.getSwingY(y2);
+    int sx1 = context.getSwingX(x1);
+    int sy1 = context.getSwingY(y1);
+    int sx2 = context.getSwingX(x2);
+    int sy2 = context.getSwingY(y2);
     add(new Connection(sx1, sy1, sx2, sy2, direction));
   }
 
-  public void addLine(SceneContext transform,
+  public void addLine(SceneContext context,
                       @AndroidDpCoordinate float x1,
                       @AndroidDpCoordinate float y1,
                       @AndroidDpCoordinate float x2,
                       @AndroidDpCoordinate float y2,
                       Color color) {
-    add(new Line(transform, x1, y1, x2, y2, color));
+    add(new Line(context, x1, y1, x2, y2, color));
   }
 
   /////////////////////////////////////////////////////////////////////////////
