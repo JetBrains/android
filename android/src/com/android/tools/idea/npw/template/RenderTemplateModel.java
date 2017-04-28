@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.Template;
@@ -48,6 +49,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final String myCommandName;
   @NotNull private final OptionalProperty<Project> myProject;
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
+  @NotNull private final ObjectProperty<Language> myLanguageSet = new ObjectValueProperty<>(Language.JAVA);
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
   @NotNull private final BoolProperty myInstantApp;
@@ -105,6 +107,11 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull
   public ObjectProperty<AndroidSourceSet> getSourceSet() {
     return mySourceSet;
+  }
+
+  @NotNull
+  public ObjectProperty<Language> getLanguageSet() {
+    return myLanguageSet;
   }
 
   /**
