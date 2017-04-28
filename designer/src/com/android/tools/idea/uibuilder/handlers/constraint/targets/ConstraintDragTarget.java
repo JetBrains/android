@@ -36,6 +36,8 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
   @AndroidDpCoordinate protected int myOffsetX;
   @AndroidDpCoordinate protected int myOffsetY;
 
+  @AndroidDpCoordinate private final static int ourSnapMarginDistance = 4; // snap on 4dp
+
   private final ChainChecker myChainChecker = new ChainChecker();
 
   @Nullable
@@ -288,6 +290,7 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
 
   private void applyMargin(AttributesTransaction attributes, String attribute, @AndroidDpCoordinate int currentValue) {
     currentValue = Math.max(0, currentValue);
+    currentValue = ((int) (currentValue / ourSnapMarginDistance)) * ourSnapMarginDistance; // snap
     String marginString = myComponent.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
