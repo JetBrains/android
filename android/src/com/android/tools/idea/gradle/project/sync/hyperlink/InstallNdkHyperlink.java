@@ -44,6 +44,7 @@ import java.util.Map;
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class InstallNdkHyperlink extends NotificationHyperlink {
   private static final String ERROR_TITLE = "Gradle Sync Error";
@@ -61,7 +62,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
       dialog.setModal(true);
       if (dialog.showAndGet() && setNdkPath(project, dialog.getAndroidNdkPath())) {
         // Saving NDK path is successful.
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
       }
       return;
     }
@@ -80,7 +81,7 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
         if (ndkPackage != null) {
           ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(ndkPackage.getPath()));
           if (dialog != null && dialog.showAndGet()) {
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
           }
           return;
         }

@@ -90,6 +90,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
@@ -301,7 +302,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
     }
   }
 
@@ -793,7 +794,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       myConfigurables.remove(configurable);
       mySidePanel.reset();
 
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
     }
 
     @NotNull
