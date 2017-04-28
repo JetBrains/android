@@ -444,7 +444,7 @@ public class LintIdeProject extends Project {
     @Override
     public List<File> getJavaSourceFolders() {
       if (javaSourceFolders == null) {
-        VirtualFile[] sourceRoots = ModuleRootManager.getInstance(myModule).getSourceRoots(includeTests());
+        VirtualFile[] sourceRoots = ModuleRootManager.getInstance(myModule).getSourceRoots(false);
         List<File> dirs = new ArrayList<>(sourceRoots.length);
         com.intellij.openapi.project.Project project = myModule.getProject();
         for (VirtualFile root : sourceRoots) {
@@ -468,11 +468,9 @@ public class LintIdeProject extends Project {
         List<File> dirs = new ArrayList<>(sourceRoots.length);
         com.intellij.openapi.project.Project project = myModule.getProject();
         for (VirtualFile root : sourceRoots) {
-          if (!GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(root, project)) {
-            // Skip generated sources
-            continue;
+          if (GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(root, project)) {
+            dirs.add(VfsUtilCore.virtualToIoFile(root));
           }
-          dirs.add(VfsUtilCore.virtualToIoFile(root));
         }
         generatedSourceFolders = dirs;
       }
@@ -487,9 +485,14 @@ public class LintIdeProject extends Project {
         ModuleRootManager manager = ModuleRootManager.getInstance(myModule);
         VirtualFile[] sourceRoots = manager.getSourceRoots(false);
         VirtualFile[] sourceAndTestRoots = manager.getSourceRoots(true);
+        com.intellij.openapi.project.Project project = myModule.getProject();
         List<File> dirs = new ArrayList<>(sourceAndTestRoots.length);
         for (VirtualFile root : sourceAndTestRoots) {
           if (!ArrayUtil.contains(root, sourceRoots)) {
+            if (GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(root, project)) {
+              // Skip generated sources
+              continue;
+            }
             dirs.add(VfsUtilCore.virtualToIoFile(root));
           }
         }
