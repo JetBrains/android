@@ -46,15 +46,18 @@ public class WizardUtils {
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
   private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
 
+  public static final boolean KOTLIN_ENABLED = true;
+
   @Deprecated
   public enum Feature {
-    GALLERY, IMPORT_MODULE, NEW_MODULE, NEW_PROJECT
+    GALLERY, IMPORT_MODULE, NEW_MODULE, NEW_PROJECT, KOTLIN
   }
 
   // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
   @Deprecated
   public static boolean isNpwModelWizardEnabled(@NotNull Feature feature) {
-    return feature == Feature.NEW_PROJECT || feature == Feature.GALLERY || feature == Feature.IMPORT_MODULE;
+    return feature == Feature.NEW_PROJECT || feature == Feature.GALLERY || feature == Feature.IMPORT_MODULE
+           || (KOTLIN_ENABLED && feature == Feature.KOTLIN);
   }
 
   // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
