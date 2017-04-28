@@ -59,7 +59,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @Nullable
     @Override
     public Icon getIcon() {
-      return AndroidIcons.ModuleTemplates.Android;
+      return AndroidIcons.ModuleTemplates.FeatureModule;
     }
 
     @NotNull
@@ -118,7 +118,7 @@ public class NewInstantAppModuleDescriptionProvider implements ModuleDescription
     @Nullable
     @Override
     public Icon getIcon() {
-      return AndroidIcons.ModuleTemplates.Android;
+      return AndroidIcons.ModuleTemplates.InstantAppModule;
     }
 
     @NotNull
