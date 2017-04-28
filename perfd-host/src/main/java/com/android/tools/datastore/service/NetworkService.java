@@ -113,6 +113,8 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
       case RESPONSE_BODY:
         response.setResponseBody(storedResponse.getResponseBody());
         break;
+      case ACCESSING_THREADS:
+        response.setAccessingThreads(storedResponse.getAccessingThreads());
     }
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();

@@ -161,7 +161,7 @@ public class HttpDataTest {
     HttpData.Builder builder = new HttpData.Builder(id, startTime, endTime, downloadTime);
     builder.setResponseFields("status line =  HTTP/1.1 302 Found \n").setMethod("method")
       .setResponsePayloadId("payloadId").setTrace(trace).setUrl("url");
-    builder.setJavaThread(new HttpData.JavaThread(1, "myThread"));
+    builder.addJavaThread(new HttpData.JavaThread(1, "myThread"));
     HttpData data = builder.build();
 
     assertThat(data.getId(), equalTo(id));
@@ -174,8 +174,8 @@ public class HttpDataTest {
     assertThat(data.getResponsePayloadId(), equalTo("payloadId"));
     assertThat(data.getStackTrace().getTrace(), equalTo(trace));
     assertThat(data.getUrl(), equalTo("url"));
-    assertThat(data.getJavaThread().getId(), equalTo(1L));
-    assertThat(data.getJavaThread().getName(), equalTo("myThread"));
+    assertThat(data.getJavaThreads().get(0).getId(), equalTo(1L));
+    assertThat(data.getJavaThreads().get(0).getName(), equalTo("myThread"));
   }
 
   @Test

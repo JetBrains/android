@@ -16,7 +16,6 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
-import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import org.junit.After;
@@ -28,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 public class NetworkTableTest {
@@ -79,7 +79,12 @@ public class NetworkTableTest {
         .setRequest(NetworkProfiler.HttpDetailsResponse.Request.newBuilder()
                       .setUrl("TestUrl"))
         .build();
-      myTable.insertOrReplace(PROCESS_ID, VALID_SESSION, requestData, null, null, data);
+      NetworkProfiler.HttpDetailsResponse threadsData = NetworkProfiler.HttpDetailsResponse.newBuilder()
+        .setAccessingThreads(NetworkProfiler.HttpDetailsResponse.AccessingThreads.newBuilder()
+                               .addThread(NetworkProfiler.JavaThread.newBuilder().setId(0).setName("threadA"))
+                               .addThread(NetworkProfiler.JavaThread.newBuilder().setId(1).setName("threadB")))
+        .build();
+      myTable.insertOrReplace(PROCESS_ID, VALID_SESSION, requestData, null, null, threadsData, data);
     }
   }
 
@@ -98,6 +103,23 @@ public class NetworkTableTest {
   @Test
   public void testGetHttpDetailsInvalidSession() throws Exception {
     NetworkProfiler.HttpDetailsResponse response = myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
+    assertNull(response);
+  }
+
+  @Test
+  public void testGetHttpDetailsAccessingThreads() throws Exception {
+    NetworkProfiler.HttpDetailsResponse response = myTable.getHttpDetailsResponseById(VALID_CONN_ID, VALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
+    assertEquals(2, response.getAccessingThreads().getThreadCount());
+    assertEquals(0, response.getAccessingThreads().getThread(0).getId());
+    assertEquals("threadA", response.getAccessingThreads().getThread(0).getName());
+    assertEquals(1, response.getAccessingThreads().getThread(1).getId());
+    assertEquals("threadB", response.getAccessingThreads().getThread(1).getName());
+
+  }
+
+  @Test
+  public void testGetHttpDetailsAccessingThreadsInvalidSession() throws Exception {
+    NetworkProfiler.HttpDetailsResponse response = myTable.getHttpDetailsResponseById(VALID_CONN_ID, INVALID_SESSION, NetworkProfiler.HttpDetailsRequest.Type.ACCESSING_THREADS);
     assertNull(response);
   }
 
