@@ -60,8 +60,7 @@ public class EspressoRecorderTest extends TestWithEmulator {
    *   </pre>
    * <p>
    */
-  @Ignore("https://code.google.com/p/android/issues/detail?id=290375")
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA_UNRELIABLE) // https://b/37150124
   @Test
   public void addDependencyOnFly() throws Exception {
     guiTest.importSimpleApplication();
