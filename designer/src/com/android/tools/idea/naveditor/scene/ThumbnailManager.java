@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.scene;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -35,13 +36,14 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * Creates and caches preview images of screens in the nav editor.
- *
- * TODO: redraw when layouts change
  */
 public class ThumbnailManager extends AndroidFacetScopedService {
   private static final Key<ThumbnailManager> KEY = Key.create(ThumbnailManager.class.getName());
 
-  private Table<XmlFile, Configuration, ImagePool.Image> myImages = HashBasedTable.create();
+  private final Table<XmlFile, Configuration, ImagePool.Image> myImages = HashBasedTable.create();
+  private final Table<XmlFile, Configuration, Long> myRenderVersions = HashBasedTable.create();
+  private final Table<XmlFile, Configuration, Long> myRenderModStamps = HashBasedTable.create();
+  private final AppResourceRepository myResourceRepository;
 
   @NotNull
   public static ThumbnailManager getInstance(@NotNull AndroidFacet facet) {
@@ -60,13 +62,18 @@ public class ThumbnailManager extends AndroidFacetScopedService {
 
   protected ThumbnailManager(@NotNull AndroidFacet facet) {
     super(facet);
+    myResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
   }
 
   @Nullable
   public CompletableFuture<ImagePool.Image> getThumbnail(@NotNull XmlFile file, @NotNull DesignSurface surface,
                                                          @NotNull Configuration configuration) {
     ImagePool.Image cached = myImages.get(file, configuration);
-    if (cached != null) {
+    long version = myResourceRepository.getModificationCount();
+    long modStamp = file.getModificationStamp();
+    if (cached != null
+        && myRenderVersions.get(file, configuration) == version
+        && myRenderModStamps.get(file, configuration) == file.getModificationStamp()) {
       return CompletableFuture.completedFuture(cached);
     }
 
@@ -80,6 +87,8 @@ public class ThumbnailManager extends AndroidFacetScopedService {
         try {
           ImagePool.Image image = renderResult.get().getRenderedImage();
           myImages.put(file, configuration, image);
+          myRenderVersions.put(file, configuration, version);
+          myRenderModStamps.put(file, configuration, modStamp);
           result.complete(image);
         }
         catch (InterruptedException | ExecutionException e) {
@@ -93,11 +102,16 @@ public class ThumbnailManager extends AndroidFacetScopedService {
     return result;
   }
 
+  @Nullable
   protected RenderTask createTask(@NotNull XmlFile file,
                                   @NotNull DesignSurface surface,
                                   @NotNull Configuration configuration,
                                   RenderService renderService, RenderLogger logger) {
-    return renderService.createTask(file, configuration, logger, surface);
+    RenderTask task = renderService.createTask(file, configuration, logger, surface);
+    if (task != null) {
+      task.setDecorations(false);
+    }
+    return task;
   }
 
   @Override

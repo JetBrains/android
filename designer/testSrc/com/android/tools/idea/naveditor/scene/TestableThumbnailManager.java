@@ -46,6 +46,7 @@ public class TestableThumbnailManager extends ThumbnailManager {
     ThumbnailManager.setInstance(getFacet(), myPreviousManager);
   }
 
+  @Nullable
   @Override
   protected RenderTask createTask(@NotNull XmlFile file,
                                   @NotNull DesignSurface surface,
@@ -53,7 +54,9 @@ public class TestableThumbnailManager extends ThumbnailManager {
                                   RenderService renderService,
                                   RenderLogger logger) {
     RenderTask task = super.createTask(file, surface, configuration, renderService, logger);
-    task.disableSecurityManager();
+    if (task != null) {
+      task.disableSecurityManager();
+    }
     return task;
   }
 }
