@@ -115,7 +115,7 @@ public class ScoutArrange {
             setScoutHorizontalBiasPercent(widget.mNlComponent, .5f);
           }
           else {
-            setScoutAbsoluteDpX(widget.mNlComponent, x + (eastDistance - westDistance) / 2);
+            setScoutAbsoluteDpX(widget.mNlComponent, x + (eastDistance - westDistance) / 2, true);
           }
         }
       }
@@ -153,7 +153,7 @@ public class ScoutArrange {
             setScoutVerticalBiasPercent(widget.mNlComponent, .5f);
           }
           else {
-            setScoutAbsoluteDpY(widget.mNlComponent, Y + (southDistance - northDistance) / 2);
+            setScoutAbsoluteDpY(widget.mNlComponent, Y + (southDistance - northDistance) / 2, true);
           }
         }
       }
@@ -162,7 +162,7 @@ public class ScoutArrange {
         for (ScoutWidget widget : scoutWidgets) {
           int parentWidth = parentScoutWidget.getDpWidth();
           int width = widget.getDpWidth();
-          setScoutAbsoluteDpX(widget.mNlComponent, (parentWidth - width) / 2);
+          setScoutAbsoluteDpX(widget.mNlComponent, (parentWidth - width) / 2, true);
           if (applyConstraints) {
             scoutConnect(widget.mNlComponent, Direction.LEFT, parentScoutWidget.mNlComponent, Direction.LEFT, 0);
             scoutConnect(widget.mNlComponent, Direction.RIGHT, parentScoutWidget.mNlComponent, Direction.RIGHT, 0);
@@ -175,7 +175,7 @@ public class ScoutArrange {
         for (ScoutWidget widget : scoutWidgets) {
           int parentHeight = parentScoutWidget.getDpHeight();
           int height = widget.getDpHeight();
-          setScoutAbsoluteDpY(widget.mNlComponent, (parentHeight - height) / 2);
+          setScoutAbsoluteDpY(widget.mNlComponent, (parentHeight - height) / 2, true);
           if (applyConstraints) {
             scoutConnect(widget.mNlComponent, Direction.TOP, parentScoutWidget.mNlComponent, Direction.TOP, 0);
             scoutConnect(widget.mNlComponent, Direction.BOTTOM, parentScoutWidget.mNlComponent, Direction.BOTTOM, 0);
@@ -197,7 +197,7 @@ public class ScoutArrange {
         NlComponent previousWidget = null;
         for (ScoutWidget widget : scoutWidgets) {
           float current = widget.getDpWidth() / 2.0f;
-          setScoutAbsoluteDpX(widget.mNlComponent, (int)(avg - current));
+          setScoutAbsoluteDpX(widget.mNlComponent, (int)(avg - current), true);
           if (applyConstraints) {
             if (previousWidget != null) {
               scoutConnect(widget.mNlComponent, Direction.LEFT, previousWidget, Direction.LEFT, 0);
@@ -218,7 +218,7 @@ public class ScoutArrange {
         }
         NlComponent previousWidget = null;
         for (ScoutWidget widget : scoutWidgets) {
-          setScoutAbsoluteDpX(widget.mNlComponent, min);
+          setScoutAbsoluteDpX(widget.mNlComponent, min, true);
           if (applyConstraints) {
             if (previousWidget != null) {
               scoutClearAttributes(widget.mNlComponent, ourRightAttributes);
@@ -241,7 +241,7 @@ public class ScoutArrange {
         NlComponent previousWidget = null;
         for (ScoutWidget widget : scoutWidgets) {
           float current = widget.getDpWidth();
-          setScoutAbsoluteDpX(widget.mNlComponent, (int)(max - current));
+          setScoutAbsoluteDpX(widget.mNlComponent, (int)(max - current), true);
           if (applyConstraints) {
             if (previousWidget != null) {
               scoutClearAttributes(widget.mNlComponent, ourLeftAttributes);
@@ -263,7 +263,7 @@ public class ScoutArrange {
         }
         NlComponent previousWidget = null;
         for (ScoutWidget widget : scoutWidgets) {
-          setScoutAbsoluteDpY(widget.mNlComponent, min);
+          setScoutAbsoluteDpY(widget.mNlComponent, min, true);
           if (applyConstraints) {
             if (previousWidget != null) {
               scoutClearAttributes(widget.mNlComponent, ourBottomAttributes);
@@ -286,7 +286,7 @@ public class ScoutArrange {
         NlComponent previousWidget = null;
         for (ScoutWidget widget : scoutWidgets) {
           float current = widget.getDpHeight() / 2.0f;
-          setScoutAbsoluteDpY(widget.mNlComponent, (int)(avg - current));
+          setScoutAbsoluteDpY(widget.mNlComponent, (int)(avg - current), true);
           if (applyConstraints) {
             if (previousWidget != null) {
               scoutConnect(widget.mNlComponent, Direction.TOP, previousWidget, Direction.TOP, 0);
@@ -322,7 +322,7 @@ public class ScoutArrange {
         if (!applyConstraints || number_of_constrained == 0) {
           for (ScoutWidget widget : scoutWidgets) {
             float baseline = widget.getDpBaseline();
-            setScoutAbsoluteDpY(widget.mNlComponent, (int)(avg - baseline));
+            setScoutAbsoluteDpY(widget.mNlComponent, (int)(avg - baseline), true);
             if (applyConstraints) {
               if (previousWidget != null) {
                 scoutConnect(widget.mNlComponent, Direction.BASELINE, previousWidget,
@@ -386,7 +386,7 @@ public class ScoutArrange {
         NlComponent previousWidget = null;
         for (ScoutWidget widget : scoutWidgets) {
           float current = widget.getDpHeight();
-          setScoutAbsoluteDpY(widget.mNlComponent, (int)(max - current));
+          setScoutAbsoluteDpY(widget.mNlComponent, (int)(max - current), true);
           if (applyConstraints) {
             if (previousWidget != null) {
               scoutClearAttributes(widget.mNlComponent, ourTopAttributes);
@@ -422,7 +422,7 @@ public class ScoutArrange {
             int size = scoutWidgets[i - 1].getDpHeight();
             min += size;
             int pos = min + (totalGap * i) / gaps;
-            setScoutAbsoluteDpY(scoutWidgets[i].mNlComponent, pos);
+            setScoutAbsoluteDpY(scoutWidgets[i].mNlComponent, pos, true);
             if (applyConstraints) {
               if (reverse) {
                 scoutConnect(scoutWidgets[i - 1].mNlComponent, Direction.BOTTOM, scoutWidgets[i].mNlComponent,
@@ -463,7 +463,7 @@ public class ScoutArrange {
             int size = scoutWidgets[i - 1].getDpWidth();
             min += size;
             int pos = min + (totalGap * i) / gaps;
-            setScoutAbsoluteDpX(scoutWidgets[i].mNlComponent, pos);
+            setScoutAbsoluteDpX(scoutWidgets[i].mNlComponent, pos, true);
             if (applyConstraints) {
               if (reverse) {
                 scoutConnect(scoutWidgets[i - 1].mNlComponent, Direction.RIGHT, scoutWidgets[i].mNlComponent,
@@ -537,11 +537,11 @@ public class ScoutArrange {
       }
       break;
       case ExpandVertically: {
-        expandVertically(scoutWidgets, parentScoutWidget, margin);
+        expandVertically(scoutWidgets, parentScoutWidget, margin, true);
       }
       break;
       case ExpandHorizontally: {
-        expandHorizontally(scoutWidgets, parentScoutWidget, margin);
+        expandHorizontally(scoutWidgets, parentScoutWidget, margin, true);
       }
       break;
     }
@@ -553,11 +553,11 @@ public class ScoutArrange {
 
   /**
    * Expands widgets vertically in an evenly spaced manner
-   *
-   * @param widgetList
+   *  @param widgetList
    * @param margin
+   * @param apply
    */
-  private static void expandVertically(ScoutWidget[] list, ScoutWidget parent, int margin) {
+  public static void expandVertically(ScoutWidget[] list, ScoutWidget parent, int margin, boolean apply) {
 
     ScoutWidget[] pears = ScoutWidget.create(parent.mNlComponent.getChildren(), parent);
 
@@ -594,9 +594,11 @@ public class ScoutArrange {
       for (int i = 0; i < colArray.length; i++) {
         int y = margin * i + (i * (totalHeight)) / colArray.length;
         ScoutWidget constraintWidget = colArray[i];
-        setScoutAbsoluteDpY(constraintWidget.mNlComponent, y + clip.y + margin);
+        setScoutAbsoluteDpY(constraintWidget.mNlComponent, y + clip.y + margin, apply);
         int yend = margin * i + (totalHeight * (i + 1)) / colArray.length;
-        setScoutAbsoluteDpHeight(constraintWidget.mNlComponent, yend - y);
+        setScoutAbsoluteDpHeight(constraintWidget.mNlComponent, yend - y, apply);
+        constraintWidget.setY(y + clip.y + margin);
+        constraintWidget.setHeight(yend - y);
       }
     }
   }
@@ -604,11 +606,11 @@ public class ScoutArrange {
 
   /**
    * Expands widgets horizontally in an evenly spaced manner
-   *
-   * @param widgetList
+   *  @param widgetList
    * @param margin
+   * @param apply
    */
-  public static void expandHorizontally(ScoutWidget[] list, ScoutWidget parent, int margin) {
+  public static void expandHorizontally(ScoutWidget[] list, ScoutWidget parent, int margin, boolean apply) {
     ScoutWidget[] pears = ScoutWidget.create(parent.mNlComponent.getChildren(), parent);
     Rectangle selectBounds = getBoundingBox(list);
 
@@ -643,10 +645,12 @@ public class ScoutArrange {
       for (int i = 0; i < rowArray.length; i++) {
         int x = margin * i + (i * (totalWidth)) / rowArray.length;
         ScoutWidget constraintWidget = rowArray[i];
-        setScoutAbsoluteDpX(constraintWidget.mNlComponent, x + clip.x + margin);
+        setScoutAbsoluteDpX(constraintWidget.mNlComponent, x + clip.x + margin, apply);
         int xend = margin * i + (totalWidth * (i + 1)) / rowArray.length;
 
-        setScoutAbsoluteDpWidth(constraintWidget.mNlComponent, xend - x);
+        setScoutAbsoluteDpWidth(constraintWidget.mNlComponent, xend - x, apply);
+        constraintWidget.setX(x + clip.x + margin);
+        constraintWidget.setWidth(xend - x);
       }
     }
   }

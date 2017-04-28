@@ -313,19 +313,19 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   public void setDpX(@AndroidDpCoordinate int value) {
-    ConstraintComponentUtilities.setScoutAbsoluteDpX(mNlComponent, value);
+    ConstraintComponentUtilities.setScoutAbsoluteDpX(mNlComponent, value, true);
   }
 
   public void setDpY(@AndroidDpCoordinate int value) {
-    ConstraintComponentUtilities.setScoutAbsoluteDpY(mNlComponent, value);
+    ConstraintComponentUtilities.setScoutAbsoluteDpY(mNlComponent, value, true);
   }
 
   public void setDpHeight(@AndroidDpCoordinate int value) {
-    ConstraintComponentUtilities.setScoutAbsoluteDpHeight(mNlComponent, value);
+    ConstraintComponentUtilities.setScoutAbsoluteDpHeight(mNlComponent, value, true);
   }
 
   public void setDpWidth(@AndroidDpCoordinate int value) {
-    ConstraintComponentUtilities.setScoutAbsoluteDpWidth(mNlComponent, value);
+    ConstraintComponentUtilities.setScoutAbsoluteDpWidth(mNlComponent, value, true);
   }
 
   public void setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour behaviour) {
@@ -1234,12 +1234,12 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
   public void setWidth(int width) {
     setDpWidth(width);
-    mWidth = getDpWidth();
+    mWidth = width;
   }
 
   public void setHeight(int height) {
     setDpHeight(height);
-    mHeight = getDpHeight();
+    mHeight = height;
   }
 
   /**
