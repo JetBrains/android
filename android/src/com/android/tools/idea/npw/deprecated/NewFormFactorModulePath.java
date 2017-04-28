@@ -317,7 +317,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
         if (baseFeature == null) {
           baseModuleRoot = new File(projectRoot, moduleName);
           baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
-          templateState.put(ATTR_IS_BASE_SPLIT, true);
+          templateState.put(ATTR_IS_BASE_FEATURE, true);
         }
         else {
           AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
@@ -328,9 +328,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
           baseModuleResourceRoot = resDirectories.iterator().next();
         }
 
-        templateState.put(ATTR_BASE_LIB_NAME, baseModuleRoot.getName());
-        templateState.put(ATTR_BASE_LIB_DIR, baseModuleRoot.getPath());
-        templateState.put(ATTR_BASE_LIB_RES_DIR, baseModuleResourceRoot.getPath());
+        templateState.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
+        templateState.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
+        templateState.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
         templateState.put(ATTR_HAS_MONOLITHIC_APP_WRAPPER, false);
         templateState.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
       }

@@ -100,10 +100,10 @@ public class TemplateMetadata {
   public static final String ATTR_HAS_MONOLITHIC_APP_WRAPPER = "hasMonolithicAppWrapper";
   public static final String ATTR_INSTANT_APP_PACKAGE_NAME = "instantAppPackageName";
   public static final String ATTR_COMPANY_DOMAIN = "companyDomain";
-  public static final String ATTR_IS_BASE_SPLIT = "isBaseSplit";
-  public static final String ATTR_BASE_LIB_NAME = "baseLibName";
-  public static final String ATTR_BASE_LIB_DIR = "baseLibDir";
-  public static final String ATTR_BASE_LIB_RES_DIR = "baseLibResDir";
+  public static final String ATTR_IS_BASE_FEATURE = "isBaseFeature";
+  public static final String ATTR_BASE_FEATURE_NAME = "baseFeatureName";
+  public static final String ATTR_BASE_FEATURE_DIR = "baseFeatureDir";
+  public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";
   public static final String ATTR_CLASS_NAME = "className";
   public static final String ATTR_MAKE_IGNORE = "makeIgnore";
 

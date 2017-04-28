@@ -19,7 +19,7 @@ android {
     compileSdkVersion 24
     buildToolsVersion "25.0.0"
 
-    baseSplit true
+    baseFeature true
 
     defaultConfig {
         minSdkVersion 16
@@ -28,8 +28,8 @@ android {
 }
 
 dependencies {
-    featureSplit project(':feature:feature1')
-    featureSplit project(':feature:feature2')
+    feature project(':feature:feature1')
+    feature project(':feature:feature2')
 
     compile("com.android.support:appcompat-v7:+")
 }
