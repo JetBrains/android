@@ -67,7 +67,10 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public int getLevel() {
-     return TARGET_LEVEL;
+    if (myMode == OVER) {
+      return TARGET_OVER_LEVEL;
+    }
+    return TARGET_LEVEL;
   }
 
   @Override
