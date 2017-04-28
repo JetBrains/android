@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.*;
@@ -86,8 +85,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull private transient AndroidModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
-  @Nullable private transient CountDownLatch myCopyAndroidProjectLatch;
-  @Nullable private AndroidProject myCopyAndroidProject;
   @NotNull private String mySelectedVariantName;
 
   private transient VirtualFile myRootDir;
@@ -127,22 +124,15 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    myAndroidProject = androidProject;
-
+    try {
+      myAndroidProject = new IdeAndroidProject(androidProject);
+    }
+    catch (RuntimeException e) {
+      Logger.getInstance(getClass()).warn("Failed to copy Android model", e);
+      myAndroidProject = androidProject;
+    }
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
-
-    // Create a copy of the project to avoid calling its methods during every serialization operation and also schedule it to run
-    // asynchronously to avoid blocking the project sync operation for copy to complete.
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      myCopyAndroidProjectLatch = new CountDownLatch(1);
-      try {
-        //myCopyAndroidProject = new IdeAndroidProject(myAndroidProject);
-        //myCopyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
-      } finally {
-        myCopyAndroidProjectLatch.countDown();
-      }
-    });
 
     populateBuildTypesByName();
     populateProductFlavorsByName();
@@ -574,41 +564,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return myAndroidProject;
   }
 
-  /**
-   * A copy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same copy object is
-   * also used to visualize the model information in {@link InternalAndroidModelView}.
-   *
-   * <p>If the copy operation is still going on, this method will be blocked until that is completed.
-   *
-   * @return the copy object of the imported Android-Gradle project.
-   * @see IdeAndroidProject
-   */
-  @NotNull
-  public AndroidProject waitForAndGetCopyAndroidProject() {
-    waitForAndGetCopyAndroidProject();
-
-    assert myCopyAndroidProject != null;
-    return myCopyAndroidProject;
-  }
-
-  /**
-   * A copy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same copy object is
-   * also used to visualize the model information in {@link InternalAndroidModelView}.
-   *
-   * <p>This method will return immediately if the copy operation is already completed, or will be blocked until that is completed.
-   */
-  public void waitForCopyAndroidProject() {
-    if (myCopyAndroidProjectLatch != null) {
-      try {
-        myCopyAndroidProjectLatch.await();
-      }
-      catch (InterruptedException e) {
-        getLogger().error(e);
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
-
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(AndroidModuleModel.class);
@@ -912,10 +867,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
-
-    waitForCopyAndroidProject();
-    out.writeObject(myCopyAndroidProject);
-
+    out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
   }
 
@@ -924,7 +876,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (AndroidProject)in.readObject();
-    myCopyAndroidProject = myAndroidProject;
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
