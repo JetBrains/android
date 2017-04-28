@@ -80,7 +80,8 @@ public class SceneSelectionTest extends SceneTest {
     myInteraction.mouseDown(0, 0);
     myInteraction.mouseRelease(10, 10);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(0, componentList.size());
+    assertEquals(1, componentList.size()); // will select root
+    assertEquals(myScene.getSceneComponent("root").getNlComponent(), componentList.get(0));
     myInteraction.mouseDown(80, 190);
     myInteraction.mouseRelease(110, 210);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
@@ -89,7 +90,8 @@ public class SceneSelectionTest extends SceneTest {
     myInteraction.mouseDown(0, 0);
     myInteraction.mouseRelease(10, 10);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(0, componentList.size());
+    assertEquals(1, componentList.size());
+    assertEquals(myScene.getSceneComponent("root").getNlComponent(), componentList.get(0));
     myInteraction.mouseDown(80, 190);
     myInteraction.mouseRelease(110, 510);
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
