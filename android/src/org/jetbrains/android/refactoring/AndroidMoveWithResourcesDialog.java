@@ -22,13 +22,12 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.refactoring.ui.RefactoringDialog;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,8 +65,11 @@ public class AndroidMoveWithResourcesDialog extends RefactoringDialog {
     // Only offer modules that have an Android facet, otherwise we don't know where to move resources.
     List<Module> suitableModules = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      if (AndroidFacet.getInstance(module) != null) {
-        suitableModules.add(module);
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !facet.getAllResourceDirectories().isEmpty()) {
+          suitableModules.add(module);
+        }
       }
     }
 
