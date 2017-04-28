@@ -102,7 +102,7 @@ public class NewInstantAppModuleTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Instant Application")
+      .chooseModuleType("Instant App")
       .clickNext() // Selected App
       .clickFinish();
 
