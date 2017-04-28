@@ -562,6 +562,8 @@ public class AndroidIcons {
     public static final Icon Android = load("/icons/module_templates/android_module.png"); // 512x512
     public static final Icon EclipseModule = load("/icons/module_templates/eclipse_module.png"); // 512x512
     public static final Icon GradleModule = load("/icons/module_templates/gradle_module.png"); // 512x512
+    public static final Icon FeatureModule = load("/icons/module_templates/feature_module.png"); // 512x512
+    public static final Icon InstantAppModule = load("/icons/module_templates/instant_app_module.png"); // 512x512
   }
 
   public static class ToolWindows {

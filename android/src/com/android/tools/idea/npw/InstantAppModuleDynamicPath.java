@@ -42,7 +42,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  */
 public class InstantAppModuleDynamicPath extends DynamicWizardPath implements NewModuleDynamicPath {
   public static final String JAVA_LIBRARY = "Instant Application";
-  private static final ScopedStateStore.Key<String> PACKAGE_NAME = ScopedStateStore.createKey(ATTR_PACKAGE_NAME, ScopedStateStore.Scope.PATH, String.class);
+  private static final ScopedStateStore.Key<String> PACKAGE_NAME =
+    ScopedStateStore.createKey(ATTR_PACKAGE_NAME, ScopedStateStore.Scope.PATH, String.class);
 
   @NotNull private final Disposable myDisposable;
   private final TemplateMetadata myMetadata;
@@ -58,7 +59,7 @@ public class InstantAppModuleDynamicPath extends DynamicWizardPath implements Ne
     File templateFile = instance.getTemplateFile(Template.CATEGORY_APPLICATION, JAVA_LIBRARY);
     assert templateFile != null;
     myTemplate = Template.createFromPath(templateFile);
-    myModuleTemplate = new CreateModuleTemplate(myMetadata, null, myMetadata.getTitle(), AndroidIcons.ModuleTemplates.Android);
+    myModuleTemplate = new CreateModuleTemplate(myMetadata, null, myMetadata.getTitle(), AndroidIcons.ModuleTemplates.InstantAppModule);
   }
 
   @Override
