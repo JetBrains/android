@@ -93,14 +93,13 @@ public class LassoTarget extends BaseTarget {
     myOriginY = y;
     myLastX = x;
     myLastY = y;
-    myShowRect = true;
-    myComponent.getScene().needsRebuildList();
   }
 
   @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myLastX = x;
     myLastY = y;
+    myShowRect = true;
     myComponent.getScene().needsRebuildList();
   }
 
@@ -116,7 +115,6 @@ public class LassoTarget extends BaseTarget {
    * @param components
    */
   public void fillSelectedComponents(ArrayList<SceneComponent> components) {
-    components.clear();
     int count = myComponent.getChildCount();
     float x1 = Math.min(myOriginX, myLastX);
     float x2 = Math.max(myOriginX, myLastX);
@@ -125,6 +123,7 @@ public class LassoTarget extends BaseTarget {
     if ((int) (x2 - x1) == 0 && (int) (y2 - y1) == 0) {
       return;
     }
+    components.clear();
     Rectangle bounds = new Rectangle((int) x1, (int) y1, (int) (x2 - x1), (int) (y2 - y1));
     for (int i = 0; i < count; i++) {
       SceneComponent component = myComponent.getChild(i);
