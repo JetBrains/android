@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink.setBuildToolsVersion;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class InstallBuildToolsHyperlink extends NotificationHyperlink {
   @NotNull private final String myVersion;
@@ -64,7 +65,8 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
         setBuildToolsVersion(project, myBuildFile, myVersion, true);
       }
       else {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+        // TODO Change for plugin changed trigger if created
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
       }
     }
   }

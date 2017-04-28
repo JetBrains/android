@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 
@@ -155,7 +156,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
 
-      createActionLabel("Sync Now", () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null));
+      createActionLabel("Sync Now", () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST));
     }
   }
 
@@ -163,7 +164,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
 
-      createActionLabel("Try Again", () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null));
+      createActionLabel("Try Again", () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST));
 
       createActionLabel("Open 'Messages' View",
                         () -> ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC));

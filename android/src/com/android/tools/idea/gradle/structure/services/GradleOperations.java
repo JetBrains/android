@@ -38,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 public class GradleOperations implements DeveloperServiceBuildSystemOperations {
   @Override
   public boolean canHandle(@NotNull Project project) {
@@ -132,7 +134,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
           }
         }.execute();
       }
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
     }
   }
 

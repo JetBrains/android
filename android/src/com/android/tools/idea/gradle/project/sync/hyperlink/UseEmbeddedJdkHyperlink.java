@@ -24,6 +24,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
   @Nullable
   public static UseEmbeddedJdkHyperlink create() {
@@ -40,6 +42,6 @@ public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setUseEmbeddedJdk());
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
   }
 }
