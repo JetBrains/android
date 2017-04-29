@@ -61,13 +61,13 @@ public class FontFamilyParserTest extends UsefulTestCase {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    android:fontProviderAuthority=\"com.google.android.gms.fonts.provider.fontprovider\"\n" +
+                 "    android:fontProviderAuthority=\"com.google.android.gms.fonts\"\n" +
                  "    android:fontProviderQuery=\"Aladin\">\n" +
                  "</font-family>\n";
     QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(createXmlFile(xml));
     assertThat(result).isInstanceOf(QueryParser.DownloadableParseResult.class);
     QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
-    assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts.provider.fontprovider");
+    assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
     Multimap<String, FontDetail.Builder> fonts = downloadableResult.getFonts();
     assertThat(fonts.keys()).containsExactly("Aladin");
@@ -83,13 +83,13 @@ public class FontFamilyParserTest extends UsefulTestCase {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    android:fontProviderAuthority=\"com.google.android.gms.fonts.provider.fontprovider\"\n" +
+                 "    android:fontProviderAuthority=\"com.google.android.gms.fonts\"\n" +
                  "    android:fontProviderQuery=\"name=Aladin&amp;weight=800&amp;width=70&amp;italic=1\">\n" +
                  "</font-family>\n";
     QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(createXmlFile(xml));
     assertThat(result).isInstanceOf(QueryParser.DownloadableParseResult.class);
     QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
-    assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts.provider.fontprovider");
+    assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
     Multimap<String, FontDetail.Builder> fonts = downloadableResult.getFonts();
     assertThat(fonts.keys()).containsExactly("Aladin");
@@ -105,13 +105,13 @@ public class FontFamilyParserTest extends UsefulTestCase {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "    android:fontProviderAuthority=\"com.google.android.gms.fonts.provider.fontprovider\"\n" +
+                 "    android:fontProviderAuthority=\"com.google.android.gms.fonts\"\n" +
                  "    android:fontProviderQuery=\"Roboto:r,700i|Aladin:800:wdth70.0\">\n" +
                  "</font-family>\n";
     QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(createXmlFile(xml));
     assertThat(result).isInstanceOf(QueryParser.DownloadableParseResult.class);
     QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
-    assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts.provider.fontprovider");
+    assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
     Multimap<String, FontDetail.Builder> fonts = downloadableResult.getFonts();
     assertThat(fonts.keys()).containsExactly("Aladin", "Roboto", "Roboto");
