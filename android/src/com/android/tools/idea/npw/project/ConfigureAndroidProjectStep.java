@@ -60,6 +60,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
   private JTextField myCompanyDomain;
   private LabelWithEditButton myPackageName;
   private JCheckBox myCppSupportCheck;
+  private JCheckBox myKotlinSupportCheck;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModel model) {
     super(model, "Create Android Project");
@@ -82,6 +83,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myBindings.bindTwoWay(new TextProperty(myAppName), model.applicationName());
     myBindings.bindTwoWay(new TextProperty(myCompanyDomain), model.companyDomain());
     myBindings.bindTwoWay(new SelectedProperty(myCppSupportCheck), model.enableCppSupport());
+
+    myKotlinSupportCheck.setVisible(com.android.tools.idea.npw.WizardUtils.KOTLIN_ENABLED);
+    myBindings.bindTwoWay(new SelectedProperty(myKotlinSupportCheck), model.enableKotlinSupport());
 
     myProjectLocation.addActionListener(event -> {
       String finalPath = browseForFile(locationText.get());

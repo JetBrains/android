@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -68,6 +69,9 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.tools.idea.npw.WizardUtils.Feature;
+import static com.android.tools.idea.npw.WizardUtils.KOTLIN_ENABLED;
+import static com.android.tools.idea.npw.WizardUtils.isNpwModelWizardEnabled;
 import static com.android.tools.idea.npw.project.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
@@ -182,12 +186,13 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     resetPanel();
 
     final TemplateHandle templateHandle = getModel().getTemplateHandle();
+    final TemplateMetadata templateMetadata = templateHandle.getMetadata();
 
     ApplicationManager.getApplication().invokeLater(() -> {
       // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
       // width calculation gets involved and can really stretch out some wizards if the label is
       // particularly long (see Master/Detail Activity for example).
-      myTemplateDescriptionLabel.setText(WizardUtils.toHtmlString(Strings.nullToEmpty(templateHandle.getMetadata().getDescription())));
+      myTemplateDescriptionLabel.setText(WizardUtils.toHtmlString(Strings.nullToEmpty(templateMetadata.getDescription())));
     }, ModalityState.any());
 
     final IconProperty thumb = new IconProperty(myTemplateThumbLabel);
@@ -218,8 +223,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     });
 
     Module module = myFacet == null ? null : myFacet.getModule();
-    final Collection<Parameter> parameters = templateHandle.getMetadata().getParameters();
-    for (final Parameter parameter : parameters) {
+    for (final Parameter parameter : templateMetadata.getParameters()) {
       RowEntry row = createRowForParameter(module, parameter);
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
@@ -263,27 +267,23 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       sourceSet.addListener(sender -> enqueueEvaluateParameters());
     }
 
+    if (KOTLIN_ENABLED) {
+      // For Templates with an Android FormFactor or that have a class/package name, we allow the user to select the programming language
+      if (templateMetadata.getFormFactor() != null || templateMetadata.getParameter(ATTR_CLASS_NAME) != null ||
+          templateMetadata.getParameter(ATTR_PACKAGE_NAME) != null) {
+        RowEntry row = new RowEntry<>("Source Language", new LanguageSetComboProvider());
+        if (isNpwModelWizardEnabled(Feature.KOTLIN)) {
+          row.addToPanel(myParametersPanel);
+        }
+
+        SelectedItemProperty<Language> languageSet = (SelectedItemProperty<Language>)row.getProperty();
+        assert languageSet != null; // LanguageSetComboProvider always sets this
+        myBindings.bind(getModel().getLanguageSet(), new OptionalToValuePropertyAdapter<>(languageSet));
+      }
+    }
+
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
-    // TODO: This code won't be needed until we migrate this enough to support
-    // NewAndroidApplication/template.xml and NewAndroidLibrary/template.xml
-    // Add it in then. Probably we can add an optional validator API to ComponentProvider? Then we
-    // could move this code into EnumComboProvider and it won't be a hack anymore.
-    //
-    // if (value instanceof ApiComboBoxItem) {
-    //  ApiComboBoxItem selectedItem = (ApiComboBoxItem)value;
-    //
-    //  if (minApi != null && selectedItem.minApi > minApi.getFeatureLevel()) {
-    //    setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d",
-    //                               selectedItem.label, param.name, selectedItem.minApi));
-    //    return false;
-    //  }
-    //  if (buildApi != null && selectedItem.minBuildApi > buildApi) {
-    //    setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d",
-    //                               selectedItem.label, param.name, selectedItem.minBuildApi));
-    //    return false;
-    //  }
-    //}
     evaluateParameters();
   }
 
@@ -573,6 +573,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
+    templateValues.put(ATTR_LANGUAGE, getModel().getLanguageSet().get());
     templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
     if (isNewModule()) {
       templateValues.put(ATTR_IS_LAUNCHER, true);
