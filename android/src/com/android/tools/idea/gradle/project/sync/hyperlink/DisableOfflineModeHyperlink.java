@@ -21,6 +21,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 public class DisableOfflineModeHyperlink extends NotificationHyperlink {
   public DisableOfflineModeHyperlink() {
     super("disable.gradle.offline.mode", "Disable offline mode and sync project");
@@ -29,6 +31,6 @@ public class DisableOfflineModeHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(false);
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
   }
 }
