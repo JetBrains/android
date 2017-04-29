@@ -156,7 +156,7 @@ public class ResizeHandle {
             case RIGHT_BOTTOM:
                 return false;
         }
-        throw new IllegalStateException(mType.name());
+        throw new AssertionError(mType.name());
     }
 
     /**
