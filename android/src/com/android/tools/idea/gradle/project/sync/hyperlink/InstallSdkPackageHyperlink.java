@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+
 /**
  * A {@link NotificationHyperlink} that offers the user to install the SDK package that Gradle decided to be required but missing.
  */
@@ -39,7 +41,7 @@ public class InstallSdkPackageHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, Collections.singletonList(myPackageId));
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
     }
   }
 }

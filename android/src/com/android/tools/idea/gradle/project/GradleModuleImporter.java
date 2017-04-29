@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Predicates.*;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -294,7 +295,8 @@ public final class GradleModuleImporter extends ModuleImporter {
       }
       gradleSettingsFile.addModule(name, targetFile);
     }
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false).setTrigger(
+      TRIGGER_PROJECT_MODIFIED);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
   }
 
