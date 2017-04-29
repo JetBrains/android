@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.JavaArtifact;
 import com.android.ide.common.repository.GradleVersion;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,18 +34,7 @@ public final class IdeJavaArtifact extends IdeBaseArtifact implements JavaArtifa
 
   public IdeJavaArtifact(@NotNull JavaArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
     super(artifact, seen, gradleVersion);
-    myMockablePlatformJar = getMockablePlatformJar(artifact);
-  }
-
-  @Nullable
-  private static File getMockablePlatformJar(@NotNull JavaArtifact artifact) {
-    try {
-      return artifact.getMockablePlatformJar();
-    }
-    catch (UnsupportedMethodException e) {
-      // Older model.
-      return null;
-    }
+    myMockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar, null);
   }
 
   @Override
