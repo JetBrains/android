@@ -248,6 +248,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         AndroidIcons.SherpaIcons.VerticalCenter,
                         AndroidIcons.SherpaIcons.VerticalCenterB,
                         "Center Vertically"),
+        new AlignAction(Scout.Arrange.CreateHorizontalChain,
+                        AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                        AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                        "Create Horizontal Chain"),
+        new AlignAction(Scout.Arrange.CreateVerticalChain,
+                        AndroidIcons.SherpaIcons.CreateVerticalChain,
+                        AndroidIcons.SherpaIcons.CreateVerticalChain,
+                        "Create Vertical Chain"),
         new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
                         AndroidIcons.SherpaIcons.HorizontalCenterParent,
                         AndroidIcons.SherpaIcons.HorizontalCenterParentB,
@@ -359,6 +367,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     str = "Center Vertically";
     actions.add(action = new AlignAction(Scout.Arrange.CenterVertically,
                                          AndroidIcons.SherpaIcons.VerticalCenter, AndroidIcons.SherpaIcons.VerticalCenterB, str));
+    myPopupActions.add(action);
+
+    str = "Create Horizontal Chain";
+    actions.add(action = new AlignAction(Scout.Arrange.CreateHorizontalChain,
+                                         AndroidIcons.SherpaIcons.CreateHorizontalChain, AndroidIcons.SherpaIcons.CreateHorizontalChain, str));
+    myPopupActions.add(action);
+
+    str = "Create Vertical Chain";
+    actions.add(action = new AlignAction(Scout.Arrange.CreateVerticalChain,
+                                         AndroidIcons.SherpaIcons.CreateVerticalChain, AndroidIcons.SherpaIcons.CreateVerticalChain, str));
     myPopupActions.add(action);
 
     str = "Center Horizontally in Parent";
@@ -995,6 +1013,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         case VerticalPack:
         case HorizontalPack:
         case AlignBaseline:
+        case CreateHorizontalChain:
+        case CreateVerticalChain:
           return count > 1;
         case ExpandVertically:
         case ExpandHorizontally:

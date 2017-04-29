@@ -55,7 +55,6 @@ public class ScoutArrange {
       case AlignHorizontallyCenter:
       case AlignHorizontallyLeft:
       case AlignHorizontallyRight:
-
         Arrays.sort(scoutWidgets, sSortRecY);
         if (rootDistance(scoutWidgets[0].mNlComponent) > rootDistance(scoutWidgets[scoutWidgets.length - 1].mNlComponent)) {
           reverse(scoutWidgets);
@@ -80,6 +79,94 @@ public class ScoutArrange {
     }
 
     switch (type) {
+      case CreateHorizontalChain: {
+        Arrays.sort(scoutWidgets, sSortRecX);
+        Rectangle rectangle = new Rectangle();
+        NlComponent parent = parentScoutWidget.mNlComponent;
+        ScoutWidget[] peers = ScoutWidget.create(parent.getChildren(), parentScoutWidget);
+        ScoutWidget leftConnect = null;
+        for (int i = 0; i < scoutWidgets.length; i++) {
+          ScoutWidget widget = scoutWidgets[i];
+          ScoutWidget rightConnect;
+          if (i + 1 < scoutWidgets.length) {
+            rightConnect = scoutWidgets[i + 1];
+          }
+          else {
+            rectangle.x = widget.getDpX();
+            rectangle.y = widget.getDpY();
+            rectangle.width = widget.getDpWidth();
+            rectangle.height = widget.getDpHeight();
+            rightConnect = gapWidget(Direction.RIGHT, rectangle, peers, parentScoutWidget);
+          }
+          if (leftConnect == null) {
+            rectangle.x = widget.getDpX();
+            rectangle.y = widget.getDpY();
+            rectangle.width = widget.getDpWidth();
+            rectangle.height = widget.getDpHeight();
+            leftConnect = gapWidget(Direction.LEFT, rectangle, peers, parentScoutWidget);
+          }
+          else {
+            leftConnect = scoutWidgets[i - 1];
+          }
+
+          Direction dir = Direction.RIGHT;
+          if (leftConnect == parentScoutWidget) {
+            dir = Direction.LEFT;
+          }
+          scoutConnect(widget.mNlComponent, Direction.LEFT, leftConnect.mNlComponent, dir, 0);
+          dir = Direction.LEFT;
+          if (rightConnect == parentScoutWidget) {
+            dir = Direction.RIGHT;
+          }
+          scoutConnect(widget.mNlComponent, Direction.RIGHT, rightConnect.mNlComponent, dir, 0);
+          setScoutHorizontalBiasPercent(widget.mNlComponent, .5f);
+        }
+      }
+      break;
+      case CreateVerticalChain: {
+        Arrays.sort(scoutWidgets, sSortRecY);
+        Rectangle rectangle = new Rectangle();
+        NlComponent parent = parentScoutWidget.mNlComponent;
+        ScoutWidget[] peers = ScoutWidget.create(parent.getChildren(), parentScoutWidget);
+        ScoutWidget topConnect = null;
+        for (int i = 0; i < scoutWidgets.length; i++) {
+          ScoutWidget widget = scoutWidgets[i];
+          ScoutWidget bottomConnect;
+          if (i + 1 < scoutWidgets.length) {
+            bottomConnect = scoutWidgets[i + 1];
+          }
+          else {
+            rectangle.x = widget.getDpX();
+            rectangle.y = widget.getDpY();
+            rectangle.width = widget.getDpWidth();
+            rectangle.height = widget.getDpHeight();
+            bottomConnect = gapWidget(Direction.BOTTOM, rectangle, peers, parentScoutWidget);
+          }
+          if (topConnect == null) {
+            rectangle.x = widget.getDpX();
+            rectangle.y = widget.getDpY();
+            rectangle.width = widget.getDpWidth();
+            rectangle.height = widget.getDpHeight();
+            topConnect = gapWidget(Direction.TOP, rectangle, peers, parentScoutWidget);
+          }
+          else {
+            topConnect = scoutWidgets[i - 1];
+          }
+
+          Direction dir = Direction.BOTTOM;
+          if (topConnect == parentScoutWidget) {
+            dir = Direction.TOP;
+          }
+          scoutConnect(widget.mNlComponent, Direction.TOP, topConnect.mNlComponent, dir, 0);
+          dir = Direction.TOP;
+          if (bottomConnect == parentScoutWidget) {
+            dir = Direction.BOTTOM;
+          }
+          scoutConnect(widget.mNlComponent, Direction.BOTTOM, bottomConnect.mNlComponent, dir, 0);
+          setScoutHorizontalBiasPercent(widget.mNlComponent, .5f);
+        }
+    }
+        break;
       case CenterHorizontally: {
         Rectangle rectangle = new Rectangle();
         NlComponent parent = parentScoutWidget.mNlComponent;
