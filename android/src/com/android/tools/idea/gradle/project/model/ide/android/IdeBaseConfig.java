@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseConfig;
 import com.android.builder.model.ClassField;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,28 +47,8 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
     myConsumerProguardFiles = new ArrayList<>(config.getConsumerProguardFiles());
     myManifestPlaceholders = new HashMap<>(config.getManifestPlaceholders());
     myApplicationIdSuffix = config.getApplicationIdSuffix();
-    myVersionNameSuffix = getVersionNameSuffix(config);
-    myMultiDexEnabled = getMultiDexEnabled(config);
-  }
-
-  @Nullable
-  private static String getVersionNameSuffix(@NotNull BaseConfig config) {
-    try {
-      return config.getVersionNameSuffix();
-    }
-    catch (UnsupportedMethodException e) {
-      return null;
-    }
-  }
-
-  @Nullable
-  private static Boolean getMultiDexEnabled(@NotNull BaseConfig config) {
-    try {
-      return config.getMultiDexEnabled();
-    }
-    catch (UnsupportedMethodException e) {
-      return null;
-    }
+    myVersionNameSuffix = copyNewProperty(config::getVersionNameSuffix, null);
+    myMultiDexEnabled = copyNewProperty(config::getMultiDexEnabled, null);
   }
 
   @Override

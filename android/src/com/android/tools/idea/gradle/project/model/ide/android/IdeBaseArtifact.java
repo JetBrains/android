@@ -54,7 +54,7 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
     myCompileTaskName = artifact.getCompileTaskName();
     myAssembleTaskName = artifact.getAssembleTaskName();
     myClassesFolder = artifact.getClassesFolder();
-    myJavaResourcesFolder = getJavaResourcesFolder(artifact);
+    myJavaResourcesFolder = copyNewProperty(artifact::getJavaResourcesFolder, null);
     myDependencies = copy(artifact.getDependencies(), modelCache, modelVersion);
     //noinspection deprecation
     myCompileDependencies = copy(artifact.getCompileDependencies(), modelCache, modelVersion);
@@ -73,16 +73,6 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
     myMultiFlavorSourceProvider = createSourceProvider(modelCache, artifact.getMultiFlavorSourceProvider());
   }
 
-  @Nullable
-  private static File getJavaResourcesFolder(@NotNull BaseArtifact artifact) {
-    try {
-      return artifact.getJavaResourcesFolder();
-    }
-    catch (UnsupportedMethodException e) {
-      return null;
-    }
-  }
-
   @NotNull
   private static IdeDependencies copy(@NotNull Dependencies original, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
     return modelCache.computeIfAbsent(original, dependencies -> new IdeDependencies(dependencies, modelCache, modelVersion));
@@ -94,17 +84,11 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
       // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
       return new HashSet<>(artifact.getIdeSetupTaskNames());
     }
-    catch (NoSuchMethodError e) {
+    catch (NoSuchMethodError | UnsupportedMethodException e) {
       if (artifact instanceof AndroidArtifact) {
         return Collections.singleton(((AndroidArtifact)artifact).getSourceGenTaskName());
       }
     }
-    catch (UnsupportedMethodException e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Collections.singleton(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-
     return Collections.emptySet();
   }
 

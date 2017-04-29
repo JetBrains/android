@@ -17,11 +17,14 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 import static com.intellij.openapi.util.io.FileUtil.fileHashCode;
@@ -37,9 +40,9 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
   @NotNull private final Collection<String> myFilterTypes;
   @NotNull private final Collection<FilterData> myFilters;
   @NotNull private final File myOutputFile;
-  @NotNull private final OutputFile myMainOutputFile;
   @NotNull private final Collection<? extends OutputFile> myOutputs;
-  private final int myVersionCode;
+  @Nullable private final OutputFile myMainOutputFile;
+  @Nullable final Integer myVersionCode;
 
   public IdeOutputFile(@NotNull OutputFile file, @NotNull ModelCache modelCache) {
     super(file, modelCache);
@@ -47,10 +50,22 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
     myFilterTypes = new ArrayList<>(file.getFilterTypes());
     myFilters = copy(file.getFilters(), modelCache, data -> new IdeFilterData(data, modelCache));
     myOutputFile = file.getOutputFile();
-    myMainOutputFile = modelCache.computeIfAbsent(file.getMainOutputFile(), outputFile -> new IdeOutputFile(outputFile, modelCache));
+    myMainOutputFile = copyNewProperty(modelCache, file::getMainOutputFile, outputFile -> new IdeOutputFile(outputFile, modelCache), null);
     //noinspection deprecation
-    myOutputs = copy(file.getOutputs(), modelCache, outputFile -> new IdeOutputFile(outputFile, modelCache));
-    myVersionCode = file.getVersionCode();
+    myOutputs = copyOutputs(file, modelCache);
+    myVersionCode = copyNewProperty(file::getVersionCode, null);
+  }
+
+  @NotNull
+  private static Collection<? extends OutputFile> copyOutputs(@NotNull OutputFile file, @NotNull ModelCache modelCache) {
+    try {
+      //noinspection deprecation
+      Collection<? extends OutputFile> key = file.getOutputs();
+      return copy(key, modelCache, outputFile -> new IdeOutputFile(outputFile, modelCache));
+    }
+    catch (UnsupportedMethodException ignored) {
+      return Collections.emptyList();
+    }
   }
 
   @Override
@@ -80,7 +95,10 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
   @Override
   @NotNull
   public OutputFile getMainOutputFile() {
-    return myMainOutputFile;
+    if (myMainOutputFile != null) {
+      return myMainOutputFile;
+    }
+    throw new UnsupportedMethodException("getMainOutputFile()");
   }
 
   @Override
@@ -91,7 +109,10 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
 
   @Override
   public int getVersionCode() {
-    return myVersionCode;
+    if (myVersionCode != null) {
+      return myVersionCode;
+    }
+    throw new UnsupportedMethodException("getVersionCode");
   }
 
   @Override
@@ -104,7 +125,7 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
     }
 
     IdeOutputFile file = (IdeOutputFile)o;
-    return myVersionCode == file.myVersionCode &&
+    return Objects.equals(myVersionCode, file.myVersionCode) &&
            Objects.equals(myOutputType, file.myOutputType) &&
            Objects.equals(myFilterTypes, file.myFilterTypes) &&
            Objects.equals(myFilters, file.myFilters) &&
@@ -115,7 +136,7 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
 
   private boolean mainOutputFileEquals(@NotNull IdeOutputFile file) {
     // Avoid stack overflow.
-    return myMainOutputFile == this ? file.myMainOutputFile == file : myMainOutputFile.equals(file.myMainOutputFile);
+    return myMainOutputFile == this ? file.myMainOutputFile == file : Objects.equals(myMainOutputFile, file.myMainOutputFile);
   }
 
   @Override
@@ -126,7 +147,7 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
     result = 31 * result + fileHashCode(myOutputFile);
     result = 31 * result + hashCode(myMainOutputFile);
     result = 31 * result + hashCode(myOutputs);
-    result = 31 * result + myVersionCode;
+    result = 31 * result + Objects.hashCode(myVersionCode);
     return result;
   }
 
@@ -138,7 +159,7 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
     return hashCode;
   }
 
-  private int hashCode(@NotNull OutputFile outputFile) {
+  private int hashCode(@Nullable OutputFile outputFile) {
     return outputFile != this ? Objects.hashCode(outputFile) : 1;
   }
 

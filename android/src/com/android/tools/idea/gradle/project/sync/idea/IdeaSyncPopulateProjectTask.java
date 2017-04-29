@@ -70,10 +70,8 @@ public class IdeaSyncPopulateProjectTask {
     myDataManager = dataManager;
   }
 
-  public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
-                              @Nullable PostSyncProjectSetup.Request setupRequest,
-                              boolean allowModuleSelection) {
-    populateProject(projectInfo, setupRequest, null, allowModuleSelection);
+  public void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
+    populateProject(projectInfo, null, null, false);
   }
 
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,

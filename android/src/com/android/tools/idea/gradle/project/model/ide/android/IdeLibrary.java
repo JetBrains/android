@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.Library;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,30 +37,9 @@ public abstract class IdeLibrary extends IdeModel implements Library {
     super(library, modelCache);
     myResolvedCoordinates = modelCache.computeIfAbsent(library.getResolvedCoordinates(),
                                                        coordinates -> new IdeMavenCoordinates(coordinates, modelCache));
-    myProject = getProject(library);
-    myName = getName(library);
+    myProject = copyNewProperty(library::getProject, null);
+    myName = copyNewProperty(library::getName, null); // Library.getName() was added in 2.2
     myProvided = library.isProvided();
-  }
-
-  @Nullable
-  private static String getName(@NotNull Library library) {
-    try {
-      // Library.getName() was added in 2.2
-      return library.getName();
-    }
-    catch (UnsupportedMethodException e) {
-      return null;
-    }
-  }
-
-  @Nullable
-  private static String getProject(@NotNull Library library) {
-    try {
-      return library.getProject();
-    }
-    catch (UnsupportedMethodException e) {
-      return null;
-    }
   }
 
   @Override

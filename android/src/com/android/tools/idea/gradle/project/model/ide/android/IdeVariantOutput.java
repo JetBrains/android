@@ -18,10 +18,13 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.build.VariantOutput;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -31,28 +34,41 @@ public abstract class IdeVariantOutput extends IdeModel implements VariantOutput
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
-  @NotNull private final OutputFile myMainOutputFile;
   @NotNull private final Collection<? extends OutputFile> myOutputs;
-  @NotNull private final String myOutputType;
   @NotNull private final Collection<String> myFilterTypes;
   @NotNull private final Collection<FilterData> myFilters;
+  @Nullable private final OutputFile myMainOutputFile;
+  @Nullable private final String myOutputType;
   private final int myVersionCode;
 
   public IdeVariantOutput(@NotNull VariantOutput output, @NotNull ModelCache modelCache) {
     super(output, modelCache);
-    myMainOutputFile = modelCache.computeIfAbsent(output.getMainOutputFile(), outputFile -> new IdeOutputFile(outputFile, modelCache));
     //noinspection deprecation
     myOutputs = copy(output.getOutputs(), modelCache, outputFile -> new IdeOutputFile(outputFile, modelCache));
-    myOutputType = output.getOutputType();
-    myFilterTypes = new ArrayList<>(output.getFilterTypes());
-    myFilters = copy(output.getFilters(), modelCache, data -> new IdeFilterData(data, modelCache));
+    myFilterTypes = copyNewProperty(() -> new ArrayList<>(output.getFilterTypes()), Collections.emptyList());
+    myFilters = copyFilters(output, modelCache);
+    myMainOutputFile = copyNewProperty(modelCache, output::getMainOutputFile, file -> new IdeOutputFile(file, modelCache), null);
+    myOutputType = copyNewProperty(output::getOutputType, null);
     myVersionCode = output.getVersionCode();
+  }
+
+  @NotNull
+  private static Collection<FilterData> copyFilters(@NotNull VariantOutput output, @NotNull ModelCache modelCache) {
+    try {
+      return copy(output.getFilters(), modelCache, data -> new IdeFilterData(data, modelCache));
+    }
+    catch (UnsupportedMethodException ignored) {
+      return Collections.emptyList();
+    }
   }
 
   @Override
   @NotNull
   public OutputFile getMainOutputFile() {
-    return myMainOutputFile;
+    if (myMainOutputFile != null) {
+      return myMainOutputFile;
+    }
+    throw new UnsupportedMethodException("getMainOutputFile()");
   }
 
   @Override
@@ -64,7 +80,10 @@ public abstract class IdeVariantOutput extends IdeModel implements VariantOutput
   @Override
   @NotNull
   public String getOutputType() {
-    return myOutputType;
+    if (myOutputType != null) {
+      return myOutputType;
+    }
+    throw new UnsupportedMethodException("getOutputType");
   }
 
   @Override

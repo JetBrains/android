@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidArtifactOutput;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +31,7 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
   private static final long serialVersionUID = 1L;
 
   @NotNull private final File myGeneratedManifest;
-  @NotNull private final File myOutputFile;
+  @Nullable private final File myOutputFile;
   @Nullable private final String myAssembleTaskName;
 
   public IdeAndroidArtifactOutput(@NotNull AndroidArtifactOutput output, @NotNull ModelCache modelCache) {
@@ -45,7 +46,7 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
     }
     myAssembleTaskName = assembleTaskName;
     myGeneratedManifest = output.getGeneratedManifest();
-    myOutputFile = output.getOutputFile();
+    myOutputFile = copyNewProperty(output::getOutputFile, null);
   }
 
   @Override
@@ -66,7 +67,10 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
   @Override
   @NotNull
   public File getOutputFile() {
-    return myOutputFile;
+    if (myOutputFile != null) {
+      return myOutputFile;
+    }
+    throw new UnsupportedMethodException("getOutputFile");
   }
 
   @Override
