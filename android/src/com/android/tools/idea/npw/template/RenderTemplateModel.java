@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.npw.template;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.Template;
@@ -33,12 +36,23 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.DOT_KT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
 
 /**
  * A model responsible for instantiating a FreeMarker {@link Template} into the current project
@@ -48,6 +62,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final String myCommandName;
   @NotNull private final OptionalProperty<Project> myProject;
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
+  @NotNull private final ObjectProperty<Language> myLanguageSet = new ObjectValueProperty<>(Language.JAVA);
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
   @NotNull private final BoolProperty myInstantApp;
@@ -105,6 +120,11 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull
   public ObjectProperty<AndroidSourceSet> getSourceSet() {
     return mySourceSet;
+  }
+
+  @NotNull
+  public ObjectProperty<Language> getLanguageSet() {
+    return myLanguageSet;
   }
 
   /**
@@ -190,8 +210,36 @@ public final class RenderTemplateModel extends WizardModel {
       }.execute().getResultObject();
 
       if (success) {
-        // calling smartInvokeLater will make sure that files are open only when the project is ready
-        DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
+        Language language = getLanguageSet().get();
+        final ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
+
+        if (WizardUtils.KOTLIN_ENABLED &&
+            (language == Language.KOTLIN ||
+             (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false))) {
+
+          final ConvertJavaToKotlinProvider provider =
+            providers.length == 0 ? new ConvertJavaToKotlinDefaultImpl() : providers[0];
+
+          DumbService.getInstance(project).smartInvokeLater(() -> {
+
+            provider.configureKotlin(project);
+
+            convertJavaFilesToKotlin(provider, project, filesToReformat);
+            // replace .java w/ .kt files
+            for (int i = 0; i < filesToOpen.size(); i++) {
+              File file = filesToOpen.get(i);
+              if (file.getName().endsWith(DOT_JAVA)) {
+                File ktFile = new File(file.getParent(), file.getName().replace(DOT_JAVA, DOT_KT));
+                filesToOpen.set(i, ktFile);
+              }
+            }
+            TemplateUtils.openEditors(project, filesToOpen, true);
+          });
+        }
+        else {
+          // calling smartInvokeLater will make sure that files are open only when the project is ready
+          DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
+        }
       }
     }
 
@@ -219,5 +267,33 @@ public final class RenderTemplateModel extends WizardModel {
     // @formatter:on
       return template.render(context);
     }
+  }
+
+  private List<PsiFile> convertJavaFilesToKotlin(@NonNull ConvertJavaToKotlinProvider provider,
+                                                 @NonNull Project project,
+                                                 @NonNull List<File> files) {
+    List<PsiJavaFile> psiJavaFiles = files2PsiJavaFiles(project, files);
+    if (!psiJavaFiles.isEmpty()) {
+      return provider.convertToKotlin(project, psiJavaFiles);
+    }
+    return Collections.emptyList();
+  }
+
+  private List<PsiJavaFile> files2PsiJavaFiles(Project project, List<File> files) {
+    LocalFileSystem localFileSystem = LocalFileSystem.getInstance();
+    List<PsiJavaFile> psiJavaFiles = Lists.newArrayListWithExpectedSize(files.size());
+    PsiManager psiManager = PsiManager.getInstance(project);
+
+    for (File file : files) {
+      VirtualFile virtualFile = localFileSystem.findFileByIoFile(file);
+      if (virtualFile == null) {
+        continue;
+      }
+      PsiFile psiFile = psiManager.findFile(virtualFile);
+      if (psiFile instanceof PsiJavaFile) {
+        psiJavaFiles.add((PsiJavaFile)psiFile);
+      }
+    }
+    return psiJavaFiles;
   }
 }

@@ -107,6 +107,9 @@ public class TemplateMetadata {
   public static final String ATTR_CLASS_NAME = "className";
   public static final String ATTR_MAKE_IGNORE = "makeIgnore";
 
+  public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";
+  public static final String ATTR_LANGUAGE = "language"; // Java vs Kotlin
+
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";
 

@@ -1189,6 +1189,8 @@
                     area="IDEA_PROJECT"/>
     <extensionPoint qualifiedName="org.jetbrains.android.androidLintQuickFixProvider"
                     interface="org.jetbrains.android.inspections.lint.AndroidLintQuickFixProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.npw.template.convertJavaToKotlinProvider"
+                    interface="com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">

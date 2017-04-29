@@ -86,6 +86,7 @@ public class NewProjectModel extends WizardModel {
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
   private final MultiTemplateRenderer myMultiTemplateRenderer = new MultiTemplateRenderer();
+  private final BoolProperty myEnableKotlinSupport = new BoolValueProperty();
 
   private static Logger getLogger() {
     return Logger.getInstance(NewProjectModel.class);
@@ -125,6 +126,10 @@ public class NewProjectModel extends WizardModel {
 
   public StringProperty cppFlags() {
     return myCppFlags;
+  }
+
+  public BoolProperty enableKotlinSupport() {
+    return myEnableKotlinSupport;
   }
 
   public OptionalProperty<Project> project() {
@@ -257,6 +262,7 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
       myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
+      myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
 
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
       for (NewModuleModel newModuleModel : getNewModuleModels()) {
