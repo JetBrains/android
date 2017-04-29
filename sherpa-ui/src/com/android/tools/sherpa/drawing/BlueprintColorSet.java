@@ -80,8 +80,8 @@ public class BlueprintColorSet extends ColorSet {
 
         mAnchorCircle = Color.white;
         mAnchorCreationCircle = Color.white;
-        mAnchorDisconnectionCircle = new Color(0xff467d);
-        mAnchorConnectionCircle = new Color(0x51ff96);
+        mAnchorDisconnectionCircle = new Color(0xE45245);
+        mAnchorConnectionCircle = new Color(0xE3F3FF);
 
         mSelectionColor = Color.white;
 
