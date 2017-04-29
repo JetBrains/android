@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -66,6 +67,8 @@ public class IdeaGradleSync implements GradleSync {
                       .setLastSyncTimestamp(syncData.getLastGradleSyncTimestamp());
           // @formatter:on
 
+          setSkipAndroidPluginUpgrade(request, setupRequest);
+
           ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, newProject, true /* select modules */, true);
           setUpTask.onSuccess(cache);
           return;
@@ -79,6 +82,7 @@ public class IdeaGradleSync implements GradleSync {
     setupRequest.setGenerateSourcesAfterSync(request.isGenerateSourcesOnSuccess())
                 .setCleanProjectAfterSync(request.isCleanProject());
     // @formatter:on
+    setSkipAndroidPluginUpgrade(request, setupRequest);
 
     String externalProjectPath = getBaseDirPath(myProject).getPath();
 
@@ -87,5 +91,15 @@ public class IdeaGradleSync implements GradleSync {
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
     refreshProject(myProject, GRADLE_SYSTEM_ID, externalProjectPath, setUpTask, false /* resolve dependencies */,
                    executionMode, true /* always report import errors */);
+  }
+
+  private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
+                                                  @NotNull PostSyncProjectSetup.Request setupRequest) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      if (syncRequest.isSkipAndroidPluginUpgrade()) {
+        //noinspection TestOnlyProblems
+        setupRequest.setSkipAndroidPluginUpgrade();
+      }
+    }
   }
 }

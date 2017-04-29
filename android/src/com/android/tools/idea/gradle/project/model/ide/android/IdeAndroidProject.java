@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +70,7 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
     myBuildToolsVersion = project.getBuildToolsVersion();
     mySyncIssues = copy(project.getSyncIssues(), modelCache, issue -> new IdeSyncIssue(issue, modelCache));
     myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariant(variant, modelCache, modelVersion));
-    myFlavorDimensions = getFlavorDimensions(project);
+    myFlavorDimensions = copyNewProperty(() -> new ArrayList<>(project.getFlavorDimensions()), Collections.emptyList());
     myCompileTarget = project.getCompileTarget();
     myBootClassPath = new ArrayList<>(project.getBootClasspath());
     myNativeToolchains = copy(project.getNativeToolchains(), modelCache, toolchain -> new IdeNativeToolchain(toolchain, modelCache));
@@ -88,17 +87,7 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
     myLibrary = project.isLibrary();
     myProjectType = getProjectType(project, modelVersion);
     myPluginGeneration = project.getPluginGeneration();
-    myBaseSplit = isBaseSplit(project);
-  }
-
-  @NotNull
-  private static Collection<String> getFlavorDimensions(@NotNull AndroidProject androidProject) {
-    try {
-      return new ArrayList<>(androidProject.getFlavorDimensions());
-    }
-    catch (UnsupportedMethodException e) {
-      return Collections.emptyList();
-    }
+    myBaseSplit = copyNewProperty(project::isBaseSplit, false);
   }
 
   private static int getProjectType(@NotNull AndroidProject project, @NotNull GradleVersion modelVersion) {
@@ -107,16 +96,6 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
     }
     //noinspection deprecation
     return project.isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
-  }
-
-  private static boolean isBaseSplit(@NotNull AndroidProject project) {
-    try {
-      return project.isBaseSplit();
-    }
-    catch (UnsupportedMethodException ignored) {
-      // Have an extra safety net.
-    }
-    return false;
   }
 
   @Override

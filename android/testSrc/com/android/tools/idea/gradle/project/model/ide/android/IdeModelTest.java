@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.google.common.collect.Sets;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,34 @@ public class IdeModelTest {
   @Before
   public void setUp() throws Exception {
     myModelCache = new ModelCache();
+  }
+
+  @Test
+  public void copyNewProperty() {
+    String copy = IdeModel.copyNewProperty(() -> "Hello", "Hi!");
+    assertEquals("Hello", copy);
+
+    copy = IdeModel.copyNewProperty(() -> {
+      throw new UnsupportedMethodException("Test");
+    }, "Hi!");
+    assertEquals("Hi!", copy);
+  }
+
+  @Test
+  public void copyNewPropertyWithModelCache() {
+    Object value = new Object();
+    myModelCache.getData().put("key", value);
+
+    Object copy = IdeModel.copyNewProperty(myModelCache, () -> "key", s -> new Object(), null);
+    // verify the copy comes from the cache.
+    assertSame(value, copy);
+
+    Object defaultValue = new Object();
+    copy = IdeModel.copyNewProperty(myModelCache, () -> {
+      throw new UnsupportedMethodException("Test");
+    }, (Function<String, Object>)s -> new Object(), defaultValue);
+    // verify the copy comes the default value.
+    assertSame(defaultValue, copy);
   }
 
   @Test

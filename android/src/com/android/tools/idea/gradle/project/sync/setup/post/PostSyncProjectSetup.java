@@ -59,6 +59,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 
@@ -162,7 +163,7 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    if (myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+    if (!request.isSkipAndroidPluginUpgrade() && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
       // Plugin version was upgraded and a sync was triggered.
       return;
     }
@@ -357,6 +358,7 @@ public class PostSyncProjectSetup {
     private boolean myUsingCachedGradleModels;
     private boolean myCleanProjectAfterSync;
     private boolean myGenerateSourcesAfterSync = true;
+    private boolean mySkipAndroidPluginUpgrade;
     private long myLastSyncTimestamp = -1L;
 
     public boolean isUsingCachedGradleModels() {
@@ -391,6 +393,15 @@ public class PostSyncProjectSetup {
 
     public long getLastSyncTimestamp() {
       return myLastSyncTimestamp;
+    }
+
+    public boolean isSkipAndroidPluginUpgrade() {
+      return mySkipAndroidPluginUpgrade;
+    }
+
+    @TestOnly
+    public void setSkipAndroidPluginUpgrade() {
+      mySkipAndroidPluginUpgrade = true;
     }
 
     @NotNull

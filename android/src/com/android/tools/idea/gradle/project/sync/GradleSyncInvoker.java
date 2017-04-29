@@ -47,6 +47,7 @@ import com.intellij.openapi.wm.ex.WindowManagerEx;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 
@@ -245,6 +246,7 @@ public class GradleSyncInvoker {
     private boolean myCleanProject;
     private boolean myUseCachedGradleModels;
     private boolean myNewProject;
+    private boolean mySkipAndroidPluginUpgrade;
 
     public boolean isRunInBackground() {
       return myRunInBackground;
@@ -271,8 +273,8 @@ public class GradleSyncInvoker {
     }
 
     @NotNull
-    public Request setCleanProject(boolean cleanProject) {
-      myCleanProject = cleanProject;
+    public Request setCleanProject() {
+      myCleanProject = true;
       return this;
     }
 
@@ -294,6 +296,16 @@ public class GradleSyncInvoker {
     public Request setNewProject(boolean newProject) {
       myNewProject = newProject;
       return this;
+    }
+
+    public boolean isSkipAndroidPluginUpgrade() {
+      return mySkipAndroidPluginUpgrade;
+    }
+
+    @TestOnly
+    public void setSkipAndroidPluginUpgrade() {
+      assert ApplicationManager.getApplication().isUnitTestMode();
+      mySkipAndroidPluginUpgrade = true;
     }
 
     @NotNull

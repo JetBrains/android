@@ -18,10 +18,14 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -43,6 +47,22 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     assertThat(cached).isInstanceOf(IdeAndroidProject.class);
 
     assertEquals(androidProject, cached);
+  }
+
+  public void testSyncWithGradle2Dot2() throws Exception {
+    loadSimpleApplication();
+    Project project = getProject();
+    updateGradleVersions(getBaseDirPath(project), "2.2.0");
+    GradleWrapper wrapper = GradleWrapper.find(project);
+    wrapper.updateDistributionUrl("3.5");
+
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setGenerateSourcesOnSuccess(false).setSkipAndroidPluginUpgrade();
+    requestSyncAndWait(request);
+
+    AndroidProject androidProject = getAndroidProjectInApp();
+    // Verify AndroidProject was copied.
+    assertThat(androidProject).isInstanceOf(IdeAndroidProject.class);
   }
 
   @Nullable
