@@ -130,6 +130,8 @@ public class WidgetInteractionTargets {
                 case CENTER: {
                     mConstraintHandles.add(mCenterAnchor);
                 } break;
+                case NONE:
+                    break;
             }
         }
         for (ConstraintHandle handle : mConstraintHandles) {

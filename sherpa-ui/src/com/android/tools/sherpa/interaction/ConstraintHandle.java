@@ -162,6 +162,8 @@ public class ConstraintHandle {
                 mY = y + widget.getBaselineDistance();
             }
             break;
+            case NONE:
+                break;
         }
     }
 
