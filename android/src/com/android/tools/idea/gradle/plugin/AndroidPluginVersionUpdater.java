@@ -107,7 +107,7 @@ public class AndroidPluginVersionUpdater {
       // Update successful. Sync project.
       mySyncState.syncEnded();
 
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject(true);
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject();
       mySyncInvoker.requestProjectSync(myProject, request, null);
     }
   }
@@ -153,15 +153,12 @@ public class AndroidPluginVersionUpdater {
     boolean updateModels = !modelsToUpdate.isEmpty();
     if (updateModels) {
       try {
-        runWriteCommandAction(myProject, new ThrowableComputable<Void, RuntimeException>() {
-          @Override
-          public Void compute() {
-            for (GradleBuildModel buildModel : modelsToUpdate) {
-              buildModel.applyChanges();
-            }
-            result.pluginVersionUpdated();
-            return null;
+        runWriteCommandAction(myProject, (ThrowableComputable<Void, RuntimeException>)() -> {
+          for (GradleBuildModel buildModel : modelsToUpdate) {
+            buildModel.applyChanges();
           }
+          result.pluginVersionUpdated();
+          return null;
         });
       }
       catch (Throwable e) {

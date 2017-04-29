@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
+import com.intellij.openapi.util.Computable;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +33,31 @@ public abstract class IdeModel implements Serializable {
     Object copy = modelCache.computeIfAbsent(original, (Function<Object, Object>)recursiveModel1 -> this);
     if (copy != this) {
       throw new IllegalStateException("An existing copy was found in the cache");
+    }
+  }
+
+  @Nullable
+  protected static <K, V> V copyNewProperty(@NotNull ModelCache modelCache,
+                                            @NotNull Computable<K> keyCreator,
+                                            @NotNull Function<K, V> mapper,
+                                            @Nullable V defaultValue) {
+    try {
+      K key = keyCreator.compute();
+      return modelCache.computeIfAbsent(key, mapper);
+    }
+    catch (UnsupportedMethodException ignored) {
+      return defaultValue;
+    }
+  }
+
+  @Contract("_, !null -> !null")
+  @Nullable
+  protected static <T> T copyNewProperty(@NotNull Computable<T> propertyInvoker, @Nullable T defaultValue) {
+    try {
+      return propertyInvoker.compute();
+    }
+    catch (UnsupportedMethodException ignored) {
+      return defaultValue;
     }
   }
 

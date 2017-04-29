@@ -111,7 +111,7 @@ public class AndroidPluginVersionUpdaterTest {
   }
 
   private void verifyProjectSyncRequested(@NotNull VerificationMode verificationMode) {
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject(true);
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject();
     verify(mySyncState, verificationMode).syncEnded();
     verify(mySyncInvoker, verificationMode).requestProjectSync(myProject, request, null);
   }
