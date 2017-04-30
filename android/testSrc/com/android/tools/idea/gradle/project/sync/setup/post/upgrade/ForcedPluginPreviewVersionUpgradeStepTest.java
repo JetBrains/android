@@ -43,6 +43,9 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
       {"1.5.0-beta1", "2.0.0-alpha10", true},
       {"1.5.0", "2.0.0-alpha10", false},
       {"2.3.0-alpha1", "2.3.0-dev", false},
+      {"2.4.0-alpha7", "2.4.0-alpha8", false},
+      {"2.4.0-alpha6", "2.4.0-alpha8", false},
+      {"2.3.0-alpha1", "2.4.0-alpha8", true},
     });
   }
 
@@ -60,6 +63,6 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
   @Test
   public void shouldPreviewBeForcedToUpgradePluginVersion() {
     boolean forced = ForcedPluginPreviewVersionUpgradeStep.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent);
-    assertEquals(myForceUpgrade, forced);
+    assertEquals("should force upgrade from " + myCurrent + " to " + myRecommended + "?", myForceUpgrade, forced);
   }
 }
