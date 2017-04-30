@@ -80,7 +80,7 @@ public class NetworkRadioView {
 
   private void populateUI(@NotNull JComponent panel) {
     JLabel sectionHeader = new JLabel(LABEL);
-    sectionHeader.setFont(AdtUiUtils.FONT_DEFAULT); //Intentionally not a title label as we want this to appear smaller.
+    sectionHeader.setFont(AdtUiUtils.getFontDefault()); //Intentionally not a title label as we want this to appear smaller.
     sectionHeader.setBorder(BorderFactory.createEmptyBorder(0, ProfilerLayout.MARKER_LENGTH, 0, 0));
     sectionHeader.setVerticalAlignment(SwingConstants.TOP);
     sectionHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);

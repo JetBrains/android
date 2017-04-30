@@ -45,7 +45,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     container.setLayout(new TabularLayout("*", "*"));
 
     final JLabel sectionHeader = new JLabel(getMonitor().getName());
-    sectionHeader.setFont(AdtUiUtils.FONT_PROFILER_TITLE);
+    sectionHeader.setFont(AdtUiUtils.getFontProfilerTitle());
     sectionHeader.setBorder(MONITOR_LABEL_PADDING);
     sectionHeader.setVerticalAlignment(JLabel.TOP);
     sectionHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);

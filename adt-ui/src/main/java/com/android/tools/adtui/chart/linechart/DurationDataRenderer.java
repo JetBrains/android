@@ -145,7 +145,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
       if (myLabelProvider != null) {
         JLabel label = new JLabel(myLabelProvider.apply(data.value));
-        label.setFont(AdtUiUtils.FONT_DEFAULT);
+        label.setFont(AdtUiUtils.getFontDefault());
         label.setForeground(myLabelTextColor);
         Dimension size = label.getPreferredSize();
         label.setBounds(0, 0, size.width, size.height);
