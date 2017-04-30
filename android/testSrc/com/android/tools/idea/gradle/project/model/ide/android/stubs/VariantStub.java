@@ -42,22 +42,22 @@ public class VariantStub extends BaseStub implements Variant {
 
   public VariantStub(@NotNull String name,
                      @NotNull String displayName,
-                     @NotNull AndroidArtifact artifact,
-                     @NotNull Collection<AndroidArtifact> artifacts,
-                     @NotNull Collection<JavaArtifact> javaArtifacts,
+                     @NotNull AndroidArtifact mainArtifact,
+                     @NotNull Collection<AndroidArtifact> extraAndroidArtifacts,
+                     @NotNull Collection<JavaArtifact> extraJavaArtifacts,
                      @NotNull String buildType,
-                     @NotNull List<String> flavors,
-                     @NotNull ProductFlavor flavor,
-                     @NotNull Collection<TestedTargetVariant> variants) {
+                     @NotNull List<String> productFlavors,
+                     @NotNull ProductFlavor mergedFlavor,
+                     @NotNull Collection<TestedTargetVariant> testedTargetVariants) {
     myName = name;
     myDisplayName = displayName;
-    myMainArtifact = artifact;
-    myExtraAndroidArtifacts = artifacts;
-    myExtraJavaArtifacts = javaArtifacts;
+    myMainArtifact = mainArtifact;
+    myExtraAndroidArtifacts = extraAndroidArtifacts;
+    myExtraJavaArtifacts = extraJavaArtifacts;
     myBuildType = buildType;
-    myProductFlavors = flavors;
-    myMergedFlavor = flavor;
-    myTestedTargetVariants = variants;
+    myProductFlavors = productFlavors;
+    myMergedFlavor = mergedFlavor;
+    myTestedTargetVariants = testedTargetVariants;
   }
 
   @Override

@@ -22,13 +22,11 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.run.ProjectBuildOutputProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
@@ -63,7 +61,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
 
     // Sort the APKs to keep test consistent.
     List<ApkInfo> apkList = new ArrayList<>(apks);
-    Collections.sort(apkList, (a, b) -> a.getApplicationId().compareTo(b.getApplicationId()));
+    Collections.sort(apkList, Comparator.comparing(ApkInfo::getApplicationId));
     ApkInfo mainApk = apkList.get(0);
     ApkInfo testApk = apkList.get(1);
 
@@ -123,7 +121,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     assertEquals(apk, apks.iterator().next().getFile());
   }
 
-  private static ProjectBuildOutput createMock(String variant, File file) {
+  private static ProjectBuildOutput createMock(@NotNull String variant, @NotNull File file) {
     ProjectBuildOutput projectBuildOutput = mock(ProjectBuildOutput.class);
     VariantBuildOutput variantBuildOutput = mock(VariantBuildOutput.class);
     OutputFile outputFile = mock(OutputFile.class);
