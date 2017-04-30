@@ -36,7 +36,7 @@ public abstract class IdeVariantOutput extends IdeModel implements VariantOutput
 
   @NotNull private final Collection<? extends OutputFile> myOutputs;
   @NotNull private final Collection<String> myFilterTypes;
-  @NotNull private final Collection<FilterData> myFilters;
+  @Nullable private final Collection<FilterData> myFilters;
   @Nullable private final OutputFile myMainOutputFile;
   @Nullable private final String myOutputType;
   private final int myVersionCode;
@@ -52,13 +52,13 @@ public abstract class IdeVariantOutput extends IdeModel implements VariantOutput
     myVersionCode = output.getVersionCode();
   }
 
-  @NotNull
+  @Nullable
   private static Collection<FilterData> copyFilters(@NotNull VariantOutput output, @NotNull ModelCache modelCache) {
     try {
       return copy(output.getFilters(), modelCache, data -> new IdeFilterData(data, modelCache));
     }
     catch (UnsupportedMethodException ignored) {
-      return Collections.emptyList();
+      return null;
     }
   }
 
@@ -95,7 +95,10 @@ public abstract class IdeVariantOutput extends IdeModel implements VariantOutput
   @Override
   @NotNull
   public Collection<FilterData> getFilters() {
-    return myFilters;
+    if (myFilters != null) {
+      return myFilters;
+    }
+    throw new UnsupportedMethodException("getFilters");
   }
 
   @Override

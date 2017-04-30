@@ -18,17 +18,15 @@ package com.android.tools.idea.run;
 import com.android.build.OutputFile;
 import com.android.builder.model.*;
 import com.android.ddmlib.IDevice;
-import com.android.ide.common.build.SplitOutputMatcher;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.ProjectBuildOutputProvider;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.base.Joiner;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -37,26 +35,24 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
 
 /**
  * Provides the information on APKs to install for run configurations in Gradle projects.
  */
 public class GradleApkProvider implements ApkProvider {
-  private static final Logger LOG = Logger.getInstance(GradleApkProvider.class);
-
-  @NotNull
-  private final AndroidFacet myFacet;
-  @NotNull
-  private final ApplicationIdProvider myApplicationIdProvider;
-  @NotNull
-  private final ProjectBuildOutputProvider myOutputModelProvider;
+  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final ApplicationIdProvider myApplicationIdProvider;
+  @NotNull private final ProjectBuildOutputProvider myOutputModelProvider;
+  @NotNull private final BestOutputFinder myBestOutputFinder;
   private final boolean myTest;
 
   public GradleApkProvider(@NotNull AndroidFacet facet,
@@ -69,9 +65,19 @@ public class GradleApkProvider implements ApkProvider {
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            @NotNull ProjectBuildOutputProvider outputModelProvider,
                            boolean test) {
+    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test);
+  }
+
+  @VisibleForTesting
+  GradleApkProvider(@NotNull AndroidFacet facet,
+                    @NotNull ApplicationIdProvider applicationIdProvider,
+                    @NotNull ProjectBuildOutputProvider outputModelProvider,
+                    @NotNull BestOutputFinder bestOutputFinder,
+                    boolean test) {
     myFacet = facet;
     myApplicationIdProvider = applicationIdProvider;
     myOutputModelProvider = outputModelProvider;
+    myBestOutputFinder = bestOutputFinder;
     myTest = test;
   }
 
@@ -80,25 +86,25 @@ public class GradleApkProvider implements ApkProvider {
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
     AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     if (androidModel == null) {
-      LOG.warn("Android model is null. Sync might have failed");
+      getLogger().warn("Android model is null. Sync might have failed");
       return Collections.emptyList();
     }
     Variant selectedVariant = androidModel.getSelectedVariant();
 
-    List<ApkInfo> apkList = Lists.newArrayList();
+    List<ApkInfo> apkList = new ArrayList<>();
 
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
     int projectType = androidModel.getProjectType();
     if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
-      // The apk file for instant apps is actually a zip file
-      File apk = getApk(selectedVariant, device);
+      // The APK file for instant apps is actually a zip file
+      File apk = getApk(selectedVariant, device, androidModel);
       apkList.add(new ApkInfo(apk, myApplicationIdProvider.getPackageName()));
     }
 
     if (myTest) {
       AndroidArtifact testArtifactInfo = androidModel.getAndroidTestArtifactInSelectedVariant();
       if (testArtifactInfo != null) {
-        AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
+        AndroidArtifactOutput output = getOutput(testArtifactInfo);
         File testApk = output.getMainOutputFile().getOutputFile();
         String testPackageName = myApplicationIdProvider.getTestPackageName();
         assert testPackageName != null; // Cannot be null if initialized.
@@ -106,18 +112,38 @@ public class GradleApkProvider implements ApkProvider {
       }
 
       if (androidModel.getFeatures().isTestedTargetVariantsSupported()) {
-        apkList.addAll(0, getTargetedApks(selectedVariant, device));
+        apkList.addAll(0, getTargetedApks(selectedVariant, device, androidModel));
       }
     }
     return apkList;
   }
 
+  @VisibleForTesting
+  @NotNull
+  File getApk(@NotNull Variant variant, @NotNull IDevice device, @NotNull AndroidModuleModel androidModel)
+    throws ApkProvisionException {
+    if (androidModel.getFeatures().isPostBuildSyncSupported()) {
+      return getApkFromPostBuildSync(variant, device);
+    }
+    return getApk(variant, device);
+  }
 
   @NotNull
   private File getApk(@NotNull Variant variant, @NotNull IDevice device) throws ApkProvisionException {
     AndroidArtifact mainArtifact = variant.getMainArtifact();
+    List<AndroidArtifactOutput> outputs = new ArrayList<>(mainArtifact.getOutputs());
+    if (outputs.isEmpty()) {
+      throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
+    }
+    List<OutputFile> apkFiles = myBestOutputFinder.findBestOutput(variant, device, outputs);
+    return apkFiles.get(0).getOutputFile();
+  }
 
-    List<OutputFile> outputs = Lists.newArrayList();
+  @NotNull
+  private File getApkFromPostBuildSync(@NotNull Variant variant, @NotNull IDevice device) throws ApkProvisionException {
+    AndroidArtifact mainArtifact = variant.getMainArtifact();
+
+    List<OutputFile> outputs = new ArrayList<>();
 
     ProjectBuildOutput outputModel = myOutputModelProvider.getOutputModel();
     if (outputModel != null) {
@@ -136,18 +162,7 @@ public class GradleApkProvider implements ApkProvider {
       throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
     }
 
-    List<String> abis = device.getAbis();
-    int density = device.getDensity();
-    Set<String> variantAbiFilters = mainArtifact.getAbiFilters();
-    List<OutputFile> apkFiles = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
-    if (apkFiles.isEmpty()) {
-      String message = AndroidBundle.message("deployment.failed.splitapk.nomatch",
-                                             variant.getDisplayName(),
-                                             outputs.size(),
-                                             density,
-                                             Joiner.on(", ").join(abis));
-      throw new ApkProvisionException(message);
-    }
+    List<OutputFile> apkFiles = myBestOutputFinder.findBestOutput(variant, device, outputs);
     return apkFiles.get(0).getOutputFile();
   }
 
@@ -158,34 +173,39 @@ public class GradleApkProvider implements ApkProvider {
    * using the targetProjectPath and targetVariant properties in the build file.
    */
   @NotNull
-  private List<ApkInfo> getTargetedApks(@NotNull Variant selectedVariant, @NotNull IDevice device) throws ApkProvisionException {
-    List<ApkInfo> targetedApks = Lists.newArrayList();
-    for (TestedTargetVariant testedVariant: getTestedTargetVariants(selectedVariant)) {
+  private List<ApkInfo> getTargetedApks(@NotNull Variant selectedVariant, @NotNull IDevice device, @NotNull AndroidModuleModel androidModel)
+    throws ApkProvisionException {
+    List<ApkInfo> targetedApks = new ArrayList<>();
+    for (TestedTargetVariant testedVariant : getTestedTargetVariants(selectedVariant)) {
       Module targetModule = ApplicationManager.getApplication().runReadAction(
-        (Computable<Module>)() ->
-          GradleUtil.findModuleByGradlePath(myFacet.getModule().getProject(), testedVariant.getTargetProjectPath()));
+        (Computable<Module>)() -> {
+          Project project = myFacet.getModule().getProject();
+          return findModuleByGradlePath(project, testedVariant.getTargetProjectPath());
+        });
 
       assert targetModule != null; // target module has to exist, otherwise we would not be able to build test apk
       AndroidFacet targetFacet = AndroidFacet.getInstance(targetModule);
-      if (targetFacet == null){
-        LOG.warn("Please install tested apk manually.");
+      if (targetFacet == null) {
+        getLogger().warn("Please install tested apk manually.");
         continue;
       }
 
       AndroidModuleModel targetAndroidModel = AndroidModuleModel.get(targetFacet);
-      if (targetAndroidModel == null){
-        LOG.warn("Android model for tested module is null. Sync might have failed.");
+      if (targetAndroidModel == null) {
+        getLogger().warn("Android model for tested module is null. Sync might have failed.");
         continue;
       }
 
       Variant targetVariant = targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
-      if (targetVariant == null){
-        LOG.warn("Tested variant not found. Sync might have failed.");
+      if (targetVariant == null) {
+        getLogger().warn("Tested variant not found. Sync might have failed.");
         continue;
       }
 
-      File targetApk = getApk(targetVariant, device);
-      targetedApks.add(new ApkInfo(targetApk, targetVariant.getMergedFlavor().getApplicationId()));
+      File targetApk = getApk(targetVariant, device, androidModel);
+      String applicationId = targetVariant.getMergedFlavor().getApplicationId();
+      assert applicationId != null;
+      targetedApks.add(new ApkInfo(targetApk, applicationId));
     }
 
     return targetedApks;
@@ -200,8 +220,8 @@ public class GradleApkProvider implements ApkProvider {
       return variant.getTestedTargetVariants();
     }
     catch (UnsupportedMethodException e) {
-      Logger.getInstance(GradleApkProvider.class).warn("Method 'getTestedTargetVariants' not found", e);
-      return Lists.newArrayList();
+      getLogger().warn("Method 'getTestedTargetVariants' not found", e);
+      return Collections.emptyList();
     }
   }
 
@@ -214,23 +234,25 @@ public class GradleApkProvider implements ApkProvider {
       return ImmutableList.of();
     }
 
-    AndroidArtifactOutput output = GradleUtil.getOutput(androidModuleModel.getMainArtifact());
+    AndroidArtifactOutput output = getOutput(androidModuleModel.getMainArtifact());
     final String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName(),
                                                  androidModuleModel.getSelectedVariant().getDisplayName());
 
-    Runnable quickFix = new Runnable() {
-      @Override
-      public void run() {
-        Module module = myFacet.getModule();
-        ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
-        if (service instanceof AndroidProjectSettingsService) {
-          ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
-        }
-        else {
-          service.openModuleSettings(module);
-        }
+    Runnable quickFix = () -> {
+      Module module = myFacet.getModule();
+      ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
+      if (service instanceof AndroidProjectSettingsService) {
+        ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
+      }
+      else {
+        service.openModuleSettings(module);
       }
     };
     return ImmutableList.of(ValidationError.fatal(message, quickFix));
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(GradleApkProvider.class);
   }
 }

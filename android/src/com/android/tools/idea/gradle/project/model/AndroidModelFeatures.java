@@ -29,6 +29,7 @@ public class AndroidModelFeatures {
   private final boolean myExternalBuildSupported;
   private final boolean myConstraintLayoutSdkLocationSupported;
   private final boolean myLayoutRenderingIssuePresent;
+  private final boolean myPostBuildSyncSupported;
 
   AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
@@ -38,8 +39,14 @@ public class AndroidModelFeatures {
     myTestedTargetVariantsSupported = myProductFlavorVersionSuffixSupported = myExternalBuildSupported = modelVersionIsAtLeast("2.2.0");
 
     // https://code.google.com/p/android/issues/detail?id=170841
-    myLayoutRenderingIssuePresent =
-      modelVersion != null && modelVersion.getMajor() == 1 && modelVersion.getMinor() == 2 && modelVersion.getMicro() <= 2;
+    if (modelVersion != null) {
+      myLayoutRenderingIssuePresent = modelVersion.getMajor() == 1 && modelVersion.getMinor() == 2 && modelVersion.getMicro() <= 2;
+      myPostBuildSyncSupported = modelVersion.isAtLeast(2, 4, 0, "alpha", 8, false);
+    }
+    else {
+      myLayoutRenderingIssuePresent = false;
+      myPostBuildSyncSupported = false;
+    }
   }
 
   private boolean modelVersionIsAtLeast(@NotNull String revision) {
@@ -72,5 +79,9 @@ public class AndroidModelFeatures {
 
   public boolean isLayoutRenderingIssuePresent() {
     return myLayoutRenderingIssuePresent;
+  }
+
+  public boolean isPostBuildSyncSupported() {
+    return myPostBuildSyncSupported;
   }
 }

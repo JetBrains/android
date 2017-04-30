@@ -46,7 +46,11 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
     }
     myAssembleTaskName = assembleTaskName;
     myGeneratedManifest = output.getGeneratedManifest();
-    myOutputFile = copyNewProperty(output::getOutputFile, null);
+    // Even though getOutputFile is not new, the class hierarchies in builder-model have changed a lot (e.g. new interfaces have been
+    // created, and existing methods have been moved around to new interfaces) making Gradle think that this is a new method.
+    // When using the plugin v2.4 or older, we fall back to calling getMainOutputFile().getOutputFile(), which is the older plugins
+    // do.
+    myOutputFile = copyNewProperty(output::getOutputFile, output.getMainOutputFile().getOutputFile());
   }
 
   @Override
