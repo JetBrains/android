@@ -79,6 +79,13 @@ public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeS
           // e.g recommended: 2.3.0-dev and current: 2.3.0-alpha1
           return false;
         }
+        if (recommended.isAtLeast(2, 4, 0, "alpha", 8, false)) {
+          // 2.4.0-alpha8 introduces many API changes that may break users' builds. Because of this, Studio will allow users to
+          // switch to older previews of 2.4.0.
+          boolean isOlderPreviewAllowed = current.isPreview() && current.getMajor() == 2 && current.getMinor() == 4 &&
+                                          current.compareTo(recommended) < 0;
+          return !isOlderPreviewAllowed;
+        }
         // current is a "preview" (alpha, beta, etc.)
         return current.compareTo(recommended) < 0;
       }
