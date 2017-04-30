@@ -50,7 +50,7 @@ final class ThreadsView {
     myThreadsTable = new HoverRowTable(new ThreadsTableModel(stageView.getStage()), ProfilerColors.NETWORK_TABLE_HOVER_COLOR);
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(new TimelineRenderer(myThreadsTable, stageView.getTimeline()));
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myThreadsTable.setFont(AdtUiUtils.FONT_DEFAULT);
+    myThreadsTable.setFont(AdtUiUtils.getFontDefault());
     myThreadsTable.setShowVerticalLines(true);
     myThreadsTable.setShowHorizontalLines(false);
     myThreadsTable.setTableHeader(null);
@@ -209,7 +209,7 @@ final class ThreadsView {
     private ConnectionsInfoComponent(@NotNull List<HttpData> data, @NotNull Range range) {
       myDataList = data;
       myRange = range;
-      setFont(AdtUiUtils.FONT_DEFAULT_TITLE);
+      setFont(AdtUiUtils.getFontDefaultTitle());
       setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
       setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     }

@@ -48,8 +48,9 @@ public abstract class AnimatedComponent extends JComponent {
 
   public AnimatedComponent() {
     mDebugInfo = new LinkedList<>();
-    mDefaultFontMetrics = getFontMetrics(AdtUiUtils.FONT_DEFAULT);
+    mDefaultFontMetrics = getFontMetrics(AdtUiUtils.getFontDefault());
     myAspectObserver = new AspectObserver();
+    setFont(AdtUiUtils.getFontDefault());
   }
 
   public final boolean isDrawDebugInfo() {
@@ -86,7 +87,7 @@ public abstract class AnimatedComponent extends JComponent {
 
     addDebugInfo("Draw Count: %d", mDrawCount);
 
-    g.setFont(AdtUiUtils.FONT_DEFAULT);
+    g.setFont(getFont());
     g.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
     int i = 0;
     for (String s : mDebugInfo) {

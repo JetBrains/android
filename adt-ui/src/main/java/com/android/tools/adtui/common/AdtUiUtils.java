@@ -15,8 +15,9 @@
  */
 package com.android.tools.adtui.common;
 
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.ui.AppUIUtil;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.FontPreferences;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
@@ -25,8 +26,6 @@ import com.intellij.util.ui.JBUI;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
@@ -38,21 +37,17 @@ public final class AdtUiUtils {
   /**
    * Default font to be used in the profiler UI.
    */
-  private static final float FONT_DEFAULT_SIZE = 10f;
-  private static final JBFont ROBOTO_BOLD = load("/fonts/Roboto-Bold.ttf", FONT_DEFAULT_SIZE);
-  private static final JBFont ROBOTO_MEDIUM = load("/fonts/Roboto-Medium.ttf", FONT_DEFAULT_SIZE);
-  private static final JBFont ROBOTO_REGULAR = load("/fonts/Roboto-Regular.ttf", FONT_DEFAULT_SIZE);
-  public static final JBFont FONT_DEFAULT = ROBOTO_REGULAR;
-  public static final JBFont FONT_DEFAULT_TITLE = ROBOTO_MEDIUM.deriveFont(11f);
-  public static final JBFont FONT_PROFILER_TITLE = ROBOTO_MEDIUM.deriveFont(11f);
-  public static final JBFont FONT_TIMELINE = ROBOTO_MEDIUM.deriveFont(5f);
-  public static final JBFont FONT_SECTION_TITLE = ROBOTO_MEDIUM.deriveFont(13f);
-  public static final JBFont FONT_NULL_STAGE_TITLE = ROBOTO_MEDIUM.deriveFont(21.0f);
-  public static final JBFont FONT_NULL_STAGE_MESSAGE = ROBOTO_REGULAR.deriveFont(13.0f);
-  public static final JBFont FONT_ERROR_INLINE_TITLE = ROBOTO_MEDIUM.deriveFont(16.0f);
-  public static final JBFont FONT_ERROR_INLINE_MESSAGE = ROBOTO_REGULAR.deriveFont(13.0f);
-  public static final JBFont FONT_MONITOR_TITLE = ROBOTO_BOLD.deriveFont(12.0f);
-
+  private static final JBFont FONT_DEFAULT = loadFont();
+  private static final JBFont FONT_BOLD = FONT_DEFAULT.asBold();
+  private static final JBFont FONT_DEFAULT_TITLE = FONT_BOLD.deriveFont(11f);
+  private static final JBFont FONT_PROFILER_TITLE = FONT_BOLD.deriveFont(11f);
+  private static final JBFont FONT_TIMELINE = FONT_BOLD.deriveFont(5f);
+  private static final JBFont FONT_SECTION_TITLE = FONT_BOLD.deriveFont(13f);
+  private static final JBFont FONT_NULL_STAGE_TITLE = FONT_BOLD.deriveFont(21f);
+  private static final JBFont FONT_NULL_STAGE_MESSAGE = FONT_DEFAULT.deriveFont(13f);
+  private static final JBFont FONT_ERROR_INLINE_TITLE = FONT_BOLD.deriveFont(16f);
+  private static final JBFont FONT_ERROR_INLINE_MESSAGE = FONT_DEFAULT.deriveFont(13f);
+  private static final JBFont FONT_MONITOR_TITLE = FONT_BOLD.deriveFont(12f);
 
   /**
    * Default font color of charts, and component labels.
@@ -69,17 +64,53 @@ public final class AdtUiUtils {
   private AdtUiUtils() {
   }
 
-  private static JBFont load(String fontPath, float size) {
-    try (InputStream stream = AdtUiUtils.class.getResource(fontPath).openStream()) {
-      Font font = Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(size);
-      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-      ge.registerFont(font);
-      return JBFont.create(font);
-    } catch (FontFormatException | IOException ex) {
-      Logger.getInstance(AdtUiUtils.class).warn("Cannot load font: " + fontPath, ex);
-    }
+  public static JBFont getFontDefault() {
+    return FONT_DEFAULT;
+  }
 
-    return JBFont.create(new Font(null, Font.PLAIN, (int)size));
+  public static JBFont getFontDefaultTitle() {
+    return FONT_DEFAULT_TITLE;
+  }
+
+  public static JBFont getFontTimeline() {
+    return FONT_TIMELINE;
+  }
+
+  public static JBFont getFontProfilerTitle() {
+    return FONT_PROFILER_TITLE;
+  }
+
+  public static JBFont getFontSectionTitle() {
+    return FONT_SECTION_TITLE;
+  }
+
+  public static JBFont getFontNullStateTitle() {
+    return FONT_NULL_STAGE_TITLE;
+  }
+
+  public static JBFont getFontNullStageMessage() {
+    return FONT_NULL_STAGE_MESSAGE;
+  }
+
+  public static JBFont getFontErrorInlineTitle() {
+    return FONT_ERROR_INLINE_TITLE;
+  }
+
+  public static JBFont getFontErrorInlineMessage() {
+    return FONT_ERROR_INLINE_MESSAGE;
+  }
+
+  public static JBFont getFontMonitorTitle() {
+    return FONT_MONITOR_TITLE;
+  }
+
+  private static JBFont loadFont() {
+    String fontFace = FontPreferences.DEFAULT_FONT_NAME;
+    if (ApplicationManager.getApplication() != null) {
+      FontPreferences preferences = EditorColorsManager.getInstance().getGlobalScheme().getFontPreferences();
+      fontFace = preferences.getFontFamily();
+    }
+    return JBFont.create(new Font(fontFace, Font.PLAIN, 10));
   }
 
   /**
