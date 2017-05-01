@@ -51,7 +51,6 @@ import java.util.Map;
 
 import static com.android.SdkConstants.DOT_JAVA;
 import static com.android.SdkConstants.DOT_KT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
 
 /**
@@ -123,7 +122,7 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   @NotNull
-  public ObjectProperty<Language> getLanguageSet() {
+  public ObjectProperty<Language> getLanguage() {
     return myLanguageSet;
   }
 
@@ -210,7 +209,7 @@ public final class RenderTemplateModel extends WizardModel {
       }.execute().getResultObject();
 
       if (success) {
-        Language language = getLanguageSet().get();
+        Language language = getLanguage().get();
         final ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
 
         if (WizardUtils.KOTLIN_ENABLED &&

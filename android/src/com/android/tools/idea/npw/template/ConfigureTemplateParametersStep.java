@@ -254,6 +254,14 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       row.addToPanel(myParametersPanel);
     }
 
+    if (displayLanguageChoice(templateMetadata)) {
+      RowEntry row = new RowEntry<>("Source Language", new LanguageComboProvider());
+      row.addToPanel(myParametersPanel);
+      SelectedItemProperty<Language> language = (SelectedItemProperty<Language>)row.getProperty();
+      assert language != null; // LanguageComboProvider always sets this
+      myBindings.bind(getModel().getLanguage(), new OptionalToValuePropertyAdapter<>(language));
+    }
+
     if (mySourceSets.size() > 1) {
       RowEntry row = new RowEntry<>("Target Source Set", new SourceSetComboProvider(mySourceSets));
       row.setEnabled(mySourceSets.size() > 1);
@@ -263,28 +271,25 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       SelectedItemProperty<AndroidSourceSet> sourceSet = (SelectedItemProperty<AndroidSourceSet>)row.getProperty();
       assert sourceSet != null; // SourceSetComboProvider always sets this
       myBindings.bind(getModel().getSourceSet(), new OptionalToValuePropertyAdapter<>(sourceSet));
-
       sourceSet.addListener(sender -> enqueueEvaluateParameters());
-    }
-
-    if (KOTLIN_ENABLED) {
-      // For Templates with an Android FormFactor or that have a class/package name, we allow the user to select the programming language
-      if (templateMetadata.getFormFactor() != null || templateMetadata.getParameter(ATTR_CLASS_NAME) != null ||
-          templateMetadata.getParameter(ATTR_PACKAGE_NAME) != null) {
-        RowEntry row = new RowEntry<>("Source Language", new LanguageSetComboProvider());
-        if (isNpwModelWizardEnabled(Feature.KOTLIN)) {
-          row.addToPanel(myParametersPanel);
-        }
-
-        SelectedItemProperty<Language> languageSet = (SelectedItemProperty<Language>)row.getProperty();
-        assert languageSet != null; // LanguageSetComboProvider always sets this
-        myBindings.bind(getModel().getLanguageSet(), new OptionalToValuePropertyAdapter<>(languageSet));
-      }
     }
 
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
     evaluateParameters();
+  }
+
+  private boolean displayLanguageChoice(TemplateMetadata templateMetadata) {
+    if (!KOTLIN_ENABLED) {
+      return false;
+    }
+    // Note: For new projects we have a different UI.
+    if (getModel().getProject().getValueOrNull() == null) {
+      return false;
+    }
+    // For Templates with an Android FormFactor or that have a class/package name, we allow the user to select the programming language
+    return (templateMetadata.getFormFactor() != null || templateMetadata.getParameter(ATTR_CLASS_NAME) != null ||
+            templateMetadata.getParameter(ATTR_PACKAGE_NAME) != null);
   }
 
   /**
@@ -573,7 +578,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
-    templateValues.put(ATTR_LANGUAGE, getModel().getLanguageSet().get());
+    templateValues.put(ATTR_LANGUAGE, getModel().getLanguage().get());
     templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
     if (isNewModule()) {
       templateValues.put(ATTR_IS_LAUNCHER, true);
