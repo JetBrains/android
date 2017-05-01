@@ -35,6 +35,12 @@ final class SearchItemHandler {
     return (DRAWABLE_PREFIX + SEARCH_ICON).equals(item.getAndroidAttribute(ATTR_ICON));
   }
 
+  static void onChildInserted(@NotNull ViewEditor editor) {
+    if (!editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
+      editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
+    }
+  }
+
   @SuppressWarnings("SameReturnValue")
   static boolean onCreate(@NotNull ViewEditor editor, @NotNull NlComponent newChild, @NotNull InsertType type) {
     if (!type.equals(InsertType.CREATE)) {
@@ -43,10 +49,6 @@ final class SearchItemHandler {
 
     String value = editor.getMinSdkVersion().getApiLevel() < 11 ? "android.support.v7.widget.SearchView" : "android.widget.SearchView";
     newChild.setAndroidAttribute("actionViewClass", value);
-
-    if (!editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
-      editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
-    }
 
     return true;
   }

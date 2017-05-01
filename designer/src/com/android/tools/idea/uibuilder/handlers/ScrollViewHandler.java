@@ -52,7 +52,9 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child,
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent parent,
+                              @NotNull NlComponent child,
                               @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT);
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
@@ -86,7 +88,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    ViewGroup viewGroup =  getViewGroupFromComponent(component);
+    ViewGroup viewGroup = getViewGroupFromComponent(component);
     if (viewGroup == null) {
       return null;
     }
@@ -117,7 +119,8 @@ public class ScrollViewHandler extends ViewGroupHandler {
 
   /**
    * Returns the maximum distance that the passed view group could scroll
-   * @param measureGroup {@link Function} used to measure the passed viewGroup (for example {@link ViewGroup#getHeight()})
+   *
+   * @param measureGroup    {@link Function} used to measure the passed viewGroup (for example {@link ViewGroup#getHeight()})
    * @param measureChildren {@link Function} used to measure the children of the viewGroup (for example {@link View#getMeasuredHeight()})
    */
   static int getMaxScrollable(@NotNull ViewGroup viewGroup,
@@ -184,7 +187,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
-      return editor.getSceneBuilder().isRenderViewPort();
+      return LayoutlibSceneManager.isRenderViewPort();
     }
 
     @Override

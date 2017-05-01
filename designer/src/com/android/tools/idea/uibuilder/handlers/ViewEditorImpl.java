@@ -39,16 +39,16 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Maps;
-import com.google.common.io.ByteStreams;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.io.CharStreams;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -64,7 +64,8 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Predicate;
@@ -143,15 +144,10 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public void copyVectorAssetToMainModuleSourceSet(@NotNull String asset) {
-    Project project = mySceneView.getModel().getProject();
-    String message = "Do you want to copy vector asset " + asset + " to your main module source set?";
+    String path = MaterialDesignIcons.getPathForBasename(asset);
 
-    if (Messages.showYesNoDialog(project, message, "Copy Vector Asset", Messages.getQuestionIcon()) == Messages.NO) {
-      return;
-    }
-
-    try (InputStream in = GraphicGenerator.class.getClassLoader().getResourceAsStream(MaterialDesignIcons.getPathForBasename(asset))) {
-      createResourceFile(FD_RES_DRAWABLE, asset + DOT_XML, ByteStreams.toByteArray(in));
+    try (Reader reader = new InputStreamReader(GraphicGenerator.class.getClassLoader().getResourceAsStream(path), StandardCharsets.UTF_8)) {
+      createResourceFile(FD_RES_DRAWABLE, asset + DOT_XML, CharStreams.toString(reader));
     }
     catch (IOException exception) {
       Logger.getInstance(ViewEditorImpl.class).warn(exception);
@@ -166,10 +162,12 @@ public class ViewEditorImpl extends ViewEditor {
       return;
     }
 
-    createResourceFile(FD_RES_LAYOUT, layout + DOT_XML, xml.getBytes(StandardCharsets.UTF_8));
+    createResourceFile(FD_RES_LAYOUT, layout + DOT_XML, xml);
   }
 
-  private void createResourceFile(@NotNull String resourceDirectory, @NotNull String resourceFile, @NotNull byte[] resourceFileContent) {
+  private void createResourceFile(@NotNull String resourceDirectory,
+                                  @NotNull String resourceFileName,
+                                  @NotNull CharSequence resourceFileContent) {
     try {
       VirtualFile directory = getResourceDirectoryChild(resourceDirectory);
 
@@ -177,14 +175,10 @@ public class ViewEditorImpl extends ViewEditor {
         return;
       }
 
-      ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Void, IOException>() {
-        @Nullable
-        @Override
-        public Void compute() throws IOException {
-          directory.createChildData(this, resourceFile).setBinaryContent(resourceFileContent);
-          return null;
-        }
-      });
+      Document document = FileDocumentManager.getInstance().getDocument(directory.createChildData(this, resourceFileName));
+      assert document != null;
+
+      document.setText(resourceFileContent);
     }
     catch (IOException exception) {
       Logger.getInstance(ViewEditorImpl.class).warn(exception);

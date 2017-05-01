@@ -161,13 +161,15 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    * parameter can be used to handle new creation versus moves versus copy/paste
    * operations differently.
    *
+   * @param editor     the associated IDE editor
    * @param layout     the layout being inserted into (which may not yet contain the
    *                   newly created node in its child list)
    * @param newChild   the newly created component
    * @param insertType whether this node was created as part of a newly created view, or
    *                   as a copy, or as a move, etc.
    */
-  public void onChildInserted(@NotNull NlComponent layout,
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
   }
@@ -204,7 +206,7 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
    *
    * @param sceneComponent The component we'll add the targets on
-   * @param isParent       is it the parent viewgroup component
+   * @param isParent       is it the parent view group component
    * @return The list of created target to add the the component. This list can be empty.
    */
   @Override
