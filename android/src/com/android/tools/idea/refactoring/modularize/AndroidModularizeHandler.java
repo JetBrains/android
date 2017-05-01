@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
@@ -49,7 +49,7 @@ import java.util.*;
 
 import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
-public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler {
+public class AndroidModularizeHandler implements RefactoringActionHandler {
 
   private static final int RESOURCE_SET_INITIAL_SIZE = 100;
 
@@ -66,13 +66,13 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
       () -> ApplicationManager.getApplication().runReadAction(
         () -> scanner.accumulate(elements)), "Computing References", false, project);
 
-    AndroidMoveWithResourcesProcessor processor =
-      new AndroidMoveWithResourcesProcessor(project,
-                                            elements,
-                                            scanner.getClassReferences(),
-                                            scanner.getResourceReferences(),
-                                            scanner.getManifestReferences(),
-                                            scanner.getReferenceGraph());
+    AndroidModularizeProcessor processor =
+      new AndroidModularizeProcessor(project,
+                                     elements,
+                                     scanner.getClassReferences(),
+                                     scanner.getResourceReferences(),
+                                     scanner.getManifestReferences(),
+                                     scanner.getReferenceGraph());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       Module targetModule = TARGET_MODULE.getData(dataContext);
@@ -82,7 +82,7 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
       processor.run();
     }
     else {
-      AndroidMoveWithResourcesDialog dialog = new AndroidMoveWithResourcesDialog(project, processor);
+      AndroidModularizeDialog dialog = new AndroidModularizeDialog(project, processor);
       dialog.show();
     }
   }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring.ui;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.res.ResourceHelper;

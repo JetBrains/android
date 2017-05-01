@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.instantapp.InstantAppSdks;
@@ -29,7 +29,7 @@ import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidMoveWithResourcesAction extends BaseRefactoringAction {
+public class AndroidModularizeAction extends BaseRefactoringAction {
 
   private final InstantAppSdks myInstantAppsSdks = InstantAppSdks.getInstance();
 
@@ -78,7 +78,7 @@ public class AndroidMoveWithResourcesAction extends BaseRefactoringAction {
   @Nullable
   @Override
   protected RefactoringActionHandler getHandler(@NotNull DataContext dataContext) {
-    return new AndroidMoveWithResourcesHandler();
+    return new AndroidModularizeHandler();
   }
 
   @Override
