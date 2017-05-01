@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
@@ -47,7 +47,6 @@ import com.intellij.usageView.UsageViewUtil;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.android.refactoring.ui.AndroidMoveWithResourcesPreviewPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,9 +56,9 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 
 // TODO: Should we eventually plug into MoveClassHandler.EP_NAME extensions? Offer a QuickFix at any point?
-public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor {
+public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
-  private static final Logger LOGGER = Logger.getInstance(AndroidMoveWithResourcesProcessor.class);
+  private static final Logger LOGGER = Logger.getInstance(AndroidModularizeProcessor.class);
 
   private final PsiElement[] myRoots;
   private final Set<PsiClass> myClasses;
@@ -68,12 +67,12 @@ public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor 
   private final AndroidCodeAndResourcesGraph myReferenceGraph;
   private Module myTargetModule;
 
-  protected AndroidMoveWithResourcesProcessor(@NotNull Project project,
-                                              @NotNull PsiElement[] roots,
-                                              @NotNull Set<PsiClass> classes,
-                                              @NotNull Set<ResourceItem> resources,
-                                              @NotNull Set<PsiElement> manifestEntries,
-                                              @NotNull AndroidCodeAndResourcesGraph referenceGraph) {
+  protected AndroidModularizeProcessor(@NotNull Project project,
+                                       @NotNull PsiElement[] roots,
+                                       @NotNull Set<PsiClass> classes,
+                                       @NotNull Set<ResourceItem> resources,
+                                       @NotNull Set<PsiElement> manifestEntries,
+                                       @NotNull AndroidCodeAndResourcesGraph referenceGraph) {
     super(project);
     myRoots = roots;
     myClasses = classes;
@@ -383,12 +382,12 @@ public class AndroidMoveWithResourcesProcessor extends BaseRefactoringProcessor 
 
   static class PreviewDialog extends DialogWrapper {
 
-    private final AndroidMoveWithResourcesPreviewPanel myPanel;
+    private final AndroidModularizePreviewPanel myPanel;
 
     protected PreviewDialog(@Nullable Project project, @NotNull AndroidCodeAndResourcesGraph graph, @NotNull UsageInfo[] infos) {
       super(project, true);
 
-      myPanel = new AndroidMoveWithResourcesPreviewPanel(graph, infos);
+      myPanel = new AndroidModularizePreviewPanel(graph, infos);
       setTitle("Preview Classes and Resources to Be Moved");
       init();
     }

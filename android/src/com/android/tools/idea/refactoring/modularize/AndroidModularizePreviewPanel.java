@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring.ui;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -33,7 +33,6 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ColumnInfo;
-import org.jetbrains.android.refactoring.AndroidCodeAndResourcesGraph;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,8 +41,8 @@ import javax.swing.tree.TreeSelectionModel;
 import java.nio.charset.Charset;
 import java.util.*;
 
-public class AndroidMoveWithResourcesPreviewPanel {
-  private static final Logger LOGGER = Logger.getInstance(AndroidMoveWithResourcesPreviewPanel.class);
+public class AndroidModularizePreviewPanel {
+  private static final Logger LOGGER = Logger.getInstance(AndroidModularizePreviewPanel.class);
   private static final boolean USE_DOMINATORS = false;
 
   private JPanel myPanel;
@@ -58,7 +57,7 @@ public class AndroidMoveWithResourcesPreviewPanel {
   private final CheckedTreeNode myRootNode = new CheckedTreeNode();
   private CodeAndResourcesTreeTable myTreeView;
 
-  public AndroidMoveWithResourcesPreviewPanel(@NotNull AndroidCodeAndResourcesGraph graph, UsageInfo[] infos) {
+  public AndroidModularizePreviewPanel(@NotNull AndroidCodeAndResourcesGraph graph, UsageInfo[] infos) {
     myGraph = graph;
     myLookupMap = Maps.newHashMapWithExpectedSize(infos.length);
     for (UsageInfo info : infos) {
