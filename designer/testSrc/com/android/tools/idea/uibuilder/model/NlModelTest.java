@@ -22,6 +22,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
@@ -412,7 +413,7 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   public void testAddComponentsNoDependencyCheckOnMove() {
-    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+    SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
       .matchParentHeight()
@@ -427,6 +428,9 @@ public class NlModelTest extends LayoutTestCase {
           .height("100dp")
       ))
       .build();
+
+    LayoutTestUtilities.createScreen(model);
+
     NlComponent linearLayout = model.getComponents().get(0);
     NlComponent frameLayout = linearLayout.getChild(0);
     NlComponent recyclerView = linearLayout.getChild(1);

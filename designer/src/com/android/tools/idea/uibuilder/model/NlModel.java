@@ -1053,7 +1053,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The type of insertion
    */
-  public NlComponent createComponent(@Nullable SceneView sceneView,
+  public NlComponent createComponent(@NotNull SceneView sceneView,
                                      @NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
@@ -1095,8 +1095,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // Notify view handlers
     ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
     ViewHandler childHandler = viewHandlerManager.getHandler(child);
-    if (childHandler != null && sceneView != null) {
-      ViewEditor editor = new ViewEditorImpl(sceneView);
+    ViewEditor editor = new ViewEditorImpl(sceneView);
+
+    if (childHandler != null) {
       boolean ok = childHandler.onCreate(editor, parent, child, insertType);
       if (parent != null) {
         ok &= addDependencies(ImmutableList.of(child), InsertType.CREATE);
@@ -1112,7 +1113,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (parent != null) {
       ViewHandler parentHandler = viewHandlerManager.getHandler(parent);
       if (parentHandler instanceof ViewGroupHandler) {
-        ((ViewGroupHandler)parentHandler).onChildInserted(parent, child, insertType);
+        ((ViewGroupHandler)parentHandler).onChildInserted(editor, parent, child, insertType);
       }
     }
 
@@ -1272,6 +1273,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     ViewGroupHandler groupHandler = (ViewGroupHandler)receiver.getViewHandler();
     assert groupHandler != null;
 
+    SceneView view = mySurface.getCurrentSceneView();
+    assert view != null;
+
+    ViewEditor editor = new ViewEditorImpl(view);
+
     for (NlComponent component : added) {
       if (insertType.isMove()) {
         insertType = component.getParent() == receiver ? InsertType.MOVE_WITHIN : InsertType.MOVE_INTO;
@@ -1279,7 +1285,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (component.needsDefaultId() && (StringUtil.isEmpty(component.getId()) || !insertType.isMove())) {
         ids.add(NlComponent.assignId(component, ids));
       }
-      groupHandler.onChildInserted(receiver, component, insertType);
+
+      groupHandler.onChildInserted(editor, receiver, component, insertType);
 
       NlComponent parent = component.getParent();
       if (parent != null) {

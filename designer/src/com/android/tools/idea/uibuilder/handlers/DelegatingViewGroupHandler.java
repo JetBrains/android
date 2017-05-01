@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.DropTargetDropEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -93,8 +92,11 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent layout, @NotNull NlComponent newChild, @NotNull InsertType insertType) {
-    myHandler.onChildInserted(layout, newChild, insertType);
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent layout,
+                              @NotNull NlComponent newChild,
+                              @NotNull InsertType insertType) {
+    myHandler.onChildInserted(editor, layout, newChild, insertType);
   }
 
   @Override
@@ -254,6 +256,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   @Override
   @NotNull
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
-    return myHandler.createTargets(sceneComponent,isParent);
+    return myHandler.createTargets(sceneComponent, isParent);
   }
 }

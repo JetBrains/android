@@ -49,7 +49,7 @@ import static com.android.utils.XmlUtils.formatFloatAttribute;
  */
 public class LinearLayoutHandler extends ViewGroupHandler {
 
-  HashMap<SceneComponent, SceneComponent> myDraggingComponents = new HashMap<>();
+  final HashMap<SceneComponent, SceneComponent> myDraggingComponents = new HashMap<>();
 
   @NotNull
   @Override
@@ -104,7 +104,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent layout, @NotNull NlComponent newChild, @NotNull InsertType insertType) {
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent layout,
+                              @NotNull NlComponent newChild,
+                              @NotNull InsertType insertType) {
     if (insertType == InsertType.MOVE_WITHIN) {
       // Don't adjust widths/heights/weights when just moving within a single
       // LinearLayout
