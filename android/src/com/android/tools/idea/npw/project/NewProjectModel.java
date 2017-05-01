@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.project;
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -69,7 +70,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.npw.WizardUtils.KOTLIN_ENABLED;
 import static com.android.tools.idea.npw.template.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -281,7 +281,7 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
       myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
-      if (KOTLIN_ENABLED) {
+      if (StudioFlags.NPW_KOTLIN.get()) {
         // Always add the kotlin version attribute.
         final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
         myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());

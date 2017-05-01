@@ -19,7 +19,6 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.google.common.base.CharMatcher;
 import com.intellij.ide.RecentProjectsManager;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
@@ -44,25 +43,6 @@ import java.util.Locale;
 public class WizardUtils {
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
   private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
-
-  public static final boolean KOTLIN_ENABLED = true;
-
-  @Deprecated
-  public enum Feature {
-    GALLERY, IMPORT_MODULE, NEW_MODULE, NEW_PROJECT
-  }
-
-  // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
-  @Deprecated
-  public static boolean isNpwModelWizardEnabled(@NotNull Feature feature) {
-    return feature == Feature.NEW_PROJECT || feature == Feature.GALLERY || feature == Feature.IMPORT_MODULE;
-  }
-
-  // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
-  @Deprecated
-  public static boolean isNpwModelWizardEnabled(AnActionEvent e, @NotNull Feature feature) {
-    return isNpwModelWizardEnabled(feature) /*&& (e.getInputEvent().getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0*/;
-  }
 
   /**
    * Remove spaces, switch to lower case, and remove any invalid characters. If the resulting name

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
@@ -72,7 +72,7 @@ public class NewModuleTest {
   @Test
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
-    boolean isNewWizard = WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE);
+    boolean isNewWizard = StudioFlags.NPW_NEW_MODULE.get();
 
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")

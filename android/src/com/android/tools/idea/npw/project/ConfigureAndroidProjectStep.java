@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.tools.adtui.LabelWithEditButton;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -84,7 +85,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myBindings.bindTwoWay(new TextProperty(myCompanyDomain), model.companyDomain());
     myBindings.bindTwoWay(new SelectedProperty(myCppSupportCheck), model.enableCppSupport());
 
-    myKotlinSupportCheck.setVisible(com.android.tools.idea.npw.WizardUtils.KOTLIN_ENABLED);
+    myKotlinSupportCheck.setVisible(StudioFlags.NPW_KOTLIN.get());
     myBindings.bindTwoWay(new SelectedProperty(myKotlinSupportCheck), model.enableKotlinSupport());
 
     myProjectLocation.addActionListener(event -> {
