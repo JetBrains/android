@@ -185,6 +185,16 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   }
 
   @Override
+  public boolean isAlwaysExpand() {
+    return true;
+  }
+
+  @Override
+  public boolean isAlwaysShowPlus() {
+    return true;
+  }
+
+  @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     String text = getSourceType().getName();

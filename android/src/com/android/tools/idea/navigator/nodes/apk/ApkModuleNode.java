@@ -46,6 +46,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class ApkModuleNode extends ProjectViewModuleNode {
+  @NotNull private final String myModuleName;
   @NotNull private final AndroidFacet myAndroidFacet;
   @NotNull private final ApkFacet myApkFacet;
 
@@ -62,6 +63,7 @@ public class ApkModuleNode extends ProjectViewModuleNode {
                        @NotNull ApkFacet apkFacet,
                        @NotNull ViewSettings settings) {
     super(project, module, settings);
+    myModuleName = module.getName();
     myAndroidFacet = androidFacet;
 
     myApkFacet = apkFacet;
@@ -181,9 +183,18 @@ public class ApkModuleNode extends ProjectViewModuleNode {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ApkModuleNode)) {
       return false;
     }
-    return super.equals(o);
+    ApkModuleNode node = (ApkModuleNode)o;
+    return Objects.equals(myModuleName, node.myModuleName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), myModuleName);
   }
 }

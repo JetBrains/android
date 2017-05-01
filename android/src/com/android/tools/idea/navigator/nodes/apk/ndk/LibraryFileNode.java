@@ -82,15 +82,6 @@ public class LibraryFileNode extends LibraryNode {
   }
 
   @Override
-  public boolean canRepresent(Object element) {
-    if (element instanceof VirtualFile) {
-      VirtualFile file = (VirtualFile)element;
-      return myLibrary.files.contains(file);
-    }
-    return false;
-  }
-
-  @Override
   public int getWeight() {
     return 10;
   }
