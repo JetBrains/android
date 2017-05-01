@@ -115,6 +115,11 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
         break;
       case ACCESSING_THREADS:
         response.setAccessingThreads(storedResponse.getAccessingThreads());
+      case UNSPECIFIED:
+      case REQUEST_BODY:
+      case UNRECOGNIZED:
+        // do nothing
+        break;
     }
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
