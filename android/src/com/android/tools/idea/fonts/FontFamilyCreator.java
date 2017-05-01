@@ -199,7 +199,7 @@ public class FontFamilyCreator {
     return String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
-      "    <" + tag + " name=\"" + escapeXmlValue(name) + "\">%n" +
+      "    <" + tag + " name=\"" + escapeXmlValue(name) + "\" translatable=\"false\">%n" +
       "        <item>" + prefix + escapeResourceString(value) + "</item>%n" +
       "    </" + tag + ">%n" +
       "</resources>%n");
