@@ -15,69 +15,116 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import org.jetbrains.android.dom.navigation.NavigationSchema;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.module.Module;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.SdkConstants.TOOLS_URI;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * {@link NavSceneLayoutAlgorithm} that puts screens in locations specified in the model, falling back to some other method if none is
- * specified.
+ * {@link NavSceneLayoutAlgorithm} that puts screens in locations specified in the model, falling back to some other method if no location
+ * is specified.
  */
-public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
-  static final String ATTR_X = "manual_x";
-  static final String ATTR_Y = "manual_y";
-  private final NavSceneLayoutAlgorithm myFallback;
-  private final NavigationSchema mySchema;
+@State(name = "navEditor-manualLayoutAlgorithm", storages = @Storage(file = "navEditor.xml"))
+public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm, PersistentStateComponent<ManualLayoutAlgorithm.LayoutPositions> {
+  private NavSceneLayoutAlgorithm myFallback;
+  private NavigationSchema mySchema;
+  private LayoutPositions myState;
+  private Module myModule;
 
-  public ManualLayoutAlgorithm(@NotNull NavSceneLayoutAlgorithm fallback, @NotNull NavigationSchema schema) {
+  @NotNull
+  public static ManualLayoutAlgorithm getInstance(@NotNull AndroidFacet facet) {
+    return facet.getModule().getComponent(ManualLayoutAlgorithm.class);
+  }
+
+  @SuppressWarnings("unused")  // invoked by reflection
+  private ManualLayoutAlgorithm(@NotNull Module module) {
+    myModule = module;
+  }
+
+  @VisibleForTesting
+  ManualLayoutAlgorithm(@NotNull NavSceneLayoutAlgorithm fallback,
+                        @NotNull NavigationSchema schema,
+                        @NotNull LayoutPositions state) {
     myFallback = fallback;
     mySchema = schema;
+    myState = state;
+  }
+
+  private NavigationSchema getSchema() {
+    if (mySchema == null) {
+      AndroidFacet instance = AndroidFacet.getInstance(myModule);
+      assert instance != null;
+      mySchema = NavigationSchema.getOrCreateSchema(instance);
+    }
+    return mySchema;
+  }
+
+  private NavSceneLayoutAlgorithm getFallback() {
+    if (myFallback == null) {
+      myFallback = new DummyAlgorithm(getSchema());
+    }
+    return myFallback;
   }
 
   @Override
   public void layout(@NotNull SceneComponent component) {
-    // TODO: support other destination types
-    NavigationSchema.DestinationType type = mySchema.getDestinationType(component.getNlComponent().getTagName());
+    NavigationSchema.DestinationType type = getSchema().getDestinationType(component.getNlComponent().getTagName());
     if (type != NavigationSchema.DestinationType.FRAGMENT && type != NavigationSchema.DestinationType.ACTIVITY) {
       return;
     }
-    NlComponent nlComponent = component.getNlComponent();
-    String xStr = nlComponent.getLiveAttribute(TOOLS_URI, ATTR_X);
-    String yStr = nlComponent.getLiveAttribute(TOOLS_URI, ATTR_Y);
-    if (xStr != null && yStr != null) {
-      @AndroidDpCoordinate int x = ConstraintUtilities.getDpValue(nlComponent, xStr);
-      @AndroidDpCoordinate int y = ConstraintUtilities.getDpValue(nlComponent, yStr);
-      component.setPosition(x, y);
+    Point location = getState().getPositions().get(component.getId());
+    if (location != null) {
+      component.setPosition(location.x, location.y);
     }
     else {
-      myFallback.layout(component);
+      getFallback().layout(component);
     }
   }
 
   public void save(@NotNull SceneComponent component) {
-    NlComponent nlComponent = component.getNlComponent();
-    AttributesTransaction transaction = new AttributesTransaction(nlComponent);
-    ConstraintComponentUtilities.setDpAttribute(TOOLS_URI, ATTR_X, transaction, component.getDrawX());
-    ConstraintComponentUtilities.setDpAttribute(TOOLS_URI, ATTR_Y, transaction, component.getDrawY());
-    Project project = nlComponent.getModel().getProject();
-    XmlFile file = nlComponent.getModel().getFile();
-    WriteCommandAction action = new WriteCommandAction(project, "Save screen location", file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
-      }
-    };
-    action.execute();
+    getState().getPositions().put(component.getId(), new Point(component.getDrawX(), component.getDrawY()));
+  }
+
+  @NotNull
+  @Override
+  public LayoutPositions getState() {
+    if (myState == null) {
+      myState = new LayoutPositions();
+    }
+    return myState;
+  }
+
+  @Override
+  public void loadState(LayoutPositions state) {
+    myState = state;
+  }
+
+  public static class Point {
+    public int x;
+    public int y;
+
+    public Point() {}
+
+    public Point(int x, int y) {
+      this.x = x;
+      this.y = y;
+    }
+  }
+
+  public static class LayoutPositions {
+    // Map of id to layout position
+    public Map<String, Point> myPositions = new HashMap<>();
+
+    public Map<String, Point> getPositions() {
+      return myPositions;
+    }
   }
 }
