@@ -16,8 +16,8 @@
 package com.android.tools.idea.templates;
 
 import com.android.repository.Revision;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
 import com.android.tools.idea.npw.module.NewModuleModel;

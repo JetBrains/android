@@ -31,16 +31,6 @@ import java.util.Properties;
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
-  // Enable experimental profiling by default, but allow switching it off if set to false.
-  @NonNls public static final boolean EXPERIMENTAL_PROFILING_FLAG_ENABLED =
-    !"false".equals(System.getProperty("enable.experimental.profiling"));
-
-  // Post-O profiling with JVMTI agent, false by default.
-  @NonNls public static final boolean ENABLE_JVMTI_PROFILING = "true".equals(System.getProperty("enable.jvmti.profiling"));
-
-  // O+ CPU profiling with simpleperf, false by default
-  @NonNls public static final boolean ENABLE_SIMPLEPERF_PROFILING = "true".equals(System.getProperty("enable.simpleperf.profiling"));
-
   public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
 
   /**

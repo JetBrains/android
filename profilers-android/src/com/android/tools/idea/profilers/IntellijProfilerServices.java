@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -132,5 +134,21 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     if (androidConfiguration != null) {
       androidConfiguration.getProfilerState().setCheckAdvancedProfiling(false);
     }
+  }
+
+  @NotNull
+  @Override
+  public FeatureConfig getFeatureConfig() {
+    return new FeatureConfig() {
+      @Override
+      public boolean isNetworkThreadViewEnabled() {
+        return StudioFlags.PROFILER_SHOW_THREADS_VIEW.get();
+      }
+
+      @Override
+      public boolean isSimplePerfEnabled() {
+        return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
+      }
+    };
   }
 }

@@ -25,5 +25,6 @@ iml_module(
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/base/flags:studio.flags[module]",
     ],
 )

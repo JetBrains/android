@@ -16,11 +16,11 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableSet;
@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
-import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_JVMTI_PROFILING;
 
 /**
  * A proxy ProfilerService on host that intercepts grpc requests from perfd-host to device perfd.
@@ -169,7 +168,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
   public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> observer) {
     // Agent attaching is only available on post-O devices.
-    if (!ENABLE_JVMTI_PROFILING ||
+    if (!StudioFlags.PROFILER_USE_JVMTI.get() ||
         !myDevice.isOnline() ||
         myDevice.getVersion().getFeatureLevel() < 26) {
       observer.onNext(Profiler.AgentAttachResponse.getDefaultInstance());

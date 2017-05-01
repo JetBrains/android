@@ -513,8 +513,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void profilingModesAvailableDependOnDeviceApi() {
-    // Enable simpleperf flag for the test
-    System.setProperty("enable.simpleperf.profiling", "true");
+    myServices.enableSimplePerf(true);
 
     // Set a device that doesn't support simplepef
     addAndSetDevice(14, "FakeDevice1");
@@ -542,16 +541,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF, prefs.get(2).getProfiler());
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED, prefs.get(2).getMode());
     assertEquals("Sampled (Hybrid)", prefs.get(2).getName());
-
-    // Disable simpleperf flag
-    // Enable simpleperf flag for the test
-    System.clearProperty("enable.simpleperf.profiling");
   }
 
   @Test
   public void simpleperfIsOnlyAvailableWhenFlagIsTrue() {
-    // Enable simpleperf flag
-    System.setProperty("enable.simpleperf.profiling", "true");
+    myServices.enableSimplePerf(true);
 
     // Set a device that supports simpleperf
     addAndSetDevice(26, "Fake Device 1");
@@ -566,8 +560,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED, prefs.get(2).getMode());
     assertEquals("Sampled (Hybrid)", prefs.get(2).getName());
 
-    // Now disable the flag
-    System.clearProperty("enable.simpleperf.profiling");
+    // Now disable simpleperf
+    myServices.enableSimplePerf(false);
 
     // Set a device that supports simpleperf
     addAndSetDevice(26, "Fake Device 2");
@@ -577,17 +571,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     // First and second preferences should be the ART ones
     assertEquals("Sampled (Java)", prefs.get(0).getName());
     assertEquals("Instrumented", prefs.get(1).getName());
-
-    // Set the flag to something other than "true"
-    System.setProperty("enable.simpleperf.profiling", "true2");
-
-    addAndSetDevice(26, "Fake Device 3");
-    prefs = myStage.getProfilingPreferencesList();
-    // We should have only 2 profiling (ART) options because simpleperf is only available if the flag is set to "true"
-    assertEquals(2, prefs.size());
-
-    // Clear the flag
-    System.clearProperty("enable.simpleperf.profiling");
   }
 
   @Test

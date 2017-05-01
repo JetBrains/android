@@ -26,8 +26,8 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.OpenVmTraceHandler;
 import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatView;
-import com.android.tools.idea.run.editor.ProfilerState;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -289,7 +289,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
   }
 
   static boolean showMonitors() {
-    return !ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
+    return !StudioFlags.PROFILER_ENABLED.get();
   }
 
   @Override

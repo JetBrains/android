@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -39,7 +39,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   @Override
   public boolean value(Project project) {
-    return ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
+    return StudioFlags.PROFILER_ENABLED.get();
   }
 }
 
