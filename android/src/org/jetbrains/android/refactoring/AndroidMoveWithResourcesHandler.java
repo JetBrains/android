@@ -25,14 +25,11 @@ import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -106,7 +103,6 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
 
     public void accumulate(PsiElement... roots) {
       myVisitQueue.clear();
-
       for (PsiElement element : roots) {
         PsiClass ownerClass =
           (element instanceof PsiClass) ? (PsiClass)element : PsiTreeUtil.getParentOfType(element, PsiClass.class);
@@ -116,12 +112,21 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
         }
       }
 
+      ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+      int numVisited = 0;
+
       while (!myVisitQueue.isEmpty()) {
         PsiElement element = myVisitQueue.poll();
+        numVisited++;
 
         final AndroidFacet facet = AndroidFacet.getInstance(element);
         if (facet == null) {
           continue;
+        }
+
+        if (indicator != null) {
+          indicator.setText(String.format("Scanning definition %1$d of %2$d", numVisited, numVisited + myVisitQueue.size()));
+          indicator.setFraction((double)numVisited / (numVisited + myVisitQueue.size()));
         }
 
         if (element instanceof PsiClass) {
