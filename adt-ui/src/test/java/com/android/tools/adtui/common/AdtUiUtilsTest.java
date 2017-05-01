@@ -31,9 +31,9 @@ public class AdtUiUtilsTest {
   @Test
   public void testGetFittedString() throws Exception {
     JLabel testLabel = new JLabel("Test");
-    FontMetrics testMetrics = testLabel.getFontMetrics(AdtUiUtils.getFontDefault());
+    FontMetrics testMetrics = testLabel.getFontMetrics(AdtUiUtils.DEFAULT_FONT);
 
-    String testString = "AAAAA";
+    String testString = "AAAA";
     int stringWidth = testMetrics.stringWidth(testString);
     int ellipsysWidth = testMetrics.stringWidth(ELLIPSIS);
     int perCharacterWidth = testMetrics.stringWidth("A");

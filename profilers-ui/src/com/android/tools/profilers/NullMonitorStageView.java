@@ -16,7 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.HtmlLabel;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,13 +54,13 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     myTitle.setHorizontalAlignment(SwingConstants.CENTER);
     myTitle.setVerticalAlignment(SwingConstants.TOP);
     myTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-    myTitle.setFont(AdtUiUtils.getFontNullStateTitle());
+    myTitle.setFont(myTitle.getFont().deriveFont(21.0f));
     myTitle.setForeground(new JBColor(0x000000, 0xFFFFFF));
     topPanel.add(myTitle);
     topPanel.add(Box.createRigidArea(new Dimension(1, 15)));
 
     myDisabledMessage = new HtmlLabel();
-    Font font = AdtUiUtils.getFontNullStageMessage();
+    Font font = myTitle.getFont().deriveFont(11.0f);
     HtmlLabel.setUpAsHtmlLabel(myDisabledMessage, font, ProfilerColors.MESSAGE_COLOR);
     topPanel.add(myDisabledMessage);
     topPanel.add(Box.createVerticalGlue());
