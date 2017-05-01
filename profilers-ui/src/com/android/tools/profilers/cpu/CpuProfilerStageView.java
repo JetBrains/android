@@ -164,15 +164,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     legend.configure(legends.getOthersLegend(), new LegendConfig(lineChart.getLineConfig(cpuUsage.getOtherCpuSeries())));
     legend.configure(legends.getThreadsLegend(), new LegendConfig(lineChart.getLineConfig(cpuUsage.getThreadsCountSeries())));
 
-    final JLabel stageHeader = new JLabel(getStage().getName());
-    stageHeader.setBorder(MONITOR_LABEL_PADDING);
-    stageHeader.setFont(AdtUiUtils.getFontProfilerTitle());
-    stageHeader.setVerticalAlignment(SwingConstants.TOP);
-    stageHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    final JLabel label = new JLabel(getStage().getName());
+    label.setBorder(MONITOR_LABEL_PADDING);
+    label.setVerticalAlignment(SwingConstants.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
-    legendPanel.add(stageHeader, BorderLayout.WEST);
+    legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
 
@@ -465,7 +464,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, UpdatableManager updatableManager) {
       myLabel = new JLabel();
-      myLabel.setFont(AdtUiUtils.getFontDefault());
+      myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
       Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
       Border marginLeft = new EmptyBorder(0, 10, 0, 0);
       myLabel.setBorder(new CompoundBorder(rightSeparator, marginLeft));

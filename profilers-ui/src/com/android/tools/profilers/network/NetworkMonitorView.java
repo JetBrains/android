@@ -21,7 +21,6 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
@@ -44,11 +43,10 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
   protected void populateUi(JPanel container) {
     container.setLayout(new TabularLayout("*", "*"));
 
-    final JLabel stageHeader = new JLabel(getMonitor().getName());
-    stageHeader.setFont(AdtUiUtils.getFontProfilerTitle());
-    stageHeader.setBorder(MONITOR_LABEL_PADDING);
-    stageHeader.setVerticalAlignment(JLabel.TOP);
-    stageHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    final JLabel label = new JLabel(getMonitor().getName());
+    label.setBorder(MONITOR_LABEL_PADDING);
+    label.setVerticalAlignment(JLabel.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
@@ -84,7 +82,7 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
-    legendPanel.add(stageHeader, BorderLayout.WEST);
+    legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
     container.add(legendPanel, new TabularLayout.Constraint(0, 0));

@@ -185,11 +185,11 @@ final class ConnectionsView {
       }
     });
 
-    myConnectionsTable.setFont(AdtUiUtils.getFontDefault());
+    myConnectionsTable.setFont(AdtUiUtils.DEFAULT_FONT);
     myConnectionsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myConnectionsTable.setShowVerticalLines(true);
     myConnectionsTable.setShowHorizontalLines(false);
-    int defaultFontHeight = myConnectionsTable.getFontMetrics(AdtUiUtils.getFontDefault()).getHeight();
+    int defaultFontHeight = myConnectionsTable.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
     myConnectionsTable.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
 
     myConnectionsTable.addComponentListener(new ComponentAdapter() {
