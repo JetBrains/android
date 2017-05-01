@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements> {
 
@@ -40,7 +41,6 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
   }
 
   private static final Map<NetworkProfiler.NetworkProfilerData.DataCase, Integer> DATACASE_REQUEST_TYPE_MAP = new HashMap<>();
-  private static final int INVALID_COLUMN = 0;
   private static final int BODY_COLUMN = 2;
   private static final int REQUEST_COLUMN = 3;
   private static final int RESPONSE_COLUMN = 4;
@@ -153,22 +153,9 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
     try {
       ResultSet results = executeQuery(NetworkStatements.FIND_CONNECTION_DATA, connId, session);
       if (results.next()) {
-        int column = INVALID_COLUMN;
-        switch (type) {
-          case REQUEST:
-            column = REQUEST_COLUMN;
-            break;
-          case RESPONSE:
-            column = RESPONSE_COLUMN;
-            break;
-          case RESPONSE_BODY:
-            column = BODY_COLUMN;
-            break;
-          case ACCESSING_THREADS:
-            column = THREADS_COLUMN;
-        }
-        if (column != INVALID_COLUMN) {
-          byte[] responseBytes = results.getBytes(column);
+        Optional<Integer> column = columnFor(type);
+        if (column.isPresent()) {
+          byte[] responseBytes = results.getBytes(column.get());
           if (responseBytes != null) {
             responseBuilder.mergeFrom(responseBytes);
           }
@@ -180,6 +167,24 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
       getLogger().error(ex);
     }
     return null;
+  }
+
+  private Optional<Integer> columnFor(NetworkProfiler.HttpDetailsRequest.Type type) {
+    switch (type) {
+      case REQUEST:
+        return Optional.of(REQUEST_COLUMN);
+      case RESPONSE:
+        return Optional.of(RESPONSE_COLUMN);
+      case RESPONSE_BODY:
+        return Optional.of(BODY_COLUMN);
+      case ACCESSING_THREADS:
+        return Optional.of(THREADS_COLUMN);
+      case REQUEST_BODY:
+      case UNSPECIFIED:
+      case UNRECOGNIZED:
+        return Optional.empty();
+    }
+    throw new AssertionError(type);
   }
 
   public void insertOrReplace(int processId,
