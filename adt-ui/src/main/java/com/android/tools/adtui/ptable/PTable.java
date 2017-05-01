@@ -310,6 +310,14 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   }
 
   @Nullable
+  public PTableItem getItemAt(int rowIndex) {
+    if (rowIndex < 0 || rowIndex >= getRowCount()) {
+      return null;
+    }
+    return (PTableItem)getValueAt(rowIndex, 0);
+  }
+
+  @Nullable
   private PTableItem getSelectedNonGroupItem() {
     PTableItem item = getSelectedItem();
     return item instanceof PTableGroupItem ? null : item;
