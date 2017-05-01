@@ -26,6 +26,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiBinaryFile;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +71,22 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
   }
 
   @Override
+  public boolean canRepresent(Object element) {
+    if (element instanceof PsiBinaryFile) {
+      PsiBinaryFile binaryFile = (PsiBinaryFile)element;
+      VirtualFile file = binaryFile.getVirtualFile();
+      if (file != null) {
+        return contains(file);
+      }
+    }
+    if (element instanceof VirtualFile) {
+      VirtualFile file = (VirtualFile)element;
+      return contains(file);
+    }
+    return false;
+  }
+
+  @Override
   public boolean contains(@NotNull VirtualFile file) {
     return isAncestor(myFolder, file, false /* not strict */);
   }
@@ -96,6 +113,16 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
   @NotNull
   private static AndroidSourceType getSourceType() {
     return AndroidSourceType.CPP;
+  }
+
+  @Override
+  public boolean isAlwaysExpand() {
+    return true;
+  }
+
+  @Override
+  public boolean isAlwaysShowPlus() {
+    return true;
   }
 
   @Override

@@ -65,6 +65,9 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
   @Nullable
   @Override
   protected AbstractTreeUpdater createUpdater() {
+    if (isDisposed()) {
+      return null;
+    }
     AbstractTreeStructure treeStructure = getTreeStructure();
     assert treeStructure != null;
     return new AndroidTreeUpdater(treeStructure, this);

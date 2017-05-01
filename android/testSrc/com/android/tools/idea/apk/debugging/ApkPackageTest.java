@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.apk.debugging;
 
-import com.android.tools.idea.apk.debugging.ApkClass;
-import com.android.tools.idea.apk.debugging.ApkPackage;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -71,5 +70,16 @@ public class ApkPackageTest {
     bPackage.addClass("Class1");
     assertTrue(aPackage.doSubpackagesHaveClasses());
     assertFalse(bPackage.doSubpackagesHaveClasses());
+  }
+
+  @Test
+  public void equalsAndHashCode() {
+    ApkPackage p1 = new ApkPackage("p1", null);
+    ApkPackage p2 = new ApkPackage("p2", null);
+    // @formatter:off
+    EqualsVerifier.forClass(ApkPackage.class).withPrefabValues(ApkPackage.class, p1, p2)
+                                             .withIgnoredFields("myClassesByName", "mySubpackagesByName")
+                                             .verify();
+    // @formatter:on
   }
 }
