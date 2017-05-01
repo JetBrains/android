@@ -146,10 +146,11 @@ public final class AxisComponent extends AnimatedComponent {
           myLabel = new JBLabel(myModel.getLabel());
           myLabel.setSize(mDefaultFontMetrics.stringWidth(myModel.getLabel()), mDefaultFontMetrics.getHeight());
       }
-      myLabel.setFont(getFont());
+      myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
     }
 
     setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
+    setFont(AdtUiUtils.DEFAULT_FONT);
 
     myModel.addDependency(myAspectObserver)
       .onChange(AxisComponentModel.Aspect.AXIS, this::modelChanged);
