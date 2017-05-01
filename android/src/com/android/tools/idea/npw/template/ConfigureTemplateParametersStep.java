@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.platform.Language;
@@ -69,7 +70,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.tools.idea.npw.WizardUtils.KOTLIN_ENABLED;
 import static com.android.tools.idea.npw.project.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
@@ -278,7 +278,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   private boolean displayLanguageChoice(TemplateMetadata templateMetadata) {
-    if (!KOTLIN_ENABLED) {
+    if (!StudioFlags.NPW_KOTLIN.get()) {
       return false;
     }
     // Note: For new projects we have a different UI.

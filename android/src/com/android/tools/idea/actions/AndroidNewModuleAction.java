@@ -16,14 +16,15 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.npw.*;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
+import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
-import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -49,7 +50,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      if (WizardUtils.isNpwModelWizardEnabled(e, WizardUtils.Feature.NEW_MODULE)) {
+      if (StudioFlags.NPW_NEW_MODULE.get()) {
         if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
           SdkQuickfixUtils.showSdkMissingDialog();
           return;
