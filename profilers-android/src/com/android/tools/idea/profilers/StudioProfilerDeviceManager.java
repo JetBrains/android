@@ -21,6 +21,7 @@ import com.android.ddmlib.*;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Charsets;
@@ -42,8 +43,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
-import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_JVMTI_PROFILING;
-import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_SIMPLEPERF_PROFILING;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn ProfilerClient's.
@@ -170,7 +169,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         // Perfd's command line argument is a temporary workaround to tell perfd whether jvmti is used.
         // TODO: remove perfdArguments after agent uses only JVMTI to instrument bytecode on O+ devices.
         String perfdArguments = "";
-        if (isAtLeastO(myDevice) && ENABLE_JVMTI_PROFILING) {
+        if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
           perfdArguments = " -use_jvmti";
         }
 
@@ -253,7 +252,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      */
     private void pushSimpleperfIfSupported(String devicePath) {
       // Simpleperf tracing is not supported in devices older than O.
-      if (!(isAtLeastO(myDevice) && ENABLE_SIMPLEPERF_PROFILING)) {
+      if (!(isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_SIMPLEPERF.get())) {
         return;
       }
       copyFileToDevice("simpleperf", "plugins/android/resources/simpleperf", "../../prebuilts/tools/common/simpleperf", devicePath, false);
@@ -262,7 +261,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private void createPerfdProxy() {
       try {
         myLocalPort = NetUtils.findAvailableSocketPort();
-        if (isAtLeastO(myDevice) && ENABLE_JVMTI_PROFILING) {
+        if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
           myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME,
                                  IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } else {

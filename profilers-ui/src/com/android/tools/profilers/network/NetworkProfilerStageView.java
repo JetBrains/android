@@ -66,7 +66,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     Splitter leftSplitter = new Splitter(true);
     leftSplitter.setFirstComponent(buildMonitorUi());
     myConnectionsPanel = new JPanel(new CardLayout());
-    if (NetworkProfilerStage.ENABLE_THREADS_VIEW_NETWORK_PROFILING) {
+    if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
       TabsPanel connectionsTab = getIdeComponents().createTabsPanel();
       connectionsTab.addTab("Connection View", new JBScrollPane(myConnectionsView.getComponent()));
       connectionsTab.addTab("Thread View", new JBScrollPane(myThreadsView.getComponent()));

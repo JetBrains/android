@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidProfilerAction extends DumbAwareAction {
   protected AndroidProfilerAction() {
     super("Android Profiler");
-    getTemplatePresentation().setVisible(ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED);
+    getTemplatePresentation().setVisible(StudioFlags.PROFILER_ENABLED.get());
   }
 
   @Override

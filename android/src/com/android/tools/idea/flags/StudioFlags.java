@@ -57,6 +57,31 @@ public final class StudioFlags {
     "Add an option in the new wizard flow to create a Kotlin project.",
     true);
 
+  private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
+  public static final Flag<Boolean> PROFILER_ENABLED = Flag.create(
+    PROFILER, "enabled", "Enable \"Android Profiler\" toolbar",
+    "Enable the new Android Profiler toolbar, which replaces the Android Monitor toolbar " +
+    "and provides more advanced CPU, event, memory, and network profiling information.",
+    true);
+
+  public static final Flag<Boolean> PROFILER_USE_JVMTI = Flag.create(
+    PROFILER, "jvmti", "Enable JVMTI profiling",
+    "Use JVMTI for profiling devices with Android O or newer. " +
+     "This unlocks even more profiling features for these devices.",
+     false);
+
+  public static final Flag<Boolean> PROFILER_USE_SIMPLEPERF = Flag.create(
+    PROFILER, "simpleperf", "Enable Simpleperf profiling",
+    "Use Simpleperf for CPU profiling on devices with Android O or newer. " +
+    "Simpleperf is a native profiler tool built for Android.",
+    false
+  );
+
+  public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
+    PROFILER, "threads.view", "Show network threads view",
+    "Show a view in the network profiler that groups connections by their creation thread.",
+    false);
+
   private StudioFlags() {
   }
 }

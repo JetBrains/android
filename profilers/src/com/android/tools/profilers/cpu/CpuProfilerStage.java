@@ -177,14 +177,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
   }
 
-  /**
-   * Whether simpleperf feature is enabled or not.
-   * False by default.
-   */
-  private static boolean isSimpleperfEnabled() {
-    return "true".equals(System.getProperty("enable.simpleperf.profiling"));
-  }
-
   private static Logger getLogger() {
     return Logger.getInstance(CpuProfilerStage.class);
   }
@@ -491,7 +483,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     // Simpleperf profiling is not supported by devices older than O (API level 26)
     boolean selectedDeviceSupportsSimpleperf = getStudioProfilers().getDevice().getFeatureLevel() >= 26;
-    if (selectedDeviceSupportsSimpleperf && isSimpleperfEnabled()) {
+    if (selectedDeviceSupportsSimpleperf && getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled()) {
       // Add simpleperf default profiling preference
       ProfilingPreferences simpleperfDefaultPref = new ProfilingPreferences("Sampled (Hybrid)",
                                                                             CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
