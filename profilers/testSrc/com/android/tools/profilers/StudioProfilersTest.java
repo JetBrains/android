@@ -694,6 +694,82 @@ public final class StudioProfilersTest {
     assertEquals(Profiler.Device.State.DISCONNECTED, profilers.getDevice().getState());
   }
 
+  @Test
+  public void testProfileOneProcessAtATime() {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Profiler.Device device1 = Profiler.Device.newBuilder().setSerial("FakeDevice").setState(Profiler.Device.State.ONLINE).build();
+    Profiler.Process process1 = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    Profiler.Process process2 = Profiler.Process.newBuilder()
+      .setPid(21)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess2")
+      .build();
+    Common.Session session1 = Common.Session.newBuilder()
+      .setBootId(device1.getBootId())
+      .setDeviceSerial(device1.getSerial())
+      .build();
+    myProfilerService.addDevice(device1);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(0, myGrpcServer.getProfiledProcessCount());
+    myProfilerService.addProcess(session1, process1);
+    myProfilerService.addProcess(session1, process2);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(process1, profilers.getProcess());
+    assertEquals(1, myGrpcServer.getProfiledProcessCount());
+    assertEquals(process1, profilers.getProcess());
+
+    // Switch to another process.
+    profilers.setProcess(process2);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(1, myGrpcServer.getProfiledProcessCount());
+    assertEquals(process2, profilers.getProcess());
+
+    // Connect a new device with a process.
+    Profiler.Device device2 = Profiler.Device.newBuilder().setSerial("FakeDevice2").setState(Profiler.Device.State.ONLINE).build();
+    Profiler.Process process3 = Profiler.Process.newBuilder()
+      .setPid(3039)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess3")
+      .build();
+    Common.Session session2 = Common.Session.newBuilder()
+      .setBootId(device2.getBootId())
+      .setDeviceSerial(device2.getSerial())
+      .build();
+    myProfilerService.addDevice(device2);
+    myProfilerService.addProcess(session2, process3);
+
+    // Switch to the new device.
+    profilers.setDevice(device2);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(1, myGrpcServer.getProfiledProcessCount());
+    assertEquals(process3, profilers.getProcess());
+
+    // Update device2 state to disconnect
+    Profiler.Device disconnectedDevice2 = Profiler.Device.newBuilder()
+      .setSerial(device2.getSerial())
+      .setState(Profiler.Device.State.DISCONNECTED)
+      .build();
+    myProfilerService.updateDevice(session2, device2, disconnectedDevice2);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(1, myGrpcServer.getProfiledProcessCount());
+    // Restart profiling process1 on device1.
+    assertEquals(process1, profilers.getProcess());
+
+    // Update device1 state to disconnect
+    Profiler.Device disconnectedDevice = Profiler.Device.newBuilder()
+      .setSerial(device1.getSerial())
+      .setState(Profiler.Device.State.DISCONNECTED)
+      .build();
+    myProfilerService.updateDevice(session1, device1, disconnectedDevice);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(0, myGrpcServer.getProfiledProcessCount());
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
