@@ -39,7 +39,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
 
 @RunWith(GuiTestRunner.class)
-@RunIn(TestGroup.UNRELIABLE) // b/37560852
+@Ignore("consistently fails with IDE errors that block following tests from running") // b/37560852
 public class BuildSignedApkTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
