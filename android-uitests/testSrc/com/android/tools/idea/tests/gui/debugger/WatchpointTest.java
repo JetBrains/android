@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.ui.JBPopupMenu;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,6 +30,7 @@ import org.junit.runner.RunWith;
 public class WatchpointTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   /**
    * Verifies that debugger stops an app once watched variable is read and/or written.
@@ -54,7 +57,7 @@ public class WatchpointTest extends DebuggerTestBase {
 
     final IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    createDefaultAVD(ideFrame.invokeAvdManager());
+    emulator.createDefaultAVD(ideFrame.invokeAvdManager());
 
     // Setup breakpoints
     openAndToggleBreakPoints(ideFrame, "app/src/main/jni/native-lib.c", "int dummy = 1;");
@@ -63,7 +66,7 @@ public class WatchpointTest extends DebuggerTestBase {
     String[] expectedPattern = {variableToSearchPattern("write", "int", "5")};
 
     ideFrame.debugApp(DEBUG_CONFIG_NAME)
-        .selectDevice(AVD_NAME)
+        .selectDevice(emulator.getAvdName())
         .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);

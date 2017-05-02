@@ -19,28 +19,30 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.rules.ExternalResource;
 
-public class TestWithEmulator {
-  protected static final String AVD_NAME = "device under test";
+public class EmulatorTestRule extends ExternalResource {
 
-  @Before
-  public void setUpConnection() throws Exception {
-    MockAvdManagerConnection.inject();
-    getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
+  public String getAvdName() {
+    return "device under test";
   }
 
-  @After
-  public void tearDownConnection() throws Exception {
+  @Override
+  protected void before() throws Throwable {
+    MockAvdManagerConnection.inject();
+    getEmulatorConnection().stopRunningAvd();
+    getEmulatorConnection().deleteAvdByDisplayName(getAvdName());
+  }
+
+  @Override
+  protected void after() {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
     getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
+    getEmulatorConnection().deleteAvdByDisplayName(getAvdName());
   }
 
-  protected void createDefaultAVD(AvdManagerDialogFixture avdManagerDialog) {
+  public void createDefaultAVD(AvdManagerDialogFixture avdManagerDialog) {
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
     avdEditWizard.selectHardware()
@@ -53,7 +55,7 @@ public class TestWithEmulator {
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME)
+      .setAvdName(getAvdName())
       .selectGraphicsSoftware();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();

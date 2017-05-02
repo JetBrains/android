@@ -16,12 +16,11 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
@@ -36,9 +35,10 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-public class LaunchAndroidApplicationTest extends TestWithEmulator {
+public class LaunchAndroidApplicationTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
   private static final String APPLICATION_STARTED = ".*Application started.*";
@@ -55,16 +55,16 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
   @RunIn(TestGroup.QA)
   @Test
-  public void testRunOnEmulator() throws Exception, ClassNotFoundException {
+  public void testRunOnEmulator() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
@@ -78,13 +78,13 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
@@ -118,10 +118,10 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   @Test
   public void testNdkHandlesDupeFilename() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("NdkDupeFilename");
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(APPLICATION_STARTED, Pattern.DOTALL)), 120);
@@ -159,7 +159,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
     // the app may crash before Android Studio can connect to the console.
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     // Look for text indicating a crash. Full text looks something like:
@@ -221,18 +221,18 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
     assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
       .contains("int32_t Engine::HandleInput(");
 
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     // Wait for the UI App to be up and running, by waiting for the first Frame draw to get hit.
     expectBreakPoint("g_engine.DrawFrame()");
 
     // Simulate a screen touch
-    getEmulatorConnection().tapRunningAvd(400, 400);
+    emulator.getEmulatorConnection().tapRunningAvd(400, 400);
 
     // Wait for the Cpp HandleInput() break point to get hit.
     expectBreakPoint("Engine* eng = (Engine*)app->userData;");
@@ -265,7 +265,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   @Test
   public void testRunInstrumentationTest() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
@@ -277,7 +277,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
         .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
         .clickOk();
 
-    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(AVD_NAME).clickOk();
+    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(emulator.getAvdName()).clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
         .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);

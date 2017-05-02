@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -30,12 +31,13 @@ import static com.google.common.truth.Truth.assertThat;
 public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testSessionRestart() throws Exception{
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     projectFrame.invokeMenuPath("Run", "Edit Configurations...");
@@ -49,7 +51,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
                              "return (*env)->NewStringUTF(env, message);");
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
@@ -61,7 +63,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     errorMessage.requireMessageContains("Restart App").click("Restart " + DEBUG_CONFIG_NAME);
 
     DeployTargetPickerDialogFixture deployTargetPicker = DeployTargetPickerDialogFixture.find(guiTest.robot());
-    deployTargetPicker.selectDevice(AVD_NAME).clickOk();
+    deployTargetPicker.selectDevice(emulator.getAvdName()).clickOk();
 
     waitUntilDebugConsoleCleared(debugToolWindowFixture);
     waitForSessionStart(debugToolWindowFixture);
@@ -72,7 +74,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testMultiBreakAndResume() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     projectFrame.invokeMenuPath("Run", "Edit Configurations...");
@@ -94,7 +96,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     );
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
@@ -173,7 +175,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
   @RunIn(TestGroup.QA_UNRELIABLE)
   public void testCAndJavaBreakAndResume() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
@@ -186,7 +188,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/basiccmakeapp/MainActivity.java", "setContentView(tv);");
 
     ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
