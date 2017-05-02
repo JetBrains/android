@@ -23,6 +23,8 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
@@ -40,6 +42,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
     assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("strings").size());
+    Disposer.dispose(repo);
   }
 
   public void testResolver() {
@@ -88,6 +91,35 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
       new ResourceValue(ResourceUrl.create(null, ResourceType.STRING, "test"), "@sample/refs")).getValue());
 
     assertNull(resolver.findResValue("@sample/invalid", false));
+  }
+
+  public void testSampleDataFileInvalidation() throws IOException {
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+
+    assertNull(repo.getMap(null, ResourceType.SAMPLE_DATA, true));
+
+    myFixture.addFileToProject("sampledata/strings",
+                               "string1\n" +
+                               "string2\n" +
+                               "string3\n");
+    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
+    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("strings").size());
+
+    myFixture.addFileToProject("sampledata/strings2",
+                               "string1\n");
+    assertEquals(2, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
+
+    VirtualFile sampleDir = SampleDataResourceRepository.getSampleDataDir(myFacet, false);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      try {
+        sampleDir.delete(null);
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+    assertNull(repo.getMap(null, ResourceType.SAMPLE_DATA, true));
+    Disposer.dispose(repo);
   }
 
   public void testResolverCacheInvalidation() {
