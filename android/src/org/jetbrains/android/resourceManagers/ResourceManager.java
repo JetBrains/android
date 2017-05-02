@@ -309,7 +309,7 @@ public abstract class ResourceManager {
 
     index.processValues(AndroidValueResourcesIndex.INDEX_ID, typeMarkerEntry, null, new FileBasedIndex.ValueProcessor<ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo>>() {
       @Override
-      public boolean process(VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
+      public boolean process(@NotNull VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
         for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
           Set<ResourceEntry> resourcesInFile = file2resourceSet.get(file);
 
@@ -422,7 +422,7 @@ public abstract class ResourceManager {
 
     index.processValues(AndroidIdIndex.INDEX_ID, AndroidIdIndex.MARKER, null, new FileBasedIndex.ValueProcessor<Set<String>>() {
       @Override
-      public boolean process(VirtualFile file, Set<String> value) {
+      public boolean process(@NotNull VirtualFile file, Set<String> value) {
         file2idEntries.put(file, value);
         return true;
       }
@@ -522,7 +522,7 @@ public abstract class ResourceManager {
       .processValues(AndroidValueResourcesIndex.INDEX_ID, AndroidValueResourcesIndex.createTypeNameMarkerKey(resourceType, resourceName),
                      null, new FileBasedIndex.ValueProcessor<ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo>>() {
       @Override
-      public boolean process(VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
+      public boolean process(@NotNull VirtualFile file, ImmutableSet<AndroidValueResourcesIndex.MyResourceInfo> infos) {
         for (AndroidValueResourcesIndex.MyResourceInfo info : infos) {
           final String name = info.getResourceEntry().getName();
 
