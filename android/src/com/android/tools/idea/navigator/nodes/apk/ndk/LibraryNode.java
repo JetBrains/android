@@ -57,7 +57,7 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @Nullable
   protected VirtualFile getFirstFile() {
-    List<VirtualFile> files = myLibrary.files;
+    List<VirtualFile> files = myLibrary.sharedObjectFiles;
     return files.isEmpty() ? null : files.get(0);
   }
 
@@ -103,7 +103,7 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    return myLibrary.files.contains(file);
+    return myLibrary.sharedObjectFiles.contains(file);
   }
 
   @Override

@@ -33,15 +33,15 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class NativeLibraryTest extends IdeaTestCase {
   public void testSetFilePaths() throws IOException {
-    List<VirtualFile> files = createLibraryFiles("x86", "arm65-v8a");
+    List<VirtualFile> files = createSharedObjectFiles("x86", "arm65-v8a");
     List<String> filePaths = getPaths(files);
 
     NativeLibrary library = new NativeLibrary("library");
-    library.setFilePaths(filePaths);
+    library.setSharedObjectFilePaths(filePaths);
 
     assertThat(library.abis).containsExactly("arm65-v8a", "x86"); // They should be sorted.
-    assertThat(library.files).containsAllIn(files);
-    assertThat(library.getFilePaths()).containsAllIn(filePaths);
+    assertThat(library.sharedObjectFiles).containsAllIn(files);
+    assertThat(library.getSharedObjectFilePaths()).containsAllIn(filePaths);
   }
 
   public void testSetFilePathsWithNonExistingPaths() {
@@ -49,30 +49,30 @@ public class NativeLibraryTest extends IdeaTestCase {
     filePaths.add("abc.so");
 
     NativeLibrary library = new NativeLibrary("library");
-    library.setFilePaths(filePaths);
+    library.setSharedObjectFilePaths(filePaths);
 
     assertThat(library.abis).isEmpty();
-    assertThat(library.files).isEmpty();
+    assertThat(library.sharedObjectFiles).isEmpty();
   }
 
   public void testAddFilesWithFileList() throws IOException {
-    List<VirtualFile> files = createLibraryFiles("x86", "arm65-v8a");
+    List<VirtualFile> files = createSharedObjectFiles("x86", "arm65-v8a");
     NativeLibrary library = new NativeLibrary("library");
-    library.addFiles(files);
+    library.addSharedObjectFiles(files);
 
     assertThat(library.abis).containsExactly("arm65-v8a", "x86"); // They should be sorted.
-    assertThat(library.files).containsAllIn(files);
-    assertThat(library.getFilePaths()).containsAllIn(getPaths(files));
+    assertThat(library.sharedObjectFiles).containsAllIn(files);
+    assertThat(library.getSharedObjectFilePaths()).containsAllIn(getPaths(files));
   }
 
   public void testAddFilesWithFileArray() throws IOException {
-    List<VirtualFile> files = createLibraryFiles("x86", "arm65-v8a");
+    List<VirtualFile> files = createSharedObjectFiles("x86", "arm65-v8a");
     NativeLibrary library = new NativeLibrary("library");
-    library.addFiles(files.toArray(new VirtualFile[files.size()]));
+    library.addSharedObjectFiles(files);
 
     assertThat(library.abis).containsExactly("arm65-v8a", "x86"); // They should be sorted.
-    assertThat(library.files).containsAllIn(files);
-    assertThat(library.getFilePaths()).containsAllIn(getPaths(files));
+    assertThat(library.sharedObjectFiles).containsAllIn(files);
+    assertThat(library.getSharedObjectFilePaths()).containsAllIn(getPaths(files));
   }
 
   @NotNull
@@ -80,33 +80,8 @@ public class NativeLibraryTest extends IdeaTestCase {
     return files.stream().map(VirtualFile::getPath).collect(Collectors.toList());
   }
 
-  public void testCopyFrom() throws IOException {
-    List<VirtualFile> files = createLibraryFiles("x86", "arm65-v8a");
-    NativeLibrary library1 = new NativeLibrary("library1");
-    library1.addFiles(files.toArray(new VirtualFile[files.size()]));
-
-    NativeLibrary library2 = new NativeLibrary("library2");
-    assertThat(library2).isNotEqualTo(library1);
-
-    library2.copyFrom(library1);
-    assertEquals(library1, library2);
-  }
-
-  public void testCopyConstructor() throws IOException {
-    NativeLibrary library = new NativeLibrary("library");
-    library.addFiles(createLibraryFiles("x86", "arm65-v8a"));
-
-    NativeLibrary copy = new NativeLibrary(library);
-    assertEquals(library.hasDebugSymbols, copy.hasDebugSymbols);
-    assertEquals(library.name, copy.name);
-    assertEquals(library.sourceFolderPaths, copy.sourceFolderPaths);
-    assertEquals(library.pathMappings, copy.pathMappings);
-    assertEquals(library.getFilePaths(), copy.getFilePaths());
-    assertEquals(library.debuggableFilePath, copy.debuggableFilePath);
-  }
-
   @NotNull
-  private List<VirtualFile> createLibraryFiles(@NotNull String... abis) throws IOException {
+  private List<VirtualFile> createSharedObjectFiles(@NotNull String... abis) throws IOException {
     return ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<List<VirtualFile>, IOException>() {
       @Override
       public List<VirtualFile> compute() throws IOException {
