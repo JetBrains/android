@@ -26,9 +26,11 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.Nullable;
@@ -79,21 +81,20 @@ class PsiResourceItem extends ResourceItem {
   @Override
   public ResourceFile getSource() {
     ResourceFile source = super.getSource();
+    PsiElement parent = source == null && myFile != null ? AndroidPsiUtils.getPsiParentSafely(myFile) : null;
 
-    // Temporary safety workaround
-    if (source == null && myFile != null && myFile.getParent() != null) {
-      PsiDirectory parent = myFile.getParent();
-      if (parent != null) {
-        String name = parent.getName();
-        ResourceFolderType folderType = ResourceFolderType.getFolderType(name);
-        FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(name);
-        int index = name.indexOf('-');
-        String qualifiers = index == -1 ? "" : name.substring(index + 1);
-        source = new PsiResourceFile(myFile, Collections.<ResourceItem>singletonList(this), qualifiers, folderType,
-                                     configuration);
-        setSource(source);
-      }
+    if (parent == null || !(parent instanceof PsiDirectory)) {
+      return source;
     }
+
+    String name = ((PsiDirectory)parent).getName();
+    ResourceFolderType folderType = ResourceFolderType.getFolderType(name);
+    FolderConfiguration configuration = FolderConfiguration.getConfigForFolder(name);
+    int index = name.indexOf('-');
+    String qualifiers = index == -1 ? "" : name.substring(index + 1);
+    source = new PsiResourceFile(myFile, Collections.<ResourceItem>singletonList(this), qualifiers, folderType,
+                                 configuration);
+    setSource(source);
 
     return source;
   }
