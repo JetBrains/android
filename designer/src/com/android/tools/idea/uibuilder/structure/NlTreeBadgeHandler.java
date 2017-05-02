@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -51,9 +52,14 @@ public class NlTreeBadgeHandler {
   @Nullable private TreePath myHoveredPath;
   @Nullable private NlModel myNlModel;
   private int myBadgeX;
+  @Nullable private IssuePanel myIssuePanel;
 
   public void setNlModel(@Nullable NlModel nlModel) {
     myNlModel = nlModel;
+  }
+
+  public void setIssuePanel(@Nullable IssuePanel issuePanel) {
+    myIssuePanel = issuePanel;
   }
 
   public void paintBadges(@NotNull Graphics2D g, @NotNull JTree tree) {
@@ -202,6 +208,28 @@ public class NlTreeBadgeHandler {
     public void mouseMoved(@NotNull MouseEvent event) {
       JTree tree = (JTree)event.getSource();
       handleShowBadge(event, tree);
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent event) {
+      handleMouseClicked(event, ((JTree)event.getSource()));
+    }
+
+    private void handleMouseClicked(MouseEvent event, JTree tree) {
+      if (event.getX() < myBadgeX || myIssuePanel == null) {
+        // We only show the tooltip if the mouse id hovering the badge
+        return;
+      }
+      TreePath path = tree.getClosestPathForLocation(event.getX(), event.getY());
+      Rectangle bounds;
+
+      if (path == null ||
+          (bounds = tree.getPathBounds(path)) == null ||
+          // Ensure the tooltip is not displayed if the mouse is below the last row
+          event.getY() < bounds.y || event.getY() > bounds.y + bounds.height) {
+        return;
+      }
+      myIssuePanel.showIssueForComponent((NlComponent)path.getLastPathComponent(), true);
     }
 
     private void handleShowBadge(@NotNull MouseEvent event, @NotNull JTree tree) {

@@ -193,7 +193,7 @@ public abstract class NlIssue {
       String headerFontColor = HtmlBuilderHelper.getHeaderFontColor();
       HtmlBuilder builder = new HtmlBuilder();
 
-      builder.addHtml(myIssue.message);
+      builder.addHtml(TextFormat.RAW.convertTo(myIssue.message, HTML));
       builder.newline().newline();
       builder.addHtml(issue.getExplanation(HTML));
       builder.newline();

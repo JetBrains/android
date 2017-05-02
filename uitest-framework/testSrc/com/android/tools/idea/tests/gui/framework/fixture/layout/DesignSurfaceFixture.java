@@ -82,7 +82,7 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
 
   @Nullable
   public String getErrorText() {
-    IssueView view = myIssuePanelFixture.target().getSelectedIssueView();
+    IssueView view = myIssuePanelFixture.getSelectedIssueView();
     if (view == null) {
       return null;
     }
