@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.utils.SdkUtils;
 import com.intellij.codeInsight.hint.HintUtil;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.ui.HintHint;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,14 +49,22 @@ public class NlTreeBadgeHandler {
 
   private static final int BADGE_MARGIN = 5;
   private static final int MESSAGE_WIDTH = 50;
+  private static final int BADGE_ICON = 0;
+  private static final int VISIBILITY_ICON = 1;
+
+  private static final String TOGGLE_VISIBILITY_MESSAGE = "Toggle Tool Visibility";
 
   private final BadgeMouseMotionListener myBadgeMouseMotionListener = new BadgeMouseMotionListener();
   private final JBLabel myHintLabel = new JBLabel();
   private final Point myHintLocation = new Point();
   @Nullable private LightweightHint myTooltipHint;
   @Nullable private TreePath myHoveredPath;
+  private int myHoveredIcon = BADGE_ICON;
+  private NlComponent myHoveredComponent;
+
   @Nullable private NlModel myNlModel;
   private int myBadgeX;
+  private int myVisibilityIconX;
   @Nullable private IssuePanel myIssuePanel;
 
   public void setNlModel(@Nullable NlModel nlModel) {
@@ -68,19 +81,38 @@ public class NlTreeBadgeHandler {
       return;
     }
     LintAnnotationsModel lintAnnotationsModel = myNlModel.getLintAnnotationsModel();
-    if (lintAnnotationsModel == null) {
-      return;
-    }
+    Icon showIcon = AndroidIcons.SherpaIcons.Unhide;
+    Icon hideIcon = AndroidIcons.SherpaIcons.Hide;
     for (int i = 0; i < tree.getRowCount(); i++) {
       TreePath path = tree.getPathForRow(i);
-      Icon icon = lintAnnotationsModel.getIssueIcon((NlComponent)path.getLastPathComponent(), false);
+      NlComponent component = (NlComponent)path.getLastPathComponent();
       Rectangle pathBounds = tree.getPathBounds(path);
-      if (icon != null && pathBounds != null) {
-        int x = tree.getWidth() - icon.getIconWidth() - BADGE_MARGIN;
-        int y = pathBounds.y + pathBounds.height / 2 - icon.getIconHeight() / 2;
-        icon.paintIcon(tree, g, x, y);
-        myBadgeX = Math.min(x, myBadgeX);
+      int y = pathBounds.y + pathBounds.height / 2;
+      if (lintAnnotationsModel != null) {
+        Icon icon = lintAnnotationsModel.getIssueIcon(component, false);
+        if (icon != null && pathBounds != null) {
+          int x = tree.getWidth() - icon.getIconWidth() - BADGE_MARGIN;
+          int iy = y - icon.getIconHeight() / 2;
+          icon.paintIcon(tree, g, x, iy);
+          myBadgeX = Math.min(x, myBadgeX);
+        }
+        myVisibilityIconX = myBadgeX - BADGE_MARGIN - hideIcon.getIconWidth();
+      } else {
+        myVisibilityIconX = tree.getWidth() - BADGE_MARGIN - hideIcon.getIconWidth();
       }
+      boolean isVisible = SceneManager.isComponentVisible(component);
+      boolean isOver = myHoveredComponent == component && myHoveredIcon == VISIBILITY_ICON;
+      if (!isOver && isVisible) {
+        // if we are not over the icon, we only draw it when the component is invisible
+        // (as visible is the default state)
+        continue;
+      }
+      Icon visibilityIcon = isVisible ? showIcon : hideIcon;
+      if (isOver) {
+        // in this case, show instead the icon of the state we would end up if we click on it
+        visibilityIcon = isVisible ? hideIcon : showIcon;
+      }
+      visibilityIcon.paintIcon(tree, g, myVisibilityIconX, y - visibilityIcon.getIconHeight() / 2);
     }
   }
 
@@ -202,6 +234,7 @@ public class NlTreeBadgeHandler {
         myTooltipHint.hide(true);
         myTooltipHint = null;
       }
+      myHoveredComponent = null;
     }
 
     @Override
@@ -216,7 +249,7 @@ public class NlTreeBadgeHandler {
     }
 
     private void handleMouseClicked(MouseEvent event, JTree tree) {
-      if (event.getX() < myBadgeX || myIssuePanel == null) {
+      if (event.getX() < myVisibilityIconX || myIssuePanel == null) {
         // We only show the tooltip if the mouse id hovering the badge
         return;
       }
@@ -229,13 +262,38 @@ public class NlTreeBadgeHandler {
           event.getY() < bounds.y || event.getY() > bounds.y + bounds.height) {
         return;
       }
-      myIssuePanel.showIssueForComponent((NlComponent)path.getLastPathComponent(), true);
+      NlComponent component = (NlComponent)path.getLastPathComponent();
+      if (event.getX() > myBadgeX) {
+        myIssuePanel.showIssueForComponent(component, true);
+      } else {
+        toggleVisibility(component);
+      }
+    }
+
+    private void toggleVisibility(@NotNull NlComponent component) {
+      NlModel model = component.getModel();
+      boolean isVisible = SceneManager.isComponentVisible(component);
+      if (component.getParent() == null) {
+        // Don't do anything for the root component
+        return;
+      }
+      new WriteCommandAction(model.getProject(), model.getFile()) {
+        @Override
+        protected void run(@NotNull Result result) throws Throwable {
+          String value = SdkConstants.VALUE_TRUE;
+          if (isVisible) {
+            value = SdkConstants.VALUE_FALSE;
+          }
+          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_VISIBLE, value);
+        }
+      }.execute();
     }
 
     private void handleShowBadge(@NotNull MouseEvent event, @NotNull JTree tree) {
-      if (event.getX() < myBadgeX) {
+      if (event.getX() < myVisibilityIconX) {
         // We only show the tooltip if the mouse id hovering the badge
         myHoveredPath = null;
+        myHoveredComponent = null;
         hideTooltip();
         return;
       }
@@ -247,17 +305,39 @@ public class NlTreeBadgeHandler {
           // Ensure the tooltip is not displayed if the mouse is below the last row
           event.getY() < bounds.y || event.getY() > bounds.y + bounds.height) {
         myHoveredPath = null;
+        myHoveredComponent = null;
         hideTooltip();
         return;
+      }
+
+      myHoveredComponent = (NlComponent)path.getLastPathComponent();
+
+      boolean badgeIcon = true;
+      if (event.getX() < myBadgeX) {
+        badgeIcon = false;
       }
 
       // Don't do anything if the path under the mouse is still the same
       if (myHoveredPath == path) {
-        return;
+        if (badgeIcon && myHoveredIcon == BADGE_ICON) {
+          return;
+        }
+        if (!badgeIcon && myHoveredIcon == VISIBILITY_ICON) {
+          return;
+        }
       }
       myHoveredPath = path;
 
-      String message = getIssueMessage(myHoveredPath);
+      String message = null;
+      if (badgeIcon) {
+        message = getIssueMessage(myHoveredPath);
+        myHoveredIcon = BADGE_ICON;
+      } else {
+        if (myHoveredComponent.getParent() != null) {
+          message = TOGGLE_VISIBILITY_MESSAGE;
+          myHoveredIcon = VISIBILITY_ICON;
+        }
+      }
       if (message != null) {
         showErrorTooltip(tree, myHoveredPath, message);
       }
