@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -40,9 +40,10 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-public class NewCppProjectTest extends TestWithEmulator {
+public class NewCppProjectTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(".*adb shell am start .*myapplication\\.MainActivity.*", Pattern.DOTALL);
@@ -208,11 +209,11 @@ public class NewCppProjectTest extends TestWithEmulator {
   }
 
   private void runAppOnEmulator() throws ClassNotFoundException {
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     guiTest.ideFrame()
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.

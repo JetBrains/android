@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -38,9 +38,10 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
-public class NativeOptimizedWarningTest extends TestWithEmulator {
+public class NativeOptimizedWarningTest {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String DEBUG_CONFIG_NAME = "app";
 
@@ -58,14 +59,14 @@ public class NativeOptimizedWarningTest extends TestWithEmulator {
   @Test
   public void test() throws IOException, ClassNotFoundException, InterruptedException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("NativeOptimizedWarningForUI");
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     // Setup breakpoints
     final String[] breakPoints = { "return 1+c;" };
     openAndToggleBreakPoints("app/src/main/cpp/hello-jni.c", breakPoints);
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME).selectDevice(AVD_NAME).clickOk();
+    projectFrame.debugApp(DEBUG_CONFIG_NAME).selectDevice(emulator.getAvdName()).clickOk();
 
     // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);

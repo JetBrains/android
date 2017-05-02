@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector;
 
-import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -32,20 +32,21 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-public class LayoutInspectorTest extends TestWithEmulator {
+public class LayoutInspectorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   @Before
   public void setUp() throws Exception {
     guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspectorViaChooser() throws Exception {
-    guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
+    guiTest.ideFrame().runApp("app").selectDevice(emulator.getAvdName()).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
     guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Android", "Layout Inspector");
