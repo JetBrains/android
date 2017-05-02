@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.npw.platform.Language;
+import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -25,9 +27,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,6 +77,12 @@ public class NewActivityTest {
 
     myConfigActivity = myDialog.getConfigureActivityStep();
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
+    assertThat(NewProjectModel.getInitialSourceLanguage()).isEqualTo(Language.JAVA);
+  }
+
+  @After
+  public void tearDown() {
+    NewProjectModel.setInitialSourceLanguage(Language.JAVA);
   }
 
   @RunIn(TestGroup.QA)
@@ -148,6 +158,20 @@ public class NewActivityTest {
 
     String text = myEditor.open("app/src/main/java/google/test2/MainActivity.java").getCurrentFileContents();
     assertThat(text).startsWith("package google.test2;");
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE)
+  public void createActivityWithKotlin() throws Exception {
+    myConfigActivity.setSourceLanguage("Kotlin");
+    myDialog.clickFinish();
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    // TODO: Open the generated file. This is failing when running the UI tests, as it can't load the kotlin plugin...
+
+    assertThat(PropertiesComponent.getInstance().getValue("SAVED_SOURCE_LANGUAGE")).isEqualTo("Kotlin");
+    assertThat(NewProjectModel.getInitialSourceLanguage()).isEqualTo(Language.KOTLIN);
   }
 
   @Test
