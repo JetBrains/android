@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
-import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredListCellRenderer;
 import icons.AndroidIcons;
@@ -31,7 +29,6 @@ import org.mockito.Mock;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.uibuilder.property.ToggleDownloadableFontsAction.ENABLE_DOWNLOADABLE_FONTS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -60,10 +57,6 @@ public class FontEnumSupportTest extends AndroidTestCase {
     when(myProperty.getModel()).thenReturn(myModel);
     when(myModel.getFacet()).thenReturn(myFacet);
     doCallRealMethod().when(myProperty).resolveValue(anyString());
-
-    PropertiesComponent propertiesComponent = new PropertiesComponentMock();
-    registerApplicationComponent(PropertiesComponent.class, propertiesComponent);
-    propertiesComponent.setValue(ENABLE_DOWNLOADABLE_FONTS, true);
 
     mySupport = new FontEnumSupport(myProperty);
   }
