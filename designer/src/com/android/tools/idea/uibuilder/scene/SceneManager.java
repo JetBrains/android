@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -75,6 +76,7 @@ abstract public class SceneManager implements Disposable {
     NlComponent rootComponent = components.get(0).getRoot();
 
     SceneComponent root = updateFromComponent(rootComponent, usedComponents);
+    root.setToolVisible(true); // the root is always visible.
     oldComponents.removeAll(usedComponents);
     // The temporary component are not present in the NLModel so won't be added to the used component array
     oldComponents.removeIf(component -> component instanceof TemporarySceneComponent);
@@ -91,6 +93,22 @@ abstract public class SceneManager implements Disposable {
   public abstract void addTargets(@NotNull SceneComponent component);
 
   /**
+   * Returns false if the value of the tools:visible attribute is false, true otherwise.
+   * When a component is not tool visible, it will only appear in the design mode (not in the blueprint mode)
+   * and no interaction will be possible with it from the design surface.
+   *
+   * @param component component to look at
+   * @return tool visibility status
+   */
+  public static boolean isComponentVisible(@NotNull NlComponent component) {
+    String attribute = component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_VISIBLE);
+    if (attribute != null) {
+      return attribute.equals(SdkConstants.VALUE_TRUE);
+    }
+    return true;
+  }
+
+  /**
    * Update (and if necessary, create) the SceneComponent paired to the given NlComponent
    *
    * @param component      a given NlComponent
@@ -100,12 +118,22 @@ abstract public class SceneManager implements Disposable {
   @Nullable
   protected SceneComponent updateFromComponent(@NotNull NlComponent component, @NotNull Set<SceneComponent> seenComponents) {
     SceneComponent sceneComponent = getScene().getSceneComponent(component);
+    boolean created = false;
     if (sceneComponent == null) {
-      sceneComponent = new SceneComponent(getScene(), component);
+      sceneComponent = new SceneComponent(myScene, component);
+      created = true;
     }
+    sceneComponent.setToolVisible(isComponentVisible(component));
     seenComponents.add(sceneComponent);
 
+    boolean isAnimated = myScene.isAnimated();
+    if (created) {
+      myScene.setAnimated(false);
+    }
     updateFromComponent(component, sceneComponent);
+    if (created) {
+      myScene.setAnimated(isAnimated);
+    }
 
     for (NlComponent nlChild : component.getChildren()) {
       SceneComponent child = updateFromComponent(nlChild, seenComponents);
