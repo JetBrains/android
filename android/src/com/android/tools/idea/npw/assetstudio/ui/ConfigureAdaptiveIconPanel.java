@@ -322,6 +322,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       myForegroundClipartRadioButton, myForegroundClipartAssetButton,
       myForegroundTextRadioButton, myForegroundTextAssetEditor
     );
+    myForegroundImageAssetBrowser.getAsset().imagePath().set(ImageAsset.getTemplateImage("ic_launcher_foreground.png"));
     myForegroundImageAssetBrowser.getAsset().targetSize().setValue(LAYER_RESOLUTION);
     myForegroundClipartAssetButton.getAsset().targetSize().setValue(LAYER_RESOLUTION);
     myForegroundTextAssetEditor.getAsset().targetSize().setValue(LAYER_RESOLUTION);
@@ -388,11 +389,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   @Nullable
   private static File createSampleBackgroundImage() {
     try {
-      BufferedImage image = GraphicGenerator.getStencilImage("/images/adaptive_icons_samples/background.png");
+      BufferedImage image = GraphicGenerator.getStencilImage("/images/adaptive_icons_samples/background_layer.png");
       if (image == null) {
         return null;
       }
-      Path sampleFile = getImageSamplesPath().resolve("background-layer.png");
+      Path sampleFile = getImageSamplesPath().resolve("background_layer.png");
       Files.createDirectories(sampleFile.getParent());
       ImageIO.write(image, "PNG", sampleFile.toFile());
       return sampleFile.toFile();
@@ -673,8 +674,8 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   private void updateBindingsAndUiForActiveIconType() {
     myOutputName.set(AndroidAdaptiveIconType.ADAPTIVE.toOutputName("name"));
-    myForegroundLayerName.set("ic_image_foreground");
-    myBackgroundLayerName.set("ic_image_background");
+    myForegroundLayerName.set("ic_launcher_foreground");
+    myBackgroundLayerName.set("ic_launcher_background");
 
     myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myForegroundActiveAsset));
     myGeneralBindings.bind(myIconGenerator.name(), myOutputName);
