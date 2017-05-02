@@ -78,8 +78,10 @@ abstract public class SceneManager implements Disposable {
 
     NlComponent rootComponent = components.get(0).getRoot();
 
-    SceneComponent root = updateFromComponent(rootComponent, usedComponents);
-    root.setToolLocked(false); // the root is always unlocked.
+    SceneComponent root = createHierarchy(rootComponent);
+    if (root != null) {
+      updateFromComponent(root, usedComponents);
+    }
     oldComponents.removeAll(usedComponents);
     // The temporary component are not present in the NLModel so won't be added to the used component array
     oldComponents.removeIf(component -> component instanceof TemporarySceneComponent);
@@ -97,7 +99,7 @@ abstract public class SceneManager implements Disposable {
 
   /**
    * Returns false if the value of the tools:visible attribute is false, true otherwise.
-   * When a component is not tool visible, it will only appear in the design mode (not in the blueprint mode)
+   * When a component is not tool visible, it will not be rendered by the Scene mechanism (though it might be by others, e.g. layoutlib),
    * and no interaction will be possible with it from the design surface.
    *
    * @param component component to look at
@@ -114,39 +116,46 @@ abstract public class SceneManager implements Disposable {
   }
 
   /**
-   * Update (and if necessary, create) the SceneComponent paired to the given NlComponent
-   *
-   * @param component      a given NlComponent
-   * @param seenComponents Collector of components that were seen during NlComponent tree traversal.
-   * @return the SceneComponent paired with the given NlComponent
+   * Create SceneComponents corresponding to an NlComponent hierarchy
    */
   @Nullable
-  protected SceneComponent updateFromComponent(@NotNull NlComponent component, @NotNull Set<SceneComponent> seenComponents) {
+  protected SceneComponent createHierarchy(@NotNull NlComponent component) {
     SceneComponent sceneComponent = getScene().getSceneComponent(component);
-    boolean created = false;
     if (sceneComponent == null) {
-      sceneComponent = new SceneComponent(myScene, component);
-      created = true;
+      sceneComponent = new SceneComponent(getScene(), component);
     }
     sceneComponent.setToolLocked(isComponentLocked(component));
-    seenComponents.add(sceneComponent);
-
-    boolean isAnimated = myScene.isAnimated();
-    if (created) {
-      myScene.setAnimated(false);
-    }
-    updateFromComponent(component, sceneComponent);
-    if (created) {
-      myScene.setAnimated(isAnimated);
-    }
-
+    Set<SceneComponent> oldChildren = new HashSet<>(sceneComponent.getChildren());
     for (NlComponent nlChild : component.getChildren()) {
-      SceneComponent child = updateFromComponent(nlChild, seenComponents);
+      SceneComponent child = createHierarchy(nlChild);
+      oldChildren.remove(child);
       if (child != null && child.getParent() != sceneComponent) {
         sceneComponent.addChild(child);
       }
     }
+    for (SceneComponent child : oldChildren) {
+      if (child.getParent() == sceneComponent) {
+        child.removeFromParent();
+      }
+    }
     return sceneComponent;
+  }
+
+  /**
+   * Update the SceneComponent paired to the given NlComponent and its children.
+   *
+   * @param component      the root SceneComponent to update
+   * @param seenComponents Collector of components that were seen during NlComponent tree traversal.
+   * @return the SceneComponent paired with the given NlComponent
+   */
+  protected void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
+    seenComponents.add(component);
+
+    updateFromComponent(component);
+
+    for (SceneComponent child : component.getChildren()) {
+      updateFromComponent(child, seenComponents);
+    }
   }
 
   /**
@@ -162,13 +171,16 @@ abstract public class SceneManager implements Disposable {
     tempComponent.addTarget(new ConstraintDragDndTarget());
     scene.setAnimated(false);
     scene.getRoot().addChild(tempComponent);
-    updateFromComponent(component, tempComponent);
+    updateFromComponent(tempComponent);
     scene.setAnimated(true);
 
     return tempComponent;
   }
 
-  abstract protected void updateFromComponent(@NotNull NlComponent component, SceneComponent sceneComponent);
+  protected void updateFromComponent(SceneComponent sceneComponent) {
+    sceneComponent.setToolLocked(false); // the root is always unlocked.
+  }
+
 
   @NotNull
   protected DesignSurface getDesignSurface() {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import com.android.SdkConstants;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
@@ -26,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
 
 /**
  * {@link TargetProvider} for navigation screens.
@@ -54,6 +57,19 @@ public class NavScreenTargetProvider implements TargetProvider {
       if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
         result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
       }
+    }
+    SceneComponent parent = sceneComponent.getParent();
+    NlComponent parentNlComponent = null;
+    if (parent != null) {
+      parentNlComponent = parent.getNlComponent();
+    }
+    String startDestination = null;
+    if (parentNlComponent != null) {
+      startDestination = parentNlComponent.getAttribute(SdkConstants.AUTO_URI, ATTR_START_DESTINATION);
+      startDestination = NlComponent.stripId(startDestination);
+    }
+    if (startDestination != null && startDestination.equals(sceneComponent.getId())) {
+      result.add(new StartDestinationTarget(sceneComponent));
     }
     return result;
   }

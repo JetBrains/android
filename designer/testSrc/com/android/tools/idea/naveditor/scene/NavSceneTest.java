@@ -32,6 +32,7 @@ public class NavSceneTest extends NavigationTestCase {
 
   public void testDisplayList() {
     SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
+      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
       .unboundedChildren(
         component(NavigationSchema.TAG_FRAGMENT)
           .id("@+id/fragment1")
@@ -55,6 +56,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawAction,NORMAL,50x440x200x333,50x50x200x333,NORMAL\n" +
                  "DrawNavScreen,51,51,199,332\n" +
                  "DrawComponentFrame,50,50,200,333,1\n" +
+                 "DrawAction,NORMAL,-170x50x200x333,50x50x200x333,NORMAL\n" +
                  "UNClip\n", list.serialize());
   }
 }

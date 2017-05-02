@@ -55,6 +55,7 @@ public class NavigationSchema implements Disposable {
     ACTIVITY_NAVIGATOR_CLASS_NAME, DestinationType.ACTIVITY);
   public static final String ANNOTATION_NAV_TAG_NAME = "android.support.navigation.app.nav.Navigator.Name";
   public static final String ATTR_NAV_TYPE = "navType";
+  public static final String ATTR_START_DESTINATION = "startDestination";
 
   private Map<String, DestinationType> myTagToDestinationType;
 
