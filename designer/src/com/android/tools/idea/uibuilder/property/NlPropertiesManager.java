@@ -154,7 +154,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (!Boolean.getBoolean(IdeaApplication.IDEA_IS_INTERNAL_PROPERTY)) {
       return Collections.emptyList();
     }
-    return ImmutableList.of(new ToggleSlicePropertyEditor(this), new ToggleDownloadableFontsAction(this));
+    return ImmutableList.of(new ToggleSlicePropertyEditor(this));
   }
 
   @NotNull

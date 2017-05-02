@@ -22,7 +22,6 @@ import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString.ValueSelector;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import icons.AndroidIcons;
@@ -33,8 +32,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.uibuilder.property.ToggleDownloadableFontsAction.ENABLE_DOWNLOADABLE_FONTS;
 
 public class FontEnumSupport extends EnumSupport {
   private ProjectFonts myProjectFonts;
@@ -61,11 +58,9 @@ public class FontEnumSupport extends EnumSupport {
     AndroidFacet facet = myProperty.getModel().getFacet();
     ResourceResolver resolver = myProperty.getResolver();
     if (resolver != null) {
-      if (PropertiesComponent.getInstance().getBoolean(ENABLE_DOWNLOADABLE_FONTS)) {
-        values.add(ValueWithDisplayString.SEPARATOR);
-        values.add(new ValueWithDisplayString("More Fonts...", null, null,
-                                              new MoreFontSelector(facet, resolver)));
-      }
+      values.add(ValueWithDisplayString.SEPARATOR);
+      values.add(new ValueWithDisplayString("More Fonts...", null, null,
+                                            new MoreFontSelector(facet, resolver)));
     }
     return values;
   }

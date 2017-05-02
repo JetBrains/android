@@ -447,7 +447,9 @@ public class NlEnumEditorTest extends PropertyTestCase {
                      "serif-monospace", "serif-monospace",
                      "casual", "casual",
                      "cursive", "cursive",
-                     "sans-serif-smallcaps", "sans-serif-smallcaps")
+                     "sans-serif-smallcaps", "sans-serif-smallcaps",
+                     "-", "-",
+                     "More Fonts...", null)
       .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_DOWN)
@@ -472,7 +474,9 @@ public class NlEnumEditorTest extends PropertyTestCase {
                      "serif-monospace", "serif-monospace",
                      "casual", "casual",
                      "cursive", "cursive",
-                     "sans-serif-smallcaps", "sans-serif-smallcaps")
+                     "sans-serif-smallcaps", "sans-serif-smallcaps",
+                     "-", "-",
+                     "More Fonts...", null)
       .hidePopup();
 
     // Add another font to the project:
@@ -491,7 +495,9 @@ public class NlEnumEditorTest extends PropertyTestCase {
                      "serif-monospace", "serif-monospace",
                      "casual", "casual",
                      "cursive", "cursive",
-                     "sans-serif-smallcaps", "sans-serif-smallcaps")
+                     "sans-serif-smallcaps", "sans-serif-smallcaps",
+                     "-", "-",
+                     "More Fonts...", null)
       .hidePopup();
   }
 
