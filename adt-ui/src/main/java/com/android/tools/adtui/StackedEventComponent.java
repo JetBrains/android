@@ -123,12 +123,13 @@ public class StackedEventComponent extends MouseAdapterComponent {
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
     // Set Antialiasing, before we draw anything.
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+    g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     if (myRender) {
       renderActivity();
       myRender = false;
     }
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
+    g2d.setFont(getFont());
     drawActivity(g2d, dim);
   }
 
