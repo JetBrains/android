@@ -159,6 +159,15 @@ public class AndroidPsiUtils {
     return null;
   }
 
+  /**
+   * Returns the parent element of the given {@link PsiElement} acquiring the read lock to do so
+   * if necessary.
+   */
+  @Nullable
+  public static PsiElement getPsiParentSafely(@NotNull PsiElement element) {
+    return ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)element::getParent);
+  }
+
   /** Type of resource reference: R.type.name or android.R.type.name or neither */
   public enum ResourceReferenceType { NONE, APP, FRAMEWORK }
 
