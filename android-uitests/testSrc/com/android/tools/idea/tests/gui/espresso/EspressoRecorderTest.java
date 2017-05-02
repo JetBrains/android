@@ -60,7 +60,7 @@ public class EspressoRecorderTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // https://b/37150124
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37150124
   @Test
   public void addDependencyOnFly() throws Exception {
     guiTest.importSimpleApplication();
