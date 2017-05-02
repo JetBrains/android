@@ -16,6 +16,7 @@
 package com.android.tools.idea.instantapp;
 
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -30,27 +31,44 @@ import java.io.StringReader;
 import java.util.Collection;
 import java.util.Iterator;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.*;
 
 public class InstantAppUrlFinderTest {
 
   @Rule
-  public final ExpectedException exception = ExpectedException.none();
+  public final ExpectedException myException = ExpectedException.none();
 
-  private static Node createXMLContent(String innerXML) throws Exception {
-    String xmlString = "<?xml version=\"1.0\"?>" +
-                       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                       "          xmlns:instant=\"http://schemas.android.com/instantapps\">" +
-                       innerXML +
-                       "</manifest>";
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder builder;
-    factory.setNamespaceAware(true);
-    builder = factory.newDocumentBuilder();
-    Document document = builder.parse(new InputSource(new StringReader(xmlString)));
-    return document.getFirstChild().getFirstChild();
+  @Test
+  public void getAllUrls() throws Exception {
+    InstantAppUrlFinder finder = new InstantAppUrlFinder(createDummyValidData());
+
+    assertEquals(8, finder.getAllUrls().size());
+    Iterator<String> iterator = finder.getAllUrls().iterator();
+    assertEquals("scheme1://domainB/pathPatternB", iterator.next());
+    assertEquals("scheme2://domainB/pathPatternB", iterator.next());
+    assertEquals("scheme1://domainD/", iterator.next());
+    assertEquals("scheme2://domainD/", iterator.next());
+    assertEquals("scheme1://domainA/pathA", iterator.next());
+    assertEquals("scheme2://domainA/pathA", iterator.next());
+    assertEquals("scheme1://domainC/pathPrefixC/example", iterator.next());
+    assertEquals("scheme2://domainC/pathPrefixC/example", iterator.next());
   }
 
+  @Test
+  public void getAllUrls_invalidInput() throws Exception {
+    InstantAppUrlFinder invalidFinder = new InstantAppUrlFinder(ImmutableList.of((Element)createXMLContent("<intent-filter/>")));
+
+    assertEquals(0, invalidFinder.getAllUrls().size());
+  }
+
+  @Test
+  public void getDefaultUrl() throws Exception {
+    InstantAppUrlFinder finder = new InstantAppUrlFinder(createDummyValidData());
+
+    assertEquals("scheme1://domainB/pathPatternB", finder.getDefaultUrl());
+  }
+
+  @NotNull
   private static Collection<Element> createDummyValidData() throws Exception {
     return ImmutableList.of(
       (Element)createXMLContent("<activity>" +
@@ -91,44 +109,14 @@ public class InstantAppUrlFinderTest {
   }
 
   @Test
-  public void getAllUrls() throws Exception {
-    InstantAppUrlFinder finder = new InstantAppUrlFinder(createDummyValidData());
-
-    assertThat(finder.getAllUrls().size()).isEqualTo(8);
-    Iterator<String> iterator = finder.getAllUrls().iterator();
-    assertThat(iterator.next()).isEqualTo("scheme1://domainB/pathPatternB");
-    assertThat(iterator.next()).isEqualTo("scheme2://domainB/pathPatternB");
-    assertThat(iterator.next()).isEqualTo("scheme1://domainD/");
-    assertThat(iterator.next()).isEqualTo("scheme2://domainD/");
-    assertThat(iterator.next()).isEqualTo("scheme1://domainA/pathA");
-    assertThat(iterator.next()).isEqualTo("scheme2://domainA/pathA");
-    assertThat(iterator.next()).isEqualTo("scheme1://domainC/pathPrefixC/example");
-    assertThat(iterator.next()).isEqualTo("scheme2://domainC/pathPrefixC/example");
-  }
-
-  @Test
-  public void getAllUrls_invalidInput() throws Exception {
-    InstantAppUrlFinder invalidfinder = new InstantAppUrlFinder(ImmutableList.of((Element)createXMLContent("<intent-filter/>")));
-
-    assertThat(invalidfinder.getAllUrls().size()).isEqualTo(0);
-  }
-
-  @Test
-  public void getDefaultUrl() throws Exception {
-    InstantAppUrlFinder finder = new InstantAppUrlFinder(createDummyValidData());
-
-    assertThat(finder.getDefaultUrl()).isEqualTo("scheme1://domainB/pathPatternB");
-  }
-
-  @Test
   public void getDefaultUrl_invalidInput() throws Exception {
-    InstantAppUrlFinder invalidfinder = new InstantAppUrlFinder(ImmutableList.of((Element)createXMLContent("<intent-filter/>")));
+    InstantAppUrlFinder invalidFinder = new InstantAppUrlFinder(ImmutableList.of((Element)createXMLContent("<intent-filter/>")));
 
-    assertThat(invalidfinder.getDefaultUrl()).isEqualTo("");
+    assertEquals("", invalidFinder.getDefaultUrl());
   }
 
   @Test
-  public void InstantAppIntentFilterWrapper() throws Exception {
+  public void instantAppIntentFilterWrapper() throws Exception {
     Element intentWithData = (Element)createXMLContent("<intent-filter android:order=\"3\">" +
                                                        "<data android:host=\"domain\"\n" +
                                                        "      android:pathPrefix=\"/pathPrefix\"\n" +
@@ -140,182 +128,200 @@ public class InstantAppUrlFinderTest {
 
     InstantAppUrlFinder.InstantAppIntentFilterWrapper wrapper = InstantAppUrlFinder.InstantAppIntentFilterWrapper.of(intentWithData);
 
-    assertThat(wrapper.getAllUrlData().size()).isEqualTo(2);
-    assertThat(wrapper.getOrder()).isEqualTo(3);
+    assertEquals(2, wrapper.getAllUrlData().size());
+    assertEquals(3, wrapper.getOrder());
     Iterator<InstantAppUrlFinder.UrlData> iterator = wrapper.getAllUrlData().iterator();
-    assertThat(iterator.next().getUrl()).isEqualTo("scheme1://domain/pathPrefix/example");
-    assertThat(iterator.next().getUrl()).isEqualTo("scheme2://domain/pathPattern");
+    assertEquals("scheme1://domain/pathPrefix/example", iterator.next().getUrl());
+    assertEquals("scheme2://domain/pathPattern", iterator.next().getUrl());
   }
 
   @Test
-  public void InstantAppIntentFilterWrapper_getElement_wrongName() throws Exception {
+  public void instantAppIntentFilterWrapper_getElement_wrongName() throws Exception {
     Node wrongNameNode = createXMLContent("<something-filter foo=\"bar\"/>");
 
-    exception.expect(IllegalArgumentException.class);
+    myException.expect(IllegalArgumentException.class);
     InstantAppUrlFinder.InstantAppIntentFilterWrapper.getElement(wrongNameNode);
   }
 
   @Test
-  public void InstantAppIntentFilterWrapper_getElement_notAnElement() throws Exception {
+  public void instantAppIntentFilterWrapper_getElement_notAnElement() throws Exception {
     Node notAnElement = createXMLContent("<something-filter foo=\"bar\"/>").getAttributes().item(0);
 
-    exception.expect(IllegalArgumentException.class);
+    myException.expect(IllegalArgumentException.class);
     InstantAppUrlFinder.InstantAppIntentFilterWrapper.getElement(notAnElement);
   }
 
   @Test
-  public void InstantAppIntentFilterWrapper_getElement_Valid() throws Exception {
+  public void instantAppIntentFilterWrapper_getElement_Valid() throws Exception {
     Node intentFilterNode = createXMLContent("<intent-filter/>");
 
-    assertThat(InstantAppUrlFinder.InstantAppIntentFilterWrapper.getElement(intentFilterNode)).isEqualTo(intentFilterNode);
+    assertEquals(intentFilterNode, InstantAppUrlFinder.InstantAppIntentFilterWrapper.getElement(intentFilterNode));
   }
 
   @Test
-  public void InstantAppIntentFilterWrapper_getOrder_Valid() throws Exception {
+  public void instantAppIntentFilterWrapper_getOrder_Valid() throws Exception {
     Element intentWithOrder = (Element)createXMLContent("<intent-filter android:order=\"7\"/>");
 
-    assertThat(InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(intentWithOrder)).isEqualTo(7);
+    assertEquals(7, InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(intentWithOrder));
   }
 
   @Test
-  public void InstantAppIntentFilterWrapper_getOrder_negativeValue() throws Exception {
+  public void instantAppIntentFilterWrapper_getOrder_negativeValue() throws Exception {
     Element negativeValuesAreInvalid = (Element)createXMLContent("<intent-filter android:order=\"-3\"/>");
 
-    exception.expect(IllegalArgumentException.class);
+    myException.expect(IllegalArgumentException.class);
     InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(negativeValuesAreInvalid);
   }
 
   @Test
-  public void InstantAppIntentFilterWrapper_getOrder_nonNumericalValue() throws Exception {
+  public void instantAppIntentFilterWrapper_getOrder_nonNumericalValue() throws Exception {
     Element notANumber = (Element)createXMLContent("<intent-filter android:order=\"foo\"/>");
 
-    exception.expect(IllegalArgumentException.class);
+    myException.expect(IllegalArgumentException.class);
     InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(notANumber);
   }
 
   @Test
-  public void InstantAppIntentFilterWrapper_getOrder_missingAttribute() throws Exception {
-    Element missingAttribute = (Element)createXMLContent("<intent-filter foo=\"3\"/>");
+  public void instantAppIntentFilterWrapper_getOrder_nonIntegerValue() throws Exception {
+    Element notANumber = (Element)createXMLContent("<intent-filter android:order=\"2.5\"/>");
 
-    exception.expect(IllegalArgumentException.class);
-    InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(missingAttribute);
+    myException.expect(IllegalArgumentException.class);
+    InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(notANumber);
   }
 
   @Test
-  public void UrlData_urlDataValidInput() throws Exception {
+  public void instantAppIntentFilterWrapper_getOrder_missingAttribute() throws Exception {
+    Element missingAttribute = (Element)createXMLContent("<intent-filter foo=\"3\"/>");
+
+    assertEquals(0, InstantAppUrlFinder.InstantAppIntentFilterWrapper.getOrder(missingAttribute));
+  }
+
+  @Test
+  public void urlData_urlDataValidInput() throws Exception {
 
     Node dataNode = createXMLContent("<data android:host=\"domain\"\n" +
                                      "      android:pathPattern=\"/pathPattern\"\n" +
                                      "      android:scheme=\"scheme\" />");
     InstantAppUrlFinder.UrlData urlData = InstantAppUrlFinder.UrlData.of(dataNode);
 
-    assertThat(urlData.isValid()).isTrue();
+    assertTrue(urlData.isValid());
   }
 
   @Test
-  public void UrlData_wrongNode() throws Exception {
+  public void urlData_wrongNode() throws Exception {
     Node wrongNode = createXMLContent("<datum android:host=\"domain\"\n" +
                                       "       instant:pathPattern=\"/pathPattern\"\n" +
                                       "       android:scheme=\"scheme\" />");
 
-    assertThat(InstantAppUrlFinder.UrlData.of(wrongNode).isValid()).isFalse();
+    assertFalse(InstantAppUrlFinder.UrlData.of(wrongNode).isValid());
   }
 
   @Test
-  public void UrlData_wrongNamespace() throws Exception {
+  public void urlData_wrongNamespace() throws Exception {
     Node wrongNamespace = createXMLContent("<data android:host=\"domain\"\n" +
                                            "      android:pathPattern=\"/pathPattern\"\n" +
                                            "      instant:scheme=\"scheme\" />");
 
-    assertThat(InstantAppUrlFinder.UrlData.of(wrongNamespace).isValid()).isFalse();
+    assertFalse(InstantAppUrlFinder.UrlData.of(wrongNamespace).isValid());
   }
 
   @Test
-  public void UrlData_notAnElement() throws Exception {
+  public void urlData_notAnElement() throws Exception {
     Node notAnElement = createXMLContent("<data test=\"test\" />").getAttributes().item(0);
 
-    assertThat(InstantAppUrlFinder.UrlData.of(notAnElement).isValid()).isFalse();
+    assertFalse(InstantAppUrlFinder.UrlData.of(notAnElement).isValid());
   }
 
   @Test
-  public void UrlData_missingData() throws Exception {
+  public void urlData_missingData() throws Exception {
     Node missingData = createXMLContent("<data android:host=\"domain\"\n" +
                                         "      android:pathPattern=\"/pathPattern\"\n/>");
 
-    assertThat(InstantAppUrlFinder.UrlData.of(missingData).isValid()).isFalse();
+    assertFalse(InstantAppUrlFinder.UrlData.of(missingData).isValid());
+  }
+
+  @NotNull
+  private static Node createXMLContent(@NotNull String innerXML) throws Exception {
+    String xmlString = "<?xml version=\"1.0\"?>" +
+                       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                       "          xmlns:instant=\"http://schemas.android.com/instantapps\">" +
+                       innerXML +
+                       "</manifest>";
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder;
+    factory.setNamespaceAware(true);
+    builder = factory.newDocumentBuilder();
+    Document document = builder.parse(new InputSource(new StringReader(xmlString)));
+    return document.getFirstChild().getFirstChild();
   }
 
   @Test
-  public void UrlData_getUrl_withPath() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "/full/path", "", "").getUrl())
-      .isEqualTo("scheme://domain.url/full/path");
+  public void urlData_getUrl_withPath() {
+    assertEquals("scheme://domain.url/full/path", new InstantAppUrlFinder.UrlData("scheme", "domain.url", "/full/path", "", "").getUrl());
   }
 
   @Test
-  public void UrlData_getUrl_withPrefix() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "/prefix", "").getUrl())
-      .isEqualTo("scheme://domain.url/prefix/example");
+  public void urlData_getUrl_withPrefix() {
+    assertEquals("scheme://domain.url/prefix/example", new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "/prefix", "").getUrl());
   }
 
   @Test
-  public void UrlData_getUrl_withPattern() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "/.*/X/Y").getUrl())
-      .isEqualTo("scheme://domain.url/example/X/Y");
+  public void urlData_getUrl_withPattern() {
+    assertEquals("scheme://domain.url/example/X/Y", new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "/.*/X/Y").getUrl());
   }
 
   @Test
-  public void UrlData_getUrl_hostOnly() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "").getUrl())
-      .isEqualTo("scheme://domain.url/");
+  public void urlData_getUrl_hostOnly() {
+    assertEquals("scheme://domain.url/", new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "").getUrl());
   }
 
   @Test
-  public void UrlData_isValid_validInputPath() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "/path", "", "").isValid()).isTrue();
+  public void urlData_isValid_validInputPath() {
+    assertTrue(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "/path", "", "").isValid());
   }
 
   @Test
-  public void UrlData_isValid_validInputPrefix() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "/prefix", "").isValid()).isTrue();
+  public void urlData_isValid_validInputPrefix() {
+    assertTrue(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "/prefix", "").isValid());
   }
 
   @Test
-  public void UrlData_isValid_validInputPattern() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "/pattern").isValid()).isTrue();
+  public void urlData_isValid_validInputPattern() {
+    assertTrue(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "/pattern").isValid());
   }
 
   @Test
-  public void UrlData_isValid_validInputHostOnly() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "").isValid()).isTrue();
+  public void urlData_isValid_validInputHostOnly() {
+    assertTrue(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "").isValid());
   }
 
   @Test
-  public void UrlData_isValid_missingForwardSlashInPath() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "path", "", "").isValid()).isFalse();
+  public void urlData_isValid_missingForwardSlashInPath() {
+    assertFalse(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "path", "", "").isValid());
   }
 
   @Test
-  public void UrlData_isValid_missingForwardSlashInPrefix() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "prefix", "").isValid()).isFalse();
+  public void urlData_isValid_missingForwardSlashInPrefix() {
+    assertFalse(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "prefix", "").isValid());
   }
 
   @Test
-  public void UrlData_isValid_missingForwardSlashInPattern() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "pattern").isValid()).isFalse();
+  public void urlData_isValid_missingForwardSlashInPattern() {
+    assertFalse(new InstantAppUrlFinder.UrlData("scheme", "domain.url", "", "", "pattern").isValid());
   }
 
   @Test
-  public void UrlData_isValid_missingHost() {
-    assertThat(new InstantAppUrlFinder.UrlData("scheme", "", "", "", "/pattern").isValid()).isFalse();
+  public void urlData_isValid_missingHost() {
+    assertFalse(new InstantAppUrlFinder.UrlData("scheme", "", "", "", "/pattern").isValid());
   }
 
   @Test
-  public void UrlData_isValid_missingScheme() {
-    assertThat(new InstantAppUrlFinder.UrlData("", "domain.url", "", "", "/pattern").isValid()).isFalse();
+  public void urlData_isValid_missingScheme() {
+    assertFalse(new InstantAppUrlFinder.UrlData("", "domain.url", "", "", "/pattern").isValid());
   }
 
   @Test
-  public void UrlData_convertPatternToExample() {
-    assertThat(InstantAppUrlFinder.UrlData.convertPatternToExample(".*")).isEqualTo("example");
+  public void urlData_convertPatternToExample() {
+    assertEquals("example", InstantAppUrlFinder.UrlData.convertPatternToExample(".*"));
   }
 }

@@ -122,12 +122,15 @@ public final class InstantAppUrlFinder {
     @VisibleForTesting
     public static int getOrder(@NotNull Element element) {
       String orderValue = element.getAttributeNS(ANDROID_URI, "order");
-      try {
-        return Integer.parseUnsignedInt(orderValue);
+      if (isNotEmpty(orderValue)) {
+        try {
+          return Integer.parseUnsignedInt(orderValue);
+        }
+        catch (NumberFormatException unused) {
+          throw new IllegalArgumentException();
+        }
       }
-      catch (NumberFormatException unused) {
-        throw new IllegalArgumentException();
-      }
+      return 0;
     }
 
     @NotNull
