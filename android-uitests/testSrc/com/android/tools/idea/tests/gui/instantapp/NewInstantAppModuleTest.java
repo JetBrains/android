@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
@@ -76,6 +77,47 @@ public class NewInstantAppModuleTest {
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
+
+  @Test
+  public void testCanBuildEmptyNewInstantAppFeatureModules() throws IOException {
+    guiTest.importSimpleApplication();
+    addNewFeatureModule("feature1", "Add No Activity");
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
+  @Test
+  public void testCanBuildProjectWithMultipleFeatureModules() throws IOException {
+    guiTest.importSimpleApplication();
+    addNewFeatureModule("feature1");
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
+    addNewFeatureModule("feature2");
+    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
+
+    // Check that the modules are correctly added to the project
+    assertValidFeatureModule(ideFrame.getModule("feature1"));
+    assertValidFeatureModule(ideFrame.getModule("feature2"));
+
+    // Verify application attributes are in feature1 (the base feature) and not in feature2
+    ideFrame.getEditor()
+      .open("feature1/src/main/AndroidManifest.xml")
+      .moveBetween("android:label=", "")
+      .moveBetween("android:theme=", "");
+
+    ideFrame.getEditor()
+      .open("feature2/src/main/AndroidManifest.xml")
+      .moveBetween("<application>", "");
+  }
+
+  @Test
+  public void testCanBuildProjectWithEmptySecondFeatureModule() throws IOException {
+    guiTest.importSimpleApplication();
+    addNewFeatureModule("feature1");
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+    addNewFeatureModule("feature2", "Add No Activity");
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
 
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {
@@ -118,6 +160,10 @@ public class NewInstantAppModuleTest {
   }
 
   private void addNewFeatureModule(@Nullable String moduleName) {
+    addNewFeatureModule(moduleName, null);
+  }
+
+  private void addNewFeatureModule(@Nullable String moduleName, @Nullable String activityType) {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
@@ -132,12 +178,30 @@ public class NewInstantAppModuleTest {
     }
 
     newModuleWizardFixture
-      .clickNext() // Default options
-      .clickNext() // Default activity
+      .clickNext(); // Default options
+
+    if (activityType != null) {
+      newModuleWizardFixture.chooseActivity(activityType);
+      if (!activityType.equals("Add No Activity")) {
+        newModuleWizardFixture.clickNext();
+      }
+    }
+    else {
+      newModuleWizardFixture
+        .clickNext(); // Default activity
+    }
+
+    newModuleWizardFixture
       .clickFinish(); // Default parameters
 
     ideFrame
       .waitForGradleProjectSyncToFinish(Wait.seconds(20))
       .waitForBuildToFinish(SOURCE_GEN);
+  }
+
+  private static void assertValidFeatureModule(Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assertNotNull(facet);
+    assertEquals(PROJECT_TYPE_FEATURE, facet.getProjectType());
   }
 }
