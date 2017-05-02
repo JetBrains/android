@@ -64,7 +64,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
     assertThat(getValuesFileContent("font_certs.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
-      "    <string-array name=\"com_google_android_gms_fonts_certs\">%n" +
+      "    <string-array name=\"com_google_android_gms_fonts_certs\" translatable=\"false\">%n" +
       "        <item>67f20865aaa676c9ac84ae022aea8d4a37003665</item>%n" +
       "    </string-array>%n" +
       "</resources>%n"
@@ -72,7 +72,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
     assertThat(getValuesFileContent("preloaded_fonts.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
-      "    <array name=\"preloaded_fonts\">%n" +
+      "    <array name=\"preloaded_fonts\" translatable=\"false\">%n" +
       "        <item>@font/roboto</item>%n" +
       "    </array>%n" +
       "</resources>%n"
@@ -168,7 +168,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
     assertThat(getValuesFileContent("font_certs.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
-      "    <string-array name=\"com_google_android_gms_fonts_certs\">%n" +
+      "    <string-array name=\"com_google_android_gms_fonts_certs\" translatable=\"false\">%n" +
       "        <item>67f20865aaa676c9ac84ae022aea8d4a37003665</item>%n" +
       "    </string-array>%n" +
       "</resources>%n"
@@ -176,7 +176,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
     assertThat(getValuesFileContent("preloaded_fonts.xml")).isEqualTo(String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
-      "    <array name=\"preloaded_fonts\">%n" +
+      "    <array name=\"preloaded_fonts\" translatable=\"false\">%n" +
       "        <item>@font/aladin</item>%n" +
       "        <item>@font/alegreya_sans_sc</item>%n" +
       "        <item>@font/roboto</item>%n" +
