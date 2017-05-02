@@ -39,7 +39,7 @@ public class SourceFolderNode extends PsiDirectoryNode {
   public SourceFolderNode(@NotNull Project project,
                           @NotNull PsiDirectory value,
                           @NotNull ViewSettings viewSettings) {
-    super(project, value, viewSettings);
+    super(project, value, viewSettings, new NativeCodeFilter());
 
     myFolderPath = toSystemDependentPath(value.getVirtualFile().getPath());
     String pathToShow = myFolderPath.getPath();
