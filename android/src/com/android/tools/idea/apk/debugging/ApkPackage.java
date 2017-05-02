@@ -20,8 +20,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ApkPackage {
+public final class ApkPackage {
   @NotNull private final String myName;
+  @NotNull private final String myFqn;
+
   @Nullable private final ApkPackage myParent;
 
   @NotNull private final Map<String, ApkPackage> mySubpackagesByName = new HashMap<>();
@@ -30,6 +32,7 @@ public class ApkPackage {
   public ApkPackage(@NotNull String name, @Nullable ApkPackage parent) {
     myName = name;
     myParent = parent;
+    myFqn = myParent != null ? (myParent.getFqn() + "." + myName) : myName;
   }
 
   @NotNull
@@ -74,7 +77,7 @@ public class ApkPackage {
 
   @NotNull
   public String getFqn() {
-    return myParent != null ? (myParent.getFqn() + "." + myName) : myName;
+    return myFqn;
   }
 
   public boolean doSubpackagesHaveClasses() {
@@ -84,6 +87,25 @@ public class ApkPackage {
       }
     }
     return false;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ApkPackage)) {
+      return false;
+    }
+    ApkPackage that = (ApkPackage)o;
+    return Objects.equals(myName, that.myName) &&
+           Objects.equals(myFqn, that.myFqn) &&
+           Objects.equals(myParent, that.myParent);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myName, myFqn, myParent);
   }
 
   @Override

@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createMultipleJavaPathDescriptor;
 
-class ChooseAndAttachSourcesTask implements Runnable {
+class ChooseAndAttachJavaSourcesTask implements Runnable {
   @NotNull private final String myClassFqn;
   @NotNull private final Module myModule;
   @NotNull private final EditorNotifications myEditorNotifications;
@@ -40,7 +40,7 @@ class ChooseAndAttachSourcesTask implements Runnable {
   @NotNull private final DexSourceFiles myDexSourceFiles;
   @NotNull private final FileOrFolderChooser myFileOrFolderChooser;
 
-  ChooseAndAttachSourcesTask(@NotNull String classFqn, @NotNull Module module, @NotNull DexSourceFiles dexSourceFiles) {
+  ChooseAndAttachJavaSourcesTask(@NotNull String classFqn, @NotNull Module module, @NotNull DexSourceFiles dexSourceFiles) {
     this(classFqn, module, DumbService.getInstance(module.getProject()), EditorNotifications.getInstance(module.getProject()),
          dexSourceFiles, project -> {
         FileChooserDescriptor descriptor = createMultipleJavaPathDescriptor();
@@ -52,12 +52,12 @@ class ChooseAndAttachSourcesTask implements Runnable {
   }
 
   @VisibleForTesting
-  ChooseAndAttachSourcesTask(@NotNull String classFqn,
-                             @NotNull Module module,
-                             @NotNull DumbService dumbService,
-                             @NotNull EditorNotifications editorNotifications,
-                             @NotNull DexSourceFiles dexSourceFiles,
-                             @NotNull FileOrFolderChooser fileOrFolderChooser) {
+  ChooseAndAttachJavaSourcesTask(@NotNull String classFqn,
+                                 @NotNull Module module,
+                                 @NotNull DumbService dumbService,
+                                 @NotNull EditorNotifications editorNotifications,
+                                 @NotNull DexSourceFiles dexSourceFiles,
+                                 @NotNull FileOrFolderChooser fileOrFolderChooser) {
     myClassFqn = classFqn;
     myModule = module;
     myDumbService = dumbService;

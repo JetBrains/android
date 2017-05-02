@@ -160,9 +160,4 @@ class ClassNode extends ProjectViewNode<ApkClass> {
   public boolean isAlwaysLeaf() {
     return true;
   }
-
-  @Override
-  public boolean isAlwaysShowPlus() {
-    return false;
-  }
 }

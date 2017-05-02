@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link ChooseAndAttachSourcesTask}.
+ * Tests for {@link ChooseAndAttachJavaSourcesTask}.
  */
 public class ChooseAndAttachSourcesTaskTest extends AndroidGradleTestCase {
   @Mock private EditorNotifications myEditorNotifications;
@@ -65,8 +65,8 @@ public class ChooseAndAttachSourcesTaskTest extends AndroidGradleTestCase {
     when(myFileOrFolderChooser.choose(getProject())).thenReturn(new VirtualFile[]{javaSourceFolder});
 
     String classFqn = "a.b.c";
-    ChooseAndAttachSourcesTask task = new ChooseAndAttachSourcesTask(classFqn, appModule, new MockDumbService(getProject()),
-                                                                     myEditorNotifications, myDexSourceFiles, myFileOrFolderChooser);
+    ChooseAndAttachJavaSourcesTask task = new ChooseAndAttachJavaSourcesTask(classFqn, appModule, new MockDumbService(getProject()),
+                                                                             myEditorNotifications, myDexSourceFiles, myFileOrFolderChooser);
     task.run();
 
     ContentEntry[] contentEntries = ModuleRootManager.getInstance(appModule).getContentEntries();
