@@ -16,14 +16,13 @@
 package com.android.tools.idea.tests.gui.instantrun;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.google.common.base.Strings;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -31,10 +30,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.swing.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
+import static org.fest.swing.core.matcher.JButtonMatcher.withText;
+import static org.fest.swing.finder.WindowFinder.findDialog;
 
 @RunWith(GuiTestRunner.class)
 public class InstantRunTest {
@@ -365,6 +370,53 @@ public class InstantRunTest {
     String newPid = extractPidFromOutput(contentFixture.getOutput(), CMAKE_RUN_OUTPUT);
     // (Hot swap) Verify the equality of PIDs before and after IR.
     assertThat(pid).isEqualTo(newPid);
+  }
+
+  /**
+   * Verifies that Studio suggests to install when correspnding platform is not installed while deploying
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14606157
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import SimpleApplication
+   *   2. Make sure that the platform-22 is not installed in our prebuilt SDK.
+   *   3. Press run and select a device with API level 22. (Verify)
+   *   Verify:
+   *   IDE should ask if you want to install platform 22.
+   *   If you answer yes, application should deploy and run with Instant Run enabled.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void installingPlatformWhileDeployingApp() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
+                       "x86 Images",
+                       new ChooseSystemImageStepFixture.SystemImage("Lollipop", "22", "x86", "Android 5.1"));
+
+    ideFrameFixture
+      .runApp(APP_NAME)
+      .selectDevice(emulator.getAvdName())
+      .clickOk();
+
+    JButton button = waitUntilShowingAndEnabled(guiTest.robot(), ideFrameFixture.target(), new GenericTypeMatcher<JButton>(JButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull JButton component) {
+        return component.getText().equals("Install and Continue");
+      }
+    });
+    new JButtonFixture(guiTest.robot(), button).click();
+
+    DialogFixture downloadDialog =
+      findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
+    JButtonFixture finish = downloadDialog.button(withText("Finish"));
+    Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
+    finish.click();
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ideFrameFixture.findApplyChangesButton().requireEnabled();
   }
 
   @NotNull
