@@ -361,17 +361,17 @@ public class SingleWidgetView extends JPanel {
     int barSize = 10;
     int barLong = mBoxSize / 2 - barSize - 1;
 
-    mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
-    mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize);
-    mVbar1.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, 1 + boxTop, barSize, barLong);
+    mHbar1.setBounds(1 + boxLeft, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize + 1);
+    mHbar2.setBounds(boxLeft + mBoxSize / 2 + barSize, boxTop + mBoxSize / 2 - barSize / 2 + 1, barLong, barSize + 1);
+    mVbar1.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, 1 + boxTop, barSize + 1, barLong);
     if (mCacheBaseline) {
       int left = boxLeft + mBoxSize / 2 - barSize / 2;
       int top = boxTop + mBoxSize / 2 + barSize;
       int height = boxTop + baselinePos(mBoxSize) - top - 2;
-      mVbar2.setBounds(left, top, barSize, height);
+      mVbar2.setBounds(left, top, barSize + 1, height);
     }
     else {
-      mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize, barLong);
+      mVbar2.setBounds(boxLeft + mBoxSize / 2 - barSize / 2, boxTop + mBoxSize / 2 + barSize, barSize + 1, barLong);
     }
   }
 
@@ -1333,11 +1333,10 @@ public class SingleWidgetView extends JPanel {
      */
     private static void drawFixedHorizontalConstraint(Graphics g, int l, int y, int r) {
       int m = 7;
-      g.drawLine(l, y - m, l, y + m);
+      g.drawLine(l, y - m + 1, l, y + m);
       g.drawLine(l, y, r, y);
-      g.drawLine(r, y - m, r, y + m);
+      g.drawLine(r, y - m + 1, r, y + m);
     }
-
   }
 
   /*-----------------------------------------------------------------------*/
@@ -1407,9 +1406,9 @@ public class SingleWidgetView extends JPanel {
      */
     private static void drawFixedVerticalConstraint(Graphics g, int t, int x, int b) {
       int m = 7;
-      g.drawLine(x - m, t, x + m, t);
+      g.drawLine(x - m + 1, t, x + m, t);
       g.drawLine(x, t, x, b);
-      g.drawLine(x - m, b, x + m, b);
+      g.drawLine(x - m + 1, b, x + m, b);
     }
 
     /**
