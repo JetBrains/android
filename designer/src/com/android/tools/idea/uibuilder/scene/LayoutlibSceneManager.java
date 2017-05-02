@@ -133,7 +133,8 @@ public class LayoutlibSceneManager extends SceneManager {
       NlComponent rootComponent = components.get(0).getRoot();
       boolean previous = getScene().isAnimated();
       scene.setAnimated(false);
-      SceneComponent root = updateFromComponent(rootComponent, new HashSet<>());
+      SceneComponent root = createHierarchy(rootComponent);
+      updateFromComponent(root, new HashSet<>());
       scene.setRoot(root);
       addTargets(root);
       scene.setAnimated(previous);
@@ -167,7 +168,9 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @Override
-  protected void updateFromComponent(@NotNull NlComponent component, SceneComponent sceneComponent) {
+  protected void updateFromComponent(SceneComponent sceneComponent) {
+    super.updateFromComponent(sceneComponent);
+    NlComponent component = sceneComponent.getNlComponent();
     if (getScene().isAnimated()) {
       long time = System.currentTimeMillis();
       sceneComponent.setPositionTarget(Coordinates.pxToDp(component.getModel(), component.x),
