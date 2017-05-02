@@ -16,8 +16,11 @@
 package com.android.tools.idea.tests.gui.projectstructure;
 
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
@@ -30,9 +33,10 @@ import org.junit.runner.RunWith;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
-public class FlavorsExecutionTest extends TestWithEmulator {
+public class FlavorsExecutionTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final String ACTIVITY_OUTPUT_PATTERN =
@@ -43,7 +47,7 @@ public class FlavorsExecutionTest extends TestWithEmulator {
   @Before
   public void setUp() throws Exception {
     guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
   /***
@@ -110,7 +114,7 @@ public class FlavorsExecutionTest extends TestWithEmulator {
       .selectVariantForModule("app", "flavor1Debug");
     guiTest.ideFrame()
       .runApp("app")
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
     guiTest.ideFrame().getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(Pattern.compile(
@@ -125,7 +129,7 @@ public class FlavorsExecutionTest extends TestWithEmulator {
       .selectVariantForModule("app", "flavor2Debug");
     guiTest.ideFrame()
       .runApp("app")
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
     guiTest.ideFrame().getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(Pattern.compile(

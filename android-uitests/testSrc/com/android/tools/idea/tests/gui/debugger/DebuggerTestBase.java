@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
@@ -30,7 +29,7 @@ import javax.swing.tree.TreeNode;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class DebuggerTestBase extends TestWithEmulator {
+public class DebuggerTestBase {
 
   protected static final String DEBUG_CONFIG_NAME = "app";
   protected static final Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);

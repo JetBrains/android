@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.instantrun;
 
-import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -37,9 +37,10 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-public class InstantRunTest extends TestWithEmulator {
+public class InstantRunTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
   private static final Pattern RUN_OUTPUT =
@@ -75,11 +76,11 @@ public class InstantRunTest extends TestWithEmulator {
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -128,11 +129,11 @@ public class InstantRunTest extends TestWithEmulator {
   @Test
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -181,11 +182,11 @@ public class InstantRunTest extends TestWithEmulator {
   @Test
   public void ActivityRunningOnSeparateProcess() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -238,11 +239,11 @@ public class InstantRunTest extends TestWithEmulator {
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -289,11 +290,11 @@ public class InstantRunTest extends TestWithEmulator {
   @Test
   public void unnecessaryCleanCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     ideFrameFixture
@@ -304,7 +305,7 @@ public class InstantRunTest extends TestWithEmulator {
     ideFrameFixture
       .getRunToolWindow()
       .clickRerunApplication()
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     ideFrameFixture
@@ -339,11 +340,11 @@ public class InstantRunTest extends TestWithEmulator {
   @Test
   public void cmakeHotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);

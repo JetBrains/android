@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.espresso;
 
-import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
+import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,9 +30,10 @@ import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
-public class EspressoRecorderTest extends TestWithEmulator {
+public class EspressoRecorderTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "MyActivityTest";
   private static final String TEST_RECORDER_APP = "TestRecorderapp";
@@ -64,14 +64,14 @@ public class EspressoRecorderTest extends TestWithEmulator {
   @Test
   public void addDependencyOnFly() throws Exception {
     guiTest.importSimpleApplication();
-    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture
       .invokeMenuPath("Run", "Record Espresso Test");
     DeployTargetPickerDialogFixture.find(guiTest.robot())
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     ideFrameFixture.getDebugToolWindow().findContent(TEST_RECORDER_APP).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), 120);
@@ -94,7 +94,7 @@ public class EspressoRecorderTest extends TestWithEmulator {
     });
 
     DeployTargetPickerDialogFixture.find(guiTest.robot())
-      .selectDevice(AVD_NAME)
+      .selectDevice(emulator.getAvdName())
       .clickOk();
 
     // Wait until tests run completion.
