@@ -470,16 +470,24 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (getModel().systemImage().get().isPresent()) {
       SystemImageDescription image = getModel().systemImage().getValue();
 
-      String codeName = SdkVersionInfo.getCodeName(image.getVersion().getApiLevel());
+      String codeName = SdkVersionInfo.getCodeName(image.getVersion().getFeatureLevel());
       if (codeName != null) {
         getModel().systemImageName().set(codeName);
       }
+      Icon icon = null;
       try {
-        Icon icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
-        mySystemImageName.setIcon(icon);
+        icon = IconLoader.findIcon(String.format("/icons/versions/%s_32.png", codeName), AndroidIcons.class);
       }
       catch (RuntimeException ignored) {
       }
+      if (icon == null) {
+        try {
+          icon = IconLoader.findIcon("/icons/versions/Default_32.png", AndroidIcons.class);
+        }
+        catch (RuntimeException ignored) {
+        }
+      }
+      mySystemImageName.setIcon(icon);
 
       getModel().systemImageDetails().set(image.getName() + " " + image.getAbiType());
       myAvdConfigurationOptionHelpPanel.setSystemImageDescription(image);
