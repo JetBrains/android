@@ -34,12 +34,9 @@ public class NativeLibrary {
   @NotNull public Map<String, String> pathMappings = new HashMap<>();
 
   @NotNull private List<String> filePaths = new ArrayList<>();
-  @Transient
-  @NotNull
-  public List<VirtualFile> files = new ArrayList<>();
-  @Transient
-  @NotNull
-  public List<String> abis = new ArrayList<>();
+
+  @Transient @NotNull public List<VirtualFile> files = new ArrayList<>();
+  @Transient @NotNull public List<String> abis = new ArrayList<>();
 
   @Nullable public String debuggableFilePath;
 
