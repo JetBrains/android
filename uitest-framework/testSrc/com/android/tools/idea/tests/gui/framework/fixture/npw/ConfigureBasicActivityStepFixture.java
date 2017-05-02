@@ -111,6 +111,13 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
+  public ConfigureBasicActivityStepFixture setSourceLanguage(@NotNull String sourceLanguage) {
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Source Language:", JComboBox.class, true))
+      .selectItem(sourceLanguage);
+    return this;
+  }
+
+  @NotNull
   public IdeFrameFixture clickFinish() {
     myParent.clickFinish();
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());

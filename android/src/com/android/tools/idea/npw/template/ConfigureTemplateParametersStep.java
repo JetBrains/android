@@ -69,9 +69,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
-import static com.android.tools.idea.npw.WizardUtils.Feature;
 import static com.android.tools.idea.npw.WizardUtils.KOTLIN_ENABLED;
-import static com.android.tools.idea.npw.WizardUtils.isNpwModelWizardEnabled;
 import static com.android.tools.idea.npw.project.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
@@ -259,7 +257,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       row.addToPanel(myParametersPanel);
       SelectedItemProperty<Language> language = (SelectedItemProperty<Language>)row.getProperty();
       assert language != null; // LanguageComboProvider always sets this
-      myBindings.bind(getModel().getLanguage(), new OptionalToValuePropertyAdapter<>(language));
+      myBindings.bindTwoWay(new OptionalToValuePropertyAdapter<>(language), getModel().getLanguage());
     }
 
     if (mySourceSets.size() > 1) {

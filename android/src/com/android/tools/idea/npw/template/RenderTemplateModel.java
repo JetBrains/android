@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
+import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -31,9 +32,12 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.facet.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -61,7 +65,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final String myCommandName;
   @NotNull private final OptionalProperty<Project> myProject;
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
-  @NotNull private final ObjectProperty<Language> myLanguageSet = new ObjectValueProperty<>(Language.JAVA);
+  @NotNull private final ObjectProperty<Language> myLanguageSet;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
   @NotNull private final BoolProperty myInstantApp;
@@ -87,6 +91,8 @@ public final class RenderTemplateModel extends WizardModel {
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
     myMultiTemplateRenderer = new MultiTemplateRenderer();
+    myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(project));
+    init();
   }
 
   public RenderTemplateModel(@NotNull NewModuleModel moduleModel,
@@ -101,6 +107,12 @@ public final class RenderTemplateModel extends WizardModel {
     myCommandName = commandName;
     myMultiTemplateRenderer = moduleModel.getMultiTemplateRenderer();
     myMultiTemplateRenderer.increment();
+    myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(myProject.getValueOrNull()));
+    init();
+  }
+
+  private void init() {
+    myLanguageSet.addListener(sender -> NewProjectModel.setInitialSourceLanguage(myLanguageSet.get()));
   }
 
   private static Logger getLog() {
@@ -294,5 +306,26 @@ public final class RenderTemplateModel extends WizardModel {
       }
     }
     return psiJavaFiles;
+  }
+
+  private static Language getInitialSourceLanguage(@Nullable Project project) {
+    if (project != null && hasKotlinFacet(project)) {
+      return NewProjectModel.getInitialSourceLanguage();
+    }
+    return Language.JAVA;
+  }
+
+  private static boolean hasKotlinFacet(@NotNull Project project) {
+    final FacetType kotlinFacet = FacetTypeRegistry.getInstance().findFacetType("kotlin-language");
+    if (kotlinFacet == null) {
+      return false;
+    }
+    FacetTypeId<?> kotlinFacetId = kotlinFacet.getId();
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      if (FacetManager.getInstance(module).getFacetByType(kotlinFacetId) != null) {
+        return true;
+      }
+    }
+    return false;
   }
 }
