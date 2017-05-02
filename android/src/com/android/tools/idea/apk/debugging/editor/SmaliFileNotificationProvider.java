@@ -77,7 +77,7 @@ public class SmaliFileNotificationProvider extends EditorNotifications.Provider<
               panel.createActionLabel("Open Java file", () -> openFileWithPsiElement(javaPsiClass, true, true));
             }
             else {
-              panel.createActionLabel("Attach Java Sources...", new ChooseAndAttachSourcesTask(classFqn, module, myDexSourceFiles));
+              panel.createActionLabel("Attach Java Sources...", new ChooseAndAttachJavaSourcesTask(classFqn, module, myDexSourceFiles));
             }
           }
         }
