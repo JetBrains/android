@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.project.ProjectKt;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -113,8 +114,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     if (rootDir == null) {
       return null;
     }
-    String projectComponent = FileUtil.sanitizeFileName(project.getName() + "_" + project.getLocationHash());
-    return new File(rootDir, projectComponent);
+    return new File(rootDir, ProjectKt.getSystemCacheFileName(project));
   }
 
   @Override
