@@ -249,6 +249,7 @@ public class SceneMouseInteraction {
    * Regenerate the display list
    */
   public void repaint() {
+    myDisplayList.clear();
     myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
   }
 }

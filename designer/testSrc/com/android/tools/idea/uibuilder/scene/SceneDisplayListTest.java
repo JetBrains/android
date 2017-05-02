@@ -70,4 +70,29 @@ public class SceneDisplayListTest extends SceneTest {
     BufferedImage img = new BufferedImage(2000, 2000,BufferedImage.TYPE_INT_ARGB);
     disp.paint(img.createGraphics(), SceneContext.get());
   }
+
+  public void testToolsHiding() {
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"100dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"200dp\"/>");
+
+    String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
+                        "Clip,0,0,1000,1000\n" +
+                        "DrawComponentBackground,100,200,100,20,1\n" +
+                        "DrawTextRegion,100,200,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
+                        "DrawNlComponentFrame,100,200,100,20,1,20,20\n" +
+                        "UNClip\n";
+
+    assertEquals(simpleList, myInteraction.getDisplayList().serialize());
+    myScene.getSceneComponent("button").setToolVisible(false);
+    myInteraction.repaint();
+    String afterHidingList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
+                             "Clip,0,0,1000,1000\n" +
+                             "UNClip\n";
+    assertEquals(afterHidingList, myInteraction.getDisplayList().serialize());
+  }
 }
