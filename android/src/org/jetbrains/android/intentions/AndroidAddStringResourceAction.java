@@ -108,7 +108,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       Object value = literalExpression.getValue();
       if (resourceType == ResourceType.STRING && value instanceof String) {
         return (String)value;
-      } else if (resourceType == ResourceType.DIMEN && (value instanceof Integer || value instanceof Float)) {
+      }
+      else if (resourceType == ResourceType.DIMEN && (value instanceof Integer || value instanceof Float)) {
         return value.toString();
       }
     }
@@ -287,7 +288,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
           if (!PsiType.INT.equals(otherParameter.getType())) {
             found = false;
             break;
-          } else {
+          }
+          else {
             if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION, false, false)) {
               found = false;
               break;
@@ -347,7 +349,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       if (ResourceType.STRING == resType) {
         if (useGetStringMethodForStringRes(element)) {
           template = new TemplateImpl("", methodName + '(' + field + ')', "");
-        } else {
+        }
+        else {
           template = new TemplateImpl("", field, "");
         }
       }
@@ -363,7 +366,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       if (ResourceType.STRING == resType) {
         if (useGetStringMethodForStringRes(element)) {
           template = new TemplateImpl("", "$context$." + methodName + '(' + field + ')', "");
-        } else {
+        }
+        else {
           template = new TemplateImpl("", field, "");
           addContextVariable = false;
         }
@@ -373,7 +377,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       }
       if (addContextVariable) {
         final boolean extendsView = getContainingInheritorOf(element, VIEW_CLASS_NAME) != null;
-        MacroCallNode node = new MacroCallNode(extendsView && !inStaticContext ? new MyVarOfTypeExpression("getContext()") : new VariableOfTypeMacro());
+        MacroCallNode node =
+          new MacroCallNode(extendsView && !inStaticContext ? new MyVarOfTypeExpression("getContext()") : new VariableOfTypeMacro());
         node.addParameter(new ConstantNode(CLASS_CONTEXT));
         template.addVariable("context", node, new ConstantNode(""), true);
       }
