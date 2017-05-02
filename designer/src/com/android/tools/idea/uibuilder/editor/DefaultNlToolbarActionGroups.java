@@ -19,6 +19,7 @@ import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.BothModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.actions.IssueNotificationAction;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.actions.TogglePanningDialogAction;
@@ -39,6 +40,8 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
+    group.add(new RefreshRenderAction(mySurface));
+    group.addSeparator();
     group.add(new DesignModeAction((NlDesignSurface)mySurface));
     group.add(new BlueprintModeAction((NlDesignSurface)mySurface));
     group.add(new BothModeAction((NlDesignSurface)mySurface));
