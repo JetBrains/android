@@ -119,8 +119,12 @@ public class LocalResourceManager extends ResourceManager {
   @NotNull
   public AttributeDefinitions getAttributeDefinitions() {
     if (myAttrDefs == null) {
+      ResourceManager systemResourceManager = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager();
+      AttributeDefinitions systemAttributeDefinitions =
+          systemResourceManager == null ? null : systemResourceManager.getAttributeDefinitions();
       ApplicationManager.getApplication().runReadAction(() -> {
-        myAttrDefs = new AttributeDefinitionsImpl(findResourceFilesByLibraryName(ResourceFolderType.VALUES, XmlFile.class));
+        myAttrDefs = new AttributeDefinitionsImpl(systemAttributeDefinitions,
+                                                  findResourceFilesByLibraryName(ResourceFolderType.VALUES, XmlFile.class));
       });
     }
     return myAttrDefs;

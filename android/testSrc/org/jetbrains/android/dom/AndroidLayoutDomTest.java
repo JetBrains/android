@@ -170,7 +170,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   // Code completion in views inside a <layout> tag need to pick up default layout params
-  public void testDataBindingLayoutPAramCompletion() throws Throwable {
+  public void testDataBindingLayoutParamCompletion() throws Throwable {
     // Regression test for https://code.google.com/p/android/issues/detail?id=212690
     toTestFirstCompletion("data_binding_completion.xml",
                           "data_binding_completion_after.xml");
@@ -481,6 +481,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void testLayoutAttributeValuesCompletion() throws Throwable {
     doTestCompletionVariants("av10.xml", "fill_parent", "match_parent", "wrap_content", "@android:", "@dimen/myDimen");
     doTestCompletionVariants("av11.xml", "center", "center_horizontal", "center_vertical");
+    doTestCompletionVariants("av15.xml", "horizontal", "vertical");
   }
 
   public void testFloatAttributeValuesCompletion() throws Throwable {
