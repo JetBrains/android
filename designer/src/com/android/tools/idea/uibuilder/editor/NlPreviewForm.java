@@ -69,12 +69,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private JComponent myContentPanel;
   private final AnimationToolbar myAnimationToolbar;
 
-  /**
-   * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
-   * On {@link #activate()} the file will be restored to {@link #myFile} and the preview will be rendered again.
-   */
-  private XmlFile myInactiveFile;
-
   private NlModel myModel;
 
   /**
@@ -225,10 +219,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   @Nullable
   public XmlFile getFile() {
-    if (myFile == null && myPendingFile != null) {
-      return myPendingFile.file;
-    }
-
     return myFile;
   }
 
@@ -241,8 +231,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
   public void dispose() {
     deactivate();
     disposeActionsToolbar();
-
-    myInactiveFile = null;
 
     if (myModel != null) {
       Disposer.dispose(myModel);
@@ -295,57 +283,33 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
-  public boolean setFile(@Nullable PsiFile file) {
+  public void setFile(@Nullable PsiFile file) {
     if (myAnimationToolbar != null) {
       myAnimationToolbar.stop();
     }
 
     XmlFile xmlFile = myManager.getBoundXmlFile(file);
-
-    if (!isActive) {
-      // The form is not active so we just save the file to show once activate() is called
-      myInactiveFile = xmlFile;
-
-      if (xmlFile != null) {
-        return false;
-      }
+    if (xmlFile == myFile) {
+      return;
     }
+    myFile = xmlFile;
 
     if (myPendingFile != null) {
-      if (xmlFile == myPendingFile.file) {
-        return false;
-      }
       myPendingFile.invalidate();
       // Set the model to null so the progressbar is displayed
       mySurface.setModel(null);
     }
-    else if (xmlFile == myFile) {
-      return false;
-    }
 
-    AndroidFacet facet = file != null ? AndroidFacet.getInstance(file) : null;
-    if (facet == null || xmlFile == null || xmlFile.getVirtualFile() == null) {
-      myPendingFile = null;
-      myFile = null;
-      setActiveModel(null);
+    if (myContentPanel == null) {  // First time: Make sure we have compiled the project at least once...
+      DelayedInitialization.getInstance(myProject).runAfterBuild(this::initPreviewForm, this::buildError);
     }
     else {
-      if (myModel != null) {
-        Disposer.dispose(myModel);
-      }
-
-      if (myContentPanel == null) {  // First time: Make sure we have compiled the project at least once...
-        DelayedInitialization.getInstance(myProject).runAfterBuild(() -> initNeleModel(facet, xmlFile), this::buildError);
-      }
-      else {
-        initNeleModel(facet, xmlFile);
-      }
+      initNeleModel();
     }
-    return true;
   }
 
-  private void initNeleModel(@NotNull AndroidFacet facet, @NotNull XmlFile xmlFile) {
-    UIUtil.invokeLaterIfNeeded(() -> initNeleModelOnEventDispatchThread(facet, xmlFile));
+  private void initPreviewForm() {
+    UIUtil.invokeLaterIfNeeded(this::initPreviewFormOnEventDispatchThread);
   }
 
   // Build was either cancelled or there was an error
@@ -353,7 +317,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     myWorkBench.setLoadingText("Error.");
   }
 
-  private void initNeleModelOnEventDispatchThread(@NotNull AndroidFacet facet, @NotNull XmlFile xmlFile) {
+  private void initPreviewFormOnEventDispatchThread() {
     if (Disposer.isDisposed(this)) {
       return;
     }
@@ -362,10 +326,25 @@ public class NlPreviewForm implements Disposable, CaretListener {
       myWorkBench.init(myContentPanel, mySurface,
                        Collections.singletonList(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
     }
-    myModel = NlModel.create(mySurface, null, facet, xmlFile);
+    initNeleModel();
+  }
 
-    mySurface.setModel(myModel);
-    myPendingFile = new Pending(xmlFile, myModel);
+  private void initNeleModel() {
+    XmlFile xmlFile = myFile;
+    AndroidFacet facet = xmlFile != null ? AndroidFacet.getInstance(xmlFile) : null;
+    if (!isActive || facet == null || xmlFile.getVirtualFile() == null) {
+      myPendingFile = null;
+      setActiveModel(null);
+    }
+    else {
+      if (myModel != null) {
+        Disposer.dispose(myModel);
+      }
+      myModel = NlModel.create(mySurface, null, facet, xmlFile);
+
+      mySurface.setModel(myModel);
+      myPendingFile = new Pending(xmlFile, myModel);
+    }
   }
 
   public void setActiveModel(@Nullable NlModel model) {
@@ -474,10 +453,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
 
     isActive = true;
-    if (myFile == null && myPendingFile == null) {
-      setFile(myInactiveFile);
+    if (myContentPanel != null) {
+      initNeleModel();
     }
-    myInactiveFile = null;
   }
 
   /**
@@ -489,14 +467,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
       return;
     }
 
-    if (myFile != null) {
-      myInactiveFile = myFile;
-    }
-    else {
-      // The file might still be rendering
-      myInactiveFile = myPendingFile != null ? myPendingFile.file : null;
-    }
-    setFile(null);
     isActive = false;
+    if (myContentPanel != null) {
+      initNeleModel();
+    }
   }
 }
