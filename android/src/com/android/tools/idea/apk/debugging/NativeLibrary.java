@@ -21,6 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,9 +34,9 @@ public class NativeLibrary {
   @NotNull public List<String> sourceFolderPaths = new ArrayList<>();
   @NotNull public Map<String, String> pathMappings = new HashMap<>();
 
-  @NotNull private List<String> filePaths = new ArrayList<>();
+  @NotNull private List<String> sharedObjectFilePaths = new ArrayList<>();
 
-  @Transient @NotNull public List<VirtualFile> files = new ArrayList<>();
+  @Transient @NotNull public List<VirtualFile> sharedObjectFiles = new ArrayList<>();
   @Transient @NotNull public List<String> abis = new ArrayList<>();
 
   @Nullable public String debuggableFilePath;
@@ -45,51 +46,25 @@ public class NativeLibrary {
   public NativeLibrary() {
   }
 
-  public NativeLibrary(@NotNull NativeLibrary library) {
-    copyFrom(library);
-  }
-
-  public void copyFrom(@NotNull NativeLibrary library) {
-    name = library.name;
-
-    sourceFolderPaths.clear();
-    sourceFolderPaths.addAll(library.sourceFolderPaths);
-
-    pathMappings.clear();
-    pathMappings.putAll(library.pathMappings);
-
-    filePaths.clear();
-    filePaths.addAll(library.filePaths);
-
-    files.clear();
-    files.addAll(library.files);
-
-    abis.clear();
-    abis.addAll(library.abis);
-
-    debuggableFilePath = library.debuggableFilePath;
-    hasDebugSymbols = library.hasDebugSymbols;
-  }
-
   public NativeLibrary(@NotNull String name) {
     this.name = name;
   }
 
   @NotNull
-  public List<String> getFilePaths() {
-    return filePaths;
+  public List<String> getSharedObjectFilePaths() {
+    return sharedObjectFilePaths;
   }
 
   // This is being invoked when NativeLibrary is deserialized from XML.
-  public void setFilePaths(@NotNull List<String> filePaths) {
-    this.filePaths = filePaths;
+  public void setSharedObjectFilePaths(@NotNull List<String> sharedObjectFilePaths) {
+    this.sharedObjectFilePaths = sharedObjectFilePaths;
 
     List<String> nonExistingPaths = new ArrayList<>();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-    for (String path : filePaths) {
+    for (String path : sharedObjectFilePaths) {
       VirtualFile file = fileSystem.findFileByPath(path);
       if (file != null) {
-        this.files.add(file);
+        this.sharedObjectFiles.add(file);
         abis.add(extractAbiFrom(file));
         continue;
       }
@@ -99,20 +74,19 @@ public class NativeLibrary {
 
     if (!nonExistingPaths.isEmpty()) {
       // Remove paths not found in the file system.
-      this.filePaths.removeAll(nonExistingPaths);
+      this.sharedObjectFilePaths.removeAll(nonExistingPaths);
     }
   }
 
-  public void addFiles(@NotNull VirtualFile... files) {
-    for (VirtualFile file : files) {
-      addFile(file);
-    }
+  @TestOnly
+  public void addSharedObjectFile(@NotNull VirtualFile file) {
+    doAddSharedObjectFile(file);
     sortAbis();
   }
 
-  public void addFiles(@NotNull List<VirtualFile> files) {
+  public void addSharedObjectFiles(@NotNull List<VirtualFile> files) {
     for (VirtualFile file : files) {
-      addFile(file);
+      doAddSharedObjectFile(file);
     }
     sortAbis();
   }
@@ -123,10 +97,10 @@ public class NativeLibrary {
     }
   }
 
-  private void addFile(@NotNull VirtualFile file) {
-    files.add(file);
+  private void doAddSharedObjectFile(@NotNull VirtualFile file) {
+    sharedObjectFiles.add(file);
     abis.add(extractAbiFrom(file));
-    filePaths.add(file.getPath());
+    sharedObjectFilePaths.add(file.getPath());
   }
 
   @NotNull
@@ -171,13 +145,13 @@ public class NativeLibrary {
            Objects.equals(name, library.name) &&
            Objects.equals(sourceFolderPaths, library.sourceFolderPaths) &&
            Objects.equals(pathMappings, library.pathMappings) &&
-           Objects.equals(filePaths, library.filePaths) &&
+           Objects.equals(sharedObjectFilePaths, library.sharedObjectFilePaths) &&
            Objects.equals(debuggableFilePath, library.debuggableFilePath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, sourceFolderPaths, pathMappings, filePaths, debuggableFilePath, hasDebugSymbols);
+    return Objects.hash(name, sourceFolderPaths, pathMappings, sharedObjectFilePaths, debuggableFilePath, hasDebugSymbols);
   }
 
   @Override
