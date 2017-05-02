@@ -104,8 +104,7 @@ public class AvdManagerConnection {
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
-  // TODO: jameskaye Update this when we know what verison of emulator supports "-studio-params"
-  protected static Revision EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS = Revision.parseRevision("99.0.0");
+  protected static Revision EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS = Revision.parseRevision("26.1.0");
 
   private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENCENCY_WITH_FIRST_QEMU2 = {
     new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 2),
