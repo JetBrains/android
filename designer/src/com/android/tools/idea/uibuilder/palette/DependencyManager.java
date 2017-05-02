@@ -106,7 +106,7 @@ public class DependencyManager {
 
   private boolean checkForNewMissingDependencies() {
     Set<String> missing = Collections.emptySet();
-    if (myModule != null) {
+    if (myModule != null && !myModule.isDisposed()) {
       GradleDependencyManager manager = GradleDependencyManager.getInstance(myProject);
       List<GradleCoordinate> coordinates = toGradleCoordinatesFromIds(myPalette.getGradleCoordinateIds());
       missing = fromGradleCoordinatesToIds(manager.findMissingDependencies(myModule, coordinates));
