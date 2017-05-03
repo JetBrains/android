@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.layout;
+package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -44,7 +44,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   private final ActionToolbar myToolBar;
   private final EditorDesignSurface mySurface;
 
-  NlConfigurationToolbarFixture(
+  public NlConfigurationToolbarFixture(
     @NotNull ParentFixture parentFixture, @NotNull Robot robot, @NotNull EditorDesignSurface surface, @NotNull ActionToolbar toolbar) {
     myParentFixture = parentFixture;
     myRobot = robot;
