@@ -46,7 +46,7 @@ public enum DefaultActionState implements AssistActionState {
   /**
    * Use this to disable the button and indicate the state is being determined.
    */
-  IN_PROGRESS(true, true, false),
+  IN_PROGRESS(true, false, true),
 
   /**
    * There is a pre-existing error condition that prevents completion.
@@ -56,14 +56,18 @@ public enum DefaultActionState implements AssistActionState {
   /**
    * Similar to INCOMPLETE but action completion doesn't make sense. e.g. Trigger debug event.
    */
-  NOT_APPLICABLE(true, true, true);
+  NOT_APPLICABLE(true, true, true),
 
+  /**
+   * Action failed but can be retried.
+    */
+  ERROR_RETRY(true, true, true, AllIcons.RunConfigurations.TestFailed, UIUtils.getFailureColor());
 
-  private boolean myIsButtonEnabled;
-  private boolean myIsButtonVisible;
-  private boolean myIsMessageVisible;
-  @Nullable private Icon myIcon;
-  @NotNull private Color myForegroundColor;
+  private final boolean myIsButtonEnabled;
+  private final boolean myIsButtonVisible;
+  private final boolean myIsMessageVisible;
+  @Nullable private final Icon myIcon;
+  @NotNull private final Color myForegroundColor;
 
   DefaultActionState(boolean isButtonVisible, boolean isButtonEnabled, boolean isMessageVisible) {
     this(isButtonVisible, isButtonEnabled, isMessageVisible, null, Color.BLACK);
