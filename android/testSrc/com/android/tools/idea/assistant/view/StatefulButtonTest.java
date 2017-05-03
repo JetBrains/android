@@ -81,7 +81,8 @@ public class StatefulButtonTest extends AndroidTestCase {
     when(myStateManager.getState(getProject(), myAction)).thenReturn(DefaultActionState.IN_PROGRESS);
     StatefulButton button = new StatefulButton(myAction, myListener, myStateManager, getProject());
     assertTrue(button.myButton.isVisible());
-    assertFalse(button.myMessage.isVisible());
+    assertFalse(button.myButton.isEnabled());
+    assertTrue(button.myMessage.isVisible());
   }
 
   public void testIncomplete() {

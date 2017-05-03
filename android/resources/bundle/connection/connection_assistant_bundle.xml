@@ -77,18 +77,23 @@
               height="525"/>
         </stepElement>
       </step>
-      <step label="Check device connection using ADB (Android Debug Bridge)">
+      <step label="Restart ADB (Android Debug Bridge) server">
         <stepElement>
           <section>
-            <![CDATA[When plugged in over USB, you can verify that your device is connected by executing adb devices from your SDK platform-tools/ directory.
-            If connected, you'll see the device name listed as a "device."]]>
+            <![CDATA[If you do not see your device, please ensure you followed the previous steps and click the Restart button below to check for new devices.]]>
           </section>
         </stepElement>
+        <stepElement>
+          <action
+              key="connection.restart.adb"
+              label="Restart">
+          </action>
+        </stepElement>
       </step>
-      <step label="Submit a Bug Report">
+      <step label="Submit a bug report">
         <stepElement>
           <section>
-            <![CDATA[If the previous steps did not fix your issue. Please <a href="https://code.google.com/p/android/issues/entry?template=User%20bug%20report">submit a bug report</a> to help us investigate your issue. Include: OS, Studio version, and Device Model.]]>
+            <![CDATA[Sorry we could not resolve your issue. Please submit a bug report to help us debug your issues. Please consider running your application on an emulator.]]>
           </section>
         </stepElement>
       </step>

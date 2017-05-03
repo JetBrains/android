@@ -1373,6 +1373,8 @@
   <!-- Connection Assistant -->
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
     <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
+    <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbAction"/>
+    <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbActionStateManager"/>
   </extensions>
 
 </idea-plugin>
