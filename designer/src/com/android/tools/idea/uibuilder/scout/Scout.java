@@ -41,7 +41,7 @@ public class Scout {
     AlignHorizontallyCenter, AlignHorizontallyRight, DistributeVertically,
     DistributeHorizontally, VerticalPack, HorizontalPack, ExpandVertically, AlignBaseline,
     ExpandHorizontally, CenterHorizontallyInParent, CenterVerticallyInParent, CenterVertically,
-    CenterHorizontally, CreateHorizontalChain, CreateVerticalChain
+    CenterHorizontally, CreateHorizontalChain, CreateVerticalChain, ConnectTop, ConnectBottom, ConnectStart, ConnectEnd
   }
 
   private static int sMargin = 8;

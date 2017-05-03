@@ -271,6 +271,8 @@ public class AndroidIcons {
     public static final Icon BaselineConstraintCursor = load("/icons/sherpa/baseline_constraint_cursor.png");
     public static final Icon UnlinkConstraintCursor = load("/icons/sherpa/unlink_constraint_cursor.png");
 
+
+    public static final Icon AddConnection = load("/icons/sherpa/add-connection.png");
     public static final Icon ArrowDown = load("/icons/sherpa/arrow_down.png");
     public static final Icon ArrowLeft = load("/icons/sherpa/arrow_left.png");
     public static final Icon ArrowRight = load("/icons/sherpa/arrow_right.png");

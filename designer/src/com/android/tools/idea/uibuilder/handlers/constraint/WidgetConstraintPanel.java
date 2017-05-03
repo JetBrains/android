@@ -189,12 +189,18 @@ public class WidgetConstraintPanel extends JPanel {
     {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
   static String[][] ourDeleteAttributes = {
-    {SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+    {
+      SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+      SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
+      SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
       SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
       SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
       SdkConstants.ATTR_LAYOUT_MARGIN_START,
       SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS},
-    {SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+    {
+      SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
+      SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+      SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
       SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
       SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
       SdkConstants.ATTR_LAYOUT_MARGIN_END,
@@ -213,10 +219,14 @@ public class WidgetConstraintPanel extends JPanel {
   static String[][] ourDeleteNamespace = {
     {SdkConstants.SHERPA_URI,
       SdkConstants.SHERPA_URI,
+      SdkConstants.SHERPA_URI,
+      SdkConstants.SHERPA_URI,
       SdkConstants.ANDROID_URI,
       SdkConstants.ANDROID_URI,
       SdkConstants.SHERPA_URI},
     {SdkConstants.SHERPA_URI,
+      SdkConstants.SHERPA_URI,
+      SdkConstants.SHERPA_URI,
       SdkConstants.SHERPA_URI,
       SdkConstants.ANDROID_URI,
       SdkConstants.ANDROID_URI,
