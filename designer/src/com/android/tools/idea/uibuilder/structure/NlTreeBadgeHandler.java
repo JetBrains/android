@@ -88,14 +88,19 @@ public class NlTreeBadgeHandler {
       NlComponent component = (NlComponent)path.getLastPathComponent();
       Rectangle pathBounds = tree.getPathBounds(path);
       int y = pathBounds.y + pathBounds.height / 2;
+      Icon firstIcon = null;
       if (lintAnnotationsModel != null) {
-        Icon icon = lintAnnotationsModel.getIssueIcon(component, false);
-        if (icon != null && pathBounds != null) {
-          int x = tree.getWidth() - icon.getIconWidth() - BADGE_MARGIN;
-          int iy = y - icon.getIconHeight() / 2;
-          icon.paintIcon(tree, g, x, iy);
+        firstIcon = lintAnnotationsModel.getIssueIcon(component, false);
+        if (firstIcon != null && pathBounds != null) {
+          int x = tree.getWidth() - firstIcon.getIconWidth() - BADGE_MARGIN;
+          int iy = y - firstIcon.getIconHeight() / 2;
+          firstIcon.paintIcon(tree, g, x, iy);
           myBadgeX = Math.min(x, myBadgeX);
+        } else {
+          firstIcon = null;
         }
+      }
+      if (firstIcon != null) {
         myVisibilityIconX = myBadgeX - BADGE_MARGIN - hideIcon.getIconWidth();
       } else {
         myVisibilityIconX = tree.getWidth() - BADGE_MARGIN - hideIcon.getIconWidth();
