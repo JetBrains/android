@@ -26,7 +26,7 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -44,6 +44,7 @@ import static com.android.SdkConstants.FD_SAMPLE_DATA;
 
 public class SampleDataResourceRepository extends LocalResourceRepository {
   private final ResourceTable myFullTable;
+  private AndroidFacet myAndroidFacet;
 
   @Nullable
   public static VirtualFile getSampleDataDir(@NotNull AndroidFacet androidFacet, boolean create) throws IOException {
@@ -61,23 +62,45 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     return sampleDataDir;
   }
 
-  protected SampleDataResourceRepository(AndroidFacet androidFacet) {
-    super("MockData");
+  protected SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
+    super("SampleData");
 
     myFullTable = new ResourceTable();
+    myAndroidFacet = androidFacet;
 
-    // Find all the files in the mocks directory
-    VirtualFile contentRoot = AndroidRootUtil.getMainContentRoot(androidFacet);
+    VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
+      @Override
+      public void fileCreated(@NotNull VirtualFileEvent event) {
+        filesUpdated(event);
+      }
+
+      @Override
+      public void fileDeleted(@NotNull VirtualFileEvent event) {
+        filesUpdated(event);
+      }
+
+      @Override
+      public void fileMoved(@NotNull VirtualFileMoveEvent event) {
+        filesUpdated(event);
+      }
+    }, this);
+    invalidate();
+  }
+
+  /**
+   * Invalidates the current sample data of this repository. Call this method after the sample data has been updated to reload the contents.
+   */
+  private void invalidate() {
     VirtualFile sampleDataDir = null;
     try {
-      sampleDataDir = getSampleDataDir(androidFacet, false);
+      sampleDataDir = getSampleDataDir(myAndroidFacet, false);
     }
     catch (IOException ignore) {
     }
-
+    myFullTable.clear();
     if (sampleDataDir != null) {
       ImmutableListMultimap.Builder<String, ResourceItem> items = ImmutableListMultimap.builder();
-      PsiManager psiManager = PsiManager.getInstance(androidFacet.getModule().getProject());
+      PsiManager psiManager = PsiManager.getInstance(myAndroidFacet.getModule().getProject());
       Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
       ApplicationManager.getApplication().runReadAction(() -> {
         childrenStream
@@ -88,6 +111,32 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
       });
 
       myFullTable.put(null, ResourceType.SAMPLE_DATA, items.build());
+    }
+
+    invalidateParentCaches(null, ResourceType.SAMPLE_DATA);
+  }
+
+  private void filesUpdated(@NotNull VirtualFileEvent event) {
+    if (myAndroidFacet.isDisposed()) {
+      return;
+    }
+
+    VirtualFile sampleDataDir = null;
+    try {
+      sampleDataDir = getSampleDataDir(myAndroidFacet, false);
+    }
+    catch (IOException ignored) {
+    }
+
+    VirtualFile eventFile = event.getFile();
+
+    // Invalidate the existing cache if the change affects any sampledata directory children or the directory itself
+    boolean invalidate = sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, eventFile, false);
+    // Also account for the case where the directory itself is being added or removed
+    invalidate = invalidate || FD_SAMPLE_DATA.equals(eventFile.getName());
+
+    if (invalidate) {
+      invalidate();
     }
   }
 
@@ -113,5 +162,11 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
   @Override
   protected Set<VirtualFile> computeResourceDirs() {
     return ImmutableSet.of();
+  }
+
+  @Override
+  public void dispose() {
+    myAndroidFacet = null;
+    super.dispose();
   }
 }
