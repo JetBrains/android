@@ -27,9 +27,9 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.*;
+import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.components.ServiceManager;
@@ -50,12 +50,14 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.ide.common.repository.SdkMavenRepository.*;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.Projects.isOfflineBuildModeEnabled;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.sdk.StudioSdkUtil.reloadRemoteSdkWithModalProgress;
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes.mSTRING_LITERAL;
@@ -75,7 +77,21 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
   void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
     String dependency = syncIssue.getData();
     assert dependency != null;
+    // FIXME: remove this workaround once b/37944674 is fixed.
+    // Dependency string might contain extra text due to bug in Android plugin, strip out extra text
+    dependency = retrieveDependency(dependency);
     report(dependency, module, buildFile);
+  }
+
+  @NotNull
+  static String retrieveDependency(@NotNull String dependency) {
+    // make this function specific to workaround b/37944674
+    Pattern pattern = Pattern.compile("any matches for ([^\\s]+) .*");
+    Matcher matcher = pattern.matcher(dependency);
+    if (matcher.matches()) {
+      return matcher.group(1);
+    }
+    return dependency;
   }
 
   public void report(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {

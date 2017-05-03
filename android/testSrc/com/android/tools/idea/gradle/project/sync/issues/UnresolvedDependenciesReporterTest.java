@@ -50,6 +50,15 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     assertFalse(UnresolvedDependenciesReporter.canGetConstraintLayoutFromSdkManager(getModule()));
   }
 
+  public void testRetrieveDependency() {
+    String expectedDependency = "com.android.support.constraint:constraint-layout:+";
+    assertEquals(expectedDependency,
+                 UnresolvedDependenciesReporter.retrieveDependency("any matches for com.android.support.constraint:constraint-layout:+" +
+                                                                   " as no versions of com.android.support.constraint:constraint-layout are available"));
+    assertEquals(expectedDependency,
+                 UnresolvedDependenciesReporter.retrieveDependency("com.android.support.constraint:constraint-layout:+"));
+  }
+
   private void createAndAddModel(@NotNull AndroidModelFeatures features) {
     AndroidModuleModel model = mock(AndroidModuleModel.class);
     when(model.getFeatures()).thenReturn(features);
