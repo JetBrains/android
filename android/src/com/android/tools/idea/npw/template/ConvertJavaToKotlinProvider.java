@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.template;
 
+import com.android.annotations.NonNull;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
@@ -29,6 +30,8 @@ import java.util.List;
 public interface ConvertJavaToKotlinProvider {
   ExtensionPointName<ConvertJavaToKotlinProvider> EP_NAME =
     new ExtensionPointName<>("com.android.tools.idea.npw.template.convertJavaToKotlinProvider");
+
+  @NonNull String getKotlinVersion();
 
   List<PsiFile> convertToKotlin(@NotNull Project project, @NotNull List<PsiJavaFile> files);
 

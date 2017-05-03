@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.template;
 
+import com.android.annotations.NonNull;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,8 +35,14 @@ import java.util.List;
  */
 public class ConvertJavaToKotlinDefaultImpl implements ConvertJavaToKotlinProvider {
 
+  @NonNull
   @Override
-  public List<PsiFile> convertToKotlin(@NotNull Project project, List<PsiJavaFile> psiJavaFiles) {
+  public String getKotlinVersion() {
+    return "1.1.2-2";
+  }
+
+  @Override
+  public List<PsiFile> convertToKotlin(@NotNull Project project, @NotNull List<PsiJavaFile> psiJavaFiles) {
     try {
       PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
       if (kotlinPluginId == null) {
