@@ -585,6 +585,12 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       }
 
       if (to1.equals(to2)) {
+        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, cDir1, to1.mNlComponent)) {
+          return false;
+        }
+        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, cDir2, to2.mNlComponent)) {
+          return false;
+        }
         connect(cDir1, to1, cDir1, (int)gap);
         connect(cDir2, to2, cDir2, (int)gap);
       }
@@ -596,7 +602,12 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         Direction c2 = (pos1 > pos2) ? (ori) : (ori.getOpposite());
         int gap1 = gap(this, c1, to1, cDir1);
         int gap2 = gap(this, c2, to2, cDir2);
-
+        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, c1, to1.mNlComponent)) {
+          return false;
+        }
+        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, c2, to2.mNlComponent)) {
+          return false;
+        }
         connect(c1, to1, cDir1, Math.max(0, gap1));
         connect(c2, to2, cDir2, Math.max(0, gap2));
       }
@@ -677,6 +688,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     }
 
     if (anchor1.isConnectionAllowed(to1)) {
+      if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, ori, to1.mNlComponent)) {
+        return false;
+      }
       connect(ori, to1, cDir1, 0);
       connect(ori.getOpposite(), to1, cDir1, 0);
     }
@@ -746,6 +760,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     }
 
     if (anchor.isConnectionAllowed(to)) {
+      if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, anchorType, to.mNlComponent)) {
+        return false;
+      }
       connect(anchorType, to, cAnchorType, (int)gap);
       return true;
     }

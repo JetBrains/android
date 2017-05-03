@@ -445,7 +445,7 @@ public class ScoutArrangeTest2 extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"\n" +
                  "      tools:layout_editor_absoluteX=\"187dp\"\n" +
-                 "      android:layout_marginLeft=\"37dp\"\n" +
+                 "      android:layout_marginStart=\"37dp\"\n" +
                  "      app:layout_constraintStart_toEndOf=\"@+id/textview1\" />");
   }
 }
