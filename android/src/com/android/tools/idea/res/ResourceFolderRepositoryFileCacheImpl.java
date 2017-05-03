@@ -37,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -79,13 +81,13 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     // Make up filename with hashCodes. Try to tolerate hash collisions:
     // The blob file contents will list the original resourceDir as data source, so if there there is a
     // hash collision we will detect during load and ignore the blob.
-    File projectComponent = getProjectDir(project);
+    Path projectComponent = getProjectDir(project);
     if (projectComponent == null) {
       return null;
     }
     String dirComponent = FileUtil.sanitizeFileName(resourceDir.getParent().getName() + "_" +
                                                     Integer.toHexString(resourceDir.hashCode()));
-    return new File(projectComponent, dirComponent);
+    return projectComponent.resolve(dirComponent).toFile();
   }
 
   @Override
@@ -109,12 +111,12 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
 
   @Override
   @Nullable
-  public File getProjectDir(@NotNull Project project) {
+  public Path getProjectDir(@NotNull Project project) {
     File rootDir = getRootDir();
     if (rootDir == null) {
       return null;
     }
-    return new File(rootDir, ProjectKt.getSystemCacheFileName(project));
+    return ProjectKt.getProjectCachePath(project, rootDir.toPath());
   }
 
   @Override
@@ -326,10 +328,12 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     @VisibleForTesting
     static List<File> updateLRUList(Project currentProject, List<File> projectsList, int maxProjectCaches) {
       List<File> projectsToRemove = ContainerUtil.newArrayList();
-      File currentProjectDir = ResourceFolderRepositoryFileCacheService.get().getProjectDir(currentProject);
-      if (currentProjectDir == null) {
+      Path currentProjectPath = ResourceFolderRepositoryFileCacheService.get().getProjectDir(currentProject);
+      if (currentProjectPath == null) {
         return projectsToRemove;
       }
+
+      File currentProjectDir = currentProjectPath.toFile();
       projectsList.remove(currentProjectDir);
       projectsList.add(0, currentProjectDir);
       for (int i = projectsList.size() - 1; i >= maxProjectCaches && i >= 0; --i) {
@@ -371,8 +375,8 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     @Override
     public void performInDumbMode(@NotNull ProgressIndicator indicator) {
       ResourceFolderRepositoryFileCache cache = ResourceFolderRepositoryFileCacheService.get();
-      File projectCacheBase = cache.getProjectDir(myProject);
-      if (projectCacheBase == null || !projectCacheBase.exists()) {
+      Path projectCacheBase = cache.getProjectDir(myProject);
+      if (projectCacheBase == null || !Files.exists(projectCacheBase)) {
         return;
       }
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
@@ -382,7 +386,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
         File dir = cache.getResourceDir(myProject, resourceDir);
         ContainerUtil.addIfNotNull(usedCacheDirectories, dir);
       }
-      File[] cacheFiles = projectCacheBase.listFiles();
+      File[] cacheFiles = projectCacheBase.toFile().listFiles();
       if (cacheFiles == null) {
         getLogger().error("Failed to prune cache files from " + projectCacheBase);
         return;

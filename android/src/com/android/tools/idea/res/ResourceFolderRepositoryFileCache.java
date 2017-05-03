@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.Path;
 
 public interface ResourceFolderRepositoryFileCache {
 
@@ -49,7 +50,8 @@ public interface ResourceFolderRepositoryFileCache {
    *
    * @return the project cache dir, or null on IO exceptions
    */
-  @Nullable File getProjectDir(@NotNull Project currentProject);
+  @Nullable
+  Path getProjectDir(@NotNull Project currentProject);
 
   /**
    * Mark the cache invalid.
