@@ -16,6 +16,7 @@
 package com.android.tools.idea.instantapp.provision;
 
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 
 import java.io.File;
 
@@ -40,7 +41,8 @@ public class DevManPackageTest extends ProvisionPackageTest<DevManPackage> {
                  myProvisionPackage.getApk("arm64-v8a", "release").getPath());
   }
 
-  public void testGetApkVersion() throws Throwable {
+  @Ignore("http://b/37083525")
+  public void ignore_testGetApkVersion() throws Throwable {
     assertEquals(29, getApkVersion(myProvisionPackage.getApk("arm64-v8a", "release")));
   }
 }

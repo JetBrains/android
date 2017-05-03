@@ -17,6 +17,7 @@ package com.android.tools.idea.instantapp.provision;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Ignore;
 
 import java.io.File;
 
@@ -47,7 +48,8 @@ public class PolicySetsPackageTest extends ProvisionPackageTest<PolicySetsPackag
                  policyPackage.getApk("arm64-v8a", "debug").getPath());
   }
 
-  public void testGetApkVersion() throws Throwable {
+  @Ignore("http://b/37083525")
+  public void ignore_testGetApkVersion() throws Throwable {
     ProvisionPackage policyPackage = getSpecificPackageForeTest("drive");
     assertNotNull(policyPackage);
     assertEquals(10010, getApkVersion(policyPackage.getApk("arm64-v8a", "debug")));
