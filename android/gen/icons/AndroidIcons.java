@@ -230,6 +230,12 @@ public class AndroidIcons {
     public static final Icon Link = load("/icons/nele/link.png"); // 16x16
   }
 
+  public static class NavEditorIcons {
+    public static final Icon Destination = load("/icons/naveditor/destination.png");
+    public static final Icon DestinationGroup = load("/icons/naveditor/destination-group.png");
+
+  }
+
   public static class LintNotification {
     public static final Icon Lint0 = load("/icons/nele/lint0.png");
     public static final Icon Lint1 = load("/icons/nele/lint1.png");
