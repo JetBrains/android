@@ -222,7 +222,12 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
   public ByteString getTraceData(int traceId, Common.Session session) {
     try {
       ResultSet results = executeQuery(CpuStatements.FIND_TRACE_DATA, traceId, session);
-      return ByteString.copyFrom(results.getBytes(DATA_COLUMN));
+      if (results.next()) {
+        byte[] data = results.getBytes(DATA_COLUMN);
+        if (data != null) {
+          return ByteString.copyFrom(data);
+        }
+      }
     }
     catch (SQLException ex) {
       getLogger().error(ex);
