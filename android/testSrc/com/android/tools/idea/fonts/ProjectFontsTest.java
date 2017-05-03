@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -28,7 +32,8 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.fonts.GoogleFontProvider.GOOGLE_FONT_AUTHORITY;
+import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
+import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ProjectFontsTest extends FontTestCase {
@@ -41,13 +46,13 @@ public class ProjectFontsTest extends FontTestCase {
 
     assertThat(fonts.size()).isEqualTo(1);
     FontFamily family = assertFontFamily(fonts.get(0), "a_bee_zee_regular", FontProvider.EMPTY_PROVIDER,
-                                         FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(file.getPath()),
+                                         FILE_PROTOCOL_START + PathUtil.toSystemDependentName(file.getPath()),
                                          new File(file.getPath()));
 
     assertThat(family.getFonts().size()).isEqualTo(1);
 
     assertFontDetail(family.getFonts().get(0), "a_bee_zee_regular", "Regular", 400, 100, false,
-                     FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(file.getPath()), new File(file.getPath()));
+                     FILE_PROTOCOL_START + PathUtil.toSystemDependentName(file.getPath()), new File(file.getPath()));
   }
 
   public void testCompoundFamilyFile() {
@@ -60,15 +65,15 @@ public class ProjectFontsTest extends FontTestCase {
     assertThat(fonts).containsExactly("fonta", "fontb", "my_font_family");
 
     FontFamily family = assertFontFamily(project.getFont("@font/my_font_family"), "my_font_family", FontProvider.EMPTY_PROVIDER,
-                                         FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()),
+                                         FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()),
                                          new File(fileA.getPath()));
 
     assertThat(family.getFonts().size()).isEqualTo(2);
 
     assertFontDetail(family.getFonts().get(0), "fonta", "Regular", 400, 100, false,
-                     FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()), new File(fileA.getPath()));
+                     FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()), new File(fileA.getPath()));
     assertFontDetail(family.getFonts().get(1), "fontb", "Regular Italic", 400, 100, true,
-                     FontFamily.FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileB.getPath()), new File(fileB.getPath()));
+                     FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileB.getPath()), new File(fileB.getPath()));
   }
 
   public void testCompoundFamilyFileWithCircularReferences() {
@@ -149,7 +154,7 @@ public class ProjectFontsTest extends FontTestCase {
                                 @NotNull String expectedFilename) {
     String expectedUrl = Joiner.on('/').join("https://fonts.gstatic.com/s", expectedFolder1, expectedFolder2, expectedFilename);
     File expectedFile = makeFile(myFontPath, GOOGLE_FONT_AUTHORITY, "fonts", expectedFolder1, expectedFolder2, expectedFilename);
-    return assertFontFamily(family, expectedFontName, GoogleFontProvider.INSTANCE, expectedUrl, expectedFile);
+    return assertFontFamily(family, expectedFontName, FontProvider.GOOGLE_PROVIDER, expectedUrl, expectedFile);
   }
 
   @NotNull
@@ -158,13 +163,14 @@ public class ProjectFontsTest extends FontTestCase {
                                              @NotNull FontProvider expectedProvider,
                                              @NotNull String expectedUrl,
                                              @NotNull File expectedFile) {
+    DownloadableFontCacheService service = DownloadableFontCacheService.getInstance();
     assertThat(family).isNotNull();
     assertThat(family.getProvider()).isEqualTo(expectedProvider);
-    assertThat(family.getFontSource()).isSameAs(FontFamily.FontSource.PROJECT);
+    assertThat(family.getFontSource()).isSameAs(FontSource.PROJECT);
     assertThat(family.getName()).isEqualTo(expectedFontName);
     assertThat(family.getMenuName()).isEqualTo(expectedFontName);
     assertThat(family.getMenu()).isEqualTo(expectedUrl);
-    assertThat(family.getCachedMenuFile()).isEquivalentAccordingToCompareTo(expectedFile);
+    assertThat(service.getCachedMenuFile(family)).isEquivalentAccordingToCompareTo(expectedFile);
     return family;
   }
 
@@ -190,32 +196,25 @@ public class ProjectFontsTest extends FontTestCase {
                                        boolean expectedItalics,
                                        @NotNull String expectedUrl,
                                        @NotNull File expectedFile) {
+    DownloadableFontCacheService service = DownloadableFontCacheService.getInstance();
     assertThat(detail.getFamily().getName()).isEqualTo(expectedFontName);
     assertThat(detail.getWeight()).isEqualTo(expectedWeight);
     assertThat(detail.getWidth()).isEqualTo(expectedWidth);
-    assertThat(detail.isItalics()).isEqualTo(expectedItalics);
+    assertThat(detail.getItalics()).isEqualTo(expectedItalics);
     assertThat(detail.getStyleName()).isEqualTo(expectedStyleName);
     assertThat(detail.getFontUrl()).isEqualTo(expectedUrl);
-    assertThat(detail.getCachedFontFile()).isEquivalentAccordingToCompareTo(expectedFile);
+    assertThat(service.getCachedFontFile(detail)).isEquivalentAccordingToCompareTo(expectedFile);
   }
 
   private static void assertUnresolvedFont(@Nullable FontFamily family, @NotNull String expectedName) {
+    DownloadableFontCacheService service = DownloadableFontCacheService.getInstance();
     assertThat(family).isNotNull();
     assertThat(family.getProvider()).isEqualTo(FontProvider.EMPTY_PROVIDER);
-    assertThat(family.getFontSource()).isSameAs(FontFamily.FontSource.PROJECT);
+    assertThat(family.getFontSource()).isSameAs(FontSource.PROJECT);
     assertThat(family.getName()).isEqualTo(expectedName);
     assertThat(family.getMenuName()).isEqualTo(expectedName);
     assertThat(family.getMenu()).isEmpty();
-    assertThat(family.getCachedMenuFile()).isNull();
-    assertThat(family.getFonts().size()).isEqualTo(1);
-
-    FontDetail detail = family.getFonts().get(0);
-    assertThat(detail.getFamily()).isSameAs(family);
-    assertThat(detail.getWeight()).isEqualTo(400);
-    assertThat(detail.getWidth()).isEqualTo(100);
-    assertThat(detail.isItalics()).isFalse();
-    assertThat(detail.getStyleName()).isEqualTo("Regular");
-    assertThat(detail.getFontUrl()).isEmpty();
-    assertThat(detail.getCachedFontFile()).isNull();
+    assertThat(service.getCachedMenuFile(family)).isNull();
+    assertThat(family.getFonts().size()).isEqualTo(0);
   }
 }
