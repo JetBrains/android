@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import android.support.constraint.solver.widgets.ConstraintWidgetContainer;
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.drawing.ConnectionDraw;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
+import icons.AndroidIcons;
 
 import javax.swing.*;
 import java.awt.*;
@@ -74,6 +76,17 @@ public class SingleWidgetView extends JPanel {
   VConstraintDisplay mVbar1;
   VConstraintDisplay mVbar2;
 
+  ConnectButton mTopConnect;
+  ConnectButton mLeftConnect;
+  ConnectButton mRightConnect;
+  ConnectButton mBottomConnect;
+  final static int mConnectRadius = 7;
+  final static int mConnectSize = mConnectRadius * 2 + 1; // widget size
+  int mConnectTopPos; // the y pos of the bottom of the top connection
+  int mConnectLeftPos; // the x pos of the right side of the left connection
+  int mConnectRightPos; // the x pos of the left side of the right connection
+  int mConnectBottomPos; // the y pos of the top of the bottom connection
+
   KillButton mTopKill;
   KillButton mLeftKill;
   KillButton mRightKill;
@@ -108,6 +121,11 @@ public class SingleWidgetView extends JPanel {
     mRightKill = new KillButton(mColorSet);
     mBottomKill = new KillButton(mColorSet);
     mBaselineKill = new KillButton(mColorSet);
+    mTopConnect = new ConnectButton(mColorSet);
+    mLeftConnect = new ConnectButton(mColorSet);
+    mRightConnect = new ConnectButton(mColorSet);
+    mBottomConnect = new ConnectButton(mColorSet);
+
     mAspectButton = new AspectButton(mColorSet);
     mAspectText = new JTextField();
     mAspectLabel = new JLabel("ratio");
@@ -117,6 +135,10 @@ public class SingleWidgetView extends JPanel {
     mRightKill.setToolTipText("Delete Right Constraint");
     mBottomKill.setToolTipText("Delete Bottom Constraint");
     mBaselineKill.setToolTipText("Delete Baseline Constraint");
+    mTopConnect.setToolTipText("Create a connection above");
+    mLeftConnect.setToolTipText("Create a connection to the left");
+    mRightConnect.setToolTipText("Create a connection to the right");
+    mBottomConnect.setToolTipText("Create a connection below");
     mAspectButton.setToolTipText("Toggle Aspect Ratio Constraint");
 
     mHbar1.setSister(mHbar2);
@@ -144,6 +166,10 @@ public class SingleWidgetView extends JPanel {
     add(mLeftKill);
     add(mRightKill);
     add(mBottomKill);
+    add(mTopConnect);
+    add(mLeftConnect);
+    add(mRightConnect);
+    add(mBottomConnect);
     add(mBaselineKill);
     add(mAspectButton);
     add(mAspectText);
@@ -159,6 +185,10 @@ public class SingleWidgetView extends JPanel {
     mRightKill.addActionListener(e -> rightKill());
     mBottomKill.addActionListener(e -> bottomKill());
     mBaselineKill.addActionListener(e -> baselineKill());
+    mTopConnect.addActionListener(e -> connectConstraintTop());
+    mLeftConnect.addActionListener(e -> connectConstraintLeft());
+    mRightConnect.addActionListener(e -> connectConstraintRight());
+    mBottomConnect.addActionListener(e -> connectConstraintBottom());
     mAspectButton.addActionListener(e -> toggleAspect());
     mAspectText.addActionListener(e -> setAspectString());
     mAspectText.addFocusListener(new FocusAdapter() {
@@ -321,6 +351,22 @@ public class SingleWidgetView extends JPanel {
     update();
   }
 
+  private void connectConstraintTop() {
+    Scout.arrangeWidgets(Scout.Arrange.ConnectTop, Arrays.asList(mWidgetConstraintPanel.mComponent), false);
+  }
+
+  private void connectConstraintLeft() {
+    Scout.arrangeWidgets(Scout.Arrange.ConnectStart, Arrays.asList(mWidgetConstraintPanel.mComponent), false);
+  }
+
+  private void connectConstraintRight() {
+    Scout.arrangeWidgets(Scout.Arrange.ConnectEnd, Arrays.asList(mWidgetConstraintPanel.mComponent), false);
+  }
+
+  private void connectConstraintBottom() {
+    Scout.arrangeWidgets(Scout.Arrange.ConnectBottom, Arrays.asList(mWidgetConstraintPanel.mComponent), false);
+  }
+
   static int baselinePos(int height) {
     return (9 * height) / 10;
   }
@@ -353,6 +399,17 @@ public class SingleWidgetView extends JPanel {
     mRightKill.setBounds(boxLeft + mBoxSize - rad, boxTop + mBoxSize / 2 - rad + 1, size + 2, size);
     mBottomKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad, size + 2, size);
     mBaselineKill.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + baselinePos(mBoxSize) - rad, size + 2, size);
+
+    rad = mConnectRadius;
+    size = mConnectSize; // widget size
+    mConnectTopPos = boxTop - mConnectRadius - mConnectSize * 2 + mConnectSize;
+    mConnectLeftPos = boxLeft - mConnectRadius - mConnectSize * 2 + mConnectSize;
+    mConnectRightPos = boxLeft + mBoxSize - mConnectRadius + mConnectSize * 2;
+    mConnectBottomPos = boxTop + mBoxSize - mConnectRadius + mConnectSize * 2;
+    mTopConnect.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop - rad - size * 2, size, size);
+    mLeftConnect.setBounds(boxLeft - rad - size * 2, boxTop + mBoxSize / 2 - rad + 1, size, size);
+    mRightConnect.setBounds(boxLeft + mBoxSize - rad + size * 2, boxTop + mBoxSize / 2 - rad + 1, size, size);
+    mBottomConnect.setBounds(boxLeft + mBoxSize / 2 - rad, boxTop + mBoxSize - rad + size * 2, size, size);
     mAspectButton.setBounds(boxLeft, boxTop, mBoxSize / 6, mBoxSize / 6);
     tmpx = boxLeft + mBoxSize + 4;
     mAspectText.setBounds(tmpx, tmpy = boxTop + mBoxSize + 10, Math.min(70, mWidth - tmpx), tmph = mAspectText.getPreferredSize().height);
@@ -479,6 +536,59 @@ public class SingleWidgetView extends JPanel {
   }
 
   /**
+   * Connect button
+   */
+  static class ConnectButton extends JComponent {
+    boolean mMouseIn;
+    boolean mShow = true;
+    ColorSet mColorSet;
+    public static int sCircleRadius = 5;
+
+    public void addActionListener(ActionListener listener) {
+      mListener = listener;
+    }
+
+    static Dimension size = new Dimension(sCircleRadius * 2, sCircleRadius * 2);
+
+    private ActionListener mListener;
+
+    public void setShown(boolean show) {
+      mShow = show;
+    }
+
+    public ConnectButton(ColorSet colorSet) {
+      mColorSet = colorSet;
+      setPreferredSize(size);
+      setSize(size);
+      setOpaque(false);
+
+      addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseEntered(MouseEvent evt) {
+          mMouseIn = true;
+          repaint();
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          mListener.actionPerformed(null);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent evt) {
+          mMouseIn = false;
+          repaint();
+        }
+      });
+    }
+
+    @Override
+    public void paint(Graphics g) {
+      AndroidIcons.SherpaIcons.AddConnection.paintIcon(this, g, 0, 0);
+    }
+  }
+
+    /**
    * Buttons that can kill the constraint
    */
   static class KillButton extends JComponent {
@@ -676,6 +786,10 @@ public class SingleWidgetView extends JPanel {
     mLeftKill.setVisible(left != UNCONNECTED);
     mRightKill.setVisible(right != UNCONNECTED);
     mBottomKill.setVisible(bottom != UNCONNECTED);
+    mTopConnect.setVisible(top == UNCONNECTED);
+    mLeftConnect.setVisible(left == UNCONNECTED);
+    mRightConnect.setVisible(right == UNCONNECTED);
+    mBottomConnect.setVisible(bottom == UNCONNECTED);
     mBaselineKill.setVisible(baseline);
     mAspectButton.setVisible(true);
     mAspectText.setVisible(mRatioString != null);
@@ -982,6 +1096,11 @@ public class SingleWidgetView extends JPanel {
   static class Line implements Graphic {
     int mX1, mY1, mX2, mY2;
     boolean mDisplay;
+    final static float dash1[] = {1.0f, 3.0f};
+    final static private Stroke sDashStroke = new BasicStroke(1.0f,
+                                                              BasicStroke.CAP_BUTT,
+                                                              BasicStroke.JOIN_MITER,
+                                                              2.0f, dash1, 0.0f);
 
     Line(int x1, int y1, int x2, int y2, boolean display) {
       mX1 = x1;
@@ -993,10 +1112,15 @@ public class SingleWidgetView extends JPanel {
 
     @Override
     public boolean paint(Graphics2D g, ColorSet colorSet) {
-
       if (mDisplay) {
         drawCircle(g, mX1, mY1, mDisplay);
         g.drawLine(mX1, mY1, mX2, mY2);
+      } else {
+        Stroke stroke = g.getStroke();
+        g.setStroke(sDashStroke);
+        Color c = g.getColor();
+         g.drawLine(mX1, mY1, mX2, mY2);
+         g.setStroke(stroke);
       }
       return false;
     }
@@ -1109,10 +1233,15 @@ public class SingleWidgetView extends JPanel {
       mBaselineArrow =
         new LineArrow(baseArrowX, boxTop + baselinePos(mBoxSize), baseArrowX, height - inset, mBaseline);
 
-      mTopArrow = new Line(width / 2, boxTop, width / 2, inset, (mMarginTop >= 0));
-      mLeftArrow = new Line(boxLeft, height / 2, inset, height / 2, (mMarginLeft >= 0));
-      mRightArrow = new Line(boxLeft + mBoxSize, height / 2, width - inset, height / 2, (mMarginRight >= 0));
-      mBottomArrow = new Line(width / 2, boxTop + mBoxSize, width / 2, height - inset, (mMarginBottom >= 0));
+      mConnectTopPos = boxTop - mConnectRadius - mConnectSize * 2 + mConnectSize;
+      mConnectLeftPos = boxLeft - mConnectRadius - mConnectSize * 2 + mConnectSize;
+      mConnectRightPos = boxLeft + mBoxSize - mConnectRadius + mConnectSize * 2;
+      mConnectBottomPos = boxTop + mBoxSize - mConnectRadius + mConnectSize * 2;
+
+      mTopArrow = new Line(width / 2, boxTop, width / 2, (mMarginTop >= 0)? inset:mConnectTopPos, (mMarginTop >= 0));
+      mLeftArrow = new Line(boxLeft, height / 2, (mMarginLeft >= 0)? inset:mConnectLeftPos, height / 2, (mMarginLeft >= 0));
+      mRightArrow = new Line(boxLeft + mBoxSize, height / 2, (mMarginRight >= 0)?(width - inset):mConnectRightPos, height / 2, (mMarginRight >= 0));
+      mBottomArrow = new Line(width / 2, boxTop + mBoxSize, width / 2, (mMarginBottom >= 0)?(height - inset):mConnectBottomPos, (mMarginBottom >= 0));
       updateTriangle();
     }
 

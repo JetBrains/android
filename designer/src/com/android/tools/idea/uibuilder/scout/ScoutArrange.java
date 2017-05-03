@@ -79,6 +79,19 @@ public class ScoutArrange {
     }
 
     switch (type) {
+      case ConnectTop:
+        connect(scoutWidgets, parentScoutWidget, Direction.TOP, (applyConstraints) ? 0:-1 );
+        break;
+      case ConnectBottom:
+        connect(scoutWidgets, parentScoutWidget, Direction.BOTTOM, (applyConstraints) ? 0:-1 );
+        break;
+      case ConnectStart:
+        connect(scoutWidgets, parentScoutWidget, Direction.LEFT, (applyConstraints) ? 0:-1 );
+        break;
+        case ConnectEnd:
+          connect(scoutWidgets, parentScoutWidget, Direction.RIGHT, (applyConstraints) ? 0:-1 );
+          break;
+
       case CreateHorizontalChain: {
         Arrays.sort(scoutWidgets, sSortRecX);
         Rectangle rectangle = new Rectangle();
@@ -171,7 +184,6 @@ public class ScoutArrange {
         Rectangle rectangle = new Rectangle();
         NlComponent parent = parentScoutWidget.mNlComponent;
         ScoutWidget[] peers = ScoutWidget.create(parent.getChildren(), parentScoutWidget);
-
 
         for (ScoutWidget widget : scoutWidgets) {
           rectangle.x = widget.getDpX();
@@ -637,7 +649,6 @@ public class ScoutArrange {
     }
   }
 
-
   /**
    * Expands widgets vertically in an evenly spaced manner
    *  @param widgetList
@@ -689,7 +700,6 @@ public class ScoutArrange {
       }
     }
   }
-
 
   /**
    * Expands widgets horizontally in an evenly spaced manner
@@ -1238,5 +1248,31 @@ public class ScoutArrange {
 
   public Anchor getAnchor(NlComponent component, Direction direction) {
     return new Anchor(component, direction);
+  }
+
+  /**
+   * Connect a widget to its neighbour
+   *
+   * @param scoutWidgets      The widget
+   * @param parentScoutWidget it parent
+   * @param dir               the direction to connect LEFT, RIGHT, TOP BOTTOM
+   * @param margin            the margin to set or -1 to keep the current distance
+   */
+  public static void connect(ScoutWidget[] scoutWidgets, ScoutWidget parentScoutWidget, Direction dir, int margin) {
+    Rectangle rectangle = new Rectangle();
+    NlComponent parent = parentScoutWidget.mNlComponent;
+    ScoutWidget[] peers = ScoutWidget.create(parent.getChildren(), parentScoutWidget);
+    for (ScoutWidget widget : scoutWidgets) {
+      rectangle.x = widget.getDpX();
+      rectangle.y = widget.getDpY();
+      rectangle.width = widget.getDpWidth();
+      rectangle.height = widget.getDpHeight();
+      int dist = gap(dir, rectangle, peers, parentScoutWidget);
+      ScoutWidget connect = gapWidget(dir, rectangle, peers, parentScoutWidget);
+      Direction connectDir = (connect != parentScoutWidget) ? dir.getOpposite() : dir;
+      if (connect != null) {
+        scoutConnect(widget.mNlComponent, dir, connect.mNlComponent, connectDir, (margin == -1) ? dist : margin);
+      }
+    }
   }
 }
