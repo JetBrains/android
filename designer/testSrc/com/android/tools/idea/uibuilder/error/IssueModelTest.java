@@ -20,7 +20,12 @@ import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.mock.MockApplication;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,14 +34,17 @@ import static org.junit.Assert.*;
 public class IssueModelTest {
   RenderErrorModel myRenderErrorModel;
   private IssueModel myIssueModel;
+  private Disposable myDisposable;
 
   @Before
   public void setUp() throws Exception {
     myIssueModel = new IssueModel();
+    myDisposable = Disposer.newDisposable();
+    ApplicationManager.setApplication(new MockApplication(myDisposable), myDisposable);
   }
 
   @Test
-  public void testSetRenderErrorModel() {
+  public void setRenderErrorModel() {
     RenderErrorModel.Issue issue = MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR);
     myRenderErrorModel = createRenderErrorModel(issue);
 
@@ -56,7 +64,7 @@ public class IssueModelTest {
   }
 
   @Test
-  public void testSetLintAnnotationModel() {
+  public void setLintAnnotationModel() {
 
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
@@ -72,7 +80,7 @@ public class IssueModelTest {
   }
 
   @Test
-  public void testListenerCalled() {
+  public void listenerCalled() {
     final boolean[] listenerCalled = {false, false};
     IssueModel.IssueModelListener listener1 = () -> listenerCalled[0] = true;
     IssueModel.IssueModelListener listener2 = () -> listenerCalled[1] = true;
@@ -92,7 +100,7 @@ public class IssueModelTest {
   }
 
   @Test
-  public void testWarningErrorCount() {
+  public void warningErrorCount() {
     assertFalse(myIssueModel.hasIssues());
     myIssueModel.setRenderErrorModel(
       createRenderErrorModel(
@@ -110,5 +118,10 @@ public class IssueModelTest {
     assertEquals(6, myIssueModel.getIssueCount());
     assertEquals(4, myIssueModel.getErrorCount());
     assertEquals(2, myIssueModel.getWarningCount());
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    Disposer.dispose(myDisposable);
   }
 }
