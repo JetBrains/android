@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
 import org.jetbrains.android.dom.AndroidDomUtil;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WEIGHT;
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WEIGHT;
 import static com.google.common.truth.Truth.assertThat;
 
 public class SystemFontsTest extends FontTestCase {
@@ -51,7 +53,7 @@ public class SystemFontsTest extends FontTestCase {
       }
       assertThat(menuFont).isNotNull();
       assertThat(menuFont.getWeight()).isEqualTo(DEFAULT_WEIGHT);
-      assertThat(menuFont.isItalics()).isFalse();
+      assertThat(menuFont.getItalics()).isFalse();
     }
   }
 }

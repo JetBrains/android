@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontProvider;
 import com.intellij.openapi.components.ServiceManager;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,6 +53,42 @@ public interface DownloadableFontCacheService {
    */
   @NotNull
   List<FontFamily> getSystemFontFamilies();
+
+  /**
+   * Returns a font file for the menu font (a font representative for the family).
+   * This font may have an extra limited char set just enough to display the menu name of the font.
+   * Even when this function returns a non null result the font may not be downloaded yet.
+   * Or <code>null</code> if no menu file is specified.
+   */
+  @Nullable
+  File getCachedMenuFile(@NotNull FontFamily family);
+
+  /**
+   * Returns a font file for the specified font.
+   * Even when this function returns a non null result the font may not be downloaded yet.
+   * Or <code>null</code> if no menu file is specified.
+   */
+  @Nullable
+  File getCachedFontFile(@NotNull FontDetail family);
+
+  /**
+   * Returns XML for a font-family file describing the font.
+   * Used in layoutlib for displaying downloadable fonts.
+   */
+  @Nullable
+  @Language("XML")
+  String toXml(@NotNull FontFamily family);
+
+  /**
+   * Start downloading the specified font without waiting for the outcome.
+   */
+  void download(@NotNull FontFamily family);
+
+  /**
+   * Lookup the {@link FontFamily} of a certain font.
+   */
+  @Nullable
+  FontFamily findFont(@NotNull FontProvider provider, @NotNull String fontName);
 
   /**
    * Returns a {@link FontFamily} for a named system font or <code>null</code>

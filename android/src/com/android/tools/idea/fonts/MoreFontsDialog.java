@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.assistant.view.UIUtils;
@@ -55,8 +59,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.fonts.FontFamily.FontSource.DOWNLOADABLE;
-import static com.android.tools.idea.fonts.FontFamily.FontSource.HEADER;
+import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
+import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
 /**
  * Font selection dialog, which displays and causes the font cache to be populated.
@@ -287,7 +291,7 @@ public class MoreFontsDialog extends DialogWrapper {
       // Often we get multiple selection notifications. Avoid multiple downloads of the same files:
       return;
     }
-    if (family == null || family.getFontSource() == HEADER) {
+    if (family == null || family.getFontSource() == FontSource.HEADER) {
       myFontName.setText("");
       myFontNameEditor.setVisible(false);
       myDownloadable.setVisible(false);
@@ -379,7 +383,7 @@ public class MoreFontsDialog extends DialogWrapper {
     @Override
     public Component getListCellRendererComponent(@NotNull JList<? extends FontFamily> list,
                                                   @NotNull FontFamily fontFamily, int index, boolean selected, boolean hasFocus) {
-      if (fontFamily.getFontSource() == HEADER) {
+      if (fontFamily.getFontSource() == FontSource.HEADER) {
         myTitle.setText(fontFamily.getName());
         return myTitle;
       }
@@ -407,10 +411,10 @@ public class MoreFontsDialog extends DialogWrapper {
           setIcon(AndroidIcons.NeleIcons.Link);
           break;
         case PROJECT:
-          if (fontFamily.getMenu().startsWith(FontFamily.FILE_PROTOCOL_START)) {
+          if (fontFamily.getMenu().startsWith(FILE_PROTOCOL_START)) {
             setIcon(AndroidIcons.FontFile);
           }
-          else if (fontFamily.getMenu().startsWith(FontFamily.HTTPS_PROTOCOL_START)) {
+          else if (fontFamily.getMenu().startsWith(HTTPS_PROTOCOL_START)) {
             setIcon(AndroidIcons.NeleIcons.Link);
           }
           else {
@@ -509,7 +513,7 @@ public class MoreFontsDialog extends DialogWrapper {
         int size = super.getSize();
         for (int index = 0; index < size; index++) {
           FontFamily family = super.get(index);
-          if (family.getFontSource() != HEADER && myComparator.matchingFragments(myFilter, family.getName()) != null) {
+          if (family.getFontSource() != FontSource.HEADER && myComparator.matchingFragments(myFilter, family.getName()) != null) {
             myFilteredList.add(family);
           }
         }
@@ -547,7 +551,7 @@ public class MoreFontsDialog extends DialogWrapper {
       if (families.isEmpty()) {
         return;
       }
-      addElement(new FontFamily(FontProvider.EMPTY_PROVIDER, HEADER, sectionName, "", null, Collections.emptyList()));
+      addElement(new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.HEADER, sectionName, "", "", Collections.emptyList()));
       for (FontFamily fontFamily : families) {
         addElement(fontFamily);
       }
@@ -576,7 +580,7 @@ public class MoreFontsDialog extends DialogWrapper {
       myFirstLoadedFontIndex = myLoadedFontIndex;
       while (myLoadedFontIndex < size && fontsToDownload.size() < DOWNLOAD_SIZE) {
         FontFamily family = super.get(myLoadedFontIndex++);
-        if (family.getFontSource() == DOWNLOADABLE) {
+        if (family.getFontSource() == FontSource.DOWNLOADABLE) {
           fontsToDownload.add(family);
         }
       }

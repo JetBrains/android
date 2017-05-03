@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.fonts.FontDetail;
-import com.android.tools.idea.fonts.FontFamily;
+import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.annotations.VisibleForTesting;
@@ -44,6 +45,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -305,8 +307,9 @@ public class LayoutPullParserFactory {
       // This might be a downloadable font. Check if we have it.
       FontFamily downloadedFont = getDownloadableFont.apply(fontRefName);
 
+      DownloadableFontCacheService fontCacheService = DownloadableFontCacheService.getInstance();
       @SuppressWarnings("ConstantConditions")
-      Predicate<FontDetail> exists = font -> font.getCachedFontFile().exists();
+      Predicate<FontDetail> exists = font -> fontCacheService.getCachedFontFile(font).exists();
 
       stylesStream = downloadedFont != null ? downloadedFont.getFonts().stream()
         .filter(exists)
@@ -340,6 +343,10 @@ public class LayoutPullParserFactory {
     }
 
     return new DomPullParser(document.getDocumentElement());
+  }
+
+  private static boolean exists(@Nullable File file) {
+    return file != null && file.exists();
   }
 
   public static boolean needSave(@Nullable ResourceFolderType type) {

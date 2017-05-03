@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.*;
 import com.google.common.primitives.Ints;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.annotations.NotNull;
@@ -23,9 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WIDTH;
-import static com.android.tools.idea.fonts.FontFamily.FontSource.LOOKUP;
-import static com.android.tools.idea.fonts.FontFamily.FontSource.SYSTEM;
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 
 /**
  * There are TTF files loaded from the jar file which can be used to display
@@ -91,34 +90,20 @@ class SystemFonts {
                                      @NotNull String name,
                                      int width,
                                      int... weights) {
-    FontFamily lookup = new FontFamily(GoogleFontProvider.INSTANCE, LOOKUP, name, "", null, Collections.emptyList());
-    FontFamily family = service.lookup(lookup);
+    FontFamily family = service.findFont(FontProvider.GOOGLE_PROVIDER, name);
     if (family == null) {
       return null;
     }
-    List<FontDetail.Builder> filtered = family.getFonts().stream()
+    List<MutableFontDetail> filtered = family.getFonts().stream()
       .filter(font -> font.getWidth() == width && Ints.contains(weights, font.getWeight()))
-      .map(FontDetail.Builder::new)
+      .map(FontDetail::toMutableFontDetail)
       .collect(Collectors.toList());
 
-    FontDetail.Builder wanted = new FontDetail.Builder(400, width, false, "", null);
-    FontDetail best = findBestMatch(family.getFonts(), wanted);
-    return new FontFamily(GoogleFontProvider.INSTANCE, SYSTEM, systemFontName, best.getFontUrl(), null, filtered);
-  }
-
-  static FontDetail findBestMatch(@NotNull Collection<FontDetail> fonts, @NotNull FontDetail.Builder wanted) {
-    FontDetail best = null;
-    int bestMatch = Integer.MAX_VALUE;
-    for (FontDetail detail : fonts) {
-      int match = detail.match(wanted);
-      if (match < bestMatch) {
-        bestMatch = match;
-        best = detail;
-        if (match == 0) {
-          break;
-        }
-      }
+    MutableFontDetail wanted = new MutableFontDetail(400, width, false);
+    FontDetail best = wanted.findBestMatch(family.getFonts());
+    if (best == null) {
+      return null;
     }
-    return best;
+    return new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.SYSTEM, systemFontName, best.getFontUrl(), "", filtered);
   }
 }

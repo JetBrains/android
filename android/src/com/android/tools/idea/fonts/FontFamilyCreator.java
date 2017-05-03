@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersion.VersionCodes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.utils.XmlUtils;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -32,7 +36,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -66,10 +69,12 @@ public class FontFamilyCreator {
 
   private final AndroidFacet myFacet;
   private final Project myProject;
+  private final DownloadableFontCacheService myService;
 
   public FontFamilyCreator(@NotNull AndroidFacet facet) {
     myFacet = facet;
     myProject = facet.getModule().getProject();
+    myService = DownloadableFontCacheService.getInstance();
   }
 
   @NotNull
@@ -104,7 +109,7 @@ public class FontFamilyCreator {
 
   private void createEmbeddedFont(@NotNull FontDetail font, @NotNull String fontName) throws IOException {
     VirtualFile fontFolder = getResourceFolder(ResourceFolderType.FONT);
-    File cachedFile = font.getCachedFontFile();
+    File cachedFile = myService.getCachedFontFile(font);
     if (cachedFile != null && cachedFile.exists()) {
       saveContent(fontFolder, fontName + "." + FileUtilRt.getExtension(cachedFile.getName()), FileUtil.loadFileBytes(cachedFile));
     }
@@ -161,7 +166,7 @@ public class FontFamilyCreator {
         "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
         "        android:fontProviderAuthority=\"" + escapeXmlValue(provider.getAuthority()) + "\"%n" +
         "        android:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
-        "        android:fontProviderQuery=\"" + escapeXmlValue(getQuery(font)) + "\"%n" +
+        "        android:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery(false)) + "\"%n" +
         "        android:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\">%n" +
         "</font-family>%n");
     }
@@ -172,11 +177,11 @@ public class FontFamilyCreator {
         "        xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
         "        android:fontProviderAuthority=\"" + escapeXmlValue(provider.getAuthority()) + "\"%n" +
         "        android:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
-        "        android:fontProviderQuery=\"" + escapeXmlValue(getQuery(font)) + "\"%n" +
+        "        android:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery(false)) + "\"%n" +
         "        android:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\"%n" +
         "        app:fontProviderAuthority=\"" + escapeXmlValue(provider.getAuthority()) + "\"%n" +
         "        app:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
-        "        app:fontProviderQuery=\"" + escapeXmlValue(getQuery(font)) + "\"%n" +
+        "        app:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery(false)) + "\"%n" +
         "        app:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\">%n" +
         "</font-family>%n");
     }
@@ -186,7 +191,7 @@ public class FontFamilyCreator {
         "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
         "        app:fontProviderAuthority=\"" + escapeXmlValue(provider.getAuthority()) + "\"%n" +
         "        app:fontProviderPackage=\"" + escapeXmlValue(provider.getPackageName()) + "\"%n" +
-        "        app:fontProviderQuery=\"" + escapeXmlValue(getQuery(font)) + "\"%n" +
+        "        app:fontProviderQuery=\"" + escapeXmlValue(font.generateQuery(false)) + "\"%n" +
         "        app:fontProviderCerts=\"@array/" + escapeXmlValue(provider.getCertificateResourceName()) + "\">%n" +
         "</font-family>%n");
     }
@@ -228,6 +233,7 @@ public class FontFamilyCreator {
       "</resources>%n");
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void createOrUpdateFile(@NotNull String fileName,
                                   @NotNull String tagName,
                                   @NotNull String name,
@@ -362,27 +368,6 @@ public class FontFamilyCreator {
 
   @NotNull
   private static String escapeXmlValue(@NotNull String value) {
-    return StringEscapeUtils.escapeXml(value);
-  }
-
-  private static String getQuery(@NotNull FontDetail font) {
-    FontFamily family = font.getFamily();
-    assert family.getName().indexOf('&') < 0 : "Font name: " + family.getName() + " contains &";
-
-    if (font.getWeight() == FontDetail.DEFAULT_WEIGHT && font.getWidth() == FontDetail.DEFAULT_WIDTH && !font.isItalics()) {
-      return family.getName();
-    }
-    StringBuilder query = new StringBuilder()
-      .append("name=").append(escapeXmlValue(family.getName()));
-    if (font.getWeight() != FontDetail.DEFAULT_WEIGHT) {
-      query.append("&weight=").append(font.getWeight());
-    }
-    if (font.isItalics()) {
-      query.append("&italics=1");
-    }
-    if (font.getWidth() != FontDetail.DEFAULT_WIDTH) {
-      query.append("&width=").append(font.getWidth());
-    }
-    return query.toString();
+    return XmlUtils.toXmlAttributeValue(value);
   }
 }
