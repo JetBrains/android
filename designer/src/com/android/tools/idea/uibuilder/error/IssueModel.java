@@ -18,11 +18,11 @@ package com.android.tools.idea.uibuilder.error;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
 
 /**
@@ -32,36 +32,35 @@ public class IssueModel {
 
   @Nullable private RenderErrorModel myRenderErrorModel;
   @Nullable private LintAnnotationsModel myLintAnnotationsModel;
-  @GuardedBy("itself") private final List<NlIssue> myIssues = new ArrayList<>();
+  private ImmutableList<NlIssue> myIssues = ImmutableList.of();
   private final List<IssueModelListener> myListeners = new ArrayList<>(1);
   private int myWarningCount;
   private int myErrorCount;
 
-  @GuardedBy("myIssues")
   public void setRenderErrorModel(@NotNull RenderErrorModel renderErrorModel) {
     myRenderErrorModel = renderErrorModel;
     updateErrorsList();
   }
 
-  @GuardedBy("myIssues")
   private void updateErrorsList() {
-    myIssues.clear();
     myWarningCount = 0;
     myErrorCount = 0;
+    ImmutableList.Builder<NlIssue> issueListBuilder = ImmutableList.builder();
     if (myRenderErrorModel != null) {
       for (RenderErrorModel.Issue error : myRenderErrorModel.getIssues()) {
         NlIssue issue = NlIssue.wrapIssue(error);
-        myIssues.add(issue);
+        issueListBuilder.add(issue);
         updateIssuesCounts(issue);
       }
     }
     if (myLintAnnotationsModel != null) {
       for (LintAnnotationsModel.IssueData error : myLintAnnotationsModel.getIssues()) {
         NlIssue issue = NlIssue.wrapIssue(error);
-        myIssues.add(issue);
+        issueListBuilder.add(issue);
         updateIssuesCounts(issue);
       }
     }
+    myIssues = issueListBuilder.build();
 
     for (IssueModelListener myListener : myListeners) {
       myListener.errorModelChanged();
@@ -77,23 +76,20 @@ public class IssueModel {
     }
   }
 
-  @GuardedBy("myIssues")
   public void setLintAnnotationsModel(@NotNull LintAnnotationsModel lintAnnotationsModel) {
     myLintAnnotationsModel = lintAnnotationsModel;
     updateErrorsList();
   }
 
-  @GuardedBy("myIssues")
   @NotNull
-  public List<NlIssue> getNlErrors() {
-    return Collections.unmodifiableList(myIssues);
+  public ImmutableList<NlIssue> getNlErrors() {
+    return myIssues;
   }
 
   public boolean hasRenderError() {
     return myRenderErrorModel != null && !myRenderErrorModel.getIssues().isEmpty();
   }
 
-  @GuardedBy("myIssues")
   public int getIssueCount() {
     return myIssues.size();
   }
@@ -114,12 +110,10 @@ public class IssueModel {
     return myErrorCount;
   }
 
-  @GuardedBy("myIssues")
   public boolean hasIssues() {
     return !myIssues.isEmpty();
   }
 
-  @GuardedBy("myIssues")
   @Nullable
   public NlIssue findIssue(@NotNull NlComponent component) {
     for (NlIssue issue : myIssues) {
