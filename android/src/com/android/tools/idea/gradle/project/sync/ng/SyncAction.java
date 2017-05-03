@@ -28,9 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Action that executed inside Gradle to obtain the project structure (IDEA project and modules) and the custom models for each module (e.g.
@@ -38,19 +36,38 @@ import java.util.Map;
  */
 // (This class replaces org.jetbrains.plugins.gradle.model.ProjectImportAction.)
 public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serializable {
+  @NotNull private final Set<Class<?>> myAndroidModelTypes;
+  @NotNull private final Set<Class<?>> myJavaModelTypes;
+
+  public SyncAction() {
+    this(Collections.emptySet(), Collections.emptySet());
+  }
+
+  public SyncAction(@NotNull Set<Class<?>> androidModelTypes, @NotNull Set<Class<?>> javaModelTypes) {
+    myAndroidModelTypes = androidModelTypes;
+    myJavaModelTypes = javaModelTypes;
+  }
+
   @Override
   @Nullable
   public ProjectModels execute(@NotNull BuildController controller) {
     GradleBuild gradleBuild = controller.getBuildModel();
-    ProjectModels models = new ProjectModels();
+    ProjectModels models = new ProjectModels(myAndroidModelTypes, myJavaModelTypes);
     models.populate(gradleBuild, controller);
     return models;
   }
 
   public static class ProjectModels implements Serializable {
+    @NotNull private final Set<Class<?>> myAndroidModelTypes;
+    @NotNull private final Set<Class<?>> myJavaModelTypes;
+
     // Key: module's Gradle path.
     @NotNull private final Map<String, ModuleModels> myModelsByModule = new HashMap<>();
-    //@NotNull private final Map<String, ModuleModels2> myModelsByModule2 = new HashMap<>();
+
+    public ProjectModels(@NotNull Set<Class<?>> androidModelTypes, @NotNull Set<Class<?>> javaModelTypes) {
+      myAndroidModelTypes = androidModelTypes;
+      myJavaModelTypes = javaModelTypes;
+    }
 
     public void populate(@NotNull GradleBuild gradleBuild, @NotNull BuildController controller) {
       BasicGradleProject rootProject = gradleBuild.getRootProject();
@@ -60,7 +77,7 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
     }
 
     private void populateModels(@NotNull GradleProject project, @NotNull BuildController controller) {
-      ModuleModels models = new ModuleModels(project.getPath());
+      ModuleModels models = new ModuleModels(project, myAndroidModelTypes, myJavaModelTypes);
       models.populate(project, controller);
       myModelsByModule.put(project.getPath(), models);
 
@@ -81,17 +98,25 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
   }
 
   public static class ModuleModels implements Serializable {
-    @NotNull private final Map<Class<?>, Object> myModelsByType = new HashMap<>();
-    @NotNull private final String myGradlePath;
+    @NotNull private final GradleProject myGradleProject;
+    @NotNull private final Set<Class<?>> myAndroidModelTypes;
+    @NotNull private final Set<Class<?>> myJavaModelTypes;
 
-    public ModuleModels(@NotNull String gradlePath) {
-      myGradlePath = gradlePath;
+    @NotNull private final Map<Class, Object> myModelsByType = new HashMap<>();
+
+    public ModuleModels(@NotNull GradleProject gradleProject, @NotNull Set<Class<?>> androidModelTypes, @NotNull Set<Class<?>> javaModelTypes) {
+      myGradleProject = gradleProject;
+      myAndroidModelTypes = androidModelTypes;
+      myJavaModelTypes = javaModelTypes;
     }
 
     public void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
       myModelsByType.put(GradleProject.class, gradleProject);
       AndroidProject androidProject = findAndAddModel(gradleProject, controller, AndroidProject.class);
       if (androidProject != null) {
+        for (Class<?> type : myAndroidModelTypes) {
+          findAndAddModel(gradleProject, controller, type);
+        }
         // No need to query extra models.
         return;
       }
@@ -100,9 +125,11 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
         // No need to query extra models.
         return;
       }
-      // This is a Java module.
       JavaProject javaProject = findAndAddModel(gradleProject, controller, JavaProject.class);
       if(javaProject != null){
+        for (Class<?> type : myJavaModelTypes) {
+          findAndAddModel(gradleProject, controller, type);
+        }
         return;
       }
       // Jar/Aar module.
@@ -111,7 +138,12 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
 
     @NotNull
     public String getGradlePath() {
-      return myGradlePath;
+      return myGradleProject.getPath();
+    }
+
+    @NotNull
+    public String getModuleName() {
+      return myGradleProject.getName();
     }
 
     @Nullable
