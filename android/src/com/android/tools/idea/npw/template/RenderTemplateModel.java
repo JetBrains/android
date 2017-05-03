@@ -33,6 +33,8 @@ import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.facet.*;
+import com.intellij.ProjectTopics;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -40,16 +42,18 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -70,6 +74,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final StringProperty myPackageName;
   @NotNull private final BoolProperty myInstantApp;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
+  private final boolean myIsNewProject;
 
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -92,6 +97,7 @@ public final class RenderTemplateModel extends WizardModel {
     myCommandName = commandName;
     myMultiTemplateRenderer = new MultiTemplateRenderer();
     myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(project));
+    myIsNewProject = myProject.getValueOrNull() == null;
     init();
   }
 
@@ -108,6 +114,7 @@ public final class RenderTemplateModel extends WizardModel {
     myMultiTemplateRenderer = moduleModel.getMultiTemplateRenderer();
     myMultiTemplateRenderer.increment();
     myLanguageSet = new ObjectValueProperty<>(getInitialSourceLanguage(myProject.getValueOrNull()));
+    myIsNewProject = myProject.getValueOrNull() == null;
     init();
   }
 
@@ -233,8 +240,6 @@ public final class RenderTemplateModel extends WizardModel {
 
           DumbService.getInstance(project).smartInvokeLater(() -> {
 
-            provider.configureKotlin(project);
-
             convertJavaFilesToKotlin(provider, project, filesToReformat);
             // replace .java w/ .kt files
             for (int i = 0; i < filesToOpen.size(); i++) {
@@ -280,17 +285,47 @@ public final class RenderTemplateModel extends WizardModel {
     }
   }
 
-  private List<PsiFile> convertJavaFilesToKotlin(@NonNull ConvertJavaToKotlinProvider provider,
-                                                 @NonNull Project project,
-                                                 @NonNull List<File> files) {
+  private void convertJavaFilesToKotlin(@NonNull ConvertJavaToKotlinProvider provider,
+                                        @NonNull Project project,
+                                        @NonNull List<File> files) {
     List<PsiJavaFile> psiJavaFiles = files2PsiJavaFiles(project, files);
-    if (!psiJavaFiles.isEmpty()) {
-      return provider.convertToKotlin(project, psiJavaFiles);
+    if (psiJavaFiles.isEmpty()) {
+      return;
     }
-    return Collections.emptyList();
+
+    // If its a new project then call the conversion in response to rootsChanged.
+    if (myIsNewProject) {
+      final MessageBusConnection connect = project.getMessageBus().connect();
+      connect.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+        @Override
+        public void rootsChanged(ModuleRootEvent event) {
+          callConverter(project, provider, psiJavaFiles, connect);
+        }
+      });
+    } else {
+      callConverter(project, provider, psiJavaFiles, null);
+    }
   }
 
-  private List<PsiJavaFile> files2PsiJavaFiles(Project project, List<File> files) {
+  private void callConverter(@NonNull Project project,
+                             @NonNull ConvertJavaToKotlinProvider provider,
+                             @NonNull List<PsiJavaFile> psiJavaFiles,
+                             @Nullable MessageBusConnection connection) {
+
+    DumbService.getInstance(project).smartInvokeLater(() -> {
+      if (psiJavaFiles
+        .stream()
+        .allMatch(p -> p.getLanguage().equals(JavaLanguage.INSTANCE))) {
+        provider.configureKotlin(project);
+        provider.convertToKotlin(project, psiJavaFiles);
+      }
+      if (connection != null) {
+        connection.disconnect(); // done once
+      }
+    });
+  }
+
+  private static List<PsiJavaFile> files2PsiJavaFiles(Project project, List<File> files) {
     LocalFileSystem localFileSystem = LocalFileSystem.getInstance();
     List<PsiJavaFile> psiJavaFiles = Lists.newArrayListWithExpectedSize(files.size());
     PsiManager psiManager = PsiManager.getInstance(project);
