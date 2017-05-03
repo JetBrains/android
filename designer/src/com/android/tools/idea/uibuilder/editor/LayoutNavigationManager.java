@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.swing.ui.NavigationComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
@@ -30,22 +29,17 @@ import java.util.List;
 import static com.android.tools.idea.uibuilder.editor.NlEditorProvider.DESIGNER_ID;
 
 public class LayoutNavigationManager implements Disposable {
-  private static final WeakHashMap<FileEditor, NavigationComponent<LayoutNavigationItem>> ourNavigationBarCache = new WeakHashMap<>();
+
+  /**
+   * The map associate a "destination" file with a "source" file.
+   * It is used to navigate back from the destination editor the source editor.
+   */
+  private static final WeakHashMap<VirtualFile, VirtualFile> ourNavigationCache = new WeakHashMap<>();
 
   private final Project myProject;
 
-  private static class LayoutNavigationItem extends NavigationComponent.Item {
-    private final VirtualFile myFile;
-
-    public LayoutNavigationItem(@NotNull VirtualFile layout) {
-      myFile = layout;
-    }
-
-    @NotNull
-    @Override
-    public String getDisplayText() {
-      return myFile.getNameWithoutExtension();
-    }
+  public VirtualFile get(VirtualFile file) {
+    return ourNavigationCache.get(file);
   }
 
   private LayoutNavigationManager(@NotNull Project project) {
@@ -70,6 +64,7 @@ public class LayoutNavigationManager implements Disposable {
    * @return true if the editor for destination file has been open
    */
   public boolean pushFile(@NotNull VirtualFile source, @NotNull VirtualFile destination) {
+    ourNavigationCache.put(destination, source);
     FileEditorManager manager = FileEditorManager.getInstance(myProject);
     FileEditor sourceEditor = manager.getSelectedEditor(source);
     FileEditor destinationEditor = manager.getSelectedEditor(destination);
@@ -78,7 +73,6 @@ public class LayoutNavigationManager implements Disposable {
       if (editors.length == 0) {
         return false;
       }
-      destinationEditor = editors[0];
     }
     else {
       OpenFileDescriptor openFileDescriptor = new OpenFileDescriptor(myProject, destination);
@@ -90,60 +84,22 @@ public class LayoutNavigationManager implements Disposable {
     }
     boolean isInDesignerMode = sourceEditor instanceof NlEditor;
     manager.setSelectedEditor(destination, isInDesignerMode ? DESIGNER_ID : TextEditorProvider.getInstance().getEditorTypeId());
-
-    NavigationComponent<LayoutNavigationItem> navigationComponent = ourNavigationBarCache.get(sourceEditor);
-    if (navigationComponent == null) {
-      navigationComponent = createNavigationComponent(source, destinationEditor);
-    }
-    NavigationComponent<LayoutNavigationItem> previousComponent = ourNavigationBarCache.put(destinationEditor, navigationComponent);
-    if (previousComponent != null) {
-      manager.removeTopComponent(destinationEditor, previousComponent);
-    }
-
-    navigationComponent.push(new LayoutNavigationItem(destination));
-    manager.addTopComponent(destinationEditor, navigationComponent);
     return true;
   }
 
   /**
-   * Go back to the previous editor from editorToPop and unstack editorToPop from navigation component
-   *
-   * @param editorToPop            The editor to pop from navigation component
-   * @param navigationComponent    The navigation component owning the editor to pop
-   * @param previousNavigationItem The navigation item to go back to
-   */
-  private void popFile(@NotNull FileEditor editorToPop,
-                       @NotNull NavigationComponent<LayoutNavigationItem> navigationComponent,
-                       @NotNull LayoutNavigationItem previousNavigationItem) {
+   * Focus the parentFile and remove fileToPop from the NavigationCache
+   **/
+  public void popFile(@NotNull VirtualFile fileToPop,
+                      @NotNull VirtualFile parentFile) {
     FileEditorManager manager = FileEditorManager.getInstance(myProject);
-    OpenFileDescriptor previousOpenFileDescriptor = new OpenFileDescriptor(myProject, previousNavigationItem.myFile);
+    OpenFileDescriptor previousOpenFileDescriptor = new OpenFileDescriptor(myProject, parentFile);
     manager.openEditor(previousOpenFileDescriptor, true);
-    navigationComponent.goTo(previousNavigationItem);
-    navigationComponent.pop();
-    manager.removeTopComponent(editorToPop, navigationComponent);
-    ourNavigationBarCache.remove(editorToPop);
-  }
-
-  /**
-   * Create a new {@link NavigationComponent<LayoutNavigationItem>} with a new {@link LayoutNavigationItem}
-   * to go back to rootFile from childEditor.
-   *
-   * @param rootFile    The file showing at the root of the navigation component
-   * @param childEditor The editor that will display this {@link NavigationComponent}.
-   *                    It is normally the one opened from the editor of rootFile
-   * @return The newly created {@link NavigationComponent<LayoutNavigationItem>}
-   */
-  @NotNull
-  private NavigationComponent<LayoutNavigationItem> createNavigationComponent(@NotNull VirtualFile rootFile,
-                                                                              @NotNull FileEditor childEditor) {
-    NavigationComponent<LayoutNavigationItem> navigationComponent = new NavigationComponent<>();
-    navigationComponent.push(new LayoutNavigationItem(rootFile));
-    navigationComponent.addItemListener((item) -> popFile(childEditor, navigationComponent, item));
-    return navigationComponent;
+    ourNavigationCache.remove(fileToPop);
   }
 
   @Override
   public void dispose() {
-    ourNavigationBarCache.clear();
+    ourNavigationCache.clear();
   }
 }

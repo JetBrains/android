@@ -51,6 +51,9 @@ public class OpenIncludedLayoutTest {
     layoutEditor.getComponentTree().clickPath("LinearLayout/include");
     layoutEditor.getComponentTree().doubleClickPath("LinearLayout/include");
     assertEquals(INCLUDED_XML, editor.getCurrentFileName());
+
+    layoutEditor.getBackNavigationPanel().click();
+    assertEquals("outer.xml", editor.getCurrentFileName());
   }
 
   @Test

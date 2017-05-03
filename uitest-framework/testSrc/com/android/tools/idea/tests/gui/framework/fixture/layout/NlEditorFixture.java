@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
+import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -35,6 +36,7 @@ import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -135,6 +137,10 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     });
 
     return fixture;
+  }
+
+  public JPanelFixture getBackNavigationPanel() {
+    return new JPanelFixture(robot(), BackNavigationComponent.BACK_NAVIGATION_COMPONENT_NAME);
   }
 
   @NotNull
