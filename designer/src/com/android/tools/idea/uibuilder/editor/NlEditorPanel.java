@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.naveditor.structure.DestinationList;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
@@ -25,7 +27,6 @@ import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -101,7 +102,10 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     tools.add(new NlPropertyPanelDefinition(myFacet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
-    if (NlLayoutType.typeOf(myFile) != NlLayoutType.NAV) {
+    if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
+      tools.add(new DestinationList.DestinationListDefinition());
+    }
+    else {
       tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
       tools.add(new NlComponentTreeDefinition(project, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
       if (MOCKUP_EDITOR_ENABLED) {
