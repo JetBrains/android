@@ -60,7 +60,8 @@ abstract class ModuleSetup {
                                  new GradleModuleSetup(), new NewAndroidModuleSetup(), new AndroidModuleProcessor(project, modelsProvider),
                                  new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()),
                                  new VariantSelector(), new ProjectCleanup(), new ObsoleteModuleDisposer(project, modelsProvider),
-                                 new NewJavaModuleSetup(), new NewJavaModuleModelFactory(), new ArtifactModuleModelFactory());
+                                 new NewJavaModuleSetup(), new NewJavaModuleModelFactory(), new ArtifactModuleModelFactory(),
+                                 new ExtraSyncModelExtensionManager());
     }
   }
 
@@ -80,6 +81,7 @@ abstract class ModuleSetup {
     @NotNull private final JavaModuleSetup myJavaModuleSetup;
     @NotNull private final NewJavaModuleModelFactory myNewJavaModuleModelFactory;
     @NotNull private final ArtifactModuleModelFactory myArtifactModuleModelFactory;
+    @NotNull private final ExtraSyncModelExtensionManager myExtraSyncModelExtensionManager;
 
     @NotNull private final List<Module> myAndroidModules = new ArrayList<>();
 
@@ -96,7 +98,8 @@ abstract class ModuleSetup {
                     @NotNull ObsoleteModuleDisposer moduleDisposer,
                     @NotNull JavaModuleSetup javaModuleSetup,
                     @NotNull NewJavaModuleModelFactory javaModuleModelFactory,
-                    @NotNull ArtifactModuleModelFactory artifactModuleModelFactory) {
+                    @NotNull ArtifactModuleModelFactory artifactModuleModelFactory,
+                    @NotNull ExtraSyncModelExtensionManager extraSyncModelExtensionManager) {
       myProject = project;
       myModelsProvider = modelsProvider;
       mySyncState = syncState;
@@ -111,6 +114,7 @@ abstract class ModuleSetup {
       myJavaModuleSetup = javaModuleSetup;
       myNewJavaModuleModelFactory = javaModuleModelFactory;
       myArtifactModuleModelFactory = artifactModuleModelFactory;
+      myExtraSyncModelExtensionManager = extraSyncModelExtensionManager;
     }
 
     @Override
@@ -180,6 +184,7 @@ abstract class ModuleSetup {
       if (gradleProject != null && javaProject != null) {
         JavaModuleModel javaModuleModel = myNewJavaModuleModelFactory.create(gradleProject, javaProject, false);
         myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModuleModel, moduleModels, indicator, syncSkipped);
+        myExtraSyncModelExtensionManager.setupExtraJavaModels(moduleModels, myProject, module, myModelsProvider);
         return;
       }
 

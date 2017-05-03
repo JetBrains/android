@@ -48,18 +48,23 @@ class SyncExecutor {
   @NotNull private final Project myProject;
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final SyncErrorHandlerManager myErrorHandlerManager;
+  @NotNull private final ExtraSyncModelExtensionManager myExtraSyncModelExtensionManager;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   SyncExecutor(@NotNull Project project) {
-    this(project, new CommandLineArgs(true), new SyncErrorHandlerManager(project));
+    this(project, new CommandLineArgs(true), new SyncErrorHandlerManager(project), new ExtraSyncModelExtensionManager());
   }
 
   @VisibleForTesting
-  SyncExecutor(@NotNull Project project, @NotNull CommandLineArgs commandLineArgs, @NotNull SyncErrorHandlerManager errorHandlerManager) {
+  SyncExecutor(@NotNull Project project,
+               @NotNull CommandLineArgs commandLineArgs,
+               @NotNull SyncErrorHandlerManager errorHandlerManager,
+               @NotNull ExtraSyncModelExtensionManager extraSyncModelExtensionManager) {
     myProject = project;
     myCommandLineArgs = commandLineArgs;
     myErrorHandlerManager = errorHandlerManager;
+    myExtraSyncModelExtensionManager = extraSyncModelExtensionManager;
   }
 
   @NotNull
@@ -74,9 +79,10 @@ class SyncExecutor {
     // TODO: Handle sync cancellation.
 
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject);
-
     Function<ProjectConnection, Void> syncFunction = connection -> {
-      BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(new SyncAction());
+      BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(
+        new SyncAction(myExtraSyncModelExtensionManager.getExtraAndroidModels(),
+                       myExtraSyncModelExtensionManager.getExtraJavaModels()));
 
       List<String> commandLineArgs = myCommandLineArgs.get(myProject);
 
