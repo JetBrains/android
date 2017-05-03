@@ -167,7 +167,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testCaptureDetails() throws InterruptedException {
+  public void testCaptureDetails() throws InterruptedException, IOException {
     assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
 
     captureSuccessfully();
@@ -220,7 +220,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertNull(((CaptureModel.BottomUp)details).getModel());
 
     // Capture has changed, keeps the same type of details
-    captureSuccessfully();
+    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace());
+    myStage.setAndSelectCapture(capture);
     CaptureModel.Details newDetails = myStage.getCaptureDetails();
     assertNotEquals(details, newDetails);
     assertTrue(newDetails instanceof CaptureModel.BottomUp);
@@ -285,7 +286,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     AspectObserver observer = new AspectObserver();
     myStage.getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_DETAILS, () -> myCaptureDetailsCalled = true);
-    assertEquals(CaptureModel.Details.Type.TOP_DOWN, myStage.getCaptureDetails().getType());
+    assertEquals(CaptureModel.Details.Type.CALL_CHART, myStage.getCaptureDetails().getType());
 
     myCaptureDetailsCalled = false;
     // The first time we set it to bottom up, CAPTURE_DETAILS should be fired
@@ -296,6 +297,25 @@ public class CpuProfilerStageTest extends AspectObserver {
     // If we call it again for bottom up, we shouldn't fire CAPTURE_DETAILS
     myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);
     assertFalse(myCaptureDetailsCalled);
+  }
+
+  @Test
+  public void callChartShouldBeSetAfterACapture() throws Exception {
+    captureSuccessfully();
+    assertEquals(CaptureModel.Details.Type.CALL_CHART, myStage.getCaptureDetails().getType());
+
+    // Change details type and verify it was actually changed.
+    myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);
+    assertEquals(CaptureModel.Details.Type.BOTTOM_UP, myStage.getCaptureDetails().getType());
+
+    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace());
+    myStage.setAndSelectCapture(capture);
+    // Just selecting a different capture shouldn't change the capture details
+    assertEquals(CaptureModel.Details.Type.BOTTOM_UP, myStage.getCaptureDetails().getType());
+
+    captureSuccessfully();
+    // Capturing again should set the details to call chart
+    assertEquals(CaptureModel.Details.Type.CALL_CHART, myStage.getCaptureDetails().getType());
   }
 
   @Test

@@ -321,6 +321,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
             // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
             myCaptureState = CaptureState.IDLE;
             setAndSelectCapture(capture);
+            // Select CALL_CHART by default after a capture because it's useful and fast to compute.
+            setCaptureDetails(CaptureModel.Details.Type.CALL_CHART);
           }
           else {
             assert exception != null;
