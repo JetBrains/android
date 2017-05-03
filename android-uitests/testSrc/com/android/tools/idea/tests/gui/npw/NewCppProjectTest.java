@@ -117,7 +117,7 @@ public class NewCppProjectTest {
    *   3) Verify that the project builds and runs on an emulator
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37918835
   @Test
   public void testAddRemoveCppDependency() throws Exception {
     createCppProject(false, false);
