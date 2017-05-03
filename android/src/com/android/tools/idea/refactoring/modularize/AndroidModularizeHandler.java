@@ -259,7 +259,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           if (referenceType == AndroidPsiUtils.ResourceReferenceType.APP) {
             // This is a resource we might be able to move
             ResourceType type = AndroidPsiUtils.getResourceType(expression);
-            if (type != null) {
+            if (type != null && type != ResourceType.ID) {
               String name = AndroidPsiUtils.getResourceName(expression);
 
               List<ResourceItem> matches = myResourceRepository.getResourceItem(type, name);
