@@ -235,7 +235,7 @@ public class InstantRunTest {
    *   2. Make sure the instant run is applied in EventLog tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37506663
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
