@@ -45,6 +45,7 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -178,7 +179,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    * quicker feedback on whether something is broken instead of waiting for
    * all the versions for each template first
    */
-  private static final boolean TEST_VARIABLE_COMBINATIONS = COMPREHENSIVE;
   private static final boolean TEST_FEWER_API_VERSIONS = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE;
@@ -931,6 +931,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));
     projectValues.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
     projectValues.put(ATTR_BUILD_API_STRING, getBuildApiString(target.getVersion()));
+    projectValues.put(ATTR_IS_INSTANT_APP, false);
     assertNotNull(values);
 
     // Next check all other parameters, cycling through booleans and enums.
@@ -938,10 +939,15 @@ public class TemplateTest extends AndroidGradleTestCase {
     assertNotNull(templateHandler);
     TemplateMetadata template = templateHandler.getMetadata();
     assertNotNull(template);
-    Collection<Parameter> parameters = template.getParameters();
+    Iterable<Parameter> parameters = template.getParameters();
 
     if (!createActivity) {
       values.setParameterDefaults();
+    }
+    else {
+      TemplateMetadata projectMetadata = projectValues.myTemplate.getMetadata();
+      assertNotNull(projectMetadata);
+      parameters = Iterables.concat(parameters, projectMetadata.getParameters());
     }
 
     if (overrides != null) {
@@ -956,7 +962,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
 
     String projectName;
-    projectParams:
     for (Parameter parameter : parameters) {
       if (parameter.type == Parameter.Type.SEPARATOR || parameter.type == Parameter.Type.STRING) {
         // TODO: Consider whether we should attempt some strings here
@@ -976,6 +981,14 @@ public class TemplateTest extends AndroidGradleTestCase {
 
       // The initial (default value); revert to this one after cycling,
       Object initial = values.get(parameter.id);
+      if (initial == null) {
+        if (parameter.type == Parameter.Type.BOOLEAN) {
+          initial = Boolean.valueOf(parameter.initial);
+        }
+        else {
+          initial = parameter.initial;
+        }
+      }
 
       if (parameter.type == Parameter.Type.ENUM) {
         List<Element> options = parameter.getOptions();
@@ -992,8 +1005,8 @@ public class TemplateTest extends AndroidGradleTestCase {
             values.put(parameter.id, optionId);
             projectName = projectNameBase + "_" + parameter.id + "_" + optionId;
             checkProject(projectName, projectValues, templateValues);
-            if (!TEST_VARIABLE_COMBINATIONS) {
-              break projectParams;
+            if (!COMPREHENSIVE) {
+              break;
             }
           }
         }
@@ -1011,10 +1024,6 @@ public class TemplateTest extends AndroidGradleTestCase {
         values.put(parameter.id, value);
         projectName = projectNameBase + "_" + parameter.id + "_" + value;
         checkProject(projectName, projectValues, templateValues);
-
-        if (!TEST_VARIABLE_COMBINATIONS) {
-          break projectParams;
-        }
       }
       values.put(parameter.id, initial);
     }
@@ -1124,6 +1133,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       projectDir = Projects.getBaseDirPath(project);
       projectValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
 
+      System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
       createProject(projectValues, CHECK_LINT);
 
       File projectRoot = virtualToIoFile(project.getBaseDir());
@@ -1159,7 +1169,6 @@ public class TemplateTest extends AndroidGradleTestCase {
       }
 
       assertNotNull(project);
-      System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
 
       GradleConnector connector = GradleConnector.newConnector();
       connector.forProjectDirectory(projectRoot);
