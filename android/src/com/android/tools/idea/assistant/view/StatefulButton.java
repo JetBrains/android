@@ -16,6 +16,7 @@
 package com.android.tools.idea.assistant.view;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.assistant.AssistActionState;
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.StatefulButtonNotifier;
 import com.android.tools.idea.assistant.datamodel.ActionData;
@@ -149,41 +150,28 @@ public class StatefulButton extends JPanel {
       return;
     }
 
-    AssistActionStateManager.ActionState state = myStateManager.getState(myProject, myAction);
-    // HACK ALERT: Getting state may have the side effect of updating the underlying state display, re-fetch.
-    // TODO: Refactor button related code and state management such that state can express arbitrary completion details (such as N of M
-    // modules being complete) and allow the button message to be refreshed on state change.
-    remove(myMessage);
-    myMessage = myStateManager.getStateDisplay(myProject, myAction, mySuccessMessage);
-    add(myMessage);
+    AssistActionState state = myStateManager.getState(myProject, myAction);
     revalidate();
     repaint();
+
 
     if (myMessage != null) {
       updateUIForState(state);
       return;
     }
-
-    // If there's no message display, just disable/enable the button. Show in error state since there's no message to explain the issue.
-    myButton.setEnabled(!state.equals(AssistActionStateManager.ActionState.COMPLETE));
   }
 
-  private void updateUIForState(AssistActionStateManager.ActionState state) {
-    switch (state) {
-      case ERROR:
-      case COMPLETE:
-        myButton.setVisible(false);
-        myMessage.setVisible(true);
-        break;
-      // TODO(b/29617676): Show button disabled in a working state.
-      case IN_PROGRESS:
-      case INCOMPLETE:
-        myButton.setVisible(true);
-        myMessage.setVisible(false);
-        break;
-      default:
-        myButton.setVisible(true);
-        myMessage.setVisible(true);
+  private void updateUIForState(AssistActionState state) {
+    myButton.setVisible(state.isButtonVisible());
+    myButton.setEnabled(state.isButtonEnabled());
+    myMessage.setVisible(state.isMessageVisible());
+    if (state.isMessageVisible()) {
+      remove(myMessage);
+      myMessage = myStateManager.getStateDisplay(myProject, myAction, mySuccessMessage);
+      if (myMessage == null) {
+        return;
+      }
+      add(myMessage);
     }
   }
 
