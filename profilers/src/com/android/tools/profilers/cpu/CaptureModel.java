@@ -138,7 +138,7 @@ class CaptureModel {
       buildDetails(null);
     }
     else {
-      buildDetails(myDetails == null ? Details.Type.TOP_DOWN : myDetails.getType());
+      buildDetails(myDetails == null ? Details.Type.CALL_CHART : myDetails.getType());
     }
   }
 
