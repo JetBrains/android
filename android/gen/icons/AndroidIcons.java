@@ -220,6 +220,8 @@ public class AndroidIcons {
     public static final Icon TextAlignViewEnd = load("/icons/nele/text/text-align-view-end.png"); // 16x16
     public static final Icon TextAlignTextEnd = load("/icons/nele/text/text-align-text-end.png"); // 16x16
 
+    public static final Icon BackArrow = load("/icons/nele/back-arrow.png"); // 16x16
+
     public static final Icon Link = load("/icons/nele/link.png"); // 16x16
   }
 
