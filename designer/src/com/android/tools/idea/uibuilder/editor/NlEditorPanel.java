@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -83,7 +84,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
   }
 
   private void initNeleModel() {
-    UIUtil.invokeLaterIfNeeded(this::initNeleModelOnEventDispatchThread);
+    DumbService.getInstance(myFacet.getModule().getProject()).smartInvokeLater(this::initNeleModelOnEventDispatchThread);
   }
 
   private void initNeleModelOnEventDispatchThread() {

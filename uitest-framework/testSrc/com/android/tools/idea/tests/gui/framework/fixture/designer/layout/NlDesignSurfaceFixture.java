@@ -13,45 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.layout;
+package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.uibuilder.error.IssueView;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
-import org.fest.swing.core.ComponentDragAndDrop;
-import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertTrue;
 
-public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, NlDesignSurface> {
-  private final JPanel myProgressPanel;
-  private final IssuePanelFixture myIssuePanelFixture;
+public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurfaceFixture, NlDesignSurface> {
 
-  public DesignSurfaceFixture(@NotNull Robot robot, @NotNull NlDesignSurface designSurface) {
-    super(DesignSurfaceFixture.class, robot, designSurface);
-    myProgressPanel = robot.finder().findByName(target(), "Layout Editor Progress Panel", JPanel.class, false);
-    myIssuePanelFixture = new IssuePanelFixture(robot, designSurface.getIssuePanel());
+  public NlDesignSurfaceFixture(@NotNull Robot robot, @NotNull NlDesignSurface designSurface) {
+    super(NlDesignSurfaceFixture.class, robot, designSurface);
   }
 
+  @Override
   public void waitForRenderToFinish(@NotNull Wait waitForRender) {
-    waitForRender.expecting("render to finish").until(() -> !myProgressPanel.isVisible());
+    super.waitForRenderToFinish(waitForRender);
     waitForRender.expecting("render to finish").until(() -> {
       ScreenView screenView = target().getCurrentSceneView();
       if (screenView == null) {
@@ -62,31 +52,12 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
         return false;
       }
       if (result.getLogger().hasErrors()) {
-        return target().isShowing() && myIssuePanelFixture.hasRenderError();
+        return target().isShowing() && getIssuePanelFixture().hasRenderError();
       }
-      return target().isShowing() && !myIssuePanelFixture.hasRenderError();
+      return target().isShowing() && !getIssuePanelFixture().hasRenderError();
     });
     // Wait for the animation to finish
     pause(SceneComponent.ANIMATION_DURATION);
-  }
-
-  public boolean hasRenderErrors() {
-    return myIssuePanelFixture.hasRenderError();
-  }
-
-  public void waitForErrorPanelToContain(@NotNull String errorText) {
-    Wait.seconds(1)
-      .expecting("the error panel to contain: " + errorText)
-      .until(() -> myIssuePanelFixture.containsText(errorText));
-  }
-
-  @Nullable
-  public String getErrorText() {
-    IssueView view = myIssuePanelFixture.getSelectedIssueView();
-    if (view == null) {
-      return null;
-    }
-    return view.getIssueDescription();
   }
 
   /**
@@ -128,15 +99,6 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
     return createComponentFixture(component);
   }
 
-  public IssuePanelFixture getIssuePanelFixture() {
-    return myIssuePanelFixture;
-  }
-
-  @NotNull
-  private NlComponentFixture createComponentFixture(@NotNull NlComponent component) {
-    return new NlComponentFixture(robot(), component, target());
-  }
-
   private static void addComponents(@NotNull String tag, @NotNull NlComponent component, @NotNull List<NlComponent> components) {
     if (tag.equals(component.getTagName())) {
       components.add(component);
@@ -147,44 +109,8 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
     }
   }
 
-  /**
-   * Returns the views and all the children
-   */
-  @NotNull
-  public List<NlComponentFixture> getAllComponents() {
-    ScreenView screenView = target().getCurrentSceneView();
-    if (screenView == null) {
-      return Collections.emptyList();
-    }
-
-    return screenView.getModel().flattenComponents()
-      .map(this::createComponentFixture)
-      .collect(Collectors.toList());
-  }
-
-  /**
-   * Returns a list of the selected views
-   */
-  @NotNull
-  public List<NlComponent> getSelection() {
-    ScreenView view = target().getCurrentSceneView();
-    return view == null ? Collections.emptyList() : view.getModel().getSelectionModel().getSelection();
-  }
-
-  public double getScale() {
-    return target().getScale();
-  }
-
-  // Only applicable to NlDesignSurface
   public boolean isInScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     return target().getScreenMode() == mode;
   }
 
-  public void doubleClick(@NotNull Point point) {
-    robot().click(target(), point, MouseButton.LEFT_BUTTON, 2);
-  }
-
-  public void drop(@NotNull Point point) {
-    new ComponentDragAndDrop(robot()).drop(target(), point);
-  }
 }

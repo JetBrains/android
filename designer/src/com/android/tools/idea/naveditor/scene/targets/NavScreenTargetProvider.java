@@ -53,7 +53,7 @@ public class NavScreenTargetProvider implements TargetProvider {
         result.add(new ActionTarget(sceneComponent, nlChild));
       }
     }
-    if (mySchema.getDestinationType(sceneComponent.getNlComponent().getTagName()) == NavigationSchema.DestinationType.FRAGMENT) {
+    if (mySchema.getDestinationType(sceneComponent.getNlComponent().getTagName()) != null) {
       if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
         result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
       }

@@ -21,10 +21,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.ColorPickerFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SlideFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyInspectorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
