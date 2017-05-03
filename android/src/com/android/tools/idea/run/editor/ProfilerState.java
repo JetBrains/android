@@ -38,6 +38,9 @@ public class ProfilerState {
   // Post-O profiling with JVMTI agent, false by default.
   @NonNls public static final boolean ENABLE_JVMTI_PROFILING = "true".equals(System.getProperty("enable.jvmti.profiling"));
 
+  // O+ CPU profiling with simpleperf, false by default
+  @NonNls public static final boolean ENABLE_SIMPLEPERF_PROFILING = "true".equals(System.getProperty("enable.simpleperf.profiling"));
+
   public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
 
   /**
