@@ -108,7 +108,7 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"\n" +
                  "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      android:layout_marginLeft=\"200dp\" />");
+                 "      android:layout_marginStart=\"200dp\" />");
   }
 
   public void testConnectEnd() {
@@ -126,7 +126,7 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "    android:layout_width=\"200dp\"\n" +
                  "    android:layout_height=\"30dp\"\n" +
                  "      app:layout_constraintEnd_toStartOf=\"@+id/textview3\"\n" +
-                 "      android:layout_marginRight=\"75dp\" />");
+                 "      android:layout_marginEnd=\"75dp\" />");
   }
 
   public void testConnectEndGap() {
