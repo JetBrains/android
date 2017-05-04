@@ -17,7 +17,7 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import java.util.List;
 
 public class TooltipVisualTest extends VisualTest {
 
-  private TooltipComponent myTooltip;
+  private RangeTooltipComponent myTooltip;
 
   private Range myRange;
   private Range myDataRange;
@@ -47,7 +47,7 @@ public class TooltipVisualTest extends VisualTest {
     myHighlight = new Range(500, 500);
 
     myContent = new JPanel(new BorderLayout());
-    myTooltip = new TooltipComponent(myHighlight, myRange, myDataRange, myContent);
+    myTooltip = new RangeTooltipComponent(myHighlight, myRange, myDataRange, myContent);
 
     List<Updatable> componentsList = new ArrayList<>();
     componentsList.add(t -> myLabel.setText("" + System.nanoTime()));

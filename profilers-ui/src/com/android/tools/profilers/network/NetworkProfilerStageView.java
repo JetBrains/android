@@ -198,8 +198,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       }
     });
 
-    TooltipComponent tooltip = new TooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
-                                                    myTooltipView.createComponent());
+    RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
+                                                              timeline.getDataRange(),
+                                                              myTooltipView.createComponent());
     tooltip.registerListenersOn(selection);
 
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
