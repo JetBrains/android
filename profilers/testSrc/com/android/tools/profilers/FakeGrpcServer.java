@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.profilers;
+
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.EventProfiler.*;
@@ -22,7 +23,20 @@ import com.android.tools.profiler.proto.NetworkProfiler.*;
 import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 public class FakeGrpcServer extends FakeGrpcChannel {
+  /**
+   * Mapping from processes being profiled to the number of profilers that are monitoring it.
+   *
+   * It is better to be a non-static variable. But that requires changing the nested service classes
+   * defined in this class to be either non-static or to take a FakeGrpcServer parameter in constructors.
+   * Neither approach is very clean; not worth it.
+   */
+  private static Map<ProfiledProcess, Integer> ourProfiledProcesses = new HashMap<>(7);
+
   public FakeGrpcServer(String name, BindableService service) {
     super(name, service, new EventService(),
           new MemoryService(),
@@ -30,17 +44,72 @@ public class FakeGrpcServer extends FakeGrpcChannel {
           new CpuService());
   }
 
+  /**
+   * @return the number of processes currently being profiled.
+   */
+  public int getProfiledProcessCount() {
+    return ourProfiledProcesses.keySet().size();
+  }
+
+  private synchronized static void addProfileredProcess(Common.Session session, int pid) {
+    ProfiledProcess process = new ProfiledProcess(session, pid);
+    int profilerCount = ourProfiledProcesses.getOrDefault(process, 0);
+    ourProfiledProcesses.put(process, profilerCount + 1);
+  }
+
+  private synchronized static void removeProfileredProcess(Common.Session session, int pid) {
+    ProfiledProcess process = new ProfiledProcess(session, pid);
+    Integer profilerCount = ourProfiledProcesses.get(process);
+    if (profilerCount != null) {
+      if (profilerCount.intValue() > 1) {
+        ourProfiledProcesses.replace(process, profilerCount.intValue() - 1);
+      }
+      else {
+        ourProfiledProcesses.remove(process);
+      }
+    }
+  }
+
+  private static class ProfiledProcess {
+    private final Common.Session mySession;
+    private final int myPid;
+
+    ProfiledProcess(Common.Session session, int pid) {
+      mySession = session;
+      myPid = pid;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == this) {
+        return true;
+      }
+      if (!(o instanceof ProfiledProcess)) {
+        return false;
+      }
+      ProfiledProcess other = (ProfiledProcess)o;
+      return Objects.equals(mySession, other.mySession) && this.myPid == other.myPid;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mySession, myPid);
+    }
+  }
+
   private static class EventService extends EventServiceGrpc.EventServiceImplBase {
     @Override
     public void startMonitoringApp(EventStartRequest request, StreamObserver<EventStartResponse> response) {
       response.onNext(EventStartResponse.getDefaultInstance());
       response.onCompleted();
+      addProfileredProcess(request.getSession(), request.getProcessId());
     }
 
     @Override
     public void stopMonitoringApp(EventStopRequest request, StreamObserver<EventStopResponse> response) {
       response.onNext(EventStopResponse.getDefaultInstance());
       response.onCompleted();
+      removeProfileredProcess(request.getSession(), request.getProcessId());
     }
 
     @Override
@@ -61,12 +130,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> response) {
       response.onNext(MemoryStartResponse.getDefaultInstance());
       response.onCompleted();
+      addProfileredProcess(request.getSession(), request.getProcessId());
     }
 
     @Override
     public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> response) {
       response.onNext(MemoryStopResponse.getDefaultInstance());
       response.onCompleted();
+      removeProfileredProcess(request.getSession(), request.getProcessId());
     }
 
     @Override
@@ -81,12 +152,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(NetworkStartRequest request, StreamObserver<NetworkStartResponse> response) {
       response.onNext(NetworkStartResponse.getDefaultInstance());
       response.onCompleted();
+      addProfileredProcess(request.getSession(), request.getProcessId());
     }
 
     @Override
     public void stopMonitoringApp(NetworkStopRequest request, StreamObserver<NetworkStopResponse> response) {
       response.onNext(NetworkStopResponse.getDefaultInstance());
       response.onCompleted();
+      removeProfileredProcess(request.getSession(), request.getProcessId());
     }
 
     @Override
@@ -101,12 +174,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {
       response.onNext(CpuStartResponse.getDefaultInstance());
       response.onCompleted();
+      addProfileredProcess(request.getSession(), request.getProcessId());
     }
 
     @Override
     public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> response) {
       response.onNext(CpuStopResponse.getDefaultInstance());
       response.onCompleted();
+      removeProfileredProcess(request.getSession(), request.getProcessId());
     }
 
     @Override
