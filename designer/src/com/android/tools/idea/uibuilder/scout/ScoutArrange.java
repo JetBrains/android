@@ -80,17 +80,17 @@ public class ScoutArrange {
 
     switch (type) {
       case ConnectTop:
-        connect(scoutWidgets, parentScoutWidget, Direction.TOP, (applyConstraints) ? 0:-1 );
+        connect(scoutWidgets, parentScoutWidget, Direction.TOP, (applyConstraints) ? 0 : -1);
         break;
       case ConnectBottom:
-        connect(scoutWidgets, parentScoutWidget, Direction.BOTTOM, (applyConstraints) ? 0:-1 );
+        connect(scoutWidgets, parentScoutWidget, Direction.BOTTOM, (applyConstraints) ? 0 : -1);
         break;
       case ConnectStart:
-        connect(scoutWidgets, parentScoutWidget, Direction.LEFT, (applyConstraints) ? 0:-1 );
+        connect(scoutWidgets, parentScoutWidget, Direction.LEFT, (applyConstraints) ? 0 : -1);
         break;
-        case ConnectEnd:
-          connect(scoutWidgets, parentScoutWidget, Direction.RIGHT, (applyConstraints) ? 0:-1 );
-          break;
+      case ConnectEnd:
+        connect(scoutWidgets, parentScoutWidget, Direction.RIGHT, (applyConstraints) ? 0 : -1);
+        break;
 
       case CreateHorizontalChain: {
         Arrays.sort(scoutWidgets, sSortRecX);
