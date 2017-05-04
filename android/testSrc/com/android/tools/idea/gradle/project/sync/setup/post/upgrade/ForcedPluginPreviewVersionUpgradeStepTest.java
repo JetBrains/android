@@ -45,6 +45,10 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
       {"2.3.0-alpha1", "2.3.0-dev", false},
       {"2.4.0-alpha7", "2.4.0-alpha8", false},
       {"2.4.0-alpha6", "2.4.0-alpha8", false},
+      {"2.4.0-alpha8", "2.4.0-alpha8", false},
+      {"2.4.0-alpha9", "2.4.0-alpha8", false},
+      {"2.5.0", "2.4.0-alpha8", false},
+      {"2.5.0-alpha1", "2.4.0-alpha8", false},
       {"2.3.0-alpha1", "2.4.0-alpha8", true},
     });
   }
