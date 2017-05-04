@@ -43,6 +43,7 @@ import com.intellij.util.messages.Topic;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.incremental.Utils;
 
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
@@ -52,8 +53,6 @@ import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
@@ -334,11 +333,10 @@ public class GradleSyncState {
     return 0;
   }
 
+  @VisibleForTesting
   @NotNull
-  private String getFormattedSyncDuration(long syncEndTimestamp) {
-    long duration = getSyncDurationMS(syncEndTimestamp);
-    long seconds = MILLISECONDS.toSeconds(duration);
-    return String.format("%ds %dms", seconds, duration - SECONDS.toMillis(seconds));
+  String getFormattedSyncDuration(long syncEndTimestamp) {
+    return Utils.formatDuration(getSyncDurationMS(syncEndTimestamp));
   }
 
   private void addInfoToEventLog(@NotNull String message) {
