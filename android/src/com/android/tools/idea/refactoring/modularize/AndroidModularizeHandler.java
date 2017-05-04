@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
@@ -25,14 +25,11 @@ import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -52,7 +49,7 @@ import java.util.*;
 
 import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
-public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler {
+public class AndroidModularizeHandler implements RefactoringActionHandler {
 
   private static final int RESOURCE_SET_INITIAL_SIZE = 100;
 
@@ -69,13 +66,13 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
       () -> ApplicationManager.getApplication().runReadAction(
         () -> scanner.accumulate(elements)), "Computing References", false, project);
 
-    AndroidMoveWithResourcesProcessor processor =
-      new AndroidMoveWithResourcesProcessor(project,
-                                            elements,
-                                            scanner.getClassReferences(),
-                                            scanner.getResourceReferences(),
-                                            scanner.getManifestReferences(),
-                                            scanner.getReferenceGraph());
+    AndroidModularizeProcessor processor =
+      new AndroidModularizeProcessor(project,
+                                     elements,
+                                     scanner.getClassReferences(),
+                                     scanner.getResourceReferences(),
+                                     scanner.getManifestReferences(),
+                                     scanner.getReferenceGraph());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       Module targetModule = TARGET_MODULE.getData(dataContext);
@@ -85,7 +82,7 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
       processor.run();
     }
     else {
-      AndroidMoveWithResourcesDialog dialog = new AndroidMoveWithResourcesDialog(project, processor);
+      AndroidModularizeDialog dialog = new AndroidModularizeDialog(project, processor);
       dialog.show();
     }
   }
@@ -106,7 +103,6 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
 
     public void accumulate(PsiElement... roots) {
       myVisitQueue.clear();
-
       for (PsiElement element : roots) {
         PsiClass ownerClass =
           (element instanceof PsiClass) ? (PsiClass)element : PsiTreeUtil.getParentOfType(element, PsiClass.class);
@@ -116,12 +112,21 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
         }
       }
 
+      ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
+      int numVisited = 0;
+
       while (!myVisitQueue.isEmpty()) {
         PsiElement element = myVisitQueue.poll();
+        numVisited++;
 
         final AndroidFacet facet = AndroidFacet.getInstance(element);
         if (facet == null) {
           continue;
+        }
+
+        if (indicator != null) {
+          indicator.setText(String.format("Scanning definition %1$d of %2$d", numVisited, numVisited + myVisitQueue.size()));
+          indicator.setFraction((double)numVisited / (numVisited + myVisitQueue.size()));
         }
 
         if (element instanceof PsiClass) {
@@ -254,7 +259,7 @@ public class AndroidMoveWithResourcesHandler implements RefactoringActionHandler
           if (referenceType == AndroidPsiUtils.ResourceReferenceType.APP) {
             // This is a resource we might be able to move
             ResourceType type = AndroidPsiUtils.getResourceType(expression);
-            if (type != null) {
+            if (type != null && type != ResourceType.ID) {
               String name = AndroidPsiUtils.getResourceName(expression);
 
               List<ResourceItem> matches = myResourceRepository.getResourceItem(type, name);

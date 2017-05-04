@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -32,12 +32,12 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AndroidMoveWithResourcesDialog extends RefactoringDialog {
+public class AndroidModularizeDialog extends RefactoringDialog {
 
-  private final AndroidMoveWithResourcesProcessor myProcessor;
+  private final AndroidModularizeProcessor myProcessor;
   private ComboBox<Module> myModuleCombo;
 
-  protected AndroidMoveWithResourcesDialog(@NotNull Project project, AndroidMoveWithResourcesProcessor processor) {
+  protected AndroidModularizeDialog(@NotNull Project project, AndroidModularizeProcessor processor) {
     super(project, true);
     myProcessor = processor;
     setTitle("Modularize");
