@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.Modules;
@@ -32,7 +32,7 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
-public class AndroidMoveWithResourcesTest extends AndroidTestCase {
+public class AndroidModularizeTest extends AndroidTestCase {
 
   private static final String BASE_PATH = "refactoring/moveWithResources/";
   private static final String LIBRARY_PATH = getAdditionalModulePath("library/");
@@ -70,7 +70,7 @@ public class AndroidMoveWithResourcesTest extends AndroidTestCase {
       return null;
     };
 
-    new AndroidMoveWithResourcesHandler().invoke(myFixture.getProject(), new PsiElement[]{activity}, context);
+    new AndroidModularizeHandler().invoke(myFixture.getProject(), new PsiElement[]{activity}, context);
 
     // The layout has to move, as well as the icon drawable which is referenced from the manifest
     Lists.newArrayList(

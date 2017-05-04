@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package com.android.tools.idea.refactoring.modularize;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
@@ -31,7 +31,7 @@ import com.intellij.util.ui.UIUtil;
 
 import static com.android.tools.idea.testing.TestProjectPaths.MOVE_WITH_RESOURCES;
 
-public class AndroidMoveWithResourcesGradleTest extends AndroidGradleTestCase {
+public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
 
   public void test() throws Exception {
     loadProject(MOVE_WITH_RESOURCES);
@@ -49,7 +49,7 @@ public class AndroidMoveWithResourcesGradleTest extends AndroidGradleTestCase {
       return null;
     };
 
-    new AndroidMoveWithResourcesHandler().invoke(project, new PsiElement[]{activity}, context);
+    new AndroidModularizeHandler().invoke(project, new PsiElement[]{activity}, context);
 
     // The layout has to move, as well as the icon drawable which is referenced from the manifest
     Lists.newArrayList(
