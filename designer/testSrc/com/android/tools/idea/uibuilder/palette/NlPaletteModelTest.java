@@ -60,6 +60,16 @@ public class NlPaletteModelTest extends PaletteTestCase {
     }
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      model = null;
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
   public void testPalette() throws Exception {
     Palette palette = model.getPalette(NlLayoutType.LAYOUT);
     Iterator<Palette.BaseItem> iterator = palette.getItems().iterator();

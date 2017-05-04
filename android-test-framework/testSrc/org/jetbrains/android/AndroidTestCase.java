@@ -170,6 +170,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myFixture.tearDown();
       myFixture = null;
       myFacet = null;
+      mySettings = null;
+
       getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
       if (RenderSecurityManager.RESTRICT_READS) {
         RenderSecurityManager.sEnabled = true;
@@ -252,6 +254,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     Disposer.register(disposable, () -> {
       VfsRootAccess.disallowRootAccess(newRootsArray);
       myAllowedRoots.removeAll(newRoots);
+      myAllowedRoots = null;
     });
   }
 
