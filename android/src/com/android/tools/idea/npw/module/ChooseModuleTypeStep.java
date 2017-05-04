@@ -151,7 +151,8 @@ public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
     // To have a sequence specified by design, we hardcode the sequence. Everything else is added at the end (sorted by name)
     String[] orderedNames = {
       "Phone & Tablet Module", "Android Library", "Instant App", "Feature Module", "Android Wear Module", "Android TV Module",
-      "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library", "Google Cloud Module",
+      "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library",
+      "Google Cloud Module",
     };
     Map<String, ModuleGalleryEntry> entryMap = moduleTypesProviders.stream().collect(toMap(ModuleGalleryEntry::getName, c -> c));
 
