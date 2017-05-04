@@ -24,7 +24,6 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
-import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -32,7 +31,11 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.facet.*;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetType;
+import com.intellij.facet.FacetTypeId;
+import com.intellij.facet.FacetTypeRegistry;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ProjectTopics;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.Result;
@@ -66,6 +69,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPP
  * representing an Android component.
  */
 public final class RenderTemplateModel extends WizardModel {
+  private static final String PROPERTIES_RENDER_LANGUAGE_KEY = "SAVED_RENDER_LANGUAGE";
+
   @NotNull private final String myCommandName;
   @NotNull private final OptionalProperty<Project> myProject;
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
@@ -119,7 +124,7 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   private void init() {
-    myLanguageSet.addListener(sender -> NewProjectModel.setInitialSourceLanguage(myLanguageSet.get()));
+    myLanguageSet.addListener(sender -> setInitialSourceLanguage(myLanguageSet.get()));
   }
 
   private static Logger getLog() {
@@ -343,11 +348,21 @@ public final class RenderTemplateModel extends WizardModel {
     return psiJavaFiles;
   }
 
+  /**
+   * Design: If there are no kotlin facets in the project, the default should be Java, whether or not you previously chose Kotlin
+   * (presumably in a different project which did have Kotlin).
+   * If it *does* have a Kotlin facet, then remember the previous selection (if there was no previous selection yet, default to Kotlin)
+   */
+  @NotNull
   private static Language getInitialSourceLanguage(@Nullable Project project) {
     if (project != null && hasKotlinFacet(project)) {
-      return NewProjectModel.getInitialSourceLanguage();
+      return Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.KOTLIN);
     }
     return Language.JAVA;
+  }
+
+  private static void setInitialSourceLanguage(@NotNull Language language) {
+    PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, language.getName());
   }
 
   private static boolean hasKotlinFacet(@NotNull Project project) {
