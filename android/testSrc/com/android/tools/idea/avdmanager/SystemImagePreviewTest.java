@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,36 +24,27 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.ISystemImage;
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.intellij.openapi.util.Disposer;
+import java.io.File;
+
 import org.jetbrains.android.AndroidTestCase;
 
 import javax.swing.*;
 
-import java.io.File;
-import java.util.Map;
-
-import static com.android.sdklib.internal.avd.GpuMode.*;
-import static com.android.sdklib.repository.targets.SystemImage.*;
-import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
-import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
-import static com.google.common.truth.Truth.assertThat;
-
-
-public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
-
+/**
+ * Tests for {@link SystemImagePreview}
+ *
+ */
+public class SystemImagePreviewTest extends AndroidTestCase {
   private static final String SDK_LOCATION = "/sdk";
   private static final String AVD_LOCATION = "/avd";
 
-  private AvdInfo myMarshmallowAvdInfo;
-  private AvdInfo myPreviewAvdInfo;
-  private Map<String, String> myPropertiesMap = Maps.newHashMap();
+  private SystemImageDescription mMarshmallowImageDescr;
+  private SystemImageDescription mNPreviewImageDescr;
 
   @Override
   public void setUp() throws Exception {
@@ -70,7 +61,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     detailsMarshmallow.setAbi("x86");
     detailsMarshmallow.setVendor(IdDisplay.create("google", "Google"));
     detailsMarshmallow.setApiLevel(23);
-    pkgMarshmallow.setTypeDetails((TypeDetails) detailsMarshmallow);
+    pkgMarshmallow.setTypeDetails((TypeDetails)detailsMarshmallow);
     pkgMarshmallow.setInstalledPath(new File(SDK_LOCATION, "23-marshmallow-x86"));
     fileOp.recordExistingFile(new File(pkgMarshmallow.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
@@ -84,7 +75,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     detailsNPreview.setVendor(IdDisplay.create("google", "Google"));
     detailsNPreview.setApiLevel(23);
     detailsNPreview.setCodename("N"); // Setting a code name is the key!
-    pkgNPreview.setTypeDetails((TypeDetails) detailsNPreview);
+    pkgNPreview.setTypeDetails((TypeDetails)detailsNPreview);
     pkgNPreview.setInstalledPath(new File(SDK_LOCATION, "n-preview-x86"));
     fileOp.recordExistingFile(new File(pkgNPreview.getLocation(), SystemImageManager.SYS_IMG_NAME));
 
@@ -103,58 +94,25 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     ISystemImage NPreviewImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(NPreviewPath, progress).getLocation());
 
-    myMarshmallowAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", marshmallowImage, myPropertiesMap);
-    myPreviewAvdInfo =
-      new AvdInfo("name", new File("ini"), "folder", NPreviewImage, myPropertiesMap);
+    mMarshmallowImageDescr = new SystemImageDescription(marshmallowImage);
+    mNPreviewImageDescr = new SystemImageDescription(NPreviewImage);
   }
 
-  public void testIsGoogleApiTag() throws Exception {
-    assertThat(isGoogleApiTag(GOOGLE_APIS_TAG)).isTrue();
-    assertThat(isGoogleApiTag(TV_TAG)).isTrue();
-    assertThat(isGoogleApiTag(WEAR_TAG)).isTrue();
+  public void testSetImage() throws Exception {
+    SystemImagePreview imagePreview = new SystemImagePreview(null);
 
-    assertThat(isGoogleApiTag(DEFAULT_TAG)).isFalse();
-    assertThat(isGoogleApiTag(GOOGLE_APIS_X86_TAG)).isFalse();
-    assertThat(isGoogleApiTag(GLASS_TAG)).isFalse();
-  }
+    imagePreview.setImage(mMarshmallowImageDescr);
+    JLabel iconLabel = imagePreview.getReleaseIcon();
+    assertTrue("No icon fetched for non-preview API", iconLabel != null && iconLabel.getIcon() != null);
+    String iconUrl = iconLabel.getIcon().toString();
+    assertTrue("Wrong icon fetched for non-preview API", iconUrl.endsWith("Marshmallow.png"));
 
-  public void testGpuOtherMode() throws Exception {
-    assertEquals(SWIFT, gpuOtherMode(23, true, true, true));
-    assertEquals(SWIFT, gpuOtherMode(23, true, true, false));
-
-    assertEquals(MESA, gpuOtherMode(22, false, true, false));
-    assertEquals(MESA, gpuOtherMode(22, true, true, false));
-    assertEquals(MESA, gpuOtherMode(22, true, false, false));
-    assertEquals(MESA, gpuOtherMode(23, true, false, false));
-
-    assertEquals(OFF, gpuOtherMode(22, true, true, true));
-    assertEquals(OFF, gpuOtherMode(23, true, false, true));
-    assertEquals(OFF, gpuOtherMode(23, false, false, true));
-  }
-
-  public void testUpdateSystemImageData() throws Exception {
-    AvdOptionsModel optionsModel = new AvdOptionsModel(myMarshmallowAvdInfo);
-
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
-    Disposer.register(getTestRootDisposable(), optionsStep);
-
-    optionsStep.updateSystemImageData();
-    Icon icon = optionsStep.getIcon();
-    assertNotNull(icon);
-    String iconUrl = icon.toString();
-    assertTrue("Wrong icon fetched for non-preview API: " + iconUrl, iconUrl.endsWith("Marshmallow_32.png"));
-
-    optionsModel = new AvdOptionsModel(myPreviewAvdInfo);
-
-    optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
-    Disposer.register(getTestRootDisposable(), optionsStep);
-    optionsStep.updateSystemImageData();
-    icon = optionsStep.getIcon();
-    assertNotNull(icon);
-    iconUrl = icon.toString();
-    // For an actual Preview, the URL will be Default_32.png, but
+    imagePreview.setImage(mNPreviewImageDescr);
+    iconLabel = imagePreview.getReleaseIcon();
+    assertTrue("No icon fetched for Preview API", iconLabel != null && iconLabel.getIcon() != null);
+    iconUrl = iconLabel.getIcon().toString();
+    // For an actual Preview, the URL will be Default.png, but
     // we now know that N-Preview became Nougat.
-    assertTrue("Wrong icon fetched for Preview API: " + iconUrl, iconUrl.endsWith("Nougat_32.png"));
+    assertTrue("Wrong icon fetched for Preview API", iconUrl.endsWith("Nougat.png"));
   }
 }

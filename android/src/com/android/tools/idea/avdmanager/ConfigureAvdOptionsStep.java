@@ -466,7 +466,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
                         screenOrientation -> myOrientationToggle.setSelectedElement(screenOrientation));
   }
 
-  private void updateSystemImageData() {
+  @VisibleForTesting
+  void updateSystemImageData() {
     if (getModel().systemImage().get().isPresent()) {
       SystemImageDescription image = getModel().systemImage().getValue();
 
@@ -494,6 +495,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       updateGpuControlsAfterSystemImageChange();
       toggleSystemOptionals(false);
     }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  Icon getIcon() {
+    return mySystemImageName == null ? null : mySystemImageName.getIcon();
   }
 
   private final ActionListener myToggleAdvancedSettingsListener = new ActionListener() {
