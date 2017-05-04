@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.emulator;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import org.junit.rules.ExternalResource;
 
@@ -42,7 +43,7 @@ public class EmulatorTestRule extends ExternalResource {
     getEmulatorConnection().deleteAvdByDisplayName(getAvdName());
   }
 
-  public void createDefaultAVD(AvdManagerDialogFixture avdManagerDialog) {
+  public void createAVD(AvdManagerDialogFixture avdManagerDialog, String tab, ChooseSystemImageStepFixture.SystemImage image) {
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
     avdEditWizard.selectHardware()
@@ -50,8 +51,8 @@ public class EmulatorTestRule extends ExternalResource {
     avdEditWizard.clickNext();
 
     avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
+      .selectTab(tab)
+      .selectSystemImage(image);
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep()
@@ -59,6 +60,12 @@ public class EmulatorTestRule extends ExternalResource {
       .selectGraphicsSoftware();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
+  }
+
+  public void createDefaultAVD(AvdManagerDialogFixture avdManagerDialog) {
+    createAVD(avdManagerDialog,
+              "x86 Images",
+              new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"));
   }
 
   protected MockAvdManagerConnection getEmulatorConnection() {

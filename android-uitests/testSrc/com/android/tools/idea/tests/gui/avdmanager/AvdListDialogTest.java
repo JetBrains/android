@@ -45,7 +45,7 @@ public class AvdListDialogTest {
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
     chooseSystemImageStep.selectTab("x86 Images");
-    chooseSystemImageStep.selectSystemImage("Nougat", "24", "x86", "Android 7.0");
+    chooseSystemImageStep.selectSystemImage(new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"));
     avdEditWizard.clickNext();
 
     ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizard.getConfigureAvdOptionsStep();
@@ -93,7 +93,7 @@ public class AvdListDialogTest {
 
     ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
     chooseSystemImageStep.selectTab("x86 Images");
-    chooseSystemImageStep.selectSystemImage("Nougat", "24", "x86", "Android 7.0");
+    chooseSystemImageStep.selectSystemImage(new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"));
     avdEditWizard.clickNext();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();

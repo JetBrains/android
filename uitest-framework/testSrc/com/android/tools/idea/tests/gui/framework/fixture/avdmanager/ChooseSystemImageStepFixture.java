@@ -36,16 +36,16 @@ public class ChooseSystemImageStepFixture extends AbstractWizardStepFixture<Choo
   }
 
   @NotNull
-  public ChooseSystemImageStepFixture selectSystemImage(@NotNull String releaseName,
-                                                        @NotNull String apiLevel,
-                                                        @NotNull String abiType,
-                                                        @NotNull String targetName) {
+  public ChooseSystemImageStepFixture selectSystemImage(@NotNull SystemImage image) {
     final TableView systemImageList = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture systemImageListFixture = new JTableFixture(robot(), systemImageList);
 
     Wait.seconds(5).expecting("The system image list is populated.").until(() -> {
       try {
-        systemImageListFixture.cell(rowWithValue(releaseName, apiLevel, abiType, targetName).column(0)).select();
+        systemImageListFixture.cell(rowWithValue(image.getReleaseName(),
+                                                 image.getApiLevel(),
+                                                 image.getAbiType(),
+                                                 image.getReleaseName()).column(0)).select();
         return true;
       } catch (ActionFailedException e) {
         return false;
@@ -61,4 +61,39 @@ public class ChooseSystemImageStepFixture extends AbstractWizardStepFixture<Choo
 
     return this;
   }
+
+  public static class SystemImage {
+    private String releaseName;
+    private String apiLevel;
+    private String abiType;
+    private String targetName;
+
+    public SystemImage(@NotNull String releaseName, @NotNull String apiLevel, @NotNull String abiType, @NotNull String targetName) {
+      this.releaseName = releaseName;
+      this.apiLevel = apiLevel;
+      this.abiType = abiType;
+      this.targetName = targetName;
+    }
+
+    @NotNull
+    public String getReleaseName() {
+      return releaseName;
+    }
+
+    @NotNull
+    public String getApiLevel() {
+      return apiLevel;
+    }
+
+    @NotNull
+    public String getAbiType() {
+      return abiType;
+    }
+
+    @NotNull
+    public String getTargetName() {
+      return targetName;
+    }
+  }
+
 }
