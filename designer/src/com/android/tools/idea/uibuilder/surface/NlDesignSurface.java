@@ -463,7 +463,7 @@ public class NlDesignSurface extends DesignSurface {
 
       // If the model has already rendered, there may be errors to display,
       // so update the error panel to reflect that.
-      updateErrorDisplay(myScreenView.getResult());
+      updateErrorDisplay();
 
       getLayeredPane().setPreferredSize(myScreenView.getPreferredSize());
 
@@ -691,10 +691,12 @@ public class NlDesignSurface extends DesignSurface {
 
 
   /**
-   * When we have render errors for a given result, kick off a background computation
-   * of the error panel HTML, which when done will update the UI thread
+   * Notifies the design surface that the given screen view (which must be showing in this design surface)
+   * has been rendered (possibly with errors)
    */
-  private void updateErrors() {
+  public void updateErrorDisplay() {
+    assert ApplicationManager.getApplication().isDispatchThread() ||
+           !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
 
     getErrorQueue().cancelAllUpdates();
     getErrorQueue().queue(new Update("errors") {
@@ -709,7 +711,8 @@ public class NlDesignSurface extends DesignSurface {
         BuildMode gradleBuildMode = BuildSettings.getInstance(getProject()).getBuildMode();
         RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
                                  ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
-                                 : RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(getIssuePanel()));
+                                 : RenderErrorModelFactory
+                                   .createErrorModel(result, DataManager.getInstance().getDataContext(getIssuePanel()));
         getIssueModel().setRenderErrorModel(model);
       }
 
@@ -720,26 +723,10 @@ public class NlDesignSurface extends DesignSurface {
     });
   }
 
-
-  /**
-   * Notifies the design surface that the given screen view (which must be showing in this design surface)
-   * has been rendered (possibly with errors)
-   */
-  public void updateErrorDisplay(@Nullable final RenderResult result) {
-    assert ApplicationManager.getApplication().isDispatchThread() ||
-           !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
-
-    getErrorQueue().cancelAllUpdates();
-    boolean hasProblems = result != null && result.getLogger().hasProblems();
-    if (hasProblems) {
-      updateErrors();
-    }
-  }
-
   @Override
   protected void modelRendered(@NotNull NlModel model) {
     if (getCurrentSceneView() != null) {
-      updateErrorDisplay(getCurrentSceneView().getResult());
+      updateErrorDisplay();
     }
     super.modelRendered(model);
   }

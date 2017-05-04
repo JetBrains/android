@@ -44,7 +44,7 @@ public class IssueView extends JPanel {
 
   private static final Dimension COLLAPSED_ROW_SIZE = JBUI.size(Integer.MAX_VALUE, 30);
   private static final String SUGGESTED_FIXES = "Suggested Fixes";
-  private static final RoundedLineBorder SELECTED_BORDER = IdeBorderFactory.createRoundedBorder();
+  private static final RoundedLineBorder SELECTED_BORDER = IdeBorderFactory.createRoundedBorder(1);
   private static final Border UNSELECTED_BORDER = IdeBorderFactory.createEmptyBorder(SELECTED_BORDER.getThickness());
 
   static {
@@ -52,12 +52,12 @@ public class IssueView extends JPanel {
   }
 
   private final IssuePanel myContainerIssuePanel;
+  @SuppressWarnings("unused") private JPanel myContent;
   private JBLabel myExpandIcon;
   private JLabel myErrorIcon;
   private JBLabel myCategoryLabel;
   private JLabel mySourceLabel;
   private JTextPane myErrorDescription;
-  private JPanel myContent;
   private JBLabel myErrorTitle;
   private JPanel myFixPanel;
   private JPanel myDetailPanel;
@@ -74,20 +74,20 @@ public class IssueView extends JPanel {
   IssueView(@NotNull NlIssue issue, @NotNull IssuePanel container) {
     addMouseListener(createMouseListener());
     myContainerIssuePanel = container;
-
     myDisplayPriority = getDisplayPriority(issue);
 
+    setupHeader(issue);
+    setupDescriptionPanel(issue);
+    setupFixPanel(issue);
+
+    setMaximumSize(COLLAPSED_ROW_SIZE);
+    setBackground(UIUtil.getEditorPaneBackground());
+  }
+
+  private void setupHeader(@NotNull NlIssue issue) {
     myErrorIcon.setIcon(getSeverityIcon(issue.getSeverity()));
     myExpandIcon.setIcon(UIUtil.getTreeCollapsedIcon());
-
     myErrorTitle.setText(issue.getSummary());
-
-    myErrorDescription.setContentType(UIUtil.HTML_MIME);
-    String description = issue.getDescription();
-    String formattedText = new HtmlBuilder().openHtmlBody().addHtml(description).closeHtmlBody().getHtml();
-    myErrorDescription.setText(formattedText);
-    applyIssueDescriptionStyle(myErrorDescription);
-
     myCategoryLabel.setText(issue.getCategory());
     NlComponent source = issue.getSource();
     if (source != null) {
@@ -95,10 +95,9 @@ public class IssueView extends JPanel {
       String tag = source.getTagName();
       mySourceLabel.setText((id != null ? id + " " : "") + "<" + tag + ">");
     }
+  }
 
-    myContent.setMaximumSize(COLLAPSED_ROW_SIZE);
-    myContent.setBackground(UIUtil.getEditorPaneBackground());
-
+  private void setupFixPanel(@NotNull NlIssue issue) {
     myFixPanel.setLayout(new BoxLayout(myFixPanel, BoxLayout.Y_AXIS));
     issue.getFixes().forEach(this::createFixEntry);
     if (myFixPanel.getComponentCount() > 0) {
@@ -108,6 +107,22 @@ public class IssueView extends JPanel {
         mySuggestedFixLabel.setText(SUGGESTED_FIXES);
       }
     }
+  }
+
+  private void setupDescriptionPanel(@NotNull NlIssue issue) {
+    String description = issue.getDescription();
+    String formattedText = new HtmlBuilder().openHtmlBody().addHtml(description).closeHtmlBody().getHtml();
+    myErrorDescription.setEditorKit(UIUtil.getHTMLEditorKit());
+    myErrorDescription.addHyperlinkListener(issue.getHyperlinkListener());
+    myErrorDescription.setText(formattedText);
+    myErrorDescription.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        myContainerIssuePanel.setSelectedIssue(IssueView.this);
+        setFocused(true);
+      }
+    });
+    applyIssueDescriptionStyle(myErrorDescription);
   }
 
   /**
@@ -170,8 +185,8 @@ public class IssueView extends JPanel {
   }
 
   void setSelected(boolean selected) {
-    myContent.setOpaque(selected);
-    myContent.setBackground(selected ? UIUtil.getPanelBackground() : UIUtil.getEditorPaneBackground());
+    setOpaque(selected);
+    setBackground(selected ? UIUtil.getPanelBackground() : UIUtil.getEditorPaneBackground());
     setFocused(myContainerIssuePanel.hasFocus() && selected);
   }
 
@@ -234,7 +249,7 @@ public class IssueView extends JPanel {
    * @param textPane The {@link JTextPane} to style
    */
   private static void applyIssueDescriptionStyle(@NotNull JTextPane textPane) {
-    Font font = UIUtil.getTreeFont();
+    Font font = UIUtil.getLabelFont(UIUtil.FontSize.NORMAL);
     MutableAttributeSet attrs = textPane.getInputAttributes();
 
     StyleConstants.setFontFamily(attrs, font.getFamily());
