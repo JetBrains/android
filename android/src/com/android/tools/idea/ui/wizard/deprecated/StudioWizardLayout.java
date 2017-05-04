@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.wizard;
+package com.android.tools.idea.ui.wizard.deprecated;
 
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -32,6 +31,7 @@ import java.awt.*;
 /**
  * The general look and feel for all Studio-specific wizards.
  */
+@Deprecated
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
 
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);

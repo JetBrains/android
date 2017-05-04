@@ -17,7 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
 import com.android.tools.idea.npw.ModuleTemplate;
-import com.android.tools.idea.ui.wizard.StudioWizardLayout;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.intellij.ui.JBColor;
