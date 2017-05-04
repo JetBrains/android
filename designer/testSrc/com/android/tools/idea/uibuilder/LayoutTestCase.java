@@ -17,9 +17,6 @@ package com.android.tools.idea.uibuilder;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
@@ -27,7 +24,6 @@ import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
@@ -42,7 +38,6 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.List;
-import java.util.function.Function;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;

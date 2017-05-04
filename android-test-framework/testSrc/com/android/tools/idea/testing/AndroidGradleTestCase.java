@@ -207,6 +207,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       if (openProjects.length > 0) {
         PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
       }
+      myAndroidFacet = null;
+      myModules = null;
     }
     finally {
       try {

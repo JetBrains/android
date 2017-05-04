@@ -16,20 +16,15 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Arrays;
-
-import static org.mockito.Mockito.when;
 
 /**
  * Base class for Scene tests
@@ -65,6 +60,11 @@ public abstract class SceneTest extends LayoutTestCase {
   protected void tearDown() throws Exception {
     try {
       Disposer.dispose(myModel);
+      myModel = null;
+      myScene = null;
+      mySceneManager = null;
+      myScreen = null;
+      myInteraction = null;
     } finally {
       super.tearDown();
     }
