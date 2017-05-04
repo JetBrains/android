@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.error;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -196,7 +197,7 @@ public class IssuePanel extends JPanel implements Disposable {
     checkBox.addItemListener(SHOW_ISSUE_CHECKBOX_LISTENER);
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.add(titleLabel, BorderLayout.WEST);
-    JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
     rightPanel.add(checkBox);
     rightPanel.add(createToolbar().getComponent());
     titlePanel.add(rightPanel, BorderLayout.EAST);

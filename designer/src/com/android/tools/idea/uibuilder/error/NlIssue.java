@@ -36,7 +36,10 @@ import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.event.HyperlinkListener;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
@@ -78,6 +81,14 @@ public abstract class NlIssue {
    * @return The priority between 1 and 10.
    */
   public abstract String getCategory();
+
+  /**
+   * Allows the {@link NlIssue} to return an HyperlinkListener to handle embedded links
+   */
+  @Nullable
+  public HyperlinkListener getHyperlinkListener() {
+    return null;
+  }
 
   /**
    * @return a Steam of pair containing the description of the fix as the first element
@@ -175,6 +186,12 @@ public abstract class NlIssue {
     @Override
     public String getCategory() {
       return "Rendering Issue";
+    }
+
+    @Override
+    @Nullable
+    public HyperlinkListener getHyperlinkListener() {
+      return myIssue.getHyperlinkListener();
     }
   }
 
