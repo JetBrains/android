@@ -1,0 +1,47 @@
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <group
+                android:name="rotation_group"
+                android:pivotX="12"
+                android:pivotY="12">
+                <path
+                    android:name="overflow"
+                    android:pathData="M 12 8 C 11.633 8 11.289 7.9 10.993 7.726 C 10.696 7.552 10.448 7.304 10.274 7.007 C 10.1 6.711 10 6.367 10 6 C 10 5.45 10.225 4.95 10.587 4.588 C 10.95 4.225 11.45 4 12 4 C 13.1 4 14 4.9 14 6 C 14 7.1 13.1 8 12 8 L 12 8 M 10 12 C 10 10.9 10.9 10 12 10 L 12 10 C 13.1 10 14 10.9 14 12 C 14 13.1 13.1 14 12 14 C 10.9 14 10 13.1 10 12 M 12 16 C 10.9 16 10 16.9 10 18 C 10 19.1 10.9 20 12 20 C 13.1 20 14 19.1 14 18 C 14 16.9 13.1 16 12 16 L 12 16"
+                    android:fillColor="#000000"
+                    android:strokeWidth="1"/>
+            </group>
+        </vector>
+    </aapt:attr>
+    <target android:name="rotation_group">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:propertyName="rotation"
+                android:duration="300"
+                android:valueFrom="0"
+                android:valueTo="180"
+                android:valueType="floatType"
+                android:interpolator="@android:interpolator/fast_out_slow_in"/>
+        </aapt:attr>
+    </target>
+    <<error descr="'animation' attribute should be defined">target</error> android:name="overflow">
+        <aapt:attr name="android:this_is_not_animation">
+            <objectAnimator
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:propertyName="pathData"
+                android:duration="300"
+                android:valueFrom="M 12 8 C 11.633 8 11.289 7.9 10.993 7.726 C 10.696 7.552 10.448 7.304 10.274 7.007 C 10.1 6.711 10 6.367 10 6 C 10 5.45 10.225 4.95 10.587 4.588 C 10.95 4.225 11.45 4 12 4 C 13.1 4 14 4.9 14 6 C 14 7.1 13.1 8 12 8 L 12 8 M 10 12 C 10 10.9 10.9 10 12 10 L 12 10 C 13.1 10 14 10.9 14 12 C 14 13.1 13.1 14 12 14 C 10.9 14 10 13.1 10 12 M 12 16 C 10.9 16 10 16.9 10 18 C 10 19.1 10.9 20 12 20 C 13.1 20 14 19.1 14 18 C 14 16.9 13.1 16 12 16 L 12 16"
+                android:valueTo="M 16.17 13 C 12.113 13 8.057 13 4 13 C 4 13 4 13 4 13 C 4 12.333 4 11.667 4 11 C 8.057 11 12.113 11 16.17 11 C 17.135 11.022 18.1 11.043 19.065 11.065 C 19.376 11.376 19.688 11.688 20 12 C 19.681 12.319 19.362 12.638 19.043 12.957 L 16.17 13 M 19.065 11.065 C 16.71 8.71 14.355 6.355 12 4 L 10.59 5.41 C 12.45 7.273 14.31 9.137 16.17 11 C 16.652 11.011 17.135 11.022 17.617 11.032 C 18.1 11.043 18.582 11.054 19.065 11.065 M 16.17 13 C 14.307 14.863 12.443 16.727 10.58 18.59 C 11.053 19.06 11.527 19.53 12 20 C 13.174 18.826 14.348 17.652 15.522 16.478 C 16.695 15.305 17.869 14.131 19.043 12.957 L 16.17 13"
+                android:valueType="pathType"
+                android:interpolator="@android:interpolator/fast_out_slow_in"/>
+        </aapt:attr>
+    </target>
+</animated-vector>
