@@ -27,10 +27,10 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.project.ProjectKt;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -116,7 +116,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     if (rootDir == null) {
       return null;
     }
-    return ProjectKt.getProjectCachePath(project, rootDir.toPath());
+    return ProjectUtil.getProjectCachePath(project, rootDir.toPath());
   }
 
   @Override
