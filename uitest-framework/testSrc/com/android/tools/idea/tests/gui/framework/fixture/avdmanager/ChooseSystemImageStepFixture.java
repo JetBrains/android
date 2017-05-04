@@ -45,7 +45,7 @@ public class ChooseSystemImageStepFixture extends AbstractWizardStepFixture<Choo
         systemImageListFixture.cell(rowWithValue(image.getReleaseName(),
                                                  image.getApiLevel(),
                                                  image.getAbiType(),
-                                                 image.getReleaseName()).column(0)).select();
+                                                 image.getTargetName()).column(0)).select();
         return true;
       } catch (ActionFailedException e) {
         return false;
