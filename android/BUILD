@@ -177,6 +177,7 @@ iml_module(
         "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module, test]",
         "//tools/base/layoutinspector:studio.layoutinspector[module, test]",
         "//tools/idea/.idea/libraries:equalsverifier[test]",
+        "//tools/base/apkparser/analyzer:studio.analyzer[test]",
     ],
 )
 

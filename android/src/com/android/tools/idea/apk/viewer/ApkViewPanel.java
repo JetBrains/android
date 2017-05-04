@@ -16,16 +16,16 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.apk.analyzer.Archive;
-import com.android.tools.apk.analyzer.ArchiveEntry;
-import com.android.tools.apk.analyzer.ArchiveNode;
-import com.android.tools.apk.analyzer.ArchiveTreeStructure;
+import com.android.tools.apk.analyzer.*;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.TreeTraverser;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -57,6 +57,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 public class ApkViewPanel implements TreeSelectionListener {
   private JPanel myContainer;
@@ -114,13 +115,24 @@ public class ApkViewPanel implements TreeSelectionListener {
     // identify and set the application name and version
     myNameAsyncIcon.setVisible(true);
     myNameComponent.append("Parsing Manifest");
-    ListenableFuture<AndroidApplicationInfo> applicationInfo = apkParser.getApplicationInfo();
+
+    //find a suitable archive that has an AndroidManifest.xml file in the root ("/")
+    //for APKs, this will always be the APK itself
+    //for ZIP files (AIA bundles), this will be the first found APK using breadth-first search
+    ListenableFuture<AndroidApplicationInfo> applicationInfo =
+      Futures.transformAsync(treeStructureFuture,
+                             input -> {
+                               assert input != null;
+                               return apkParser.getApplicationInfo(getFirstManifestArchive(input));
+                             }, PooledThreadExecutor.INSTANCE);
+
     Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {
       @Override
       public void onSuccess(AndroidApplicationInfo result) {
         setAppInfo(result);
       }
     }, EdtExecutor.INSTANCE);
+
 
     // obtain and set the download size
     mySizeAsyncIcon.setVisible(true);
@@ -163,6 +175,23 @@ public class ApkViewPanel implements TreeSelectionListener {
                                                                  .build()));
                           }
                         });
+  }
+
+  @VisibleForTesting
+  static Archive getFirstManifestArchive(@NotNull ArchiveNode input) {
+    FluentIterable<ArchiveNode> bfsIterable = new TreeTraverser<ArchiveNode>() {
+      @Override
+      public Iterable<ArchiveNode> children(@NotNull ArchiveNode root) {
+        return root.getChildren();
+      }
+    }.breadthFirstTraversal(input);
+
+    return StreamSupport.stream(bfsIterable.spliterator(), false)
+      .map(node -> node.getData().getArchive()).distinct()
+      .filter(archive -> Files.exists(
+        archive.getContentRoot()
+          .resolve(SdkConstants.FN_ANDROID_MANIFEST_XML)))
+      .findFirst().orElse(null);
   }
 
   private void createUIComponents() {
