@@ -29,22 +29,9 @@ import com.intellij.xml.util.documentation.XmlDocumentationProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static com.android.SdkConstants.TAG_RESOURCES;
-import static com.android.SdkConstants.TAG_ATTR;
-import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
-import static com.android.SdkConstants.TAG_EAT_COMMENT;
-import static com.android.SdkConstants.TAG_ENUM;
-import static com.android.SdkConstants.TAG_FLAG;
-import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.ATTR_VALUE;
-import static com.android.SdkConstants.ATTR_FORMAT;
-import static com.android.SdkConstants.ATTR_PARENT;
+import static com.android.SdkConstants.*;
 
 public class AttributeDefinitionsImpl implements AttributeDefinitions {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl");
@@ -52,18 +39,21 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
   //Used for parsing group of attributes, used heuristically to skip long comments before <eat-comment/>
   private static final int ATTR_GROUP_MAX_CHARACTERS = 40;
 
-  private Map<String, AttributeDefinition> myAttrs = new HashMap<>();
-  private Map<String, StyleableDefinitionImpl> myStyleables = new HashMap<>();
+  private final Map<String, AttributeDefinition> myAttrs = new HashMap<>();
+  private final Map<String, StyleableDefinitionImpl> myStyleables = new HashMap<>();
 
   private final Map<String, Map<String, Integer>> myEnumMap = new HashMap<>();
+  private final AttributeDefinitions mySystemAttributeDefinitions;
 
   public AttributeDefinitionsImpl(@NotNull XmlFile... files) {
+    mySystemAttributeDefinitions = null;
     for (XmlFile file : files) {
       addAttrsFromFile(file, null);
     }
   }
 
-  public AttributeDefinitionsImpl(@NotNull Multimap<String, XmlFile> files) {
+  public AttributeDefinitionsImpl(@Nullable AttributeDefinitions systemAttributeDefinitions, @NotNull Multimap<String, XmlFile> files) {
+    mySystemAttributeDefinitions = systemAttributeDefinitions;
     for (Map.Entry<String, XmlFile> file : files.entries()) {
       addAttrsFromFile(file.getValue(), file.getKey());
     }
@@ -137,6 +127,26 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       LOG.info("Found attr tag with no name: " + tag.getText());
       return null;
     }
+    AttributeDefinition def = myAttrs.get(name);
+    if (mySystemAttributeDefinitions != null && name.startsWith(ANDROID_NS_NAME_PREFIX)) {
+      // Reference to a system attribute.
+      if (def == null) {
+        String unqualifiedName = name.substring(ANDROID_NS_NAME_PREFIX_LEN);
+        def = mySystemAttributeDefinitions.getAttrDefByName(unqualifiedName);
+        if (def != null) {
+          def = def.cloneWithName(name);
+          myAttrs.put(name, def);
+        }
+      }
+      return def;
+    }
+
+    // Locally defined attribute.
+    if (def == null) {
+      def = new AttributeDefinition(name, libraryName, parentStyleable, Collections.emptySet());
+      myAttrs.put(name, def);
+    }
+
     List<AttributeFormat> parsedFormats;
     List<AttributeFormat> formats = new ArrayList<>();
     String format = tag.getAttributeValue(ATTR_FORMAT);
@@ -153,11 +163,6 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       if (values.length > 0) {
         formats.add(AttributeFormat.Flag);
       }
-    }
-    AttributeDefinition def = myAttrs.get(name);
-    if (def == null) {
-      def = new AttributeDefinition(name, libraryName, parentStyleable, Collections.emptySet());
-      myAttrs.put(def.getName(), def);
     }
     def.addFormats(formats);
     parseDocComment(tag, def, parentStyleable);
