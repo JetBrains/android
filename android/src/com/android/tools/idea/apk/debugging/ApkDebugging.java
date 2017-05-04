@@ -28,6 +28,6 @@ public final class ApkDebugging {
   }
 
   public static boolean isEnabled() {
-    return APK_DEBUGGING_ENABLED;
+    return true;
   }
 }
