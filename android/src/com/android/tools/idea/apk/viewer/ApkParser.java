@@ -16,31 +16,25 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.ApkSizeCalculator;
 import com.android.tools.apk.analyzer.Archive;
 import com.android.tools.apk.analyzer.ArchiveNode;
 import com.android.tools.apk.analyzer.ArchiveTreeStructure;
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.*;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.zip.*;
 
 public class ApkParser {
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
@@ -73,12 +67,8 @@ public class ApkParser {
   }
 
   @NotNull
-  public synchronized ListenableFuture<AndroidApplicationInfo> getApplicationInfo() {
-    if (myApplicationInfo == null) {
-      myApplicationInfo = ourExecutorService.submit(this::getAppInfo);
-    }
-
-    return myApplicationInfo;
+  public synchronized ListenableFuture<AndroidApplicationInfo> getApplicationInfo(@Nullable Archive archive) {
+    return ourExecutorService.submit(() -> getAppInfo(archive));
   }
 
   @NotNull
@@ -128,14 +118,17 @@ public class ApkParser {
   }
 
   @NotNull
-  private AndroidApplicationInfo getAppInfo() {
+  private static AndroidApplicationInfo getAppInfo(@Nullable Archive archive) {
+    if (archive == null){
+      return AndroidApplicationInfo.UNKNOWN;
+    }
     try {
       AaptInvoker invoker = AaptInvoker.getInstance();
       if (invoker == null) {
         return AndroidApplicationInfo.UNKNOWN;
       }
 
-      ProcessOutput xmlTree = invoker.getXmlTree(myArchive.getPath().toFile(), SdkConstants.FN_ANDROID_MANIFEST_XML);
+      ProcessOutput xmlTree = invoker.getXmlTree(archive.getPath().toFile(), SdkConstants.FN_ANDROID_MANIFEST_XML);
       return AndroidApplicationInfo.fromXmlTree(xmlTree);
     }
     catch (ExecutionException e) {
