@@ -27,7 +27,7 @@ import javax.swing.*;
 /**
  * Provides a combobox which presents the user with a list of Programming Languages.
  */
-public final class LanguageSetComboProvider extends ComponentProvider<JComboBox> {
+public final class LanguageComboProvider extends ComponentProvider<JComboBox> {
   @NotNull
   @Override
   public JComboBox createComponent() {
@@ -38,7 +38,7 @@ public final class LanguageSetComboProvider extends ComponentProvider<JComboBox>
         setText(value.getName());
       }
     });
-    languageCombo.setToolTipText("<html>The programming language used for code generation</html>");
+    languageCombo.setToolTipText("The programming language used for code generation");
     return languageCombo;
   }
 

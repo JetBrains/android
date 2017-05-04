@@ -50,14 +50,13 @@ public class WizardUtils {
 
   @Deprecated
   public enum Feature {
-    GALLERY, IMPORT_MODULE, NEW_MODULE, NEW_PROJECT, KOTLIN
+    GALLERY, IMPORT_MODULE, NEW_MODULE, NEW_PROJECT
   }
 
   // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
   @Deprecated
   public static boolean isNpwModelWizardEnabled(@NotNull Feature feature) {
-    return feature == Feature.NEW_PROJECT || feature == Feature.GALLERY || feature == Feature.IMPORT_MODULE
-           || (KOTLIN_ENABLED && feature == Feature.KOTLIN);
+    return feature == Feature.NEW_PROJECT || feature == Feature.GALLERY || feature == Feature.IMPORT_MODULE;
   }
 
   // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
