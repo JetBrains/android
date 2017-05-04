@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -73,6 +74,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewProjectModel extends WizardModel {
   private static final String PROPERTIES_DOMAIN_KEY = "SAVED_COMPANY_DOMAIN";
+  private static final String PROPERTIES_LANGUAGE_KEY = "SAVED_SOURCE_LANGUAGE";
   private static final String EXAMPLE_DOMAIN = "example.com";
   private static final Pattern DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]");
 
@@ -102,6 +104,9 @@ public class NewProjectModel extends WizardModel {
     });
 
     myApplicationName.addConstraint(String::trim);
+
+    myEnableKotlinSupport.set(getInitialSourceLanguage() == Language.KOTLIN);
+    myEnableKotlinSupport.addListener(sender -> setInitialSourceLanguage(myEnableKotlinSupport.get() ? Language.KOTLIN : Language.JAVA));
   }
 
   public StringProperty packageName() {
@@ -171,6 +176,27 @@ public class NewProjectModel extends WizardModel {
     // TODO: Figure out if this legacy behaviour, of including User Name, can be removed.
     String userName = includeUserName ? System.getProperty("user.name") : null;
     return userName == null ? EXAMPLE_DOMAIN : toPackagePart(userName) + '.' + EXAMPLE_DOMAIN;
+  }
+
+  /**
+   * Loads saved source language. If none was saved, returns Java
+   */
+  @NotNull
+  public static Language getInitialSourceLanguage() {
+    String savedLanguage = PropertiesComponent.getInstance().getValue(PROPERTIES_LANGUAGE_KEY);
+    if (savedLanguage != null) {
+      for (Language language : Language.values()) {
+        if (language.getName().equals(savedLanguage)) {
+          return language;
+        }
+      }
+    }
+
+    return Language.JAVA;
+  }
+
+  public static void setInitialSourceLanguage(Language language) {
+    PropertiesComponent.getInstance().setValue(PROPERTIES_LANGUAGE_KEY, language.getName());
   }
 
   @NotNull
