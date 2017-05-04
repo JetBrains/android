@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.wizard.deprecated;
+package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
+import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -33,21 +34,18 @@ import java.awt.*;
 /**
  * The general look and feel for all Studio-specific wizards.
  */
-@Deprecated
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
 
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
-  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(800, 650);
+  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(900, 620);
 
   private final BindingsManager myBindings = new BindingsManager();
 
   private JPanel myRootPanel;
   private JPanel myHeaderPanel;
   private JBLabel myTitleLabel;
-  private JBLabel myProductLabel;
   private ImageComponent myIcon;
   private JPanel myCenterPanel;
-  private JPanel myTitlePanel;
   private JLabel myStepIcon;
 
   public StudioWizardLayout() {
@@ -63,7 +61,6 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
   public JPanel decorate(@NotNull ModelWizard.TitleHeader titleHeader, @NotNull JPanel innerPanel) {
     myBindings.bind(new TextProperty(myTitleLabel), titleHeader.title());
     myBindings.bind(new IconProperty(myStepIcon), titleHeader.stepIcon());
-
     myCenterPanel.add(innerPanel);
     return myRootPanel;
   }
