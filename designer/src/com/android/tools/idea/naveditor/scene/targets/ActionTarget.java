@@ -118,11 +118,15 @@ public class ActionTarget extends BaseTarget {
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     Rectangle sourceRect = Coordinates.getSwingRectDip(sceneContext, getComponent().fillRect(null));
-    String targetId = myNlComponent.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION);
+    String targetId = NlComponent.stripId(myNlComponent.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
+    if (targetId == null) {
+      // TODO: error handling
+      return;
+    }
     Rectangle destRect = null;
     //noinspection ConstantConditions
     for (SceneComponent candidate : getComponent().getParent().getChildren()) {
-      if (targetId.equals("@+id/" + candidate.getId())) {
+      if (targetId.equals(candidate.getId())) {
         destRect = Coordinates.getSwingRectDip(sceneContext, candidate.fillRect(null));
         break;
       }

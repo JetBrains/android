@@ -17,6 +17,8 @@ package com.android.tools.idea.naveditor.structure;
 
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
+import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.google.common.collect.ImmutableList;
@@ -64,5 +66,23 @@ public class DestinationListTest extends NavigationTestCase {
     selection = ImmutableList.of(model.find("fragment1"), model.find("fragment2"));
     listSelectionModel.setSelection(selection);
     assertEquals(selection, modelSelectionModel.getSelection());
+  }
+
+  public void testModifyModel() throws Exception {
+    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
+      component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
+      component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"));
+    ModelBuilder modelBuilder = model("nav.xml", root);
+    SyncNlModel model = modelBuilder.build();
+    DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
+    DestinationList list = (DestinationList)def.getFactory().create();
+    list.setToolContext(model.getSurface());
+
+    assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2")), list.myComponentList);
+
+    root.addChild(component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3"), null);
+    modelBuilder.updateModel(model);
+
+    assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2"), model.find("fragment3")), list.myComponentList);
   }
 }

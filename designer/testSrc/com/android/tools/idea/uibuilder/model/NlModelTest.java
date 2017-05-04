@@ -150,11 +150,13 @@ public class NlModelTest extends LayoutTestCase {
     ComponentDescriptor button = modelBuilder.findByPath(LINEAR_LAYOUT, BUTTON);
     ComponentDescriptor textView = modelBuilder.findByPath(LINEAR_LAYOUT, TEXT_VIEW);
     assertThat(parent).isNotNull();
-    parent.children(button, textView);
+    parent.removeChild(button);
+    modelBuilder.updateModel(model);
+    parent.addChild(button, textView);
     modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
-                 "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}\n" +
+                 "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=3}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}",
                  myTreeDumper.toTree(model.getComponents()));
   }
@@ -288,6 +290,7 @@ public class NlModelTest extends LayoutTestCase {
                       .withBounds(100, 100, 100, 100)
                       .width("100dp")
                       .height("100dp"), textView);
+    modelBuilder.updateModel(model);
     parent.removeChild(button);
     modelBuilder.updateModel(model);
 

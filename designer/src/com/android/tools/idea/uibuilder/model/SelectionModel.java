@@ -101,7 +101,7 @@ public class SelectionModel {
     myListeners.add(listener);
   }
 
-  public void removeListener(@NotNull SelectionListener listener) {
+  public void removeListener(@Nullable SelectionListener listener) {
     if (myListeners != null) {
       myListeners.remove(listener);
     }

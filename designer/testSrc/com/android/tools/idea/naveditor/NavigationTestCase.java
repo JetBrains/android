@@ -100,7 +100,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     };
 
     return new ModelBuilder(myAndroidFacet, myFixture, name, root, managerFactory,
-                            (model, newModel) -> {}, "nav", NavDesignSurface.class);
+                            NavSceneManager::updateHierarchy, "nav", NavDesignSurface.class);
   }
 
   protected ComponentDescriptor component(@NotNull String tag) {
