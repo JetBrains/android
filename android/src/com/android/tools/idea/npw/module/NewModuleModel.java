@@ -47,7 +47,7 @@ public final class NewModuleModel extends WizardModel {
   private final BindingsManager myBindings = new BindingsManager();
 
   @NotNull private final StringProperty myModuleName = new StringValueProperty();
-  @NotNull private final StringProperty mySplitName = new StringValueProperty();
+  @NotNull private final StringProperty mySplitName = new StringValueProperty("feature");
   @NotNull private final BoolProperty myIsLibrary = new BoolValueProperty();
   // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
   // module, or instead modifies an existing module (for example just adding a new Activity)

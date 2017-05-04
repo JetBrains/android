@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.validator;
 
+import com.android.tools.idea.ui.properties.core.StringProperty;
+import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.intellij.openapi.module.ModuleManager;
@@ -32,14 +34,14 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 public final class ModuleValidator implements Validator<String> {
   private @Nullable Project myProject; // May be null for new projects
   private @NotNull PathValidator myPathValidator;
-  private @NotNull String myProjectPath;
+  private @NotNull StringProperty myProjectPath;
 
   public ModuleValidator(@NotNull Project project) {
-    this(project.getBasePath());
+    this(new StringValueProperty(project.getBasePath()));
     myProject = project;
   }
 
-  public ModuleValidator(@NotNull String projectPath) {
+  public ModuleValidator(@NotNull StringProperty projectPath) {
     myProjectPath = projectPath;
     myPathValidator = PathValidator.createDefault("module location");
   }
@@ -55,6 +57,6 @@ public final class ModuleValidator implements Validator<String> {
       return new Result(Severity.ERROR, message("android.wizard.validate.module.already.exists", name));
     }
 
-    return myPathValidator.validate(new File(myProjectPath, name));
+    return myPathValidator.validate(new File(myProjectPath.get(), name));
   }
 }
