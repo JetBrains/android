@@ -55,7 +55,7 @@ public class RecommendedPluginVersionUpgradeStepTest {
   }
 
   @Test
-  public void shouldPreviewBeForcedToUpgradePluginVersion() {
+  public void shouldRecommendUpgrade() {
     boolean recommended = RecommendedPluginVersionUpgradeStep.shouldRecommendUpgrade(myRecommended, myCurrent);
     assertEquals(myRecommendUpgrade, recommended);
   }
