@@ -121,7 +121,9 @@ public class Scout {
     if (root == null) {
       return;
     }
-
+    for (NlComponent child : root.getChildren()) {
+        child.ensureId();
+    }
     if (!ConstraintComponentUtilities.isConstraintLayout(root)) {
       return;
     }
