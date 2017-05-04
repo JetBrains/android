@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class CpuTableTest {
 
@@ -268,6 +269,12 @@ public class CpuTableTest {
       assertEquals(SESSION_ONE_OFFSET + 1 + i, traceInfo.get(i).getToTimestamp());
       assertEquals(SESSION_ONE_OFFSET + i, traceInfo.get(i).getTraceId());
     }
+  }
+
+  @Test
+  public void testGetInvalidTraceByRequest() throws Exception {
+    ByteString traceData = myTable.getTraceData(-1, SESSION_HUNDREDS);
+    assertNull(traceData);
   }
 
   @Test
