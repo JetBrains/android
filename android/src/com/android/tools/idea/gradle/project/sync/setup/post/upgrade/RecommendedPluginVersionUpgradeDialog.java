@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
@@ -45,23 +46,36 @@ import static com.intellij.util.ui.JBUI.Borders.emptyTop;
 import static javax.swing.Action.MNEMONIC_KEY;
 import static javax.swing.Action.NAME;
 
-public class RecommendedPluginVersionUpdateDialog extends DialogWrapper {
+public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle.plugin";
 
   @NotNull private final Project myProject;
   @NotNull private final GradleVersion myCurrentPluginVersion;
+  @NotNull private final TimeBasedUpgradeReminder myUpgradeReminder;
   @NotNull private final PropertyBasedDoNotAskOption myDoNotAskOption;
 
   private JPanel myCenterPanel;
   private JEditorPane myMessagePane;
   private JButton[] myButtons;
 
-  public RecommendedPluginVersionUpdateDialog(@NotNull Project project,
-                                              @NotNull GradleVersion current,
-                                              @NotNull GradleVersion recommended) {
+  public static class Factory {
+    @NotNull
+    public RecommendedPluginVersionUpgradeDialog create(@NotNull Project project,
+                                                        @NotNull GradleVersion current,
+                                                        @NotNull GradleVersion recommended) {
+      return new RecommendedPluginVersionUpgradeDialog(project, current, recommended, new TimeBasedUpgradeReminder());
+    }
+  }
+
+  @VisibleForTesting
+  RecommendedPluginVersionUpgradeDialog(@NotNull Project project,
+                                        @NotNull GradleVersion current,
+                                        @NotNull GradleVersion recommended,
+                                        @NotNull TimeBasedUpgradeReminder upgradeReminder) {
     super(project);
     myProject = project;
     myCurrentPluginVersion = current;
+    myUpgradeReminder = upgradeReminder;
     setTitle("Android Gradle Plugin Update Recommended");
     myDoNotAskOption = new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
       @Override
@@ -147,10 +161,19 @@ public class RecommendedPluginVersionUpdateDialog extends DialogWrapper {
   }
 
   @Override
+  public void doCancelAction() {
+    if (getCancelAction().isEnabled()) {
+      // This is the "Remind me tomorrow" button.
+      myUpgradeReminder.storeLastUpgradeRecommendation(myProject);
+      close(CANCEL_EXIT_CODE);
+    }
+  }
+
+  @Override
   @NotNull
   protected Action getCancelAction() {
     Action action = super.getCancelAction();
-    action.putValue(NAME, "Remind me later");
+    action.putValue(NAME, "Remind me tomorrow");
     return action;
   }
 

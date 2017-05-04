@@ -200,7 +200,8 @@ public class AndroidPluginVersionUpdater {
     private boolean myPluginVersionUpdated;
     private boolean myGradleVersionUpdated;
 
-    UpdateResult() {
+    @VisibleForTesting
+    public UpdateResult() {
     }
 
     @Nullable
