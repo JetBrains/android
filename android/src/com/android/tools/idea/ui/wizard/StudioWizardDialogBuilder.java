@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.wizard;
 
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
