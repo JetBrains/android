@@ -86,7 +86,7 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
   @NotNull
   static String retrieveDependency(@NotNull String dependency) {
     // make this function specific to workaround b/37944674
-    Pattern pattern = Pattern.compile("any matches for ([^\\s]+) .*");
+    Pattern pattern = Pattern.compile("^.*?any matches for ([^\\s]+) .*", Pattern.DOTALL);
     Matcher matcher = pattern.matcher(dependency);
     if (matcher.matches()) {
       return matcher.group(1);
