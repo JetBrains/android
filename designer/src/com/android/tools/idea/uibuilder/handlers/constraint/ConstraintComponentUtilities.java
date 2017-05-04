@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.Float;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -1313,8 +1315,8 @@ public final class ConstraintComponentUtilities {
   public static String[] ATTRIB_MARGIN = {
     ATTR_LAYOUT_MARGIN_TOP,
     ATTR_LAYOUT_MARGIN_BOTTOM,
-    ATTR_LAYOUT_MARGIN_LEFT,
-    ATTR_LAYOUT_MARGIN_RIGHT
+    ATTR_LAYOUT_MARGIN_START,
+    ATTR_LAYOUT_MARGIN_END
   };
 
   public static void scoutConnect(NlComponent source, Direction sourceDirection, NlComponent target, Direction targetDirection, int margin) {
@@ -1355,5 +1357,54 @@ public final class ConstraintComponentUtilities {
     if (str != null) {
       DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.INFERRED, DecoratorUtilities.ViewStates.SELECTED);
     }
+  }
+
+  public static boolean wouldCreateLoop(NlComponent source, Direction sourceDirection, NlComponent target) {
+    HashSet<String> connected;
+    List<NlComponent> sisters = source.getParent().getChildren();
+    switch (sourceDirection) {
+      case TOP:
+      case BOTTOM:
+        connected = getConnected(source, sisters,
+                                 ConstraintComponentUtilities.ourBottomAttributes,
+                                 ConstraintComponentUtilities.ourTopAttributes,
+                                 ConstraintComponentUtilities.ourBaselineAttributes);
+        return connected.contains(target.getId());
+      case RIGHT:
+      case LEFT:
+        connected = getConnected(source, sisters,
+                                 ConstraintComponentUtilities.ourRightAttributes,
+                                 ConstraintComponentUtilities.ourLeftAttributes,
+                                 ConstraintComponentUtilities.ourStartAttributes,
+                                 ConstraintComponentUtilities.ourEndAttributes);
+        return connected.contains(target.getId());
+
+      case BASELINE:
+        connected = getConnected(source, sisters,
+                                 ConstraintComponentUtilities.ourBottomAttributes,
+                                 ConstraintComponentUtilities.ourTopAttributes,
+                                 ConstraintComponentUtilities.ourBaselineAttributes);
+        return connected.contains(target.getId());
+    }
+    return false;
+  }
+
+  static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
+    HashSet<String> set = new HashSet<>();
+    set.add(c.getId());
+    int lastCount;
+    do {
+      lastCount = set.size();
+      for (NlComponent sister : sisters) {
+        for (int i = 0; i < list.length; i++) {
+          String str = getConnectionId(sister, SdkConstants.SHERPA_URI, list[i]);
+          if (set.contains(str)) {
+            set.add(sister.getId());
+          }
+        }
+      }
+    }
+    while (set.size() > lastCount);
+    return set;
   }
 }
