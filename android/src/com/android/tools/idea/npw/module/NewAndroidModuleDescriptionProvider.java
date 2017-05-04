@@ -82,6 +82,8 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
         return AndroidIcons.ModuleTemplates.Tv;
       case WEAR:
         return AndroidIcons.ModuleTemplates.Wear;
+      case THINGS:
+        return AndroidIcons.ModuleTemplates.Things;
       default:
         throw new IllegalArgumentException(enumValue.name());
     }
