@@ -100,4 +100,9 @@ public final class ApkDiffEntry implements ApkEntry {
     }
     return apkEntry.getSize();
   }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
 }
