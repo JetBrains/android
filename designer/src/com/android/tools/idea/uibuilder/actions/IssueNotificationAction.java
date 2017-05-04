@@ -24,10 +24,6 @@ import com.intellij.notification.impl.ui.NotificationsUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.AnActionButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.TextIcon;
@@ -79,7 +75,6 @@ public class IssueNotificationAction extends AnAction {
   }
 
   private void updateIssueTypeIcon(@NotNull IssueModel issueModel) {
-
     Icon icon;
     if (issueModel.getErrorCount() > 0) {
       icon = AllIcons.Ide.Notification.ErrorEvents;
