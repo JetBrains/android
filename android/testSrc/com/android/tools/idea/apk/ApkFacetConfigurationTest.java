@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.apk;
 
+import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.apk.debugging.DebuggableSharedObjectFile;
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.android.tools.idea.apk.debugging.SetupIssue;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -39,20 +42,29 @@ public class ApkFacetConfigurationTest {
 
   @Test
   public void getDebugSymbolFolderPaths() throws Exception {
+    Abi abi = Abi.X86;
+    String abiValue = abi.toString();
+
     NativeLibrary library1 = new NativeLibrary("x.c");
-    library1.debuggableFilePath = "/a/x.c";
+    DebuggableSharedObjectFile file = new DebuggableSharedObjectFile();
+    file.path = "/a/x.c";
+    library1.debuggableSharedObjectFilesByAbi.put(abiValue, file);
 
     NativeLibrary library2 = new NativeLibrary("x.h");
-    library2.debuggableFilePath = "/a/x.h";
+    file = new DebuggableSharedObjectFile();
+    file.path = "/a/x.h";
+    library2.debuggableSharedObjectFilesByAbi.put(abiValue, file);
 
     NativeLibrary library3 = new NativeLibrary("y.c");
-    library3.debuggableFilePath = "/a/b/y.c";
+    file = new DebuggableSharedObjectFile();
+    file.path = "/a/b/y.c";
+    library3.debuggableSharedObjectFilesByAbi.put(abiValue, file);
 
     myConfiguration.NATIVE_LIBRARIES.add(library1);
     myConfiguration.NATIVE_LIBRARIES.add(library2);
     myConfiguration.NATIVE_LIBRARIES.add(library3);
 
-    Collection<String> paths = myConfiguration.getDebugSymbolFolderPaths();
+    Collection<String> paths = myConfiguration.getDebugSymbolFolderPaths(Collections.singletonList(abi));
     assertThat(paths).containsExactly("/a");
   }
 
