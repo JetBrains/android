@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
+package com.android.tools.idea.ui.wizard;
 
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
+import java.awt.*;
 
-public class ConfigureInstantModuleStepFixture extends AbstractWizardStepFixture<ConfigureInstantModuleStepFixture> {
-  protected ConfigureInstantModuleStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
-    super(ConfigureInstantModuleStepFixture.class, robot, target);
-  }
+/**
+ * A panel that provides a standard look and feel across wizard steps used in Android Studio.
+ */
+public final class StudioWizardStepPanel extends JPanel {
 
-  @NotNull
-  public ConfigureInstantModuleStepFixture enterFeatureModuleName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Module Name");
-    replaceText(textField, text);
-    return this;
+  private JPanel myRootPanel;
+
+  public StudioWizardStepPanel(@NotNull JPanel innerPanel) {
+    super(new BorderLayout());
+
+    myRootPanel.add(innerPanel);
+    add(myRootPanel);
   }
 }

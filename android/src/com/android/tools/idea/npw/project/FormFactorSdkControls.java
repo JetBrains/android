@@ -49,16 +49,14 @@ final class FormFactorSdkControls {
   private final Disposable myDisposable;
   private final FormFactor myFormFactor;
 
-  private JBLabel myLabel;
   private FormFactorApiComboBox myMinSdkCombobox;
-  private JBLabel myHelpMeChooseLabel2;
+  private JBLabel myHelpMeChooseLabel;
   private HyperlinkLabel myHelpMeChooseLink;
   private JPanel myRootPanel;
   private JLabel myNotAvailableLabel;
   private JPanel myStatsPanel;
   private JPanel myLoadingStatsPanel;
   private JBLabel myStatsLoadFailedLabel;
-  private JBLabel myHelpMeChooseLabel1;
   private JCheckBox myInclusionCheckBox;
   private JCheckBox myInstantAppCheckbox;
 
@@ -73,16 +71,14 @@ final class FormFactorSdkControls {
     myDisposable = disposable;
     myFormFactor = formFactor;
     myInclusionCheckBox.setText(formFactor.toString());
-    myHelpMeChooseLabel2.setText(getApiHelpText(0, ""));
+    myHelpMeChooseLabel.setText(getApiHelpText(0, ""));
     myHelpMeChooseLink.setHyperlinkText(message("android.wizard.module.help.choose"));
     // Only show SDK selector for base form factors.
     if (myFormFactor.baseFormFactor != null) {
-      myLabel.setVisible(false);
       myMinSdkCombobox.setVisible(false);
     }
 
     if (!myFormFactor.equals(MOBILE)) {
-      myHelpMeChooseLabel1.setVisible(false);
       myStatsPanel.setVisible(false);
     }
 
@@ -123,7 +119,7 @@ final class FormFactorSdkControls {
           AndroidVersionsInfo.VersionItem selectedItem = (AndroidVersionsInfo.VersionItem)itemEvent.getItem();
           String referenceString = getApiHelpText(selectedItem.getApiLevel(), selectedItem.getApiLevelStr());
 
-          ApplicationManager.getApplication().invokeLater(() -> myHelpMeChooseLabel2.setText(referenceString));
+          ApplicationManager.getApplication().invokeLater(() -> myHelpMeChooseLabel.setText(referenceString));
         }
       });
     }
@@ -132,7 +128,6 @@ final class FormFactorSdkControls {
 
     boolean itemsFound = !items.isEmpty();
     myInclusionCheckBox.setEnabled(itemsFound);
-    myLabel.setEnabled(itemsFound);
     myMinSdkCombobox.setEnabled(itemsFound);
     myNotAvailableLabel.setVisible(!itemsFound);
 
@@ -170,8 +165,8 @@ final class FormFactorSdkControls {
   private static String getApiHelpText(int selectedApi, @NotNull String selectedApiName) {
     double percentage = DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100;
     String percentageStr = percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage);
-    return String.format(Locale.getDefault(), "<html>By targeting API %1$s and later, your app will run on %2$s of the devices<br>" +
-                                              "that are active on the Google Play Store.</html>", selectedApiName, percentageStr);
+    return String.format(Locale.getDefault(), "<html>By targeting <b>API %1$s and later</b>, your app will run on %2$s of devices.</html>",
+                         selectedApiName, percentageStr);
   }
 
   private void createUIComponents() {

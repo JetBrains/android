@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.adtui.LabelWithEditButton;
-import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,14 +32,14 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterApplicationName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Application name:");
+    JTextComponent textField = findTextFieldWithLabel("Application name");
     replaceText(textField, text);
     return this;
   }
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterCompanyDomain(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Company domain:");
+    JTextComponent textField = findTextFieldWithLabel("Company domain");
     replaceText(textField, text);
     return this;
   }
@@ -58,7 +57,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
     JButton editButton = robot().finder().findByType(editLabel, JButton.class);
     robot().click(editButton);
 
-    JTextComponent textField = findTextFieldWithLabel("Package name:");
+    JTextComponent textField = findTextFieldWithLabel("Package name");
     replaceText(textField, text);
 
     // click "Done"
@@ -68,7 +67,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public File getLocationInFileSystem() {
-    String location = findTextFieldWithLabel("Project location:").getText();
+    String location = findTextFieldWithLabel("Project location").getText();
     assertThat(location).isNotEmpty();
     return new File(location);
   }

@@ -41,7 +41,7 @@ import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
@@ -135,7 +135,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
     myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.wizard.module.config.title"));
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 

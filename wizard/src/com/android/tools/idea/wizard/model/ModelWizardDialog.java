@@ -69,7 +69,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   @NotNull
   @Override
   protected Action[] createLeftSideActions() {
-    return new Action[] { new StepActionWrapper() };
+    return new Action[]{new StepActionWrapper()};
   }
 
   public ModelWizardDialog(@NotNull ModelWizard wizard,
@@ -93,7 +93,11 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     init(wizard, title, customLayout, helpUrl, cancellationPolicy);
   }
 
-  private void init(@NotNull ModelWizard wizard, @NotNull String title, @Nullable CustomLayout customLayout, @Nullable URL helpUrl, @NotNull CancellationPolicy cancellationPolicy) {
+  private void init(@NotNull ModelWizard wizard,
+                    @NotNull String title,
+                    @Nullable CustomLayout customLayout,
+                    @Nullable URL helpUrl,
+                    @NotNull CancellationPolicy cancellationPolicy) {
     Disposer.register(getDisposable(), wizard);
     myWizard = wizard;
     myWizard.addResultListener(this);
@@ -222,6 +226,10 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   public interface CustomLayout extends Disposable {
     @NotNull
     JPanel decorate(@NotNull ModelWizard.TitleHeader titleHeader, @NotNull JPanel innerPanel);
+
+    Dimension getDefaultPreferredSize();
+
+    Dimension getDefaultMinSize();
   }
 
   /**

@@ -66,7 +66,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerValidator(splitFieldText, new ModuleValidator(projectLocation));
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.wizard.module.new.instant.app.header"));
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
