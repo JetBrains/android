@@ -110,7 +110,7 @@ public class SystemImagePreview {
       }
       int apiLevel = version.getApiLevel();
       myApiLevelListener.setApiLevel(apiLevel);
-      String codeName = SdkVersionInfo.getCodeName(myImageDescription.getVersion().getApiLevel());
+      String codeName = SdkVersionInfo.getCodeName(myImageDescription.getVersion().getFeatureLevel());
       if (codeName != null) {
         myReleaseName.setText(codeName);
       }
