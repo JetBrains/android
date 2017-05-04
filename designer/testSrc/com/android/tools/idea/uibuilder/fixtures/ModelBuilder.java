@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -166,10 +167,9 @@ public class ModelBuilder {
   /** Update the given model to reflect the component hierarchy in the given builder */
   public void updateModel(NlModel model) {
     assertThat(model).isNotNull();
-    name("linear2.xml"); // temporary workaround: replacing contents not working
     NlModel newModel = build();
     myModelUpdater.accept(model, newModel);
-    for (NlComponent component : newModel.getComponents()) {
+    for (NlComponent component : model.getComponents()) {
       checkStructure(component);
     }
   }

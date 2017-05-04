@@ -227,13 +227,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myPendingIds;
   }
 
-  public void syncWithPsi(@NotNull List<TagSnapshotTreeNode> roots) {
-    XmlTag tag = AndroidPsiUtils.getRootTagSafely(getFile());
-    assert tag != null;
-
-    syncWithPsi(tag, roots);
-  }
-
   public void syncWithPsi(@NotNull XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
     new ModelUpdater(this).update(newRoot, roots);
   }
@@ -341,7 +334,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  public void removeListener(@NotNull ModelListener listener) {
+  public void removeListener(@Nullable ModelListener listener) {
     synchronized (myListeners) {
       myListeners.remove(listener);
     }

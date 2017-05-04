@@ -20,6 +20,8 @@ import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.naveditor.surface.NavView;
 import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
+import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -31,7 +33,7 @@ import org.jetbrains.android.dom.navigation.NavigationSchema;
 public class NavSceneTest extends NavigationTestCase {
 
   public void testDisplayList() {
-    SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
+    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
       .unboundedChildren(
         component(NavigationSchema.TAG_FRAGMENT)
@@ -43,8 +45,9 @@ public class NavSceneTest extends NavigationTestCase {
           ),
         component(NavigationSchema.TAG_FRAGMENT)
           .id("@+id/fragment2")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"))
-    ).build();
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"));
+    ModelBuilder modelBuilder = model("nav.xml", root);
+    SyncNlModel model = modelBuilder.build();
     Scene scene = model.getSurface().getScene();
 
     DisplayList list = new DisplayList();
@@ -57,6 +60,73 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawNavScreen,51,51,199,332\n" +
                  "DrawComponentFrame,50,50,200,333,1\n" +
                  "DrawAction,NORMAL,-170x50x200x333,50x50x200x333,NORMAL\n" +
+                 "UNClip\n", list.serialize());
+  }
+
+  public void testAddComponent() {
+    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
+      .unboundedChildren(
+        component(NavigationSchema.TAG_FRAGMENT)
+          .id("@+id/fragment1")
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
+          .unboundedChildren(
+            component(NavigationSchema.TAG_ACTION)
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
+          ),
+        component(NavigationSchema.TAG_FRAGMENT)
+          .id("@+id/fragment2")
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"));
+    ModelBuilder modelBuilder = model("nav.xml", root);
+    SyncNlModel model = modelBuilder.build();
+    Scene scene = model.getSurface().getScene();
+
+    DisplayList list = new DisplayList();
+    scene.layout(0, SceneContext.get());
+
+    root.addChild(component(NavigationSchema.TAG_FRAGMENT).id("@+id/fragment3"), null);
+    modelBuilder.updateModel(model);
+    scene.layout(0, SceneContext.get());
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    assertEquals("Clip,0,0,0,0\n" +
+                 "DrawNavScreen,51,441,199,332\n" +
+                 "DrawComponentFrame,50,440,200,333,1\n" +
+                 "DrawAction,NORMAL,50x440x200x333,50x830x200x333,NORMAL\n" +
+                 "DrawNavScreen,51,831,199,332\n" +
+                 "DrawComponentFrame,50,830,200,333,1\n" +
+                 "DrawAction,NORMAL,-170x830x200x333,50x830x200x333,NORMAL\n" +
+                 "DrawComponentFrame,50,50,200,333,1\n" +
+                 "UNClip\n", list.serialize());
+  }
+
+  public void testRemoveComponent() {
+    ComponentDescriptor fragment2 = component(NavigationSchema.TAG_FRAGMENT)
+      .id("@+id/fragment2")
+      .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2");
+    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
+      .unboundedChildren(
+        component(NavigationSchema.TAG_FRAGMENT)
+          .id("@+id/fragment1")
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
+          .unboundedChildren(
+            component(NavigationSchema.TAG_ACTION)
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")),
+        fragment2);
+    ModelBuilder modelBuilder = model("nav.xml", root);
+    SyncNlModel model = modelBuilder.build();
+    Scene scene = model.getSurface().getScene();
+
+    DisplayList list = new DisplayList();
+    scene.layout(0, SceneContext.get());
+
+    root.removeChild(fragment2);
+    modelBuilder.updateModel(model);
+    scene.layout(0, SceneContext.get());
+    scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
+    assertEquals("Clip,0,0,0,0\n" +
+                 "DrawNavScreen,51,51,199,332\n" +
+                 "DrawComponentFrame,50,50,200,333,1\n" +
                  "UNClip\n", list.serialize());
   }
 }
