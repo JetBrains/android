@@ -38,7 +38,7 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
   private String myHighlight;
 
   @Override
-  public void customizeCellRenderer(JTree tree, Object nodeValue, boolean selected,
+  public void customizeCellRenderer(@NotNull JTree tree, Object nodeValue, boolean selected,
                                     boolean expanded, boolean leaf, int row, boolean hasFocus) {
     if (!(nodeValue instanceof ViewNode)) {
       return;
@@ -48,16 +48,13 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
     ViewNode node = (ViewNode)nodeValue;
     SimpleTextAttributes attr = node.isDrawn() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES;
 
-    boolean hasID = false;
-    ViewProperty id = node.getProperty(ID_KEY);
-    if (id != null && !id.getValue().equals(EMPTY_ID)) {
-      hasID = true;
-      cellTextBuilder.append(id.getValue().substring(ID_START_INDEX) + " ");
+    String id = getId(node);
+    String elementName = getName(node);
+    if (id != null) {
+      cellTextBuilder.append(id + " (" + elementName + ") ");
+    } else {
+      cellTextBuilder.append(elementName + " ");
     }
-
-    String[] name = node.name.split("\\.");
-    String elementName = name[name.length - 1];
-    cellTextBuilder.append(hasID ? "(" + elementName + ") " : elementName + " ");
     setIcon(findIconForNode(elementName));
 
     displayText(attr, cellTextBuilder.toString());
@@ -65,11 +62,26 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
     if (node.displayInfo.contentDesc != null) {
       Font currentFont = getFont();
       Font f = FontUtil.getFontAbleToDisplay(node.displayInfo.contentDesc, currentFont);
-      if (f != null && f != currentFont) {
+      if (f != currentFont) {
         setFont(f);
       }
       displayText(node.isDrawn() ? new SimpleTextAttributes(Font.PLAIN, Color.GRAY) : attr, "- \"" + node.displayInfo.contentDesc + "\"");
     }
+  }
+
+  @Nullable
+  public static String getId(@NotNull ViewNode node) {
+    ViewProperty id = node.getProperty(ID_KEY);
+    if (id != null && !id.getValue().equals(EMPTY_ID)) {
+      return id.getValue().substring(ID_START_INDEX);
+    }
+    return null;
+  }
+
+  @NotNull
+  public static String getName(@NotNull ViewNode node) {
+    String[] name = node.name.split("\\.");
+    return name[name.length - 1];
   }
 
   private void displayText(SimpleTextAttributes attr, String cellText) {

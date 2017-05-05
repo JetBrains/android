@@ -24,13 +24,12 @@ import org.junit.Test
 import java.nio.file.Paths
 
 /**
- * Test Pixel Pefect features in layout inspector
+ * Test Sub-view feature in layout inspector
  */
-class PixelPerfectTest : AndroidTestCase() {
+class LayoutTreePanelTest : AndroidTestCase() {
 
   private lateinit var myContext: LayoutInspectorContext
-  private lateinit var myPanel: LayoutInspectorPanel
-  private lateinit var myPreview: ViewNodeActiveDisplay
+  private lateinit var myPanel: LayoutTreePanel
   private lateinit var myTestData: LayoutFileData
 
   override fun setUp() {
@@ -40,36 +39,28 @@ class PixelPerfectTest : AndroidTestCase() {
     myTestData = LayoutFileData(layoutFile!!)
 
     myContext = LayoutInspectorContext(myTestData, project)
-    myPanel = LayoutInspectorPanel(myContext)
+    myPanel = LayoutTreePanel()
     myPanel.setSize(800, 800)
-    myPreview = myPanel.preview
+    myPanel.setToolContext(myContext)
   }
 
+  //check back panel is not visible by default
   @Test
-  fun testSetAndCancelOverlay() {
-    assertFalse(myPreview.hasOverlay())
-
-    myPreview.setOverLay(myTestData.bufferedImage, "example.png")
-
-    assertTrue(myPreview.hasOverlay())
-    assertEquals(myPreview.overlayFileName, "example.png")
-
-    myPreview.setOverLay(null, null)
-
-    assertFalse(myPreview.hasOverlay())
+  fun testDefaultBackPanel() {
+    assertFalse(myPanel.backPanel.isVisible)
   }
 
+  //check back panel is visible after diving into a sub view
+  // then back to invisible after it is removed.
   @Test
-  fun testSetAlpha() {
-    assertEquals(myPreview.overlayAlpha, ViewNodeActiveDisplay.DEFAULT_OVERLAY_ALPHA)
+  fun testBackPanelVisible() {
+    val subViewRoot = myContext.root!!.children[0]
+    myContext.subviewList.add(subViewRoot)
 
-    myPreview.overlayAlpha = 0.1f
+    assertTrue(myPanel.backPanel.isVisible)
+    assertEquals(myContext.subviewList.last(), subViewRoot)
 
-    assertEquals(myPreview.overlayAlpha, 0.1f)
-
-    // test alpha is reset on selecting image
-    myPreview.setOverLay(myTestData.bufferedImage, "example.png")
-
-    assertEquals(myPreview.overlayAlpha, ViewNodeActiveDisplay.DEFAULT_OVERLAY_ALPHA)
+    myContext.subviewList.remove(subViewRoot)
+    assertFalse(myPanel.backPanel.isVisible)
   }
 }
