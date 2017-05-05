@@ -144,7 +144,7 @@ public class ProjectFonts {
     List<FontDetail> details = new ArrayList<>();
     for (Map.Entry<String, Collection<FontDetail.Builder>> entry : result.getFonts().asMap().entrySet()) {
       String fontName = entry.getKey();
-      FontProvider providerLookup = new FontProvider("", authority, "", "", "");
+      FontProvider providerLookup = new FontProvider("", authority, "", "", "", "");
       FontFamily wantedFamily = new FontFamily(providerLookup, LOOKUP, fontName, "", null, Collections.emptyList());
       FontFamily family = myService.lookup(wantedFamily);
       if (family == null) {
