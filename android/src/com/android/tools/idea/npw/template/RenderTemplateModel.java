@@ -31,12 +31,12 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.ProjectTopics;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetType;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.ProjectTopics;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -234,14 +234,12 @@ public final class RenderTemplateModel extends WizardModel {
 
       if (success) {
         Language language = getLanguage().get();
-        final ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
 
         if (WizardUtils.KOTLIN_ENABLED &&
             (language == Language.KOTLIN ||
              (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false))) {
 
-          final ConvertJavaToKotlinProvider provider =
-            providers.length == 0 ? new ConvertJavaToKotlinDefaultImpl() : providers[0];
+          final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
 
           DumbService.getInstance(project).smartInvokeLater(() -> {
 
@@ -312,7 +310,7 @@ public final class RenderTemplateModel extends WizardModel {
     }
   }
 
-  private void callConverter(@NonNull Project project,
+  private static void callConverter(@NonNull Project project,
                              @NonNull ConvertJavaToKotlinProvider provider,
                              @NonNull List<PsiJavaFile> psiJavaFiles,
                              @Nullable MessageBusConnection connection) {
@@ -377,5 +375,11 @@ public final class RenderTemplateModel extends WizardModel {
       }
     }
     return false;
+  }
+
+  @NonNull
+  public static ConvertJavaToKotlinProvider getJavaToKotlinConversionProvider() {
+    ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
+    return providers.length != 0 ? providers[0] : new ConvertJavaToKotlinDefaultImpl();
   }
 }
