@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.npw;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.util.WizardUtils;
 import org.intellij.lang.annotations.Language;
 import org.junit.Rule;
@@ -38,7 +39,7 @@ public final class FormattingTest {
     WizardUtils.createNewProject(myGuiTest, "google.com", "Empty Activity");
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    editor.open(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml"));
+    editor.open(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml"), Tab.EDITOR);
 
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
