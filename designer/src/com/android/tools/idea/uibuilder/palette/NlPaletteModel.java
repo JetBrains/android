@@ -139,6 +139,9 @@ public class NlPaletteModel implements Disposable {
       }
 
       loadAdditionalComponents(type, palette, VIEW_CLASSES_QUERY);
+      // Reload the additional components after every build to find new custom components
+      AndroidProjectBuildNotifications
+        .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, palette, VIEW_CLASSES_QUERY));
     }
     catch (IOException | JAXBException e) {
       throw new RuntimeException(e);
@@ -153,11 +156,6 @@ public class NlPaletteModel implements Disposable {
   void loadAdditionalComponents(@NotNull NlLayoutType type,
                                 @NotNull Palette palette,
                                 @NotNull Function<Project, Query<PsiClass>> viewClasses) {
-
-
-    AndroidProjectBuildNotifications
-      .subscribe(myModule.getProject(), this, context -> loadAdditionalComponents(type, palette, viewClasses));
-
     Project project = myModule.getProject();
     DumbService dumbService = DumbService.getInstance(project);
     if (dumbService.isDumb()) {
