@@ -16,7 +16,6 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
@@ -30,8 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidModularizeAction extends BaseRefactoringAction {
-
-  private final InstantAppSdks myInstantAppsSdks = InstantAppSdks.getInstance();
 
   @Override
   protected boolean isAvailableInEditorOnly() {
@@ -79,10 +76,5 @@ public class AndroidModularizeAction extends BaseRefactoringAction {
   @Override
   protected RefactoringActionHandler getHandler(@NotNull DataContext dataContext) {
     return new AndroidModularizeHandler();
-  }
-
-  @Override
-  public boolean isHidden() {
-    return !myInstantAppsSdks.isInstantAppSdkEnabled();
   }
 }
