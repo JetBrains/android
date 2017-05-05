@@ -77,7 +77,6 @@ public class PostSyncProjectSetup {
   @NotNull private final VersionCompatibilityChecker myVersionCompatibilityChecker;
   @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final CommonModuleValidator.Factory myModuleValidatorFactory;
-  @NotNull private final RunManagerImpl myRunManager;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -95,8 +94,7 @@ public class PostSyncProjectSetup {
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, syncInvoker, syncState, dependencySetupErrors, new ProjectSetup(project), new ModuleSetup(project),
-         new PluginVersionUpgrade(project), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
-         RunManagerImpl.getInstanceImpl(project));
+         new PluginVersionUpgrade(project), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory());
   }
 
   @VisibleForTesting
@@ -110,8 +108,7 @@ public class PostSyncProjectSetup {
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                        @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                        @NotNull GradleProjectBuilder projectBuilder,
-                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory,
-                       @NotNull RunManagerImpl runManager) {
+                       @NotNull CommonModuleValidator.Factory moduleValidatorFactory) {
     myProject = project;
     myIdeInfo = ideInfo;
     mySyncInvoker = syncInvoker;
@@ -123,7 +120,6 @@ public class PostSyncProjectSetup {
     myVersionCompatibilityChecker = versionCompatibilityChecker;
     myProjectBuilder = projectBuilder;
     myModuleValidatorFactory = moduleValidatorFactory;
-    myRunManager = runManager;
   }
 
   /**
@@ -244,15 +240,16 @@ public class PostSyncProjectSetup {
     }
 
     if (targetProvider != null) {
+      RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
       // Set the correct "Make step" in the "JUnit Run Configuration" template.
       for (ConfigurationFactory configurationFactory : junitConfigurationType.getConfigurationFactories()) {
-        RunnerAndConfigurationSettings template = myRunManager.getConfigurationTemplate(configurationFactory);
+        RunnerAndConfigurationSettings template = runManager.getConfigurationTemplate(configurationFactory);
         RunConfiguration runConfiguration = template.getConfiguration();
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
       }
 
       // Set the correct "Make step" in existing JUnit Configurations.
-      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
+      for (RunConfiguration runConfiguration : runManager.getConfigurationsList(junitConfigurationType)) {
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
       }
     }
@@ -261,7 +258,8 @@ public class PostSyncProjectSetup {
   private void setMakeStepInJUnitConfiguration(@NotNull BeforeRunTaskProvider targetProvider, @NotNull RunConfiguration runConfiguration) {
     // Only "make" steps of beforeRunTasks should be overridden (see http://b.android.com/194704 and http://b.android.com/227280)
     List<BeforeRunTask> newBeforeRunTasks = new LinkedList<>();
-    for (BeforeRunTask beforeRunTask : myRunManager.getBeforeRunTasks(runConfiguration)) {
+    RunManagerImpl runManager = RunManagerImpl.getInstanceImpl(myProject);
+    for (BeforeRunTask beforeRunTask : runManager.getBeforeRunTasks(runConfiguration)) {
       if (beforeRunTask.getProviderId().equals(CompileStepBeforeRun.ID)) {
         BeforeRunTask task = targetProvider.createTask(runConfiguration);
         if (task != null) {
@@ -273,7 +271,7 @@ public class PostSyncProjectSetup {
         newBeforeRunTasks.add(beforeRunTask);
       }
     }
-    myRunManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
+    runManager.setBeforeRunTasks(runConfiguration, newBeforeRunTasks, false);
   }
 
   private void attemptToGenerateSources(@NotNull Request request) {
