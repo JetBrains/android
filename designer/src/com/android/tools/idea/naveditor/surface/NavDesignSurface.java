@@ -48,6 +48,7 @@ import java.io.File;
 public class NavDesignSurface extends DesignSurface {
   private NavView myNavView;
   private NavigationSchema mySchema;
+  private NlComponent myCurrentNavigation;
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable);
@@ -99,6 +100,18 @@ public class NavDesignSurface extends DesignSurface {
     super.repaint();
   }
 
+  @NotNull
+  public NlComponent getCurrentNavigation() {
+    if (myCurrentNavigation == null || myCurrentNavigation.getModel() != getModel()) {
+      myCurrentNavigation = getModel().getComponents().get(0);
+    }
+    return myCurrentNavigation;
+  }
+
+  public void setCurrentNavigation(@NotNull NlComponent currentNavigation) {
+    myCurrentNavigation = currentNavigation;
+  }
+  
   @Override
   protected void doCreateSceneViews() {
     NlModel model = getModel();
