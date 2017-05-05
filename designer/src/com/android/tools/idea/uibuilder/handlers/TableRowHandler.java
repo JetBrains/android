@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.TABLE_ROW;
 
@@ -45,7 +45,10 @@ public class TableRowHandler extends LinearLayoutHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child, @NotNull InsertType insertType) {
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent parent,
+                              @NotNull NlComponent child,
+                              @NotNull InsertType insertType) {
     // Overridden to inhibit the setting of layout_width/layout_height since
     // the table row will enforce match_parent and wrap_content for width and height
     // respectively.

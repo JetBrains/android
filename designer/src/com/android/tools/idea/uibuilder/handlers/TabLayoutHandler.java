@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.common.GenericLinearDragHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -68,7 +71,8 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent layout,
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
     if (newChild.getAndroidAttribute(ATTR_TEXT) == null) {
