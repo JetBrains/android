@@ -17,19 +17,21 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import android.view.View;
 import android.view.ViewGroup;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-/** Handler for the {@code <HorizontalScrollView>} widget */
+/**
+ * Handler for the {@code <HorizontalScrollView>} widget
+ */
 public class HorizontalScrollViewHandler extends ScrollViewHandler {
   @Override
   @NotNull
@@ -38,7 +40,9 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
   }
 
   @Override
-  public void onChildInserted(@NotNull NlComponent parent, @NotNull NlComponent child,
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent parent,
+                              @NotNull NlComponent child,
                               @NotNull InsertType insertType) {
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
     child.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_MATCH_PARENT);
@@ -72,7 +76,7 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
   @Nullable
   @Override
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    ViewGroup viewGroup =  getViewGroupFromComponent(component);
+    ViewGroup viewGroup = getViewGroupFromComponent(component);
     if (viewGroup == null) {
       return null;
     }

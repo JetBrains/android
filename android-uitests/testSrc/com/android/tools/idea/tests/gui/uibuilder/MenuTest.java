@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
@@ -113,14 +111,12 @@ public final class MenuTest {
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void dragSearchItemIntoActionBar() throws IOException {
     writeSettingsActionMenu();
 
     myEditor.open(myMenuPath);
     dragAndDrop("Search Item", new Point(330, 120));
-    MessagesFixture.findByTitle(myGuiTest.robot(), "Copy Vector Asset").clickYes();
 
     @Language("XML")
     @SuppressWarnings("XmlUnusedNamespaceDeclaration")
