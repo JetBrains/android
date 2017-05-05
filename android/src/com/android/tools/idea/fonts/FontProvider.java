@@ -27,24 +27,27 @@ import java.net.URL;
  */
 @Immutable
 public class FontProvider implements Comparable<FontProvider> {
-  public static final FontProvider EMPTY_PROVIDER = new FontProvider("", "", "", "", "");
+  public static final FontProvider EMPTY_PROVIDER = new FontProvider("", "", "", "", "", "");
 
   private final String myName;
   private final String myAuthority;
   private final String myPackageName;
   private final String myUrl;
   private final String myCertificate;
+  private final String myDevelopmentCertificate;
 
   public FontProvider(@NotNull String name,
                       @NotNull String authority,
                       @NotNull String packageName,
                       @NotNull String url,
-                      @NotNull String certificate) {
+                      @NotNull String certificate,
+                      @NotNull String developmentCertificate) {
     myName = name;
     myAuthority = authority;
     myPackageName = packageName;
     myUrl = url;
     myCertificate = certificate;
+    myDevelopmentCertificate = developmentCertificate;
   }
 
   @NotNull
@@ -70,6 +73,11 @@ public class FontProvider implements Comparable<FontProvider> {
   @NotNull
   public String getCertificate() {
     return myCertificate;
+  }
+
+  @NotNull
+  public String getDevelopmentCertificate() {
+    return myDevelopmentCertificate;
   }
 
   @NotNull
