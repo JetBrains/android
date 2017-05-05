@@ -24,6 +24,7 @@ import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
+import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
@@ -36,6 +37,7 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -64,6 +66,7 @@ import java.util.function.Function;
 public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
   private final BoolProperty myInstallFailed = new BoolValueProperty();
   private final BoolProperty myInstallationFinished = new BoolValueProperty();
+  private final ListenerManager myListeners = new ListenerManager();
 
   private final StudioWizardStepPanel myStudioPanel;
   private final ValidatorPanel myValidatorPanel;
@@ -129,6 +132,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     myValidatorPanel.registerValidator(myInstallFailed, new FalseValidator(installError));
 
     myBackgroundAction.setWizard(wizard);
+
+    // Note: Calling updateNavigationProperties while myInstallationFinished is updated causes ConcurrentModificationException
+    myListeners.listen(myInstallationFinished, v -> ApplicationManager.getApplication().invokeLater(wizard::updateNavigationProperties));
   }
 
   @Override
@@ -136,6 +142,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     mySdkManagerOutput.setText("");
     myLabelSdkPath.setText(myRepoManager.getLocalPath().getPath());
 
+    myInstallationFinished.set(Boolean.FALSE);
     startSdkInstall();
   }
 
@@ -146,7 +153,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
   @Override
   public boolean canGoBack() {
-    return false;
+    return myInstallationFinished.get();
   }
 
   @NotNull
@@ -163,6 +170,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
   @Override
   public void dispose() {
+    myListeners.releaseAll();
     synchronized (LOGGER_LOCK) {
       // If we're backgrounded, don't cancel when the window closes; allow the operation to continue.
       if (myLogger != null && !myBackgroundAction.isBackgrounded()) {
@@ -189,6 +197,8 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
         else {
           myProgressDetailLabel.setText("Done");
           checkForUpgrades(myInstallRequests);
+          myInstallRequests.clear();
+          myUninstallRequests.clear();
         }
         myInstallationFinished.set(true);
       }, ModalityState.any());

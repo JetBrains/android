@@ -82,7 +82,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
   // True when all the visible licenses have been accepted.
   private BoolProperty myAllLicensesAreAccepted = new BoolValueProperty();
 
-  protected LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
+  public LicenseAgreementStep(@NotNull LicenseAgreementModel model, @NotNull List<RemotePackage> installRequests) {
     super(model, "License Agreement");
     myInstallRequests = installRequests;
   }

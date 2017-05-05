@@ -30,10 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -281,8 +278,9 @@ public class InstallTaskTest extends AndroidTestCase {
     InstallerFactory factory = mock(InstallerFactory.class);
     when(factory.createInstaller(eq(myAvailable1), any(), any(), any())).thenReturn(myInstaller);
 
-    InstallSelectedPackagesStep installStep = new InstallSelectedPackagesStep(ImmutableList.of(new UpdatablePackage(myAvailable1)),
-                                                                              ImmutableList.of(), mySdkHandler, true, factory, false);
+    InstallSelectedPackagesStep installStep =
+      new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
+                                      new ArrayList<>(), mySdkHandler, true, factory, false);
     CompletableFuture<Boolean> listenerAdded = new CompletableFuture<>();
     when(myInstaller.prepare(any())).then(invocation -> {
       // wait until the wizard completion listener is added, or maybe we'll be done too early and not see that the wizard is finished.
@@ -311,8 +309,9 @@ public class InstallTaskTest extends AndroidTestCase {
     Disposer.dispose(wizard);
 
     when(factory.createInstaller(eq(myAvailable1), any(), any(), any())).thenReturn(myInstaller2);
-    InstallSelectedPackagesStep installStep2 = new InstallSelectedPackagesStep(ImmutableList.of(new UpdatablePackage(myAvailable1)),
-                                                                               ImmutableList.of(), mySdkHandler, true, factory, false);
+    InstallSelectedPackagesStep installStep2 =
+      new InstallSelectedPackagesStep(new ArrayList<>(ImmutableList.of(new UpdatablePackage(myAvailable1))),
+                                      new ArrayList<>(), mySdkHandler, true, factory, false);
     wizardBuilder = new ModelWizard.Builder(installStep2);
     CompletableFuture<Boolean> completed2 = new CompletableFuture<>();
     installStep2.canGoForward().addListener(value -> completed2.complete(true));
