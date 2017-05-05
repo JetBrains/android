@@ -76,12 +76,19 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private int myTraceId = FAKE_TRACE_ID;
 
+  private CpuProfiler.CpuProfilingAppStopRequest.Profiler myStopProfiler;
+
+  private CpuProfiler.CpuProfilingAppStartRequest myLastSuccessfulStartRequest;
+
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request, StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStartResponse.Builder response = CpuProfiler.CpuProfilingAppStartResponse.newBuilder();
     response.setStatus(myStartProfilingStatus);
     if (!myStartProfilingStatus.equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
       response.setErrorMessage("StartProfilingApp error");
+    } else {
+      myLastSuccessfulStartRequest = request;
+      myIsAppBeingProfiled = true;
     }
 
     responseObserver.onNext(response.build());
@@ -92,8 +99,11 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request, StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStopResponse.Builder response = CpuProfiler.CpuProfilingAppStopResponse.newBuilder();
     response.setStatus(myStopProfilingStatus);
+    myStopProfiler = request.getProfiler();
     if (!myStopProfilingStatus.equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       response.setErrorMessage("StopProfilingApp error");
+    } else {
+      myIsAppBeingProfiled = false;
     }
     if (myValidTrace) {
       response.setTrace(getTrace());
@@ -102,6 +112,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
+  }
+
+  public CpuProfiler.CpuProfilingAppStopRequest.Profiler getStopProfiler() {
+    return myStopProfiler;
   }
 
   public void setTraceId(int id) {
@@ -113,6 +127,9 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
                                      StreamObserver<CpuProfiler.ProfilingStateResponse> responseObserver) {
     CpuProfiler.ProfilingStateResponse.Builder response = CpuProfiler.ProfilingStateResponse.newBuilder();
     response.setBeingProfiled(myIsAppBeingProfiled);
+    if (myIsAppBeingProfiled) {
+      response.setStartRequest(myLastSuccessfulStartRequest);
+    }
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -124,10 +141,6 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public void setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status status) {
     myStopProfilingStatus = status;
-  }
-
-  public void setAppBeingProfiled(boolean appBeingProfiled) {
-    myIsAppBeingProfiled = appBeingProfiled;
   }
 
   public void setValidTrace(boolean validTrace) {

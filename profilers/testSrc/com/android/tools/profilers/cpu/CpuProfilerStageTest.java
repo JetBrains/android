@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.junit.Before;
@@ -28,15 +29,21 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
 public class CpuProfilerStageTest extends AspectObserver {
+  private final FakeProfilerService myProfilerService = new FakeProfilerService();
+
   private final FakeCpuService myCpuService = new FakeCpuService();
+
+  private final FakeTimer myTimer = new FakeTimer();
+
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, new FakeProfilerService());
+    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService);
 
   private CpuProfilerStage myStage;
 
@@ -46,11 +53,10 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Before
   public void setUp() throws Exception {
-    FakeTimer timer = new FakeTimer();
     myServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage = new CpuProfilerStage(profilers);
     myStage.getStudioProfilers().setStage(myStage);
   }
@@ -84,7 +90,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
     myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.STARTING, myStage.getCaptureState()));
     // Start a capture using INSTRUMENTED mode
-    myStage.setProfilingMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+    CpuProfilerStage.ProfilingPreferences instrumented =
+      new CpuProfilerStage.ProfilingPreferences("My Instrumented Pref",
+                                                CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
+                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+    myStage.setProfilingPreferences(instrumented);
     startCapturing();
     assertEquals(CpuProfilerStage.CaptureState.CAPTURING, myStage.getCaptureState());
   }
@@ -337,20 +347,13 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void captureStateDependsOnAppBeingProfiling() {
-    FakeTimer timer = new FakeTimer();
-    myCpuService.setAppBeingProfiled(true);
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
-    // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    CpuProfilerStage stage = new CpuProfilerStage(profilers);
-    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, stage.getCaptureState());
-
-    timer = new FakeTimer();
-    myCpuService.setAppBeingProfiled(false);
-    profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    stage = new CpuProfilerStage(profilers);
-    assertEquals(CpuProfilerStage.CaptureState.IDLE, stage.getCaptureState());
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
+    startCapturing();
+    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, myStage.getCaptureState());
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    stopCapturing();
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, myStage.getCaptureState());
   }
 
   @Test
@@ -508,6 +511,146 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertTrue(myStage.getCaptureElapsedTimeUs() < 0);
   }
 
+  @Test
+  public void profilingModesAvailableDependOnDeviceApi() {
+    // Enable simpleperf flag for the test
+    System.setProperty("enable.simpleperf.profiling", "true");
+
+    // Set a device that doesn't support simplepef
+    addAndSetDevice(14, "FakeDevice1");
+
+    List<CpuProfilerStage.ProfilingPreferences> prefs = myStage.getProfilingPreferencesList();
+    assertEquals(2, prefs.size());
+    // First pref should be ART Sampled
+    assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART, prefs.get(0).getProfiler());
+    assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED, prefs.get(0).getMode());
+    assertEquals("Sampled (Java)", prefs.get(0).getName());
+    // First pref should be ART Instrumented
+    assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART, prefs.get(1).getProfiler());
+    assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED, prefs.get(1).getMode());
+    assertEquals("Instrumented", prefs.get(1).getName());
+
+    // Simpleperf is supported on API 26 and greater.
+    addAndSetDevice(26, "FakeDevice2");
+
+    prefs = myStage.getProfilingPreferencesList();
+    assertEquals(3, prefs.size());
+    // First and second preferences should be the same
+    assertEquals("Sampled (Java)", prefs.get(0).getName());
+    assertEquals("Instrumented", prefs.get(1).getName());
+    // Third pref should be simpleperf
+    assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF, prefs.get(2).getProfiler());
+    assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED, prefs.get(2).getMode());
+    assertEquals("Sampled (Hybrid)", prefs.get(2).getName());
+
+    // Disable simpleperf flag
+    // Enable simpleperf flag for the test
+    System.clearProperty("enable.simpleperf.profiling");
+  }
+
+  @Test
+  public void simpleperfIsOnlyAvailableWhenFlagIsTrue() {
+    // Enable simpleperf flag
+    System.setProperty("enable.simpleperf.profiling", "true");
+
+    // Set a device that supports simpleperf
+    addAndSetDevice(26, "Fake Device 1");
+
+    List<CpuProfilerStage.ProfilingPreferences> prefs = myStage.getProfilingPreferencesList();
+    assertEquals(3, prefs.size());
+    // First and second preferences should be the same
+    assertEquals("Sampled (Java)", prefs.get(0).getName());
+    assertEquals("Instrumented", prefs.get(1).getName());
+    // Third pref should be simpleperf
+    assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF, prefs.get(2).getProfiler());
+    assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED, prefs.get(2).getMode());
+    assertEquals("Sampled (Hybrid)", prefs.get(2).getName());
+
+    // Now disable the flag
+    System.clearProperty("enable.simpleperf.profiling");
+
+    // Set a device that supports simpleperf
+    addAndSetDevice(26, "Fake Device 2");
+    prefs = myStage.getProfilingPreferencesList();
+    // Simpleperf should not be listed as a profiling option
+    assertEquals(2, prefs.size());
+    // First and second preferences should be the ART ones
+    assertEquals("Sampled (Java)", prefs.get(0).getName());
+    assertEquals("Instrumented", prefs.get(1).getName());
+
+    // Set the flag to something other than "true"
+    System.setProperty("enable.simpleperf.profiling", "true2");
+
+    addAndSetDevice(26, "Fake Device 3");
+    prefs = myStage.getProfilingPreferencesList();
+    // We should have only 2 profiling (ART) options because simpleperf is only available if the flag is set to "true"
+    assertEquals(2, prefs.size());
+
+    // Clear the flag
+    System.clearProperty("enable.simpleperf.profiling");
+  }
+
+  @Test
+  public void stopProfilerIsConsistentToStartProfiler() throws InterruptedException {
+    assertNull(myCpuService.getStopProfiler());
+    CpuProfilerStage.ProfilingPreferences pref1 =
+      new CpuProfilerStage.ProfilingPreferences("My Pref",
+                                                CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
+                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myStage.setProfilingPreferences(pref1);
+    captureSuccessfully();
+    assertEquals(CpuProfiler.CpuProfilingAppStopRequest.Profiler.SIMPLE_PERF, myCpuService.getStopProfiler());
+
+    CpuProfilerStage.ProfilingPreferences pref2 =
+      new CpuProfilerStage.ProfilingPreferences("My Pref 2",
+                                                CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
+                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myStage.setProfilingPreferences(pref2);
+    // Start capturing with ART
+    startCapturingSuccess();
+    // Change the profiling preferences in the middle of the capture and stop capturing
+    myStage.setProfilingPreferences(pref1);
+    stopCapturing();
+    // Stop profiler should be the same as the one passed in the start request
+    assertEquals(CpuProfiler.CpuProfilingAppStopRequest.Profiler.ART, myCpuService.getStopProfiler());
+  }
+
+  @Test
+  public void exitingStateAndEnteringAgainShouldPreserveCaptureState() {
+    assertNull(myCpuService.getStopProfiler());
+    CpuProfilerStage.ProfilingPreferences pref1 =
+      new CpuProfilerStage.ProfilingPreferences("My Pref",
+                                                CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
+                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myStage.setProfilingPreferences(pref1);
+    myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
+    startCapturing();
+
+    // Go back to monitor stage and go back to a new Cpu profiler stage
+    myStage.getStudioProfilers().setStage(new StudioMonitorStage(myStage.getStudioProfilers()));
+    CpuProfilerStage stage = new CpuProfilerStage(myStage.getStudioProfilers());
+    myStage.getStudioProfilers().setStage(stage);
+
+    // Make sure we're capturing
+    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, stage.getCaptureState());
+
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    stopCapturing(stage);
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, stage.getCaptureState());
+
+    // Stop profiler should be the same as the one passed in the start request
+    assertEquals(CpuProfiler.CpuProfilingAppStopRequest.Profiler.SIMPLE_PERF, myCpuService.getStopProfiler());
+  }
+
+  private void addAndSetDevice(int featureLevel, String serial) {
+    Profiler.Device device = Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).build();
+    myProfilerService.addDevice(device);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new device to be picked up
+    myStage.getStudioProfilers().setDevice(device);
+    // Setting the device will change the stage. We need to go back to CpuProfilerStage
+    myStage.getStudioProfilers().setStage(myStage);
+  }
+
   private void captureSuccessfully() throws InterruptedException {
     // Start a successful capture
     startCapturingSuccess();
@@ -543,12 +686,16 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.startCapturing();
   }
 
-  private void stopCapturing() {
+  private void stopCapturing(CpuProfilerStage stage) {
     // The pre executor will pass through STOPPING and then PARSING
     myServices.setPrePoolExecutor(() -> {
-      assertEquals(CpuProfilerStage.CaptureState.STOPPING, myStage.getCaptureState());
-      myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.PARSING, myStage.getCaptureState()));
+      assertEquals(CpuProfilerStage.CaptureState.STOPPING, stage.getCaptureState());
+      myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.PARSING, stage.getCaptureState()));
     });
-    myStage.stopCapturing();
+    stage.stopCapturing();
+  }
+
+  private void stopCapturing() {
+    stopCapturing(myStage);
   }
 }

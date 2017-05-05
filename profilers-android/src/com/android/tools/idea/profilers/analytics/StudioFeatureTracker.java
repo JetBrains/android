@@ -108,12 +108,14 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTraceSampled() {
+  public void trackTraceArtSampled() {
+    // TODO: rename event type to TRACE_ART_SAMPLED
     track(AndroidProfilerEvent.Type.TRACE_SAMPLED);
   }
 
   @Override
-  public void trackTraceInstrumented() {
+  public void trackTraceArtInstrumented() {
+    // TODO: rename event type to TRACE_ART_INSTRUMENTED
     track(AndroidProfilerEvent.Type.TRACE_INSTRUMENTED);
   }
 

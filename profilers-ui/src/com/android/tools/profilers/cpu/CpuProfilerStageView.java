@@ -79,7 +79,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private CpuCaptureView myCaptureView;
 
   @NotNull
-  private final JComboBox<CpuProfiler.CpuProfilingAppStartRequest.Mode> myProfilingModesCombo;
+  private final JComboBox<CpuProfilerStage.ProfilingPreferences> myProfilingPreferencesCombo;
 
   @NotNull
   private final CpuStageTooltipView myTooltipView;
@@ -253,12 +253,21 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     updateCaptureState();
 
-    myProfilingModesCombo = new FlatComboBox<>();
-    JComboBoxView<CpuProfiler.CpuProfilingAppStartRequest.Mode, CpuProfilerAspect> profilingModes =
-      new JComboBoxView<>(myProfilingModesCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_MODE,
-                          stage::getProfilingModes, stage::getProfilingMode, stage::setProfilingMode);
-    profilingModes.bind();
-    myProfilingModesCombo.setRenderer(new ProfilingModeCellRenderer());
+    myProfilingPreferencesCombo = new FlatComboBox<>();
+    JComboBoxView<CpuProfilerStage.ProfilingPreferences, CpuProfilerAspect> profilingPreferences =
+      new JComboBoxView<>(myProfilingPreferencesCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_PREFERENCES,
+                          stage::getProfilingPreferencesList, stage::getProfilingPreferences, stage::setProfilingPreferences);
+    profilingPreferences.bind();
+    myProfilingPreferencesCombo.setRenderer(new ListCellRendererWrapper<CpuProfilerStage.ProfilingPreferences>() {
+      @Override
+      public void customize(JList list,
+                            CpuProfilerStage.ProfilingPreferences value,
+                            int index,
+                            boolean selected,
+                            boolean hasFocus) {
+        setText(value.getName());
+      }
+    });
   }
 
   private void selectionChanged() {
@@ -294,7 +303,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel panel = new JPanel(new BorderLayout());
     JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
 
-    toolbar.add(myProfilingModesCombo);
+    toolbar.add(myProfilingPreferencesCombo);
     toolbar.add(myCaptureButton);
 
     StudioProfilers profilers = getStage().getStudioProfilers();
@@ -369,16 +378,15 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myStage.stopCapturing();
 
       FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
-      switch (myStage.getProfilingMode()) {
-        case SAMPLED:
-          featureTracker.trackTraceSampled();
-          break;
-        case INSTRUMENTED:
-          featureTracker.trackTraceInstrumented();
-          break;
-        default:
-          // Intentional no-op
-          break;
+      CpuProfilerStage.ProfilingPreferences profilingPreferences = myStage.getProfilingPreferences();
+      if (profilingPreferences.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) {
+        if (profilingPreferences.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
+          featureTracker.trackTraceArtSampled();
+        } else if (profilingPreferences.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
+          featureTracker.trackTraceArtInstrumented();
+        }
+      } else if (profilingPreferences.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF) {
+        // TODO: track simpleperf
       }
     }
     else {
@@ -417,26 +425,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       // Overrides it because, when not on mac, JBViewport adds the width of the scrollbar to the right inset of the border,
       // which would consequently misplace the threads state chart.
       return new JViewport();
-    }
-  }
-
-  private static class ProfilingModeCellRenderer extends ListCellRendererWrapper<CpuProfiler.CpuProfilingAppStartRequest.Mode> {
-    @Override
-    public void customize(JList list,
-                          CpuProfiler.CpuProfilingAppStartRequest.Mode value,
-                          int index,
-                          boolean selected,
-                          boolean hasFocus) {
-      switch (value) {
-        case SAMPLED:
-          setText("Sampled");
-          break;
-        case INSTRUMENTED:
-          setText("Instrumented");
-          break;
-        default:
-          getLog().warn("Unexpected profiling mode received.");
-      }
     }
   }
 
