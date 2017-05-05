@@ -76,6 +76,24 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     checkRendering(task, "drawable/progress_horizontal.png");
   }
 
+  public void testRenderMenuWithShowInNavigationViewAttribute() throws Exception {
+    RenderTask task = createRenderTask(myFixture.copyFileToProject("menus/activity_main_drawer.xml", "res/menu/activity_main_drawer.xml"));
+
+    DomPullParser parser = (DomPullParser)LayoutPullParserFactory.create(task);
+    assert parser != null;
+
+    assertFalse(task.getShowDecorations());
+
+    String expected = String.format("<android.support.design.widget.NavigationView%n" +
+                                    "xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +
+                                    "xmlns:app=\"http://schemas.android.com/apk/res-auto\"%n" +
+                                    "android:layout_width=\"wrap_content\"%n" +
+                                    "android:layout_height=\"match_parent\"%n" +
+                                    "app:menu=\"@menu/activity_main_drawer\" />%n");
+
+    assertEquals(expected, XmlPrettyPrinter.prettyPrint(parser.getRoot(), true));
+  }
+
   public void testRenderAdaptiveIcon() throws Exception {
     // TODO: Replace the drawable with an actual adaptive-icon (see TODO below)
     VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/mipmap/adaptive.xml");
