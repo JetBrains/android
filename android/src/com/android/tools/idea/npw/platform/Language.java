@@ -15,12 +15,30 @@
  */
 package com.android.tools.idea.npw.platform;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
- * Representations of supported porgramming languages we can target when building an app.
+ * Representations of supported programming languages we can target when building an app.
  */
 public enum Language {
   JAVA("Java"),
   KOTLIN("Kotlin");
+
+  /**
+   * Finds a language matching the requested name. Returns specified 'defaultValue' if not found.
+   */
+  public static Language fromName(@Nullable String name, @NotNull Language defaultValue) {
+    if (name != null) {
+      for (Language language : Language.values()) {
+        if (language.getName().equals(name)) {
+          return language;
+        }
+      }
+    }
+
+    return defaultValue;
+  }
 
   private final String myName;
 

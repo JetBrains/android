@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.npw;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.npw.platform.Language;
-import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -77,12 +76,14 @@ public class NewActivityTest {
 
     myConfigActivity = myDialog.getConfigureActivityStep();
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
-    assertThat(NewProjectModel.getInitialSourceLanguage()).isEqualTo(Language.JAVA);
+    assertThat(getSavedKotlinSupport()).isFalse();
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
   }
 
   @After
   public void tearDown() {
-    NewProjectModel.setInitialSourceLanguage(Language.JAVA);
+    setSavedKotlinSupport(false);
+    setSavedRenderSourceLanguage(Language.JAVA);
   }
 
   @RunIn(TestGroup.QA)
@@ -170,8 +171,8 @@ public class NewActivityTest {
 
     // TODO: Open the generated file. This is failing when running the UI tests, as it can't load the kotlin plugin...
 
-    assertThat(PropertiesComponent.getInstance().getValue("SAVED_SOURCE_LANGUAGE")).isEqualTo("Kotlin");
-    assertThat(NewProjectModel.getInitialSourceLanguage()).isEqualTo(Language.KOTLIN);
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
+    assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
   }
 
   @Test
@@ -293,7 +294,6 @@ public class NewActivityTest {
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.TITLE)).isEqualTo(title);
   }
 
-
   private void verifyNewActivityProjectPane(@NotNull String viewId, @NotNull String name, boolean finish) {
     // Change to viewId
     guiTest.ideFrame().getProjectView().selectPane(viewId, name);
@@ -317,5 +317,22 @@ public class NewActivityTest {
 
     // Make sure it is still the same
     assertEquals(viewId, guiTest.ideFrame().getProjectView().getCurrentViewId());
+  }
+
+  private static boolean getSavedKotlinSupport() {
+    return PropertiesComponent.getInstance().isTrueValue("SAVED_PROJECT_KOTLIN_SUPPORT");
+  }
+
+  private static void setSavedKotlinSupport(boolean isSupported) {
+    PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", isSupported);
+  }
+
+  @NotNull
+  private static Language getSavedRenderSourceLanguage() {
+      return Language.fromName(PropertiesComponent.getInstance().getValue("SAVED_RENDER_LANGUAGE"), Language.JAVA);
+  }
+
+  private static void setSavedRenderSourceLanguage(Language language) {
+    PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", language.getName());
   }
 }
