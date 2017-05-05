@@ -79,6 +79,28 @@ public class FontFamilyParserTest extends UsefulTestCase {
     assertThat(fontDetail.myItalics).isFalse();
   }
 
+  public void testParseFontFamilyWithDownloadableFontQueryUsingAppCompat() throws Exception {
+    @Language("XML")
+    String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                 "<font-family xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                 "    app:fontProviderAuthority=\"com.google.android.gms.fonts\"\n" +
+                 "    app:fontProviderQuery=\"Aladin\">\n" +
+                 "</font-family>\n";
+    QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(createXmlFile(xml));
+    assertThat(result).isInstanceOf(QueryParser.DownloadableParseResult.class);
+    QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
+    assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
+
+    Multimap<String, FontDetail.Builder> fonts = downloadableResult.getFonts();
+    assertThat(fonts.keys()).containsExactly("Aladin");
+    assertThat(fonts).hasSize(1);
+
+    FontDetail.Builder fontDetail = fonts.get("Aladin").iterator().next();
+    assertThat(fontDetail.myWeight).isEqualTo(400);
+    assertThat(fontDetail.myWidth).isEqualTo(100);
+    assertThat(fontDetail.myItalics).isFalse();
+  }
+
   public void testParseFontFamilyWithDownloadableFontQueryWithParameters() throws Exception {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +

@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.AUTO_URI;
 import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WEIGHT;
 import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WIDTH;
 
@@ -65,12 +67,12 @@ class FontFamilyParser {
   private static class FontFamilyHandler extends DefaultHandler {
     private static final String FONT_FAMILY = "font-family";
     private static final String FONT = "font";
-    private static final String ATTR_AUTHORITY = "android:fontProviderAuthority";
-    private static final String ATTR_QUERY = "android:fontProviderQuery";
-    private static final String ATTR_FONT = "android:font";
-    private static final String ATTR_FONT_WEIGHT = "android:fontWeight";
-    private static final String ATTR_FONT_WIDTH = "android:fontWidth";
-    private static final String ATTR_FONT_STYLE = "android:fontStyle";
+    private static final String ATTR_AUTHORITY = "fontProviderAuthority";
+    private static final String ATTR_QUERY = "fontProviderQuery";
+    private static final String ATTR_FONT = "font";
+    private static final String ATTR_FONT_WEIGHT = "fontWeight";
+    private static final String ATTR_FONT_WIDTH = "fontWidth";
+    private static final String ATTR_FONT_STYLE = "fontStyle";
 
     private final File myFile;
     private QueryParser.ParseResult myResult;
@@ -92,19 +94,28 @@ class FontFamilyParser {
       throws SAXException {
       switch (name) {
         case FONT_FAMILY:
-          myResult = parseQuery(attributes.getValue(ATTR_AUTHORITY), attributes.getValue(ATTR_QUERY));
+          myResult = parseQuery(getAttributeValue(attributes, ATTR_AUTHORITY), getAttributeValue(attributes, ATTR_QUERY));
           break;
         case FONT:
-          String fontName = attributes.getValue(ATTR_FONT);
-          int weight = parseInt(attributes.getValue(ATTR_FONT_WEIGHT), DEFAULT_WEIGHT);
-          int width = parseInt(attributes.getValue(ATTR_FONT_WIDTH), DEFAULT_WIDTH);
-          boolean italics = parseFontStyle(attributes.getValue(ATTR_FONT_STYLE));
+          String fontName = getAttributeValue(attributes, ATTR_FONT);
+          int weight = parseInt(getAttributeValue(attributes, ATTR_FONT_WEIGHT), DEFAULT_WEIGHT);
+          int width = parseInt(getAttributeValue(attributes, ATTR_FONT_WIDTH), DEFAULT_WIDTH);
+          boolean italics = parseFontStyle(getAttributeValue(attributes, ATTR_FONT_STYLE));
           myResult = addFont(fontName, weight, width, italics);
           break;
         default:
           Logger.getInstance(FontFamilyParser.class).warn("Unrecognized tag: " + name + " in file: " + myFile);
           break;
       }
+    }
+
+    @Nullable
+    private static String getAttributeValue(@NotNull Attributes attributes, @NotNull String attrName) {
+      String value = attributes.getValue(ANDROID_URI, attrName);
+      if (value != null) {
+        return value;
+      }
+      return attributes.getValue(AUTO_URI, attrName);
     }
 
     /**
