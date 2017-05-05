@@ -77,7 +77,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm, Persisten
   @Override
   public void layout(@NotNull SceneComponent component) {
     NavigationSchema.DestinationType type = getSchema().getDestinationType(component.getNlComponent().getTagName());
-    if (type != NavigationSchema.DestinationType.FRAGMENT && type != NavigationSchema.DestinationType.ACTIVITY) {
+    if (type == NavigationSchema.DestinationType.NAVIGATION && component.getParent() == null) {
       return;
     }
     Point location = getState().getPositions().get(component.getId());

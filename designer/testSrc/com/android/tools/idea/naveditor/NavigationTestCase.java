@@ -96,6 +96,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
     Function<? super SyncNlModel, ? extends SceneManager> managerFactory = model -> {
       when(((NavDesignSurface)model.getSurface()).getSchema()).thenReturn(NavigationSchema.getOrCreateSchema(myAndroidFacet));
+      when(((NavDesignSurface)model.getSurface()).getCurrentNavigation()).then(invocation -> model.getComponents().get(0));
       return new NavSceneManager(model, (NavDesignSurface)model.getSurface());
     };
 

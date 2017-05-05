@@ -99,14 +99,21 @@ public class NavSceneManager extends SceneManager {
     super.updateFromComponent(sceneComponent);
     NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
     if (type != null) {
+      sceneComponent.setTargetProvider(myScreenTargetProvider, false);
       switch (type) {
         case NAVIGATION:
-          // TODO: support nested navigation elements (subflows)
-          SceneView view = getDesignSurface().getCurrentSceneView();
-          if (view != null) {
-            Dimension viewDimension = view.getPreferredSize();
-            sceneComponent.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.width),
-                                   Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.height), true);
+          if (sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()) {
+            SceneView view = getDesignSurface().getCurrentSceneView();
+            if (view != null) {
+              Dimension viewDimension = view.getPreferredSize();
+              sceneComponent.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.width),
+                                     Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.height), true);
+            }
+          }
+          else {
+            // TODO: take label size into account
+            sceneComponent.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), 140),
+                                   Coordinates.getAndroidDimensionDip(getDesignSurface(), 34), false);
           }
           break;
         case FRAGMENT:
@@ -115,7 +122,6 @@ public class NavSceneManager extends SceneManager {
           // TODO: is this conversion correct?
           double scale = (double)Coordinates.getAndroidDimension(getDesignSurface(), SCREEN_WIDTH)/screen.getXDimension();
           sceneComponent.setSize((int)(scale * screen.getXDimension()), (int)(scale * screen.getYDimension()), true);
-          sceneComponent.setTargetProvider(myScreenTargetProvider, false);
           break;
         default:
           // nothing
@@ -138,6 +144,14 @@ public class NavSceneManager extends SceneManager {
     if (type != null) {
       switch (type) {
         case NAVIGATION:
+          if (component.getParent() != null) {
+            SceneComponent sceneComponent = getScene().getSceneComponent(component);
+            if (sceneComponent == null) {
+              sceneComponent = new SceneComponent(getScene(), component);
+            }
+            return sceneComponent;
+          }
+          return super.createHierarchy(component);
         case FRAGMENT:
         case ACTIVITY:
           return super.createHierarchy(component);

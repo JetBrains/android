@@ -46,6 +46,7 @@ public class ActionTarget extends BaseTarget {
   @SwingCoordinate private Rectangle mySourceRect;
   @SwingCoordinate private Rectangle myDestRect;
   private final NlComponent myNlComponent;
+  private final SceneComponent myDestination;
 
   public static class CurvePoints {
     @SwingCoordinate public Point p1;
@@ -89,9 +90,10 @@ public class ActionTarget extends BaseTarget {
     }
   }
 
-  public ActionTarget(@NotNull SceneComponent component, @NotNull NlComponent actionComponent) {
+  public ActionTarget(@NotNull SceneComponent component, @NotNull SceneComponent destination, @NotNull NlComponent actionComponent) {
     setComponent(component);
     myNlComponent = actionComponent;
+    myDestination = destination;
   }
 
   @Override
@@ -123,20 +125,10 @@ public class ActionTarget extends BaseTarget {
       // TODO: error handling
       return;
     }
-    Rectangle destRect = null;
-    //noinspection ConstantConditions
-    for (SceneComponent candidate : getComponent().getParent().getChildren()) {
-      if (targetId.equals(candidate.getId())) {
-        destRect = Coordinates.getSwingRectDip(sceneContext, candidate.fillRect(null));
-        break;
-      }
-    }
+    myDestRect = Coordinates.getSwingRectDip(sceneContext, myDestination.fillRect(null));
     mySourceRect = sourceRect;
-    myDestRect = destRect;
-    if (destRect != null) {
-      boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
-      DrawAction.buildDisplayList(list, ConnectionType.NORMAL, sourceRect, destRect, selected ? SELECTED : NORMAL);
-    }
+    boolean selected = getComponent().getScene().getSelection().contains(myNlComponent);
+    DrawAction.buildDisplayList(list, ConnectionType.NORMAL, sourceRect, myDestRect, selected ? SELECTED : NORMAL);
   }
 
   @Override

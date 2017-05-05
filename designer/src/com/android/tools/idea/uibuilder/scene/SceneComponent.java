@@ -101,8 +101,7 @@ public class SceneComponent {
   //region Constructor & toString
   /////////////////////////////////////////////////////////////////////////////
 
-  protected SceneComponent(@NotNull Scene scene,
-                           @NotNull NlComponent component) {
+  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
     myScene = scene;
     myNlComponent = component;
     myScene.addComponent(this);
@@ -772,17 +771,6 @@ public class SceneComponent {
     return rectangle;
   }
 
-  public Rectangle fillDrawRect(@Nullable Rectangle rectangle, long time) {
-    if (rectangle == null) {
-      rectangle = new Rectangle();
-    }
-    rectangle.x = myAnimatedDrawX.getValue(time);
-    rectangle.y = myAnimatedDrawY.getValue(time);
-    rectangle.width = myAnimatedDrawWidth.getValue(time);
-    rectangle.height = myAnimatedDrawHeight.getValue(time);
-    return rectangle;
-  }
-
   public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker) {
     if (myIsToolLocked) {
       return; // skip this if hidden
@@ -816,11 +804,17 @@ public class SceneComponent {
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 
-  public void fillDrawRect(long time, @AndroidDpCoordinate Rectangle rec) {
+  @AndroidDpCoordinate
+  @NotNull
+  public Rectangle fillDrawRect(long time, @Nullable @AndroidDpCoordinate Rectangle rec) {
+    if (rec == null) {
+      rec = new Rectangle();
+    }
     rec.x = getDrawX(time);
     rec.y = getDrawY(time);
     rec.width = getDrawWidth(time);
     rec.height = getDrawHeight(time);
+    return rec;
   }
 
   public String getId() {
