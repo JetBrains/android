@@ -17,8 +17,13 @@ package com.android.tools.idea.flags;
 
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
+import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
+import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
@@ -29,7 +34,20 @@ import com.android.flags.overrides.PropertyOverrides;
  * "//tools/base/flags".
  */
 public final class StudioFlags {
-  private static final Flags FLAGS = new Flags(new PropertyOverrides());
+  private static final Flags FLAGS = createFlags();
+
+  @NotNull
+  private static Flags createFlags() {
+    Application app = ApplicationManager.getApplication();
+    FlagOverrides userOverrides;
+    if (app != null && !app.isUnitTestMode()) {
+      userOverrides = StudioFlagSettings.getInstance();
+    }
+    else {
+      userOverrides = new DefaultFlagOverrides();
+    }
+    return new Flags(userOverrides, new PropertyOverrides());
+  }
 
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");
   public static final Flag<Boolean> NPW_NEW_PROJECT = Flag.create(
