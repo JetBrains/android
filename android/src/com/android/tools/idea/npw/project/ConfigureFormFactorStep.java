@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.project;
 
 import com.android.SdkConstants;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
 import com.android.tools.idea.npw.FormFactor;
@@ -24,6 +26,10 @@ import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -53,6 +59,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
@@ -63,6 +70,9 @@ import static org.jetbrains.android.util.AndroidBundle.message;
  * parameters.
  */
 public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
+  private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
+  private final List<UpdatablePackage> myInstallRequests = new ArrayList<>();
+  private final List<RemotePackage> myInstallLicenseRequests = new ArrayList<>();
   private final BindingsManager myBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
   private final ObjectValueProperty<Integer> myEnabledFormFactors = new ObjectValueProperty<>(0);
@@ -74,7 +84,6 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
   private JPanel myPanel;
   private JPanel myFormFactorPanel;
   private JPanel myLoadingPanel;
-
 
   public ConfigureFormFactorStep(@NotNull NewProjectModel model) {
     super(model, message("android.wizard.project.target"));
@@ -144,6 +153,9 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       });
     }
 
+    allSteps.add(new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests));
+    allSteps.add(new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false));
+
     return allSteps;
   }
 
@@ -160,13 +172,21 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     Set<NewModuleModel> newModuleModels = getModel().getNewModuleModels();
     newModuleModels.clear();
 
+    List<AndroidVersionsInfo.VersionItem> installItems = new ArrayList<>();
     for (FormFactorInfo formFactorInfo : myFormFactors.values()) {
       if (formFactorInfo.controls.getInclusionCheckBox().isSelected()) {
         newModuleModels.add(formFactorInfo.newModuleModel);
+        installItems.add(formFactorInfo.getAndroidSdkInfo());
       }
     }
 
     assert newModuleModels.size() > 0;
+
+    myInstallRequests.clear();
+    myInstallLicenseRequests.clear();
+
+    myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(null, installItems));
+    myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
   }
 
   @Override
@@ -273,8 +293,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     // One row for each form factor
     myFormFactorPanel.setLayout(new TabularLayout("*").setVGap(5));
 
-    AndroidVersionsInfo androidVersionsInfo = new AndroidVersionsInfo();
-    androidVersionsInfo.load();
+    myAndroidVersionsInfo.load();
 
     Set<FormFactor> formFactors = myFormFactors.keySet();
     AtomicInteger loadingCounter = new AtomicInteger(formFactors.size());
@@ -286,7 +305,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       myFormFactorPanel.add(controls.getComponent(), new TabularLayout.Constraint(row, 0));
       row++;
 
-      androidVersionsInfo.loadTargetVersions(formFactor, formFactorInfo.minSdk, items -> {
+      myAndroidVersionsInfo.loadTargetVersions(formFactor, formFactorInfo.minSdk, items -> {
         controls.init(items);
         controls.getInclusionCheckBox().setSelected(FormFactor.MOBILE.equals(formFactor));
         if (loadingCounter.decrementAndGet() == 0) {
@@ -322,6 +341,11 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     int getMinTargetSdk() {
       AndroidVersionsInfo.VersionItem androidVersion = newRenderModel.androidSdkInfo().getValueOrNull();
       return androidVersion == null ? 0 : androidVersion.getApiLevel();
+    }
+
+    @NotNull
+    AndroidVersionsInfo.VersionItem getAndroidSdkInfo() {
+      return newRenderModel.androidSdkInfo().getValue();
     }
   }
 }
