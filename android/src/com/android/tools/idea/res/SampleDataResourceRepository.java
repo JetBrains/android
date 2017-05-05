@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
+import com.android.ide.common.resources.sampledata.SampleDataJsonParser;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -27,11 +28,14 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.*;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +43,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.android.SdkConstants.EXT_JSON;
 import static com.android.SdkConstants.FD_SAMPLE_DATA;
 
 
@@ -87,6 +92,33 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     invalidate();
   }
 
+  private static void addItems(@NotNull ImmutableListMultimap.Builder<String, ResourceItem> items, @NotNull PsiFile sampleDataFile) {
+    if (!EXT_JSON.equals(sampleDataFile.getVirtualFile().getExtension())) {
+      // Plain file
+      items.put(sampleDataFile.getName(),
+                new PsiResourceItem(sampleDataFile.getName(), ResourceType.SAMPLE_DATA, null, null, sampleDataFile));
+      return;
+    }
+
+    try {
+      SampleDataJsonParser parser = SampleDataJsonParser.parse(new FileReader(VfsUtilCore.virtualToIoFile(sampleDataFile.getVirtualFile())));
+      if (parser == null) {
+        // Failed to parse the JSON file
+        return;
+      }
+
+      Set<String> possiblePaths = parser.getPossiblePaths();
+      for (String path : possiblePaths) {
+        String fullName = sampleDataFile.getName() + path;
+        items.put(fullName,
+                  new PsiResourceItem(fullName, ResourceType.SAMPLE_DATA, null, null, sampleDataFile));
+      }
+    }
+    catch (FileNotFoundException e) {
+      LOG.error("File not found " + sampleDataFile.getName(), e);
+    }
+  }
+
   /**
    * Invalidates the current sample data of this repository. Call this method after the sample data has been updated to reload the contents.
    */
@@ -106,8 +138,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
         childrenStream
           .map(psiManager::findFile)
           .filter(Objects::nonNull)
-          .forEach(f -> items.put(f.getName(),
-                                  new PsiResourceItem(f.getName(), ResourceType.SAMPLE_DATA, null, null, f)));
+          .forEach(f -> addItems(items, f));
       });
 
       myFullTable.put(null, ResourceType.SAMPLE_DATA, items.build());
