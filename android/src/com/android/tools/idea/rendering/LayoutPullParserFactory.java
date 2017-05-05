@@ -46,8 +46,10 @@ import org.w3c.dom.Element;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
@@ -62,7 +64,7 @@ public class LayoutPullParserFactory {
   static final boolean DEBUG = false;
 
   private static final String[] VALID_XML_TAGS = {TAG_APPWIDGET_PROVIDER, TAG_PREFERENCE_SCREEN};
-  private static final String[] ADAPTIVE_ICON_TAGS =  {TAG_ADAPTIVE_ICON, TAG_MASKABLE_ICON};
+  private static final String[] ADAPTIVE_ICON_TAGS = {TAG_ADAPTIVE_ICON, TAG_MASKABLE_ICON};
   private static final String[] FONT_FAMILY_TAGS = {TAG_FONT_FAMILY};
 
   private static final EnumSet<ResourceFolderType> FOLDER_NEEDS_READ_ACCESS =
@@ -142,12 +144,7 @@ public class LayoutPullParserFactory {
         renderTask.setDecorations(false);
         return createDrawableParser(file);
       case MENU:
-        if (renderTask.supportsCapability(Features.ACTION_BAR)) {
-          return new MenuLayoutParserFactory(renderTask).render();
-        }
-        renderTask.setRenderingMode(FULL_EXPAND);
-        renderTask.setDecorations(false);
-        return new MenuPreviewRenderer(renderTask, file).render();
+        return createMenuParser(file, renderTask);
       case XML: {
         // Switch on root type
         XmlTag rootTag = file.getRootTag();
@@ -166,7 +163,6 @@ public class LayoutPullParserFactory {
           }
         }
         return null;
-
       }
       case FONT:
         renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
@@ -191,8 +187,10 @@ public class LayoutPullParserFactory {
     setAndroidAttr(imageView, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(imageView, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
 
-    setAndroidAttr(imageView, ATTR_SRC,
-                   PREFIX_RESOURCE_REF + ResourceHelper.getFolderType(file).getName() + "/" + ResourceHelper.getResourceName(file));
+    ResourceFolderType type = ResourceHelper.getFolderType(file);
+    assert type != null;
+
+    setAndroidAttr(imageView, ATTR_SRC, PREFIX_RESOURCE_REF + type.getName() + "/" + ResourceHelper.getResourceName(file));
 
     if (DEBUG) {
       //noinspection UseOfSystemOutOrSystemErr
@@ -215,6 +213,31 @@ public class LayoutPullParserFactory {
     }
 
     return new DomPullParser(document.getDocumentElement());
+  }
+
+  @NotNull
+  private static ILayoutPullParser createMenuParser(@NotNull XmlFile file, @NotNull RenderTask task) {
+    XmlTag tag = file.getRootTag();
+
+    // LayoutLib renders a menu in an app bar by default. If the menu resource has a tools:showIn="navigation_view" attribute, tell
+    // LayoutLib to render it in a navigation view instead.
+    if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), "navigation_view")) {
+      task.setDecorations(false);
+
+      // TODO Override the preview size for things like navigation view headers and list items
+      // task.setOverrideRenderSize(560, 1280);
+
+      return new NavigationViewMenuLayoutPullParserFactory(task).render();
+    }
+
+    if (task.supportsCapability(Features.ACTION_BAR)) {
+      return new MenuLayoutParserFactory(task).render();
+    }
+
+    task.setDecorations(false);
+    task.setRenderingMode(FULL_EXPAND);
+
+    return new MenuPreviewRenderer(task, file).render();
   }
 
   @Nullable
@@ -269,7 +292,11 @@ public class LayoutPullParserFactory {
     setAndroidAttr(rootLayout, ATTR_ORIENTATION, VALUE_VERTICAL);
 
     String loremText = new LoremGenerator().generate(8, true);
-    String fontRefName = PREFIX_RESOURCE_REF + ResourceHelper.getFolderType(file).getName() + "/" + ResourceHelper.getResourceName(file);
+
+    ResourceFolderType type = ResourceHelper.getFolderType(file);
+    assert type != null;
+
+    String fontRefName = PREFIX_RESOURCE_REF + type.getName() + "/" + ResourceHelper.getResourceName(file);
 
     XmlTag[] fontSubTags = rootTag.getSubTags();
     Stream<String> stylesStream;
@@ -278,8 +305,11 @@ public class LayoutPullParserFactory {
       // This might be a downloadable font. Check if we have it.
       FontFamily downloadedFont = getDownloadableFont.apply(fontRefName);
 
+      @SuppressWarnings("ConstantConditions")
+      Predicate<FontDetail> exists = font -> font.getCachedFontFile().exists();
+
       stylesStream = downloadedFont != null ? downloadedFont.getFonts().stream()
-        .filter(font -> font.getCachedFontFile().exists())
+        .filter(exists)
         .map(FontDetail::getFontStyle) : Stream.empty();
     }
     else {
