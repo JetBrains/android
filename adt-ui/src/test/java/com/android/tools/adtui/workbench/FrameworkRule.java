@@ -76,13 +76,14 @@ public class FrameworkRule implements TestRule {
     @Mock private FloatingToolWindowManager myFloatingToolWindowManager;
     @Mock private FileEditorManager myFileEditorManager;
     @Mock private ToolWindowManager myToolWindowManager;
-    @Mock private UISettings myUISettings;
+    private final UISettings myUISettings;
     @Mock private ActionPopupMenu myActionPopupMenu;
     @Mock private JPopupMenu myPopupMenu;
 
     public FrameworkStatement(@NotNull Statement base) {
       myBase = base;
       myPropertiesComponent = new PropertiesComponentMock();
+      myUISettings = new UISettings();
       myDisposable = Disposer.newDisposable();
     }
 
