@@ -33,7 +33,6 @@ import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.event.InputEvent;
 import java.io.File;
 import java.util.Locale;
 
@@ -62,7 +61,7 @@ public class WizardUtils {
   // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
   @Deprecated
   public static boolean isNpwModelWizardEnabled(AnActionEvent e, @NotNull Feature feature) {
-    return isNpwModelWizardEnabled(feature) && (e.getInputEvent().getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0;
+    return isNpwModelWizardEnabled(feature) /*&& (e.getInputEvent().getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0*/;
   }
 
   /**
