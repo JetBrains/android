@@ -296,8 +296,11 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  /* Disabled until the attrs.xml file in the unit test distribution is updated to Android L
   public void testAnimatedVectorHighlighting1() throws Throwable {
+    doTestHighlighting();
+  }
+
+  public void testAnimatedVectorHighlighting2() throws Throwable {
     doTestHighlighting();
   }
 
@@ -308,7 +311,6 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
   public void testVectorHighlighting2() throws Throwable {
     doTestHighlighting();
   }
-  */
 
   public void testAdaptiveIconCompletion() throws Throwable {
     doTestCompletion();

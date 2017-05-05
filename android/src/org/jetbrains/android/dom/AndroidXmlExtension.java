@@ -25,12 +25,14 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.xml.SchemaPrefix;
 import com.intellij.psi.impl.source.xml.TagNameReference;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.DefaultXmlExtension;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
@@ -105,5 +107,30 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
     }
 
     return null;
+  }
+
+  @Override
+  public boolean isRequiredAttributeImplicitlyPresent(@NotNull XmlTag tag, @NotNull String attrName) {
+    return isAaptAttributeDefined(tag, attrName);
+  }
+
+  /**
+   * Checks if an aapt:attr with the given name is defined for the XML tag.
+   *
+   * @param tag the XML tag to check
+   * @param attrName the name of the attribute to look for
+   * @return true if the attribute is defined, false otherwise
+   */
+  public static boolean isAaptAttributeDefined(@NotNull XmlTag tag, @NotNull String attrName) {
+    XmlTag[] subTags = tag.getSubTags();
+    for (XmlTag child : subTags) {
+      if (SdkConstants.TAG_ATTR.equals(child.getLocalName()) && SdkConstants.AAPT_URI.equals(child.getNamespace())) {
+        XmlAttribute attr = child.getAttribute(SdkConstants.ATTR_NAME);
+        if (attr != null && attrName.equals(attr.getValue())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
