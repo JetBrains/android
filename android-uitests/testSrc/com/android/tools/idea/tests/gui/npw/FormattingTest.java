@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.util.WizardUtils;
 import org.intellij.lang.annotations.Language;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,7 @@ public final class FormattingTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
+  @Ignore("See NewProjectModel.ReformattingGradleSyncListener")
   @Test
   public void templateGeneratedLayoutFileHasAndroidXmlFormatting() {
     WizardUtils.createNewProject(myGuiTest, "google.com", "Empty Activity");
