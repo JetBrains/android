@@ -95,8 +95,7 @@ public class FontFamilyCreator {
     saveContent(fontFolder, fontName + ".xml", content.getBytes(StandardCharsets.UTF_8));
 
     FontProvider provider = font.getFamily().getProvider();
-    createOrUpdateFile(FONT_CERTS_FILE, TAG_STRING_ARRAY, provider.getCertificateResourceName(), "", provider.getCertificate(),
-                       FontFamilyCreator::replaceItem);
+    createCertFileIfNeeded(provider);
     createOrUpdateFile(PRELOADED_FONTS_FILE, TAG_ARRAY, PRELOADED_FONTS, "@font/", fontName, FontFamilyCreator::insertItem);
     addPreloadedFontsToManifest();
 
@@ -205,6 +204,30 @@ public class FontFamilyCreator {
       "</resources>%n");
   }
 
+  @NotNull
+  @Language("XML")
+  private static String createCertificateFileContent(@NotNull FontProvider provider) {
+    String certName = escapeXmlValue(provider.getCertificateResourceName());
+    return String.format(
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
+      "<resources>\n" +
+      "    <array name=\"" + certName + "\">%n" +
+      "        <item>@array/" + certName + "_dev</item>%n" +
+      "        <item>@array/" + certName + "_prod</item>%n" +
+      "    </array>\n" +
+      "    <string-array name=\"" + certName + "_dev\">%n" +
+      "        <item>%n" +
+      "            " + provider.getDevelopmentCertificate() + "%n" +
+      "        </item>%n" +
+      "    </string-array>%n" +
+      "    <string-array name=\"" + certName + "_prod\">%n" +
+      "        <item>%n" +
+      "            " + provider.getCertificate() + "%n" +
+      "        </item>%n" +
+      "    </string-array>%n" +
+      "</resources>%n");
+  }
+
   private void createOrUpdateFile(@NotNull String fileName,
                                   @NotNull String tagName,
                                   @NotNull String name,
@@ -229,6 +252,15 @@ public class FontFamilyCreator {
           }
         }
       }
+    }
+  }
+
+  private void createCertFileIfNeeded(@NotNull FontProvider provider) throws IOException {
+    VirtualFile valuesFolder = getResourceFolder(ResourceFolderType.VALUES);
+    VirtualFile file = valuesFolder.findChild(FONT_CERTS_FILE);
+    if (file == null) {
+      String content = createCertificateFileContent(provider);
+      saveContent(valuesFolder, FONT_CERTS_FILE, content.getBytes(StandardCharsets.UTF_8));
     }
   }
 
@@ -290,20 +322,6 @@ public class FontFamilyCreator {
     }
     updater.update(newTag, prefix, value);
     return newTag;
-  }
-
-  @Nullable
-  private static XmlTag replaceItem(@NotNull XmlTag tag, @NotNull String prefix, @NotNull String value) {
-    XmlTag[] subTags = tag.getSubTags();
-    if (subTags.length == 1 && subTags[0].getName().equals(TAG_ITEM) && subTags[0].getValue().getText().equals(prefix + value)) {
-      return null; // no changes
-    }
-    if (subTags.length > 0) {
-      tag.deleteChildRange(subTags[0], subTags[subTags.length - 1]);
-    }
-    XmlTag newItem = tag.createChildTag(TAG_ITEM, "", prefix + escapeResourceString(value), false);
-    tag.addSubTag(newItem, true);
-    return newItem;
   }
 
   @Nullable

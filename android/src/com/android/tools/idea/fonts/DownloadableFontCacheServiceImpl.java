@@ -391,6 +391,7 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
     private static final String ATTR_PACKAGE = "package";
     private static final String ATTR_URL = "url";
     private static final String ATTR_CERT = "cert";
+    private static final String ATTR_DEV_CERT = "dev_cert";
 
     private final File myProviderFile;
     private final Map<String, FontProvider> myProviders;
@@ -412,8 +413,9 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
           String packageName = attributes.getValue(ATTR_PACKAGE);
           String url = attributes.getValue(ATTR_URL);
           String cert = attributes.getValue(ATTR_CERT);
+          String devCert = attributes.getValue(ATTR_DEV_CERT);
           if (!isEmpty(name) && !isEmpty(authority) && !isEmpty(packageName) && !isEmpty(url) && !isEmpty(cert)) {
-            myProviders.put(packageName, new FontProvider(name, authority, packageName, url, cert));
+            myProviders.put(packageName, new FontProvider(name, authority, packageName, url, cert, devCert));
           }
           break;
         default:
