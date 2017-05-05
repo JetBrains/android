@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.HandleViewDebug;
@@ -33,6 +34,8 @@ import com.android.tools.idea.editors.layoutInspector.ptable.LITableRendererProv
 import com.android.tools.idea.editors.layoutInspector.ui.RollOverTree;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeActiveDisplay;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeTreeRenderer;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.observable.collections.ObservableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.notification.Notification;
@@ -40,8 +43,10 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.JBCheckboxMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.TableSpeedSearch;
@@ -50,6 +55,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -59,11 +65,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class LayoutInspectorContext implements Disposable, DataProvider, ViewNodeActiveDisplay.ViewNodeActiveDisplayListener,
                                                TreeSelectionListener, RollOverTree.TreeHoverListener,
@@ -73,36 +81,52 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   // Hidden from public usage until we get UX/PM input on displaying display list output.
   private static final boolean DUMP_DISPLAYLIST_ENABLED = Boolean.getBoolean("dump.displaylist.enabled");
 
-  private
-  @Nullable Client myClient;
-  private
-  @Nullable ClientWindow myWindow;
-
+  @Nullable
+  private Client myClient;
+  @Nullable
+  private ClientWindow myWindow;
+  @Nullable
   private ViewNode myRoot;
+  @Nullable
   private BufferedImage myBufferedImage;
-
+  @NotNull
   private ViewNodeActiveDisplay myPreview;
 
   // Left Node Tree
-  private final RollOverTree myNodeTree;
+  @NotNull
+  private RollOverTree myNodeTree;
+  // list of ViewNodes for the subview path
+  @NotNull
+  private final ObservableList<ViewNode> mySubviewList;
 
   // Right Section: Properties Table
+  @NotNull
   private final PTableModel myTableModel;
+  @NotNull
   private final PTable myPropertiesTable;
 
   // Node popup menu
+  @NotNull
   private final JBPopupMenu myNodePopup;
+  @NotNull
   private final JBCheckboxMenuItem myNodeVisibleMenuItem;
+  @NotNull
   private final JMenuItem myDumpDisplayListMenuItem;
+  @NotNull
+  private final JMenuItem mySubtreePreviewMenuItem;
 
-  public LayoutInspectorContext(@NotNull LayoutFileData layoutParser) {
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(LayoutInspectorContext.class);
+  }
+
+  public LayoutInspectorContext(@NotNull LayoutFileData layoutParser,@NotNull Disposable parentDisposable) {
     myRoot = layoutParser.getNode();
     myBufferedImage = layoutParser.getBufferedImage();
 
-    myNodeTree = new RollOverTree(getRoot());
-    myNodeTree.setCellRenderer(new ViewNodeTreeRenderer());
-    myNodeTree.addTreeSelectionListener(this);
-    myNodeTree.addTreeHoverListener(this);
+    myNodeTree = createNodeTree(getRoot());
+
+    mySubviewList = new ObservableList<>();
 
     myTableModel = new PTableModel();
     myPropertiesTable = new PTable(myTableModel);
@@ -120,47 +144,64 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     });
     propertiesSpeedSearch.setComparator(new SpeedSearchComparator(false, false));
 
-    // Expand visible nodes
-    for (int i = 0; i < myNodeTree.getRowCount(); i++) {
-      TreePath path = myNodeTree.getPathForRow(i);
-      ViewNode n = (ViewNode)path.getLastPathComponent();
-      if (n.isDrawn()) {
-        myNodeTree.expandPath(path);
-      }
-    }
-
-    // Select the root node
-    myNodeTree.setSelectionRow(0);
-
     // Node popup
     myNodePopup = new JBPopupMenu();
     myNodeVisibleMenuItem = new JBCheckboxMenuItem(AndroidBundle.message("android.ddms.actions.layoutinspector.menu.show.bound"));
     myNodeVisibleMenuItem.addActionListener(new LayoutInspectorContext.ShowHidePreviewActionListener());
     myNodePopup.add(myNodeVisibleMenuItem);
 
-    if (isDumpDisplayListEnabled()) {
-      myDumpDisplayListMenuItem = new JMenuItem(AndroidBundle.message("android.ddms.actions.layoutinspector.menu.dump.display"));
-      myDumpDisplayListMenuItem.addActionListener(new LayoutInspectorContext.DumpDisplayListActionListener());
-      myDumpDisplayListMenuItem.setEnabled(myClient != null && myWindow != null);
-      myNodePopup.add(myDumpDisplayListMenuItem);
+    AndroidDebugBridge.addDeviceChangeListener(this);
 
-      AndroidDebugBridge.addDeviceChangeListener(this);
+    myDumpDisplayListMenuItem = new JMenuItem(AndroidBundle.message("android.ddms.actions.layoutinspector.menu.dump.display"));
+    myDumpDisplayListMenuItem.setVisible(false);
+    if (isDumpDisplayListEnabled()) {
+      myDumpDisplayListMenuItem.setVisible(true);
+      myDumpDisplayListMenuItem.addActionListener(new LayoutInspectorContext.DumpDisplayListActionListener());
+      myDumpDisplayListMenuItem.setEnabled(isDeviceConnected());
+      myNodePopup.add(myDumpDisplayListMenuItem);
     }
-    else {
-      myDumpDisplayListMenuItem = null;
+
+    // sub tree preview
+    mySubtreePreviewMenuItem = new JMenuItem("Render subtree preview");
+    mySubtreePreviewMenuItem.setVisible(false);
+    if (StudioFlags.LAYOUT_INSPECTOR_SUB_VIEW_ENABLED.get()) {
+      mySubtreePreviewMenuItem.setVisible(true);
+      mySubtreePreviewMenuItem.addActionListener(new LayoutInspectorContext.RenderSubtreePreviewActionListener());
+      mySubtreePreviewMenuItem.setEnabled(isDeviceConnected());
+      myNodePopup.add(mySubtreePreviewMenuItem);
     }
-    myNodeTree.addMouseListener(new LayoutInspectorContext.NodeRightClickAdapter());
+
+    Disposer.register(parentDisposable, this);
   }
 
-  public
   @NotNull
-  RollOverTree getNodeTree() {
+  private RollOverTree createNodeTree(@Nullable ViewNode root) {
+    RollOverTree tree = new RollOverTree(root);
+    // Select the root node
+    tree.setSelectionRow(0);
+    tree.setCellRenderer(new ViewNodeTreeRenderer());
+    tree.addTreeSelectionListener(this);
+    tree.addTreeHoverListener(this);
+    // Expand visible nodes
+    for (int i = 0; i < tree.getRowCount(); i++) {
+      TreePath path = tree.getPathForRow(i);
+      ViewNode n = (ViewNode)path.getLastPathComponent();
+      if (n.isDrawn()) {
+        tree.expandPath(path);
+      }
+    }
+
+    tree.addMouseListener(new LayoutInspectorContext.NodeRightClickAdapter());
+    return tree;
+  }
+
+  @NotNull
+  public RollOverTree getNodeTree() {
     return myNodeTree;
   }
 
-  public
   @NotNull
-  PTable getPropertiesTable() {
+  public PTable getPropertiesTable() {
     return myPropertiesTable;
   }
 
@@ -171,20 +212,29 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   @Override
   public void onViewNodeOver(@Nullable ViewNode node) {
+    if (myNodeTree == null) return;
     if (node == null) {
       myNodeTree.updateHoverPath(null);
     }
     else {
-      TreePath path = ViewNode.getPath(node);
+      TreePath path = ViewNode.getPathFromParent(node, myRoot);
       myNodeTree.updateHoverPath(path);
     }
   }
 
   @Override
   public void onNodeSelected(@NotNull ViewNode node) {
-    TreePath path = ViewNode.getPath(node);
+    if (myNodeTree == null) return;
+    TreePath path = ViewNode.getPathFromParent(node, myRoot);
     myNodeTree.scrollPathToVisible(path);
     myNodeTree.setSelectionPath(path);
+  }
+
+  @Override
+  public void onNodeDoubleClicked(@NotNull ViewNode node) {
+    if (isDeviceConnected() && StudioFlags.LAYOUT_INSPECTOR_SUB_VIEW_ENABLED.get()) {
+      showSubView(node);
+    }
   }
 
   @Override
@@ -227,22 +277,29 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     return null;
   }
 
+  @Nullable
   public ViewNode getRoot() {
     return myRoot;
   }
 
+  @Nullable
   public BufferedImage getBufferedImage() {
     return myBufferedImage;
   }
 
-  public void setPreview(ViewNodeActiveDisplay preview) {
+  public void setPreview(@NotNull ViewNodeActiveDisplay preview) {
     myPreview = preview;
   }
 
   public void setSources(@Nullable Client client, @Nullable ClientWindow window) {
     myClient = client;
     myWindow = window;
-    myDumpDisplayListMenuItem.setEnabled(myClient != null && myWindow != null);
+    myDumpDisplayListMenuItem.setEnabled(isDeviceConnected());
+    mySubtreePreviewMenuItem.setEnabled(isDeviceConnected());
+  }
+
+  private boolean isDeviceConnected() {
+    return myClient != null && myWindow != null;
   }
 
   public static boolean isDumpDisplayListEnabled() {
@@ -271,6 +328,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
     @Override
     public void mousePressed(@NotNull MouseEvent event) {
+      if (myNodeTree == null) return;
       if (event.isPopupTrigger()) {
         TreePath path = myNodeTree.getPathForEvent(event);
         if (path == null) {
@@ -292,6 +350,9 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
           myNodeVisibleMenuItem.setEnabled(false);
           myNodeVisibleMenuItem.setState(false);
         }
+
+        // hide sub view menu from the root
+        mySubtreePreviewMenuItem.setVisible(!node.equals(myRoot));
 
         myNodePopup.putClientProperty(KEY_VIEW_NODE, node);
 
@@ -315,6 +376,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
       if (myPreview != null) {
         myPreview.repaint();
       }
+      if (myNodeTree == null) return;
       myNodeTree.repaint();
     }
   }
@@ -322,6 +384,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   private class DumpDisplayListActionListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
+      if (!isDeviceConnected()) return;
+
       ViewNode node = (ViewNode)myNodePopup.getClientProperty(KEY_VIEW_NODE);
       if (node == null) {
         createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.nonode"),
@@ -329,6 +393,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
         return;
       }
 
+      if (myClient == null || myWindow == null) return;
       try {
         HandleViewDebug.dumpDisplayList(myClient, myWindow.title, node.toString());
       }
@@ -354,5 +419,54 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     Notifications.Bus.notify(new Notification(AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group"),
                                               AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"),
                                               message, type, null));
+  }
+
+  private class RenderSubtreePreviewActionListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (isDeviceConnected()) {
+        showSubView((ViewNode)myNodePopup.getClientProperty(KEY_VIEW_NODE));
+      }
+    }
+  }
+
+  public void goBackSubView() {
+    assert(!mySubviewList.isEmpty());
+    ViewNode lastNode = mySubviewList.get(mySubviewList.size() - 1);
+    if (lastNode == null) return;
+    updatePreview(lastNode);
+    mySubviewList.remove(lastNode);
+  }
+
+  @NotNull
+  public ObservableList<ViewNode> getSubviewList() {
+    return mySubviewList;
+  }
+
+  @VisibleForTesting
+  public void showSubView(@NotNull ViewNode node) {
+    ViewNode root = getRoot();
+    updatePreview(node);
+    mySubviewList.add(root);
+  }
+
+  private void updatePreview(@NotNull ViewNode node) {
+    if (myWindow == null) return;
+
+    byte[] bytes = myWindow.loadViewImage(node, 10, TimeUnit.SECONDS);
+
+    if (bytes == null) return;
+
+    try {
+      myBufferedImage = ImageIO.read(new ByteArrayInputStream(bytes));
+    }
+    catch (IOException e) {
+      getLogger().warn(e);
+    }
+
+    myRoot = node;
+    myPreview.setPreview(myBufferedImage, node);
+    myNodeTree = createNodeTree(node);
+    myPreview.repaint();
   }
 }

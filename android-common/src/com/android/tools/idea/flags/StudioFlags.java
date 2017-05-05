@@ -198,8 +198,11 @@ public final class StudioFlags {
 
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
-    LAYOUT_INSPECTOR, "enabled", "Enable the Load Overlay feature",
+    LAYOUT_INSPECTOR, "load.overlay", "Enable the Load Overlay feature",
     "If enabled, Show actions to let user choose overlay image on preview.", true);
+  public static final Flag<Boolean> LAYOUT_INSPECTOR_SUB_VIEW_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "sub.view", "Enable the sub view feature",
+    "If enabled, changes the preview to focus on a component.", true);
 
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
