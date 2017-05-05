@@ -122,6 +122,40 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     Disposer.dispose(repo);
   }
 
+  public void testJsonSampleData() {
+    myFixture.addFileToProject("sampledata/users.json",
+                               "{\n" +
+                               "  \"users\": [\n" +
+                               "    {\n" +
+                               "      \"name\": \"Name1\",\n" +
+                               "      \"surname\": \"Surname1\"\n" +
+                               "    },\n" +
+                               "    {\n" +
+                               "      \"name\": \"Name2\",\n" +
+                               "      \"surname\": \"Surname2\"\n" +
+                               "    },\n" +
+                               "    {\n" +
+                               "      \"name\": \"Name3\",\n" +
+                               "      \"surname\": \"Surname3\",\n" +
+                               "      \"phone\": \"555-00000\"\n" +
+                               "    }\n" +
+                               "  ]\n" +
+                               "}");
+    myFixture.addFileToProject("sampledata/invalid.json",
+                               "{\n" +
+                               "  \"users\": [\n" +
+                               "    {\n" +
+                               "      \"name\": \"Name1\",\n" +
+                               "      \"surname\": \"Surname1\"\n" +
+                               "    },\n");
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+
+    // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
+    assertEquals(3, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
+    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("users.json/users/name").size());
+    Disposer.dispose(repo);
+  }
+
   public void testResolverCacheInvalidation() {
     @Language("XML")
     String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
