@@ -356,7 +356,8 @@ public class NewProjectModel extends WizardModel {
 
         // The GradleSyncListener will take care of creating the Module top level module and opening Android Studio if gradle sync fails,
         // otherwise the project will be created but Android studio will not open - http://b.android.com/335265
-        projectImporter.importProject(applicationName().get(), rootLocation, request, new ReformattingGradleSyncListener());
+        projectImporter.importProject(applicationName().get(), rootLocation, request, new NewProjectImportGradleSyncListener() {
+        });
       }
       catch (IOException | ConfigurationException e) {
         Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));
@@ -365,6 +366,10 @@ public class NewProjectModel extends WizardModel {
     }
   }
 
+  // Unfortunately the reformatting happens after the editors get opened. Something notices that the files changed and the user gets a
+  // banner to retry the Gradle sync. That's annoying for users and is causing UI test failures. See http://b/37965951.
+  // TODO See if opening the editors after the reformatting happens fixes that
+  @SuppressWarnings("unused")
   private static final class ReformattingGradleSyncListener extends NewProjectImportGradleSyncListener {
     @Override
     public void syncSucceeded(@NotNull Project project) {
