@@ -76,7 +76,7 @@ abstract public class SceneManager implements Disposable {
     NlComponent rootComponent = components.get(0).getRoot();
 
     SceneComponent root = updateFromComponent(rootComponent, usedComponents);
-    root.setToolVisible(true); // the root is always visible.
+    root.setToolLocked(false); // the root is always unlocked.
     oldComponents.removeAll(usedComponents);
     // The temporary component are not present in the NLModel so won't be added to the used component array
     oldComponents.removeIf(component -> component instanceof TemporarySceneComponent);
@@ -100,12 +100,12 @@ abstract public class SceneManager implements Disposable {
    * @param component component to look at
    * @return tool visibility status
    */
-  public static boolean isComponentVisible(@NotNull NlComponent component) {
-    String attribute = component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_VISIBLE);
+  public static boolean isComponentLocked(@NotNull NlComponent component) {
+    String attribute = component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED);
     if (attribute != null) {
       return attribute.equals(SdkConstants.VALUE_TRUE);
     }
-    return true;
+    return false;
   }
 
   /**
@@ -123,7 +123,7 @@ abstract public class SceneManager implements Disposable {
       sceneComponent = new SceneComponent(myScene, component);
       created = true;
     }
-    sceneComponent.setToolVisible(isComponentVisible(component));
+    sceneComponent.setToolLocked(isComponentLocked(component));
     seenComponents.add(sceneComponent);
 
     boolean isAnimated = myScene.isAnimated();

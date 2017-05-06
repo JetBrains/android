@@ -63,7 +63,7 @@ public class SceneComponent {
   private ArrayList<SceneComponent> myChildren = new ArrayList<>();
   private SceneComponent myParent = null;
 
-  private boolean myIsToolVisible = true;
+  private boolean myIsToolLocked = false;
   private boolean myIsSelected = false;
   private boolean myDragging = false;
   private boolean myIsModelUpdateAuthorized = true;
@@ -521,11 +521,11 @@ public class SceneComponent {
     return myChildren.get(i);
   }
 
-  public void setToolVisible(boolean visible) {
-    myIsToolVisible = visible;
+  public void setToolLocked(boolean locked) {
+    myIsToolLocked = locked;
   }
 
-  public boolean isToolVisible() { return myIsToolVisible; }
+  public boolean isToolLocked() { return myIsToolLocked; }
 
   @NotNull
   public Stream<SceneComponent> flatten() {
@@ -784,7 +784,7 @@ public class SceneComponent {
   }
 
   public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker) {
-    if (!myIsToolVisible) {
+    if (myIsToolLocked) {
       return; // skip this if hidden
     }
     if (myDrawState == DrawState.HOVER) {
@@ -810,9 +810,6 @@ public class SceneComponent {
   }
 
   public void buildDisplayList(long time, @NotNull DisplayList list, SceneContext sceneContext) {
-    if (!myIsToolVisible) {
-      return; // skip this if hidden
-    }
     myDecorator.buildList(list, time, sceneContext, this);
   }
 
