@@ -35,6 +35,7 @@ public class SceneLayer extends Layer {
   private boolean myShowOnHover = false;
   private boolean myShowAlways = true;
   private boolean myAlwaysShowSelection;
+  private boolean myTemporaryShow = false;
 
   /**
    * Default constructor
@@ -55,10 +56,10 @@ public class SceneLayer extends Layer {
   @Override
   public void paint(@NotNull Graphics2D g2) {
     SceneContext sceneContext = SceneContext.get(mySceneView);
-    if (!myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
+    if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
     }
-    sceneContext.setShowOnlySelection(!myShowOnHover && myAlwaysShowSelection);
+    sceneContext.setShowOnlySelection(!myTemporaryShow && !myShowOnHover && myAlwaysShowSelection);
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -109,5 +110,10 @@ public class SceneLayer extends Layer {
 
   public void setAlwaysShowSelection(boolean alwaysShowSelection) {
     myAlwaysShowSelection = alwaysShowSelection;
+  }
+
+  public void setTemporaryShow(boolean temporaryShow) {
+    myTemporaryShow = temporaryShow;
+    myDisplay.reLayout();
   }
 }
