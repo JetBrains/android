@@ -75,6 +75,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * Preference key (used with {@link PropertiesComponent}) for show all constraints mode
    */
   public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
+  public static final String SHOW_MARGINS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowMargins";
+  public static final String FADE_UNRELATED_VIEWS = PREFERENCE_KEY_PREFIX + "FadeNonRelatedViews";
+  public static final String FADE_ON_LOCK_VIEWS = PREFERENCE_KEY_PREFIX + "FadeOnLock";
+  public static final String FADE_UNSELECTED_VIEWS = PREFERENCE_KEY_PREFIX + "FadeUnselected";
 
   private static final NlIcon BASELINE_ICON =
     new NlIcon(AndroidIcons.SherpaIcons.BaselineColor, AndroidIcons.SherpaIcons.BaselineBlue);
@@ -88,15 +92,17 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private final static String ADD_GROUP = "Add Group";
   private final static String ADD_CONSTRAINTS_SET = "Add set of Constraints";
 
+  private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<String, Boolean>();
+
   static {
     ourAutoConnect = PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
   }
 
   // This is used to efficiently test if they are horizontal or vertical.
   static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
-  ArrayList<ViewAction> myActions = new ArrayList<>();
-  ArrayList<ViewAction> myPopupActions = new ArrayList<>();
-  ArrayList<ViewAction> myControlActions = new ArrayList<>();
+  private ArrayList<ViewAction> myActions = new ArrayList<>();
+  private ArrayList<ViewAction> myPopupActions = new ArrayList<>();
+  private ArrayList<ViewAction> myControlActions = new ArrayList<>();
 
   /**
    * Utility function to convert from an Icon to an Image
@@ -175,7 +181,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     myActions.clear();
     myControlActions.clear();
 
-    actions.add((new ToggleConstraintModeAction()));
+    actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.Unhide,  Lists.<List<ViewAction>>newArrayList(
+      Lists.newArrayList(
+        new   ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY,"Show Constraints"),
+        new   ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY,"Show Margins"),
+        new   ToggleVisibilityAction(FADE_UNSELECTED_VIEWS,"Fade Unselected views ")
+      )
+    )));
     actions.add((new ToggleAutoConnectAction()));
     actions.add((new ViewActionSeparator()));
     actions.add(new ClearConstraintsAction());
@@ -696,6 +708,52 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       presentation.setIcon(AndroidIcons.SherpaIcons.Inference);
       presentation.setLabel("Infer Constraints");
     }
+  }
+
+  private class ToggleVisibilityAction extends ToggleViewAction {
+    String mType;
+    public ToggleVisibilityAction(String type, String text) {
+      super(AndroidIcons.SherpaIcons.Unchecked, AndroidIcons.SherpaIcons.Checked, text, text);
+      mType = type;
+      ourVisibilityFlags.put(mType, PropertiesComponent.getInstance().getBoolean(type));
+    }
+
+    @Override
+    public boolean isSelected(@NotNull ViewEditor editor,
+                              @NotNull ViewHandler handler,
+                              @NotNull NlComponent parent,
+                              @NotNull List<NlComponent> selectedChildren) {
+      return ourVisibilityFlags.get(mType);
+    }
+
+    @Override
+    public void setSelected(@NotNull ViewEditor editor,
+                            @NotNull ViewHandler handler,
+                            @NotNull NlComponent parent,
+                            @NotNull List<NlComponent> selectedChildren,
+                            boolean selected) {
+      ourVisibilityFlags.put(mType, selected);
+
+      PropertiesComponent.getInstance().setValue(mType, selected);
+    }
+  }
+
+  public static final boolean getVisualProperty(String prop) {
+    if (ourVisibilityFlags.containsKey(prop)) {
+       return ourVisibilityFlags.get(prop);
+    }
+    boolean selected =  PropertiesComponent.getInstance().getBoolean(prop);
+    ourVisibilityFlags.put(prop,selected);
+    return selected;
+  }
+
+  /**
+   * Used in testing
+   */
+  public static void forceDefaultVisualProperties() {
+    ourVisibilityFlags.put(SHOW_CONSTRAINTS_PREF_KEY, true);
+    ourVisibilityFlags.put(SHOW_MARGINS_PREF_KEY, true);
+    ourVisibilityFlags.put(FADE_UNSELECTED_VIEWS, false);
   }
 
   private class ToggleConstraintModeAction extends ToggleViewAction {

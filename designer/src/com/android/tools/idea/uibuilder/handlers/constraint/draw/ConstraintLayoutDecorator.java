@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.Scene;
@@ -197,7 +198,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       component.fillRect(rect);
       DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
       Scene scene = component.getScene();
-      boolean showAllConstraints = scene.isShowAllConstraints();
+
+      boolean showAllConstraints = ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
       List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
@@ -314,6 +316,17 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     convert(sceneContext, source_rect);
     ConnectionStatus connectStatus = new ConnectionStatus();
     List<NlComponent> selection = constraintComponent.getScene().getSelection();
+
+    boolean fade =  ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.FADE_UNSELECTED_VIEWS);
+
+    if (fade && selection.size() == 0) { // nothing selected do not fade
+      fade = false;
+    }
+
+    if (fade && selection.contains(constraintComponent.getNlComponent()) && selection.size() == 1) { // only parent selected don't fade
+      fade = false;
+    }
+
     boolean viewSelected = selection.contains(child.getNlComponent());
     int mode = (viewSelected) ? DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
     NlComponent c = child.getNlComponent();
@@ -330,9 +343,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     }
 
     for (int i = 0; i < ourDirections.length; i++) { // For each direction (not including baseline
-      Long otherChangeStart = null;
-      int otherPreviousMode = 0, otherCurrentMode = 0;
-      mode = (viewSelected) ? DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
+
       ConnectionType type = connectionTypes[i];
       SceneComponent sc = connectionTo[i];
       int destType = DrawConnection.DEST_NORMAL;
@@ -416,6 +427,9 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         changeStart = connectStatus.getTime(i);
         int previousMode = connectStatus.getPreviousMode(i);
         int currentMode = connectStatus.getCurrentMode(i);
+        if (currentMode == DrawConnection.MODE_NORMAL && fade) {
+          currentMode = DrawConnection.MODE_SUBDUED;
+        }
         int x1 = getX(source_rect, i);
         int x2 = getX(dest_rect, connect);
         int y1 = getY(source_rect, i);
@@ -426,9 +440,13 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (overlap) {
           connectType = DrawConnection.TYPE_ADJACENT;
         }
-          DrawConnection
-            .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
-                              isMarginReference, bias, previousMode, currentMode, changeStart);
+        if (!ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.SHOW_MARGINS_PREF_KEY)) {
+          margin = 0;
+          marginDistance = 0;
+        }
+        DrawConnection
+          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
+                            isMarginReference, bias, previousMode, currentMode, changeStart);
       }
     }
 
@@ -445,6 +463,9 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       changeStart = connectStatus.getTime(ConnectionStatus.DIRECTION_BASELINE);
       int previousMode = connectStatus.getPreviousMode(4);
       int currentMode = connectStatus.getCurrentMode(4);
+      if (currentMode == DrawConnection.MODE_NORMAL && fade) {
+        currentMode = DrawConnection.MODE_SUBDUED;
+      }
       DrawConnection
         .buildDisplayList(list,
                           DrawConnection.TYPE_BASELINE, source_rect,

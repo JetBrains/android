@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
@@ -48,6 +49,7 @@ public abstract class SceneTest extends LayoutTestCase {
     myScreen = new ScreenFixture(myModel);
     myScreen.withScale(1);
     buildScene();
+    ConstraintLayoutHandler.forceDefaultVisualProperties();
   }
 
   protected void buildScene() {
