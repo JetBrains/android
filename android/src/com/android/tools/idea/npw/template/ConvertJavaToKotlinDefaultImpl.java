@@ -38,7 +38,7 @@ public class ConvertJavaToKotlinDefaultImpl implements ConvertJavaToKotlinProvid
   @NonNull
   @Override
   public String getKotlinVersion() {
-    return "1.1.2-2";
+    return "1.1.2-3";
   }
 
   @Override
