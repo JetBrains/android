@@ -247,6 +247,27 @@ public class NlDesignSurface extends DesignSurface {
     myLayers.add(new SceneLayer(this, view, true));
   }
 
+  /**
+   * Set the ConstraintsLayer and SceneLayer layers to paint,
+   * even if they are set to paint only on mouse hover
+   *
+   * @param value if true, force painting
+   */
+  public void forceLayersPaint(boolean value) {
+    for (Layer layer : myLayers) {
+      if (layer instanceof ConstraintsLayer) {
+        ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
+        constraintsLayer.setTemporaryShow(value);
+        repaint();
+      }
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        sceneLayer.setTemporaryShow(value);
+        repaint();
+      }
+    }
+  }
+
   @Nullable
   @Override
   public ScreenView getCurrentSceneView() {
