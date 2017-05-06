@@ -30,7 +30,7 @@ public class Display {
   private long myDisplayListVersion = 0;
   double myScale = 0;
 
-  void reLayout() {
+  public void reLayout() {
     myDisplayListVersion = 0;
   }
 

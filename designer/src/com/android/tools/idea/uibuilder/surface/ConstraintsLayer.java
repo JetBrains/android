@@ -33,6 +33,7 @@ public class ConstraintsLayer extends Layer {
   private Rectangle mySizeRectangle = new Rectangle();
   private final boolean showOnSelection;
   private boolean myShowOnHover = false;
+  private boolean myTemporaryShow = false;
 
   public ConstraintsLayer(NlDesignSurface designSurface, @NotNull ScreenView screenView, boolean showOnSelection) {
     myDesignSurface = designSurface;
@@ -69,7 +70,7 @@ public class ConstraintsLayer extends Layer {
 
     NlModel myModel = myScreenView.getModel();
 
-    if (!myShowOnHover && showOnSelection) {
+    if (!myTemporaryShow && !myShowOnHover && showOnSelection) {
       return;
     }
 
@@ -145,5 +146,9 @@ public class ConstraintsLayer extends Layer {
       setShowOnHover(show);
       myDesignSurface.repaint();
     }
+  }
+
+  public void setTemporaryShow(boolean temporaryShow) {
+    myTemporaryShow = temporaryShow;
   }
 }
