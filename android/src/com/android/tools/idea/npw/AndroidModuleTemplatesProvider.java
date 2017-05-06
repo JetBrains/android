@@ -83,6 +83,8 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
         return AndroidIcons.ModuleTemplates.Tv;
       case WEAR:
         return AndroidIcons.ModuleTemplates.Wear;
+      case THINGS:
+        return AndroidIcons.ModuleTemplates.Things;
       default:
         throw new IllegalArgumentException(enumValue.name());
     }
