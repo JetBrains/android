@@ -352,7 +352,11 @@ public class ConnectionDetailsView extends JPanel {
     return textPane;
   }
 
-  private static void adjustFont(Component c) {
+  private static void adjustFont(@NotNull Component c) {
+    if (c.getFont() == null) {
+      //TODO: Investigate which field is nul and fix the root cause
+      return;
+    }
     c.setFont(c.getFont().deriveFont(Font.PLAIN, FIELD_FONT_SIZE));
   }
 
