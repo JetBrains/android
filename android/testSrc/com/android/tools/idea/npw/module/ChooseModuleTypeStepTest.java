@@ -95,7 +95,8 @@ public class ChooseModuleTypeStepTest extends AndroidGradleTestCase {
     Assert.assertThat(
       sortedEntries,
       equalToList("Phone & Tablet Module", "Android Library", "Instant App", "Feature Module", "Android Wear Module",
-                  "Android TV Module", "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library")
+                  "Android TV Module", "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project",
+                  "Import .JAR/.AAR Package", "Java Library")
     );
   }
 

@@ -298,6 +298,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "BasicActivity", true);
   }
 
+  public void testNewProjectWithThingsActivity() throws Exception {
+    checkCreateTemplate("activities", "AndroidThingsActivity", true);
+  }
+
   // Fails with > java.lang.NullPointerException (no error message)
   public void ignore_testCppBasicActivityWithFragments() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=221824
