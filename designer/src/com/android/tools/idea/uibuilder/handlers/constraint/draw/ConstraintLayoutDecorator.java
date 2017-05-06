@@ -31,9 +31,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities.ViewStates.INFERRED;
-import static com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities.ViewStates.INFERRED_VALUE;
-
 /**
  * This defines the decorator
  * TODO: move to the ConstraintLayout handler
@@ -203,7 +200,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
-        if (sceneContext.showOnlySelection() || !child.isToolVisible()) {
+        if (sceneContext.showOnlySelection()) {
           continue;
         }
         if (showAllConstraints || selection.contains(child.getNlComponent())) {

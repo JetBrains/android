@@ -88,11 +88,14 @@ public class SceneDisplayListTest extends SceneTest {
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
-    myScene.getSceneComponent("button").setToolVisible(false);
+    myScene.getSceneComponent("button").setToolLocked(true);
     myInteraction.repaint();
-    String afterHidingList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
+    String afterLockedList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                              "Clip,0,0,1000,1000\n" +
+                             "DrawComponentBackground,100,200,100,20,0\n" +
+                             "DrawTextRegion,100,200,100,20,0,0,false,false,5,5,28,1.0,\"\"\n" +
+                             "DrawNlComponentFrame,100,200,100,20,1,20,20\n" +
                              "UNClip\n";
-    assertEquals(afterHidingList, myInteraction.getDisplayList().serialize());
+    assertEquals(afterLockedList, myInteraction.getDisplayList().serialize());
   }
 }

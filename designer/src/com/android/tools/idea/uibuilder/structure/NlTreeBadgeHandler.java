@@ -50,9 +50,9 @@ public class NlTreeBadgeHandler {
   private static final int BADGE_MARGIN = 5;
   private static final int MESSAGE_WIDTH = 50;
   private static final int BADGE_ICON = 0;
-  private static final int VISIBILITY_ICON = 1;
+  private static final int LOCK_ICON = 1;
 
-  private static final String TOGGLE_VISIBILITY_MESSAGE = "Toggle Tool Visibility";
+  private static final String TOGGLE_LOCK_MESSAGE = "Toggle Tool Locking";
 
   private final BadgeMouseMotionListener myBadgeMouseMotionListener = new BadgeMouseMotionListener();
   private final JBLabel myHintLabel = new JBLabel();
@@ -64,7 +64,7 @@ public class NlTreeBadgeHandler {
 
   @Nullable private NlModel myNlModel;
   private int myBadgeX;
-  private int myVisibilityIconX;
+  private int myLockIconX;
   @Nullable private IssuePanel myIssuePanel;
 
   public void setNlModel(@Nullable NlModel nlModel) {
@@ -81,8 +81,8 @@ public class NlTreeBadgeHandler {
       return;
     }
     LintAnnotationsModel lintAnnotationsModel = myNlModel.getLintAnnotationsModel();
-    Icon showIcon = AndroidIcons.SherpaIcons.Unhide;
-    Icon hideIcon = AndroidIcons.SherpaIcons.Hide;
+    Icon unlockIcon = AndroidIcons.SherpaIcons.UnlockConstraints;
+    Icon lockIcon = AndroidIcons.SherpaIcons.LockConstraints;
     for (int i = 0; i < tree.getRowCount(); i++) {
       TreePath path = tree.getPathForRow(i);
       NlComponent component = (NlComponent)path.getLastPathComponent();
@@ -101,23 +101,23 @@ public class NlTreeBadgeHandler {
         }
       }
       if (firstIcon != null) {
-        myVisibilityIconX = myBadgeX - BADGE_MARGIN - hideIcon.getIconWidth();
+        myLockIconX = myBadgeX - BADGE_MARGIN - lockIcon.getIconWidth();
       } else {
-        myVisibilityIconX = tree.getWidth() - BADGE_MARGIN - hideIcon.getIconWidth();
+        myLockIconX = tree.getWidth() - BADGE_MARGIN - lockIcon.getIconWidth();
       }
-      boolean isVisible = SceneManager.isComponentVisible(component);
-      boolean isOver = myHoveredComponent == component && myHoveredIcon == VISIBILITY_ICON;
-      if (!isOver && isVisible) {
+      boolean isLocked = SceneManager.isComponentLocked(component);
+      boolean isOver = myHoveredComponent == component && myHoveredIcon == LOCK_ICON;
+      if (!isOver && !isLocked) {
         // if we are not over the icon, we only draw it when the component is invisible
         // (as visible is the default state)
         continue;
       }
-      Icon visibilityIcon = isVisible ? showIcon : hideIcon;
+      Icon lockingIcon = isLocked ? lockIcon : unlockIcon;
       if (isOver) {
         // in this case, show instead the icon of the state we would end up if we click on it
-        visibilityIcon = isVisible ? hideIcon : showIcon;
+        lockingIcon = isLocked ? unlockIcon : lockIcon;
       }
-      visibilityIcon.paintIcon(tree, g, myVisibilityIconX, y - visibilityIcon.getIconHeight() / 2);
+      lockingIcon.paintIcon(tree, g, myLockIconX, y - lockingIcon.getIconHeight() / 2);
     }
   }
 
@@ -254,7 +254,7 @@ public class NlTreeBadgeHandler {
     }
 
     private void handleMouseClicked(MouseEvent event, JTree tree) {
-      if (event.getX() < myVisibilityIconX || myIssuePanel == null) {
+      if (event.getX() < myLockIconX || myIssuePanel == null) {
         // We only show the tooltip if the mouse id hovering the badge
         return;
       }
@@ -271,13 +271,13 @@ public class NlTreeBadgeHandler {
       if (event.getX() > myBadgeX) {
         myIssuePanel.showIssueForComponent(component, true);
       } else {
-        toggleVisibility(component);
+        toggleLocking(component);
       }
     }
 
-    private void toggleVisibility(@NotNull NlComponent component) {
+    private void toggleLocking(@NotNull NlComponent component) {
       NlModel model = component.getModel();
-      boolean isVisible = SceneManager.isComponentVisible(component);
+      boolean isLocked = SceneManager.isComponentLocked(component);
       if (component.getParent() == null) {
         // Don't do anything for the root component
         return;
@@ -286,16 +286,16 @@ public class NlTreeBadgeHandler {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
           String value = SdkConstants.VALUE_TRUE;
-          if (isVisible) {
-            value = SdkConstants.VALUE_FALSE;
+          if (isLocked) {
+            value = null;
           }
-          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_VISIBLE, value);
+          component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED, value);
         }
       }.execute();
     }
 
     private void handleShowBadge(@NotNull MouseEvent event, @NotNull JTree tree) {
-      if (event.getX() < myVisibilityIconX) {
+      if (event.getX() < myLockIconX) {
         // We only show the tooltip if the mouse id hovering the badge
         myHoveredPath = null;
         myHoveredComponent = null;
@@ -327,7 +327,7 @@ public class NlTreeBadgeHandler {
         if (badgeIcon && myHoveredIcon == BADGE_ICON) {
           return;
         }
-        if (!badgeIcon && myHoveredIcon == VISIBILITY_ICON) {
+        if (!badgeIcon && myHoveredIcon == LOCK_ICON) {
           return;
         }
       }
@@ -339,8 +339,8 @@ public class NlTreeBadgeHandler {
         myHoveredIcon = BADGE_ICON;
       } else {
         if (myHoveredComponent.getParent() != null) {
-          message = TOGGLE_VISIBILITY_MESSAGE;
-          myHoveredIcon = VISIBILITY_ICON;
+          message = TOGGLE_LOCK_MESSAGE;
+          myHoveredIcon = LOCK_ICON;
         }
       }
       if (message != null) {
