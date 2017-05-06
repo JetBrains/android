@@ -129,8 +129,6 @@ public class NativeLibraryTest extends IdeaTestCase {
     Abi abi = Abi.X86;
     library.addDebuggableSharedObjectFile(abi, debuggableFile);
     assertTrue(library.hasDebugSymbols);
-    assertThat(library.pathMappings).isEmpty();
-    assertThat(library.sourceFolderPaths).isEmpty();
 
     DebuggableSharedObjectFile stored = library.debuggableSharedObjectFilesByAbi.get(abi.toString());
     assertEquals(debuggableFile.getPath(), stored.path);

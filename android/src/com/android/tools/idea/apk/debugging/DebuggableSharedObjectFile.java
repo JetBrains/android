@@ -33,7 +33,7 @@ public class DebuggableSharedObjectFile {
   // This is not really a class but a container of configuration options.
   @NotNull public String path = "";
   @NotNull public String abi = "";
-  @NotNull public List<String> sourceFolderPaths = new ArrayList<>();
+  @NotNull public List<String> debugSymbolPaths = new ArrayList<>();
 
   public DebuggableSharedObjectFile() {
   }
@@ -55,12 +55,12 @@ public class DebuggableSharedObjectFile {
     DebuggableSharedObjectFile file = (DebuggableSharedObjectFile)o;
     return Objects.equals(path, file.path) &&
            Objects.equals(abi, file.abi) &&
-           Objects.equals(sourceFolderPaths, file.sourceFolderPaths);
+           Objects.equals(debugSymbolPaths, file.debugSymbolPaths);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(path, abi, sourceFolderPaths);
+    return Objects.hash(path, abi, debugSymbolPaths);
   }
 
   @Override
@@ -68,7 +68,7 @@ public class DebuggableSharedObjectFile {
     return "DebuggableSharedObjectFile{" +
            "path='" + path + '\'' +
            ", abi='" + abi + '\'' +
-           ", sourceFolderPaths=" + sourceFolderPaths +
+           ", debugSymbolPaths=" + debugSymbolPaths +
            '}';
   }
 }
