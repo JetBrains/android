@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.newvfs.persistent.FSRecords;
@@ -35,8 +36,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.Set;
 
 import static com.google.common.io.Files.write;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
@@ -103,6 +106,8 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     //Update dependencies.gradle
     updateDependenciesFile();
 
+    updateAndroidAptConfiguration();
+
     //Update dependencies in build.gradle of sub-modules
     updateContentsInFile("outissue/cyclus/build.gradle", "dependencies \\{\n", "dependencies {\n" +
                                                                                "compile deps.support.leanback\n" +
@@ -118,6 +123,140 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
           "subvola/doored", "subvola/transpire", "subvola/atbash", "subvola/gorgoneum/Chordata", "subvola/gorgoneum/metanilic/agaric",
           "subvola/gorgoneum/teerer/polytonal", "subvola/gorgoneum/teerer/Cuphea", "harvestry/Timbira")) {
       updateContentsInFile(path + "/build.gradle", "apply plugin: 'com.jakewharton.butterknife'", "/* $0 */");
+    }
+  }
+
+  private void updateAndroidAptConfiguration() throws IOException {
+    // Remove the android-apt plugin
+    Set<String> aptConfigurationProjects =
+      ImmutableSet.of(
+        "Padraig/endocoele",
+        "Padraig/follicle",
+        "Padraig/ratafee",
+        "Tripoline",
+        "fratry/Cosmati",
+        "fratry/Krapina",
+        "fratry/cepaceous",
+        "fratry/crankum",
+        "fratry/crapple",
+        "fratry/crippling",
+        "fratry/endothys",
+        "fratry/fortunate",
+        "fratry/halsen",
+        "fratry/linotype",
+        "fratry/matchy",
+        "fratry/passbook",
+        "fratry/psoriasis",
+        "fratry/savory",
+        "fratry/sodden",
+        "fratry/subradius",
+        "fratry/wiredraw",
+        "harvestry/Bokhara",
+        "harvestry/Timbira",
+        "harvestry/digallate",
+        "harvestry/isocryme",
+        "harvestry/suchness",
+        "harvestry/thribble",
+        "outissue/Glumaceae",
+        "outissue/airified",
+        "outissue/carnally",
+        "outissue/caudate",
+        "outissue/eyesore",
+        "outissue/nonparty",
+        "outissue/nursing",
+        "outissue/situla",
+        "outissue/worldway",
+        "preprice",
+        "subvola/Dipnoi",
+        "subvola/Leporis",
+        "subvola/absconsa",
+        "subvola/aluminize",
+        "subvola/atbash",
+        "subvola/cleithral",
+        "subvola/copsewood",
+        "subvola/doored",
+        "subvola/emergency",
+        "subvola/gorgoneum/Chordata",
+        "subvola/gorgoneum/metanilic/agaric",
+        "subvola/gorgoneum/teerer/Cuphea",
+        "subvola/gorgoneum/teerer/Onondaga",
+        "subvola/gorgoneum/teerer/lucrific",
+        "subvola/gorgoneum/teerer/perscribe",
+        "subvola/gorgoneum/teerer/polytonal",
+        "subvola/gorgoneum/teerer/revalenta",
+        "subvola/gorgoneum/unwincing",
+        "subvola/graphite",
+        "subvola/haploidic",
+        "subvola/inhumanly",
+        "subvola/liming",
+        "subvola/ocracy",
+        "subvola/remigrate",
+        "subvola/suborder",
+        "subvola/tourer",
+        "subvola/transpire",
+        "subvola/unmilked",
+        "subvola/wordsmith",
+        "subvola/zealotic",
+        "subvola/zelator");
+
+    for (String path : aptConfigurationProjects) {
+      updateContentsInFile(
+        path + "/build.gradle", "apply plugin: 'com\\.neenbedankt\\.android-apt'", "/* $0 */");
+      updateContentsInFile(path + "/build.gradle", " apt ", " annotationProcessor ");
+    }
+
+    for (String path : ImmutableList.of("subvola/absconsa", "phthalic", "fratry/endothys")) {
+      updateContentsInFile(
+        path + "/build.gradle", "estApt", "estAnnotationProcessor");
+    }
+    Set<String> aptPluginProjects =
+      ImmutableSet.of(
+        "Padraig/arbitrate",
+        "Padraig/cuminoin",
+        "Padraig/decollete",
+        "Padraig/emerse",
+        "Padraig/limitary",
+        "Padraig/paegle",
+        "Padraig/quaestor/triduum",
+        "Padraig/signist",
+        "fratry/Ormond",
+        "fratry/assumpsit",
+        "fratry/asteep",
+        "fratry/audience",
+        "fratry/tentlet",
+        "harvestry/Savannah/penumbra",
+        "harvestry/eelgrass",
+        "harvestry/unwormy",
+        "outissue/aricine",
+        "outissue/bracciale",
+        "outissue/browntail",
+        "outissue/caricetum/midship",
+        "outissue/caricetum/scientist",
+        "outissue/caricetum/skiapod",
+        "outissue/coherence",
+        "outissue/cyclus",
+        "outissue/defusion",
+        "outissue/embrace",
+        "outissue/extended",
+        "outissue/gliadin",
+        "outissue/nonjurant",
+        "outissue/nonunion",
+        "outissue/nutate",
+        "outissue/oleometer",
+        "outissue/phasmatid",
+        "outissue/shortsome",
+        "outissue/synarchy",
+        "outissue/tetragram",
+        "phthalic",
+        "subvola/Brittany",
+        "subvola/Brittany",
+        "subvola/papistry");
+    assertThat(aptPluginProjects).containsNoneIn(aptConfigurationProjects);
+    for (String path : aptPluginProjects) {
+      updateContentsInFile(
+        path + "/build.gradle",
+        "apply plugin: 'com\\.neenbedankt\\.android-apt'",
+        "/* $0 */");
     }
   }
 
@@ -158,14 +297,22 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     contents = contents.replaceAll("('com.google.code.gson:gson):[^']+'", "$1:2.8.0'");
     contents = contents.replaceAll("def support = \\[", "def support = [\n" +
                                                         "leanback : \"com.android.support:leanback-v17:\\${versions.supportVersion}\",\n" +
-                                                        "mediarouter : [\"com.android.support:mediarouter-v7:25.0.1\"," +
-                                                        "\"com.android.support:appcompat-v7:\\${versions.supportVersion}\"," +
-                                                        "\"com.android.support:palette-v7:\\${versions.supportVersion}\"],\n");
+                                                        "mediarouter : \"com.android.support:mediarouter-v7:25.0.1\",\n");
     contents = contents +
                "\n\n// Fixes for support lib versions.\n" +
                "ext.deps.other.appcompat = [\n" +
                "        ext.deps.support.appCompat,\n" +
                "        ext.deps.other.appcompat,\n" +
+               "]\n" +
+               "\n" +
+               "ext.deps.external.butterKnife = [\n" +
+               "        ext.deps.support.annotations,\n" +
+               "        ext.deps.external.butterKnife,\n" +
+               "]\n" +
+               "\n" +
+               "ext.deps.apt.butterKnifeCompiler = [\n" +
+               "        ext.deps.support.annotations,\n" +
+               "        ext.deps.apt.butterKnifeCompiler,\n" +
                "]\n" +
                "\n" +
                "ext.deps.other.cast = [\n" +
