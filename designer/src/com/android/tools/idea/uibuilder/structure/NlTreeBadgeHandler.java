@@ -41,6 +41,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import static com.android.tools.idea.uibuilder.scene.SceneManager.SUPPORTS_LOCKING;
+
 /**
  * Handler class responsible for drawing badges for each
  * row and handling a click on those badges
@@ -100,24 +102,27 @@ public class NlTreeBadgeHandler {
           firstIcon = null;
         }
       }
-      if (firstIcon != null) {
-        myLockIconX = myBadgeX - BADGE_MARGIN - lockIcon.getIconWidth();
-      } else {
-        myLockIconX = tree.getWidth() - BADGE_MARGIN - lockIcon.getIconWidth();
+      if (SUPPORTS_LOCKING) {
+        if (firstIcon != null) {
+          myLockIconX = myBadgeX - BADGE_MARGIN - lockIcon.getIconWidth();
+        }
+        else {
+          myLockIconX = tree.getWidth() - BADGE_MARGIN - lockIcon.getIconWidth();
+        }
+        boolean isLocked = SceneManager.isComponentLocked(component);
+        boolean isOver = myHoveredComponent == component && myHoveredIcon == LOCK_ICON;
+        if (!isOver && !isLocked) {
+          // if we are not over the icon, we only draw it when the component is invisible
+          // (as visible is the default state)
+          continue;
+        }
+        Icon lockingIcon = isLocked ? lockIcon : unlockIcon;
+        if (isOver) {
+          // in this case, show instead the icon of the state we would end up if we click on it
+          lockingIcon = isLocked ? unlockIcon : lockIcon;
+        }
+        lockingIcon.paintIcon(tree, g, myLockIconX, y - lockingIcon.getIconHeight() / 2);
       }
-      boolean isLocked = SceneManager.isComponentLocked(component);
-      boolean isOver = myHoveredComponent == component && myHoveredIcon == LOCK_ICON;
-      if (!isOver && !isLocked) {
-        // if we are not over the icon, we only draw it when the component is invisible
-        // (as visible is the default state)
-        continue;
-      }
-      Icon lockingIcon = isLocked ? lockIcon : unlockIcon;
-      if (isOver) {
-        // in this case, show instead the icon of the state we would end up if we click on it
-        lockingIcon = isLocked ? unlockIcon : lockIcon;
-      }
-      lockingIcon.paintIcon(tree, g, myLockIconX, y - lockingIcon.getIconHeight() / 2);
     }
   }
 
@@ -254,7 +259,11 @@ public class NlTreeBadgeHandler {
     }
 
     private void handleMouseClicked(MouseEvent event, JTree tree) {
-      if (event.getX() < myLockIconX || myIssuePanel == null) {
+      int limit = myBadgeX;
+      if (SUPPORTS_LOCKING) {
+        limit = myLockIconX;
+      }
+      if (event.getX() < limit || myIssuePanel == null) {
         // We only show the tooltip if the mouse id hovering the badge
         return;
       }
@@ -271,7 +280,9 @@ public class NlTreeBadgeHandler {
       if (event.getX() > myBadgeX) {
         myIssuePanel.showIssueForComponent(component, true);
       } else {
-        toggleLocking(component);
+        if (SUPPORTS_LOCKING) {
+          toggleLocking(component);
+        }
       }
     }
 
@@ -318,8 +329,10 @@ public class NlTreeBadgeHandler {
       myHoveredComponent = (NlComponent)path.getLastPathComponent();
 
       boolean badgeIcon = true;
-      if (event.getX() < myBadgeX) {
-        badgeIcon = false;
+      if (SUPPORTS_LOCKING) {
+        if (event.getX() < myBadgeX) {
+          badgeIcon = false;
+        }
       }
 
       // Don't do anything if the path under the mouse is still the same
@@ -337,7 +350,7 @@ public class NlTreeBadgeHandler {
       if (badgeIcon) {
         message = getIssueMessage(myHoveredPath);
         myHoveredIcon = BADGE_ICON;
-      } else {
+      } else if (SUPPORTS_LOCKING) {
         if (myHoveredComponent.getParent() != null) {
           message = TOGGLE_LOCK_MESSAGE;
           myHoveredIcon = LOCK_ICON;

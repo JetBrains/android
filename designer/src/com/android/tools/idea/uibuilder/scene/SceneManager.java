@@ -37,6 +37,9 @@ import java.util.Set;
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
 abstract public class SceneManager implements Disposable {
+
+  public static final boolean SUPPORTS_LOCKING = false;
+
   private final NlModel myModel;
   final private DesignSurface myDesignSurface;
   private Scene myScene;
@@ -101,9 +104,11 @@ abstract public class SceneManager implements Disposable {
    * @return tool visibility status
    */
   public static boolean isComponentLocked(@NotNull NlComponent component) {
-    String attribute = component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED);
-    if (attribute != null) {
-      return attribute.equals(SdkConstants.VALUE_TRUE);
+    if (SUPPORTS_LOCKING) {
+      String attribute = component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED);
+      if (attribute != null) {
+        return attribute.equals(SdkConstants.VALUE_TRUE);
+      }
     }
     return false;
   }
