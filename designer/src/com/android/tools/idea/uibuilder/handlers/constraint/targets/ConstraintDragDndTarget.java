@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -80,10 +79,10 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
 
       boolean horizontalMatchParent = false;
       boolean verticalMatchParent = false;
-      if (component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH).equals(SdkConstants.VALUE_MATCH_PARENT)) {
+      if (SdkConstants.VALUE_MATCH_PARENT.equals(component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH))) {
         horizontalMatchParent = true;
       }
-      if (component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT).equals(SdkConstants.VALUE_MATCH_PARENT)) {
+      if (SdkConstants.VALUE_MATCH_PARENT.equals(component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT))) {
         verticalMatchParent = true;
       }
       if (horizontalMatchParent || verticalMatchParent) {
