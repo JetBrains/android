@@ -122,12 +122,12 @@ public class NativeLibrary {
     return false;
   }
 
-  public void addDebuggableSharedObjectFile(@NotNull Abi abi, @NotNull VirtualFile file) {
+  @NotNull
+  public DebuggableSharedObjectFile addDebuggableSharedObjectFile(@NotNull Abi abi, @NotNull VirtualFile file) {
     hasDebugSymbols = true;
     DebuggableSharedObjectFile sharedObjectFile = new DebuggableSharedObjectFile(abi.toString(), file);
     debuggableSharedObjectFilesByAbi.put(sharedObjectFile.abi, sharedObjectFile);
-    pathMappings.clear();
-    sourceFolderPaths.clear();
+    return sharedObjectFile;
   }
 
   @NotNull
