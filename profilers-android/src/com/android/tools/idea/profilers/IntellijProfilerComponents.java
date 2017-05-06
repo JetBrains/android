@@ -169,14 +169,18 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     int dot = fileName.lastIndexOf(".");
     String extension = dot >= 0 && dot < fileName.length() ? fileName.substring(dot) : "";
 
-    BufferedImage image = null;
     if (IMAGE_EXTENSIONS.contains(extension)) {
+      BufferedImage image = null;
       try {
         image = ImageIO.read(file);
-      } catch (IOException ignore) {}
-    }
-    if (image != null) {
-      return IntellijDataViewer.createImageViewer(image);
+      } catch (IOException ignored) {
+      }
+      if (image != null) {
+        return IntellijDataViewer.createImageViewer(image);
+      }
+      else {
+        return IntellijDataViewer.createInvalidViewer();
+      }
     }
 
     String content = null;
