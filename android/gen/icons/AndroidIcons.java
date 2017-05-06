@@ -1,5 +1,6 @@
 package icons;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 
 import javax.swing.*;
@@ -302,6 +303,9 @@ public class AndroidIcons {
     public static final Icon BarrierHorizontal = load("/icons/sherpa/barrier_horizontal.png");
     public static final Icon Layer = load("/icons/sherpa/switch_blueprint_off.png");
     public static final Icon Hide = load("/icons/sherpa/hide.png");
+    public static final Icon Checked = AllIcons.Actions.Checked_selected;
+    public static final Icon Unchecked = load("/icons/sherpa/unchecked.png");
+
     public static final Icon HorizontalCenterB = load("/icons/sherpa/center-constraint-horizontally.png");
     public static final Icon HorizontalCenter = load("/icons/sherpa/center-constraint-horizontally_b.png");
     public static final Icon HorizontalCenterParentB = load("/icons/sherpa/center-horizontally-in-parent.png");

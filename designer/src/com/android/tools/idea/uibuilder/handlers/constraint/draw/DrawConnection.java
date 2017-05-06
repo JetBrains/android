@@ -228,7 +228,8 @@ public class DrawConnection implements DrawCommand {
         return  color.getCreatedConstraints();
       case MODE_WILL_DESTROY:
         return color.getAnchorDisconnectionCircle();
-
+      case  MODE_SUBDUED:
+        return color.getSubduedConstraints();
     }
     return color.getConstraints();
   }
@@ -241,6 +242,8 @@ public class DrawConnection implements DrawCommand {
         return color.getConstraints();
       case MODE_COMPUTED:
         return color.getHighlightedConstraints();
+      case  MODE_SUBDUED:
+        return color.getSubduedConstraints();
     }
     return color.getMargins();
   }
@@ -413,6 +416,7 @@ public class DrawConnection implements DrawCommand {
                 g.setColor(marginColor);
                 DrawConnectionUtils
                   .drawHorizontalMargin(g, marginString, isMarginReference, marginX, endx - arrow, endy);
+
                 springEndX = marginX;
               }
             }
@@ -422,8 +426,10 @@ public class DrawConnection implements DrawCommand {
                 int marginY = endy - ((endy > starty) ? gap : -gap);
                 int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
                 g.setColor(marginColor);
+
                 DrawConnectionUtils
                   .drawVerticalMargin(g, marginString, isMarginReference, endx, marginY, endy - arrow);
+
                 springEndY = marginY;
               }
             }
@@ -553,7 +559,7 @@ public class DrawConnection implements DrawCommand {
           len = DrawConnectionUtils.removeZigZag(px, py, len, 50);
         }
         DrawConnectionUtils.drawRound(ourPath, px, py, len, GAP);
-        DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
+        DrawConnectionUtils.getArrow(destDirection, endx, endy, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
         break;
