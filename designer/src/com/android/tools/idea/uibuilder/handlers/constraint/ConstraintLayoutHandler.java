@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
@@ -53,7 +54,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -654,6 +658,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
       Scene scene = viewEditor.getSceneView().getScene();
       scene.clearAttributes();
+      ensureLayersAreShown(editor, 1000);
     }
 
     @Override
@@ -668,6 +673,27 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
+  /**
+   * Make sure to have the SceneLayer on the DesignSurface
+   * are fully painted for the givent duration
+   *
+   * @param editor the ViewEditor holding the DesignSurface
+   * @param duration how long to paint the SceneLayers, in ms
+   */
+  private static void ensureLayersAreShown(@NotNull ViewEditor editor, int duration) {
+    NlDesignSurface designSurface = (NlDesignSurface) ((ViewEditorImpl)editor).getSceneView().getSurface();
+    designSurface.forceLayersPaint(true);
+    designSurface.repaint();
+    Timer timer = new Timer(duration, new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        designSurface.forceLayersPaint(false);
+      }
+    });
+    timer.setRepeats(false);
+    timer.start();
+  }
+
   private static class InferAction extends DirectViewAction {
     @Override
     public void perform(@NotNull ViewEditor editor,
@@ -679,6 +705,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
       try {
         Scout.inferConstraintsAndCommit(component);
+        ensureLayersAreShown(editor, 1000);
       }
       catch (Exception e) {
         // TODO show dialog the inference failed
@@ -786,7 +813,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         parent = parent.getParent();
       }
       if (parent != null) {
-
+        ensureLayersAreShown(editor, 1000);
         switch (myType) {
           case HORIZONTAL_GUIDELINE: {
             NlComponent guideline = parent.createChild(editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
@@ -1038,6 +1065,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       modifiers &= InputEvent.CTRL_MASK;
       Scout.arrangeWidgets(myActionType, selectedChildren, modifiers == 0 || ourAutoConnect);
+      ensureLayersAreShown(editor, 1000);
     }
 
     @Override
