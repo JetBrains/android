@@ -53,12 +53,10 @@ public class ConvertJavaToKotlinDefaultImpl implements ConvertJavaToKotlinProvid
       ClassLoader pluginClassLoader = kotlinPlugin.getPluginClassLoader();
 
       Class<?> java2KotlinActionClass =
-        //pluginClassLoader.loadClass("org.jetbrains.kotlin.idea.actions.JavaToKotlinAction");
         Class.forName("org.jetbrains.kotlin.idea.actions.JavaToKotlinAction", true, pluginClassLoader);
       final Object companion = java2KotlinActionClass.getDeclaredField("Companion").get(null);
 
       Class<?> java2KotlinActionCompanionClass =
-        //  pluginClassLoader.loadClass("org.jetbrains.kotlin.idea.actions.JavaToKotlinAction$Companion");
         Class.forName("org.jetbrains.kotlin.idea.actions.JavaToKotlinAction$Companion", true, pluginClassLoader);
 
       final Method convert2KotlinMethod =

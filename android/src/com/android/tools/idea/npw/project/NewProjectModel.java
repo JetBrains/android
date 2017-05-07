@@ -70,7 +70,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.npw.WizardUtils.KOTLIN_ENABLED;
-import static com.android.tools.idea.npw.template.RenderTemplateModel.getJavaToKotlinConversionProvider;
+import static com.android.tools.idea.npw.template.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
