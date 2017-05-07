@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.template;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
@@ -31,28 +30,13 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.ProjectTopics;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetType;
-import com.intellij.facet.FacetTypeId;
-import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.lang.java.JavaLanguage;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootEvent;
-import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -239,19 +223,17 @@ public final class RenderTemplateModel extends WizardModel {
             (language == Language.KOTLIN ||
              (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false))) {
 
-          final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
-
-          DumbService.getInstance(project).smartInvokeLater(() -> {
-
-            convertJavaFilesToKotlin(provider, project, filesToReformat);
+          JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, myIsNewProject, () -> {
             // replace .java w/ .kt files
             for (int i = 0; i < filesToOpen.size(); i++) {
               File file = filesToOpen.get(i);
               if (file.getName().endsWith(DOT_JAVA)) {
-                File ktFile = new File(file.getParent(), file.getName().replace(DOT_JAVA, DOT_KT));
+                File ktFile =
+                  new File(file.getParent(), file.getName().replace(DOT_JAVA, DOT_KT));
                 filesToOpen.set(i, ktFile);
               }
             }
+
             TemplateUtils.openEditors(project, filesToOpen, true);
           });
         }
@@ -288,64 +270,6 @@ public final class RenderTemplateModel extends WizardModel {
     }
   }
 
-  private void convertJavaFilesToKotlin(@NonNull ConvertJavaToKotlinProvider provider,
-                                        @NonNull Project project,
-                                        @NonNull List<File> files) {
-    List<PsiJavaFile> psiJavaFiles = files2PsiJavaFiles(project, files);
-    if (psiJavaFiles.isEmpty()) {
-      return;
-    }
-
-    // If its a new project then call the conversion in response to rootsChanged.
-    if (myIsNewProject) {
-      final MessageBusConnection connect = project.getMessageBus().connect();
-      connect.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
-        @Override
-        public void rootsChanged(ModuleRootEvent event) {
-          callConverter(project, provider, psiJavaFiles, connect);
-        }
-      });
-    } else {
-      callConverter(project, provider, psiJavaFiles, null);
-    }
-  }
-
-  private static void callConverter(@NonNull Project project,
-                             @NonNull ConvertJavaToKotlinProvider provider,
-                             @NonNull List<PsiJavaFile> psiJavaFiles,
-                             @Nullable MessageBusConnection connection) {
-
-    DumbService.getInstance(project).smartInvokeLater(() -> {
-      if (psiJavaFiles
-        .stream()
-        .allMatch(p -> p.getLanguage().equals(JavaLanguage.INSTANCE))) {
-        provider.configureKotlin(project);
-        provider.convertToKotlin(project, psiJavaFiles);
-      }
-      if (connection != null) {
-        connection.disconnect(); // done once
-      }
-    });
-  }
-
-  private static List<PsiJavaFile> files2PsiJavaFiles(Project project, List<File> files) {
-    LocalFileSystem localFileSystem = LocalFileSystem.getInstance();
-    List<PsiJavaFile> psiJavaFiles = Lists.newArrayListWithExpectedSize(files.size());
-    PsiManager psiManager = PsiManager.getInstance(project);
-
-    for (File file : files) {
-      VirtualFile virtualFile = localFileSystem.findFileByIoFile(file);
-      if (virtualFile == null) {
-        continue;
-      }
-      PsiFile psiFile = psiManager.findFile(virtualFile);
-      if (psiFile instanceof PsiJavaFile) {
-        psiJavaFiles.add((PsiJavaFile)psiFile);
-      }
-    }
-    return psiJavaFiles;
-  }
-
   /**
    * Design: If there are no kotlin facets in the project, the default should be Java, whether or not you previously chose Kotlin
    * (presumably in a different project which did have Kotlin).
@@ -353,7 +277,7 @@ public final class RenderTemplateModel extends WizardModel {
    */
   @NotNull
   private static Language getInitialSourceLanguage(@Nullable Project project) {
-    if (project != null && hasKotlinFacet(project)) {
+    if (project != null && JavaToKotlinHandler.hasKotlinFacet(project)) {
       return Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.KOTLIN);
     }
     return Language.JAVA;
@@ -361,25 +285,5 @@ public final class RenderTemplateModel extends WizardModel {
 
   private static void setInitialSourceLanguage(@NotNull Language language) {
     PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, language.getName());
-  }
-
-  private static boolean hasKotlinFacet(@NotNull Project project) {
-    final FacetType kotlinFacet = FacetTypeRegistry.getInstance().findFacetType("kotlin-language");
-    if (kotlinFacet == null) {
-      return false;
-    }
-    FacetTypeId<?> kotlinFacetId = kotlinFacet.getId();
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      if (FacetManager.getInstance(module).getFacetByType(kotlinFacetId) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @NonNull
-  public static ConvertJavaToKotlinProvider getJavaToKotlinConversionProvider() {
-    ConvertJavaToKotlinProvider[] providers = ConvertJavaToKotlinProvider.EP_NAME.getExtensions();
-    return providers.length != 0 ? providers[0] : new ConvertJavaToKotlinDefaultImpl();
   }
 }
