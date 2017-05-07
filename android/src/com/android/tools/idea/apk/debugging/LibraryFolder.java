@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public final class LibraryFolder {
   private LibraryFolder() {
@@ -26,8 +31,12 @@ public final class LibraryFolder {
 
   @Nullable
   public static VirtualFile findIn(@NotNull Project project) {
-    VirtualFile found = project.getBaseDir().findChild(getName());
-    return found != null && found.isDirectory() ? found : null;
+    File baseDirPath = Projects.getBaseDirPath(project);
+    File libFolderPath = new File(baseDirPath, getName());
+    if (libFolderPath.isDirectory()) {
+      return findFileByIoFile(libFolderPath, true /* refresh if needed */);
+    }
+    return null;
   }
 
   @NotNull
