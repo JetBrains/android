@@ -32,7 +32,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
   static {
     RENDERERS = new HashMap<>();
     RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer<>());
-    RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+    RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png"));
     RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
