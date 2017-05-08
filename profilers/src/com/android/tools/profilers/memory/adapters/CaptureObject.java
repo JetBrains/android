@@ -21,8 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static javax.swing.SortOrder.ASCENDING;
@@ -38,9 +37,10 @@ public interface CaptureObject extends MemoryObject {
    */
   enum ClassifierAttribute {
     LABEL(0, ASCENDING),
-    COUNT(1, DESCENDING),
-    SHALLOW_SIZE(2, DESCENDING),
-    RETAINED_SIZE(3, DESCENDING);
+    ALLOC_COUNT(2, DESCENDING),
+    DEALLOC_COUNT(1, DESCENDING),
+    SHALLOW_SIZE(3, DESCENDING),
+    RETAINED_SIZE(4, DESCENDING);
 
     private final int myWeight;
 
@@ -67,9 +67,11 @@ public interface CaptureObject extends MemoryObject {
    */
   enum InstanceAttribute {
     LABEL(1, ASCENDING),
+    ALLOCATION_TIME(2, DESCENDING),
+    DEALLOCATION_TIME(3, DESCENDING),
     DEPTH(0, ASCENDING),
-    SHALLOW_SIZE(2, DESCENDING),
-    RETAINED_SIZE(3, DESCENDING);
+    SHALLOW_SIZE(4, DESCENDING),
+    RETAINED_SIZE(5, DESCENDING);
 
     private final int myWeight;
 
@@ -88,6 +90,47 @@ public interface CaptureObject extends MemoryObject {
     public SortOrder getSortOrder() {
       return mySortOrder;
     }
+  }
+
+  interface CaptureChangedListener {
+    final class ChangedNode {
+      @NotNull private final Map<ClassifierSet, ChangedNode> myChildChangedNodes = new HashMap<>();
+      @NotNull private final ClassifierSet myClassifierSet;
+
+      public ChangedNode(@NotNull ClassifierSet classifierSet) {
+        myClassifierSet = classifierSet;
+      }
+
+      public boolean containsChild(@NotNull ClassifierSet childClassifierSet) {
+        return myChildChangedNodes.containsKey(childClassifierSet);
+      }
+
+      public ChangedNode getChild(@NotNull ClassifierSet childClassifierSet) {
+        return myChildChangedNodes.get(childClassifierSet);
+      }
+
+      public void addPath(@NotNull List<ClassifierSet> path) {
+        assert path.get(0) == myClassifierSet;
+        if (path.size() > 1) {
+          ChangedNode child = myChildChangedNodes.computeIfAbsent(path.get(1), ChangedNode::new);
+          if (path.size() > 2) {
+            child.addPath(path.subList(1, path.size()));
+          }
+        }
+      }
+
+      @NotNull
+      public ClassifierSet getClassifierSet() {
+        return myClassifierSet;
+      }
+
+      @NotNull
+      public Set<ClassifierSet> getChildClassifierSets() {
+        return myChildChangedNodes.keySet();
+      }
+    }
+
+    void heapChanged(@NotNull ChangedNode changedNode, boolean clear);
   }
 
   @Nullable
@@ -122,4 +165,8 @@ public interface CaptureObject extends MemoryObject {
   boolean isDoneLoading();
 
   boolean isError();
+
+  void unload();
+
+  default void addCaptureChangedListener(@NotNull CaptureChangedListener listener) {}
 }

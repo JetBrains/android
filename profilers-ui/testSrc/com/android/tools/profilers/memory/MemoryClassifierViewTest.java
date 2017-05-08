@@ -521,7 +521,7 @@ public class MemoryClassifierViewTest {
     assertEquals(callstack3BarClassSet, callstack3BarClassSet.findContainingClassifierSet(instance7));
 
     ClassSet noStackIntArrayClassSet = findChildClassSetWithName(rootNode.getAdapter(), CLASS_NAME_2);
-    assertEquals(1, noStackIntArrayClassSet.getCount());
+    assertEquals(1, noStackIntArrayClassSet.getAllocatedCount());
 
     //noinspection unchecked
     MemoryObjectTreeNode<? extends ClassifierSet> nodeToSelect = findChildClassSetNodeWithClassName((MemoryObjectTreeNode<ClassifierSet>)codeLocation4Node, CLASS_NAME_0);
@@ -608,7 +608,7 @@ public class MemoryClassifierViewTest {
     JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
     assertNotNull(columnTreePane);
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Class Name", "Heap Count", "Shallow Size", "Retained Size");
+    treeInfo.verifyColumnHeaders("Class Name", "Alloc Count", "Dealloc Count", "Shallow Size", "Retained Size");
 
     Object root = tree.getModel().getRoot();
     assertTrue(root instanceof MemoryObjectTreeNode);
@@ -630,9 +630,10 @@ public class MemoryClassifierViewTest {
                                       classSet.getClassEntry().getPackageName().isEmpty()
                                       ? null
                                       : " (" + classSet.getClassEntry().getPackageName() + ")"},
-                                    new String[]{Integer.toString(classSet.getCount())},
-                                    new String[]{Long.toString(classSet.getShallowSize())},
-                                    new String[]{Long.toString(classSet.getRetainedSize())});
+                                    new String[]{Integer.toString(classSet.getAllocatedCount())},
+                                    new String[]{Integer.toString(classSet.getDeallocatedCount())},
+                                    new String[]{Long.toString(classSet.getTotalShallowSize())},
+                                    new String[]{Long.toString(classSet.getTotalRetainedSize())});
     }
   }
 
