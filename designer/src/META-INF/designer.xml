@@ -64,6 +64,9 @@
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.palette.NlPaletteModel</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm</implementation-class>
+    </component>
   </module-components>
 
 </idea-plugin>
