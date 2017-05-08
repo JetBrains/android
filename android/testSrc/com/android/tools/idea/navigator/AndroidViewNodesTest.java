@@ -15,93 +15,80 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.navigator.nodes.android.AndroidManifestFileNode;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.projectView.ProjectView;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
-import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.ide.util.treeView.AbstractTreeUi;
-import com.intellij.openapi.util.ActionCallback;
-import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.ui.treeStructure.Tree;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
+import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
+import java.util.Set;
 
-import static org.mockito.Mockito.mock;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidViewNodes}.
  */
-public class AndroidViewNodesTest extends IdeaTestCase {
-  @Mock private AndroidProjectViewPane myProjectViewPane;
-  @Mock private AbstractTreeUi myTreeUi;
-
-  private MyTreeBuilder myTreeBuilder;
-  private DefaultMutableTreeNode myRootNode;
+public class AndroidViewNodesTest extends AndroidGradleTestCase {
   private AndroidViewNodes myAndroidViewNodes;
 
   @Override
-  protected void setUp() throws Exception {
+  public void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
-
-    ProjectView projectView = IdeComponents.replaceServiceWithMock(getProject(), ProjectView.class);
-    when(projectView.getProjectViewPaneById(AndroidProjectViewPane.ID)).thenReturn(myProjectViewPane);
-
-    myRootNode = new DefaultMutableTreeNode();
-    DefaultTreeModel treeModel = new DefaultTreeModel(myRootNode);
-
-    myTreeBuilder = new MyTreeBuilder(myTreeUi, treeModel);
-    when(myProjectViewPane.getTreeBuilder()).thenReturn(myTreeBuilder);
-
-    when(myTreeUi.getRootNode()).thenReturn(myRootNode);
-    when(myTreeUi.getTreeModel()).thenReturn(treeModel);
-
     myAndroidViewNodes = new AndroidViewNodes();
   }
 
-  public void testFindAndRefreshNode()  {
-    DefaultMutableTreeNode node1 = new DefaultMutableTreeNode("node1");
-    DefaultMutableTreeNode node2 = new DefaultMutableTreeNode("node2");
-    myRootNode.add(node1);
-    myRootNode.add(node2);
+  public void testFindAndRefreshNode() throws Exception {
+    loadSimpleApplication();
+    createAndroidProjectViewPane();
 
-    // Should find node1.
-    myAndroidViewNodes.findAndRefreshNode(getProject(), node -> "node1".equals(node.getUserObject()));
-
-    // Should refresh node1.
-    myTreeBuilder.verifyUpdated("node1");
+    AndroidManifestFileNode node = myAndroidViewNodes.findAndRefreshNodeOfType(AndroidManifestFileNode.class, getProject());
+    assertNotNull(node);
   }
 
-  private static class MyTreeBuilder extends AbstractTreeBuilder {
-    @NotNull private final AbstractTreeUi myTreeUi;
+  public void testSelectNodeOfType() throws Exception {
+    Project project = getProject();
+    ToolWindow projectToolWindow = new MyToolWindow(project);
 
-    private Object myUpdatedElement;
+    loadSimpleApplication();
+    AndroidProjectViewPane projectViewPane = createAndroidProjectViewPane();
 
-    MyTreeBuilder(@NotNull AbstractTreeUi treeUi, @NotNull DefaultTreeModel treeModel) {
-      myTreeUi = treeUi;
-      init(new Tree(), treeModel, mock(AbstractTreeStructure.class), null, false);
+    AndroidManifestFileNode node = myAndroidViewNodes.selectNodeOfType(AndroidManifestFileNode.class, project, projectToolWindow);
+    assertNotNull(node);
+
+    Set<Object> elements = projectViewPane.getTreeBuilder().getSelectedElements();
+    assertThat(elements).containsExactly(node);
+  }
+
+  @NotNull
+  private AndroidProjectViewPane createAndroidProjectViewPane() {
+    Project project = getProject();
+    AndroidProjectViewPane projectViewPane = new AndroidProjectViewPane(project);
+
+    projectViewPane.createComponent();
+    Disposer.register(project, projectViewPane);
+
+    ProjectView projectView = IdeComponents.replaceServiceWithMock(project, ProjectView.class);
+    when(projectView.getProjectViewPaneById(AndroidProjectViewPane.ID)).thenReturn(projectViewPane);
+
+    return projectViewPane;
+  }
+
+  private static class MyToolWindow extends ToolWindowHeadlessManagerImpl.MockToolWindow {
+    public MyToolWindow(@NotNull Project project) {
+      super(project);
     }
 
     @Override
-    @NotNull
-    protected AbstractTreeUi createUi() {
-      return myTreeUi;
-    }
-
-    @Override
-    @NotNull
-    public ActionCallback queueUpdateFrom(Object element, boolean forceResort, boolean updateStructure) {
-      myUpdatedElement = element;
-      return ActionCallback.DONE;
-    }
-
-    void verifyUpdated(@NotNull Object element) {
-      assertSame(element, myUpdatedElement);
+    public void activate(@Nullable Runnable runnable) {
+      if (runnable != null) {
+        runnable.run();
+      }
     }
   }
 }

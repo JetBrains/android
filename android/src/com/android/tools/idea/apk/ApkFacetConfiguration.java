@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk;
 
+import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.apk.debugging.DebuggableSharedObjectFile;
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.android.tools.idea.apk.debugging.SetupIssue;
 import com.intellij.facet.FacetConfiguration;
@@ -23,7 +25,6 @@ import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.android.tools.idea.gradle.util.FilePaths.computeRootPathsForFiles;
 
@@ -48,12 +48,29 @@ public class ApkFacetConfiguration implements FacetConfiguration {
   }
 
   @NotNull
-  public Collection<String> getDebugSymbolFolderPaths() {
-    if (NATIVE_LIBRARIES.isEmpty()) {
+  public Collection<String> getDebugSymbolFolderPaths(@NotNull List<Abi> abis) {
+    if (NATIVE_LIBRARIES.isEmpty() || abis.isEmpty()) {
       return Collections.emptyList();
     }
-    Stream<String> filePaths = NATIVE_LIBRARIES.stream().map(library -> library.debuggableFilePath).filter(StringUtil::isNotEmpty);
-    return computeRootPathsForFiles(filePaths);
+    if (abis.size() != 1) {
+      // TODO support multi-ABI devices.
+      return Collections.emptyList();
+    }
+
+    Set<String> paths = new HashSet<>();
+    Abi abi = abis.get(0);
+    for (NativeLibrary library : NATIVE_LIBRARIES) {
+      DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi.toString());
+      if (sharedObjectFile != null) {
+        paths.add(sharedObjectFile.path);
+      }
+    }
+
+    if (paths.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    return computeRootPathsForFiles(paths.stream());
   }
 
   @NotNull
