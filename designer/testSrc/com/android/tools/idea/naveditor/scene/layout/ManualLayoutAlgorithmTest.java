@@ -18,10 +18,8 @@ package com.android.tools.idea.naveditor.scene.layout;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
-import static com.android.SdkConstants.TOOLS_URI;
 import static org.mockito.Mockito.*;
 
 /**
@@ -32,15 +30,14 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
   public void testSimple() throws Exception {
     SyncNlModel model = model("nav.xml",
                               component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "123dp")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "456dp"),
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "456dp")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "789dp"))).build();
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"))).build();
+    ManualLayoutAlgorithm.LayoutPositions positions = new ManualLayoutAlgorithm.LayoutPositions();
+    positions.myPositions.put("fragment1", new ManualLayoutAlgorithm.Point(123, 456));
+    positions.myPositions.put("fragment2", new ManualLayoutAlgorithm.Point(456, 789));
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet));
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet), positions);
     scene.getRoot().flatten().forEach(algorithm::layout);
     verifyZeroInteractions(fallback);
 
@@ -53,16 +50,15 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
   public void testFallback() throws Exception {
     SyncNlModel model = model("nav.xml",
                               component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "60dp")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "60dp"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
                                    component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "200dp")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "200dp"))).build();
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3"))).build();
+    ManualLayoutAlgorithm.LayoutPositions positions = new ManualLayoutAlgorithm.LayoutPositions();
+    positions.myPositions.put("fragment1", new ManualLayoutAlgorithm.Point(60, 60));
+    positions.myPositions.put("fragment3", new ManualLayoutAlgorithm.Point(200, 200));
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet));
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet), positions);
     scene.getRoot().flatten().forEach(algorithm::layout);
     verify(fallback).layout(scene.getSceneComponent("fragment2"));
     verifyNoMoreInteractions(fallback);
@@ -71,45 +67,5 @@ public class ManualLayoutAlgorithmTest extends NavigationTestCase {
     assertEquals(60, scene.getSceneComponent("fragment1").getDrawY());
     assertEquals(200, scene.getSceneComponent("fragment3").getDrawX());
     assertEquals(200, scene.getSceneComponent("fragment3").getDrawY());
-  }
-
-  public void testSave() throws Exception {
-    SyncNlModel model = model("nav.xml",
-                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "60dp")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "60dp"),
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "200dp")
-                                     .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "200dp"))).build();
-    Scene scene = model.getSurface().getScene();
-    NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet));
-    scene.getRoot().flatten().forEach(algorithm::layout);
-    SceneComponent fragment = scene.getSceneComponent("fragment2");
-    fragment.setPosition(150, 160);
-    algorithm.save(fragment);
-    fragment = scene.getSceneComponent("fragment3");
-    fragment.setPosition(250, 260);
-    algorithm.save(fragment);
-
-    assertEquals("<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "           xmlns:tools=\"http://schemas.android.com/tools\">\n" +
-                 "\n" +
-                 "  <fragment\n" +
-                 "    android:id=\"@id/fragment1\"\n" +
-                 "    tools:manual_x=\"60dp\"\n" +
-                 "    tools:manual_y=\"60dp\"/>\n" +
-                 "\n" +
-                 "  <fragment\n" +
-                 "    android:id=\"@id/fragment2\" tools:manual_x=\"150dp\" tools:manual_y=\"160dp\" />\n" +
-                 "\n" +
-                 "  <fragment\n" +
-                 "    android:id=\"@id/fragment3\"\n" +
-                 "    tools:manual_x=\"250dp\"\n" +
-                 "    tools:manual_y=\"260dp\"/>\n" +
-                 "\n" +
-                 "</navigation>\n", model.getFile().getText());
   }
 }
