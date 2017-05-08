@@ -26,9 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_BASELINE_ALIGNED;
-import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.SdkConstants.*;
 
 /**
  * Action to set the {@linkplain ATTR_BASELINE_ALIGNED} value.
@@ -37,10 +35,13 @@ public class BaselineAction extends DirectViewAction {
   @Override
   public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
                       @NotNull List<NlComponent> selectedChildren, @JdkConstants.InputEventMask int modifiers) {
-    boolean align = !isBaselineAligned(component);
-    component.setAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED, align ? null : VALUE_FALSE);
+    if (!selectedChildren.isEmpty()) {
+      boolean align = !isBaselineAligned(selectedChildren.get(0));
+      for (NlComponent selected : selectedChildren) {
+        selected.setAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED, align ? null : VALUE_FALSE);
+      }
+    }
   }
-
 
   @Override
   public void updatePresentation(@NotNull ViewActionPresentation presentation,
@@ -49,13 +50,19 @@ public class BaselineAction extends DirectViewAction {
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @JdkConstants.InputEventMask int modifiers) {
-    boolean align = !isBaselineAligned(component);
-    presentation.setIcon(align ? AndroidDesignerIcons.Baseline : AndroidDesignerIcons.NoBaseline);
-    presentation.setLabel(align ? "Align with the baseline" : "Do not align with the baseline");
+    if (selectedChildren.isEmpty()) {
+      presentation.setVisible(false);
+    }
+    else {
+      presentation.setVisible(true);
+      boolean align = !isBaselineAligned(selectedChildren.get(0));
+      presentation.setIcon(align ? AndroidDesignerIcons.Baseline : AndroidDesignerIcons.NoBaseline);
+      presentation.setLabel(align ? "Align with the baseline" : "Do not align with the baseline");
+    }
   }
 
   private static boolean isBaselineAligned(NlComponent component) {
     String value = component.getAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED);
-    return value == null ? true : Boolean.valueOf(value);
+    return value == null || Boolean.parseBoolean(value);
   }
 }
