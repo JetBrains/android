@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.error;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -46,8 +46,6 @@ import java.util.List;
  */
 public class IssuePanel extends JPanel implements Disposable {
   public static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
-  public static final ItemListener SHOW_ISSUE_CHECKBOX_LISTENER = e -> AndroidEditorSettings.getInstance().getGlobalState()
-    .setShowLint(e.getStateChange() == ItemEvent.SELECTED);
   private static final String PROPERTY_MINIMIZED = IssuePanel.class.getCanonicalName() + ".minimized";
   private static final String TITLE_NO_ISSUES = "No issues";
   private static final String TITLE_NO_IMPORTANT_ISSUE = "Issues";
@@ -65,6 +63,7 @@ public class IssuePanel extends JPanel implements Disposable {
   private final JBLabel myTitleLabel;
   private final IssueModel.IssueModelListener myIssueModelListener;
   private final JBScrollPane myScrollPane;
+  private final DesignSurface mySurface;
   @Nullable private MinimizeListener myMinimizeListener;
   @Nullable private IssueView mySelectedIssueView;
 
@@ -74,10 +73,11 @@ public class IssuePanel extends JPanel implements Disposable {
   private boolean hasUserSeenNewErrors;
   private boolean isMinimized;
 
-  public IssuePanel(IssueModel issueModel) {
+  public IssuePanel(@NotNull DesignSurface designSurface, @NotNull IssueModel issueModel) {
     super(new BorderLayout());
     setName(ISSUE_PANEL_NAME);
     myIssueModel = issueModel;
+    mySurface = designSurface;
 
     myTitleLabel = createTitleLabel();
     JComponent titlePanel = createTitlePanel(myTitleLabel);
@@ -194,7 +194,11 @@ public class IssuePanel extends JPanel implements Disposable {
   private JComponent createTitlePanel(@NotNull JBLabel titleLabel) {
     JBCheckBox checkBox = new JBCheckBox(SHOW_ISSUES_CHECKBOX_TEXT,
                                          AndroidEditorSettings.getInstance().getGlobalState().isShowLint());
-    checkBox.addItemListener(SHOW_ISSUE_CHECKBOX_LISTENER);
+    checkBox.addItemListener(e -> {
+      AndroidEditorSettings.getInstance().getGlobalState()
+        .setShowLint(e.getStateChange() == ItemEvent.SELECTED);
+      mySurface.repaint();
+    });
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.add(titleLabel, BorderLayout.WEST);
     JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
