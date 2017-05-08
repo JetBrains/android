@@ -134,7 +134,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myScrollPane.getHorizontalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
     myScrollPane.getVerticalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
 
-    myIssuePanel = new IssuePanel(myIssueModel);
+    myIssuePanel = new IssuePanel(this, myIssueModel);
     Disposer.register(this, myIssuePanel);
     myIssuePanel.setMinimizeListener((isMinimized) -> {
       NlUsageTrackerManager.getInstance(this).logAction(
