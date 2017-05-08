@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -43,6 +44,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +67,10 @@ public class NlDesignSurface extends DesignSurface {
     BLUEPRINT_ONLY(ScreenView.ScreenViewType.BLUEPRINT),
     BOTH(ScreenView.ScreenViewType.NORMAL);
 
+    @VisibleForTesting
+    @NotNull
+    static final ScreenMode DEFAULT_SCREEN_MODE = BOTH;
+
     private final ScreenView.ScreenViewType myScreenViewType;
 
     ScreenMode(@NotNull ScreenView.ScreenViewType screenViewType) {
@@ -82,25 +88,30 @@ public class NlDesignSurface extends DesignSurface {
       return myScreenViewType;
     }
 
-    private static final String SCREEN_MODE_PROPERTY = "NlScreenMode";
+    @VisibleForTesting
+    static final String SCREEN_MODE_PROPERTY = "NlScreenMode";
 
     @NotNull
-    public static ScreenMode loadDefault() {
-      String modeName = PropertiesComponent.getInstance().getValue(SCREEN_MODE_PROPERTY);
-      for (ScreenMode mode : values()) {
-        if (mode.name().equals(modeName)) {
-          return mode;
-        }
+    public static ScreenMode loadPreferredMode() {
+      String modeName = PropertiesComponent.getInstance().getValue(SCREEN_MODE_PROPERTY, DEFAULT_SCREEN_MODE.name());
+      try {
+        return valueOf(modeName);
       }
-      return BOTH;
+      catch (IllegalArgumentException e) {
+        // If the code reach here, that means some of unexpected ScreenMode is saved as user's preference.
+        // In this case, return the default mode instead.
+        Logger.getInstance(NlDesignSurface.class)
+          .warn("The mode " + modeName + " is not recognized, use default mode " + SCREEN_MODE_PROPERTY + " instead");
+        return DEFAULT_SCREEN_MODE;
+      }
     }
 
-    public static void saveDefault(@NotNull ScreenMode mode) {
+    public static void savePreferredMode(@NotNull ScreenMode mode) {
       PropertiesComponent.getInstance().setValue(SCREEN_MODE_PROPERTY, mode.name());
     }
   }
 
-  @NotNull private static ScreenMode ourDefaultScreenMode = ScreenMode.loadDefault();
+  @NotNull private static ScreenMode ourDefaultScreenMode = ScreenMode.loadPreferredMode();
 
   @NotNull private ScreenMode myScreenMode = ourDefaultScreenMode;
   @Nullable private ScreenView myBlueprintView;
@@ -163,7 +174,7 @@ public class NlDesignSurface extends DesignSurface {
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourDefaultScreenMode = screenMode;
 
-        ScreenMode.saveDefault(screenMode);
+        ScreenMode.savePreferredMode(screenMode);
       }
     }
 

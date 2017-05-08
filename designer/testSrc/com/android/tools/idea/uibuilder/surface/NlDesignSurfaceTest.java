@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.ide.IdeEventQueue;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
@@ -43,6 +44,31 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     finally {
       super.tearDown();
     }
+  }
+
+  public void testScreenMode() {
+    // Just in case, cleanup current preference to make testing environment consistence.
+    PropertiesComponent.getInstance().unsetValue(NlDesignSurface.ScreenMode.SCREEN_MODE_PROPERTY);
+
+    // Test the default behavior when there is no setting.
+    assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), NlDesignSurface.ScreenMode.DEFAULT_SCREEN_MODE);
+
+    // Test the save and load functions
+    NlDesignSurface.ScreenMode[] modes = NlDesignSurface.ScreenMode.values();
+    for (NlDesignSurface.ScreenMode mode : modes) {
+      NlDesignSurface.ScreenMode.savePreferredMode(mode);
+      // The loaded mode should be same as the saved mode
+      assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), mode);
+    }
+
+    // Test when the illegal mode is setup. (This happens when removing old mode or renaming the exist mode)
+    PropertiesComponent.getInstance().setValue(NlDesignSurface.ScreenMode.SCREEN_MODE_PROPERTY, "_illegalMode");
+    assertEquals(NlDesignSurface.ScreenMode.loadPreferredMode(), NlDesignSurface.ScreenMode.DEFAULT_SCREEN_MODE);
+
+    // Test next() function
+    assertEquals(NlDesignSurface.ScreenMode.SCREEN_ONLY.next(), NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
+    assertEquals(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY.next(), NlDesignSurface.ScreenMode.BOTH);
+    assertEquals(NlDesignSurface.ScreenMode.BOTH.next(), NlDesignSurface.ScreenMode.SCREEN_ONLY);
   }
 
   public void testEmptyRenderSuccess() {
