@@ -45,8 +45,6 @@ public class DistributeWeightsAction extends DirectViewAction {
   @Override
   public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
                       @NotNull List<NlComponent> selectedChildren, @JdkConstants.InputEventMask int modifiers) {
-
-
     assert handler instanceof LinearLayoutHandler;
     LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
     linearLayoutHandler.distributeWeights(component, selectedChildren);

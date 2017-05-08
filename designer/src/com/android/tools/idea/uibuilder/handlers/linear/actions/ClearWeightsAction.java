@@ -41,7 +41,6 @@ public class ClearWeightsAction extends DirectViewAction {
     linearLayoutHandler.clearWeights(component, selectedChildren);
   }
 
-
   @Override
   public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                  @NotNull ViewEditor editor,
