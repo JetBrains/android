@@ -113,11 +113,6 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
   }
 
   @Override
-  public boolean isAlwaysExpand() {
-    return true;
-  }
-
-  @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return getText();
