@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
@@ -144,7 +145,7 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  * See also the {@code README.md} file in this package.
  * </p>
  */
-@SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
+@SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
 public abstract class LocalResourceRepository extends AbstractResourceRepository implements Disposable, ModificationTracker {
   protected static final Logger LOG = Logger.getInstance(LocalResourceRepository.class);
 
@@ -152,9 +153,10 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   private final String myDisplayName;
 
+  @GuardedBy("ITEM_MAP_LOCK")
   @Nullable private List<MultiResourceRepository> myParents;
 
-  protected long myGeneration;
+  private volatile long myGeneration;
 
   private final Object RESOURCE_DIRS_LOCK = new Object();
   @Nullable private Set<VirtualFile> myResourceDirs;
@@ -162,7 +164,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   protected LocalResourceRepository(@NotNull String displayName) {
     super();
     myDisplayName = displayName;
-    myGeneration = ourModificationCounter.incrementAndGet();
+    setModificationCount(ourModificationCounter.incrementAndGet());
   }
 
   @NotNull
@@ -180,30 +182,38 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   public void addParent(@NonNull MultiResourceRepository parent) {
-    if (myParents == null) {
-      myParents = Lists.newArrayListWithExpectedSize(2); // Don't expect many parents
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents == null) {
+        myParents = Lists.newArrayListWithExpectedSize(2); // Don't expect many parents
+      }
+      myParents.add(parent);
     }
-    myParents.add(parent);
   }
 
   public void removeParent(@NonNull MultiResourceRepository parent) {
-    if (myParents != null) {
-      myParents.remove(parent);
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        myParents.remove(parent);
+      }
     }
   }
 
   protected void invalidateParentCaches() {
-    if (myParents != null) {
-      for (MultiResourceRepository parent : myParents) {
-        parent.invalidateCache(this);
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        for (MultiResourceRepository parent : myParents) {
+          parent.invalidateCache(this);
+        }
       }
     }
   }
 
   protected void invalidateParentCaches(@Nullable String namespace, @NotNull ResourceType... types) {
-    if (myParents != null) {
-      for (MultiResourceRepository parent : myParents) {
-        parent.invalidateCache(this, namespace, types);
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        for (MultiResourceRepository parent : myParents) {
+          parent.invalidateCache(this, namespace, types);
+        }
       }
     }
   }
@@ -270,6 +280,10 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @Override
   public long getModificationCount() {
     return myGeneration;
+  }
+
+  protected void setModificationCount(long count) {
+    myGeneration = count;
   }
 
   @Nullable
@@ -461,9 +475,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     synchronized (RESOURCE_DIRS_LOCK) {
       myResourceDirs = null;
     }
-    if (myParents != null) {
-      for (LocalResourceRepository parent : myParents) {
-        parent.invalidateResourceDirs();
+    synchronized (ITEM_MAP_LOCK) {
+      if (myParents != null) {
+        for (LocalResourceRepository parent : myParents) {
+          parent.invalidateResourceDirs();
+        }
       }
     }
   }

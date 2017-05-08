@@ -131,7 +131,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     addArchiveLibraries();
 
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
-    assertEquals(3, repository.getChildCount());
+    assertEquals(3, repository.getChildren().size());
     Collection<String> items = repository.getItemsOfType(ResourceType.STRING);
     assertTrue(items.isEmpty());
 
