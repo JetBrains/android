@@ -24,10 +24,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
@@ -92,11 +89,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   protected final TagSnapshot myRoot;
 
-  @Nullable
-  private String myToolsPrefix;
-
-  @Nullable
-  protected String myAndroidPrefix;
+  /** Mapping from URI to namespace prefix for android, app and tools URIs */
+  @NotNull
+  protected ImmutableMap<String, String> myNamespacePrefixes;
 
   protected boolean myProvideViewCookies = true;
 
@@ -180,6 +175,18 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag);
   }
 
+  private static ImmutableMap<String, String> buildNamespacesMap(@NotNull XmlTag root) {
+    ImmutableMap.Builder<String, String> prefixesBuilder = ImmutableMap.builder();
+    for (String uri : new String[]{ANDROID_URI, TOOLS_URI, AUTO_URI}) {
+      String prefix = root.getPrefixByNamespace(uri);
+      if (prefix != null) {
+        prefixesBuilder.put(uri, prefix);
+      }
+    }
+
+    return prefixesBuilder.build();
+  }
+
   /**
    * Use one of the {@link #create} factory methods instead
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
@@ -190,8 +197,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     if (root != null) {
       if (ApplicationManager.getApplication().isReadAccessAllowed()) {
         if (root.isValid()) {
-          myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
-          myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
+          myNamespacePrefixes = buildNamespacesMap(root);
           myRoot = createSnapshot(root, honorMergeParentTag);
         } else {
           myRoot = EMPTY_LAYOUT;
@@ -199,8 +205,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       } else {
         myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
           if (root.isValid()) {
-            myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
-            myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
+            myNamespacePrefixes = buildNamespacesMap(root);
             return createSnapshot(root, honorMergeParentTag);
           } else {
             return EMPTY_LAYOUT;
@@ -220,8 +225,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     myDeclaredAaptAttrs = Collections.emptyMap();
     if (ApplicationManager.getApplication().isReadAccessAllowed()) {
       if (root.tag != null && root.tag.isValid()) {
-        myAndroidPrefix = root.tag.getPrefixByNamespace(ANDROID_URI);
-        myToolsPrefix = root.tag.getPrefixByNamespace(TOOLS_URI);
+        myNamespacePrefixes = buildNamespacesMap(root.tag);
         myRoot = root;
       } else {
         myRoot = null;
@@ -229,8 +233,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     } else {
       myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
         if (root.tag != null && root.tag.isValid()) {
-          myAndroidPrefix = root.tag.getPrefixByNamespace(ANDROID_URI);
-          myToolsPrefix = root.tag.getPrefixByNamespace(TOOLS_URI);
+          myNamespacePrefixes = buildNamespacesMap(root.tag);
           return root;
         } else {
           return null;
@@ -443,52 +446,50 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       String value = null;
       if (namespace == null) {
         value = tag.getAttribute(localName);
-      } else if (namespace.equals(ANDROID_URI)) {
-        if (myAndroidPrefix != null) {
-          if (myToolsPrefix != null) {
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0, n = tag.attributes.size(); i < n; i++) {
-              AttributeSnapshot attribute = tag.attributes.get(i);
-              if (localName.equals(attribute.name)) {
-                if (myToolsPrefix.equals(attribute.prefix)) {
-                  value = attribute.value;
-                  if (value != null && value.isEmpty()) {
-                    // Empty when there is a runtime attribute set means unset the runtime attribute
-                    value = tag.getAttribute(localName, ANDROID_URI) != null ? null : value;
-                  }
-                  break;
-                } else if (myAndroidPrefix.equals(attribute.prefix)) {
-                  value = attribute.value;
-                  // Don't break: continue searching in case we find a tools design time attribute
-                }
-              }
-            }
-          } else {
-            value = tag.getAttribute(localName, ANDROID_URI);
-          }
-        } else {
-          value = tag.getAttribute(localName, namespace);
-        }
-      } else {
-        // Temporary conversion: ConstraintLayout 1.0 is looking in the app namespace for attributes stored
-        // in tools namespace in the XML
-        if ((ATTR_LAYOUT_EDITOR_ABSOLUTE_X.equals(localName) || ATTR_LAYOUT_EDITOR_ABSOLUTE_Y.equals(localName)) &&
-            AUTO_URI.equals(namespace)) {
-          return getAttributeValue(TOOLS_URI, localName);
+      } else if (namespace.equals(ANDROID_URI) || namespace.equals(AUTO_URI)) {
+        // tools attributes can override both android and app namespace attributes
+        String toolsPrefix = myNamespacePrefixes.get(TOOLS_URI);
+        if (toolsPrefix == null) {
+          // tools namespace is not declared
+          return tag.getAttribute(localName, namespace);
         }
 
-        // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
-        // will be for the current application's resource package, e.g.
-        // http://schemas.android.com/apk/res/foo.bar, but the XML document will
-        // be using http://schemas.android.com/apk/res-auto in library projects:
         //noinspection ForLoopReplaceableByForEach
         for (int i = 0, n = tag.attributes.size(); i < n; i++) {
           AttributeSnapshot attribute = tag.attributes.get(i);
-          if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
-                                                   AUTO_URI.equals(attribute.namespace))) {
-            value = attribute.value;
-            break;
+          if (localName.equals(attribute.name)) {
+            if (toolsPrefix.equals(attribute.prefix)) {
+              value = attribute.value;
+              if (value != null && value.isEmpty()) {
+                // Empty when there is a runtime attribute set means unset the runtime attribute
+                value = tag.getAttribute(localName, ANDROID_URI) != null ? null : value;
+              }
+              break;
+            } else if (namespace.equals(attribute.namespace)) {
+              value = attribute.value;
+              // Don't break: continue searching in case we find a tools design time attribute
+            }
           }
+        }
+      } else {
+        // The namespace is not android, app or null
+        if (!TOOLS_URI.equals(namespace)) {
+          // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
+          // will be for the current application's resource package, e.g.
+          // http://schemas.android.com/apk/res/foo.bar, but the XML document will
+          // be using http://schemas.android.com/apk/res-auto in library projects:
+          //noinspection ForLoopReplaceableByForEach
+          for (int i = 0, n = tag.attributes.size(); i < n; i++) {
+            AttributeSnapshot attribute = tag.attributes.get(i);
+            if (localName.equals(attribute.name) && (namespace.equals(attribute.namespace) ||
+                                                     AUTO_URI.equals(attribute.namespace))) {
+              value = attribute.value;
+              break;
+            }
+          }
+        } else {
+          // We are asked specifically to return a tools attribute
+          value = tag.getAttribute(localName, namespace);
         }
       }
 
