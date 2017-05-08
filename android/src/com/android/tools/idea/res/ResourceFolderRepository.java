@@ -1084,7 +1084,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       if (added || removed) {
         // TODO: Consider doing a deeper diff of the changes to the resource items
         // to determine if the removed and added items actually differ
-        myGeneration = ourModificationCounter.incrementAndGet();
+        setModificationCount(ourModificationCounter.incrementAndGet());
         invalidateParentCaches();
       }
     } else {
@@ -1148,9 +1148,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           }
 
           if (!idsBefore.equals(idsAfter)) {
-            myGeneration = ourModificationCounter.incrementAndGet();
+            setModificationCount(ourModificationCounter.incrementAndGet());
           }
-          scanDataBinding(resourceFile, myGeneration);
+          scanDataBinding(resourceFile, getModificationCount());
           // Identities may have changed even if the ids are the same, so update maps
           invalidateParentCaches(myNamespace, ResourceType.ID);
         }
@@ -1186,7 +1186,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
               scanFileResourceFileAsPsi(getQualifiers(dirName), folderType, folderConfiguration, type, idGeneratingFile, map, file);
             }
           }
-          myGeneration = ourModificationCounter.incrementAndGet();
+          setModificationCount(ourModificationCounter.incrementAndGet());
           invalidateParentCaches();
         }
       }
@@ -1303,7 +1303,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       ResourceItem item = new PsiResourceItem(name, type, myNamespace, tag, psiFile);
                       map.put(name, item);
                       resourceFile.addItems(Collections.singletonList(item));
-                      myGeneration = ourModificationCounter.incrementAndGet();
+                      setModificationCount(ourModificationCounter.incrementAndGet());
                       invalidateParentCaches(myNamespace, type);
                       return;
                     }
@@ -1321,7 +1321,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 ResourceItem parentItem = findValueResourceItem(parentTag, psiFile);
                 if (parentItem instanceof PsiResourceItem) {
                   if (((PsiResourceItem)parentItem).recomputeValue()) {
-                    myGeneration = ourModificationCounter.incrementAndGet();
+                    setModificationCount(ourModificationCounter.incrementAndGet());
                   }
                   return;
                 }
@@ -1366,7 +1366,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                     assert resFile instanceof PsiResourceFile;
                     PsiResourceFile resourceFile = (PsiResourceFile)resFile;
                     resourceFile.addItems(ids);
-                    myGeneration = ourModificationCounter.incrementAndGet();
+                    setModificationCount(ourModificationCounter.incrementAndGet());
                     invalidateParentCaches(myNamespace, ResourceType.ID);
                   }
                 }
@@ -1467,7 +1467,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
                   if (resourceItem instanceof PsiResourceItem) {
                     if (((PsiResourceItem)resourceItem).recomputeValue()) {
-                      myGeneration = ourModificationCounter.incrementAndGet();
+                      setModificationCount(ourModificationCounter.incrementAndGet());
                     }
 
                     if (resourceItem.getType() == ResourceType.ATTR) {
@@ -1476,7 +1476,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         ResourceItem declareStyleable = findValueResourceItem(parentTag, psiFile);
                         if (declareStyleable instanceof PsiResourceItem) {
                           if (((PsiResourceItem)declareStyleable).recomputeValue()) {
-                            myGeneration = ourModificationCounter.incrementAndGet();
+                            setModificationCount(ourModificationCounter.incrementAndGet());
                           }
                         }
                       }
@@ -1514,7 +1514,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         return;
                       }
                       if (removeItems(resourceFile, type, name, true)) {
-                        myGeneration = ourModificationCounter.incrementAndGet();
+                        setModificationCount(ourModificationCounter.incrementAndGet());
                         invalidateParentCaches(myNamespace, type);
                       }
                     }
@@ -1564,7 +1564,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         }
       }
 
-      myGeneration = ourModificationCounter.incrementAndGet();
+      setModificationCount(ourModificationCounter.incrementAndGet());
       invalidateParentCaches();
 
       ResourceFolderType folderType = ResourceHelper.getFolderType(resourceFile);
@@ -1592,7 +1592,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         return;
       }
       myResourceFiles.remove(psiFile.getVirtualFile());
-      myGeneration = ourModificationCounter.incrementAndGet();
+      setModificationCount(ourModificationCounter.incrementAndGet());
       invalidateParentCaches();
 
       ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
@@ -1694,7 +1694,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                             ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
                             map.put(newName, newItem);
                             resourceFile.replace(item, newItem);
-                            myGeneration = ourModificationCounter.incrementAndGet();
+                            setModificationCount(ourModificationCounter.incrementAndGet());
                             invalidateParentCaches(myNamespace, ResourceType.ID);
                             return;
                           }
@@ -1739,7 +1739,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                           ResourceItem newItem = new PsiResourceItem(newName, ResourceType.ID, myNamespace, xmlTag, psiFile);
                           map.put(newName, newItem);
                           resourceFile.replace(item, newItem);
-                          myGeneration = ourModificationCounter.incrementAndGet();
+                          setModificationCount(ourModificationCounter.incrementAndGet());
                           invalidateParentCaches(myNamespace, ResourceType.ID);
                           return;
                         }
@@ -1754,8 +1754,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   if (resFile != null) {
                     // Data-binding files are always scanned as PsiResourceFiles.
                     PsiResourceFile resourceFile = (PsiResourceFile)resFile;
-                    myGeneration = ourModificationCounter.incrementAndGet();
-                    scanDataBinding(resourceFile, myGeneration);
+                    setModificationCount(ourModificationCounter.incrementAndGet());
+                    scanDataBinding(resourceFile, getModificationCount());
                   }
                 }
               }
@@ -1796,7 +1796,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                   ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
                   if (resourceItem instanceof PsiResourceItem) {
                     if (((PsiResourceItem)resourceItem).recomputeValue()) {
-                      myGeneration = ourModificationCounter.incrementAndGet();
+                      setModificationCount(ourModificationCounter.incrementAndGet());
                     }
                     return;
                   }
@@ -1861,7 +1861,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         else {
                           assert false : item;
                         }
-                        myGeneration = ourModificationCounter.incrementAndGet();
+                        setModificationCount(ourModificationCounter.incrementAndGet());
                         invalidateParentCaches(myNamespace, type);
 
                         // Invalidate surrounding declare styleable if any
@@ -1889,7 +1889,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       ResourceItem resourceItem = findValueResourceItem(parentTag, psiFile);
                       if (resourceItem instanceof PsiResourceItem) {
                         if (((PsiResourceItem)resourceItem).recomputeValue()) {
-                          myGeneration = ourModificationCounter.incrementAndGet();
+                          setModificationCount(ourModificationCounter.incrementAndGet());
                         }
                         return;
                       }
@@ -1920,7 +1920,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 }
               }
 
-              myGeneration = ourModificationCounter.incrementAndGet();
+              setModificationCount(ourModificationCounter.incrementAndGet());
               return;
             }
           } // else: can ignore this edit
@@ -1973,7 +1973,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           if (item instanceof PsiResourceItem) {
             boolean cleared = ((PsiResourceItem)item).recomputeValue();
             if (cleared) { // Only bump revision if this is a value which has already been observed!
-              myGeneration = ourModificationCounter.incrementAndGet();
+              setModificationCount(ourModificationCounter.incrementAndGet());
             }
           }
           return;
@@ -1992,7 +1992,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             // Edited XML value
             boolean cleared = ((PsiResourceItem)item).recomputeValue();
             if (cleared) { // Only bump revision if this is a value which has already been observed!
-              myGeneration = ourModificationCounter.incrementAndGet();
+              setModificationCount(ourModificationCounter.incrementAndGet());
             }
           }
           break;
@@ -2072,7 +2072,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 assert newParent != null; // Since newFolderType != null
                 String newDirName = newParent.getName();
                 psiResourceFile.setPsiFile(psiFile, getQualifiers(newDirName));
-                myGeneration = ourModificationCounter.incrementAndGet(); // qualifiers may have changed: can affect configuration matching
+                setModificationCount(ourModificationCounter.incrementAndGet()); // qualifiers may have changed: can affect configuration matching
                 // We need to recompute resource values too, since some of these can point to
                 // the old file (e.g. a drawable resource could have a DensityBasedResourceValue
                 // pointing to the old file

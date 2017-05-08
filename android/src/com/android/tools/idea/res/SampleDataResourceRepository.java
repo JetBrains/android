@@ -216,7 +216,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     addPredefinedItems(projectItems);
     myFullTable.put(null, ResourceType.SAMPLE_DATA, projectItems.build());
 
-    myGeneration = ourModificationCounter.incrementAndGet();
+    setModificationCount(ourModificationCounter.incrementAndGet());
 
     invalidateParentCaches(null, ResourceType.SAMPLE_DATA);
   }

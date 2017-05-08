@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ResourceTable;
+import com.android.resources.ResourceType;
+import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -124,7 +126,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
 
     // Compute current roots
     Map<VirtualFile, ResourceFolderRepository> map = Maps.newHashMap();
-    for (LocalResourceRepository repository : myChildren) {
+    for (LocalResourceRepository repository : getChildren()) {
       if (repository instanceof ResourceFolderRepository) {
         ResourceFolderRepository folderRepository = (ResourceFolderRepository)repository;
         VirtualFile resourceDir = folderRepository.getResourceDir();
@@ -158,7 +160,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
       resources.addAll(other);
     }
 
-    if (resources.equals(myChildren)) {
+    if (resources.equals(getChildren())) {
       // Nothing changed (including order); nothing to do
       assert map.isEmpty(); // shouldn't have created any new ones
       return;
@@ -207,14 +209,36 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
     return new ModuleResourceRepository(facet, delegates);
   }
 
-  private static class EmptyRepository extends MultiResourceRepository {
-    public EmptyRepository() {
-      super("", Collections.emptyList());
+  private static class EmptyRepository extends LocalResourceRepository {
+
+    protected EmptyRepository() {
+      super("");
     }
 
+    @NotNull
     @Override
-    protected void setChildren(@NotNull List<? extends LocalResourceRepository> children) {
-      myChildren = children;
+    protected Set<VirtualFile> computeResourceDirs() {
+      return Collections.emptySet();
+    }
+
+    @NonNull
+    @Override
+    protected ResourceTable getFullTable() {
+      return new ResourceTable();
+    }
+
+    @com.android.annotations.Nullable
+    @Override
+    protected ListMultimap<String, ResourceItem> getMap(@com.android.annotations.Nullable String namespace,
+                                                        @NonNull ResourceType type,
+                                                        boolean create) {
+      return create ? ArrayListMultimap.create() : null;
+    }
+
+    @NonNull
+    @Override
+    public Set<String> getNamespaces() {
+      return Collections.emptySet();
     }
   }
 }
