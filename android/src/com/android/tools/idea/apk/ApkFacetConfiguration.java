@@ -31,10 +31,11 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.gradle.util.FilePaths.computeRootPathsForFiles;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 
 public class ApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
@@ -52,25 +53,23 @@ public class ApkFacetConfiguration implements FacetConfiguration {
     if (NATIVE_LIBRARIES.isEmpty() || abis.isEmpty()) {
       return Collections.emptyList();
     }
-    if (abis.size() != 1) {
-      // TODO support multi-ABI devices.
-      return Collections.emptyList();
-    }
-
     Set<String> paths = new HashSet<>();
-    Abi abi = abis.get(0);
-    for (NativeLibrary library : NATIVE_LIBRARIES) {
-      DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi.toString());
-      if (sharedObjectFile != null) {
-        paths.add(sharedObjectFile.path);
+    for (Abi abi : abis) {
+      for (NativeLibrary library : NATIVE_LIBRARIES) {
+        DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi.toString());
+        if (sharedObjectFile != null) {
+          File path = toSystemDependentPath(sharedObjectFile.path);
+          if (path.exists()) {
+            paths.add(path.getParent());
+          }
+        }
       }
     }
 
     if (paths.isEmpty()) {
       return Collections.emptyList();
     }
-
-    return computeRootPathsForFiles(paths.stream());
+    return paths;
   }
 
   @NotNull
