@@ -24,6 +24,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
@@ -69,5 +71,16 @@ public class IdeOutputFileTest {
   @Test
   public void equalsAndHashCode() {
     EqualsVerifier.forClass(IdeOutputFile.class).verify();
+  }
+
+  @Test
+  public void stackOverflowInToString() {
+    OutputFileStub file = new OutputFileStub();
+    file.addOutputFile(file);
+
+    IdeOutputFile outputFile = new IdeOutputFile(file, myModelCache);
+    String text = outputFile.toString();
+    System.out.println(text);
+    assertThat(text).contains("this");
   }
 }

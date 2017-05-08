@@ -19,8 +19,10 @@ import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -30,30 +32,33 @@ public final class OutputFileStub extends BaseStub implements OutputFile {
   @NotNull private final Collection<String> myFilterTypes;
   @NotNull private final Collection<FilterData> myFilters;
   @NotNull private final File myOutputFile;
-  @NotNull private final Collection<? extends OutputFile> myOutputs;
+  @NotNull private final Collection<OutputFile> myOutputs;
   private final int myVersionCode;
 
   public OutputFileStub() {
     this(Collections.emptyList());
   }
 
-  public OutputFileStub(@NotNull Collection<? extends OutputFile> outputs) {
-    this("type", Lists.newArrayList("filterType1"), Lists.newArrayList(new FilterDataStub()), new File("output"),
-         outputs, 1);
+  public OutputFileStub(@NotNull Collection<OutputFile> outputs) {
+    this("type", Lists.newArrayList("filterType1"), Lists.newArrayList(new FilterDataStub()), new File("output"), outputs, 1);
   }
 
   public OutputFileStub(@NotNull String type,
                         @NotNull Collection<String> filterTypes,
                         @NotNull Collection<FilterData> filters,
                         @NotNull File outputFile,
-                        @NotNull Collection<? extends OutputFile> outputs,
+                        @NotNull Collection<OutputFile> outputs,
                         int versionCode) {
     myOutputType = type;
     myFilterTypes = filterTypes;
     myFilters = filters;
     myOutputFile = outputFile;
-    myOutputs = outputs;
+    myOutputs = new ArrayList<>(outputs);
     myVersionCode = versionCode;
+  }
+
+  public void addOutputFile(@NotNull OutputFile file) {
+    myOutputs.add(file);
   }
 
   @Override
@@ -116,7 +121,19 @@ public final class OutputFileStub extends BaseStub implements OutputFile {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getOutputType(), getFilterTypes(), getFilters(), getOutputFile(), getOutputs(), getVersionCode());
+    return Objects.hash(getOutputType(), getFilterTypes(), getFilters(), getOutputFile(), hashCode(getOutputs()), getVersionCode());
+  }
+
+  private int hashCode(@NotNull Collection<? extends OutputFile> outputFiles) {
+    int hashCode = 1;
+    for (OutputFile outputFile : outputFiles) {
+      hashCode = 31 * hashCode + hashCode(outputFile);
+    }
+    return hashCode;
+  }
+
+  private int hashCode(@Nullable OutputFile outputFile) {
+    return outputFile != this ? Objects.hashCode(outputFile) : 1;
   }
 
   @Override
@@ -126,8 +143,37 @@ public final class OutputFileStub extends BaseStub implements OutputFile {
            ", myFilterTypes=" + myFilterTypes +
            ", myFilters=" + myFilters +
            ", myOutputFile=" + myOutputFile +
-           ", myOutputs=" + myOutputs +
+           ", myOutputs=" + toString(myOutputs) +
            ", myVersionCode=" + myVersionCode +
            "}";
+  }
+
+  @NotNull
+  private String toString(@NotNull Collection<? extends OutputFile> outputFiles) {
+    int max = outputFiles.size() - 1;
+    if (max == -1) {
+      return "[]";
+    }
+
+    StringBuilder b = new StringBuilder();
+    b.append('[');
+    int i = 0;
+    for (OutputFile file : outputFiles) {
+      b.append(toString(file));
+      if (i++ == max) {
+        b.append(']');
+        break;
+      }
+      b.append(", ");
+    }
+    return b.toString();
+  }
+
+  @NotNull
+  private String toString(@Nullable OutputFile outputFile) {
+    if (outputFile == this) {
+      return "this";
+    }
+    return Objects.toString(outputFile);
   }
 }

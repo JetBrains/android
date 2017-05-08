@@ -170,9 +170,38 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
            ", myFilterTypes=" + myFilterTypes +
            ", myFilters=" + myFilters +
            ", myOutputFile=" + myOutputFile +
-           ", myMainOutputFile=" + (myMainOutputFile != this ? myMainOutputFile : "this") + // Avoid stack overflow.
-           ", myOutputs=" + myOutputs +
+           ", myMainOutputFile=" + toString(myMainOutputFile) + // Avoid stack overflow.
+           ", myOutputs=" + toString(myOutputs) +
            ", myVersionCode=" + myVersionCode +
            "}";
+  }
+
+  @NotNull
+  private String toString(@NotNull Collection<? extends OutputFile> outputFiles) {
+    int max = outputFiles.size() - 1;
+    if (max == -1) {
+      return "[]";
+    }
+
+    StringBuilder b = new StringBuilder();
+    b.append('[');
+    int i = 0;
+    for (OutputFile file : outputFiles) {
+      b.append(toString(file));
+      if (i++ == max) {
+        b.append(']');
+        break;
+      }
+      b.append(", ");
+    }
+    return b.toString();
+  }
+
+  @NotNull
+  private String toString(@Nullable OutputFile outputFile) {
+    if (outputFile == this) {
+      return "this";
+    }
+    return Objects.toString(outputFile);
   }
 }
