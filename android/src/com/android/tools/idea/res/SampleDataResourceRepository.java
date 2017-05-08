@@ -28,7 +28,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.*;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -92,11 +92,11 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     invalidate();
   }
 
-  private static void addItems(@NotNull ImmutableListMultimap.Builder<String, ResourceItem> items, @NotNull PsiFile sampleDataFile) {
+  private static void addItems(@NotNull ImmutableListMultimap.Builder<String, ResourceItem> items, @NotNull PsiFileSystemItem sampleDataFile) {
     if (!EXT_JSON.equals(sampleDataFile.getVirtualFile().getExtension())) {
-      // Plain file
+      // Plain file or directory
       items.put(sampleDataFile.getName(),
-                new PsiResourceItem(sampleDataFile.getName(), ResourceType.SAMPLE_DATA, null, null, sampleDataFile));
+                new SampleDataResourceItem(sampleDataFile.getName(), sampleDataFile.getVirtualFile(), sampleDataFile));
       return;
     }
 
@@ -111,7 +111,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
       for (String path : possiblePaths) {
         String fullName = sampleDataFile.getName() + path;
         items.put(fullName,
-                  new PsiResourceItem(fullName, ResourceType.SAMPLE_DATA, null, null, sampleDataFile));
+                  new SampleDataResourceItem(fullName, sampleDataFile.getVirtualFile(), sampleDataFile));
       }
     }
     catch (FileNotFoundException e) {
@@ -134,12 +134,10 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
       ImmutableListMultimap.Builder<String, ResourceItem> items = ImmutableListMultimap.builder();
       PsiManager psiManager = PsiManager.getInstance(myAndroidFacet.getModule().getProject());
       Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
-      ApplicationManager.getApplication().runReadAction(() -> {
-        childrenStream
-          .map(psiManager::findFile)
-          .filter(Objects::nonNull)
-          .forEach(f -> addItems(items, f));
-      });
+      ApplicationManager.getApplication().runReadAction(() -> childrenStream
+        .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
+        .filter(Objects::nonNull)
+        .forEach(f -> addItems(items, f)));
 
       myFullTable.put(null, ResourceType.SAMPLE_DATA, items.build());
     }
