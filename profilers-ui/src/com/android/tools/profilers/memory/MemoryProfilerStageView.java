@@ -64,6 +64,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private JButton myAllocationButton;
   @NotNull private JButton myHeapDumpButton;
 
+  @NotNull private MemoryStageTooltipView myTooltipView;
+
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
     super(profilersView, stage);
 
@@ -283,6 +285,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     overlay.addDurationDataRenderer(gcRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
 
+    myTooltipView = new MemoryStageTooltipView(getStage());
+    TooltipComponent tooltip =
+      new TooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltipView.createComponent());
+    // TODO: Probably this needs to be refactored.
+    //       We register in both of them because mouse events received by overly will not be received by overlyPanel.
+    tooltip.registerListenersOn(overlay);
+    tooltip.registerListenersOn(overlayPanel);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
@@ -323,6 +332,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
+    monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
