@@ -160,7 +160,7 @@ public class PostSyncProjectSetup {
       myProjectSetup.setUpProject(progressIndicator, true /* sync failed */);
       // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
       // previous sync, and not the one from the sync that just ended.
-      mySyncState.syncEnded();
+      mySyncState.syncFailed("");
       return;
     }
 
