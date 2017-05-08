@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import com.android.sdklib.devices.Abi;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
@@ -32,14 +32,17 @@ public class NativeLibrary {
   // These fields get serialized to/from XML in ApkFacet.
   @NotNull public String name = "";
   @NotNull public List<String> sourceFolderPaths = new ArrayList<>();
+
+  // Key: ABI, value: debuggable .so file.
+  @NotNull public Map<String, DebuggableSharedObjectFile> debuggableSharedObjectFilesByAbi = new HashMap<>();
+
+  // Key: original path (found in a debuggable .so file), value: path in the local file system.
   @NotNull public Map<String, String> pathMappings = new HashMap<>();
 
   @NotNull private List<String> sharedObjectFilePaths = new ArrayList<>();
 
   @Transient @NotNull public List<VirtualFile> sharedObjectFiles = new ArrayList<>();
   @Transient @NotNull public List<String> abis = new ArrayList<>();
-
-  @Nullable public String debuggableFilePath;
 
   public boolean hasDebugSymbols;
 
@@ -119,11 +122,12 @@ public class NativeLibrary {
     return false;
   }
 
-  public void setDebuggableFile(@NotNull VirtualFile debuggableFile) {
+  @NotNull
+  public DebuggableSharedObjectFile addDebuggableSharedObjectFile(@NotNull Abi abi, @NotNull VirtualFile file) {
     hasDebugSymbols = true;
-    debuggableFilePath = debuggableFile.getPath();
-    pathMappings.clear();
-    sourceFolderPaths.clear();
+    DebuggableSharedObjectFile sharedObjectFile = new DebuggableSharedObjectFile(abi.toString(), file);
+    debuggableSharedObjectFilesByAbi.put(sharedObjectFile.abi, sharedObjectFile);
+    return sharedObjectFile;
   }
 
   @NotNull
@@ -146,12 +150,12 @@ public class NativeLibrary {
            Objects.equals(sourceFolderPaths, library.sourceFolderPaths) &&
            Objects.equals(pathMappings, library.pathMappings) &&
            Objects.equals(sharedObjectFilePaths, library.sharedObjectFilePaths) &&
-           Objects.equals(debuggableFilePath, library.debuggableFilePath);
+           Objects.equals(debuggableSharedObjectFilesByAbi, library.debuggableSharedObjectFilesByAbi);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, sourceFolderPaths, pathMappings, sharedObjectFilePaths, debuggableFilePath, hasDebugSymbols);
+    return Objects.hash(name, sourceFolderPaths, pathMappings, sharedObjectFilePaths, debuggableSharedObjectFilesByAbi, hasDebugSymbols);
   }
 
   @Override

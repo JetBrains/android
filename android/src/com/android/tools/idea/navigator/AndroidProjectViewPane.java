@@ -142,7 +142,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @NotNull
   @Override
   protected BaseProjectTreeBuilder createBuilder(DefaultTreeModel treeModel) {
-    return new AndroidProjectTreeBuilder(myProject, myTree, treeModel, null, (ProjectAbstractTreeStructureBase)myTreeStructure);
+    return new AndroidProjectTreeBuilder(myProject, myTree, treeModel, (ProjectAbstractTreeStructureBase)myTreeStructure, null);
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import com.android.sdklib.devices.Abi;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -112,7 +113,7 @@ public class NativeLibraryTest extends IdeaTestCase {
     assertTrue(library.isMissingPathMappings());
   }
 
-  public void testSetDebuggableFile() throws IOException {
+  public void testAddDebuggableSharedObjectFile() throws IOException {
     NativeLibrary library = new NativeLibrary("library");
     library.hasDebugSymbols = false;
     library.pathMappings.put("abc.so", "");
@@ -125,11 +126,12 @@ public class NativeLibraryTest extends IdeaTestCase {
       }
     });
 
-    library.setDebuggableFile(debuggableFile);
+    Abi abi = Abi.X86;
+    library.addDebuggableSharedObjectFile(abi, debuggableFile);
     assertTrue(library.hasDebugSymbols);
-    assertThat(library.pathMappings).isEmpty();
-    assertThat(library.sourceFolderPaths).isEmpty();
-    assertEquals(debuggableFile.getPath(), library.debuggableFilePath);
+
+    DebuggableSharedObjectFile stored = library.debuggableSharedObjectFilesByAbi.get(abi.toString());
+    assertEquals(debuggableFile.getPath(), stored.path);
   }
 
   public void testGetUserSelectedPathsInMappings() {
