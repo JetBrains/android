@@ -52,6 +52,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -347,7 +349,35 @@ class CpuCaptureView {
       HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
       chart.setHRenderer(new SampledMethodUsageHRenderer());
       chart.setHTree(node);
-      myComponent = chart;
+
+      JScrollBar scrollBar = new JScrollBar(Adjustable.VERTICAL);
+      scrollBar.addAdjustmentListener(e -> {
+        int offset;
+        if (orientation == HTreeChart.Orientation.BOTTOM_UP) {
+          // HTreeChart rendered bottom up, so is scrollBar.
+          offset = scrollBar.getMaximum() - (e.getValue() + scrollBar.getVisibleAmount());
+        } else {
+          offset = e.getValue();
+        }
+        chart.getYRange().set(offset, offset);
+      });
+
+      chart.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          scrollBar.setValue(Math.min(scrollBar.getMaximum() - chart.getHeight(), scrollBar.getValue()));
+          scrollBar.setVisibleAmount(chart.getHeight());
+        }
+      });
+
+      int initialOffset = (orientation == HTreeChart.Orientation.BOTTOM_UP) ? chart.getMaximumHeight() : 0;
+      scrollBar.setValues(initialOffset, chart.getHeight(), 0, chart.getMaximumHeight());
+
+      JPanel panel = new JPanel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      panel.add(chart);
+      panel.add(scrollBar);
+      myComponent = panel;
 
       view.getIdeComponents()
         .installNavigationContextMenu(chart, view.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
