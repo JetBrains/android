@@ -258,5 +258,10 @@ public class CaptureObjectLoaderTest {
     public boolean isError() {
       return false;
     }
+
+    @Override
+    public void unload() {
+
+    }
   }
 }

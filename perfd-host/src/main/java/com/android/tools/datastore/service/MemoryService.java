@@ -235,12 +235,17 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void getAllocationSnaphot(AllocationSnapshotRequest request,
-                                   StreamObserver<BatchAllocationSample> responseObserver) {
-    BatchAllocationSample response =
-      myMemoryTable
-        .getAllocationSnapshot(request.getProcessId(), request.getSession(), request.getCaptureTime(), request.getStartTime(),
-                               request.getEndTime());
+  public void getAllocations(AllocationSnapshotRequest request, StreamObserver<BatchAllocationSample> responseObserver) {
+    BatchAllocationSample response = myMemoryTable.getAllocations(
+      request.getProcessId(), request.getSession(), request.getCaptureTime(), request.getStartTime(), request.getEndTime());
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getAllocationContexts(AllocationSnapshotRequest request, StreamObserver<BatchAllocationSample> responseObserver) {
+    BatchAllocationSample response = myMemoryTable.getAllocationContexts(
+      request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }

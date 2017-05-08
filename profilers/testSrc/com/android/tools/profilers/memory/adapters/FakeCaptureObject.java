@@ -156,6 +156,11 @@ public final class FakeCaptureObject implements CaptureObject {
     return myIsError;
   }
 
+  @Override
+  public void unload() {
+
+  }
+
   public static class Builder {
     public static final int DEFAULT_HEAP_ID = 0;
     public static final String DEFAULT_HEAP_NAME = "default";

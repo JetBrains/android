@@ -52,6 +52,14 @@ public interface InstanceObject extends ValueObject {
     return null;
   }
 
+  default long getAllocTime() {
+    return Long.MIN_VALUE;
+  }
+
+  default long getDeallocTime() {
+    return Long.MAX_VALUE;
+  }
+
   @Nullable
   default AllocationStack getCallStack() {
     return null;

@@ -73,6 +73,9 @@ public final class MemoryProfilerSelection {
     setInstanceObject(null);
     setClassSet(null);
     setHeapSet(null);
+    if (myCaptureObject != null) {
+      myCaptureObject.unload();
+    }
     myCaptureObject = captureObject;
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE);
     return true;

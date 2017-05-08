@@ -255,7 +255,7 @@ public class MemoryInstanceDetailsViewTest {
     JScrollPane columnTreePane = (JScrollPane)myDetailsView.getReferenceColumnTree();
     assertNotNull(columnTreePane);
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Reference", "Depth", "Shallow Size", "Retained Size");
+    treeInfo.verifyColumnHeaders("Reference", "Alloc Time", "Dealloc Time", "Depth", "Shallow Size", "Retained Size");
 
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
     assertEquals(references.size(), root.getChildCount());
@@ -263,6 +263,8 @@ public class MemoryInstanceDetailsViewTest {
       FakeInstanceObject ref = references.get(i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
                                     new String[]{"mField in "},
+                                    new String[]{""},
+                                    new String[]{""},
                                     new String[]{Integer.toString(ref.getDepth())},
                                     new String[]{Integer.toString(ref.getShallowSize())},
                                     new String[]{Long.toString(ref.getRetainedSize())});

@@ -101,8 +101,8 @@ public class MemoryProfilerTestUtils {
                                 int shallowSize,
                                 long retainedSize) {
     assertEquals(childNodeCount, node.getChildCount());
-    assertEquals(count, node.getAdapter().getCount());
-    assertEquals(shallowSize, node.getAdapter().getShallowSize());
-    assertEquals(retainedSize, node.getAdapter().getRetainedSize());
+    assertEquals(count, node.getAdapter().getAllocatedCount());
+    assertEquals(shallowSize, node.getAdapter().getTotalShallowSize());
+    assertEquals(retainedSize, node.getAdapter().getTotalRetainedSize());
   }
 }

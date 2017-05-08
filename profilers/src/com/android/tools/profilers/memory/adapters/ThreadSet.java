@@ -63,16 +63,15 @@ public class ThreadSet extends ClassifierSet {
       myMethodSetClassifier = MethodSet.createDefaultClassifier(myCaptureObject);
     }
 
+    @NotNull
     @Override
-    public boolean partition(@NotNull InstanceObject instance) {
+    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
       if (instance.getAllocationThreadId() != ThreadId.INVALID_THREAD_ID) {
-        myThreadSets.computeIfAbsent(instance.getAllocationThreadId(), threadId -> new ThreadSet(myCaptureObject, threadId))
-          .addInstanceObject(instance);
+        return myThreadSets.computeIfAbsent(instance.getAllocationThreadId(), threadId -> new ThreadSet(myCaptureObject, threadId));
       }
       else {
-        myMethodSetClassifier.partition(instance);
+        return myMethodSetClassifier.getOrCreateClassifierSet(instance);
       }
-      return true;
     }
 
     @NotNull

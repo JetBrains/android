@@ -18,8 +18,12 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,14 +33,16 @@ import java.util.stream.Stream;
 public abstract class ClassifierSet implements MemoryObject {
   @NotNull private final String myName;
 
-  @NotNull protected ArrayList<InstanceObject> myInstances;
+  @NotNull protected final ArrayList<InstanceObject> myInstances;
 
+  // Lazily create the Classifier, as it is configurable and isn't necessary until nodes under this node needs to be classified.
   @Nullable protected Classifier myClassifier = null;
 
-  protected int myCount = 0;
-  protected long myShallowSize = 0L;
-  protected long myRetainedSize = 0L;
-  protected boolean myHasStackInfo = false;
+  protected int myAllocatedCount = 0;
+  protected int myDeallocatedCount = 0;
+  protected long myTotalShallowSize = 0L;
+  protected long myTotalRetainedSize = 0L;
+  protected int myInstancesWithStackInfoCount = 0;
 
   public ClassifierSet(@NotNull String name) {
     myName = name;
@@ -50,29 +56,61 @@ public abstract class ClassifierSet implements MemoryObject {
     return myName;
   }
 
-  public int getCount() {
-    return myCount;
+  public int getAllocatedCount() {
+    return myAllocatedCount;
   }
 
-  public long getRetainedSize() {
-    return myRetainedSize;
+  public int getDeallocatedCount() {
+    return myDeallocatedCount;
   }
 
-  public long getShallowSize() {
-    return myShallowSize;
+  public long getTotalRetainedSize() {
+    return myTotalRetainedSize;
+  }
+
+  public long getTotalShallowSize() {
+    return myTotalShallowSize;
   }
 
   public void addInstanceObject(@NotNull InstanceObject instanceObject) {
+    addInstanceObject(instanceObject, null);
+  }
+
+  public void addInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+    if (pathResult != null) {
+      pathResult.add(this);
+    }
+
     if (myClassifier != null) {
-      myClassifier.partition(instanceObject);
+      if (!myClassifier.classify(instanceObject, pathResult)) {
+        myInstances.add(instanceObject);
+      }
     }
     else {
       myInstances.add(instanceObject);
     }
-    myCount += 1;
-    myShallowSize += instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
-    myRetainedSize += instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
-    myHasStackInfo |= (instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0);
+    myAllocatedCount++;
+    myTotalShallowSize += instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
+    myTotalRetainedSize += instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
+    myInstancesWithStackInfoCount +=
+      (instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) ? 1 : 0;
+  }
+
+  public void freeInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+    if (pathResult != null) {
+      pathResult.add(this);
+    }
+
+    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
+      // TODO: ADD TO myInstances, and figure out how to not add duplicates
+      myClassifier.getOrCreateClassifierSet(instanceObject).freeInstanceObject(instanceObject, pathResult);
+    }
+
+    myDeallocatedCount++;
+    myTotalShallowSize -= instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
+    myTotalRetainedSize -= instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
+    myInstancesWithStackInfoCount -=
+      (instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) ? 1 : 0;
   }
 
   public int getInstancesCount() {
@@ -85,7 +123,7 @@ public abstract class ClassifierSet implements MemoryObject {
   }
 
   /**
-   * Gets a stream of all instances (including all descendants) in this {@link ClassifierSet}.
+   * Gets a stream of all instances (including all descendants) in this ClassifierSet.
    */
   @NotNull
   public Stream<InstanceObject> getInstancesStream() {
@@ -98,7 +136,7 @@ public abstract class ClassifierSet implements MemoryObject {
   }
 
   public boolean hasStackInfo() {
-    return myHasStackInfo;
+    return myInstancesWithStackInfoCount > 0;
   }
 
   @NotNull
@@ -109,7 +147,7 @@ public abstract class ClassifierSet implements MemoryObject {
   }
 
   /**
-   * O(N) search through all descendant {@link ClassifierSet}.
+   * O(N) search through all descendant ClassifierSet.
    *
    * @return the set that contains the {@code target}, or null otherwise.
    */
@@ -136,7 +174,7 @@ public abstract class ClassifierSet implements MemoryObject {
   }
 
   /**
-   * Determines if {@code this} {@link ClassifierSet}'s descendant children forms a superset (could be equivalent) of the given
+   * Determines if {@code this} ClassifierSet's descendant children forms a superset (could be equivalent) of the given
    * {@code targetSet}'s immediate children.
    */
   public boolean isSupersetOf(@NotNull ClassifierSet targetSet) {
@@ -153,10 +191,10 @@ public abstract class ClassifierSet implements MemoryObject {
     myInstances.clear();
     myInstances.trimToSize();
     myClassifier = null;
-    myCount = 0;
-    myShallowSize = 0;
-    myRetainedSize = 0;
-    myHasStackInfo = false;
+    myAllocatedCount = 0;
+    myTotalShallowSize = 0;
+    myTotalRetainedSize = 0;
+    myInstancesWithStackInfoCount = 0;
   }
 
   /**
@@ -182,7 +220,18 @@ public abstract class ClassifierSet implements MemoryObject {
   public static abstract class Classifier {
     public static final Classifier IDENTITY_CLASSIFIER = new Classifier() {
       @Override
-      public boolean partition(@NotNull InstanceObject instance) {
+      public boolean isTerminalClassifier() {
+        return true;
+      }
+
+      @NotNull
+      @Override
+      public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
+        throw new NotImplementedException(); // not used
+      }
+
+      @Override
+      public boolean classify(@NotNull InstanceObject instance, @Nullable List<ClassifierSet> path) {
         return false;
       }
 
@@ -194,22 +243,42 @@ public abstract class ClassifierSet implements MemoryObject {
     };
 
     /**
-     * Classifies/partitions a single instance for this {@link Classifier}.
-     *
-     * @return whether or not the given instance has been further partitioned into child classifiers
+     * @return true if this Classifier is a terminal classifier, and instances will not be further classified.
      */
-    // TODO fix partition for post-sort behavior
-    public abstract boolean partition(@NotNull InstanceObject instance);
+    public boolean isTerminalClassifier() {
+      return false;
+    }
+
+    /**
+     * Creates a partition for the given {@code instance}, if none exists, or returns an appropriate existing one.
+     */
+    @NotNull
+    public abstract ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance);
+
+    /**
+     * Gets a {@link List} of the child ClassifierSets.
+     */
+    @NotNull
+    public abstract List<ClassifierSet> getClassifierSets();
+
+    /**
+     * Classifies a single instance for this Classifier.
+     */
+    // TODO if sorting is specified, we need to sort again
+    public boolean classify(@NotNull InstanceObject instance, @Nullable List<ClassifierSet> path) {
+      getOrCreateClassifierSet(instance).addInstanceObject(instance, path);
+      return true;
+    }
 
     /**
      * Partitions {@link InstanceObject}s in {@code myInstances} according to the current {@link ClassifierSet}'s strategy.
      * This will consume the instance from the input.
      */
-    public void partition(@NotNull ArrayList<InstanceObject> instances) {
+    public final void partition(@NotNull ArrayList<InstanceObject> instances) {
       List<InstanceObject> partitionedInstances = new ArrayList<>(instances.size());
 
       instances.forEach(instance -> {
-        if (partition(instance)) {
+        if (classify(instance, null)) {
           partitionedInstances.add(instance);
         }
       });
@@ -222,13 +291,5 @@ public abstract class ClassifierSet implements MemoryObject {
       }
       instances.trimToSize();
     }
-
-    /**
-     * Gets a {@link List} of the child ClassifierSets.
-     *
-     * @return
-     */
-    @NotNull
-    public abstract List<ClassifierSet> getClassifierSets();
   }
 }

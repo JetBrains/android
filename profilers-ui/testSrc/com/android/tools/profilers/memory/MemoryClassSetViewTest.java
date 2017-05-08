@@ -149,7 +149,7 @@ public class MemoryClassSetViewTest {
     JScrollPane columnTreePane = (JScrollPane)myClassSetView.getColumnTree();
     assertNotNull(columnTreePane);
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(myClassSetTree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Instance", "Depth", "Shallow Size", "Retained Size");
+    treeInfo.verifyColumnHeaders("Instance", "Alloc Time", "Dealloc Time", "Depth", "Shallow Size", "Retained Size");
 
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)myClassSetTree.getModel().getRoot();
     assertEquals(myInstanceObjects.size(), root.getChildCount());
@@ -157,6 +157,8 @@ public class MemoryClassSetViewTest {
       InstanceObject instance = myInstanceObjects.get(2 - i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
                                     new String[]{instance.getName(), null, instance.getValueText(), null, instance.getToStringText()},
+                                    new String[]{""},
+                                    new String[]{""},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
                                                  Integer.toString(instance.getDepth()) : ""},
                                     new String[]{Integer.toString(instance.getShallowSize())},
