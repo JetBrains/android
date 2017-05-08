@@ -60,6 +60,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final AxisComponentModel myMemoryAxis;
   private final AxisComponentModel myObjectsAxis;
   private final MemoryStageLegends myLegends;
+  private final MemoryStageLegends myTooltipLegends;
 
   private final int myProcessId;
   @Nullable
@@ -115,6 +116,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myObjectsAxis.setClampToMajorTicks(true);
 
     myLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
+    myTooltipLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange());
 
     myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
     myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
@@ -155,6 +157,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myMemoryAxis);
     getStudioProfilers().getUpdater().register(myObjectsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
+    getStudioProfilers().getUpdater().register(myTooltipLegends);
     getStudioProfilers().getUpdater().register(myGcStats);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
@@ -172,6 +175,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myMemoryAxis);
     getStudioProfilers().getUpdater().unregister(myObjectsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
+    getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myGcStats);
     selectCaptureObject(null, null);
     myLoader.stop();
@@ -437,6 +441,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public MemoryStageLegends getLegends() {
     return myLegends;
+  }
+
+  public MemoryStageLegends getTooltipLegends() {
+    return myTooltipLegends;
   }
 
   public EventMonitor getEventMonitor() {
