@@ -19,20 +19,28 @@ import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.apk.debugging.DebuggableSharedObjectFile;
 import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.android.tools.idea.apk.debugging.SetupIssue;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 
 /**
  * Tests for {@link ApkFacetConfiguration}.
  */
 public class ApkFacetConfigurationTest {
+  @Rule
+  public TemporaryFolder myTemporaryFolder = new TemporaryFolder();
+
   private ApkFacetConfiguration myConfiguration;
 
   @Before
@@ -42,30 +50,48 @@ public class ApkFacetConfigurationTest {
 
   @Test
   public void getDebugSymbolFolderPaths() throws Exception {
-    Abi abi = Abi.X86;
-    String abiValue = abi.toString();
+    myTemporaryFolder.create();
+    File x86Folder = myTemporaryFolder.newFolder(Abi.X86.toString());
+    File armeabiV7aFolder = myTemporaryFolder.newFolder("armeabiV7a");
+    File x86_64 = myTemporaryFolder.newFolder("x86_64");
 
-    NativeLibrary library1 = new NativeLibrary("x.c");
-    DebuggableSharedObjectFile file = new DebuggableSharedObjectFile();
-    file.path = "/a/x.c";
-    library1.debuggableSharedObjectFilesByAbi.put(abiValue, file);
+    File testX86File = createFile(x86Folder, "test.so");
+    File testArmeabiV7aFile = createFile(armeabiV7aFolder, "test.so");
 
-    NativeLibrary library2 = new NativeLibrary("x.h");
-    file = new DebuggableSharedObjectFile();
-    file.path = "/a/x.h";
-    library2.debuggableSharedObjectFilesByAbi.put(abiValue, file);
+    NativeLibrary testLibrary = new NativeLibrary("test.so");
+    DebuggableSharedObjectFile testSoFile = new DebuggableSharedObjectFile();
+    testSoFile.path = testX86File.getPath();
+    testLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86.toString(), testSoFile);
 
-    NativeLibrary library3 = new NativeLibrary("y.c");
-    file = new DebuggableSharedObjectFile();
-    file.path = "/a/b/y.c";
-    library3.debuggableSharedObjectFilesByAbi.put(abiValue, file);
+    testSoFile = new DebuggableSharedObjectFile();
+    testSoFile.path = testArmeabiV7aFile.getPath();
+    testLibrary.debuggableSharedObjectFilesByAbi.put(Abi.ARMEABI_V7A.toString(), testSoFile);
 
-    myConfiguration.NATIVE_LIBRARIES.add(library1);
-    myConfiguration.NATIVE_LIBRARIES.add(library2);
-    myConfiguration.NATIVE_LIBRARIES.add(library3);
+    myConfiguration.NATIVE_LIBRARIES.add(testLibrary);
 
-    Collection<String> paths = myConfiguration.getDebugSymbolFolderPaths(Collections.singletonList(abi));
-    assertThat(paths).containsExactly("/a");
+    File debugX86File = createFile(x86Folder, "debub.so");
+    File debugX86_64File = createFile(x86_64, "debug.so");
+
+    NativeLibrary debugLibrary = new NativeLibrary("test.so");
+    DebuggableSharedObjectFile debugSoFile = new DebuggableSharedObjectFile();
+    debugSoFile.path = debugX86File.getPath();
+    debugLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86.toString(), debugSoFile);
+
+    debugSoFile = new DebuggableSharedObjectFile();
+    debugSoFile.path = debugX86_64File.getPath();
+    debugLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86_64.toString(), debugSoFile);
+
+    myConfiguration.NATIVE_LIBRARIES.add(debugLibrary);
+
+    Collection<String> paths = myConfiguration.getDebugSymbolFolderPaths(Arrays.asList(Abi.X86, Abi.ARMEABI_V7A));
+    assertThat(paths).containsExactly(x86Folder.getPath(), armeabiV7aFolder.getPath());
+  }
+
+  @NotNull
+  private static File createFile(@NotNull File parent, @NotNull String name) {
+    File child = new File(parent, name);
+    createIfNotExists(child);
+    return child;
   }
 
   @Test
