@@ -109,20 +109,20 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     updateAndroidAptConfiguration();
 
     //Update dependencies in build.gradle of sub-modules
-    updateContentsInFile("outissue/cyclus/build.gradle", "dependencies \\{\n", "dependencies {\n" +
-                                                                               "compile deps.support.leanback\n" +
-                                                                               "compile deps.support.appCompat\n" +
-                                                                               "compile deps.external.rxjava\n");
-    updateContentsInFile("outissue/embrace/build.gradle", "dependencies \\{\n", "dependencies { compile deps.external.rxjava\n");
-    updateContentsInFile("outissue/nutate/build.gradle", "dependencies \\{\n", "dependencies { compile deps.support.mediarouter\n");
-    updateContentsInFile("outissue/edictally/build.gradle", "compileOnly deps.apt.autoValueAnnotations", "/* $0 */");
+    searchAndReplace("outissue/cyclus/build.gradle", "dependencies \\{\n", "dependencies {\n" +
+                                                                           "compile deps.support.leanback\n" +
+                                                                           "compile deps.support.appCompat\n" +
+                                                                           "compile deps.external.rxjava\n");
+    searchAndReplace("outissue/embrace/build.gradle", "dependencies \\{\n", "dependencies { compile deps.external.rxjava\n");
+    searchAndReplace("outissue/nutate/build.gradle", "dependencies \\{\n", "dependencies { compile deps.support.mediarouter\n");
+    searchAndReplace("outissue/edictally/build.gradle", "compileOnly deps.apt.autoValueAnnotations", "/* $0 */");
 
     // Remove butterknife plugin.
     for (String path : ImmutableList
       .of("outissue/carnally", "outissue/airified", "Padraig/follicle", "outissue/Glumaceae", "fratry/sodden", "subvola/zelator",
           "subvola/doored", "subvola/transpire", "subvola/atbash", "subvola/gorgoneum/Chordata", "subvola/gorgoneum/metanilic/agaric",
           "subvola/gorgoneum/teerer/polytonal", "subvola/gorgoneum/teerer/Cuphea", "harvestry/Timbira")) {
-      updateContentsInFile(path + "/build.gradle", "apply plugin: 'com.jakewharton.butterknife'", "/* $0 */");
+      searchAndReplace(path + "/build.gradle", "apply plugin: 'com.jakewharton.butterknife'", "/* $0 */");
     }
   }
 
@@ -200,13 +200,13 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
         "subvola/zelator");
 
     for (String path : aptConfigurationProjects) {
-      updateContentsInFile(
+      searchAndReplace(
         path + "/build.gradle", "apply plugin: 'com\\.neenbedankt\\.android-apt'", "/* $0 */");
-      updateContentsInFile(path + "/build.gradle", " apt ", " annotationProcessor ");
+      searchAndReplace(path + "/build.gradle", " apt ", " annotationProcessor ");
     }
 
     for (String path : ImmutableList.of("subvola/absconsa", "phthalic", "fratry/endothys")) {
-      updateContentsInFile(
+      searchAndReplace(
         path + "/build.gradle", "estApt", "estAnnotationProcessor");
     }
     Set<String> aptPluginProjects =
@@ -253,7 +253,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
         "subvola/papistry");
     assertThat(aptPluginProjects).containsNoneIn(aptConfigurationProjects);
     for (String path : aptPluginProjects) {
-      updateContentsInFile(
+      searchAndReplace(
         path + "/build.gradle",
         "apply plugin: 'com\\.neenbedankt\\.android-apt'",
         "/* $0 */");
@@ -381,8 +381,12 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   }
 
   // Replace all occurrence of regex in file
-  private void updateContentsInFile(@NotNull String relativePath, @NotNull String regex, @NotNull String replaceString) throws IOException {
-    File file = getAbsolutionFilePath(relativePath);
+  private void searchAndReplace(@NotNull String relativePath, @NotNull String regex, @NotNull String replaceString) throws IOException {
+    searchAndReplace(getAbsolutionFilePath(relativePath), regex, replaceString);
+  }
+
+  // Replace all occurrence of regex in file
+  private void searchAndReplace(@NotNull File file, @NotNull String regex, @NotNull String replaceString) throws IOException {
     String contents = Files.toString(file, Charsets.UTF_8);
     contents = contents.replaceAll(regex, replaceString);
     write(contents, file, Charsets.UTF_8);
