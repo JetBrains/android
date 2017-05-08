@@ -114,42 +114,46 @@ public class MemoryServiceProxy extends PerfdProxyService {
   }
 
   public void getData(MemoryProfiler.MemoryRequest request, StreamObserver<MemoryProfiler.MemoryData> responseObserver) {
-    MemoryProfiler.MemoryData data = myServiceStub.getData(request);
+    try {
+      MemoryProfiler.MemoryData data = myServiceStub.getData(request);
 
-    if (myUseLegacyTracking) {
-      synchronized (myUpdatingDataLock) {
-        TLongObjectHashMap infos = myTrackingData.get(request.getProcessId());
-        MemoryProfiler.MemoryData.Builder rebuilder = data.toBuilder();
-        long requestStartTime = request.getStartTime();
-        long requestEndTime = request.getEndTime();
+      if (myUseLegacyTracking) {
+        synchronized (myUpdatingDataLock) {
+          TLongObjectHashMap<AllocationTrackingData> infos = myTrackingData.get(request.getProcessId());
+          MemoryProfiler.MemoryData.Builder rebuilder = data.toBuilder();
+          long requestStartTime = request.getStartTime();
+          long requestEndTime = request.getEndTime();
 
-        // Note - the following is going to continuously return any unfinished whose start times are before the request's end time.
-        // Dedeup is handled in MemoryDataPoller.
-        List<AllocationsInfo> infosToReturn = new ArrayList<>();
-        infos.forEachValue(object -> {
-          AllocationTrackingData trackingData = (AllocationTrackingData)object;
-          if (trackingData.myInfo.getStartTime() <= requestEndTime &&
-              (trackingData.myInfo.getEndTime() > requestStartTime ||
-               trackingData.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION)) {
-            infosToReturn.add(trackingData.myInfo);
+          // Note - the following is going to continuously return any unfinished whose start times are before the request's end time.
+          // Dedeup is handled in MemoryDataPoller.
+          List<AllocationsInfo> infosToReturn = new ArrayList<>();
+          infos.forEachValue(trackingData -> {
+            if (trackingData.myInfo.getStartTime() <= requestEndTime &&
+                (trackingData.myInfo.getEndTime() > requestStartTime ||
+                 trackingData.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION)) {
+              infosToReturn.add(trackingData.myInfo);
+            }
+
+            return true;
+          });
+
+          infosToReturn.sort(Comparator.comparingLong(AllocationsInfo::getStartTime));
+          for (int i = 0; i < infosToReturn.size(); i++) {
+            AllocationsInfo info = infosToReturn.get(i);
+            rebuilder.addAllocationsInfo(info);
+            rebuilder.setEndTimestamp(Math.max(rebuilder.getEndTimestamp(), Math.max(info.getStartTime(), info.getEndTime())));
           }
 
-          return true;
-        });
-
-        infosToReturn.sort(Comparator.comparingLong(AllocationsInfo::getStartTime));
-        for (int i = 0; i < infosToReturn.size(); i++) {
-          AllocationsInfo info = infosToReturn.get(i);
-          rebuilder.addAllocationsInfo(info);
-          rebuilder.setEndTimestamp(Math.max(rebuilder.getEndTimestamp(), Math.max(info.getStartTime(), info.getEndTime())));
+          data = rebuilder.build();
         }
-
-        data = rebuilder.build();
       }
-    }
 
-    responseObserver.onNext(data);
-    responseObserver.onCompleted();
+      responseObserver.onNext(data);
+      responseObserver.onCompleted();
+    }
+    catch (RuntimeException e) {
+      responseObserver.onError(e);
+    }
   }
 
   public void trackAllocations(TrackAllocationsRequest request,
