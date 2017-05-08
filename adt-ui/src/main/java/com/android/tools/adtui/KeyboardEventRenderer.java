@@ -17,11 +17,16 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.KeyboardAction;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
+import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.JBFont;
+import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.util.Map;
 
 public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
 
@@ -31,7 +36,21 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
   private static final int PADDING = 2;
   private static final JBColor BACKGROUND_COLOR = new JBColor(0x988b8e, 0x999a9a);
   private static final JBColor TEXT_COLOR = new JBColor(0xfafafa, 0x313335);
+  private static final Map<String, Icon> KEYBOARD_ICON_LOOKUP;
+  static
+  {
+    Map<String, Icon> keyboardIcons = new HashMap<>();
+    keyboardIcons.put("KEYCODE_BACK", load("/icons/events/back-button.png"));
+    keyboardIcons.put("KEYCODE_VOLUME_DOWN", load("/icons/events/volume-down.png"));
+    keyboardIcons.put("KEYCODE_VOLUME_UP", load("/icons/events/volume-up.png"));
+    KEYBOARD_ICON_LOOKUP = keyboardIcons;
+  }
 
+
+  @NotNull
+  private static Icon load(String path) {
+      return IconLoader.getIcon(path, KeyboardEventRenderer.class);
+  }
 
   @Override
   public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> action) {
@@ -40,6 +59,15 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
       return;
     }
     KeyboardAction keyAction = (KeyboardAction)action;
+    boolean drawString = !KEYBOARD_ICON_LOOKUP.containsKey(keyAction.getData().toString());
+    if (drawString) {
+      drawString(g2d, transform, keyAction);
+    } else {
+      drawIcon(parent, g2d, transform, keyAction);
+    }
+  }
+
+  private void drawString(Graphics2D g2d, AffineTransform transform, KeyboardAction action) {
     Color currentColor = g2d.getColor();
     Font currentFont = g2d.getFont();
     AffineTransform originalTransform = g2d.getTransform();
@@ -50,7 +78,7 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
 
     // Get current string information.
     FontMetrics metrics = g2d.getFontMetrics();
-    String textToDraw = keyAction.getData().toString();
+    String textToDraw = action.getData().toString();
     int width = metrics.stringWidth(textToDraw);
     int height = metrics.getHeight();
     int paddedHeight = height + PADDING;
@@ -74,6 +102,14 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
     //Reset g2d state
     g2d.setColor(currentColor);
     g2d.setFont(currentFont);
+    g2d.setTransform(originalTransform);
+  }
+
+  private void drawIcon(Component parent, Graphics2D g2d, AffineTransform transform, KeyboardAction action) {
+    Icon icon = KEYBOARD_ICON_LOOKUP.get(action.getData().toString());
+    AffineTransform originalTransform = g2d.getTransform();
+    g2d.transform(transform);
+    icon.paintIcon(parent, g2d, -icon.getIconWidth() / 2, 0);
     g2d.setTransform(originalTransform);
   }
 }

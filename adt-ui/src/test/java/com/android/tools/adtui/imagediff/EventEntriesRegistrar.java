@@ -232,7 +232,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     static {
       MOCK_RENDERERS = new HashMap();
       MOCK_RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer());
-      MOCK_RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+      MOCK_RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png"));
       MOCK_RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer());
     }
     /**
