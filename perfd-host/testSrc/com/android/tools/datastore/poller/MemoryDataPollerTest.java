@@ -321,6 +321,22 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
+  public void testOngoingHeapDumpOnStop() throws Exception {
+    StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
+    myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
+    getPollTicker().run();
+    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), stopObserver);
+
+    DumpDataRequest request =
+      DumpDataRequest.newBuilder().setProcessId(TEST_APP_ID).setDumpTime(NOT_READY_DUMP_INFO.getStartTime()).build();
+    StreamObserver<DumpDataResponse> dumpObserver = mock(StreamObserver.class);
+    myMemoryService.getHeapDump(request, dumpObserver);
+    DumpDataResponse dumpExpectedResponse =
+      DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN).setData(ByteString.EMPTY).build();
+    validateResponse(dumpObserver, dumpExpectedResponse);
+  }
+
+  @Test
   public void testListHeapDumpInfosOutOfRange() throws Exception {
     myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
