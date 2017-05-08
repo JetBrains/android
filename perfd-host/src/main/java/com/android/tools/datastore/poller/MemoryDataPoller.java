@@ -57,6 +57,18 @@ public class MemoryDataPoller extends PollRunner {
   }
 
   @Override
+  public void stop() {
+    if (myPendingHeapDumpSample != null) {
+      myMemoryTable.insertOrReplaceHeapInfo(
+        myProcessId, mySession, myPendingHeapDumpSample.toBuilder().setEndTime(myPendingHeapDumpSample.getStartTime() + 1).build());
+      myMemoryTable.insertHeapDumpData(
+        myProcessId, mySession, myPendingHeapDumpSample.getStartTime(), DumpDataResponse.Status.FAILURE_UNKNOWN, ByteString.EMPTY);
+      myPendingHeapDumpSample = null;
+    }
+    super.stop();
+  }
+
+  @Override
   public void poll() {
     MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
       .setProcessId(myProcessId)
