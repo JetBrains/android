@@ -136,7 +136,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
     if (myZeroAttributeIsPadding) {
       if (i == 0) {
         assert myRoot != null;
-        return myAndroidPrefix;
+        return myNamespacePrefixes.get(ANDROID_URI);
       }
       else {
         i--;
