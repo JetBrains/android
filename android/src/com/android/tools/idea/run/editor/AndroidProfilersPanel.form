@@ -16,13 +16,14 @@
           <text value="Enable advanced profiling"/>
         </properties>
       </component>
-      <component id="abeed" class="javax.swing.JTextPane" default-binding="true">
+      <component id="abeed" class="javax.swing.JTextPane" binding="myAdvancedProfilingDescription">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="2" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
         </constraints>
         <properties>
+          <editable value="false"/>
           <text value="Allows the profilers to track data such as network payloads, application events and object counts, but it might have a minor performance impact on your build speeds. "/>
         </properties>
       </component>
