@@ -47,6 +47,7 @@ public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListe
   private JPanel myDescription;
   private JCheckBox myAdvancedProfilingCheckBox;
   private HyperlinkLabel myHyperlinkLabel;
+  private JTextPane myAdvancedProfilingDescription;
 
   public JComponent getComponent() {
     return myDescription;
@@ -63,6 +64,7 @@ public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListe
    */
   void resetFrom(ProfilerState state) {
     boolean enabled = myAdvancedProfilingCheckBox.isEnabled();
+    myAdvancedProfilingDescription.setBackground(myDescription.getBackground());
     myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
   }
 
