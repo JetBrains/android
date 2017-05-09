@@ -1054,7 +1054,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
       }
       if (myType == CONSTRAINT_SET) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 1);
       }
       if (myType == LAYER) {
         show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 1);
