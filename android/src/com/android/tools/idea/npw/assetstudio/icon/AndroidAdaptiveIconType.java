@@ -25,12 +25,12 @@ public enum AndroidAdaptiveIconType {
   /**
    * Launcher icon to be shown in the application list
    */
-  ADAPTIVE("Adaptive Icons", "ic_launcher"),
+  ADAPTIVE("Launcher Icons (Adaptive and Legacy)", "ic_launcher"),
 
   /**
    * Launcher icon to be shown in the application list
    */
-  LAUNCHER_LEGACY("Launcher Icons (Legacy)", "ic_launcher"),
+  LAUNCHER_LEGACY("Launcher Icons (Legacy only)", "ic_launcher"),
 
   /**
    * Icons shown in the action bar
