@@ -1058,10 +1058,18 @@ public final class ConstraintComponentUtilities {
     return null;
   }
 
-  public static boolean isInChain(ArrayList<String> sideA, ArrayList<String> sideB, NlComponent component) {
+  /**
+   * Returns true if the given component is part of a chain
+   * @param sideA
+   * @param sideB
+   * @param component the component to test
+   * @return true if the component is in a chain, false otherwise
+   */
+  public static boolean isInChain(@NotNull ArrayList<String> sideA, @NotNull ArrayList<String> sideB, @NotNull NlComponent component) {
     String attributeA = getConnectionId(component, SHERPA_URI, sideA);
-    if (attributeA != null) {
-      List<NlComponent> list = component.getParent().getChildren();
+    NlComponent parent = component.getParent();
+    if (attributeA != null && parent != null) {
+      List<NlComponent> list = parent.getChildren();
       NlComponent target = getComponent(list, attributeA);
       if (target != null) {
         String attributeB = getConnectionId(target, SHERPA_URI, sideB);
