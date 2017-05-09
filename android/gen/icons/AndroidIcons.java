@@ -32,7 +32,6 @@ public class AndroidIcons {
   public static final Icon Renderscript = load("/icons/renderscript.png"); // 16x16
   public static final Icon ErrorBadge = load("/icons/error-badge.png"); // 16x16
   public static final Icon WarningBadge = load("/icons/warning-badge.png"); // 16x16
-  public static final Icon RenderError = load("/icons/renderError.png");
   public static final Icon RefreshPreview = load("/icons/refreshPreview.png"); // 16x16
   public static final Icon ArrowDown = load("/icons/comboArrow.png"); // 16x16
   public static final Icon GreyArrowDown = load("/icons/dropArrow.png"); // 20x20
@@ -226,6 +225,7 @@ public class AndroidIcons {
     public static final Icon TextAlignTextEnd = load("/icons/nele/text/text-align-text-end.png"); // 16x16
 
     public static final Icon BackArrow = load("/icons/nele/back-arrow.png"); // 16x16
+    public static final Icon Close = load("/icons/nele/close.png"); // 16x16
 
     public static final Icon Link = load("/icons/nele/link.png"); // 16x16
     public static final Icon Refresh = load("/icons/nele/refresh.png"); // 16x16
@@ -234,21 +234,6 @@ public class AndroidIcons {
   public static class NavEditorIcons {
     public static final Icon Destination = load("/icons/naveditor/destination.png");
     public static final Icon DestinationGroup = load("/icons/naveditor/destination-group.png");
-
-  }
-
-  public static class LintNotification {
-    public static final Icon Lint0 = load("/icons/nele/lint0.png");
-    public static final Icon Lint1 = load("/icons/nele/lint1.png");
-    public static final Icon Lint2 = load("/icons/nele/lint2.png");
-    public static final Icon Lint3 = load("/icons/nele/lint3.png");
-    public static final Icon Lint4 = load("/icons/nele/lint4.png");
-    public static final Icon Lint5 = load("/icons/nele/lint5.png");
-    public static final Icon Lint6 = load("/icons/nele/lint6.png");
-    public static final Icon Lint7 = load("/icons/nele/lint7.png");
-    public static final Icon Lint8 = load("/icons/nele/lint8.png");
-    public static final Icon Lint9 = load("/icons/nele/lint9.png");
-    public static final Icon Lint9plus = load("/icons/nele/lint9p.png");
   }
 
   public static final class MenuIcons {
@@ -591,6 +576,15 @@ public class AndroidIcons {
   public static class ToolWindows {
     public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
+  }
+
+  public static class Issue {
+    public static final Icon ErrorSelected = IconLoader.getIcon("/icons/nele/issue/error-inline.png"); // 16x16
+    public static final Icon Error = IconLoader.getIcon("/icons/nele/issue/error.png"); // 16x16
+    public static final Icon InfoSelected = IconLoader.getIcon("/icons/nele/issue/info-inline.png"); // 16x16
+    public static final Icon Info = IconLoader.getIcon("/icons/nele/issue/info.png"); // 16x16
+    public static final Icon WarningSelected = IconLoader.getIcon("/icons/nele/issue/warning-inline-selected.png"); // 16x16
+    public static final Icon Warning = IconLoader.getIcon("/icons/nele/issue/warning.png"); // 16x16
   }
 
   public static class DeviceExplorer {

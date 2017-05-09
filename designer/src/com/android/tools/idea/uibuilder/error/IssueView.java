@@ -26,6 +26,7 @@ import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -175,13 +176,13 @@ public class IssueView extends JPanel {
   public static Icon getSeverityIcon(@Nullable HighlightSeverity severity) {
     if (severity != null) {
       if (HighlightSeverity.ERROR.equals(severity)) {
-        return AllIcons.General.Error;
+        return AndroidIcons.Issue.Error;
       }
       else if (HighlightSeverity.WARNING.equals(severity)) {
-        return AllIcons.General.BalloonWarning;
+        return AndroidIcons.Issue.Warning;
       }
     }
-    return AllIcons.General.Information;
+    return AndroidIcons.Issue.Info;
   }
 
   void setSelected(boolean selected) {
