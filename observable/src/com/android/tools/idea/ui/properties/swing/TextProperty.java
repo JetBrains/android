@@ -81,11 +81,6 @@ public final class TextProperty extends StringProperty implements DocumentListen
   }
 
   @Override
-  public void beforeDocumentChange(com.intellij.openapi.editor.event.DocumentEvent event) {
-    // Do nothing, required interface override
-  }
-
-  @Override
   public void documentChanged(com.intellij.openapi.editor.event.DocumentEvent event) {
     notifyInvalidated();
   }
