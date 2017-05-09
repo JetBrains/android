@@ -16,6 +16,8 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.*;
+import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.InstallResult;
@@ -23,14 +25,21 @@ import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.util.io.ZipUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.instantapp.InstantApps.isLoggedInGoogleAccount;
 import static com.android.tools.idea.instantapp.InstantApps.isPostO;
@@ -94,7 +103,7 @@ public class DeployInstantAppTask implements LaunchTask {
     }
     else {
       printer.stdout("Uploading Instant App to pre O device.");
-      installer = new InstantAppPreOInstaller(printer, zipFile);
+      installer = new InstantAppPreOInstaller(printer, zipFile, 5);
     }
 
     RetryingInstaller retryingInstaller = new RetryingInstaller(myProject, device, installer, appId, printer, launchStatus);
@@ -172,14 +181,40 @@ public class DeployInstantAppTask implements LaunchTask {
     @NotNull private final ConsolePrinter myPrinter;
     @NotNull private final File myZipFile;
 
-    public InstantAppPreOInstaller(@NotNull ConsolePrinter printer, @NotNull File zip) {
+    @NotNull private final AtomicLong myTimeout;
+
+    public InstantAppPreOInstaller(@NotNull ConsolePrinter printer, @NotNull File zip, long timeout) {
       myPrinter = printer;
       myZipFile = zip;
+      myTimeout = new AtomicLong(timeout);
     }
 
     @NotNull
     @Override
     public InstallResult installApp(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) {
+      AtomicBoolean retry = new AtomicBoolean(true);
+      while (retry.get()) {
+        try {
+          return installAppWithTimeoutRetry(device, launchStatus);
+        }
+        catch (TimeoutException e) {
+          ApplicationManager.getApplication().invokeAndWait(() -> {
+            int choice = Messages
+              .showYesNoDialog("Operation timed out." + e.getMessage() + " Do you want to retry increasing the timeout?", "Instant Apps", null);
+            if (choice == Messages.OK) {
+              myTimeout.set(myTimeout.get() * 2);
+            }
+            else {
+              retry.set(false);
+            }
+          });
+        }
+      }
+      // Timeout error already treated.
+      return new InstallResult(InstallResult.FailureCode.NO_ERROR, "Operation timed out.", null);
+    }
+
+    private InstallResult installAppWithTimeoutRetry(@NotNull IDevice device, @NotNull LaunchStatus launchStatus) throws TimeoutException {
       try {
         if (!isLoggedInGoogleAccount(device, true)) {
           return new InstallResult(InstallResult.FailureCode.UNTYPED_ERROR, "Device not logged in Google account", null);
@@ -193,7 +228,7 @@ public class DeployInstantAppTask implements LaunchTask {
         if (osBuildType != null && osBuildType.compareTo("test-keys") == 0) {
           // Force sync the domain filter. Clear the error state. We need to do it here because the disableDomainFilterFallback only works
           // when Devman is present. So in case domain filter was synced to a bad state at provisioning, we need to get it to the right state here.
-          device.executeShellCommand("am startservice -a com.google.android.gms.instantapps .ACTION_UPDATE_DOMAIN_FILTER", receiver);
+          device.executeShellCommand("am startservice -a com.google.android.gms.instantapps.ACTION_UPDATE_DOMAIN_FILTER", receiver);
         }
 
         // If our ADB is running as root somehow when we run this, and later becomes unrooted, the next run won't be able to write to this temp
@@ -203,30 +238,92 @@ public class DeployInstantAppTask implements LaunchTask {
           device.executeShellCommand("su shell mkdir -p " + TMP_REMOTE_DIR, receiver);
         }
 
-        // The following actions are derived from the run command in the Instant App SDK and are liable to change.
-        UUID installToken = UUID.randomUUID();
-
         // Upload the Instant App
         String remotePath = TMP_REMOTE_DIR + myZipFile.getName();
         device.pushFile(myZipFile.getCanonicalPath(), remotePath);
 
         myPrinter.stdout("Starting / refreshing Instant App services");
-        device.executeShellCommand("am startservice -a \"com.google.android.instantapps.devman.iapk.LOAD\" " +
-                                   "--es \"com.google.android.instantapps.devman.iapk.IAPK_PATH\" \"" + remotePath + "\" " +
-                                   "--es \"com.google.android.instantapps.devman.iapk.INSTALL_TOKEN\" \"" + installToken.toString() + "\" " +
-                                   "--ez \"com.google.android.instantapps.devman.iapk.FORCE\" \"false\" " +
-                                   "-n com.google.android.instantapps.devman/.iapk.IapkLoadService", receiver);
-        device.executeShellCommand("rm -f " + remotePath, receiver);
+
+        try {
+          String error = readIapk(device, remotePath);
+          if (error != null) {
+            return new InstallResult(InstallResult.FailureCode.UNTYPED_ERROR, error, null);
+          }
+        }
+        finally {
+          device.executeShellCommand("rm -f " + remotePath, receiver);
+        }
+
         device.executeShellCommand("am force-stop com.google.android.instantapps.supervisor", receiver);
       }
       catch (AdbCommandRejectedException | ShellCommandUnresponsiveException e) {
         return new InstallResult(InstallResult.FailureCode.DEVICE_NOT_RESPONDING, e.getMessage(), null);
+      }
+      catch (TimeoutException e) {
+        throw e;
       }
       catch (Exception e) {
         return new InstallResult(InstallResult.FailureCode.UNTYPED_ERROR, e.getMessage(), null);
       }
 
       return new InstallResult(InstallResult.FailureCode.NO_ERROR, null, null);
+    }
+
+    @Nullable
+    private String readIapk(@NotNull IDevice device, @NotNull String remotePath)
+      throws InterruptedException, TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+      UUID installToken = UUID.randomUUID();
+      String installTokenIdentifier = "token=" + installToken;
+
+      CountDownLatch latch = new CountDownLatch(1);
+      AtomicBoolean succeeded = new AtomicBoolean(false);
+      AtomicReference<String> error = new AtomicReference<>(null);
+
+      AndroidLogcatService.LogcatListener listener = new AndroidLogcatService.LogcatListener() {
+        @Override
+        public void onLogLineReceived(@NotNull LogCatMessage line) {
+          String message = line.getMessage();
+          if (message.contains(installTokenIdentifier)) {
+            if (message.contains("LOAD_SUCCESS")) {
+              succeeded.set(true);
+            }
+            else {
+              error.set(message.replace(installTokenIdentifier, ""));
+            }
+            latch.countDown();
+          }
+        }
+      };
+
+      AndroidLogcatService logcat = null;
+
+      boolean isUnitTest = ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode();
+      if (!isUnitTest) {
+        logcat = AndroidLogcatService.getInstance();
+        logcat.addListener(device, listener);
+      }
+
+      device.executeShellCommand("am startservice -a \"com.google.android.instantapps.devman.iapk.LOAD\" " +
+                                 "--es \"com.google.android.instantapps.devman.iapk.IAPK_PATH\" \"" + remotePath + "\" " +
+                                 "--es \"com.google.android.instantapps.devman.iapk.INSTALL_TOKEN\" \"" + installToken.toString() + "\" " +
+                                 "--ez \"com.google.android.instantapps.devman.iapk.FORCE\" \"false\" " +
+                                 "-n com.google.android.instantapps.devman/.iapk.IapkLoadService", new NullOutputReceiver());
+
+      if (isUnitTest) {
+        // No UI or multi thread in unit tests.
+        return null;
+      }
+
+      if (latch.await(myTimeout.get(), TimeUnit.SECONDS)) {
+        logcat.removeListener(device, listener);
+        if (!succeeded.get()) {
+          myPrinter.stderr("DevMan error: " + error.get());
+          return "DevMan error: " + error.get();
+        }
+        // No error.
+        return null;
+      }
+      throw new TimeoutException("Timeout: " + myTimeout + "s.");
     }
   }
 }
