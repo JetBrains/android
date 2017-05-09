@@ -19,6 +19,7 @@ import com.intellij.lang.injection.ConcatenationAwareInjector
 import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
+import com.intellij.psi.impl.JavaConstantExpressionEvaluator
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
 
@@ -45,14 +46,8 @@ class RoomSqlLanguageInjector : ConcatenationAwareInjector {
           prefixes += constantText.toString().nullize()
           constantText.setLength(0)
         }
-        is PsiReferenceExpression -> {
-          val constant: String =
-              ((element.resolve() as? PsiField) // It needs to point to a field.
-                  ?.apply { if (!(hasModifierProperty(PsiModifier.FINAL))) return } // The field needs to be final.
-                  ?.initializer as? PsiLiteralExpression) // The field needs to be initialized with a literal.
-                  ?.value
-                  ?.toString() ?: return
-
+        is PsiExpression -> {
+          val constant: String = JavaConstantExpressionEvaluator.computeConstantExpression(element, false)?.toString() ?: return
           constantText.append(constant)
         }
         else -> return
