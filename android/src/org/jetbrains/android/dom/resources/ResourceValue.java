@@ -200,6 +200,11 @@ public class ResourceValue {
       }
     }
 
+    if (ResourceType.getEnum(myResourceType) == ResourceType.SAMPLE_DATA) {
+      // SAMPLE_DATA allows for characters that are not valid identifiers. This is ok because these are not compiled by aapt.
+      return true;
+    }
+
     return AndroidUtils.isIdentifier(myResourceName)
            // Value resources are allowed to contain . and : in the names
            || FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)
@@ -251,6 +256,11 @@ public class ResourceValue {
 
       if (!Character.isJavaIdentifierStart(name.charAt(0))) {
         return "The resource name must begin with a character";
+      }
+
+      if (ResourceType.SAMPLE_DATA == ResourceType.getEnum(myResourceType)) {
+        // SAMPLE_DATA allows for characters that are not valid identifiers. This is ok because these are not compiled by aapt.
+        return null;
       }
       for (int i = 1, n = name.length(); i < n; i++) {
         char c = name.charAt(i);
