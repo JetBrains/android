@@ -28,7 +28,7 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 
 /**
@@ -52,11 +52,9 @@ public class DexFileDisassemblerTest extends IdeaTestCase {
     });
 
     File dexFilePath = new File(getTestDataPath(), join("apk", "Test.dex"));
-    VirtualFile dexFile = findFileByIoFile(dexFilePath, true);
-    assertNotNull(dexFile);
 
     assertThat(outFolder.getChildren()).isEmpty();
-    myDisassembler.disassemble(dexFile, outFolder);
+    myDisassembler.disassemble(dexFilePath, virtualToIoFile(outFolder));
 
     LocalFileSystem.getInstance().refresh(false /* synchronous */);
     assertThat(outFolder.getChildren()).isNotEmpty();

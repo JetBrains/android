@@ -17,7 +17,6 @@ package com.android.tools.idea.apk.dex;
 
 
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 import org.jf.baksmali.BaksmaliOptions;
@@ -31,16 +30,14 @@ import java.util.concurrent.Future;
 import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static com.intellij.concurrency.JobSchedulerImpl.CORES_COUNT;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jf.baksmali.Baksmali.disassembleDexFile;
 
 public class DexFileDisassembler {
-  public boolean disassemble(@NotNull VirtualFile dexFile, @NotNull VirtualFile outputFolder)
-    throws ExecutionException, InterruptedException {
+  public boolean disassemble(@NotNull File dexFile, @NotNull File outputFolder) throws ExecutionException, InterruptedException {
     ListeningExecutorService executor = listeningDecorator(PooledThreadExecutor.INSTANCE);
-    Future<DexBackedDexFile> dexFileFuture = executor.submit(() -> getDexFile(dexFile));
+    Future<DexBackedDexFile> dexFileFuture = executor.submit(() -> getDexFile(dexFile.toPath()));
     DexBackedDexFile dexBackedDexFile = dexFileFuture.get();
-    return disassemble(dexBackedDexFile, virtualToIoFile(outputFolder));
+    return disassemble(dexBackedDexFile, outputFolder);
   }
 
   private static boolean disassemble(@NotNull DexFile dexFile, @NotNull File outputFolderPath) {
