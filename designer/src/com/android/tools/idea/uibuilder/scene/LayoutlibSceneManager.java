@@ -216,7 +216,8 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
       DesignSurface surface = getDesignSurface();
-      if (surface instanceof NlDesignSurface && ((NlDesignSurface)surface).getScreenMode() == NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
+      // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
+      if (false && surface instanceof NlDesignSurface && ((NlDesignSurface)surface).getScreenMode() == NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
         layout(true);
       }
       else {
