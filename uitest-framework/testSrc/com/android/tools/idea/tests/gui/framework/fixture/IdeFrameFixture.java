@@ -354,8 +354,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFail() {
+    return waitForGradleProjectSyncToFail(Wait.seconds(10));
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForGradleProjectSyncToFail(@NotNull Wait waitForSync) {
     try {
-      waitForGradleProjectSyncToFinish(Wait.seconds(10), true);
+      waitForGradleProjectSyncToFinish(waitForSync, true);
       fail("Expecting project sync to fail");
     }
     catch (RuntimeException expected) {
