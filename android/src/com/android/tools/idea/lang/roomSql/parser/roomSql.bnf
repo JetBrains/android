@@ -78,7 +78,6 @@
     STAR='*'
     TILDE='~'
     UNEQ='<>'
-    PARAMETER='?'
 
     // Grammar-Kit's live preview emulates PsiBuilder's behavior of ignoring whitespace, by
     // looking for a token type that matches a space and is not used otherwise. Here's one:
@@ -321,7 +320,7 @@ column_ref_expr ::=
 
 function_name ::= entity_name
 
-bind_parameter ::= PARAMETER | PARAMETER_NAME
+bind_parameter ::= PARAMETER_NAME
 
 raise_function_expr ::= RAISE '(' ( IGNORE | ( ROLLBACK | ABORT | FAIL ) ',' error_message ) ')'
 

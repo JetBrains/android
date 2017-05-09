@@ -74,7 +74,7 @@ class RoomSqlSyntaxHighlighter : SyntaxHighlighterBase() {
     in CONSTANTS -> RoomSqlTextAttributes.CONSTANT.keys
     STRING_LITERAL, BRACKET_LITERAL -> RoomSqlTextAttributes.STRING.keys
     NUMERIC_LITERAL -> RoomSqlTextAttributes.NUMBER.keys
-    PARAMETER_NAME, PARAMETER -> RoomSqlTextAttributes.PARAMETER.keys
+    PARAMETER_NAME -> RoomSqlTextAttributes.PARAMETER.keys
     LINE_COMMENT -> RoomSqlTextAttributes.LINE_COMMENT.keys
     COMMENT -> RoomSqlTextAttributes.BLOCK_COMMENT.keys
     LPAREN, RPAREN -> RoomSqlTextAttributes.PARENTHESES.keys
