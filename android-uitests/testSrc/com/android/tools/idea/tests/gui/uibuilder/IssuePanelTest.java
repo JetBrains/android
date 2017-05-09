@@ -17,10 +17,10 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.IssuePanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyInspectorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
