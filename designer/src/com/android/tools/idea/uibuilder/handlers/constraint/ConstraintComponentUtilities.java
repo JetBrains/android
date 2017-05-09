@@ -34,6 +34,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.Float;
 import java.util.ArrayList;
@@ -984,8 +985,9 @@ public final class ConstraintComponentUtilities {
     }
   }
 
-  public static SceneComponent findChainHead(SceneComponent component, ArrayList<String> sideA, ArrayList<String> sideB) {
-    while (true) {
+  public static @Nullable SceneComponent findChainHead(@NotNull SceneComponent component, @NotNull ArrayList<String> sideA, @NotNull ArrayList<String> sideB) {
+    final int maxAttempts = 1000;
+    for (int i = 0; i < maxAttempts; i++) {
       NlComponent nlComponent = component.getAuthoritativeNlComponent();
       String attributeA = getConnectionId(nlComponent, SHERPA_URI, sideA);
       if (attributeA == null) {
@@ -1006,6 +1008,7 @@ public final class ConstraintComponentUtilities {
         return component;
       }
     }
+    return null;
   }
 
   public static boolean isInChain(ArrayList<String> sideA, ArrayList<String> sideB, SceneComponent component) {
@@ -1024,8 +1027,9 @@ public final class ConstraintComponentUtilities {
     return false;
   }
 
-  public static NlComponent findChainHead(NlComponent component, ArrayList<String> sideA, ArrayList<String> sideB) {
-    while (true) {
+  public static @Nullable NlComponent findChainHead(@Nullable NlComponent component, @Nullable ArrayList<String> sideA, @Nullable ArrayList<String> sideB) {
+    final int maxAttempts = 1000;
+    for (int i = 0; i < maxAttempts; i++) {
       String attributeA = getConnectionId(component, SHERPA_URI, sideA);
       if (attributeA == null) {
         return component;
@@ -1047,6 +1051,7 @@ public final class ConstraintComponentUtilities {
         return component;
       }
     }
+    return null;
   }
 
   public static NlComponent getComponent(List<NlComponent> list, String id) {
