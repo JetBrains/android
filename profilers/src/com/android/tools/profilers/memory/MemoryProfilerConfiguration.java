@@ -22,9 +22,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MemoryProfilerConfiguration {
   public enum ClassGrouping {
-    ARRANGE_BY_CLASS("Arrange by Class"),
-    ARRANGE_BY_PACKAGE("Arrange by Package"),
-    ARRANGE_BY_CALLSTACK("Arrange by Callstack");
+    ARRANGE_BY_CLASS("Arrange by class"),
+    ARRANGE_BY_PACKAGE("Arrange by package"),
+    ARRANGE_BY_CALLSTACK("Arrange by callstack");
 
     @NotNull
     String myLabel;
