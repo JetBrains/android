@@ -20,7 +20,10 @@ import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.ModelListener;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
@@ -360,16 +363,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
       // TODO: implement
       //ActionBarHandler.showMenu(false, myContext, true);
     }
-  }
-
-  @Override
-  public void caretAdded(CaretEvent e) {
-
-  }
-
-  @Override
-  public void caretRemoved(CaretEvent e) {
-
   }
 
   /**
