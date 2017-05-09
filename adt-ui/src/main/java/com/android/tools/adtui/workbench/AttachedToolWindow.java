@@ -93,6 +93,8 @@ class AttachedToolWindow<T> implements Disposable {
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
+    myPanel.setFocusCycleRoot(true);
+    myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
     mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBenchName + ".TEXT_SEARCH_HISTORY");
@@ -352,6 +354,7 @@ class AttachedToolWindow<T> implements Disposable {
   @NotNull
   private ActionButton createActionButton(@NotNull AnAction action, @NotNull Dimension buttonSize) {
     UpdatableActionButton button = new UpdatableActionButton(action, buttonSize);
+    button.setFocusable(true);
     myActionButtons.add(button);
     return button;
   }

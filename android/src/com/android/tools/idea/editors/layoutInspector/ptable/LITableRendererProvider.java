@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ptable;
 
-import com.android.tools.adtui.ptable.PNameRenderer;
-import com.android.tools.adtui.ptable.PTableCellRendererProvider;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.adtui.ptable.*;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -71,56 +68,42 @@ public class LITableRendererProvider implements PTableCellRendererProvider {
     };
   }
 
-  private class LIItemCellRenderer implements TableCellRenderer {
+  private static class LIItemCellRenderer extends PTableCellRenderer {
     private final JPanel myPanel;
-    private final SimpleColoredComponent myLabel;
 
     public LIItemCellRenderer() {
       myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
-      myLabel = new SimpleColoredComponent();
-      myPanel.add(myLabel, BorderLayout.CENTER);
+      myPanel.add(this, BorderLayout.CENTER);
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
-      Color fg, bg;
-      if (isSelected) {
-        fg = UIUtil.getTableSelectionForeground();
-        bg = UIUtil.getTableSelectionBackground();
+    public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value,
+                                                   boolean isSelected, boolean hasFocus, int row, int col) {
+      super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+      myPanel.setForeground(getForeground());
+      myPanel.setBackground(getBackground());
+      if (!isSelected) {
+        myPanel.setBackground(PropertiesTablePanel.ITEM__BACKGROUND_COLOR);
       }
-      else {
-        fg = UIUtil.getTableForeground();
-        bg = PropertiesTablePanel.ITEM__BACKGROUND_COLOR;
-      }
-
-      myPanel.setForeground(fg);
-      myPanel.setBackground(bg);
-
-      for (int i = 0; i < myPanel.getComponentCount(); i++) {
-        Component comp = myPanel.getComponent(i);
-        comp.setForeground(fg);
-        comp.setBackground(bg);
-      }
-
-      customizeRenderContent(table, (LITableItem)value, isSelected, hasFocus, row, col);
 
       return myPanel;
     }
 
-    public void customizeRenderContent(@NotNull JTable table, @NotNull LITableItem item, boolean selected, boolean hasFocus, int row, int col) {
-      myLabel.clear();
+    @Override
+    public void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem item,
+                                      boolean selected, boolean hasFocus, int row, int col) {
       appendValue(item);
     }
 
-    private void appendValue(LITableItem item) {
+    private void appendValue(PTableItem item) {
       String value = item.getValue();
       String text = StringUtil.notNullize(value);
       if (!item.isDefaultValue(value)) {
-        myLabel.setForeground(JBColor.BLUE);
+        setForeground(JBColor.BLUE);
       }
 
-      myLabel.append(text, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-      myLabel.setToolTipText(text);
+      append(text, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      setToolTipText(text);
     }
   }
 }

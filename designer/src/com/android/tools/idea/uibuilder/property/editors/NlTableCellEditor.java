@@ -32,10 +32,10 @@ import java.awt.*;
 import static com.android.SdkConstants.TOOLS_URI;
 
 public class NlTableCellEditor extends PTableCellEditor implements NlEditingListener, BrowsePanel.Context {
-  private NlComponentEditor myEditor;
-  private BrowsePanel myBrowsePanel;
-  private JTable myTable;
-  private int myRow;
+  protected NlComponentEditor myEditor;
+  protected BrowsePanel myBrowsePanel;
+  protected JTable myTable;
+  protected int myRow;
 
   public void init(@NotNull NlComponentEditor editor, @Nullable BrowsePanel browsePanel) {
     myEditor = editor;

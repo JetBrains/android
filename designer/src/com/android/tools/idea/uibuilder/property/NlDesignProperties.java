@@ -53,7 +53,7 @@ public class NlDesignProperties {
   }
 
   @NotNull
-  public List<NlProperty> getKnownProperties(@NotNull List<NlComponent> components, @NotNull NlPropertiesManager propertiesManager) {
+  public List<NlPropertyItem> getKnownProperties(@NotNull List<NlComponent> components, @NotNull NlPropertiesManager propertiesManager) {
     return ImmutableList.of(
       create(myContextDefinition, components, propertiesManager),
       create(myListItemDefinition, components, propertiesManager),
@@ -67,9 +67,9 @@ public class NlDesignProperties {
       create(myMockupOpacityDefinition, components, propertiesManager));
   }
 
-  private static NlProperty create(@NotNull AttributeDefinition definition,
-                                   @NotNull List<NlComponent> components,
-                                   @NotNull NlPropertiesManager propertiesManager) {
+  private static NlPropertyItem create(@NotNull AttributeDefinition definition,
+                                       @NotNull List<NlComponent> components,
+                                       @NotNull NlPropertiesManager propertiesManager) {
     return NlPropertyItem.create(new XmlName(definition.getName(), TOOLS_URI), definition, components, propertiesManager);
   }
 

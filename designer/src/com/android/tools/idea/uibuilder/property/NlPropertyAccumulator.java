@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableCellRenderer;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.util.function.Predicate;
 
 class NlPropertyAccumulator {
-  private static final ColoredTableCellRenderer EMPTY_VALUE_RENDERER = createTableCellRenderer();
+  private static final TableCellRenderer EMPTY_VALUE_RENDERER = createTableCellRenderer();
 
   private final String myGroupName;
   private final String myPrefix;
@@ -77,10 +77,11 @@ class NlPropertyAccumulator {
     return new AccumulatorGroupNode(groupName, prefix);
   }
 
-  private static ColoredTableCellRenderer createTableCellRenderer() {
-    return new ColoredTableCellRenderer() {
+  private static TableCellRenderer createTableCellRenderer() {
+    return new PTableCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                           boolean selected, boolean hasFocus, int row, int column) {
       }
     };
   }

@@ -21,6 +21,8 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
@@ -43,43 +45,35 @@ import java.util.Set;
 
 public class NlDefaultRenderer extends NlAttributeRenderer {
   public static final int ICON_SIZE = 14;
-  private final SimpleColoredComponent myLabel;
-
-  public NlDefaultRenderer() {
-    JPanel panel = getContentPanel();
-
-    myLabel = new SimpleColoredComponent();
-    panel.add(myLabel, BorderLayout.CENTER);
-  }
 
   @Override
-  public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty p, boolean selected, boolean hasFocus, int row, int col) {
-    myLabel.clear();
-    customize(p, col);
+  protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                       boolean selected, boolean hasFocus, int row, int col) {
+    assert value instanceof NlProperty;
+    customize((NlProperty)value, col, selected);
   }
 
   @VisibleForTesting
-  void customize(NlProperty property, int column) {
+  void customize(NlProperty property, int column, boolean selected) {
     if (column == 0) {
       appendName(property);
     } else {
-      appendValue(property);
+      appendValue(property, selected);
     }
   }
 
-  private void appendValue(@NotNull NlProperty property) {
+  private void appendValue(@NotNull NlProperty property, boolean selected) {
     String value = property.getValue();
     String text = StringUtil.notNullize(value);
     Icon icon = getIcon(property, ICON_SIZE);
     if (icon != null) {
-      myLabel.setIcon(icon);
+      setIcon(icon);
     }
-    if (!property.isDefaultValue(value)) {
-      myLabel.setForeground(JBColor.BLUE);
+    if (!selected && !property.isDefaultValue(value)) {
+      setForeground(JBColor.BLUE);
     }
-
-    myLabel.append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    myLabel.setToolTipText(text);
+    append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    setToolTipText(text);
   }
 
   @Nullable
@@ -159,8 +153,8 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   private void appendName(@NotNull NlProperty property) {
-    myLabel.append(property.getName());
-    myLabel.setToolTipText(property.getTooltipText());
+    append(property.getName());
+    setToolTipText(property.getTooltipText());
   }
 
   @Override
@@ -170,6 +164,6 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @VisibleForTesting
   SimpleColoredComponent getLabel() {
-    return myLabel;
+    return this;
   }
 }

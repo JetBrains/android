@@ -92,8 +92,9 @@ public class NlXmlPropertyBuilder {
     myTable.setEditorProvider(NlXmlEditors.getInstance(myPropertiesManager.getProject()));
 
     if (myTable.getRowCount() > 0) {
-      myTable.restoreSelection(selectedRow, selectedItem);
-      restoreEditing(editingRow, editingItem);
+      if (!restoreEditing(editingRow, editingItem)) {
+        myTable.restoreSelection(selectedRow, selectedItem);
+      }
     }
     return true;
   }
@@ -124,13 +125,18 @@ public class NlXmlPropertyBuilder {
     }
   }
 
-  private void restoreEditing(int editingRow, PTableItem editingItem) {
+  private boolean restoreEditing(int editingRow, PTableItem editingItem) {
     if (editingRow < 0) {
-      return;
+      return false;
     }
-    PTableItem currentItem = editingRow >= 0 ? myTable.getItemAt(editingRow) : null;
+    PTableItem currentItem = myTable.getItemAt(editingRow);
     if (currentItem == null || !editingItem.getClass().equals(currentItem.getClass())) {
       myTable.editingCanceled(null);
+      return false;
+    }
+    else {
+      myTable.restoreSelection(editingRow, editingItem);
+      return true;
     }
   }
 

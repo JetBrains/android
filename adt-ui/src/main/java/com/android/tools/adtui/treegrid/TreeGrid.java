@@ -63,6 +63,8 @@ public class TreeGrid<T> extends Box {
 
   public TreeGrid() {
     super(BoxLayout.Y_AXIS);
+    setFocusTraversalPolicyProvider(true);
+    setFocusTraversalPolicy(new MyFocusTraversalPolicy());
     mySectionToComponent = new IdentityHashMap<>();
     myLists = new ArrayList<>();
     myHideables = new ArrayList<>();
@@ -238,10 +240,6 @@ public class TreeGrid<T> extends Box {
     return null;
   }
 
-  public void clearSelection() {
-
-  }
-
   @Override
   public void requestFocus() {
     JComponent component = getFocusRecipient();
@@ -274,6 +272,12 @@ public class TreeGrid<T> extends Box {
   public T getSelectedElement() {
     JList<T> list = getSelectedList();
     return list != null ? list.getSelectedValue() : null;
+  }
+
+  @Nullable
+  public T getSelectedVisibleElement() {
+    JList<T> list = getSelectedList();
+    return list != null && list.isVisible() ? list.getSelectedValue() : null;
   }
 
   public void setSelectedElement(@Nullable T selectedElement) {
@@ -683,6 +687,39 @@ public class TreeGrid<T> extends Box {
       for (ListSelectionListener listener : listenerList.getListeners(ListSelectionListener.class)) {
         listener.valueChanged(event);
       }
+    }
+  }
+
+  /**
+   * The purpose of this {@link FocusTraversalPolicy} is to treat the lists in the {@link TreeGrid}
+   * as one tab stop. That means the next or previous component is always outside of this container.
+   * And the only focusable component is the currently selected list.
+   */
+  private class MyFocusTraversalPolicy extends FocusTraversalPolicy {
+
+    @Override
+    public Component getComponentAfter(Container aContainer, Component aComponent) {
+      return null;
+    }
+
+    @Override
+    public Component getComponentBefore(Container aContainer, Component aComponent) {
+      return null;
+    }
+
+    @Override
+    public Component getFirstComponent(Container aContainer) {
+      return getSelectedList();
+    }
+
+    @Override
+    public Component getLastComponent(Container aContainer) {
+      return getSelectedList();
+    }
+
+    @Override
+    public Component getDefaultComponent(Container aContainer) {
+      return getSelectedList();
     }
   }
 }

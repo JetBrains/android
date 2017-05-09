@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
 import com.intellij.ide.CopyProvider;
@@ -139,8 +139,6 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
     myCardPanel.add(PropertiesViewMode.TABLE.name(), tableScrollPane);
-    myCardPanel.setFocusCycleRoot(true);
-    myCardPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myPropertiesViewMode = getPropertiesViewModeInitially();
     myCardLayout.show(myCardPanel, myPropertiesViewMode.name());
     myComponents = Collections.emptyList();
@@ -307,6 +305,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     textLink.setHyperlinkText(
       viewAllProperties ? ViewAllPropertiesAction.VIEW_ALL_ATTRIBUTES : ViewAllPropertiesAction.VIEW_FEWER_ATTRIBUTES);
     textLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
+    textLink.setFocusable(false);
     HyperlinkLabel iconLink = new HyperlinkLabel();
     iconLink.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
     iconLink.setFocusable(false);
