@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.naveditor;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
@@ -31,6 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * UI tests for {@link NlEditor} as used in the navigation editor.
  */
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NavNlEditorTest {
 
