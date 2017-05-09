@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
@@ -96,8 +97,12 @@ public final class TemplateValueInjector {
 
     AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform != null) {
-      myTemplateValues.put(ATTR_BUILD_API, platform.getTarget().getVersion().getFeatureLevel());
-      myTemplateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
+      IAndroidTarget target = platform.getTarget();
+      myTemplateValues.put(ATTR_BUILD_API, target.getVersion().getFeatureLevel());
+      myTemplateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(target.getVersion()));
+      // For parity with the value set in #setBuildVersion, the revision is set to 0 if the
+      // release is not a preview.
+      myTemplateValues.put(ATTR_BUILD_API_REVISION, target.getVersion().isPreview() ? target.getRevision() : 0);
     }
 
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
@@ -133,7 +138,10 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_BUILD_API_STRING, buildVersion.getBuildApiLevelStr());
     myTemplateValues.put(ATTR_TARGET_API, buildVersion.getTargetApiLevel());
     myTemplateValues.put(ATTR_TARGET_API_STRING, buildVersion.getTargetApiLevelStr());
-
+    IAndroidTarget target = buildVersion.getAndroidTarget();
+    // Note here that the target is null for a non-preview release
+    // @see VersionItem#getAndroidTarget()
+    myTemplateValues.put(ATTR_BUILD_API_REVISION, target == null ? 0 : target.getRevision());
     return this;
   }
 
