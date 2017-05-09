@@ -17,9 +17,10 @@ package com.android.tools.idea.editors.layoutInspector.ptable;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ptable.PNameRenderer;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableCellRenderer;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesTablePanel;
-import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -31,7 +32,7 @@ import java.awt.*;
 
 public class LITableNameRenderer implements PNameRenderer {
   private final JPanel myPanel;
-  private final ColoredTableCellRenderer myRenderer;
+  private final PTableCellRenderer myRenderer;
 
   public LITableNameRenderer() {
     myPanel = new JPanel(new BorderLayout());
@@ -61,15 +62,15 @@ public class LITableNameRenderer implements PNameRenderer {
     return myPanel;
   }
 
-  private static class Renderer extends ColoredTableCellRenderer {
+  private static class Renderer extends PTableCellRenderer {
     @Override
-    protected void customizeCellRenderer(@NotNull JTable table,
-                                         @NotNull Object value,
+    protected void customizeCellRenderer(@NotNull PTable table,
+                                         @NotNull PTableItem value,
                                          boolean selected,
                                          boolean hasFocus,
                                          int row,
                                          int column) {
-      setIcon((PTableItem)value, selected, hasFocus);
+      setIcon(value, selected, hasFocus);
       setPaintFocusBorder(false);
       setFocusBorderAroundIcon(true);
     }

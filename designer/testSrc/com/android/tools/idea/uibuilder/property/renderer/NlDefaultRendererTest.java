@@ -64,11 +64,11 @@ public class NlDefaultRendererTest extends LayoutTestCase {
                                         @NotNull String name,
                                         @NotNull String value) {
     renderer.getLabel().clear();
-    renderer.customize(property, 0);
+    renderer.customize(property, 0, false);
     assertEquals(name, renderer.getLabel().getCharSequence(true));
 
     renderer.getLabel().clear();
-    renderer.customize(property, 1);
+    renderer.customize(property, 1, false);
     assertEquals(value, renderer.getLabel().getCharSequence(true));
   }
 }

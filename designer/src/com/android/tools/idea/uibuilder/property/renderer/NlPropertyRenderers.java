@@ -15,30 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.adtui.ptable.*;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItemValue;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.adtui.ptable.PNameRenderer;
-import com.android.tools.adtui.ptable.PTableCellRendererProvider;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.util.Set;
 
 public class NlPropertyRenderers implements PTableCellRendererProvider {
   private static NlPropertyRenderers ourInstance = new NlPropertyRenderers();
 
-  private NlTableNameRenderer myTableNameRenderer;
-  private NlBooleanRenderer myBooleanRenderer;
-  private NlFlagRenderer myFlagRenderer;
-  private NlFlagItemRenderer myFlagItemRenderer;
-  private NlDefaultRenderer myDefaultRenderer;
-  private ColoredTableCellRenderer myGroupRenderer;
+  private final NlTableNameRenderer myTableNameRenderer;
+  private final NlBooleanRenderer myBooleanRenderer;
+  private final NlFlagRenderer myFlagRenderer;
+  private final NlFlagItemRenderer myFlagItemRenderer;
+  private final NlDefaultRenderer myDefaultRenderer;
+  private final TableCellRenderer myGroupRenderer;
 
   public static NlPropertyRenderers getInstance() {
     if (ourInstance == null) {
@@ -96,10 +91,11 @@ public class NlPropertyRenderers implements PTableCellRendererProvider {
     return myDefaultRenderer;
   }
 
-  private static ColoredTableCellRenderer createGroupTableCellRenderer() {
-    return new ColoredTableCellRenderer() {
+  private static TableCellRenderer createGroupTableCellRenderer() {
+    return new PTableCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                           boolean selected, boolean hasFocus, int row, int column) {
       }
     };
   }

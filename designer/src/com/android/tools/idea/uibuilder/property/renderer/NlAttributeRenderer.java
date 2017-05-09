@@ -15,28 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableCellRenderer;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlTableCellEditor;
-import com.android.tools.adtui.ptable.PTable;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Set;
 
-public abstract class NlAttributeRenderer implements TableCellRenderer {
+public abstract class NlAttributeRenderer extends PTableCellRenderer {
   private final JPanel myPanel;
   private final BrowsePanel myBrowsePanel;
 
   public NlAttributeRenderer() {
     myBrowsePanel = new BrowsePanel();
     myPanel = new JPanel(new BorderLayout(SystemInfo.isMac ? 0 : 2, 0));
+    myPanel.add(this, BorderLayout.CENTER);
     myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
   }
 
@@ -45,46 +45,25 @@ public abstract class NlAttributeRenderer implements TableCellRenderer {
   }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
-    assert value instanceof NlProperty;
+  public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value,
+                                                 boolean isSelected, boolean hasFocus, int row, int col) {
     assert table instanceof PTable;
 
-    Color fg, bg;
-    if (isSelected) {
-      fg = UIUtil.getTableSelectionForeground();
-      bg = UIUtil.getTableSelectionBackground();
-    }
-    else {
-      fg = UIUtil.getTableForeground();
-      bg = UIUtil.getTableBackground();
-    }
+    super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 
-    myPanel.setForeground(fg);
-    myPanel.setBackground(bg);
-
-    for (int i = 0; i < myPanel.getComponentCount(); i++) {
-      Component comp = myPanel.getComponent(i);
-      comp.setForeground(fg);
-      comp.setBackground(bg);
-    }
+    myPanel.setForeground(getForeground());
+    myPanel.setBackground(getBackground());
+    myBrowsePanel.setForeground(getForeground());
+    myBrowsePanel.setBackground(getBackground());
 
     boolean hover = ((PTable)table).isHover(row, col);
     myBrowsePanel.setVisible(hover);
     myBrowsePanel.setDesignState(NlTableCellEditor.getDesignState(table, row));
 
-    customizeRenderContent(table, (NlProperty)value, isSelected, hasFocus, row, col);
-
     return myPanel;
   }
 
-  public abstract void customizeRenderContent(@NotNull JTable table,
-                                              @NotNull NlProperty p,
-                                              boolean selected,
-                                              boolean hasFocus,
-                                              int row,
-                                              int col);
-
-  public abstract boolean canRender(@NotNull NlProperty p, @NotNull Set<AttributeFormat> formats);
+  public abstract boolean canRender(@NotNull NlProperty property, @NotNull Set<AttributeFormat> formats);
 
   public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
     myBrowsePanel.mousePressed(event, rectRightColumn);

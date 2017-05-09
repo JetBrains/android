@@ -15,59 +15,48 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableCellRenderer;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlResourceHeader;
-import com.android.tools.adtui.ptable.PTableItem;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.*;
-import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
 import static com.android.tools.idea.uibuilder.property.renderer.NlXmlNameRenderer.NEW_VALUE_COLOR;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_BOLD;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER;
+import static com.intellij.ui.SimpleTextAttributes.*;
 
-public class NlXmlValueRenderer extends ColoredTableCellRenderer {
+public class NlXmlValueRenderer extends PTableCellRenderer {
   public static final JBColor VALUE_COLOR = new JBColor(new Color(0, 128, 80), new Color(98, 150, 85));
 
   @Override
-  protected void customizeCellRenderer(JTable table, @Nullable Object tableValue, boolean selected, boolean hasFocus, int row, int column) {
-    if (tableValue instanceof NlResourceHeader) {
+  protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem item,
+                                       boolean selected, boolean hasFocus, int row, int column) {
+    if (item instanceof NlResourceHeader) {
       setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
       if (!selected) {
         setBackground(JBColor.border());
       }
     }
-    else if (hasFocus) {
-      setBorder(UIUtil.getTableFocusCellHighlightBorder());
-    }
-    PTableItem item = (PTableItem)tableValue;
-    if (item == null) {
-      return;
-    }
     String value = item.getValue();
     Color color = VALUE_COLOR;
     if (StringUtil.isEmpty(value) && item instanceof AddPropertyItem) {
       value = "value";
-      if (!selected) {
-        color = NEW_VALUE_COLOR;
-      }
+      color = NEW_VALUE_COLOR;
+    }
+    if (selected && hasFocus) {
+      color = null;
     }
     if (value == null) {
       return;
     }
     SimpleTextAttributes attr = REGULAR_ATTRIBUTES.derive(STYLE_SMALLER | STYLE_BOLD, color, null, null);
     append(value, attr, true);
-  }
-
-  @Override
-  public void acquireState(JTable table, boolean isSelected, boolean hasFocus, int row, int column) {
-    // Do not change background color if a cell has focus
-    super.acquireState(table, isSelected, false, row, column);
   }
 }
