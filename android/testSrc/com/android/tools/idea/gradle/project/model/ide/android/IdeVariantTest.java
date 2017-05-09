@@ -19,6 +19,7 @@ import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.VariantStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,6 +65,9 @@ public class IdeVariantTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeVariant.class).verify();
+    EqualsVerifier.forClass(IdeVariant.class)
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
   }
 }

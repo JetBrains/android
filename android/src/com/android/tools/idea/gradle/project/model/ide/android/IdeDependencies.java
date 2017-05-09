@@ -34,6 +34,7 @@ import java.util.Objects;
 public final class IdeDependencies extends IdeModel implements Dependencies {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final Collection<AndroidAtom> myAtoms;
   @NotNull private final Collection<AndroidLibrary> myLibraries;
@@ -59,6 +60,8 @@ public final class IdeDependencies extends IdeModel implements Dependencies {
 
     AndroidAtom baseAtom = atLeastTwoDotThree ? dependencies.getBaseAtom() : null;
     myBaseAtom = copyAtom(modelCache, baseAtom);
+
+    myHashCode = calculateHashCode();
   }
 
   @Nullable
@@ -117,6 +120,10 @@ public final class IdeDependencies extends IdeModel implements Dependencies {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myAtoms, myLibraries, myJavaLibraries, myProjects, myBaseAtom);
   }
 

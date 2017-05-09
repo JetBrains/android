@@ -35,6 +35,7 @@ import static com.intellij.openapi.util.io.FileUtil.fileHashCode;
 public final class IdeOutputFile extends IdeModel implements OutputFile {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myOutputType;
   @NotNull private final Collection<String> myFilterTypes;
@@ -54,6 +55,8 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
     //noinspection deprecation
     myOutputs = copyOutputs(file, modelCache);
     myVersionCode = copyNewProperty(file::getVersionCode, null);
+
+    myHashCode = calculateHashCode();
   }
 
   @NotNull
@@ -141,6 +144,10 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     int result = myOutputType.hashCode();
     result = 31 * result + myFilterTypes.hashCode();
     result = 31 * result + myFilters.hashCode();

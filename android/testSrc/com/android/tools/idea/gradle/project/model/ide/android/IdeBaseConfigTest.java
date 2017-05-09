@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.BaseConfig;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseConfigStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
@@ -34,7 +35,13 @@ public class IdeBaseConfigTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeBaseConfig.class).withRedefinedSubclass(IdeBuildType.class).verify();
-    EqualsVerifier.forClass(IdeBaseConfig.class).withRedefinedSubclass(IdeProductFlavor.class).verify();
+    EqualsVerifier.forClass(IdeBaseConfig.class).withRedefinedSubclass(IdeBuildType.class)
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
+    EqualsVerifier.forClass(IdeBaseConfig.class).withRedefinedSubclass(IdeProductFlavor.class)
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
   }
 }

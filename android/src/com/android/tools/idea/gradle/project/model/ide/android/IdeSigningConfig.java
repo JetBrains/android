@@ -28,6 +28,7 @@ import java.util.Objects;
 public final class IdeSigningConfig extends IdeModel implements SigningConfig {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myName;
   @Nullable private final File myStoreFile;
@@ -42,6 +43,8 @@ public final class IdeSigningConfig extends IdeModel implements SigningConfig {
     myStorePassword = config.getStorePassword();
     myKeyAlias = config.getKeyAlias();
     myV1SigningEnabled = config.isV1SigningEnabled();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -113,6 +116,10 @@ public final class IdeSigningConfig extends IdeModel implements SigningConfig {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myName, myStoreFile, myStorePassword, myKeyAlias, myV1SigningEnabled);
   }
 

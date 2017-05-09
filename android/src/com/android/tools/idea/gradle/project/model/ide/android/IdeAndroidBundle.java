@@ -32,6 +32,7 @@ import java.util.Objects;
 public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBundle {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final File myBundle;
   @NotNull private final File myFolder;
@@ -56,6 +57,8 @@ public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBund
     myResFolder = bundle.getResFolder();
     myAssetsFolder = bundle.getAssetsFolder();
     myProjectVariant = bundle.getProjectVariant();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -143,8 +146,13 @@ public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBund
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), myBundle, myFolder, myLibraryDependencies, myJavaDependencies, myManifest, myJarFile, myResFolder,
-                        myAssetsFolder, myProjectVariant);
+    return myHashCode;
+  }
+
+  @Override
+  protected int calculateHashCode() {
+    return Objects.hash(super.calculateHashCode(), myBundle, myFolder, myLibraryDependencies, myJavaDependencies, myManifest, myJarFile,
+                        myResFolder, myAssetsFolder, myProjectVariant);
   }
 
   @Override

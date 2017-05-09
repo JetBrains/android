@@ -27,6 +27,7 @@ import java.util.Objects;
 public final class IdeSyncIssue extends IdeModel implements SyncIssue {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myMessage;
   @Nullable private final String myData;
@@ -39,6 +40,8 @@ public final class IdeSyncIssue extends IdeModel implements SyncIssue {
     myData = issue.getData();
     mySeverity = issue.getSeverity();
     myType = issue.getType();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -80,6 +83,10 @@ public final class IdeSyncIssue extends IdeModel implements SyncIssue {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myMessage, myData, mySeverity, myType);
   }
 

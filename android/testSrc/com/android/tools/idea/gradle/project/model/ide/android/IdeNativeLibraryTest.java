@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.NativeLibrary;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.NativeLibraryStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,6 +62,9 @@ public class IdeNativeLibraryTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeNativeLibrary.class).verify();
+    EqualsVerifier.forClass(IdeNativeLibrary.class)
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
   }
 }

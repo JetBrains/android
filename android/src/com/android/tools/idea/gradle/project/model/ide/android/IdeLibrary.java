@@ -27,6 +27,7 @@ import java.util.Objects;
 public abstract class IdeLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final IdeMavenCoordinates myResolvedCoordinates;
   @Nullable private final String myProject;
@@ -40,6 +41,8 @@ public abstract class IdeLibrary extends IdeModel implements Library {
     myProject = copyNewProperty(library::getProject, null);
     myName = copyNewProperty(library::getName, null); // Library.getName() was added in 2.2
     myProvided = library.isProvided();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -99,6 +102,10 @@ public abstract class IdeLibrary extends IdeModel implements Library {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myResolvedCoordinates, myProject, myName, myProvided);
   }
 
