@@ -397,7 +397,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   /**
    * CaretListener that detects when we move to a different theme.
    */
-  private class MyCaretListener extends CaretAdapter {
+  private class MyCaretListener implements CaretListener {
     @Override
     public void caretPositionChanged(CaretEvent e) {
       if (e == null || e.getCaret() == null) {
