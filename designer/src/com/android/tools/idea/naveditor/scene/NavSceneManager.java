@@ -16,12 +16,13 @@
 package com.android.tools.idea.naveditor.scene;
 
 import com.android.sdklib.devices.Screen;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
-import com.android.tools.idea.naveditor.scene.layout.DummyAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -35,16 +36,18 @@ import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * {@link SceneManager} for the navigation editor.
@@ -77,7 +80,7 @@ public class NavSceneManager extends SceneManager {
   @NotNull
   @Override
   public Scene build() {
-    getModel().syncWithPsi(ImmutableList.of());
+    updateHierarchy(getModel(), null);
     Scene scene = super.build();
     getModel().addListener(new ModelChangeListener());
     getDesignSurface().getSelectionModel().addListener((model, selection) -> scene.needsRebuildList());
@@ -161,6 +164,7 @@ public class NavSceneManager extends SceneManager {
 
       getScene().setRoot(root);
       layoutAll(root);
+      root.updateTargets(true);
     }
     getScene().needsRebuildList();
   }
@@ -186,6 +190,18 @@ public class NavSceneManager extends SceneManager {
   @Override
   public Map<Object, PropertiesMap> getDefaultProperties() {
     return ImmutableMap.of();
+  }
+
+  public static void updateHierarchy(@NotNull NlModel model, @Nullable NlModel newModel) {
+    List<NlModel.TagSnapshotTreeNode> roots = ImmutableList.of();
+    XmlTag newRoot = AndroidPsiUtils.getRootTagSafely(model.getFile());
+    if (newModel != null) {
+      newRoot = AndroidPsiUtils.getRootTagSafely(newModel.getFile());
+      roots = buildTree(newModel.getComponents().stream().map(NlComponent::getTag).toArray(XmlTag[]::new));
+    }
+    model.syncWithPsi(newRoot, roots);
+    // TODO: should this be here?
+    model.notifyModified(NlModel.ChangeType.EDIT);
   }
 
   private class ModelChangeListener implements ModelListener {
@@ -217,7 +233,7 @@ public class NavSceneManager extends SceneManager {
 
     @Override
     public void modelActivated(@NotNull NlModel model) {
-      requestRender();
+      updateHierarchy(model, model);
     }
 
     @Override
@@ -225,4 +241,25 @@ public class NavSceneManager extends SceneManager {
 
     }
   }
+
+  private static List<NlModel.TagSnapshotTreeNode> buildTree(XmlTag[] roots) {
+    List<NlModel.TagSnapshotTreeNode> result = new ArrayList<>();
+    for (XmlTag root : roots) {
+      NlModel.TagSnapshotTreeNode node = new NlModel.TagSnapshotTreeNode() {
+        @Override
+        public TagSnapshot getTagSnapshot() {
+          return TagSnapshot.createTagSnapshot(root, null);
+        }
+
+        @NotNull
+        @Override
+        public List<NlModel.TagSnapshotTreeNode> getChildren() {
+          return buildTree(root.getSubTags());
+        }
+      };
+      result.add(node);
+    }
+    return result;
+  }
+
 }
