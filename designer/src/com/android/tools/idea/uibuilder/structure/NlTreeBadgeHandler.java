@@ -92,7 +92,7 @@ public class NlTreeBadgeHandler {
       int y = pathBounds.y + pathBounds.height / 2;
       Icon firstIcon = null;
       if (lintAnnotationsModel != null) {
-        firstIcon = lintAnnotationsModel.getIssueIcon(component, false);
+        firstIcon = lintAnnotationsModel.getIssueIcon(component, false, tree.isRowSelected(i));
         if (firstIcon != null && pathBounds != null) {
           int x = tree.getWidth() - firstIcon.getIconWidth() - BADGE_MARGIN;
           int iy = y - firstIcon.getIconHeight() / 2;

@@ -50,7 +50,7 @@ public class LintAnnotationsModel {
 
   @Nullable
   public Icon getIssueIcon(@NotNull NlComponent component) {
-    return getIssueIcon(component, true);
+    return getIssueIcon(component, true, false);
   }
 
   /**
@@ -60,10 +60,11 @@ public class LintAnnotationsModel {
    * @param component The component the get the icon for
    * @param smallSize If true, will return an 8x8 icon, otherwise it will return a 16x16
    *                  (or scaled equivalent for HiDpi screen)
+   * @param selected
    * @return The icon for the severity level of the issue.
    */
   @Nullable
-  public Icon getIssueIcon(@NotNull NlComponent component, boolean smallSize) {
+  public Icon getIssueIcon(@NotNull NlComponent component, boolean smallSize, boolean selected) {
     if (myIssues == null) {
       return null;
     }
@@ -73,9 +74,15 @@ public class LintAnnotationsModel {
     }
 
     IssueData max = findHighestSeverityIssue(issueData);
-    return HighlightDisplayLevel.ERROR.equals(max.level)
-           ? smallSize ? AndroidIcons.ErrorBadge : AllIcons.General.Error
-           : smallSize ? AndroidIcons.WarningBadge : AllIcons.General.BalloonWarning;
+    boolean isError = HighlightDisplayLevel.ERROR.equals(max.level);
+    if (smallSize) {
+      return isError ? AndroidIcons.ErrorBadge : AndroidIcons.WarningBadge;
+    }
+
+    if (selected) {
+      return isError ? AndroidIcons.Issue.ErrorSelected : AndroidIcons.Issue.WarningSelected;
+    }
+    return isError ? AndroidIcons.Issue.Error : AndroidIcons.Issue.Warning;
   }
 
   /**
@@ -177,11 +184,11 @@ public class LintAnnotationsModel {
 
     /**
      * Compare the issue by comparing the following properties, sorted by Highest priority first
-     *  <ul>
-     *    <li> {@link HighlightDisplayLevel#getSeverity()}
-     *    <li> {@link Issue#priority}
-     *    <li> {@link Issue#severity}
-     *  </ul>
+     * <ul>
+     * <li> {@link HighlightDisplayLevel#getSeverity()}
+     * <li> {@link Issue#priority}
+     * <li> {@link Issue#severity}
+     * </ul>
      */
     @Override
     public int compareTo(@NotNull IssueData o) {
