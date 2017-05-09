@@ -28,6 +28,7 @@ import java.util.Objects;
 public final class IdeNativeToolchain extends IdeModel implements NativeToolchain {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myName;
   @Nullable private final File myCCompilerExecutable;
@@ -38,6 +39,8 @@ public final class IdeNativeToolchain extends IdeModel implements NativeToolchai
     myName = toolchain.getName();
     myCCompilerExecutable = toolchain.getCCompilerExecutable();
     myCppCompilerExecutable = toolchain.getCppCompilerExecutable();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -74,6 +77,10 @@ public final class IdeNativeToolchain extends IdeModel implements NativeToolchai
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myName, myCCompilerExecutable, myCppCompilerExecutable);
   }
 

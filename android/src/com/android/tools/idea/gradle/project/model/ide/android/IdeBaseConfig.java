@@ -29,6 +29,7 @@ import java.util.*;
 public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final Map<String, ClassField> myResValues;
@@ -49,6 +50,8 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
     myApplicationIdSuffix = config.getApplicationIdSuffix();
     myVersionNameSuffix = copyNewProperty(config::getVersionNameSuffix, null);
     myMultiDexEnabled = copyNewProperty(config::getMultiDexEnabled, null);
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -156,8 +159,12 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myName, myResValues, myProguardFiles, myConsumerProguardFiles, myManifestPlaceholders, myApplicationIdSuffix,
-                        myVersionNameSuffix, myMultiDexEnabled);
+                              myVersionNameSuffix, myMultiDexEnabled);
   }
 
   @Override

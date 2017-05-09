@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.build.FilterData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -26,6 +27,7 @@ import java.util.Objects;
 public final class IdeFilterData extends IdeModel implements FilterData {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myIdentifier;
   @NotNull private final String myFilterType;
@@ -34,6 +36,8 @@ public final class IdeFilterData extends IdeModel implements FilterData {
     super(data, modelCache);
     myIdentifier = data.getIdentifier();
     myFilterType = data.getFilterType();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -63,6 +67,10 @@ public final class IdeFilterData extends IdeModel implements FilterData {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myIdentifier, myFilterType);
   }
 

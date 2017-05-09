@@ -20,6 +20,7 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -30,6 +31,7 @@ import java.util.Objects;
 public final class IdeProductFlavorContainer extends IdeModel implements ProductFlavorContainer {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final ProductFlavor myProductFlavor;
   @NotNull private final SourceProvider mySourceProvider;
@@ -41,6 +43,8 @@ public final class IdeProductFlavorContainer extends IdeModel implements Product
     mySourceProvider = modelCache.computeIfAbsent(container.getSourceProvider(), provider -> new IdeSourceProvider(provider, modelCache));
     myExtraSourceProviders = copy(container.getExtraSourceProviders(), modelCache,
                                   sourceProviderContainer -> new IdeSourceProviderContainer(sourceProviderContainer, modelCache));
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -77,6 +81,10 @@ public final class IdeProductFlavorContainer extends IdeModel implements Product
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myProductFlavor, mySourceProvider, myExtraSourceProviders);
   }
 

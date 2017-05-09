@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.SigningConfig;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.SigningConfigStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,7 +62,10 @@ public class IdeSigningConfigTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeSigningConfig.class).verify();
+    EqualsVerifier.forClass(IdeSigningConfig.class)
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
   }
 
 }

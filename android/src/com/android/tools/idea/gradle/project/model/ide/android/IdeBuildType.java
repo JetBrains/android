@@ -28,6 +28,7 @@ import java.util.Objects;
 public final class IdeBuildType extends IdeBaseConfig implements BuildType {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   private final boolean myDebuggable;
   private final boolean myJniDebuggable;
@@ -45,6 +46,8 @@ public final class IdeBuildType extends IdeBaseConfig implements BuildType {
     //noinspection deprecation
     myMinifyEnabled = buildType.isMinifyEnabled();
     myZipAlignEnabled = buildType.isZipAlignEnabled();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -126,7 +129,12 @@ public final class IdeBuildType extends IdeBaseConfig implements BuildType {
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), myDebuggable, myJniDebuggable, myRenderscriptDebuggable, myRenderscriptOptimLevel,
+    return myHashCode;
+  }
+
+  @Override
+  protected int calculateHashCode() {
+    return Objects.hash(super.calculateHashCode(), myDebuggable, myJniDebuggable, myRenderscriptDebuggable, myRenderscriptOptimLevel,
                         myMinifyEnabled, myZipAlignEnabled);
   }
 

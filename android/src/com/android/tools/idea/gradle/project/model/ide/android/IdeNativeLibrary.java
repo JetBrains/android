@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.NativeLibrary;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Objects;
 public final class IdeNativeLibrary extends IdeModel implements NativeLibrary {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final String myAbi;
@@ -57,6 +59,8 @@ public final class IdeNativeLibrary extends IdeModel implements NativeLibrary {
     myCCompilerFlags = new ArrayList<>(library.getCCompilerFlags());
     myCppCompilerFlags = new ArrayList<>(library.getCppCompilerFlags());
     myDebuggableLibraryFolders = new ArrayList<>(library.getDebuggableLibraryFolders());
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -156,8 +160,13 @@ public final class IdeNativeLibrary extends IdeModel implements NativeLibrary {
 
   @Override
   public int hashCode() {
-    return Objects.hash(myName, myAbi, myToolchainName, myCIncludeDirs, myCppIncludeDirs, myCSystemIncludeDirs, myCppSystemIncludeDirs,
-                        myCDefines, myCppDefines, myCCompilerFlags, myCppCompilerFlags, myDebuggableLibraryFolders);
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
+    return Objects.hash(myName, myAbi, myToolchainName, myCIncludeDirs, myCppIncludeDirs, myCSystemIncludeDirs,
+                        myCppSystemIncludeDirs, myCDefines, myCppDefines, myCCompilerFlags, myCppCompilerFlags,
+                        myDebuggableLibraryFolders);
   }
 
   @Override

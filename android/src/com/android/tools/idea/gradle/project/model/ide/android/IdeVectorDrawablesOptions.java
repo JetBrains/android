@@ -28,6 +28,7 @@ import java.util.Set;
 public final class IdeVectorDrawablesOptions extends IdeModel implements VectorDrawablesOptions {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @Nullable private final Set<String> myGeneratedDensities;
   @Nullable private final Boolean myUseSupportLibrary;
@@ -36,6 +37,8 @@ public final class IdeVectorDrawablesOptions extends IdeModel implements VectorD
     super(options, modelCache);
     myGeneratedDensities = copy(options.getGeneratedDensities());
     myUseSupportLibrary = options.getUseSupportLibrary();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -65,6 +68,10 @@ public final class IdeVectorDrawablesOptions extends IdeModel implements VectorD
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myGeneratedDensities, myUseSupportLibrary);
   }
 

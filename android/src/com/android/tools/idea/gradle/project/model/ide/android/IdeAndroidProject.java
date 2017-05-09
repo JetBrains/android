@@ -28,6 +28,9 @@ import java.util.*;
  * Creates a deep copy of an {@link AndroidProject}.
  */
 public final class IdeAndroidProject extends IdeModel implements AndroidProject {
+  private static final long serialVersionUID = 1L;
+  private final int myHashCode;
+
   @NotNull private final String myModelVersion;
   @NotNull private final String myName;
   @NotNull private final ProductFlavorContainer myDefaultConfig;
@@ -88,6 +91,8 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
     myProjectType = getProjectType(project, modelVersion);
     myPluginGeneration = project.getPluginGeneration();
     myBaseSplit = copyNewProperty(project::isBaseSplit, false);
+
+    myHashCode = calculateHashCode();
   }
 
   private static int getProjectType(@NotNull AndroidProject project, @NotNull GradleVersion modelVersion) {
@@ -287,10 +292,14 @@ public final class IdeAndroidProject extends IdeModel implements AndroidProject 
 
   @Override
   public int hashCode() {
-    return Objects.hash(myModelVersion, myName, myDefaultConfig, myBuildTypes, myProductFlavors, myBuildToolsVersion, mySyncIssues,
-                        myVariants, myFlavorDimensions, myCompileTarget, myBootClassPath, myNativeToolchains, mySigningConfigs,
-                        myLintOptions, myUnresolvedDependencies, myJavaCompileOptions, myBuildFolder, myResourcePrefix, myApiVersion,
-                        myLibrary, myProjectType, myPluginGeneration, myBaseSplit);
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
+      return Objects.hash(myModelVersion, myName, myDefaultConfig, myBuildTypes, myProductFlavors, myBuildToolsVersion, mySyncIssues,
+                          myVariants, myFlavorDimensions, myCompileTarget, myBootClassPath, myNativeToolchains, mySigningConfigs,
+                          myLintOptions, myUnresolvedDependencies, myJavaCompileOptions, myBuildFolder, myResourcePrefix, myApiVersion,
+                          myLibrary, myProjectType, myPluginGeneration, myBaseSplit);
   }
 
   @Override
