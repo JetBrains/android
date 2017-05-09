@@ -26,7 +26,6 @@ import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -64,7 +63,6 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     assertNotNull(libAndroidFacet);
     assertNotNull(libAndroidFacet.getAndroidModel());
 
-    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
     mySyncState.invalidateLastSync("Error");
     assertTrue(mySyncState.lastSyncFailed());
 
