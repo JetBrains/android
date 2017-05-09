@@ -50,6 +50,7 @@ public class TemplateMetadata {
   public static final String ATTR_MIN_BUILD_API = "minBuildApi";
   public static final String ATTR_BUILD_API = "buildApi";
   public static final String ATTR_BUILD_API_STRING = "buildApiString";
+  public static final String ATTR_BUILD_API_REVISION = "buildApiRevision";
   public static final String ATTR_HAS_APPLICATION_THEME = "hasApplicationTheme";
   public static final String ATTR_REVISION = "revision";
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
