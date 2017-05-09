@@ -222,7 +222,6 @@ public interface RoomPsiTypes {
   IElementType OR = new RoomTokenType("OR");
   IElementType ORDER = new RoomTokenType("ORDER");
   IElementType OUTER = new RoomTokenType("OUTER");
-  IElementType PARAMETER = new RoomTokenType("?");
   IElementType PARAMETER_NAME = new RoomTokenType("PARAMETER_NAME");
   IElementType PLAN = new RoomTokenType("PLAN");
   IElementType PLUS = new RoomTokenType("+");

@@ -445,15 +445,14 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // PARAMETER | PARAMETER_NAME
+  // PARAMETER_NAME
   public static boolean bind_parameter(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "bind_parameter")) return false;
-    if (!nextTokenIs(b, "<bind parameter>", PARAMETER, PARAMETER_NAME)) return false;
+    if (!nextTokenIs(b, PARAMETER_NAME)) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, BIND_PARAMETER, "<bind parameter>");
-    r = consumeToken(b, PARAMETER);
-    if (!r) r = consumeToken(b, PARAMETER_NAME);
-    exit_section_(b, l, m, r, false, null);
+    Marker m = enter_section_(b);
+    r = consumeToken(b, PARAMETER_NAME);
+    exit_section_(b, m, BIND_PARAMETER, r);
     return r;
   }
 
