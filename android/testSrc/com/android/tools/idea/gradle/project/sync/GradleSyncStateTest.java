@@ -103,8 +103,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
   public void testSyncFailed() {
     String msg = "Something went wrong";
-    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
-    mySyncState.syncFailed(msg);
+
     mySyncState.syncFailed(msg);
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
