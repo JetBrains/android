@@ -48,8 +48,10 @@ public class IssueNotificationAction extends AnAction {
   private TextIcon myTextIcon = new TextIcon("", JBColor.white, null, 2);
 
   public IssueNotificationAction(@NotNull DesignSurface surface) {
-    super(NO_ISSUE, NO_ISSUE, AllIcons.Ide.Notification.NoEvents);
+    super(NO_ISSUE, NO_ISSUE, null);
     mySurface = surface;
+    setDefaultIcon(false);
+    getTemplatePresentation().setIcon(myIcon);
     myTextIcon.setFont(new Font(NotificationsUtil.getFontName(), Font.BOLD, JBUI.scale(9)));
   }
 
@@ -58,7 +60,6 @@ public class IssueNotificationAction extends AnAction {
     Presentation presentation = event.getPresentation();
     IssueModel issueModel = mySurface.getIssueModel();
     int markerCount = issueModel.getIssueCount();
-
     updateIssueTypeIcon(issueModel);
     if (markerCount != myCount) {
       myCount = markerCount;
@@ -92,7 +93,7 @@ public class IssueNotificationAction extends AnAction {
   }
 
   private void updateCountIcon(int markerCount) {
-    if (markerCount > 10) {
+    if (markerCount > 9) {
       myTextIcon.setText(ERROR_MORE_THAN_9);
     }
     else if (markerCount > 1) {
