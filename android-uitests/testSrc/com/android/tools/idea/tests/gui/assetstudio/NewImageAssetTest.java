@@ -58,7 +58,7 @@ public class NewImageAssetTest {
     myDialog = guiTest.ideFrame().openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
     myStep = myDialog.getImageAssetStep();
     if (!NewImageAssetStep_Deprecated.isEnabled()) {
-      myStep.selectIconType("Launcher Icons (Legacy)");
+      myStep.selectIconType("Launcher Icons (Legacy only)");
     }
     assertThat(myDialog.findWizardButton("Next").isEnabled()).isTrue();
     // TODO there does not seem to be a error panel in the image asset config
@@ -68,11 +68,11 @@ public class NewImageAssetTest {
   public void testAdaptiveIconsPreviewPanelContents() {
     openAssetStudioWizard();
 
-    myStep.selectIconType("Adaptive Icons");
+    myStep.selectIconType("Launcher Icons (Adaptive and Legacy)");
     assertThat(myStep.getPreviewPanelCount()).isEqualTo(1);
     assertThat(myStep.getPreviewPanelIconNames(0))
       .containsExactly("Circle", "Squircle", "Rounded Square", "Square",
-                       "Full Bleed Layers", "Legacy (API \u2264 24)", "Round (API 25)", "Web")
+                       "Full Bleed Layers", "Legacy Icon", "Round Icon", "Google Play Store")
       .inOrder();
     myDialog.clickCancel();
   }
