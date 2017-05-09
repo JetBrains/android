@@ -53,7 +53,7 @@ public class NlLintHighlightingPass implements HighlightingPass {
   @Override
   public void applyInformationToEditor() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    if (sceneView == null) {
+    if (sceneView == null || myLintAnnotationsModel == null) {
       return;
     }
 
