@@ -310,7 +310,7 @@ public class ScoutArrange {
       case AlignHorizontallyLeft: {
         int min = Integer.MAX_VALUE;
         if (applyConstraints) { // test if already connected to flip directions
-          flipConnectionsAndReverse(scoutWidgets, Direction.LEFT, ourLeftAttributes);
+          flipConnectionsAndReverse(scoutWidgets, Direction.LEFT, ourLeftAttributes, ourStartAttributes);
         }
         for (ScoutWidget widget : scoutWidgets) {
           min = Math.min(min, widget.getDpX());
@@ -321,6 +321,8 @@ public class ScoutArrange {
           if (applyConstraints) {
             if (previousWidget != null) {
               scoutClearAttributes(widget.mNlComponent, ourRightAttributes);
+              scoutClearAttributes(widget.mNlComponent, ourEndAttributes);
+
               scoutConnect(widget.mNlComponent, Direction.LEFT, previousWidget,
                            Direction.LEFT, 0);
             }
@@ -332,7 +334,7 @@ public class ScoutArrange {
       case AlignHorizontallyRight: {
         int max = Integer.MIN_VALUE;
         if (applyConstraints) { // test if already connected to flip directions
-          flipConnectionsAndReverse(scoutWidgets, Direction.RIGHT, ourRightAttributes);
+          flipConnectionsAndReverse(scoutWidgets, Direction.RIGHT, ourRightAttributes, ourEndAttributes);
         }
         for (ScoutWidget widget : scoutWidgets) {
           max = Math.max(max, widget.getDpX() + widget.getDpWidth());
@@ -344,6 +346,7 @@ public class ScoutArrange {
           if (applyConstraints) {
             if (previousWidget != null) {
               scoutClearAttributes(widget.mNlComponent, ourLeftAttributes);
+              scoutClearAttributes(widget.mNlComponent, ourStartAttributes);
               scoutConnect(widget.mNlComponent, Direction.RIGHT, previousWidget,
                            Direction.RIGHT, 0);
             }
@@ -355,7 +358,7 @@ public class ScoutArrange {
       case AlignVerticallyTop: {
         int min = Integer.MAX_VALUE;
         if (applyConstraints) { // test if already connected to flip directions
-          flipConnectionsAndReverse(scoutWidgets, Direction.TOP, ourTopAttributes);
+          flipConnectionsAndReverse(scoutWidgets, Direction.TOP, ourTopAttributes, null);
         }
         for (ScoutWidget widget : scoutWidgets) {
           min = Math.min(min, widget.getDpY());
@@ -477,7 +480,7 @@ public class ScoutArrange {
       case AlignVerticallyBottom: {
         int max = Integer.MIN_VALUE;
         if (applyConstraints) { // test if already connected to flip directions
-          flipConnectionsAndReverse(scoutWidgets, Direction.BOTTOM, ourBottomAttributes);
+          flipConnectionsAndReverse(scoutWidgets, Direction.BOTTOM, ourBottomAttributes, null);
         }
         for (ScoutWidget widget : scoutWidgets) {
           max = Math.max(max, widget.getDpY() + widget.getDpHeight());
@@ -897,7 +900,7 @@ public class ScoutArrange {
     }
   }
 
-  public static void flipConnectionsAndReverse(ScoutWidget[] scoutWidgets, Direction direction, ArrayList<String> clear) {
+  public static void flipConnectionsAndReverse(ScoutWidget[] scoutWidgets, Direction direction, ArrayList<String> clear, ArrayList<String> clearRtl) {
     ScoutWidget last = null;
     boolean isAlreadyConnected = true;
     for (ScoutWidget widget : scoutWidgets) {
@@ -915,6 +918,9 @@ public class ScoutArrange {
       for (ScoutWidget widget : scoutWidgets) {
         if (scoutWidgets[0].isConnected(direction, widget)) {
           scoutClearAttributes(scoutWidgets[0].mNlComponent, clear);
+          if (clearRtl != null) {
+            scoutClearAttributes(scoutWidgets[0].mNlComponent, clearRtl);
+          }
           break;
         }
       }
