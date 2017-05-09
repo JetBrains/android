@@ -20,10 +20,13 @@ import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.ui.GuiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Model to centralize every issue that should be used in the Layout Editor
@@ -62,9 +65,8 @@ public class IssueModel {
     }
     myIssues = issueListBuilder.build();
 
-    for (IssueModelListener myListener : myListeners) {
-      myListener.errorModelChanged();
-    }
+    GuiUtils.invokeLaterIfNeeded(() -> myListeners.forEach(IssueModelListener::errorModelChanged),
+                                 ModalityState.defaultModalityState());
   }
 
   private void updateIssuesCounts(@NotNull NlIssue issue) {
@@ -95,11 +97,11 @@ public class IssueModel {
   }
 
   public void addErrorModelListener(@NotNull IssueModelListener listener) {
-    myListeners.add(listener);
+    GuiUtils.invokeLaterIfNeeded(() -> myListeners.add(listener), ModalityState.defaultModalityState());
   }
 
   public void removeErrorModelListener(@NotNull IssueModelListener listener) {
-    myListeners.remove(listener);
+    GuiUtils.invokeLaterIfNeeded(() -> myListeners.remove(listener), ModalityState.defaultModalityState());
   }
 
   public int getWarningCount() {
