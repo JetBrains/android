@@ -464,7 +464,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public AndroidVersion getRuntimeMinSdkVersion() {
     ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
     if (minSdkVersion != null) {
-      return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename());
+      return convertVersion(minSdkVersion, null);
     }
     return null;
   }
@@ -474,7 +474,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public AndroidVersion getTargetSdkVersion() {
     ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
     if (targetSdkVersion != null) {
-      return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
+      return convertVersion(targetSdkVersion, null);
     }
     return null;
   }
