@@ -42,6 +42,7 @@ import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.notification.NotificationGroup;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerBundle;
@@ -247,10 +248,9 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
       myProgressIndicator = indicator;
 
-      ProjectManager projectManager = ProjectManager.getInstance();
       Project project = myRequest.getProject();
       myCloseListener = new CloseListener();
-      projectManager.addProjectManagerListener(project, myCloseListener);
+      ApplicationManager.getApplication().getMessageBus().connect(myCloseListener).subscribe(ProjectManager.TOPIC, myCloseListener);
 
       Semaphore semaphore = ((CompilerManagerImpl)CompilerManager.getInstance(project)).getCompilationSemaphore();
       boolean acquired = false;
@@ -273,7 +273,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       finally {
         try {
           myProgressIndicator.stop();
-          projectManager.removeProjectManagerListener(project, myCloseListener);
+          Disposer.dispose(myCloseListener);
         }
         finally {
           if (acquired) {
@@ -911,16 +911,12 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       }
     }
 
-    private class CloseListener extends ContentManagerAdapter implements ProjectManagerListener {
+    private class CloseListener extends ContentManagerAdapter implements ProjectManagerListener, Disposable {
       private ContentManager myContentManager;
       @Nullable private Content myContent;
 
       private boolean myIsApplicationExitingOrProjectClosing;
       private boolean myUserAcceptedCancel;
-
-      @Override
-      public void projectOpened(Project project) {
-      }
 
       @Override
       public boolean canCloseProject(Project project) {
@@ -1002,6 +998,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         String msg = "Gradle is running. Proceed with Project closing?";
         int result = Messages.showYesNoDialog(myProject, msg, GRADLE_RUNNING_MSG_TITLE, Messages.getQuestionIcon());
         return result == Messages.YES;
+      }
+
+      @Override
+      public void dispose() {
       }
     }
 
