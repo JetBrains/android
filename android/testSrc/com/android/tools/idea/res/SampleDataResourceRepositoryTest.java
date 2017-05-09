@@ -38,10 +38,18 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                                "string1\n" +
                                "string2\n" +
                                "string3\n");
+    myFixture.addFileToProject("sampledata/images/image1.png",
+                               "Insert image here\n");
+    myFixture.addFileToProject("sampledata/images/image2.jpg",
+                               "Insert image here 2\n");
+    myFixture.addFileToProject("sampledata/images/image3.png",
+                               "Insert image here 3\n");
     SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
-    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
+    assertEquals(2, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
     assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("strings").size());
+    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("images").size());
+
     Disposer.dispose(repo);
   }
 
@@ -68,6 +76,10 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("sampledata/refs",
                                "@string/test1\n" +
                                "@string/invalid\n");
+    PsiFile image1 = myFixture.addFileToProject("sampledata/images/image1.png",
+                               "Insert image here\n");
+    PsiFile image2 = myFixture.addFileToProject("sampledata/images/image2.jpg",
+                               "Insert image here 2\n");
     myFixture.addFileToProject("res/values/strings.xml", stringsText);
     PsiFile layout = myFixture.addFileToProject("res/layout/layout.xml", layoutText);
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
@@ -77,11 +89,13 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertEquals("string2", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("string3", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("2", resolver.findResValue("@sample/ints", false).getValue());
+    assertEquals(image1.getVirtualFile().getCanonicalPath(), resolver.findResValue("@sample/images", false).getValue());
+    assertEquals(image2.getVirtualFile().getCanonicalPath(), resolver.findResValue("@sample/images", false).getValue());
 
     // Check that we wrap around
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
-
+    assertEquals(image1.getVirtualFile().getCanonicalPath(), resolver.findResValue("@sample/images", false).getValue());
 
     // Check reference resolution
     assertEquals("Hello 1", resolver.resolveResValue(
