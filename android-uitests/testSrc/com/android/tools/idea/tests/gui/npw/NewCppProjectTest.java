@@ -73,26 +73,26 @@ public class NewCppProjectTest {
    */
   @RunIn(TestGroup.QA)
   @Test
-  public void testCreateNewProjectWithCpp1() throws Exception {
-    testCreateNewProjectWithCpp(false, false);
+  public void createNewProjectWithCpp1() throws Exception {
+    createNewProjectWithCpp(false, false);
   }
 
   @RunIn(TestGroup.QA)
   @Test
-  public void testCreateNewProjectWithCpp2() throws Exception {
-    testCreateNewProjectWithCpp(true, false);
+  public void createNewProjectWithCpp2() throws Exception {
+    createNewProjectWithCpp(true, false);
   }
 
   @RunIn(TestGroup.QA)
   @Test
-  public void testCreateNewProjectWithCpp3() throws Exception {
-    testCreateNewProjectWithCpp(false, true);
+  public void createNewProjectWithCpp3() throws Exception {
+    createNewProjectWithCpp(false, true);
   }
 
   @RunIn(TestGroup.QA)
   @Test
-  public void testCreateNewProjectWithCpp4() throws Exception {
-    testCreateNewProjectWithCpp(true, true);
+  public void createNewProjectWithCpp4() throws Exception {
+    createNewProjectWithCpp(true, true);
   }
 
   /**
@@ -119,7 +119,7 @@ public class NewCppProjectTest {
    */
   @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37918835
   @Test
-  public void testAddRemoveCppDependency() throws Exception {
+  public void addRemoveCppDependency() throws Exception {
     createCppProject(false, false);
 
     assertAndroidPanePath(true, "app", "cpp", "native-lib.cpp");
@@ -159,7 +159,7 @@ public class NewCppProjectTest {
    */
   @RunIn(TestGroup.PROJECT_WIZARD)
   @Test
-  public void testNoWarningsInNewProjectWithCpp() {
+  public void noWarningsInNewProjectWithCpp() {
     createCppProject(false, false);
 
     String inspectionResults = guiTest.ideFrame()
@@ -167,13 +167,13 @@ public class NewCppProjectTest {
       .clickOk()
       .getResults();
 
-    // TODO Disable spell checking before running inspection, then compare for equality like testNoWarningsInNewProjects does.
+    // TODO Disable spell checking before running inspection, then compare for equality like noWarningsInNewProjects does.
     // These two strings are categories that are very common when there will be some problem compiling.
     assertThat(inspectionResults).doesNotContain("Declaration order");
     assertThat(inspectionResults).doesNotContain("Unused code");
   }
 
-  private void testCreateNewProjectWithCpp(boolean hasExceptionSupport, boolean hasRuntimeInformation) throws Exception {
+  private void createNewProjectWithCpp(boolean hasExceptionSupport, boolean hasRuntimeInformation) throws Exception {
     createCppProject(hasExceptionSupport, hasRuntimeInformation);
 
     String gradleCppFlags = guiTest.ideFrame().getEditor()
