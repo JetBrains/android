@@ -187,9 +187,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.Unhide,  Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
-        new   ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY,"Show Constraints"),
-        new   ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY,"Show Margins"),
-        new   ToggleVisibilityAction(FADE_UNSELECTED_VIEWS,"Fade Unselected views ")
+        new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show Constraints", true),
+        new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
+        new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected views ", false)
       )
     )));
     actions.add((new ToggleAutoConnectAction()));
@@ -687,7 +687,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   /**
    * Make sure to have the SceneLayer on the DesignSurface
-   * are fully painted for the givent duration
+   * are fully painted for the given duration
    *
    * @param editor the ViewEditor holding the DesignSurface
    * @param duration how long to paint the SceneLayers, in ms
@@ -739,10 +739,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private class ToggleVisibilityAction extends ToggleViewAction {
     String mType;
-    public ToggleVisibilityAction(String type, String text) {
+
+    public ToggleVisibilityAction(String type, String text, boolean defaultValue) {
       super(AndroidIcons.SherpaIcons.Unchecked, AndroidIcons.SherpaIcons.Checked, text, text);
       mType = type;
-      ourVisibilityFlags.put(mType, PropertiesComponent.getInstance().getBoolean(type));
+      ourVisibilityFlags.put(mType, PropertiesComponent.getInstance().getBoolean(type, defaultValue));
     }
 
     @Override
@@ -762,6 +763,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       ourVisibilityFlags.put(mType, selected);
 
       PropertiesComponent.getInstance().setValue(mType, selected);
+      ensureLayersAreShown(editor, 1000);
     }
   }
 
