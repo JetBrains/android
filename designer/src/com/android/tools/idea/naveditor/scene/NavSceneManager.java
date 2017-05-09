@@ -92,8 +92,9 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
-  protected void updateFromComponent(@NotNull NlComponent component, @NotNull SceneComponent sceneComponent) {
-    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(component.getTagName());
+  protected void updateFromComponent(@NotNull SceneComponent sceneComponent) {
+    super.updateFromComponent(sceneComponent);
+    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
     if (type != null) {
       switch (type) {
         case NAVIGATION:
@@ -129,14 +130,14 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   @Nullable
-  protected SceneComponent updateFromComponent(@NotNull NlComponent component, @NotNull Set<SceneComponent> seenComponents) {
+  protected SceneComponent createHierarchy(@NotNull NlComponent component) {
     NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(component.getTagName());
     if (type != null) {
       switch (type) {
         case NAVIGATION:
         case FRAGMENT:
         case ACTIVITY:
-          return super.updateFromComponent(component, seenComponents);
+          return super.createHierarchy(component);
         default:
           //nothing
       }
@@ -155,7 +156,8 @@ public class NavSceneManager extends SceneManager {
     List<NlComponent> components = getModel().getComponents();
     if (components.size() != 0) {
       NlComponent rootComponent = components.get(0).getRoot();
-      SceneComponent root = updateFromComponent(rootComponent, new HashSet<>());
+      SceneComponent root = createHierarchy(rootComponent);
+      updateFromComponent(root, new HashSet<>());
 
       getScene().setRoot(root);
       layoutAll(root);
