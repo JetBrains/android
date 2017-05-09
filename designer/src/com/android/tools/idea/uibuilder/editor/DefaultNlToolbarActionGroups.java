@@ -74,7 +74,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new TogglePanningDialogAction((NlDesignSurface)mySurface));
     group.addSeparator();
 
-    group.add(new IssueNotificationAction((NlDesignSurface)mySurface));
+    group.add(new IssueNotificationAction(mySurface));
     return group;
   }
 }

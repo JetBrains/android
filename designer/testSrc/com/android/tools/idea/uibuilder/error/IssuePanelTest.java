@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
 
 public class IssuePanelTest extends AndroidTestCase {
 
   public void testPanel() {
     IssueModel model = new IssueModel();
-    IssuePanel panel = new IssuePanel(model);
+    IssuePanel panel = new IssuePanel(LayoutTestUtilities.createSurface(DesignSurface.class), model);
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
@@ -44,7 +44,7 @@ public class IssuePanelTest extends AndroidTestCase {
 
   public void testRemoveOldError() {
     IssueModel model = new IssueModel();
-    IssuePanel panel = new IssuePanel(model);
+    IssuePanel panel = new IssuePanel(LayoutTestUtilities.createSurface(DesignSurface.class), model);
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
