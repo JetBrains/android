@@ -24,6 +24,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -294,6 +295,66 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), false);
     assertEquals("merge", parser.myRoot.tagName);
     assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
+  }
+
+  public void testToolsAttributes() throws Exception {
+    @Language("XML")
+    final String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                           "    android:layout_width=\"match_parent\"\n" +
+                           "    android:layout_height=\"match_parent\"\n" +
+                           "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                           "    android:orientation=\"horizontal\">\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        app:autoSizeText=\"none\"\n" +
+                           "        tools:autoSizeText=\"uniform\"\n" +
+                           "        android:text=\"Hello world\"\n" +
+                           "        tools:text=\"Tools content\"/>\n" +
+                           "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("TextView", parser.getName());
+    assertEquals(6, parser.getAttributeCount()); // layout_width + layout_height + 2*autoSizeText + 2*text
+
+    assertEquals("uniform", parser.getAttributeValue(TOOLS_URI, "autoSizeText"));
+    assertEquals("uniform", parser.getAttributeValue(AUTO_URI, "autoSizeText"));
+    assertEquals("Tools content", parser.getAttributeValue(ANDROID_URI, "text"));
+  }
+
+  public void testAppAttributes() throws XmlPullParserException {
+    @Language("XML")
+    final String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                           "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    android:layout_width=\"match_parent\"\n" +
+                           "    android:layout_height=\"match_parent\"\n" +
+                           "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                           "    android:orientation=\"horizontal\">\n" +
+                           "    <TextView\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        android:text=\"Content\"\n" +
+                           "        app:randomAttr=\"123\"/>\n" +
+                           "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("TextView", parser.getName());
+    // Make sure that library namespaces are converted into app
+    assertEquals("123", parser.getAttributeValue("http://schemas.android.com/apk/res/foo.bar", "randomAttr"));
+    // Check that we do not accidentally convert android namespace
+    assertNull(parser.getAttributeValue("http://schemas.android.com/apk/res/foo.bar", "text"));
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
