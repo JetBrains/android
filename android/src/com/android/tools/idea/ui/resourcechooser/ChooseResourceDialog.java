@@ -33,8 +33,6 @@ import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.webp.WebpImageReaderSpi;
-import com.android.tools.idea.rendering.webp.WebpMetadata;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -54,6 +52,7 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -1550,7 +1549,7 @@ public class ChooseResourceDialog extends DialogWrapper {
             notifyResourcePickerListeners(myReferenceComponent.getValueText());
           }
         });
-        myReferenceComponent.addTextDocumentListener(new com.intellij.openapi.editor.event.DocumentAdapter() {
+        myReferenceComponent.addTextDocumentListener(new DocumentListener() {
           @Override
           public void documentChanged(com.intellij.openapi.editor.event.DocumentEvent e) {
             // This is run inside a WriteAction and updateIcon may need an APP_RESOURCES_LOCK from AndroidFacet.

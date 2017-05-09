@@ -38,8 +38,8 @@ import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -332,7 +332,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
   }
 
   private void addJBDocumentListener(com.intellij.openapi.editor.Document doc, final JComponent textField) {
-    DocumentAdapter listener = new DocumentAdapter() {
+    DocumentListener listener = new DocumentListener() {
       @Override
       public void documentChanged(DocumentEvent event) {
         saveState(textField);
