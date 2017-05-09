@@ -71,6 +71,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
       }
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
+      mySettings = null;
     }
     finally {
       super.tearDown();

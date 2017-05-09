@@ -129,6 +129,34 @@ public abstract class PropertyTestCase extends LayoutTestCase {
       Disposer.dispose(myModel);
       Disposer.dispose(myPropertiesManager);
       Disposer.dispose(myDesignSurface);
+      myTextView = null;
+      myProgressBar = null;
+      myCheckBox1 = null;
+      myCheckBox2 = null;
+      myCheckBox3 = null;
+      mySwitch = null;
+      myUnknown = null;
+      myMerge = null;
+      myConstraintLayout = null;
+      myConstraintLayoutWithConstraintSet = null;
+      myButton = null;
+      myImageView = null;
+      myAutoCompleteTextView = null;
+      myRadioGroup = null;
+      myButtonInConstraintLayout = null;
+      myTextViewInLinearLayout = null;
+      myButtonInLinearLayout = null;
+      myImageViewInCollapsingToolbarLayout = null;
+      myTabLayout = null;
+      myRelativeLayout = null;
+      myModel = null;
+      myDesignSurface = null;
+      myScreenView = null;
+      myPropertiesManager = null;
+      myUsageTracker = null;
+      myDescriptorProvider = null;
+      myComponentMap = null;
+      myPropertiesComponent = null;
     }
     finally {
       super.tearDown();
