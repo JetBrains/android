@@ -224,7 +224,7 @@ public class GradleSyncState {
 
     enableNotifications();
 
-    AndroidStudioEvent.Builder event = generateSyncEvent(GRADLE_SYNC_SKIPPED);
+    AndroidStudioEvent.Builder event =generateSyncEvent(GRADLE_SYNC_SKIPPED);
     UsageTracker.getInstance().log(event);
   }
 
@@ -239,11 +239,6 @@ public class GradleSyncState {
   }
 
   public void syncFailed(@NotNull String message) {
-    // If mySyncStartedTimestamp is -1, that means sync have not started or
-    // syncFailed has been called for this invocation, do nothing
-    if (mySyncStartedTimestamp == -1L) {
-      return;
-    }
     long syncEndTimestamp = System.currentTimeMillis();
     setSyncFailedTimeStamp(syncEndTimestamp);
     String msg = "Gradle sync failed";
@@ -264,8 +259,6 @@ public class GradleSyncState {
   }
 
   public void syncEnded() {
-    // syncFailed should be called if there're any sync issues.
-    assert !lastSyncFailedOrHasIssues();
     long syncEndTimestamp = System.currentTimeMillis();
     setSyncEndedTimeStamp(syncEndTimestamp);
     String msg = String.format("Gradle sync finished in %1$s", getFormattedSyncDuration(syncEndTimestamp));
@@ -325,7 +318,7 @@ public class GradleSyncState {
   long getSyncTotalTimeMs() {
     if (mySyncEndedTimeStamp >= 0) {
       // Sync was successful
-      return mySyncEndedTimeStamp - mySyncStartedTimestamp;
+      return  mySyncEndedTimeStamp - mySyncStartedTimestamp;
     }
     if (mySyncFailedTimeStamp >= 0) {
       // Sync failed
@@ -493,9 +486,9 @@ public class GradleSyncState {
       .setCategory(GRADLE_SYNC)
       .setKind(kind)
       .setGradleSyncStats(GradleSyncStats.newBuilder()
-                            .setTotalTimeMs(getSyncTotalTimeMs())
-                            .setIdeTimeMs(getSyncIdeTimeMs())
-                            .setGradleTimeMs(getSyncGradleTimeMs())
-                            .setTrigger(getTrigger()));
+        .setTotalTimeMs(getSyncTotalTimeMs())
+        .setIdeTimeMs(getSyncIdeTimeMs())
+        .setGradleTimeMs(getSyncGradleTimeMs())
+        .setTrigger(getTrigger()));
   }
 }
