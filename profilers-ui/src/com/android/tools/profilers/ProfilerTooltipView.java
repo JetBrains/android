@@ -20,18 +20,22 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Component;
+
 
 public abstract class ProfilerTooltipView extends AspectObserver {
   @NotNull
   private final ProfilerTimeline myTimeline;
 
   @NotNull
-  private final String myTitle;
+  protected final String myTitle;
 
   @NotNull
-  private JLabel myLabel;
+  protected final JLabel myLabel;
 
   protected ProfilerTooltipView(@NotNull ProfilerTimeline timeline, @NotNull String title) {
     myTimeline = timeline;
@@ -39,6 +43,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
 
     myLabel = new JLabel();
     myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
   }
 
@@ -47,7 +52,9 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     if (!range.isEmpty()) {
       String time = TimeAxisFormatter.DEFAULT
         .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
-      myLabel.setText(myTitle + " at " + time);
+      myLabel.setText(String.format("%s at %s", myTitle, time));
+    } else {
+      myLabel.setText("");
     }
   }
 
@@ -58,7 +65,6 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     Component tooltip = createTooltip();
 
     JPanel panel = new JPanel(new BorderLayout());
-    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
     panel.add(myLabel, BorderLayout.NORTH);
     panel.add(tooltip, BorderLayout.CENTER);
     panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
