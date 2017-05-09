@@ -43,6 +43,7 @@ import java.util.Map;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
 import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_JVMTI_PROFILING;
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_SIMPLEPERF_PROFILING;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn ProfilerClient's.
@@ -160,20 +161,19 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     @Override
     public void run() {
       try {
-        File dir = new File(PathManager.getHomePath(), "plugins/android/resources/perfd");
-        if (!dir.exists()) {
-          // Development mode
-          dir = new File(PathManager.getHomePath(), "../../out/studio/native/out/release");
-        }
+
         String deviceDir = "/data/local/tmp/perfd/";
-        copyFileToDevice("perfd", dir, deviceDir, true);
+        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../out/studio/native/out/release", deviceDir, true);
+        // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
+        pushSimpleperfIfSupported(deviceDir);
 
         // Perfd's command line argument is a temporary workaround to tell perfd whether jvmti is used.
         // TODO: remove perfdArguments after agent uses only JVMTI to instrument bytecode on O+ devices.
         String perfdArguments = "";
-        if (myDevice.getVersion().getFeatureLevel() >= 26 && ENABLE_JVMTI_PROFILING) {
+        if (isAtLeastO(myDevice) && ENABLE_JVMTI_PROFILING) {
           perfdArguments = " -use_jvmti";
         }
+
         myDevice.executeShellCommand(deviceDir + "perfd" + perfdArguments, new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
@@ -207,11 +207,17 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     /**
      * Copies a file from host (where Studio is running) to the device. Optionally marks it executable.
      */
-    private void copyFileToDevice(String fileName, File hostDir, String deviceDir, boolean markItExecutable) {
+    private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, String deviceDir, boolean markItExecutable) {
       try {
+        File dir = new File(PathManager.getHomePath(), hostReleaseDir);
+        if (!dir.exists()) {
+          // Development mode
+          dir = new File(PathManager.getHomePath(), hostDevDir);
+        }
+
         File file = null;
         for (String abi : myDevice.getAbis()) {
-          File candidate = new File(hostDir, abi + "/" + fileName);
+          File candidate = new File(dir, abi + "/" + fileName);
           if (candidate.exists()) {
             file = candidate;
             break;
@@ -219,6 +225,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
 
         // TODO: Handle the case where we don't have file for this platform.
+        // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
         assert file != null;
         // TODO: Add debug support for development
         myDevice.executeShellCommand("mkdir -p " + deviceDir, new NullOutputReceiver());
@@ -241,10 +248,21 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       }
     }
 
+    /**
+     * Pushes simpleperf binary to device if it is supported (i.e. it's running O or newer APIs and has a supported architecture).
+     */
+    private void pushSimpleperfIfSupported(String devicePath) {
+      // Simpleperf tracing is not supported in devices older than O.
+      if (!(isAtLeastO(myDevice) && ENABLE_SIMPLEPERF_PROFILING)) {
+        return;
+      }
+      copyFileToDevice("simpleperf", "plugins/android/resources/simpleperf", "../../prebuilts/tools/common/simpleperf", devicePath, false);
+    }
+
     private void createPerfdProxy() {
       try {
         myLocalPort = NetUtils.findAvailableSocketPort();
-        if (myDevice.getVersion().getFeatureLevel() >= 26 && ENABLE_JVMTI_PROFILING) {
+        if (isAtLeastO(myDevice) && ENABLE_JVMTI_PROFILING) {
           myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME,
                                  IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } else {
@@ -293,6 +311,13 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
         throw new RuntimeException(e);
       }
+    }
+
+    /**
+     * Whether the device is running O or higher APIs
+     */
+    private boolean isAtLeastO(IDevice device) {
+      return device.getVersion().getFeatureLevel() >= 26;
     }
   }
 
