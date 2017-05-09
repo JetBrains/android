@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
@@ -144,7 +143,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     myTagFieldWrapper.add(myTagField);
     myLogTagLabel.setLabelFor(myTagField);
 
-    myPidField = new TextFieldWithAutoCompletion<String>(myProject, new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null) {
+    myPidField = new TextFieldWithAutoCompletion<>(myProject, new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null) {
       @NotNull
       @Override
       public Collection<String> getItems(String prefix, boolean cached, CompletionParameters parameters) {
@@ -167,7 +166,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     myPackageNameFieldWrapper.add(myPackageNameField);
     myPackageNameLabel.setLabelFor(myPackageNameField);
 
-    myLogLevelCombo.setModel(new EnumComboBoxModel<Log.LogLevel>(Log.LogLevel.class));
+    myLogLevelCombo.setModel(new EnumComboBoxModel<>(Log.LogLevel.class));
     myLogLevelCombo.setRenderer(new ListCellRendererWrapper() {
       @Override
       public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
@@ -189,11 +188,11 @@ final class EditLogFilterDialog extends DialogWrapper {
     });
 
 
-    final Key<JComponent> componentKey = new Key<JComponent>("myComponent");
+    final Key<JComponent> componentKey = new Key<>("myComponent");
     myFilterNameField.getDocument().putUserData(componentKey, myFilterNameField);
     myPidField.getDocument().putUserData(componentKey, myPidField);
 
-    DocumentListener l = new DocumentAdapter() {
+    DocumentListener l = new DocumentListener() {
       @Override
       public void documentChanged(DocumentEvent e) {
         if (myActiveFilter == null) {
@@ -256,7 +255,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       }
     });
 
-    myFiltersListModel = new CollectionListModel<String>();
+    myFiltersListModel = new CollectionListModel<>();
     for (FilterData filter : myFilters) {
       myFiltersListModel.add(filter.getName());
     }
@@ -284,7 +283,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       return;
     }
 
-    final Set<String> pidSet = new HashSet<String>();
+    final Set<String> pidSet = new HashSet<>();
 
     final String[] lines = StringUtil.splitByLines(document.toString());
     for (String line : lines) {
@@ -420,7 +419,7 @@ final class EditLogFilterDialog extends DialogWrapper {
   }
 
   private String getUniqueName() {
-    Set<String> names = new HashSet<String>(myFilters.size());
+    Set<String> names = new HashSet<>(myFilters.size());
     for (FilterData filter : myFilters) {
       names.add(filter.getName());
     }
