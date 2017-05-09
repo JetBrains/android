@@ -42,6 +42,9 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 
 public class DexSourceFiles {
+  public static final String SMALI_ROOT_FOLDER_NAME = "smali";
+  public static final String SMALI_OUTPUT_FOLDER_NAME = "out";
+
   @NotNull private final Project myProject;
   @NotNull private final File myOutputFolderPath;
 
@@ -57,7 +60,7 @@ public class DexSourceFiles {
 
   @NotNull
   public File getDefaultSmaliOutputFolderPath() {
-    return new File(getBaseDirPath(myProject), join("smali", "out"));
+    return new File(getBaseDirPath(myProject), join(SMALI_ROOT_FOLDER_NAME, SMALI_OUTPUT_FOLDER_NAME));
   }
 
   public boolean isJavaFile(@NotNull VirtualFile file) {

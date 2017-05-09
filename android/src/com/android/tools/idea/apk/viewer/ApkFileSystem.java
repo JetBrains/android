@@ -16,7 +16,6 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Shorts;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
@@ -31,20 +30,18 @@ import com.intellij.openapi.vfs.impl.ArchiveHandler;
 import com.intellij.openapi.vfs.impl.jar.JarHandler;
 import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem;
 import com.intellij.openapi.vfs.newvfs.VfsImplUtil;
-import com.intellij.util.io.FileAccessorCache;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import static com.intellij.openapi.util.io.FileUtil.loadBytes;
 
 public class ApkFileSystem extends ArchiveFileSystem {
   public static final Set<String> EXTENSIONS = ImmutableSet.of(
@@ -87,7 +84,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
   @NotNull
   @Override
   protected ArchiveHandler getHandler(@NotNull VirtualFile entryFile) {
-    return VfsImplUtil.getHandler(this, entryFile, ApkArchiveHandler::new);
+    return VfsImplUtil.getHandler(this, entryFile, JarHandler::new);
   }
 
   /**
@@ -206,40 +203,5 @@ public class ApkFileSystem extends ArchiveFileSystem {
 
     short code = Shorts.fromBytes(bytes[1], bytes[0]);
     return code == Chunk.Type.XML.code();
-  }
-
-  @VisibleForTesting
-  static class ApkArchiveHandler extends JarHandler {
-    public ApkArchiveHandler(@NotNull String path) {
-      super(path);
-    }
-
-    @Override
-    @NotNull
-    public byte[] contentsToByteArray(@NotNull String relativePath) throws IOException {
-      // Same implementation as ZipHandler#contentsToByteArray without the check for "big" files.
-      FileAccessorCache.Handle<ZipFile> zipRef = getCachedZipFileHandle(true);
-      try {
-        ZipFile zip = zipRef.get();
-        ZipEntry entry = zip.getEntry(relativePath);
-        if (entry != null) {
-          long length = entry.getSize();
-          InputStream stream = zip.getInputStream(entry);
-          if (stream != null) {
-            try {
-              return loadBytes(stream, (int)length);
-            }
-            finally {
-              stream.close();
-            }
-          }
-        }
-      }
-      finally {
-        zipRef.release();
-      }
-
-      throw new FileNotFoundException(getFile() + "!/" + relativePath);
-    }
   }
 }
