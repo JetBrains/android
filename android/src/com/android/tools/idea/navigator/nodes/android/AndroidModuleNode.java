@@ -18,21 +18,27 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiManager;
+import org.jetbrains.android.Features;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -104,6 +110,19 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
 
     if (ndkModuleModel != null) {
       result.add(new AndroidJniFolderNode(project, ndkModuleModel, settings));
+    }
+
+    if (Features.NELE_MOCK_DATA) {
+      try {
+        VirtualFile sampleDataDirectory = SampleDataResourceRepository.getSampleDataDir(facet, false);
+        PsiDirectory sampleDataPsi = sampleDataDirectory != null ? PsiManager.getInstance(project).findDirectory(sampleDataDirectory) : null;
+        if (sampleDataPsi != null) {
+          result.add(new PsiDirectoryNode(project, sampleDataPsi, settings));
+        }
+      }
+      catch (IOException ignore) {
+        // The folder doesn't exist so we do not add it
+      }
     }
 
     return result;
