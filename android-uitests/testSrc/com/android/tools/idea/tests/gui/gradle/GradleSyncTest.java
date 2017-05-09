@@ -502,7 +502,7 @@ public class GradleSyncTest {
     GradleSettings gradleSettings = GradleSettings.getInstance(ideFrame.getProject());
     gradleSettings.setOfflineWork(true);
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSync().waitForGradleProjectSyncToFail();
     MessagesToolWindowFixture messagesToolWindow = ideFrame.getMessagesToolWindow();
     MessageFixture message = messagesToolWindow.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
@@ -510,7 +510,7 @@ public class GradleSyncTest {
     hyperlink.click();
 
     assertFalse(gradleSettings.isOfflineWork());
-    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame.waitForGradleProjectSyncToFail();
     messagesToolWindow = ideFrame.getMessagesToolWindow();
     message = messagesToolWindow.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
 
