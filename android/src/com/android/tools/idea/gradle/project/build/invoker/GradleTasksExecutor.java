@@ -42,7 +42,6 @@ import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.notification.NotificationGroup;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerBundle;
@@ -57,7 +56,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.project.VetoableProjectManagerListener;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.ActionCallback;
@@ -250,7 +249,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
       Project project = myRequest.getProject();
       myCloseListener = new CloseListener();
-      ApplicationManager.getApplication().getMessageBus().connect(myCloseListener).subscribe(ProjectManager.TOPIC, myCloseListener);
+      ProjectManager.getInstance().addProjectManagerListener(project, myCloseListener);
 
       Semaphore semaphore = ((CompilerManagerImpl)CompilerManager.getInstance(project)).getCompilationSemaphore();
       boolean acquired = false;
@@ -273,7 +272,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       finally {
         try {
           myProgressIndicator.stop();
-          Disposer.dispose(myCloseListener);
+          ProjectManager.getInstance().removeProjectManagerListener(project, myCloseListener);
         }
         finally {
           if (acquired) {
@@ -911,7 +910,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       }
     }
 
-    private class CloseListener extends ContentManagerAdapter implements ProjectManagerListener, Disposable {
+    private class CloseListener extends ContentManagerAdapter implements VetoableProjectManagerListener {
       private ContentManager myContentManager;
       @Nullable private Content myContent;
 
@@ -919,7 +918,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       private boolean myUserAcceptedCancel;
 
       @Override
-      public boolean canCloseProject(Project project) {
+      public boolean canClose(@NotNull Project project) {
         if (!project.equals(myProject)) {
           return true;
         }
@@ -998,10 +997,6 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         String msg = "Gradle is running. Proceed with Project closing?";
         int result = Messages.showYesNoDialog(myProject, msg, GRADLE_RUNNING_MSG_TITLE, Messages.getQuestionIcon());
         return result == Messages.YES;
-      }
-
-      @Override
-      public void dispose() {
       }
     }
 
