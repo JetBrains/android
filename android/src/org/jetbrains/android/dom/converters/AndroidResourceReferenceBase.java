@@ -7,6 +7,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.DynamicResourceValueItem;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.SampleDataResourceItem;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -123,9 +124,21 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
             // The mock references can only be applied to tools: attributes
             XmlAttribute attribute = (XmlAttribute)myElement.getParent();
             if (TOOLS_URI.equals(attribute.getNamespace())) {
-              for (ResourceItem item : items) {
-                elements.add(LocalResourceRepository.getItemPsiFile(myFacet.getModule().getProject(), item));
-              }
+              items.stream()
+                .filter(SampleDataResourceItem.class::isInstance)
+                .map(SampleDataResourceItem.class::cast)
+                .forEach(sampleDataItem -> result.add(new ResolveResult() {
+                  @Nullable
+                  @Override
+                  public PsiElement getElement() {
+                    return null;
+                  }
+
+                  @Override
+                  public boolean isValidResult() {
+                    return true;
+                  }
+                }));
             }
           }
         }
