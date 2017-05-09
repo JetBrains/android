@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.*;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourBottomAttributes;
@@ -30,7 +31,7 @@ public class ChainChecker {
   private SceneComponent myHorizontalChainHead;
   private SceneComponent myVerticalChainHead;
 
-  protected boolean checkIsInChain(SceneComponent component) {
+  protected boolean checkIsInChain(@NotNull SceneComponent component) {
     myHorizontalChainHead = null;
     myVerticalChainHead = null;
     myIsInHorizontalChain = false;
@@ -52,6 +53,12 @@ public class ChainChecker {
     }
     if (myIsInVerticalChain) {
       myVerticalChainHead = findChainHead(component, ourTopAttributes, ourBottomAttributes);
+    }
+    if (myHorizontalChainHead == null) {
+      myIsInHorizontalChain = false;
+    }
+    if (myVerticalChainHead == null) {
+      myIsInVerticalChain = false;
     }
     return myIsInHorizontalChain || myIsInVerticalChain;
   }
