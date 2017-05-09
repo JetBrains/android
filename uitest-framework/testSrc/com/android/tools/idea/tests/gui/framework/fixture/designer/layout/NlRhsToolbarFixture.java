@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.layout;
+package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.actions.IssueNotificationAction;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
@@ -36,7 +37,7 @@ public class NlRhsToolbarFixture {
   @NotNull private final NlEditorFixture myNlEditorFixture;
   @NotNull private final ActionToolbar myToolBar;
 
-  NlRhsToolbarFixture(@NotNull NlEditorFixture nlEditorFixture, @NotNull ActionToolbar toolbar) {
+  public NlRhsToolbarFixture(@NotNull NlEditorFixture nlEditorFixture, @NotNull ActionToolbar toolbar) {
     myNlEditorFixture = nlEditorFixture;
     myToolBar = toolbar;
   }

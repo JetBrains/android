@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.layout;
+package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
@@ -41,12 +42,12 @@ import java.util.List;
  * Fixture for the layout editor preview window
  */
 public class NlPreviewFixture extends ToolWindowFixture {
-  private final DesignSurfaceFixture myDesignSurfaceFixture;
+  private final NlDesignSurfaceFixture myDesignSurfaceFixture;
   private ComponentDragAndDrop myDragAndDrop;
 
   public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Preview", project, robot);
-    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(NlDesignSurface.class)));
+    myDesignSurfaceFixture = new NlDesignSurfaceFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(NlDesignSurface.class)));
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.fixture.layout;
+package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlRhsToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
@@ -27,6 +33,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -50,13 +57,22 @@ import java.util.List;
  * Fixture wrapping the the layout editor for a particular file
  */
 public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorPanel> {
-  private final DesignSurfaceFixture myDesignSurfaceFixture;
+  private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
   private final ComponentDragAndDrop myDragAndDrop;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
     super(NlEditorFixture.class, robot, editor.getComponent());
-    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, (NlDesignSurface)editor.getComponent().getSurface());
+    DesignSurface surface = editor.getComponent().getSurface();
+    if (surface instanceof NlDesignSurface) {
+      myDesignSurfaceFixture = new NlDesignSurfaceFixture(robot, (NlDesignSurface)surface);
+    }
+    else if (surface instanceof NavDesignSurface) {
+      myDesignSurfaceFixture = new NavDesignSurfaceFixture(robot, (NavDesignSurface)surface);
+    }
+    else {
+      throw new RuntimeException("Unsupported DesignSurface type " + surface.getClass().getName());
+    }
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 
@@ -71,7 +87,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   @NotNull
   public NlComponentFixture findView(@NotNull String tag, int occurrence) {
-    return myDesignSurfaceFixture.findView(tag, occurrence);
+    return ((NlDesignSurfaceFixture)myDesignSurfaceFixture).findView(tag, occurrence);
   }
 
   public List<NlComponent> getSelection() {
@@ -151,7 +167,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     // Wait until the list has been expanded in UI (eliminating flakiness).
     JList list = GuiTests.waitUntilShowing(robot(), treeGrid, Matchers.byName(JList.class, group));
     new JListFixture(robot(), list).drag(item);
-    NlDesignSurface target = myDesignSurfaceFixture.target();
+    DesignSurface target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getCurrentSceneView();
     assert sceneView != null;
 
@@ -168,8 +184,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #endResizeInteraction()
    */
   public NlEditorFixture startResizeInteraction() {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
-    ScreenView screenView = surface.getCurrentSceneView();
+    DesignSurface surface = myDesignSurfaceFixture.target();
+    SceneView screenView = surface.getCurrentSceneView();
     assert screenView != null;
 
     Dimension size = screenView.getSize();
@@ -184,8 +200,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * @see #endResizeInteraction()
    */
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
-    ScreenView screenView = surface.getCurrentSceneView();
+    DesignSurface surface = myDesignSurfaceFixture.target();
+    SceneView screenView = surface.getCurrentSceneView();
     assert screenView != null;
 
     robot().moveMouse(surface, Coordinates.getSwingXDip(screenView, width), Coordinates.getSwingYDip(screenView, height));
@@ -208,7 +224,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
   public NlEditorFixture showOnlyDesignView() {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.SCREEN_ONLY) {
       getConfigToolbar().showDesign();
     }
@@ -220,7 +236,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
    * Only applicable if {@code target()} is a {@link NlDesignSurface}.
    */
   public NlEditorFixture showOnlyBlueprintView() {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
       getConfigToolbar().showBlueprint();
     }
@@ -236,7 +252,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   public NlEditorFixture dragMouseFromCenter(int dx, int dy, MouseButton mouseButton, int modifiers) {
-    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    DesignSurface surface = myDesignSurfaceFixture.target();
     robot().moveMouse(surface);
     robot().pressModifiers(modifiers);
     robot().pressMouse(mouseButton);
