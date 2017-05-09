@@ -22,6 +22,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -31,6 +32,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   public void testDataLoad() {
@@ -89,13 +91,18 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertEquals("string2", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("string3", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("2", resolver.findResValue("@sample/ints", false).getValue());
-    assertEquals(image1.getVirtualFile().getCanonicalPath(), resolver.findResValue("@sample/images", false).getValue());
-    assertEquals(image2.getVirtualFile().getCanonicalPath(), resolver.findResValue("@sample/images", false).getValue());
+
+    // The order of the returned paths might depend on the file system
+    Set<String> imagePaths = ImmutableSet.of(
+      resolver.findResValue("@sample/images", false).getValue(),
+      resolver.findResValue("@sample/images", false).getValue());
+    assertTrue(imagePaths.contains(image1.getVirtualFile().getCanonicalPath()));
+    assertTrue(imagePaths.contains(image2.getVirtualFile().getCanonicalPath()));
 
     // Check that we wrap around
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
-    assertEquals(image1.getVirtualFile().getCanonicalPath(), resolver.findResValue("@sample/images", false).getValue());
+    assertTrue(imagePaths.contains(resolver.findResValue("@sample/images", false).getValue()));
 
     // Check reference resolution
     assertEquals("Hello 1", resolver.resolveResValue(
