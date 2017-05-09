@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.roomSql.parser
 import com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes.*
 import com.google.common.truth.Truth
 import com.intellij.psi.TokenType
+import com.intellij.psi.TokenType.BAD_CHARACTER
 import com.intellij.psi.tree.IElementType
 import junit.framework.TestCase
 
@@ -144,16 +145,26 @@ class RoomSqlLexerTest : TestCase() {
     )
 
     assertTokenTypes(
-        "select :P1, ?, :_p2",
+        "select :P1, :_p2",
         "select" to SELECT,
         SPACE,
         ":P1" to PARAMETER_NAME,
         "," to COMMA,
         SPACE,
-        "?" to PARAMETER,
+        ":_p2" to PARAMETER_NAME)
+
+    assertTokenTypes(
+        "select :P1, ? from foo",
+        "select" to SELECT,
+        SPACE,
+        ":P1" to PARAMETER_NAME,
         "," to COMMA,
         SPACE,
-        ":_p2" to PARAMETER_NAME)
+        "?" to BAD_CHARACTER, // We don't support unnamed parameters.
+        SPACE,
+        "from" to FROM,
+        SPACE,
+        "foo" to IDENTIFIER)
 
     assertTokenTypes(
         "select [table].[column] from [database].[column]",

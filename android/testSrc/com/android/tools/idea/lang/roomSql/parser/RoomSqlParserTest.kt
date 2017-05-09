@@ -123,7 +123,7 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
     check("select * from user where name is null")
     check("select * from user where name is not null")
     check("select * from user where name like 'Joe'")
-    check("select * from user where name like ?")
+    check("select * from user where name like :name")
     check("select cast(name as text) from foo")
     check("select * from t where c in ('foo', 'bar', 'baz')")
     check("select 0xff, 'Mike''s car', :foo")
@@ -161,5 +161,6 @@ class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_T
 
   fun testErrorMessages() {
     assertEquals("<sql stmt> or semicolon expected, got 'foo'", getErrorMessage("foo"))
+    assertEquals("<expr> expected, got '?'", getErrorMessage("select * from User where id = ?"))
   }
 }

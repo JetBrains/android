@@ -73,7 +73,6 @@ STRING_LITERAL=X?('(''|[^'])*'|\"(\"\"|[^\"])*\")
   ">"                                 { return GT; }
   ">="                                { return GTE; }
   ">>"                                { return SHR; }
-  "?"                                 { return PARAMETER; }
   "ABORT"                             { return ABORT; }
   "ACTION"                            { return ACTION; }
   "ADD"                               { return ADD; }
