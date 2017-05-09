@@ -96,6 +96,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
   final static String[] ourDirections = {"LEFT", "RIGHT", "TOP", "BOTTOM"};
   final static String[] ourChainDirections = {"CHAIN_LEFT", "CHAIN_RIGHT", "CHAIN_TOP", "CHAIN_BOTTOM"};
   final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"};
+  final static boolean[] isLeftRight = {true, true, false, false};
   final static int[] ourOppositeDirection = {1, 0, 3, 2};
 
   private void convert(@NotNull SceneContext sceneContext, Rectangle rect) {
@@ -432,8 +433,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         int y1 = getY(source_rect, i);
         int y2 = getY(dest_rect, connect);
         boolean overlap = (i != connect
-                           && (( Math.abs(x1 - x2) < 4 && Math.abs(y1 - y2) < dest_rect.height / 2)
-                               || ( Math.abs(y1 -y2) < 4&& Math.abs(x1 - x2) < dest_rect.width / 2)));
+                           && ((isLeftRight[i] && Math.abs(x1 - x2) < 4 && Math.abs(y1 - y2) < dest_rect.height / 2)
+                               || (!isLeftRight[i] && Math.abs(y1 - y2) < 4 && Math.abs(x1 - x2) < dest_rect.width / 2)));
         if (overlap) {
           connectType = DrawConnection.TYPE_ADJACENT;
         }
