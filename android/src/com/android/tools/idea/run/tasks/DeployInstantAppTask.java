@@ -23,6 +23,7 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.InstallResult;
 import com.android.tools.idea.run.RetryingInstaller;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,6 +46,7 @@ import static com.android.tools.idea.instantapp.InstantApps.isLoggedInGoogleAcco
 import static com.android.tools.idea.instantapp.InstantApps.isPostO;
 import static com.android.tools.idea.run.tasks.LaunchTaskDurations.DEPLOY_INSTANT_APP;
 import static com.google.common.io.Files.createTempDir;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * Uploads an Instant App for debugging / running
@@ -96,6 +98,12 @@ public class DeployInstantAppTask implements LaunchTask {
       return false;
     }
 
+    String uninstallError = uninstallAppIfInstalled(device, appId);
+    if (uninstallError != null) {
+      printer.stderr("Couldn't uninstall installed apk. " + uninstallError);
+      return false;
+    }
+
     RetryingInstaller.Installer installer;
     if (isPostO(device)) {
       printer.stdout("Uploading Instant App to post O device.");
@@ -113,6 +121,19 @@ public class DeployInstantAppTask implements LaunchTask {
     }
 
     return status;
+  }
+
+  @Nullable
+  private String uninstallAppIfInstalled(@NotNull IDevice device, @NotNull String pkgName) {
+    try {
+      if (!isEmpty(executeShellCommand(device, "pm path " + pkgName))) {
+        return device.uninstallPackage(pkgName);
+      }
+      return null;
+    }
+    catch (Exception e) {
+      return e.getMessage();
+    }
   }
 
   private static final class InstantAppPostOInstaller implements RetryingInstaller.Installer {
@@ -325,5 +346,22 @@ public class DeployInstantAppTask implements LaunchTask {
       }
       throw new TimeoutException("Timeout: " + myTimeout + "s.");
     }
+  }
+
+  @NotNull
+  @VisibleForTesting
+  String executeShellCommand(@NotNull IDevice device, @NotNull String command) throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
+
+    try {
+      device.executeShellCommand(command, receiver);
+      latch.await(4, TimeUnit.SECONDS);
+    }
+    catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException | InterruptedException e) {
+      throw new Exception(e);
+    }
+
+    return receiver.getOutput();
   }
 }
