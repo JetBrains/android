@@ -79,8 +79,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   private final Project myProject;
 
-  private boolean myZoomFitted = true;
-
   protected double myScale = 1;
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
@@ -151,19 +149,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     add(myErrorPanelSplitter);
 
     // TODO: Do this as part of the layout/validate operation instead
-    myScrollPane.addComponentListener(new ComponentListener() {
+    addComponentListener(new ComponentListener() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
-        if (isShowing() && getWidth() > 0 && getHeight() > 0 && myZoomFitted) {
+        if (isShowing() && getWidth() > 0 && getHeight() > 0 && getFitScale(false) > myScale) {
           // Only rescale if the user did not set the zoom
           // to something else than fit
           zoomToFit();
         }
         else {
           layoutContent();
-          if (myZoomFitted) {
-            zoomToFit();
-          }
         }
       }
 
@@ -277,6 +272,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       listener.modelChanged(this, model);
     }
     notifySceneViewChanged();
+    zoomToFit();
   }
 
   @Override
@@ -415,7 +411,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param y    Coordinate where the zoom will be centered
    */
   public void zoom(@NotNull ZoomType type, int x, int y) {
-    myZoomFitted = false;
     switch (type) {
       case IN: {
         double currentScale = myScale;
@@ -456,7 +451,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         break;
       case FIT:
       case FIT_INTO:
-        myZoomFitted = true;
         if (getCurrentSceneView() == null) {
           return;
         }
@@ -513,10 +507,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   public void zoomToFit() {
     zoom(ZoomType.FIT);
-  }
-
-  public boolean isZoomFitted() {
-    return myZoomFitted;
   }
 
   public double getScale() {
