@@ -41,6 +41,8 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     return Logger.getInstance(MemoryTable.class);
   }
 
+  static final int NO_STACK_ID = -1;
+
   public enum MemoryStatements {
     // TODO: during process switch the initial start request time is reset in the poller, which would lead to duplicated data
     // being inserted if the user switches back and forth within the same app. For now, we ignore the duplicates but we can
@@ -91,16 +93,20 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     // O+ Allocation Tracking
     INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, CaptureTime, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?, ?)"),
     INSERT_ALLOC(
-      "INSERT INTO Memory_AllocationEvents (Pid, Session, CaptureTime, Tag, ClassTag, AllocTime, FreeTime, Size, Length) " +
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+      "INSERT INTO Memory_AllocationEvents (Pid, Session, CaptureTime, Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+    INSERT_METHOD("INSERT INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
+    INSERT_ENCODED_STACK("INSERT INTO Memory_StackInfos (Pid, Session, StackId, MethodIdData) VALUES (?, ?, ?, ?)"),
     UPDATE_ALLOC(
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND Tag = ?"),
     QUERY_CLASS("SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND CaptureTime = ?"),
     // XORing (AllocTime >= startTime AND AllocTime < endTime) and (FreeTime >= startTime AND FreeTime < endTime)
-    QUERY_ALLOC_SNAPSHOT("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length FROM Memory_AllocationEvents " +
+    QUERY_ALLOC_SNAPSHOT("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
                          "WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND AllocTime < ? AND FreeTime >= ? AND " +
                          "((AllocTime >= ? OR FreeTime < ?) AND " +
-                         "NOT (AllocTime >= ? AND FreeTime < ?))");
+                         "NOT (AllocTime >= ? AND FreeTime < ?))"),
+    QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Pid = ? AND Session = ? AND MethodId = ?"),
+    QUERY_ENCODED_STACK_INFO("Select MethodIdData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND StackId = ?");
 
     @NotNull private final String mySqlStatement;
 
@@ -140,7 +146,11 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
                   "PRIMARY KEY(Pid, Session, CaptureTime, Tag)");
       createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "CaptureTime INTEGER",
                   "Tag INTEGER", "ClassTag INTEGER", "AllocTime INTEGER", "FreeTime INTERGER", "Size INTEGER", "Length INTEGER",
-                  "PRIMARY KEY(Pid, Session, CaptureTime, Tag)");
+                  "StackId INTEGER", "PRIMARY KEY(Pid, Session, CaptureTime, Tag)");
+      createTable("Memory_MethodInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "MethodId INTEGER",
+                  "MethodName TEXT", "ClassName TEXT", "PRIMARY KEY(Pid, Session, MethodId)");
+      createTable("Memory_StackInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StackId INTEGER", "MethodIdData BLOB",
+                  "PRIMARY KEY(Pid, Session, StackId)");
       createIndex("Memory_AllocationEvents", "Pid", "Session", "CaptureTime", "AllocTime", "FreeTime");
     }
     catch (SQLException ex) {
@@ -409,7 +419,8 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
         long freeTime = allocResult.getLong(4);
         AllocationEvent event = AllocationEvent.newBuilder()
           .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(allocResult.getLong(1)).setClassTag(allocResult.getLong(2))
-                          .setFreeTimestamp(freeTime).setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).build())
+                          .setFreeTimestamp(freeTime).setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6))
+                          .addMethodIds(allocResult.getLong(7)).build())
           .setTimestamp(allocTime).build();
         sampleBuilder.addEvents(event);
       }
@@ -456,8 +467,14 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
             break;
           case ALLOC_DATA:
             AllocationEvent.Allocation allocation = event.getAllocData();
+            long stackId = NO_STACK_ID;
+            if (allocation.getMethodIdsCount() > 0) {
+              assert allocation.getMethodIdsCount() == 1;
+              stackId = allocation.getMethodIds(0);
+            }
+
             applyParams(currentStatement, pid, session, event.getCaptureTime(), allocation.getTag(), allocation.getClassTag(),
-                        event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength());
+                        event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength(), stackId);
             break;
           case FREE_DATA:
             AllocationEvent.Deallocation free = event.getFreeData();
@@ -475,6 +492,80 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     catch (SQLException ex) {
       getLogger().error(ex);
     }
+  }
+
+  public void insertMethodInfo(int pid, Common.Session session, List<StackMethod> methods) {
+    try {
+      PreparedStatement statement = getStatementMap().get(INSERT_METHOD);
+      assert statement != null;
+      for (StackMethod method : methods) {
+        applyParams(statement, pid, session, method.getMethodId(), method.getMethodName(), method.getClassName());
+        statement.addBatch();
+      }
+      statement.executeBatch();
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+  }
+
+  @NotNull
+  public StackMethod queryMethodInfo(int pid, Common.Session session, long methodId) {
+    StackMethod.Builder methodBuilder = StackMethod.newBuilder();
+    try {
+      ResultSet result = executeQuery(QUERY_METHOD_INFO, pid, session, methodId);
+      if (result.next()) {
+        methodBuilder.setMethodId(methodId).setMethodName(result.getString(1)).setClassName(result.getString(2));
+      }
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+
+    return methodBuilder.build();
+  }
+
+  public void insertStackInfo(int pid, Common.Session session, List<EncodedStack> stacks) {
+    try {
+      PreparedStatement statement = getStatementMap().get(INSERT_ENCODED_STACK);
+      assert statement != null;
+      for (EncodedStack stack : stacks) {
+        applyParams(statement, pid, session, stack.getStackId(), stack.toByteArray());
+        statement.addBatch();
+      }
+      statement.executeBatch();
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+  }
+
+  @NotNull
+  public DecodedStack queryStackInfo(int pid, Common.Session session, int stackId) {
+
+    DecodedStack.Builder stackBuilder = DecodedStack.newBuilder();
+    stackBuilder.setStackId(stackId);
+    try {
+      // first retrieve the EncodedStack proto stored in the database.
+      EncodedStack.Builder encodedStackBuilder = EncodedStack.newBuilder();
+      ResultSet encodedStackResult = executeQuery(QUERY_ENCODED_STACK_INFO, pid, session, stackId);
+      if (encodedStackResult.next()) {
+        encodedStackBuilder.mergeFrom(encodedStackResult.getBytes(1));
+      }
+
+      // then retrieve the full method info for each method id in the encoded stack.
+      // TODO: The current SQLite JDBC driver in IJ does not support the createArrayOf operation which prevents this to do a bulk
+      // select and only hit the database once. Alternative is ugly (e.g. manually formatting a string and pass to the IN clause).
+      // We can revisit at a later time.
+      for (long methodId : encodedStackBuilder.getMethodIdsList()) {
+        stackBuilder.addMethods(queryMethodInfo(pid, session, methodId));
+      }
+    }
+    catch (InvalidProtocolBufferException | SQLException ex) {
+      getLogger().error(ex);
+    }
+
+    return stackBuilder.build();
   }
 
   /**
