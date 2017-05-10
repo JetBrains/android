@@ -198,16 +198,19 @@ public class DeployInstantAppTask implements LaunchTask {
           return installAppWithTimeoutRetry(device, launchStatus);
         }
         catch (TimeoutException e) {
-          ApplicationManager.getApplication().invokeAndWait(() -> {
-            int choice = Messages
-              .showYesNoDialog("Operation timed out." + e.getMessage() + " Do you want to retry increasing the timeout?", "Instant Apps", null);
-            if (choice == Messages.OK) {
-              myTimeout.set(myTimeout.get() * 2);
-            }
-            else {
-              retry.set(false);
-            }
-          });
+          retry.set(false);
+          // We don't want to show this dialog before http://b/36966779 is fixed. As a workaround we just ignore timeouts
+
+          //ApplicationManager.getApplication().invokeAndWait(() -> {
+          //  int choice = Messages
+          //    .showYesNoDialog("Operation timed out." + e.getMessage() + " Do you want to retry increasing the timeout?", "Instant Apps", null);
+          //  if (choice == Messages.OK) {
+          //    myTimeout.set(myTimeout.get() * 2);
+          //  }
+          //  else {
+          //    retry.set(false);
+          //  }
+          //});
         }
       }
       // Timeout error already treated.
