@@ -476,8 +476,10 @@ public class RepositoryUrlManager {
         if (filter.endsWith("+")) {
           filter = filter.length() > 1 ? filter.substring(0, filter.length() - 1) : null;
           boolean includePreviews = false;
-          if (filter == null && ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())) {
-            filter = supportLibVersionFilter;
+          if (ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())) {
+            if (filter == null) {
+              filter = supportLibVersionFilter;
+            }
             includePreviews = true;
           }
           String version =
