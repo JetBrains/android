@@ -16,12 +16,14 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -80,4 +82,16 @@ public interface IdeProfilerServices {
 
   @NotNull
   FeatureConfig getFeatureConfig();
+
+  /**
+   * Open the dialog for managing the CPU profiling configurations.
+   * @param deviceApi API level of the selected device
+   * @param dialogCallback callback to be called once the dialog is closed.
+   */
+  void openCpuProfilingConfigurationsDialog(int deviceApi, Runnable dialogCallback);
+
+  /**
+   * Returns the profiling configurations saved for a project.
+   */
+  List<ProfilingConfiguration> getCpuProfilingConfigurations();
 }

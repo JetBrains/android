@@ -23,7 +23,6 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
-import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
@@ -35,6 +34,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
@@ -65,6 +65,7 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private final CpuProfilerStage myStage;
 
+  private final JButton myOpenConfigDialogButton;
   private final JButton myCaptureButton;
   private final JBList myThreads;
   /**
@@ -80,7 +81,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private CpuCaptureView myCaptureView;
 
   @NotNull
-  private final JComboBox<CpuProfilerStage.ProfilingPreferences> myProfilingPreferencesCombo;
+  private final JComboBox<ProfilingConfiguration> myProfilingConfigurationCombo;
 
   @NotNull
   private final CpuStageTooltipView myTooltipView;
@@ -254,21 +255,32 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     updateCaptureState();
 
-    myProfilingPreferencesCombo = new ComboBox<>();
-    JComboBoxView<CpuProfilerStage.ProfilingPreferences, CpuProfilerAspect> profilingPreferences =
-      new JComboBoxView<>(myProfilingPreferencesCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_PREFERENCES,
-                          stage::getProfilingPreferencesList, stage::getProfilingPreferences, stage::setProfilingPreferences);
-    profilingPreferences.bind();
-    myProfilingPreferencesCombo.setRenderer(new ListCellRendererWrapper<CpuProfilerStage.ProfilingPreferences>() {
+    myProfilingConfigurationCombo = new ComboBox<>();
+    JComboBoxView<ProfilingConfiguration, CpuProfilerAspect> profilingConfiguration =
+      new JComboBoxView<>(myProfilingConfigurationCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
+                          stage::getProfilingConfigurations, stage::getProfilingConfiguration, stage::setProfilingConfiguration);
+    profilingConfiguration.bind();
+    myProfilingConfigurationCombo.setRenderer(new ListCellRendererWrapper<ProfilingConfiguration>() {
       @Override
       public void customize(JList list,
-                            CpuProfilerStage.ProfilingPreferences value,
+                            ProfilingConfiguration value,
                             int index,
                             boolean selected,
                             boolean hasFocus) {
+        assert value != null;
         setText(value.getName());
       }
     });
+    myOpenConfigDialogButton = createOpenProfilingDialogButton();
+  }
+
+  private JButton createOpenProfilingDialogButton() {
+    // TODO: move launcher to combobox
+    JButton button = new FlatButton(AllIcons.Actions.EditSource);
+    button.setToolTipText("Edit profiling configurations");
+    // TODO: consider moving the responsibility of handling the dialog to CpuProfilerStageView and IdeProfilerComponents
+    button.addActionListener(e -> myStage.openProfilingConfigurationsDialog());
+    return button;
   }
 
   private void selectionChanged() {
@@ -304,8 +316,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JPanel panel = new JPanel(new BorderLayout());
     JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
 
-    toolbar.add(myProfilingPreferencesCombo);
+    toolbar.add(myProfilingConfigurationCombo);
     toolbar.add(myCaptureButton);
+    toolbar.add(myOpenConfigDialogButton);
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, () -> myCaptureButton.setEnabled(profilers.isProcessAlive()));
@@ -379,14 +392,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myStage.stopCapturing();
 
       FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
-      CpuProfilerStage.ProfilingPreferences profilingPreferences = myStage.getProfilingPreferences();
-      if (profilingPreferences.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) {
-        if (profilingPreferences.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
+      ProfilingConfiguration profilingConfiguration = myStage.getProfilingConfiguration();
+      if (profilingConfiguration.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) {
+        if (profilingConfiguration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
           featureTracker.trackTraceArtSampled();
-        } else if (profilingPreferences.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
+        } else if (profilingConfiguration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
           featureTracker.trackTraceArtInstrumented();
         }
-      } else if (profilingPreferences.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF) {
+      } else if (profilingConfiguration.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF) {
         // TODO: track simpleperf
       }
     }

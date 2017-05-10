@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -109,6 +112,16 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
         return isSimplePerfEnabled;
       }
     };
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(int deviceApi, Runnable callbackDialog) {
+    // No-op.
+  }
+
+  @Override
+  public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
+    return new ArrayList<>();
   }
 
   public void setOnExecute(@Nullable Runnable onExecute) {

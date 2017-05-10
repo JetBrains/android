@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
@@ -109,15 +111,15 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable;
 
-  @NotNull
-  private ProfilingPreferences myProfilingPreferences;
+  @Nullable
+  private ProfilingConfiguration myProfilingConfiguration;
 
-  private List<ProfilingPreferences> myProfilingPreferencesList;
+  private List<ProfilingConfiguration> myProfilingConfigurations;
 
   /**
    * Stores the {@link CpuProfiler.CpuProfilingAppStopRequest.Profiler} that should be passed to the next stopProfiling call.
    * This field is required because we need to pass the same profiler to stopProfiling as the one passed to startProfiling.
-   * We can't use {@link #myProfilingPreferences} to get this information because it would be lost when we exit the Stage.
+   * We can't use {@link #myProfilingConfiguration} to get this information because it would be lost when we exit the Stage.
    * Using a separate field, we can retrieve the Profiler information from device in {@link #updateProfilingState()}.
    */
   private CpuProfiler.CpuProfilingAppStopRequest.Profiler myStopRequestProfiler;
@@ -170,8 +172,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCaptureElapsedTimeUpdatable = new CaptureElapsedTimeUpdatable();
     updateProfilingState();
-    updateProfilingPreferences();
-    myProfilingPreferences = myProfilingPreferencesList.get(0);
+    updateProfilingConfigurations();
 
     myCaptureModel = new CaptureModel(this);
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
@@ -238,7 +239,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
-    getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, this::updateProfilingPreferences);
+    getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, this::updateProfilingConfigurations);
   }
 
   @Override
@@ -273,14 +274,20 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public void startCapturing() {
+    if (myProfilingConfiguration == null) {
+      // TODO: communicate it in the UI in a better way.
+      getLogger().warn("Unable to start tracing. No configurations set.");
+      return;
+    }
+
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setSession(getStudioProfilers().getSession())
-      .setMode(myProfilingPreferences.getMode())
-      .setProfiler(myProfilingPreferences.getProfiler())
-      .setBufferSizeInMb(myProfilingPreferences.getProfilingBufferSizeInMb())
-      .setSamplingIntervalUs(myProfilingPreferences.getProfilingSamplingIntervalUs())
+      .setMode(myProfilingConfiguration.getMode())
+      .setProfiler(myProfilingConfiguration.getProfiler())
+      .setBufferSizeInMb(myProfilingConfiguration.getProfilingBufferSizeInMb())
+      .setSamplingIntervalUs(myProfilingConfiguration.getProfilingSamplingIntervalUs())
       .build();
 
     setCaptureState(CaptureState.STARTING);
@@ -454,45 +461,45 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
+  @Nullable
+  public ProfilingConfiguration getProfilingConfiguration() {
+    return myProfilingConfiguration;
+  }
+
+  public void setProfilingConfiguration(@Nullable ProfilingConfiguration mode) {
+    myProfilingConfiguration = mode;
+    myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
+  }
+
   @NotNull
-  public ProfilingPreferences getProfilingPreferences() {
-    return myProfilingPreferences;
+  public List<ProfilingConfiguration> getProfilingConfigurations() {
+    return myProfilingConfigurations;
   }
 
-  public void setProfilingPreferences(@NotNull ProfilingPreferences mode) {
-    myProfilingPreferences = mode;
-    myAspect.changed(CpuProfilerAspect.PROFILING_PREFERENCES);
+  public void openProfilingConfigurationsDialog() {
+    int selectedDeviceApi = getStudioProfilers().getDevice().getFeatureLevel();
+    getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(selectedDeviceApi, this::updateProfilingConfigurations);
   }
 
-  @NotNull
-  public List<ProfilingPreferences> getProfilingPreferencesList() {
-    return myProfilingPreferencesList;
-  }
-
-  private void updateProfilingPreferences() {
-    // Add ART default profiling preferences
-    ProfilingPreferences artSampledDefaultPref = new ProfilingPreferences("Sampled (Java)",
-                                                                          CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
-                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    ProfilingPreferences artInstrumentedDefaultPref = new ProfilingPreferences("Instrumented",
-                                                                               CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
-                                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-
-    ImmutableList.Builder<ProfilingPreferences> profilingModes =
-      new ImmutableList.Builder<ProfilingPreferences>().add(artSampledDefaultPref, artInstrumentedDefaultPref);
+  public void updateProfilingConfigurations() {
+    myProfilingConfigurations = new ArrayList<>();
+    List<ProfilingConfiguration> savedConfigs = getStudioProfilers().getIdeServices().getCpuProfilingConfigurations();
+    List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
 
     // Simpleperf profiling is not supported by devices older than O (API level 26)
     boolean selectedDeviceSupportsSimpleperf = getStudioProfilers().getDevice().getFeatureLevel() >= 26;
     if (selectedDeviceSupportsSimpleperf && getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled()) {
-      // Add simpleperf default profiling preference
-      ProfilingPreferences simpleperfDefaultPref = new ProfilingPreferences("Sampled (Hybrid)",
-                                                                            CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
-                                                                            CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-      profilingModes.add(simpleperfDefaultPref);
+      myProfilingConfigurations.addAll(savedConfigs);
+      myProfilingConfigurations.addAll(defaultConfigs);
     }
-    // TODO: add custom preferences added by users.
+    else {
+      Predicate<ProfilingConfiguration> simpleperfFilter =
+        pref -> pref.getProfiler() != CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF;
+      myProfilingConfigurations.addAll(savedConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList()));
+      myProfilingConfigurations.addAll(defaultConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList()));
+    }
 
-    myProfilingPreferencesList = profilingModes.build();
+    setProfilingConfiguration(myProfilingConfigurations.isEmpty() ? null : myProfilingConfigurations.get(0));
   }
 
   @NotNull
@@ -550,57 +557,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       if (myCaptureState == CaptureState.CAPTURING) {
         myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
       }
-    }
-  }
-
-  /**
-   * Preferences set when start a profiling session.
-   */
-  static class ProfilingPreferences {
-    /**
-     * Name to identify the profiling preference. It should be displayed in the preferences list.
-     */
-    private final String myName;
-    /**
-     * Profiler type (ART or simpleperf).
-     */
-    private final CpuProfiler.CpuProfilingAppStartRequest.Profiler myProfiler;
-    /**
-     * Profiling mode (Sampled or Instrumented).
-     */
-    private final CpuProfiler.CpuProfilingAppStartRequest.Mode myMode;
-    private final int myProfilingBufferSizeInMb = 8;  // TODO: Make it configurable.
-    /**
-     * Sampling interval (for sample-based profiling) in microseconds.
-     */
-    private final int myProfilingSamplingIntervalUs = 1000;  // TODO: Make it configurable.
-
-    public ProfilingPreferences(String name,
-                                CpuProfiler.CpuProfilingAppStartRequest.Profiler profiler,
-                                CpuProfiler.CpuProfilingAppStartRequest.Mode mode) {
-      myName = name;
-      myProfiler = profiler;
-      myMode = mode;
-    }
-
-    public CpuProfiler.CpuProfilingAppStartRequest.Mode getMode() {
-      return myMode;
-    }
-
-    public CpuProfiler.CpuProfilingAppStartRequest.Profiler getProfiler() {
-      return myProfiler;
-    }
-
-    public String getName() {
-      return myName;
-    }
-
-    public int getProfilingBufferSizeInMb() {
-      return myProfilingBufferSizeInMb;
-    }
-
-    public int getProfilingSamplingIntervalUs() {
-      return myProfilingSamplingIntervalUs;
     }
   }
 
