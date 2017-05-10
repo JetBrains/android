@@ -98,19 +98,24 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     return false;
   }
 
+  /**
+   * Returns all the fixes for this element and message.
+   * This doesn't just call the direct fix provider methods on this inspection,
+   * but also consults any {@link AndroidLintQuickFixProvider} implementations
+   * to have their say.
+   */
   @NotNull
-  private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData,
-                                             @NotNull AndroidLintQuickFixProvider[] fixProviders,
-                                             @NotNull Issue issue) {
-    AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message, fixData);
-    List<LocalQuickFix> result = new ArrayList<>(4);
+  public AndroidLintQuickFix[] getAllFixes(@NotNull PsiElement startElement,
+                                     @NotNull PsiElement endElement,
+                                     @NotNull String message,
+                                     @Nullable LintFix fixData,
+                                     @NotNull AndroidLintQuickFixProvider[] fixProviders,
+                                     @NotNull Issue issue) {
+    List<AndroidLintQuickFix> result = new ArrayList<>(4);
 
     for (AndroidLintQuickFixProvider provider : fixProviders) {
-      fixes = provider.getQuickFixes(issue, startElement, endElement, message, fixData);
-      addFixes(result, fixes, startElement, endElement);
+      AndroidLintQuickFix[] fixes = provider.getQuickFixes(issue, startElement, endElement, message, fixData);
+      Collections.addAll(result, fixes);
     }
 
     if (!result.isEmpty()) {
@@ -119,24 +124,35 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       // and we don't want to include the Java-centric quickfixes from the Android plugin
       PsiFile file = startElement.getContainingFile();
       if (file != null && AndroidLintExternalAnnotator.isKotlin(file.getFileType())) {
-        return result.toArray(LocalQuickFix.EMPTY_ARRAY);
+        return result.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
       }
     }
 
-    addFixes(result, fixes, startElement, endElement);
+    AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message, fixData);
+    Collections.addAll(result, fixes);
 
-    return result.toArray(LocalQuickFix.EMPTY_ARRAY);
+    return result.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
   }
 
-  private static void addFixes(List<LocalQuickFix> result,
-                               AndroidLintQuickFix[] fixes,
-                               @NotNull PsiElement startElement,
-                               @NotNull PsiElement endElement) {
+  @NotNull
+  public LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData,
+                                             @NotNull AndroidLintQuickFixProvider[] fixProviders,
+                                             @NotNull Issue issue) {
+    AndroidLintQuickFix[] fixes = getAllFixes(startElement, endElement, message, fixData, fixProviders, issue);
+    if (fixes.length == 0) {
+      return LocalQuickFix.EMPTY_ARRAY;
+    }
+    List<LocalQuickFix> result = new ArrayList<>(fixes.length);
     for (AndroidLintQuickFix fix : fixes) {
       if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
         result.add(new MyLocalQuickFix(fix));
       }
     }
+
+    return result.toArray(LocalQuickFix.EMPTY_ARRAY);
   }
 
   @Override
