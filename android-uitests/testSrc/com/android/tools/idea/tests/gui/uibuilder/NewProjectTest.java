@@ -49,7 +49,7 @@ import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.UNRELIABLE /* TestGroup.PROJECT_WIZARD */)  // timeout waiting for Gradle sync: b/37965951
 @RunWith(GuiTestRunner.class)
 public class NewProjectTest {
 
