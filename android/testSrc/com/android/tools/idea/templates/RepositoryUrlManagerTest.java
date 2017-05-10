@@ -67,6 +67,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
       "extras/android/m2repository/com/android/support/appcompat-v7/20.0.0/appcompat-v7-20.0.0.aar",
       "extras/android/m2repository/com/android/support/appcompat-v7/21.0.0/appcompat-v7-21.0.0.aar",
       "extras/android/m2repository/com/android/support/appcompat-v7/21.0.2/appcompat-v7-21.0.2.aar",
+      "extras/android/m2repository/com/android/support/appcompat-v7/22.0.0-alpha1/appcompat-v7-22.0.0-alpha1.aar",
       "extras/android/m2repository/com/android/support/cardview-v7/21.0.0/cardview-v7-21.0.0.aar",
       "extras/android/m2repository/com/android/support/cardview-v7/21.0.2/cardview-v7-21.0.2.aar",
       "extras/android/m2repository/com/android/support/support-v13/20.0.0/support-v13-20.0.0.aar",
@@ -272,6 +273,13 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertEquals("com.google.android.gms:play-services:4.2.42", result.get(1).toString());
     assertEquals("com.google.android.support:wearable:1.0.0", result.get(2).toString());
     assertEquals(3, result.size());
+  }
+
+  public void testResolveDynamicSdkDepsAlpha1() {
+    Multimap<String, GradleCoordinate> dependencies = HashMultimap.create();
+    dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:22.+"));
+    List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "22.", mySdk, myFileOp);
+    assertEquals("com.android.support:appcompat-v7:22.0.0-alpha1", result.get(0).toString());
   }
 
   public void testResolveDynamicSdkDependenciesWithSupportVersionFromFilter() {
