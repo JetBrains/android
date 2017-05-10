@@ -30,6 +30,7 @@ import java.util.*;
 public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final Map<String, String> myTestInstrumentationRunnerArguments;
   @NotNull private final Collection<String> myResourceConfigurations;
@@ -64,6 +65,8 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
     myTestInstrumentationRunner = flavor.getTestInstrumentationRunner();
     mySigningConfig = copy(modelCache, flavor.getSigningConfig());
     myWearAppUnbundled = flavor.getWearAppUnbundled();
+
+    myHashCode = calculateHashCode();
   }
 
   @Nullable
@@ -238,8 +241,13 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), myTestInstrumentationRunnerArguments, myResourceConfigurations, myVectorDrawables, myDimension,
-                        myApplicationId, myVersionCode, myVersionName, myMinSdkVersion, myTargetSdkVersion, myMaxSdkVersion,
-                        myTestApplicationId, myTestInstrumentationRunner, mySigningConfig, myWearAppUnbundled);
+    return myHashCode;
+  }
+
+  @Override
+  protected int calculateHashCode() {
+    return Objects.hash(super.calculateHashCode(), myTestInstrumentationRunnerArguments, myResourceConfigurations, myVectorDrawables,
+                        myDimension, myApplicationId, myVersionCode, myVersionName, myMinSdkVersion, myTargetSdkVersion,
+                        myMaxSdkVersion, myTestApplicationId, myTestInstrumentationRunner, mySigningConfig, myWearAppUnbundled);
   }
 }

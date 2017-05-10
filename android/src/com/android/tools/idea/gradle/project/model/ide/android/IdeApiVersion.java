@@ -27,6 +27,7 @@ import java.util.Objects;
 public final class IdeApiVersion extends IdeModel implements ApiVersion {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myApiString;
   @Nullable private final String myCodename;
@@ -37,6 +38,8 @@ public final class IdeApiVersion extends IdeModel implements ApiVersion {
     myApiString = version.getApiString();
     myCodename = version.getCodename();
     myApiLevel = version.getApiLevel();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -72,6 +75,10 @@ public final class IdeApiVersion extends IdeModel implements ApiVersion {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myApiString, myCodename, myApiLevel);
   }
 

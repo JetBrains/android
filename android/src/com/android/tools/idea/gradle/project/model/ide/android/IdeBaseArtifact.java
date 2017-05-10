@@ -34,6 +34,7 @@ import java.util.*;
 public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final String myCompileTaskName;
@@ -71,6 +72,8 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
     myGeneratedSourceFolders = new ArrayList<>(getGeneratedSourceFolders(artifact));
     myVariantSourceProvider = createSourceProvider(modelCache, artifact.getVariantSourceProvider());
     myMultiFlavorSourceProvider = createSourceProvider(modelCache, artifact.getMultiFlavorSourceProvider());
+
+    myHashCode = calculateHashCode();
   }
 
   @NotNull
@@ -222,9 +225,13 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myName, myCompileTaskName, myAssembleTaskName, myClassesFolder, myJavaResourcesFolder, myDependencies,
-                        myCompileDependencies, myDependencyGraphs, myIdeSetupTaskNames, myGeneratedSourceFolders, myVariantSourceProvider,
-                        myMultiFlavorSourceProvider);
+                        myCompileDependencies, myDependencyGraphs, myIdeSetupTaskNames, myGeneratedSourceFolders,
+                        myVariantSourceProvider, myMultiFlavorSourceProvider);
   }
 
   @Override

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.builder.model.level2.GraphItem;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Objects;
 public final class IdeDependencyGraphs extends IdeModel implements DependencyGraphs {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final List<GraphItem> myCompileDependencies;
   @NotNull private final List<GraphItem> myPackageDependencies;
@@ -41,6 +43,8 @@ public final class IdeDependencyGraphs extends IdeModel implements DependencyGra
     myPackageDependencies = copy(graphs.getPackageDependencies(), modelCache, item -> new IdeGraphItem(item, modelCache));
     myProvidedLibraries = new ArrayList<>(graphs.getProvidedLibraries());
     mySkippedLibraries = new ArrayList<>(graphs.getSkippedLibraries());
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -84,6 +88,10 @@ public final class IdeDependencyGraphs extends IdeModel implements DependencyGra
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myCompileDependencies, myPackageDependencies, myProvidedLibraries, mySkippedLibraries);
   }
 

@@ -19,6 +19,7 @@ import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -29,6 +30,7 @@ import java.util.function.Function;
 public final class IdeVariant extends IdeModel implements Variant {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final String myDisplayName;
@@ -54,6 +56,8 @@ public final class IdeVariant extends IdeModel implements Variant {
     myProductFlavors = new ArrayList<>(variant.getProductFlavors());
     myMergedFlavor = modelCache.computeIfAbsent(variant.getMergedFlavor(), flavor -> new IdeProductFlavor(flavor, modelCache));
     myTestedTargetVariants = getTestedTargetVariants(variant, modelCache);
+
+    myHashCode = calculateHashCode();
   }
 
   @NotNull
@@ -143,8 +147,12 @@ public final class IdeVariant extends IdeModel implements Variant {
 
   @Override
   public int hashCode() {
-    return Objects.hash(myName, myDisplayName, myMainArtifact, myExtraAndroidArtifacts, myExtraJavaArtifacts, myBuildType, myProductFlavors,
-                        myMergedFlavor, myTestedTargetVariants);
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
+    return Objects.hash(myName, myDisplayName, myMainArtifact, myExtraAndroidArtifacts, myExtraJavaArtifacts, myBuildType,
+                        myProductFlavors, myMergedFlavor, myTestedTargetVariants);
   }
 
   @Override

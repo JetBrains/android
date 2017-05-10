@@ -29,12 +29,15 @@ import java.util.Objects;
 public final class IdeJavaArtifact extends IdeBaseArtifact implements JavaArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @Nullable private final File myMockablePlatformJar;
 
   public IdeJavaArtifact(@NotNull JavaArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
     super(artifact, seen, gradleVersion);
     myMockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar, null);
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -66,7 +69,12 @@ public final class IdeJavaArtifact extends IdeBaseArtifact implements JavaArtifa
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), myMockablePlatformJar);
+    return myHashCode;
+  }
+
+  @Override
+  protected int calculateHashCode() {
+    return Objects.hash(super.calculateHashCode(), myMockablePlatformJar);
   }
 
   @Override

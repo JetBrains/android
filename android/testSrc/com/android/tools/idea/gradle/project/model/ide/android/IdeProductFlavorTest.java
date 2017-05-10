@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.ProductFlavor;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.ProductFlavorStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,6 +62,9 @@ public class IdeProductFlavorTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeProductFlavor.class).withRedefinedSuperclass().verify();
+    EqualsVerifier.forClass(IdeProductFlavor.class).withRedefinedSuperclass()
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
   }
 }

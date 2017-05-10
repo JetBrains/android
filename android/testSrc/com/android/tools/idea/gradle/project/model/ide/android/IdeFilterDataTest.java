@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.FilterDataStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,7 +61,10 @@ public class IdeFilterDataTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeFilterData.class).verify();
+    EqualsVerifier.forClass(IdeFilterData.class)
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
   }
 
 }

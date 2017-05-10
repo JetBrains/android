@@ -19,6 +19,7 @@ import com.android.build.OutputFile;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.OutputFileStub;
 import com.google.common.collect.Lists;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,7 +71,10 @@ public class IdeOutputFileTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeOutputFile.class).verify();
+    EqualsVerifier.forClass(IdeOutputFile.class)
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
   }
 
   @Test

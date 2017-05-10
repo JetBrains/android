@@ -33,6 +33,7 @@ import java.util.Objects;
 public abstract class IdeVariantOutput extends IdeModel implements VariantOutput {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final Collection<? extends OutputFile> myOutputs;
   @NotNull private final Collection<String> myFilterTypes;
@@ -50,6 +51,8 @@ public abstract class IdeVariantOutput extends IdeModel implements VariantOutput
     myMainOutputFile = copyNewProperty(modelCache, output::getMainOutputFile, file -> new IdeOutputFile(file, modelCache), null);
     myOutputType = copyNewProperty(output::getOutputType, null);
     myVersionCode = output.getVersionCode();
+
+    myHashCode = calculateHashCode();
   }
 
   @Nullable
@@ -130,6 +133,10 @@ public abstract class IdeVariantOutput extends IdeModel implements VariantOutput
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myMainOutputFile, myOutputs, myOutputType, myFilterTypes, myFilters, myVersionCode);
   }
 
