@@ -65,11 +65,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * User: Eugene.Kudelevsky
- * Date: Aug 27, 2009
- * Time: 2:23:56 PM
- */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   private static final Logger LOG = Logger.getInstance(AndroidTestRunConfiguration.class);
 
