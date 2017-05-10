@@ -86,5 +86,6 @@ public class AxisComponentTest {
     assertThat(axis.getRange().getMax()).isWithin(0.0).of(5);  // before update.
     choreographer.step();
     assertThat(axis.getRange().getMax()).isWithin(0.0).of(10);  // after update.
+    choreographer.stop();
   }
 }
