@@ -55,10 +55,12 @@ public class NewProjectMultiModuleTest {
         newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(formFactor, "25");
     }
 
-    for (FormFactor ignored : formFactors) {
+    for (FormFactor formFactor : formFactors) {
       newProjectWizard
         .clickNext() // Skip "Add Activity" step
-        .clickNext(); // Skip "Configure Activity" step
+        .assertStepIcon(formFactor.getIcon())
+        .clickNext() // Skip "Configure Activity" step
+        .assertStepIcon(formFactor.getIcon());
     }
 
     newProjectWizard.clickFinish();

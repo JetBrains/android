@@ -140,7 +140,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     Disposer.register(getTestRootDisposable(), optionsStep);
 
     optionsStep.updateSystemImageData();
-    Icon icon = optionsStep.getIcon();
+    Icon icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     String iconUrl = icon.toString();
     assertTrue("Wrong icon fetched for non-preview API: " + iconUrl, iconUrl.endsWith("Marshmallow_32.png"));
@@ -150,7 +150,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
     Disposer.register(getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
-    icon = optionsStep.getIcon();
+    icon = optionsStep.getSystemImageIcon();
     assertNotNull(icon);
     iconUrl = icon.toString();
     // For an actual Preview, the URL will be Default_32.png, but

@@ -495,7 +495,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   @VisibleForTesting
   @Nullable
-  Icon getIcon() {
+  Icon getSystemImageIcon() {
     return mySystemImageName == null ? null : mySystemImageName.getIcon();
   }
 

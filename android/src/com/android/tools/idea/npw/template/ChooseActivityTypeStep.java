@@ -96,7 +96,7 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
 
   private ChooseActivityTypeStep(@NotNull NewModuleModel moduleModel, @NotNull RenderTemplateModel renderModel,
                                  @NotNull FormFactor formFactor) {
-    super(moduleModel, message("android.wizard.activity.add", formFactor.id));
+    super(moduleModel, message("android.wizard.activity.add", formFactor.id), formFactor.getIcon());
     this.myRenderModel = renderModel;
   }
 
