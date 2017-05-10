@@ -17,11 +17,14 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -37,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -150,5 +154,16 @@ public class IntellijProfilerServices implements IdeProfilerServices {
         return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
       }
     };
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(int deviceApi, Runnable dialogCallback) {
+    CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject, deviceApi, dialogCallback);
+    dialog.show();
+  }
+
+  @Override
+  public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
+    return CpuProfilingConfigService.getInstance(myProject).getConfigurations();
   }
 }
