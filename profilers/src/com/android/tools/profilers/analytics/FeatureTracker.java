@@ -97,14 +97,14 @@ public interface FeatureTracker {
   void trackSelectRange();
 
   /**
-   * Track the user taking a method trace using a "Sampled" strategy.
+   * Track the user taking a method trace using ART with a "Sampled" strategy.
    */
-  void trackTraceSampled();
+  void trackTraceArtSampled();
 
   /**
-   * Track the user taking a method trace using an "Instrumented" strategy.
+   * Track the user taking a method trace using ART with an "Instrumented" strategy.
    */
-  void trackTraceInstrumented();
+  void trackTraceArtInstrumented();
 
   /**
    * Track the user clicking on one of the threads in the thread list.

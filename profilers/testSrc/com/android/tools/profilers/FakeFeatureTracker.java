@@ -85,12 +85,12 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTraceSampled() {
+  public void trackTraceArtSampled() {
 
   }
 
   @Override
-  public void trackTraceInstrumented() {
+  public void trackTraceArtInstrumented() {
 
   }
 
