@@ -1167,6 +1167,67 @@ public final class ConstraintComponentUtilities {
     return component.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER);
   }
 
+  /**
+   * is the component a vertical line (guideline or barrier
+   * @param component
+   * @return
+   */
+  public static boolean isVerticalLine(@NotNull NlComponent component) {
+    ViewInfo viewInfo = component.viewInfo;
+    if (viewInfo == null) {
+      return false;
+    }
+    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
+      if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+        return true;
+      }
+    }
+    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+      String dir = component.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
+      if (dir != null) {
+        if (dir.equalsIgnoreCase(CONSTRAINT_BARRIER_LEFT)
+            || dir.equalsIgnoreCase(CONSTRAINT_BARRIER_RIGHT)
+            || dir.equalsIgnoreCase(CONSTRAINT_BARRIER_START)
+            || dir.equalsIgnoreCase(CONSTRAINT_BARRIER_END)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * is the component a horizontal line (guideline or barrier
+   * @param component
+   * @return
+   */
+  public static boolean isHorizontalLine(@NotNull NlComponent component) {
+    ViewInfo viewInfo = component.viewInfo;
+    if (viewInfo == null) {
+      return false;
+    }
+    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
+      if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
+        return true;
+      }
+    }
+    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+      String dir = component.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
+
+      if (dir != null) {
+        if (dir.equalsIgnoreCase(CONSTRAINT_BARRIER_TOP)
+            || dir.equalsIgnoreCase(CONSTRAINT_BARRIER_BOTTOM)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
+
   public static boolean isHorizontalGuideline(@NotNull NlComponent component) {
     if (component.viewInfo != null && component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);

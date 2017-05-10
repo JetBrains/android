@@ -78,9 +78,9 @@ public class BarrierTarget extends ConstraintDragTarget {
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (isHorizontal() ) {
-      DrawBarrier.add(list, sceneContext, myLeft, myTop + GAP,   (myRight - myLeft) , myDirection, myComponent.isSelected());
+      DrawBarrier.add(list, sceneContext, myLeft, myTop ,   (myRight - myLeft) , myDirection, myComponent.isSelected());
     } else {
-      DrawBarrier.add(list, sceneContext, myLeft + GAP, myTop,   (myBottom - myTop), myDirection, myComponent.isSelected());
+      DrawBarrier.add(list, sceneContext, myLeft , myTop,   (myBottom - myTop), myDirection, myComponent.isSelected());
 
     }
   }
@@ -91,23 +91,32 @@ public class BarrierTarget extends ConstraintDragTarget {
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    int dist = 2;
+    int dist = 4;
     SceneComponent parent = myComponent.getParent();
     if (parent != null) {
-      if (isHorizontal()) {
-        myLeft = parent.getDrawX();
-        myRight = parent.getDrawX() + parent.getDrawWidth();
-        myTop = t - dist;
-        myBottom = t + dist;
-      }
-      else {
-        myLeft = l - dist;
-        myRight = l + dist;
-        myTop = parent.getDrawY();
-        myBottom = parent.getDrawY() + parent.getDrawHeight();
+      myLeft = parent.getDrawX();
+      myRight = parent.getDrawX() + parent.getDrawWidth();
+      myTop = parent.getDrawY();
+      myBottom = parent.getDrawY() + parent.getDrawHeight();
+      switch (myDirection) {
+        case TOP:
+          myTop = t;
+          myBottom = t + dist;
+          break;
+        case BOTTOM:
+          myTop = t;
+          myBottom = t + dist;
+          break;
+        case LEFT:
+          myLeft = l;
+          myRight = l + dist;
+          break;
+        case RIGHT:
+          myLeft = l;
+          myRight = l+ dist;
+          break;
       }
     }
-
     return false;
   }
 
@@ -117,7 +126,6 @@ public class BarrierTarget extends ConstraintDragTarget {
   }
   @Override
   protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-
 
   }
 
