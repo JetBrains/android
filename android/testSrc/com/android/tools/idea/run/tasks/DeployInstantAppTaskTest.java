@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.InstallException;
 import com.android.tools.idea.instantapp.provision.ProvisionPackageTests;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
@@ -25,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.io.ZipUtil;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,19 +75,20 @@ public class DeployInstantAppTaskTest {
     assertThat(task.perform(device, myLaunchStatus, myPrinter)).isTrue();
 
     verify(device, times(1)).pushFile(dummyInfo.getFile().getPath(), "/data/local/tmp/aia/dummy.zip");
-    verify(device, times(5)).executeShellCommand(myShellCommandsCaptor.capture(), any(IShellOutputReceiver.class));
+    verify(device, times(6)).executeShellCommand(myShellCommandsCaptor.capture(), any(IShellOutputReceiver.class));
 
     List<String> shellCommands = myShellCommandsCaptor.getAllValues();
 
-    assertThat(shellCommands.get(1)).matches("su shell mkdir -p /data/local/tmp/aia/");
-    assertThat(shellCommands.get(2))
+    assertThat(shellCommands.get(0)).matches("pm path applicationId");
+    assertThat(shellCommands.get(2)).matches("su shell mkdir -p /data/local/tmp/aia/");
+    assertThat(shellCommands.get(3))
       .matches("am startservice -a \"com.google.android.instantapps.devman.iapk.LOAD\" " +
                "--es \"com.google.android.instantapps.devman.iapk.IAPK_PATH\" \"/data/local/tmp/aia/dummy.zip\" " +
                "--es \"com.google.android.instantapps.devman.iapk.INSTALL_TOKEN\" \"[^\"]+\" " +
                "--ez \"com.google.android.instantapps.devman.iapk.FORCE\" \"false\" " +
                "-n com.google.android.instantapps.devman/.iapk.IapkLoadService");
-    assertThat(shellCommands.get(3)).isEqualTo("rm -f /data/local/tmp/aia/dummy.zip");
-    assertThat(shellCommands.get(4)).isEqualTo("am force-stop com.google.android.instantapps.supervisor");
+    assertThat(shellCommands.get(4)).isEqualTo("rm -f /data/local/tmp/aia/dummy.zip");
+    assertThat(shellCommands.get(5)).isEqualTo("am force-stop com.google.android.instantapps.supervisor");
   }
 
   @Test
@@ -112,7 +115,7 @@ public class DeployInstantAppTaskTest {
     task.perform(device, myLaunchStatus, myPrinter);
 
     verify(device, atLeastOnce()).executeShellCommand(myShellCommandsCaptor.capture(), any(IShellOutputReceiver.class));
-    Matcher tokenMatcher = tokenExtractor.matcher(myShellCommandsCaptor.getAllValues().get(2));
+    Matcher tokenMatcher = tokenExtractor.matcher(myShellCommandsCaptor.getAllValues().get(3));
     assertThat(tokenMatcher.find()).isTrue();
 
     IDevice device2 = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setOsBuildType("dev-keys").setApiLevel(24).getDevice();
@@ -140,5 +143,66 @@ public class DeployInstantAppTaskTest {
     DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo), myProject);
 
     assertThat(task.perform(device, myLaunchStatus, myPrinter)).isFalse();
+  }
+
+  @Test
+  public void testUninstallApp() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setApiLevel(24).getDevice();
+
+    ApkInfo dummyInfo = new ApkInfo(createDummyZipFile(), "applicationId");
+    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo), myProject) {
+      @NotNull
+      @Override
+      String executeShellCommand(@NotNull IDevice device, @NotNull String command) throws Exception {
+        return "applicationId";
+      }
+    };
+
+    when(device.uninstallPackage(eq("applicationId"))).thenReturn(null);
+
+    boolean result = task.perform(device, myLaunchStatus, myPrinter);
+
+    assertThat(result).isTrue();
+    verify(device, times(1)).uninstallPackage(eq("applicationId"));
+  }
+
+  @Test
+  public void testPerformFailsWhenUninstallAppFails() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setApiLevel(24).getDevice();
+
+    ApkInfo dummyInfo = new ApkInfo(createDummyZipFile(), "applicationId");
+    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo), myProject) {
+      @NotNull
+      @Override
+      String executeShellCommand(@NotNull IDevice device, @NotNull String command) throws Exception {
+        return "applicationId";
+      }
+    };
+
+    when(device.uninstallPackage(eq("applicationId"))).thenThrow(new InstallException("Error"));
+
+    boolean result = task.perform(device, myLaunchStatus, myPrinter);
+
+    assertThat(result).isFalse();
+    verify(device, times(1)).uninstallPackage(eq("applicationId"));
+  }
+
+  @Test
+  public void testDoesNotUninstallWhenNotInstalled() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setApiLevel(24).getDevice();
+
+    ApkInfo dummyInfo = new ApkInfo(createDummyZipFile(), "applicationId");
+    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo), myProject) {
+      @NotNull
+      @Override
+      String executeShellCommand(@NotNull IDevice device, @NotNull String command) throws Exception {
+        return "";
+      }
+    };
+
+    boolean result = task.perform(device, myLaunchStatus, myPrinter);
+
+    assertThat(result).isTrue();
+    verify(device, times(0)).uninstallPackage(eq("applicationId"));
   }
 }
