@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
-import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
 import com.google.common.collect.ImmutableList;
@@ -26,12 +26,10 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.internal.statistic.StatisticsUploadAssistant;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.SmartList;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,11 +45,16 @@ public class InstantRunBuildAnalyzer {
   private final InstantRunContext myContext;
   private final ProcessHandler myCurrentSession;
   private final InstantRunBuildInfo myBuildInfo;
+  private final boolean myIsRestartActivity;
 
-  public InstantRunBuildAnalyzer(@NotNull Project project, @NotNull InstantRunContext context, @Nullable ProcessHandler currentSession) {
+  public InstantRunBuildAnalyzer(@NotNull Project project,
+                                 @NotNull InstantRunContext context,
+                                 @Nullable ProcessHandler currentSession,
+                                 boolean isRestartActivity) {
     myProject = project;
     myContext = context;
     myCurrentSession = currentSession;
+    myIsRestartActivity = isRestartActivity;
 
     myBuildInfo = myContext.getInstantRunBuildInfo();
     if (myBuildInfo == null) {
@@ -60,8 +63,8 @@ public class InstantRunBuildAnalyzer {
 
     if (!myBuildInfo.isCompatibleFormat()) {
       throw new IllegalStateException("This version of Android Studio is incompatible with the Gradle Plugin used. " +
-                                         "Try disabling Instant Run (or updating either the IDE or the Gradle plugin to " +
-                                         "the latest version)");
+                                      "Try disabling Instant Run (or updating either the IDE or the Gradle plugin to " +
+                                      "the latest version)");
     }
   }
 
@@ -77,7 +80,7 @@ public class InstantRunBuildAnalyzer {
 
     BuildSelection buildSelection = myContext.getBuildSelection();
     assert buildSelection != null : "Build must have completed before results are analyzed";
-    return buildSelection.getBuildMode() == BuildMode.HOT && (myBuildInfo.hasNoChanges() || myBuildInfo.canHotswap());
+    return buildSelection.getBuildMode() == BuildMode.HOT && myBuildInfo.getBuildMode().equals("HOT_WARM");
   }
 
   /**
@@ -91,6 +94,9 @@ public class InstantRunBuildAnalyzer {
     switch (deployType) {
       case NO_CHANGES:
         return ImmutableList.of(new NoChangesTask(myProject, myContext), updateStateTask);
+      case RESTART:
+        // Kill the app, it'll be started as a part of AndroidLaunchTasksProvider
+        return ImmutableList.of(new KillTask(myProject, myContext), updateStateTask);
       case HOTSWAP:
       case WARMSWAP:
         return ImmutableList
@@ -160,20 +166,27 @@ public class InstantRunBuildAnalyzer {
     return new InstantRunNotificationTask(myProject, myContext, notificationProvider, buildSelection);
   }
 
+  @VisibleForTesting
   @NotNull
-  private DeployType getDeployType() {
+  DeployType getDeployType() {
     if (canReuseProcessHandler()) { // is this needed? do we make sure we do a cold swap when there is no process handler?
       if (myBuildInfo.hasNoChanges()) {
         return DeployType.NO_CHANGES;
       }
       else if (myBuildInfo.canHotswap()) {
-        return InstantRunSettings.isRestartActivity() ? DeployType.WARMSWAP : DeployType.HOTSWAP;
+        return myIsRestartActivity ? DeployType.WARMSWAP : DeployType.HOTSWAP;
       }
     }
 
     List<InstantRunArtifact> artifacts = myBuildInfo.getArtifacts();
     if (artifacts.isEmpty()) {
-      return DeployType.NO_CHANGES;
+      if (myBuildInfo.getVerifierStatus().equals(DeployType.NO_CHANGES.toString())) {
+        return DeployType.NO_CHANGES;
+      }
+      else {
+        // If somehow gradle tells us a change is not hotswapable but returns no artifacts, restart the app.
+        return DeployType.RESTART;
+      }
     }
 
     if (myBuildInfo.hasOneOf(SPLIT) || myBuildInfo.hasOneOf(SPLIT_MAIN)) {
@@ -185,30 +198,5 @@ public class InstantRunBuildAnalyzer {
     }
 
     return DeployType.FULLAPK;
-  }
-
-  private static Collection<ApkInfo> getApks(@NotNull InstantRunBuildInfo buildInfo, @NotNull InstantRunContext context)
-    throws ExecutionException {
-    List<ApkInfo> apks = new SmartList<>();
-
-    for (InstantRunArtifact artifact : buildInfo.getArtifacts()) {
-      if (artifact.type != MAIN) {
-        String msg = "Expected to only find apks, but got : " + artifact.type + "\n";
-        BuildSelection buildSelection = context.getBuildSelection();
-        assert buildSelection != null : "Build must have completed before apks are obtained";
-        if (buildSelection.getBuildMode() == BuildMode.HOT) {
-          msg += "Could not use hot-swap artifacts when there is no existing session.";
-        }
-        else {
-          msg += "Unexpected artifacts for build mode: " + buildSelection.getBuildMode();
-        }
-        InstantRunManager.LOG.error(msg);
-        throw new ExecutionException(msg);
-      }
-
-      apks.add(new ApkInfo(artifact.file, context.getApplicationId()));
-    }
-
-    return apks;
   }
 }

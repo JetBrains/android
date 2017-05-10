@@ -85,6 +85,8 @@ public class InstantRunNotificationProvider {
         // when there are no changes, we don't want to display a notification if it was a cold swap build
         // see b.android.com/232931
         return buildCause.getBuildMode() == BuildMode.COLD ? null : AndroidBundle.message("instant.run.notification.nochanges");
+      case RESTART:
+        return AndroidBundle.message("instant.run.notification.coldswap");
       case HOTSWAP:
         return AndroidBundle.message("instant.run.notification.hotswap", getRestartActivityShortcutText());
       case WARMSWAP:
