@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidLibrary;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Objects;
 public final class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrary {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final Collection<File> myLocalJars;
   @NotNull private final File myProguardRules;
@@ -41,6 +43,8 @@ public final class IdeAndroidLibrary extends IdeAndroidBundle implements Android
     myProguardRules = library.getProguardRules();
     myLintJar = library.getLintJar();
     myPublicResources = library.getPublicResources();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -129,7 +133,12 @@ public final class IdeAndroidLibrary extends IdeAndroidBundle implements Android
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), myLocalJars, myProguardRules, myLintJar, myPublicResources);
+    return myHashCode;
+  }
+
+  @Override
+  protected int calculateHashCode() {
+    return Objects.hash(super.calculateHashCode(), myLocalJars, myProguardRules, myLintJar, myPublicResources);
   }
 
   @Override

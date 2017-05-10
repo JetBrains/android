@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidArtifactStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,6 +65,10 @@ public class IdeAndroidArtifactTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeAndroidArtifact.class).withRedefinedSuperclass().verify();
+    EqualsVerifier.forClass(IdeAndroidArtifact.class).withRedefinedSuperclass()
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .suppress(Warning.ALL_FIELDS_SHOULD_BE_USED)
+      .verify();
   }
 }

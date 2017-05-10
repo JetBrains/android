@@ -27,6 +27,7 @@ import java.util.Objects;
 public final class IdeMavenCoordinates extends IdeModel implements MavenCoordinates {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myGroupId;
   @NotNull private final String myArtifactId;
@@ -37,6 +38,8 @@ public final class IdeMavenCoordinates extends IdeModel implements MavenCoordina
     myGroupId = coordinates.getGroupId();
     myArtifactId = coordinates.getArtifactId();
     myVersion = coordinates.getVersion();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -91,6 +94,10 @@ public final class IdeMavenCoordinates extends IdeModel implements MavenCoordina
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myGroupId, myArtifactId, myVersion);
   }
 

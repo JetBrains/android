@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidAtom;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.Objects;
 public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAtom {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myAtomName;
   @NotNull private final List<? extends AndroidAtom> myAtomDependencies;
@@ -47,6 +49,8 @@ public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAto
     myLibFolder = atom.getLibFolder();
     myJavaResFolder = atom.getJavaResFolder();
     myResourcePackage = atom.getResourcePackage();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -113,7 +117,13 @@ public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAto
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), myAtomName, myAtomDependencies, myDexFolder, myLibFolder, myJavaResFolder, myResourcePackage);
+    return myHashCode;
+  }
+
+  @Override
+  protected int calculateHashCode() {
+    return Objects.hash(super.hashCode(), myAtomName, myAtomDependencies, myDexFolder, myLibFolder, myJavaResFolder,
+                        myResourcePackage);
   }
 
   @Override

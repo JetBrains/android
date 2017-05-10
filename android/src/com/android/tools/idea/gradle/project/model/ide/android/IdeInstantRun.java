@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.InstantRun;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Objects;
@@ -27,6 +28,7 @@ import java.util.Objects;
 public final class IdeInstantRun extends IdeModel implements InstantRun {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final File myInfoFile;
   private final boolean mySupportedByArtifact;
@@ -37,6 +39,8 @@ public final class IdeInstantRun extends IdeModel implements InstantRun {
     myInfoFile = run.getInfoFile();
     mySupportedByArtifact = run.isSupportedByArtifact();
     mySupportStatus = run.getSupportStatus();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -71,6 +75,10 @@ public final class IdeInstantRun extends IdeModel implements InstantRun {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myInfoFile, mySupportedByArtifact, mySupportStatus);
   }
 

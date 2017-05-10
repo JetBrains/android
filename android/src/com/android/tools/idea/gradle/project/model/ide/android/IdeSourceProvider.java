@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.SourceProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import java.util.Objects;
 public final class IdeSourceProvider extends IdeModel implements SourceProvider {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final File myManifestFile;
@@ -57,6 +59,8 @@ public final class IdeSourceProvider extends IdeModel implements SourceProvider 
     myAssetsDirectories = new ArrayList<>(provider.getAssetsDirectories());
     myJniLibsDirectories = new ArrayList<>(provider.getJniLibsDirectories());
     myShadersDirectories = new ArrayList<>(provider.getShadersDirectories());
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -156,9 +160,13 @@ public final class IdeSourceProvider extends IdeModel implements SourceProvider 
 
   @Override
   public int hashCode() {
-    return Objects.hash(myName, myManifestFile, myJavaDirectories, myResourcesDirectories, myAidlDirectories, myRenderscriptDirectories,
-                        myCDirectories, myCppDirectories, myResDirectories, myAssetsDirectories, myJniLibsDirectories,
-                        myShadersDirectories);
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
+    return Objects.hash(myName, myManifestFile, myJavaDirectories, myResourcesDirectories, myAidlDirectories,
+                        myRenderscriptDirectories, myCDirectories, myCppDirectories, myResDirectories, myAssetsDirectories,
+                        myJniLibsDirectories, myShadersDirectories);
   }
 
   @Override

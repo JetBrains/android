@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.ClassField;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Set;
@@ -27,6 +28,7 @@ import java.util.Set;
 public final class IdeClassField extends IdeModel implements ClassField {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final String myType;
@@ -37,6 +39,8 @@ public final class IdeClassField extends IdeModel implements ClassField {
     myName = classField.getName();
     myType = classField.getType();
     myValue = classField.getValue();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -85,6 +89,10 @@ public final class IdeClassField extends IdeModel implements ClassField {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myName, myType, myValue);
   }
 

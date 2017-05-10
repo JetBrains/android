@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.JavaLibrary;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.Objects;
 public final class IdeJavaLibrary extends IdeLibrary implements JavaLibrary {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final File myJarFile;
   @NotNull private final List<? extends JavaLibrary> myDependencies;
@@ -36,6 +38,8 @@ public final class IdeJavaLibrary extends IdeLibrary implements JavaLibrary {
     super(library, modelCache);
     myJarFile = library.getJarFile();
     myDependencies = copy(library.getDependencies(), modelCache, dependency -> new IdeJavaLibrary(dependency, modelCache));
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -74,7 +78,12 @@ public final class IdeJavaLibrary extends IdeLibrary implements JavaLibrary {
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), myJarFile, myDependencies);
+    return myHashCode;
+  }
+
+  @Override
+  protected int calculateHashCode() {
+    return Objects.hash(super.calculateHashCode(), myJarFile, myDependencies);
   }
 
   @Override

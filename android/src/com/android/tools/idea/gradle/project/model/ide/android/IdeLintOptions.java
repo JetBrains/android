@@ -29,6 +29,7 @@ import java.util.*;
 public final class IdeLintOptions extends IdeModel implements LintOptions {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @Nullable private final File myBaselineFile;
   @Nullable private final Map<String, Integer> mySeverityOverrides;
@@ -39,6 +40,8 @@ public final class IdeLintOptions extends IdeModel implements LintOptions {
     myBaselineFile = modelVersion.isAtLeast(2, 3, 0, "beta", 2, true) ? options.getBaselineFile() : null;
     mySeverityOverrides = copy(options.getSeverityOverrides());
     myCheckTestSources = modelVersion.isAtLeast(2, 4, 0) && options.isCheckTestSources();
+
+    myHashCode = calculateHashCode();
   }
 
   @Nullable
@@ -191,6 +194,10 @@ public final class IdeLintOptions extends IdeModel implements LintOptions {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myBaselineFile, mySeverityOverrides, myCheckTestSources);
   }
 

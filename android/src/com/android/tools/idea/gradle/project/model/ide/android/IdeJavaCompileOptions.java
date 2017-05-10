@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.JavaCompileOptions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -26,6 +27,7 @@ import java.util.Objects;
 public final class IdeJavaCompileOptions extends IdeModel implements JavaCompileOptions {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myEncoding;
   @NotNull private final String mySourceCompatibility;
@@ -36,6 +38,8 @@ public final class IdeJavaCompileOptions extends IdeModel implements JavaCompile
     myEncoding = options.getEncoding();
     mySourceCompatibility = options.getSourceCompatibility();
     myTargetCompatibility = options.getTargetCompatibility();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -72,6 +76,10 @@ public final class IdeJavaCompileOptions extends IdeModel implements JavaCompile
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myEncoding, mySourceCompatibility, myTargetCompatibility);
   }
 

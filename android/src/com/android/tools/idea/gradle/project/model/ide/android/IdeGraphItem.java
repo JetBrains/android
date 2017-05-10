@@ -28,6 +28,7 @@ import java.util.Objects;
 public final class IdeGraphItem extends IdeModel implements GraphItem {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final String myArtifactAddress;
   @NotNull private final List<GraphItem> myDependencies;
@@ -38,6 +39,8 @@ public final class IdeGraphItem extends IdeModel implements GraphItem {
     myArtifactAddress = item.getArtifactAddress();
     myDependencies = copy(item.getDependencies(), modelCache, item1 -> new IdeGraphItem(item1, modelCache));
     myRequestedCoordinates = item.getRequestedCoordinates();
+
+    myHashCode = calculateHashCode();
   }
 
   @Override
@@ -74,6 +77,10 @@ public final class IdeGraphItem extends IdeModel implements GraphItem {
 
   @Override
   public int hashCode() {
+    return myHashCode;
+  }
+
+  protected int calculateHashCode() {
     return Objects.hash(myArtifactAddress, myDependencies, myRequestedCoordinates);
   }
 

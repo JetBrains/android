@@ -29,6 +29,7 @@ import java.util.*;
 public final class IdeAndroidArtifact extends IdeBaseArtifact implements AndroidArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
+  private final int myHashCode;
 
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final String myApplicationId;
@@ -55,6 +56,8 @@ public final class IdeAndroidArtifact extends IdeBaseArtifact implements Android
     myAbiFilters = copy(artifact.getAbiFilters());
     myNativeLibraries = copy(modelCache, artifact.getNativeLibraries());
     mySigned = artifact.isSigned();
+
+    myHashCode = calculateHashCode();
   }
 
   @Nullable
@@ -160,8 +163,14 @@ public final class IdeAndroidArtifact extends IdeBaseArtifact implements Android
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), myOutputs, myApplicationId, mySourceGenTaskName, myGeneratedResourceFolders, myBuildConfigFields,
-                        myResValues, myInstantRun, mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned);
+    return myHashCode;
+  }
+
+  @Override
+  protected int calculateHashCode() {
+    return Objects.hash(super.calculateHashCode(), myOutputs, myApplicationId, mySourceGenTaskName,
+                        myGeneratedResourceFolders, myBuildConfigFields, myResValues, myInstantRun,
+                        mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned);
   }
 
   @Override

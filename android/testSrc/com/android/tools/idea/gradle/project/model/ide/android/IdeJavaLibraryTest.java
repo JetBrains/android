@@ -19,6 +19,7 @@ import com.android.builder.model.JavaLibrary;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaLibraryStub;
 import com.google.common.collect.Lists;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,6 +70,9 @@ public class IdeJavaLibraryTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeJavaLibrary.class).withRedefinedSuperclass().verify();
+    EqualsVerifier.forClass(IdeJavaLibrary.class).withRedefinedSuperclass()
+      .withCachedHashCode("myHashCode", "calculateHashCode", null)
+      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
+      .verify();
   }
 }
