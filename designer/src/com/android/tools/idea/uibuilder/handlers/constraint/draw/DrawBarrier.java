@@ -94,12 +94,14 @@ public class DrawBarrier extends DrawRegion {
         break;
     }
     g.setColor(solid);
+    Stroke previous = g.getStroke();
     g.setStroke(DrawConnectionUtils.sDashedStroke);
     g.drawLine(x, y, x + width, y + height);
 
     Paint p = new GradientPaint(x - dx, y - dy, transparent1, x + dx, y + dy, transparent2);
     g.setPaint(p);
     g.fillRect(x + ((dx < 0) ? -GAP : 0), y + ((dy < 0) ? -GAP : 0), width + w, height + h);
+    g.setStroke(previous);
   }
 
   public static void add(DisplayList list, SceneContext transform,
