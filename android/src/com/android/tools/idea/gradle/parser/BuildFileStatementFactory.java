@@ -38,7 +38,7 @@ public abstract class BuildFileStatementFactory extends ValueFactory<BuildFileSt
         closure.addBefore(element, closure.getLastChild());
         lastElement = element;
       }
-      // Make sure that statement are separated by newlines.
+      // Make sure that statements are separated by newlines.
       if (lastElement != null && !lastElement.getText().endsWith("\n")) {
         closure.addBefore(factory.createLineTerminator("\n"), closure.getLastChild());
       }
