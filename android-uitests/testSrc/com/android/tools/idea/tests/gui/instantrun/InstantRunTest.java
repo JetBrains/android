@@ -87,7 +87,7 @@ public class InstantRunTest {
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -140,7 +140,7 @@ public class InstantRunTest {
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -193,7 +193,7 @@ public class InstantRunTest {
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -250,7 +250,7 @@ public class InstantRunTest {
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -301,7 +301,7 @@ public class InstantRunTest {
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ideFrameFixture
@@ -312,7 +312,7 @@ public class InstantRunTest {
     ideFrameFixture
       .getRunToolWindow()
       .clickRerunApplication()
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ideFrameFixture
@@ -373,7 +373,7 @@ public class InstantRunTest {
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
 
     ideFrameFixture.debugApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ideFrameFixture.getDebugToolWindow()
@@ -432,7 +432,7 @@ public class InstantRunTest {
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
@@ -478,11 +478,12 @@ public class InstantRunTest {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
                        "x86 Images",
-                       new ChooseSystemImageStepFixture.SystemImage("Lollipop", "22", "x86", "Android 5.1"));
+                       new ChooseSystemImageStepFixture.SystemImage("Lollipop", "22", "x86", "Android 5.1"),
+                       "device under test");
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     JButton button = waitUntilShowingAndEnabled(guiTest.robot(), ideFrameFixture.target(), new GenericTypeMatcher<JButton>(JButton.class) {

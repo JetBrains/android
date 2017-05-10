@@ -71,7 +71,7 @@ public class EspressoRecorderTest {
     ideFrameFixture
       .invokeMenuPath("Run", "Record Espresso Test");
     DeployTargetPickerDialogFixture.find(guiTest.robot())
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     ideFrameFixture.getDebugToolWindow().findContent(TEST_RECORDER_APP).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), 120);
@@ -94,7 +94,7 @@ public class EspressoRecorderTest {
     });
 
     DeployTargetPickerDialogFixture.find(guiTest.robot())
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     // Wait until tests run completion.

@@ -64,7 +64,7 @@ public class LaunchAndroidApplicationTest {
 
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
@@ -84,7 +84,7 @@ public class LaunchAndroidApplicationTest {
 
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
@@ -121,7 +121,7 @@ public class LaunchAndroidApplicationTest {
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     ideFrameFixture
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(APPLICATION_STARTED, Pattern.DOTALL)), 120);
@@ -159,7 +159,7 @@ public class LaunchAndroidApplicationTest {
     // the app may crash before Android Studio can connect to the console.
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     // Look for text indicating a crash. Full text looks something like:
@@ -225,7 +225,7 @@ public class LaunchAndroidApplicationTest {
 
     ideFrameFixture
       .debugApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     // Wait for the UI App to be up and running, by waiting for the first Frame draw to get hit.
@@ -277,7 +277,7 @@ public class LaunchAndroidApplicationTest {
         .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
         .clickOk();
 
-    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(emulator.getAvdName()).clickOk();
+    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(emulator.getDefaulAvdName()).clickOk();
 
     ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
         .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);

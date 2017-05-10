@@ -213,7 +213,7 @@ public class NewCppProjectTest {
 
     guiTest.ideFrame()
       .runApp(APP_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
