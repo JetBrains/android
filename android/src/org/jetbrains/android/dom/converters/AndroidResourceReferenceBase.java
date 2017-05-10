@@ -131,7 +131,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
                   @Nullable
                   @Override
                   public PsiElement getElement() {
-                    return null;
+                    return sampleDataItem.getPsiElement();
                   }
 
                   @Override
