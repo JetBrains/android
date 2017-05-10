@@ -16,7 +16,10 @@
 package com.android.tools.idea.instantapp.provision;
 
 import com.android.annotations.NonNull;
+import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.instantapp.provision.ProvisionException;
 import com.android.instantapp.provision.ProvisionListener;
 import com.android.instantapp.provision.ProvisionRunner;
@@ -40,11 +43,13 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import icons.AndroidIcons;
+import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -101,9 +106,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   @Override
   public boolean isConfigurable() {
-    // If clean the data of the Supervisor is necessary, we can implement a configurable task and add this option.
-    // For the moment it isn't necessary
-    return false;
+    return true;
   }
 
   @Nullable
@@ -122,7 +125,12 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   @Override
   public boolean configureTask(RunConfiguration runConfiguration, ProvisionBeforeRunTask task) {
-    return false;
+    ProvisionEditTaskDialog dialog = new ProvisionEditTaskDialog(runConfiguration.getProject(), task.isClearCache());
+    if (!dialog.showAndGet()) {
+      return false;
+    }
+    task.setClearCache(dialog.isClearCache());
+    return true;
   }
 
   @Override
@@ -196,6 +204,16 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
                 if (!succeededProvisioned.contains(device)) {
                   indicator.setIndeterminate(false);
                   provisionRunner.runProvision(device);
+
+                  if (task.isClearCache()) {
+                    try {
+                      device.executeShellCommand("pm clear com.google.android.instantapps.supervisor", NullOutputReceiver.getReceiver());
+                      device.executeShellCommand("pm clear com.google.android.instantapps.devman", NullOutputReceiver.getReceiver());
+                    }
+                    catch (com.android.ddmlib.TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
+                      getLogger().warn("Error while clearing supervisor or devman cache on device", e);
+                    }
+                  }
                   succeededProvisioned.add(device);
                 }
               }
@@ -268,8 +286,51 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   }
 
   public static class ProvisionBeforeRunTask extends BeforeRunTask<ProvisionBeforeRunTask> {
+    private boolean myClearCache;
+
     public ProvisionBeforeRunTask() {
       super(ID);
+      myClearCache = false;
+    }
+
+    public void setClearCache(boolean clearCache) {
+      myClearCache = clearCache;
+    }
+
+    public boolean isClearCache() {
+      return myClearCache;
+    }
+
+    @Override
+    public void writeExternal(Element element) {
+      super.writeExternal(element);
+      element.setAttribute("clearCache", String.valueOf(myClearCache));
+    }
+
+    @Override
+    public void readExternal(Element element) {
+      super.readExternal(element);
+      myClearCache = Boolean.valueOf(element.getAttributeValue("clearCache")).booleanValue();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      if (!super.equals(o)) return false;
+
+      ProvisionBeforeRunTask that = (ProvisionBeforeRunTask)o;
+
+      if (myClearCache != that.myClearCache) return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int result = super.hashCode();
+      result = 31 * result + (myClearCache ? 1 : 0);
+      return result;
     }
   }
 }
