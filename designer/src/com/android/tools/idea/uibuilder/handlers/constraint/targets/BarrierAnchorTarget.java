@@ -26,16 +26,16 @@ import org.jetbrains.annotations.NotNull;
  * Guideline anchors
  */
 public class BarrierAnchorTarget extends AnchorTarget {
-  boolean myIsHorizontal;
+  int myDirection;
 
   @Override
   public int getPreferenceLevel() {
     return Target.GUIDELINE_ANCHOR_LEVEL;
   }
 
-  public BarrierAnchorTarget(@NotNull Type type, boolean isHorizontal) {
+  public BarrierAnchorTarget(@NotNull Type type, int dir) {
     super(type, false);
-    myIsHorizontal = isHorizontal;
+    myDirection = dir;
   }
 
   @Override
@@ -46,18 +46,28 @@ public class BarrierAnchorTarget extends AnchorTarget {
                         @AndroidDpCoordinate int b) {
     int dist = 8;
     SceneComponent parent = myComponent.getParent();
+    myLeft = parent.getDrawX();
+    myRight = parent.getDrawX() + parent.getDrawWidth();
+    myTop = parent.getDrawY();
+    myBottom = parent.getDrawY() + parent.getDrawHeight();
     if (parent != null) {
-      if (myIsHorizontal) {
-        myLeft = parent.getDrawX();
-        myTop = t - dist;
-        myRight = myLeft + parent.getDrawWidth();
-        myBottom = t + dist;
-      }
-      else {
-        myLeft = l - dist;
-        myTop = parent.getDrawY();
-        myRight = l + dist;
-        myBottom = myTop + parent.getDrawHeight();
+      switch (myDirection) {
+        case BarrierTarget.TOP:
+          myTop = t - dist;
+          myBottom = t;
+          break;
+        case BarrierTarget.BOTTOM:
+          myTop = t;
+          myBottom = t + dist;
+          break;
+        case BarrierTarget.LEFT:
+          myLeft = l- dist;
+          myRight = l ;
+          break;
+        case BarrierTarget.RIGHT:
+          myLeft = l;
+          myRight = l+ dist;
+          break;
       }
     }
     return false;
