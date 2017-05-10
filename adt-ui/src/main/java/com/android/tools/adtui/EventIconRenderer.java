@@ -26,8 +26,7 @@ import java.awt.geom.AffineTransform;
 
 public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
 
-  @NotNull private Icon myLightThemeIcon;
-  @NotNull private Icon myDarkThemeIcon;
+  @NotNull private Icon myIcon;
   @NotNull private int myIconWidth;
 
   @NotNull
@@ -35,20 +34,18 @@ public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
     return IconLoader.getIcon(path, EventIconRenderer.class);
   }
 
-  public EventIconRenderer(String lightTheme, String darkTheme) {
-    this(load(lightTheme), load(darkTheme));
+  public EventIconRenderer(String icon) {
+    this(load(icon));
   }
 
-  EventIconRenderer(@NotNull Icon lightIcon, @NotNull Icon darkIcon) {
-    myLightThemeIcon = lightIcon;
-    myDarkThemeIcon = darkIcon;
-    assert myLightThemeIcon.getIconWidth() == myDarkThemeIcon.getIconWidth() : "Icons of both themes should have the same width.";
-    myIconWidth = myDarkThemeIcon.getIconWidth();
+  EventIconRenderer(@NotNull Icon icon) {
+    myIcon = icon;
+    myIconWidth = myIcon.getIconWidth();
   }
 
   @Override
   public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> notUsedData) {
-    Icon icon = UIUtil.isUnderDarcula() ? myDarkThemeIcon : myLightThemeIcon;
+    Icon icon = myIcon;
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);
     icon.paintIcon(parent, g2d, -myIconWidth / 2, 0);

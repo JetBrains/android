@@ -44,7 +44,7 @@ public class EventVisualTest extends VisualTest {
   static {
     MOCK_RENDERERS = new HashMap<>();
     MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer<>());
-    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer<>("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer<>("/icons/events/rotate-event.png"));
     MOCK_RENDERERS.put(ActionType.KEYBOARD, new KeyboardEventRenderer<>());
   }
 

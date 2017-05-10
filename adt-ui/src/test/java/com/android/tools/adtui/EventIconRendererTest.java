@@ -43,19 +43,12 @@ public class EventIconRendererTest {
   public void before() {
     MockitoAnnotations.initMocks(this);
     when(myIcon.getIconWidth()).thenReturn(2);
-    myRenderer = new EventIconRenderer(myIcon, myIcon);
+    myRenderer = new EventIconRenderer(myIcon);
   }
 
   @Test
   public void iconIsPaint() {
     myRenderer.draw(new JPanel(), myGraphics2D, new AffineTransform(), 0);
     verify(myIcon).paintIcon(any(JPanel.class), eq(myGraphics2D), eq(-1), eq(0));
-  }
-
-  @Test(expected = AssertionError.class)
-  public void iconsOfBothThemesHaveSameWidth() {
-    Icon largeIcon = Mockito.mock(Icon.class);
-    when(largeIcon.getIconWidth()).thenReturn(4);
-    new EventIconRenderer(myIcon, largeIcon);
   }
 }
