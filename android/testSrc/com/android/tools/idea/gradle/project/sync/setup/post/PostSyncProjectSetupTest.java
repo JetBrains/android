@@ -156,7 +156,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     verify(myModuleValidator, times(1)).fixAndReportFoundIssues();
     verify(myProjectSetup, times(1)).setUpProject(myProgressIndicator, true);
-    verify(mySyncState, times(1)).syncEnded();
+    verify(mySyncState, times(1)).syncFailed(any());
+    verify(mySyncState, never()).syncEnded();
 
     // Source generation should not be invoked if sync failed.
     verify(myProjectBuilder, never()).generateSourcesOnly(true);
