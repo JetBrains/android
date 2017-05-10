@@ -66,7 +66,7 @@ public final class ModelWizard implements Disposable {
 
   private final Stack<ModelWizardStep> myPrevSteps = new Stack<>();
 
-  private final StringProperty myTitle = new StringValueProperty();
+  private final TitleHeader myTitleHeader = new TitleHeader();
   private final JPanel myContentPanel = new JPanel(new CardLayout());
 
   private final List<WizardListener> myWizardListeners = Lists.newArrayListWithExpectedSize(1);
@@ -80,7 +80,7 @@ public final class ModelWizard implements Disposable {
    * <p/>
    * A wizard, once constructed, is ready to go and will already be pointing at the first step. The
    * next expected action is for {@link #goForward()} to be called. Most likely, a wrapping UI
-   * container, such as {@link ModelWizardDialog}, will be responsible for handling this.
+   * container, such as {@code ModelWizardDialog}, will be responsible for handling this.
    * <p/>
    * When the wizard is finished, it will iterate through its steps, in order, and run
    * {@link WizardModel#handleFinished()} on each of their associated models.
@@ -182,16 +182,16 @@ public final class ModelWizard implements Disposable {
   }
 
   /**
-   * String property containing the active title of the current wizard on the current step.
+   * The active header title information of the current wizard on the current step.
    * <p/>
-   * This class itself is not responsible for displaying the title; rather, this task is delegated
+   * This class itself is not responsible for displaying the title header; rather, this task is delegated
    * to an external UI.
    * <p/>
-   * The return type is an observable string so a UI can bind a label to its value.
+   * The return type contains observable values so a UI can bind a label to its values.
    */
   @NotNull
-  public ObservableString title() {
-    return myTitle;
+  public TitleHeader getTitleHeader() {
+    return myTitleHeader;
   }
 
   /**
@@ -422,7 +422,9 @@ public final class ModelWizard implements Disposable {
 
   private void showCurrentStep() {
     ModelWizardStep step = mySteps.get(myCurrIndex);
-    myTitle.set(step.getTitle());
+    myTitleHeader.title().set(step.getTitle());
+    myTitleHeader.stepIcon().setNullableValue(step.getIcon());
+
     myExtraAction.setNullableValue(step.getExtraAction());
     ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, Integer.toString(myCurrIndex));
 
@@ -508,7 +510,7 @@ public final class ModelWizard implements Disposable {
      *
      * @param e The exception that occurred during the course of running the wizard.
      */
-    default void onWizardAdvanceError(@NotNull Exception e) {};
+    default void onWizardAdvanceError(@NotNull Exception e) {}
   }
 
   /**
@@ -535,6 +537,25 @@ public final class ModelWizard implements Disposable {
 
     public ModelWizard build() {
       return new ModelWizard(mySteps);
+    }
+  }
+
+  /**
+   * The active header title information of the current wizard on the current step.
+   * Contains observable values so a UI can bind a label to its values.
+   */
+  public static final class TitleHeader {
+    private final StringProperty myTitle = new StringValueProperty();
+    private final OptionalValueProperty<Icon> myStepIcon = new OptionalValueProperty<>();
+
+    @NotNull
+    public StringProperty title() {
+      return myTitle;
+    }
+
+    @NotNull
+    public OptionalValueProperty<Icon> stepIcon() {
+      return myStepIcon;
     }
   }
 

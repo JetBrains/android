@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
@@ -192,6 +193,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       // particularly long (see Master/Detail Activity for example).
       myTemplateDescriptionLabel.setText(WizardUtils.toHtmlString(Strings.nullToEmpty(templateMetadata.getDescription())));
     }, ModalityState.any());
+
+    if (templateMetadata.getFormFactor() != null) {
+      setIcon(FormFactor.get(templateMetadata.getFormFactor()).getIcon());
+    }
 
     final IconProperty thumb = new IconProperty(myTemplateThumbLabel);
     BoolProperty thumbVisibility = new VisibleProperty(myTemplateThumbLabel);
