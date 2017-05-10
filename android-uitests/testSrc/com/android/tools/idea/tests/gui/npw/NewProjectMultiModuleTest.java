@@ -35,28 +35,8 @@ public class NewProjectMultiModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void createMobileWear() {
-    create(MOBILE, WEAR);
-  }
-
-  @Test
-  public void createMobileTV() {
-    create(MOBILE, TV, CAR);
-  }
-
-  @Test
-  public void createMobileWearTv() {
-    create(MOBILE, WEAR, TV);
-  }
-
-  @Test
-  public void createMobileCar() {
-    create(MOBILE, CAR);
-  }
-
-  @Test
-  public void createMobileWearTvCar() {
-    create(MOBILE, WEAR, TV, CAR);
+  public void createAllModule() {
+    create(MOBILE, WEAR, TV, CAR, THINGS);
   }
 
   /**
@@ -72,12 +52,13 @@ public class NewProjectMultiModuleTest {
     newProjectWizard.clickNext();
 
     for (FormFactor formFactor : formFactors) {
-        newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(formFactor, "23");
+        newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(formFactor, "25");
     }
 
     for (FormFactor ignored : formFactors) {
-      newProjectWizard.clickNext(); // Skip "Add Activity" step
-      newProjectWizard.clickNext(); // Skip "Configure Activity" step
+      newProjectWizard
+        .clickNext() // Skip "Add Activity" step
+        .clickNext(); // Skip "Configure Activity" step
     }
 
     newProjectWizard.clickFinish();
