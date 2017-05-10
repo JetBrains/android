@@ -23,4 +23,5 @@ public enum DeployType {
   SPLITAPK,   // split apk installation as part of cold swap (however, split APKs are currently disabled..)
   DEX,        // cold swap scheme that uses dex files
   NO_CHANGES, // no deploy necessary, no changes from what is already deployed
+  RESTART,    // no deploy necessary, restart to clear patched files changes
 }

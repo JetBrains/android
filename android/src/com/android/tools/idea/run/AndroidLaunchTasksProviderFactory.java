@@ -67,7 +67,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
     InstantRunBuildAnalyzer analyzer = null;
     InstantRunBuildInfo instantRunBuildInfo = myInstantRunContext != null ? myInstantRunContext.getInstantRunBuildInfo() : null;
     if (instantRunBuildInfo != null) {
-      analyzer = new InstantRunBuildAnalyzer(project, myInstantRunContext, myPreviousSessionProcessHandler);
+      analyzer = new InstantRunBuildAnalyzer(project, myInstantRunContext, myPreviousSessionProcessHandler, InstantRunSettings.isRestartActivity());
 
       if (InstantRunSettings.isRecorderEnabled()) {
         if (!myDeviceFutures.getDevices().isEmpty()) { // Instant Run is guaranteed to be for exactly 1 device
