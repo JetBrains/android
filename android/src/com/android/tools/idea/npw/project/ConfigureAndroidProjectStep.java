@@ -133,6 +133,12 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     return myRootPanel;
   }
 
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myAppName;
+  }
+
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
