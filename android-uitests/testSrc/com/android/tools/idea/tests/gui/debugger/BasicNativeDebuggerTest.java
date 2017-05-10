@@ -51,7 +51,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
                              "return (*env)->NewStringUTF(env, message);");
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
@@ -63,7 +63,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     errorMessage.requireMessageContains("Restart App").click("Restart " + DEBUG_CONFIG_NAME);
 
     DeployTargetPickerDialogFixture deployTargetPicker = DeployTargetPickerDialogFixture.find(guiTest.robot());
-    deployTargetPicker.selectDevice(emulator.getAvdName()).clickOk();
+    deployTargetPicker.selectDevice(emulator.getDefaulAvdName()).clickOk();
 
     waitUntilDebugConsoleCleared(debugToolWindowFixture);
     waitForSessionStart(debugToolWindowFixture);
@@ -96,7 +96,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     );
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
@@ -188,7 +188,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/basiccmakeapp/MainActivity.java", "setContentView(tv);");
 
     ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getAvdName())
+      .selectDevice(emulator.getDefaulAvdName())
       .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);

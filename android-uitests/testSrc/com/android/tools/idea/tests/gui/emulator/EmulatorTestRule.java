@@ -20,19 +20,26 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWiza
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
+import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
+
+import java.util.ArrayList;
 
 public class EmulatorTestRule extends ExternalResource {
 
-  public String getAvdName() {
-    return "device under test";
-  }
+  private ArrayList<String> avdNames = new ArrayList<String>();
+  private static final String DEFAULT_AVD_NAME = "device under test";
+
+  @NotNull
+  public String getDefaulAvdName() { return DEFAULT_AVD_NAME; }
 
   @Override
   protected void before() throws Throwable {
     MockAvdManagerConnection.inject();
     getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(getAvdName());
+    for (String avdName: avdNames) {
+      getEmulatorConnection().deleteAvdByDisplayName(avdName);
+    }
   }
 
   @Override
@@ -40,10 +47,17 @@ public class EmulatorTestRule extends ExternalResource {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
     getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(getAvdName());
+    for (String avdName: avdNames) {
+      getEmulatorConnection().deleteAvdByDisplayName(avdName);
+    }
   }
 
-  public void createAVD(AvdManagerDialogFixture avdManagerDialog, String tab, ChooseSystemImageStepFixture.SystemImage image) {
+  public void createAVD(AvdManagerDialogFixture avdManagerDialog,
+                        String tab,
+                        ChooseSystemImageStepFixture.SystemImage image,
+                        String avdName) {
+    avdNames.add(avdName);
+
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
     avdEditWizard.selectHardware()
@@ -56,7 +70,7 @@ public class EmulatorTestRule extends ExternalResource {
     avdEditWizard.clickNext();
 
     avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(getAvdName())
+      .setAvdName(avdName)
       .selectGraphicsSoftware();
     avdEditWizard.clickFinish();
     avdManagerDialog.close();
@@ -65,7 +79,8 @@ public class EmulatorTestRule extends ExternalResource {
   public void createDefaultAVD(AvdManagerDialogFixture avdManagerDialog) {
     createAVD(avdManagerDialog,
               "x86 Images",
-              new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"));
+              new ChooseSystemImageStepFixture.SystemImage("Nougat", "24", "x86", "Android 7.0"),
+              DEFAULT_AVD_NAME);
   }
 
   public MockAvdManagerConnection getEmulatorConnection() {

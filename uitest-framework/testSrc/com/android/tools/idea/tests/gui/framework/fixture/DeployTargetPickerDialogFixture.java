@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.AnimatedIcon;
 import org.fest.swing.cell.JListCellReader;
@@ -23,6 +24,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.util.AndroidBundle;
@@ -40,6 +42,8 @@ import static com.google.common.truth.Truth.assertThat;
 /** Fixture for {@link com.android.tools.idea.run.editor.DeployTargetPickerDialog}. */
 public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTargetPickerDialogFixture, JDialog>
   implements ContainerFixture<JDialog> {
+
+  private Dialog dialogContainer;
 
   @NotNull
   public static DeployTargetPickerDialogFixture find(@NotNull Robot robot) {
@@ -59,6 +63,7 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
 
   private DeployTargetPickerDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
     super(DeployTargetPickerDialogFixture.class, robot, target);
+    dialogContainer = (Dialog)target;
   }
 
   /**
@@ -89,5 +94,12 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
 
   public void clickOk() {
     findAndClickOkButton(this);
+  }
+
+  @NotNull
+  public JButtonFixture getCreateNewVirtualDeviceButton() {
+    return new JButtonFixture(
+        robot(),
+        robot().finder().find(dialogContainer, Matchers.byText(JButton.class, "Create New Virtual Device")));
   }
 }
