@@ -69,9 +69,6 @@ public class JavaToKotlinHandler {
 
     // If its a new project then call the conversion in response to rootsChanged.
     if (isNewProject) {
-      // Call save all before JavaToKotlinConverter needs to since this is the cause
-      // for IndexNotReadyException
-      DumbService.getInstance(project).smartInvokeLater(() -> ApplicationManager.getApplication().saveAll());
 
       Disposable tempDisposable = Disposer.newDisposable();
       GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
@@ -103,22 +100,11 @@ public class JavaToKotlinHandler {
                                     @NotNull Runnable postProcessFunction) {
 
     DumbService.getInstance(project).smartInvokeLater(() -> {
-      ApplicationEx application = ApplicationManagerEx.getApplicationEx();
-      boolean previousState = application.isDoNotSave();
-      try {
-        // NOTE: This is a temporary fix until the IndexNotReady exception is fixed in kotlin-plugin.
-        application.doNotSave();
-        List<PsiJavaFile> psiJavaFiles = files2PsiJavaFiles(project, files);
-        if (!psiJavaFiles.isEmpty()) {
-          provider.configureKotlin(project);
-          provider.convertToKotlin(project, psiJavaFiles);
-        }
-        postProcessFunction.run();
+      List<PsiJavaFile> psiJavaFiles = files2PsiJavaFiles(project, files);
+      if (!psiJavaFiles.isEmpty()) {
+        provider.convertToKotlin(project, psiJavaFiles);
       }
-      finally {
-        // restore previous state and call saveAll
-        application.doNotSave(previousState);
-      }
+      postProcessFunction.run();
     });
   }
 
