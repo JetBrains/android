@@ -1258,6 +1258,26 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       NlComponent deletedComponent = deleted.get(i);
       String id = deletedComponent.getId();
       ConstraintComponentUtilities.updateOnDelete(component, id);
+      NlComponent parent = deletedComponent.getParent();
+      if (parent != null) {
+        ArrayList<NlComponent> toRemove = new ArrayList<>();
+        for (NlComponent child : parent.getChildren()) {
+          if (child.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+            for (NlComponent reference : child.getChildren()) {
+              if (reference.getId().equals(id)) {
+                toRemove.add(reference);
+              }
+            }
+          }
+        }
+        for (NlComponent element : toRemove) {
+          NlComponent p = element.getParent();
+          if (p != null) {
+            p.removeChild(element);
+          }
+          element.getTag().delete();
+        }
+      }
     }
   }
 
