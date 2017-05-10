@@ -366,7 +366,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
     else {
       myFile = model.getFile();
-      if (!mySurface.isCanvasResizing() && mySurface.isZoomFitted()) {
+      if (!mySurface.isCanvasResizing()) {
         // If we are resizing, keep the zoom level constant
         // only if the zoom was previously set to FIT
         mySurface.zoomToFit();
