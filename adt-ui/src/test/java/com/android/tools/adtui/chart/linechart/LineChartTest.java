@@ -47,5 +47,6 @@ public class LineChartTest {
     assertThat(yRange.getMax()).isWithin(0.0).of(50);  // before update.
     choreographer.step();
     assertThat(yRange.getMax()).isWithin(0.0).of(100);  // after update.
+    choreographer.stop();
   }
 }
