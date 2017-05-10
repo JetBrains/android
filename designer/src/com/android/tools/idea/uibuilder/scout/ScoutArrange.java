@@ -815,6 +815,14 @@ public class ScoutArrange {
     rectangle.y = widget.getDpY();
     rectangle.width = widget.getDpWidth();
     rectangle.height = widget.getDpHeight();
+    if (ConstraintComponentUtilities.isVerticalLine(widget.mNlComponent)) {
+      rectangle.height = widget.getParent().getDpHeight();
+      rectangle.y = 0;
+    }
+    else if (ConstraintComponentUtilities.isHorizontalLine(widget.mNlComponent)) {
+      rectangle.width = widget.getParent().getDpWidth();
+      rectangle.x = 0;
+    }
     return rectangle;
   }
 

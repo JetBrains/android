@@ -171,14 +171,16 @@ public class ComponentDescriptor {
     // Make sure that all the children have bounds that fit within this component
     Rectangle bounds = getBounds();
     for (ComponentDescriptor child : children) {
-      assertTrue("Expected parent layout with bounds " +
-                 bounds +
-                 " to fully contain child bounds " +
-                 child.getBounds() +
-                 " where parent=" +
-                 this +
-                 " and child=" +
-                 child, bounds.contains(child.getBounds()));
+      if (!child.myTagName.equalsIgnoreCase("tag")) {
+        assertTrue("Expected parent layout with bounds " +
+                   bounds +
+                   " to fully contain child bounds " +
+                   child.getBounds() +
+                   " where parent=" +
+                   this +
+                   " and child=" +
+                   child, bounds.contains(child.getBounds()));
+      }
     }
 
     myChildren = children;

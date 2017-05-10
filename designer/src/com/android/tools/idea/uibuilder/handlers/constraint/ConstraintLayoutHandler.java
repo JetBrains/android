@@ -510,7 +510,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       if (nlComponent.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
         String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
         boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase()));
-        result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, isHorizontal));
+        result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, BarrierTarget.parseDirection(side)));
         result.add(new BarrierTarget(BarrierTarget.parseDirection(side)));
         return result;
       }
