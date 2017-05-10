@@ -22,6 +22,9 @@ import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.BiFunction;
 
 /**
@@ -78,7 +81,8 @@ class CaptureModel {
       // If a thread was already selected, keep the selection. Otherwise select the capture main thread.
       setThread(myThread != INVALID_THREAD ? myThread : capture.getMainThreadId());
       myCapture.updateClockType(myClockType);
-    } else {
+    }
+    else {
       setThread(INVALID_THREAD);
     }
     rebuildDetails();
@@ -313,7 +317,8 @@ class CaptureModel {
       if (node != null) {
         myCaptureRange = new Range(node.getStart(), node.getEnd());
         myNode = convertToHNode(new TopDownNode(node), node.getStart(), 0);
-      } else {
+      }
+      else {
         myNode = null;
         myCaptureRange = null;
       }
@@ -337,14 +342,24 @@ class CaptureModel {
     private HNode<MethodModel> convertToHNode(@NotNull TopDownNode topDown, double start, int depth) {
       assert myCaptureRange != null;
       topDown.update(myCaptureRange);
-
       HNode<MethodModel> node = new HNode<>(topDown.getNodes().get(0).getData(), (long)start, (long)(start + topDown.getTotal()));
       node.setDepth(depth);
 
-      for (TopDownNode child: topDown.getChildren()) {
+      for (TopDownNode child : topDown.getChildren()) {
+        child.update(myCaptureRange);
+      }
+
+      List<TopDownNode> sortedChildren = new ArrayList<>(topDown.getChildren());
+      // When we display a topdown node in the ui, its sorting handled by the table's sorting mechanism.
+      // Conversely, in the flame chart we take care of sorting.
+      // List#sort api is stable, i.e it keeps order of the appearance if sorting arguments are equal.
+      sortedChildren.sort(Comparator.comparingDouble(TopDownNode::getTotal).reversed());
+
+      for (TopDownNode child : sortedChildren) {
         node.addHNode(convertToHNode(child, start, depth + 1));
         start += child.getTotal();
       }
+
       return node;
     }
   }
