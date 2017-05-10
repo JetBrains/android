@@ -157,7 +157,7 @@ public class NewCppProjectTest {
    * This checks that our (default) project templates are warnings-clean.
    * The test then proceeds to make a couple of edits and checks that these do not generate additional warnings either.
    */
-  @RunIn(TestGroup.PROJECT_WIZARD)
+  @RunIn(TestGroup.UNRELIABLE /* TestGroup.PROJECT_WIZARD */)  // timeout waiting for Gradle sync: b/37965951
   @Test
   public void noWarningsInNewProjectWithCpp() {
     createCppProject(false, false);
