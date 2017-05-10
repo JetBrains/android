@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DurationData;
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -35,6 +33,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
@@ -368,5 +367,40 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertTrue(legends.getLegends().stream().anyMatch(legend -> legend == objectLegend));
     assertTrue(usage.getSeries().stream().anyMatch(series -> series == objectSeries));
+  }
+
+  @Test
+  public void testTooltipLegends() {
+    long time = TimeUnit.MICROSECONDS.toNanos(2);
+    MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder()
+      .setEndTimestamp(time)
+      .addMemSamples(MemoryProfiler.MemoryData.MemorySample.newBuilder()
+                       .setTimestamp(time)
+                       .setJavaMem(10)
+                       .setNativeMem(20)
+                       .setGraphicsMem(30)
+                       .setStackMem(40)
+                       .setCodeMem(50)
+                       .setOthersMem(60)).build();
+    myService.setMemoryData(memoryData);
+    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
+    assertEquals("Java", legends.getJavaLegend().getName());
+    assertEquals("10KB", legends.getJavaLegend().getValue());
+
+    assertEquals("Native", legends.getNativeLegend().getName());
+    assertEquals("20KB", legends.getNativeLegend().getValue());
+
+    assertEquals("Graphics", legends.getGraphicsLegend().getName());
+    assertEquals("30KB", legends.getGraphicsLegend().getValue());
+
+    assertEquals("Stack", legends.getStackLegend().getName());
+    assertEquals("40KB", legends.getStackLegend().getValue());
+
+    assertEquals("Code", legends.getCodeLegend().getName());
+    assertEquals("50KB", legends.getCodeLegend().getValue());
+
+    assertEquals("Others", legends.getOtherLegend().getName());
+    assertEquals("60KB", legends.getOtherLegend().getValue());
   }
 }
