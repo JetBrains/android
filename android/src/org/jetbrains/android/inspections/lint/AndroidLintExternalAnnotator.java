@@ -226,6 +226,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     }
     final Project project = file.getProject();
     if (DumbService.isDumb(project)) return;
+    AndroidLintQuickFixProvider[] fixProviders = AndroidLintQuickFixProvider.EP_NAME.getExtensions();
 
     for (ProblemData problemData : state.getProblems()) {
       final Issue issue = problemData.getIssue();
@@ -262,7 +263,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             }
             final Annotation annotation = createAnnotation(holder, message, range, displayLevel, issue);
 
-            for (AndroidLintQuickFix fix : inspection.getQuickFixes(startElement, endElement, message, quickfixData)) {
+
+            AndroidLintQuickFix[] fixes = inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue);
+            for (AndroidLintQuickFix fix : fixes) {
               if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
                 annotation.registerFix(new MyFixingIntention(fix, startElement, endElement));
               }
