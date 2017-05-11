@@ -68,6 +68,11 @@ public class AndroidPsiAugmentProvider extends PsiAugmentProvider {
         final List<Psi> result = new ArrayList<Psi>();
 
         for (ResourceType resType : types) {
+          if (resType == ResourceType.SAMPLE_DATA) {
+            // Sample data is just private for the tools attribute resolution
+            continue;
+          }
+
           if (!existingInnerClasses.contains(resType.getName())) {
             final AndroidLightClass resClass = new ResourceTypeClass(facet, resType.getName(), aClass);
             result.add((Psi)resClass);
