@@ -29,6 +29,7 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.base.Joiner;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -54,11 +55,14 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
   private JComboBox<RuntimeLibraryType> myRuntimeLibraryCombo;
   private JCheckBox myRttiSupportCheck;
   private JBLabel myRuntimeLibraryLabel;
+  private HyperlinkLabel myDocumentationLink;
 
   public ConfigureCppSupportStep(@NotNull NewProjectModel model) {
     super(model, message("android.wizard.activity.add.cpp"));
 
     myIconLabel.setIcon(AndroidIcons.Wizards.CppConfiguration);
+    myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
+    myDocumentationLink.setHyperlinkTarget("https://developer.android.com/ndk/guides/cpp-support.html");
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }

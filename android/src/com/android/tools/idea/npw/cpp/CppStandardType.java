@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public enum CppStandardType {
   DEFAULT("Toolchain Default", null),
-  CXX11("C++11", "-std=c++11");
+  CXX11("C++11", "-std=c++11"),
+  CXX14("C++14", "-std=c++14");
 
   CppStandardType(@NotNull String dialogName, @Nullable String compilerFlag) {
     myDialogName = dialogName;
