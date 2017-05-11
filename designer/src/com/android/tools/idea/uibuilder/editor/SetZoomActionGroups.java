@@ -23,8 +23,8 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
-public final class VectorToolbarActionGroups extends ToolbarActionGroups {
-  public VectorToolbarActionGroups(@NotNull DesignSurface surface) {
+public final class SetZoomActionGroups extends ToolbarActionGroups {
+  public SetZoomActionGroups(@NotNull DesignSurface surface) {
     super(surface);
   }
 

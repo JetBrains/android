@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
+import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -40,12 +41,14 @@ import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
+import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +57,10 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
 /**
@@ -63,29 +69,18 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  */
 public class NlDesignSurface extends DesignSurface {
   public enum ScreenMode {
-    SCREEN_ONLY(ScreenView.ScreenViewType.NORMAL),
-    BLUEPRINT_ONLY(ScreenView.ScreenViewType.BLUEPRINT),
-    BOTH(ScreenView.ScreenViewType.NORMAL);
+    SCREEN_ONLY,
+    BLUEPRINT_ONLY,
+    BOTH;
 
     @VisibleForTesting
     @NotNull
     static final ScreenMode DEFAULT_SCREEN_MODE = BOTH;
 
-    private final ScreenView.ScreenViewType myScreenViewType;
-
-    ScreenMode(@NotNull ScreenView.ScreenViewType screenViewType) {
-      myScreenViewType = screenViewType;
-    }
-
     @NotNull
     public ScreenMode next() {
       ScreenMode[] values = values();
       return values[(ordinal() + 1) % values.length];
-    }
-
-    @NotNull
-    private ScreenView.ScreenViewType getScreenViewType() {
-      return myScreenViewType;
     }
 
     @VisibleForTesting
@@ -207,23 +202,22 @@ public class NlDesignSurface extends DesignSurface {
     return new LayoutlibSceneManager(model, this);
   }
 
-  private void addLayers(@NotNull NlModel model) {
-    assert myScreenView != null;
+  private void addLayers() {
+    myLayers.add(new MyBottomLayer());
 
-    MyBottomLayer bottom = new MyBottomLayer();
-    myLayers.add(bottom);
     switch (myScreenMode) {
       case SCREEN_ONLY:
         addScreenLayers();
         break;
       case BLUEPRINT_ONLY:
+        assert myScreenView != null;
         addBlueprintLayers(myScreenView);
+
         break;
       case BOTH:
-        myBlueprintView = new ScreenView(this, ScreenView.ScreenViewType.BLUEPRINT, model);
-        myBlueprintView.setLocation(myScreenX + myScreenView.getPreferredSize().width + 10, myScreenY);
-
         addScreenLayers();
+
+        assert myBlueprintView != null;
         addBlueprintLayers(myBlueprintView);
 
         break;
@@ -484,36 +478,66 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   protected void doCreateSceneViews() {
-    NlModel model = getModel();
-    if (model == null && myScreenView == null) {
+    myLayers.clear();
+
+    myScreenView = null;
+    myBlueprintView = null;
+
+    if (myModel == null) {
       return;
     }
-    myScreenView = null;
-    myLayers.clear();
-    if (model != null) {
-      myScreenView = new ScreenView(this, ScreenView.ScreenViewType.NORMAL, model);
 
-      // If the model has already rendered, there may be errors to display,
-      // so update the error panel to reflect that.
-      updateErrorDisplay();
+    NlLayoutType type = myModel.getType();
 
-      getLayeredPane().setPreferredSize(myScreenView.getPreferredSize());
+    if (type.equals(NlLayoutType.MENU)) {
+      doCreateSceneViewsForMenu();
+      return;
+    }
 
-      NlLayoutType layoutType = myScreenView.getModel().getType();
+    if (type.equals(NlLayoutType.PREFERENCE_SCREEN)) {
+      myScreenMode = ScreenMode.SCREEN_ONLY;
+    }
 
-      if (layoutType.equals(NlLayoutType.MENU) || layoutType.equals(NlLayoutType.PREFERENCE_SCREEN)) {
-        myScreenMode = ScreenMode.SCREEN_ONLY;
-      }
+    switch (myScreenMode) {
+      case SCREEN_ONLY:
+        myScreenView = new ScreenView(this, ScreenViewType.NORMAL, myModel);
+        break;
+      case BLUEPRINT_ONLY:
+        myScreenView = new ScreenView(this, ScreenViewType.BLUEPRINT, myModel);
+        break;
+      case BOTH:
+        myScreenView = new ScreenView(this, ScreenViewType.NORMAL, myModel);
 
-      myScreenView.setType(myScreenMode.getScreenViewType());
+        myBlueprintView = new ScreenView(this, ScreenViewType.BLUEPRINT, myModel);
+        myBlueprintView.setLocation(myScreenX + myScreenView.getPreferredSize().width + 10, myScreenY);
 
-      addLayers(model);
-      layoutContent();
+        break;
+    }
+
+    updateErrorDisplay();
+    getLayeredPane().setPreferredSize(myScreenView.getPreferredSize());
+
+    addLayers();
+    layoutContent();
+  }
+
+  private void doCreateSceneViewsForMenu() {
+    myScreenMode = ScreenMode.SCREEN_ONLY;
+    XmlTag tag = myModel.getFile().getRootTag();
+
+    // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
+    if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
+      myScreenView = new NavigationViewSceneView(this, myModel);
+      myLayers.add(new ScreenViewLayer(myScreenView));
     }
     else {
-      myScreenView = null;
-      myBlueprintView = null;
+      myScreenView = new ScreenView(this, ScreenViewType.NORMAL, myModel);
+      addScreenLayers();
     }
+
+    updateErrorDisplay();
+    getLayeredPane().setPreferredSize(myScreenView.getPreferredSize());
+    layoutContent();
   }
 
   @Override
