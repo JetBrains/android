@@ -29,6 +29,7 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -85,7 +86,7 @@ public class StudioProfilersView extends AspectObserver {
     myLayout = new BorderLayout();
     myComponent = new JPanel(myLayout);
 
-    JComboBox<Profiler.Device> deviceCombo = new FlatComboBox<>();
+    JComboBox<Profiler.Device> deviceCombo = new ComboBox<>();
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
                                                 myProfiler::getDevice,
@@ -95,8 +96,9 @@ public class StudioProfilersView extends AspectObserver {
                                                 });
     devices.bind();
     deviceCombo.setRenderer(new DeviceComboBoxRenderer());
+    deviceCombo.setFont(deviceCombo.getFont().deriveFont(12.0f));
 
-    JComboBox<Profiler.Process> processCombo = new FlatComboBox<>();
+    JComboBox<Profiler.Process> processCombo = new ComboBox<>();
     JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,
@@ -106,6 +108,7 @@ public class StudioProfilersView extends AspectObserver {
                                                   });
     processes.bind();
     processCombo.setRenderer(new ProcessComboBoxRenderer());
+    processCombo.setFont(processCombo.getFont().deriveFont(12.0f));
 
     JPanel toolbar = new JPanel(new BorderLayout());
     JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -113,7 +116,7 @@ public class StudioProfilersView extends AspectObserver {
     toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER));
     toolbar.setPreferredSize(new Dimension(15, 30));
 
-    myMonitoringToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    myMonitoringToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
     myMonitoringToolbar.add(deviceCombo);
     myMonitoringToolbar.add(processCombo);
 
@@ -144,7 +147,8 @@ public class StudioProfilersView extends AspectObserver {
     leftToolbar.add(myCommonToolbar);
     toolbar.add(leftToolbar, BorderLayout.WEST);
 
-    JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    // Changing from default to add additional padding.
+    JPanel rightToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 2));
     toolbar.add(rightToolbar, BorderLayout.EAST);
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
