@@ -20,6 +20,11 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.sampledata.datasource.CombinerDataSource;
+import com.android.tools.idea.sampledata.datasource.LoremIpsumGenerator;
+import com.android.tools.idea.sampledata.datasource.NumberGenerator;
+import com.android.tools.idea.sampledata.datasource.ResourceContent;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -40,9 +45,24 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.FD_SAMPLE_DATA;
-
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 
 public class SampleDataResourceRepository extends LocalResourceRepository {
+  private static final ImmutableList<SampleDataResourceItem> PREDEFINED_SOURCES = ImmutableList.of(
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "full_names", new CombinerDataSource(
+      SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"),
+      SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/surnames.txt"))),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "first_names", new ResourceContent(
+      SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"))),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "last_names", new ResourceContent(
+      SampleDataResourceRepository.class.getClassLoader()
+        .getResourceAsStream("sampleData/surnames.txt"))),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "cities", new ResourceContent(
+      SampleDataResourceRepository.class.getClassLoader()
+        .getResourceAsStream("sampleData/cities.txt"))),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_postcodes", new NumberGenerator("%05d", 20000, 99999)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_phones", new NumberGenerator("555-%04d", 0, 9999)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator()));
   private final ResourceTable myFullTable;
   private AndroidFacet myAndroidFacet;
 
@@ -111,6 +131,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
         contentsUpdated(event);
       }
     }, this);
+
     invalidate();
   }
 
@@ -121,6 +142,11 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     catch (IOException e) {
       LOG.warn("Error loading sample data file " + sampleDataFile.getName(), e);
     }
+  }
+
+  private static void addPredefinedItems(@NotNull ImmutableListMultimap.Builder<String, ResourceItem> items) {
+    PREDEFINED_SOURCES.forEach(source ->
+                                 items.put(source.getName(), source));
   }
 
   /**
@@ -134,17 +160,19 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     catch (IOException ignore) {
     }
     myFullTable.clear();
+
+    ImmutableListMultimap.Builder<String, ResourceItem> projectItems = ImmutableListMultimap.builder();
+
     if (sampleDataDir != null) {
-      ImmutableListMultimap.Builder<String, ResourceItem> items = ImmutableListMultimap.builder();
       PsiManager psiManager = PsiManager.getInstance(myAndroidFacet.getModule().getProject());
       Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
       ApplicationManager.getApplication().runReadAction(() -> childrenStream
         .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
         .filter(Objects::nonNull)
-        .forEach(f -> addItems(items, f)));
-
-      myFullTable.put(null, ResourceType.SAMPLE_DATA, items.build());
+        .forEach(f -> addItems(projectItems, f)));
     }
+    addPredefinedItems(projectItems);
+    myFullTable.put(null, ResourceType.SAMPLE_DATA, projectItems.build());
 
     myGeneration = ourModificationCounter.incrementAndGet();
 
