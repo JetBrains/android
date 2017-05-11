@@ -87,7 +87,11 @@ public class NlTreeBadgeHandler {
     Icon lockIcon = AndroidIcons.SherpaIcons.LockConstraints;
     for (int i = 0; i < tree.getRowCount(); i++) {
       TreePath path = tree.getPathForRow(i);
-      NlComponent component = (NlComponent)path.getLastPathComponent();
+      Object last = path.getLastPathComponent();
+      if (!(last instanceof NlComponent)) {
+        continue;
+      }
+      NlComponent component = (NlComponent)last;
       Rectangle pathBounds = tree.getPathBounds(path);
       int y = pathBounds.y + pathBounds.height / 2;
       Icon firstIcon = null;
@@ -220,7 +224,11 @@ public class NlTreeBadgeHandler {
    */
   @Nullable
   private static String getIssueMessage(@NotNull TreePath path) {
-    NlComponent component = (NlComponent)path.getLastPathComponent();
+    Object last = path.getLastPathComponent();
+    if (!(last instanceof NlComponent)) {
+      return null;
+    }
+    NlComponent component = (NlComponent)last;
     LintAnnotationsModel lintAnnotationsModel = component.getModel().getLintAnnotationsModel();
     if (lintAnnotationsModel != null) {
       return lintAnnotationsModel.getIssueMessage(component, false);
@@ -276,7 +284,11 @@ public class NlTreeBadgeHandler {
           event.getY() < bounds.y || event.getY() > bounds.y + bounds.height) {
         return;
       }
-      NlComponent component = (NlComponent)path.getLastPathComponent();
+      Object last = path.getLastPathComponent();
+      if (!(last instanceof NlComponent)) {
+        return;
+      }
+      NlComponent component = (NlComponent)last;
       if (event.getX() > myBadgeX) {
         myIssuePanel.showIssueForComponent(component, true);
       } else {
@@ -326,7 +338,11 @@ public class NlTreeBadgeHandler {
         return;
       }
 
-      myHoveredComponent = (NlComponent)path.getLastPathComponent();
+      Object last = path.getLastPathComponent();
+      if (!(last instanceof NlComponent)) {
+        return;
+      }
+      myHoveredComponent = (NlComponent)last;
 
       boolean badgeIcon = true;
       if (SUPPORTS_LOCKING) {

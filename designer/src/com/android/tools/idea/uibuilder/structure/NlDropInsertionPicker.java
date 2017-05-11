@@ -87,7 +87,11 @@ class NlDropInsertionPicker {
     }
 
     result.depth = 1;
-    NlComponent receiverComponent = (NlComponent)referencePath.getLastPathComponent();
+    Object last = referencePath.getLastPathComponent();
+    if (!(last instanceof NlComponent)) {
+      return null;
+    }
+    NlComponent receiverComponent = (NlComponent)last;
 
     if (canChangeInsertionDepth(referencePath, receiverComponent)) {
       TreePath parentPath;
