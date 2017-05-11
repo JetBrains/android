@@ -63,6 +63,8 @@ import java.util.function.Function;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
+  private static final String NO_DATA_MESSAGE = "No data for the selected thread.";
+
   private static final Map<String, CaptureModel.Details.Type> TABS = ImmutableMap.of(
     "Top Down", CaptureModel.Details.Type.TOP_DOWN,
     "Bottom Up", CaptureModel.Details.Type.BOTTOM_UP,
@@ -292,7 +294,7 @@ class CpuCaptureView {
     private TopDownView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TopDown topDown) {
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
-        myComponent = new JLabel("No data available");
+        myComponent = new JLabel(NO_DATA_MESSAGE, SwingConstants.CENTER);
         return;
       }
 
@@ -306,7 +308,7 @@ class CpuCaptureView {
     private BottomUpView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.BottomUp bottomUp) {
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {
-        myComponent = new JLabel("No data available");
+        myComponent = new JLabel(NO_DATA_MESSAGE, SwingConstants.CENTER);
         return;
       }
 
@@ -346,6 +348,11 @@ class CpuCaptureView {
   private static class TreeChartView extends CaptureDetailsView {
     private TreeChartView(@NotNull CpuProfilerStageView view, @NotNull Range range, @Nullable HNode<MethodModel> node,
                           @NotNull HTreeChart.Orientation orientation) {
+      if (node == null) {
+        myComponent = new JLabel(NO_DATA_MESSAGE, SwingConstants.CENTER);
+        return;
+      }
+
       HTreeChart<MethodModel> chart = new HTreeChart<>(range, orientation);
       chart.setHRenderer(new SampledMethodUsageHRenderer());
       chart.setHTree(node);
