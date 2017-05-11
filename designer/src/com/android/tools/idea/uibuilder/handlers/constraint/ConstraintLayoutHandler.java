@@ -931,20 +931,23 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                   break;
                 }
               }
-              if (barrier != null) {
-                for (NlComponent child : selectedChildren) {
-                  if (ConstraintComponentUtilities.isLine(child)) {
-                    continue;
+              if (ConstraintHelperHandler.USE_HELPER_TAGS) {
+                if (barrier != null) {
+                  for (NlComponent child : selectedChildren) {
+                    if (ConstraintComponentUtilities.isLine(child)) {
+                      continue;
+                    }
+                    NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
+                    tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                    tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                    tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                    tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
                   }
-                  NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
-                  tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-                  tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-                  tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
-                  tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
                 }
-              }
+              } // TODO: add views to the barrier when not using the tags approach
               return;
             }
+
             NlComponent barrier = parent.createChild(editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
             barrier.ensureId();
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
@@ -952,16 +955,18 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
 
-            if (selectedChildren.size() > 0) {
-              NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
-              tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-              tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-              for (NlComponent child : selectedChildren) {
-                if (ConstraintComponentUtilities.isLine(child)) {
-                  continue;
+            if (ConstraintHelperHandler.USE_HELPER_TAGS) {
+              if (selectedChildren.size() > 0) {
+                NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
+                tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                for (NlComponent child : selectedChildren) {
+                  if (ConstraintComponentUtilities.isLine(child)) {
+                    continue;
+                  }
+                  tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                  tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
                 }
-                tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
-                tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
               }
             }
           }
@@ -985,7 +990,31 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                   break;
                 }
               }
-              if (barrier != null) {
+              if (ConstraintHelperHandler.USE_HELPER_TAGS) {
+                if (barrier != null) {
+                  for (NlComponent child : selectedChildren) {
+                    if (ConstraintComponentUtilities.isLine(child)) {
+                      continue;
+                    }
+                    NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
+                    tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                    tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                    tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                    tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
+                  }
+                }
+              } // TODO: add views to the barrier when not using the tags approach
+              return;
+            }
+            NlComponent barrier = parent.createChild(editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            barrier.ensureId();
+            barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
+            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+            // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
+
+            if (ConstraintHelperHandler.USE_HELPER_TAGS) {
+              if (selectedChildren.size() > 0) {
+
                 for (NlComponent child : selectedChildren) {
                   if (ConstraintComponentUtilities.isLine(child)) {
                     continue;
@@ -996,26 +1025,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                   tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
                   tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
                 }
-              }
-              return;
-            }
-            NlComponent barrier = parent.createChild(editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
-            barrier.ensureId();
-            barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
-            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
-            // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
-
-            if (selectedChildren.size() > 0) {
-
-              for (NlComponent child : selectedChildren) {
-                if (ConstraintComponentUtilities.isLine(child)) {
-                  continue;
-                }
-                NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
-                tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
-                tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-                tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
-                tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
               }
             }
           }
@@ -1056,10 +1065,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
       }
       if (myType == CONSTRAINT_SET) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 1);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 9);
       }
       if (myType == LAYER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 1);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 9);
       }
 
       presentation.setVisible(show);
