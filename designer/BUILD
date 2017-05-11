@@ -3,7 +3,10 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "designer",
     srcs = ["src"],
-    javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
+    javacopts = [
+        "-Xep:MissingCasesInEnumSwitch:WARN",
+        "-Xep:IdentityBinaryExpression:WARN",
+    ],
     resources = ["resources"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
