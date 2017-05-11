@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.fonts.FontFamily;
 import com.android.tools.idea.fonts.MoreFontsDialog;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -32,6 +32,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
+import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
 public class FontEnumSupport extends EnumSupport {
   private ProjectFonts myProjectFonts;
@@ -82,10 +85,10 @@ public class FontEnumSupport extends EnumSupport {
         renderer.setIcon(AndroidIcons.Android);
         break;
       case PROJECT:
-        if (fontFamily.getMenu().startsWith(FontFamily.FILE_PROTOCOL_START)) {
+        if (fontFamily.getMenu().startsWith(FILE_PROTOCOL_START)) {
           renderer.setIcon(AndroidIcons.FontFile);
         }
-        else if (fontFamily.getMenu().startsWith(FontFamily.HTTPS_PROTOCOL_START)) {
+        else if (fontFamily.getMenu().startsWith(HTTPS_PROTOCOL_START)) {
           renderer.setIcon(AndroidIcons.NeleIcons.Link);
         }
         else {

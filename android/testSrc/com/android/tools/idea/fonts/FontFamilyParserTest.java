@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.MutableFontDetail;
+import com.android.ide.common.fonts.QueryParser;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.io.FileUtil;
@@ -46,15 +48,15 @@ public class FontFamilyParserTest extends UsefulTestCase {
     assertThat(result).isInstanceOf(FontFamilyParser.CompoundFontResult.class);
     FontFamilyParser.CompoundFontResult compoundResult = (FontFamilyParser.CompoundFontResult)result;
     assertThat(compoundResult.getFonts().keySet()).containsExactly("@font/a_bee_zee_regular", "@font/a_bee_zee_italics");
-    FontDetail.Builder regular = compoundResult.getFonts().get("@font/a_bee_zee_regular");
-    FontDetail.Builder italics = compoundResult.getFonts().get("@font/a_bee_zee_italics");
+    MutableFontDetail regular = compoundResult.getFonts().get("@font/a_bee_zee_regular");
+    MutableFontDetail italics = compoundResult.getFonts().get("@font/a_bee_zee_italics");
 
-    assertThat(regular.myWeight).isEqualTo(400);
-    assertThat(regular.myWidth).isEqualTo(100);
-    assertThat(regular.myItalics).isFalse();
-    assertThat(italics.myWeight).isEqualTo(700);
-    assertThat(italics.myWidth).isEqualTo(100);
-    assertThat(italics.myItalics).isTrue();
+    assertThat(regular.getWeight()).isEqualTo(400);
+    assertThat(regular.getWidth()).isEqualTo(100);
+    assertThat(regular.getItalics()).isFalse();
+    assertThat(italics.getWeight()).isEqualTo(700);
+    assertThat(italics.getWidth()).isEqualTo(100);
+    assertThat(italics.getItalics()).isTrue();
   }
 
   public void testParseFontFamilyWithDownloadableFontQuery() throws Exception {
@@ -69,14 +71,14 @@ public class FontFamilyParserTest extends UsefulTestCase {
     QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
-    Multimap<String, FontDetail.Builder> fonts = downloadableResult.getFonts();
+    Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
     assertThat(fonts.keys()).containsExactly("Aladin");
     assertThat(fonts).hasSize(1);
 
-    FontDetail.Builder fontDetail = fonts.get("Aladin").iterator().next();
-    assertThat(fontDetail.myWeight).isEqualTo(400);
-    assertThat(fontDetail.myWidth).isEqualTo(100);
-    assertThat(fontDetail.myItalics).isFalse();
+    MutableFontDetail fontDetail = fonts.get("Aladin").iterator().next();
+    assertThat(fontDetail.getWeight()).isEqualTo(400);
+    assertThat(fontDetail.getWidth()).isEqualTo(100);
+    assertThat(fontDetail.getItalics()).isFalse();
   }
 
   public void testParseFontFamilyWithDownloadableFontQueryUsingAppCompat() throws Exception {
@@ -91,14 +93,14 @@ public class FontFamilyParserTest extends UsefulTestCase {
     QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
-    Multimap<String, FontDetail.Builder> fonts = downloadableResult.getFonts();
+    Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
     assertThat(fonts.keys()).containsExactly("Aladin");
     assertThat(fonts).hasSize(1);
 
-    FontDetail.Builder fontDetail = fonts.get("Aladin").iterator().next();
-    assertThat(fontDetail.myWeight).isEqualTo(400);
-    assertThat(fontDetail.myWidth).isEqualTo(100);
-    assertThat(fontDetail.myItalics).isFalse();
+    MutableFontDetail fontDetail = fonts.get("Aladin").iterator().next();
+    assertThat(fontDetail.getWeight()).isEqualTo(400);
+    assertThat(fontDetail.getWidth()).isEqualTo(100);
+    assertThat(fontDetail.getItalics()).isFalse();
   }
 
   public void testParseFontFamilyWithDownloadableFontQueryWithParameters() throws Exception {
@@ -113,14 +115,14 @@ public class FontFamilyParserTest extends UsefulTestCase {
     QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
-    Multimap<String, FontDetail.Builder> fonts = downloadableResult.getFonts();
+    Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
     assertThat(fonts.keys()).containsExactly("Aladin");
     assertThat(fonts).hasSize(1);
 
-    FontDetail.Builder fontDetail = fonts.get("Aladin").iterator().next();
-    assertThat(fontDetail.myWeight).isEqualTo(800);
-    assertThat(fontDetail.myWidth).isEqualTo(70);
-    assertThat(fontDetail.myItalics).isTrue();
+    MutableFontDetail fontDetail = fonts.get("Aladin").iterator().next();
+    assertThat(fontDetail.getWeight()).isEqualTo(800);
+    assertThat(fontDetail.getWidth()).isEqualTo(70);
+    assertThat(fontDetail.getItalics()).isTrue();
   }
 
   public void testParseFontFamilyWithMultipleDownloadableFonts() throws Exception {
@@ -135,25 +137,25 @@ public class FontFamilyParserTest extends UsefulTestCase {
     QueryParser.DownloadableParseResult downloadableResult = (QueryParser.DownloadableParseResult)result;
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
-    Multimap<String, FontDetail.Builder> fonts = downloadableResult.getFonts();
+    Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
     assertThat(fonts.keys()).containsExactly("Aladin", "Roboto", "Roboto");
     assertThat(fonts).hasSize(3);
 
-    FontDetail.Builder aladin = fonts.get("Aladin").iterator().next();
-    assertThat(aladin.myWeight).isEqualTo(800);
-    assertThat(aladin.myWidth).isEqualTo(70);
-    assertThat(aladin.myItalics).isFalse();
+    MutableFontDetail aladin = fonts.get("Aladin").iterator().next();
+    assertThat(aladin.getWeight()).isEqualTo(800);
+    assertThat(aladin.getWidth()).isEqualTo(70);
+    assertThat(aladin.getItalics()).isFalse();
 
-    Iterator<FontDetail.Builder> iterator = fonts.get("Roboto").iterator();
-    FontDetail.Builder roboto1 = iterator.next();
-    assertThat(roboto1.myWeight).isEqualTo(400);
-    assertThat(roboto1.myWidth).isEqualTo(100);
-    assertThat(roboto1.myItalics).isFalse();
+    Iterator<MutableFontDetail> iterator = fonts.get("Roboto").iterator();
+    MutableFontDetail roboto1 = iterator.next();
+    assertThat(roboto1.getWeight()).isEqualTo(400);
+    assertThat(roboto1.getWidth()).isEqualTo(100);
+    assertThat(roboto1.getItalics()).isFalse();
 
-    FontDetail.Builder roboto2 = iterator.next();
-    assertThat(roboto2.myWeight).isEqualTo(700);
-    assertThat(roboto2.myWidth).isEqualTo(100);
-    assertThat(roboto2.myItalics).isTrue();
+    MutableFontDetail roboto2 = iterator.next();
+    assertThat(roboto2.getWeight()).isEqualTo(700);
+    assertThat(roboto2.getWidth()).isEqualTo(100);
+    assertThat(roboto2.getItalics()).isTrue();
   }
 
   private static File createXmlFile(@NotNull @Language("XML") String content) throws IOException {

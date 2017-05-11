@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.*;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,11 +29,9 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WEIGHT;
-import static com.android.tools.idea.fonts.FontDetail.DEFAULT_WIDTH;
-import static com.android.tools.idea.fonts.FontFamily.FontSource.LOOKUP;
-import static com.android.tools.idea.fonts.FontFamily.FontSource.PROJECT;
-import static com.android.tools.idea.fonts.SystemFonts.findBestMatch;
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WEIGHT;
+import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
+import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 
 /**
  * This class will find all the project level font definitions by iterating
@@ -40,14 +40,14 @@ import static com.android.tools.idea.fonts.SystemFonts.findBestMatch;
  * each font-family to a TTF file that can be shown in a UI.
  */
 public class ProjectFonts {
-  private final DownloadableFontCacheServiceImpl myService;
+  private final DownloadableFontCacheService myService;
   private final ResourceResolver myResolver;
   private final Map<String, FontFamily> myProjectFonts;
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
   public ProjectFonts(@Nullable ResourceResolver resolver) {
-    myService = DownloadableFontCacheServiceImpl.getInstance();
+    myService = DownloadableFontCacheService.getInstance();
     myResolver = resolver;
     myProjectFonts = new TreeMap<>();
     myParseResults = new HashMap<>();
@@ -142,16 +142,15 @@ public class ProjectFonts {
   private FontFamily resolveDownloadableFont(@NotNull String name, @NotNull QueryParser.DownloadableParseResult result) {
     String authority = result.getAuthority();
     List<FontDetail> details = new ArrayList<>();
-    for (Map.Entry<String, Collection<FontDetail.Builder>> entry : result.getFonts().asMap().entrySet()) {
+    for (Map.Entry<String, Collection<MutableFontDetail>> entry : result.getFonts().asMap().entrySet()) {
       String fontName = entry.getKey();
-      FontProvider providerLookup = new FontProvider("", authority, "", "", "", "");
-      FontFamily wantedFamily = new FontFamily(providerLookup, LOOKUP, fontName, "", null, Collections.emptyList());
-      FontFamily family = myService.lookup(wantedFamily);
+      FontProvider provider = new FontProvider("", authority, "", "", "", "");
+      FontFamily family = myService.findFont(provider, fontName);
       if (family == null) {
         return createUnresolvedFontFamily(name);
       }
-      for (FontDetail.Builder wanted : entry.getValue()) {
-        FontDetail best = findBestMatch(family.getFonts(), wanted);
+      for (MutableFontDetail wanted : entry.getValue()) {
+        FontDetail best = wanted.findBestMatch(family.getFonts());
         if (best == null) {
           return createUnresolvedFontFamily(name);
         }
@@ -171,14 +170,14 @@ public class ProjectFonts {
       return createUnresolvedFontFamily(name);
     }
     List<FontDetail> fonts = new ArrayList<>();
-    for (Map.Entry<String, FontDetail.Builder> font : result.getFonts().entrySet()) {
+    for (Map.Entry<String, MutableFontDetail> font : result.getFonts().entrySet()) {
       String dependency = font.getKey();
-      FontDetail.Builder wanted = font.getValue();
+      MutableFontDetail wanted = font.getValue();
       FontFamily family = resolveFont(dependency);
       if (family.getMenu().isEmpty()) {
         return createUnresolvedFontFamily(name);
       }
-      FontDetail best = findBestMatch(family.getFonts(), wanted);
+      FontDetail best = wanted.findBestMatch(family.getFonts());
       assert best != null;
       best = new FontDetail(best, wanted);
       fonts.add(best);
@@ -220,7 +219,7 @@ public class ProjectFonts {
     }
     if (value.endsWith(".xml")) {
       QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(new File(value));
-      if (result instanceof QueryParser.ParseErrorResult) {
+      if (result instanceof FontFamilyParser.ParseErrorResult) {
         createUnresolvedFontFamily(name);
       }
       myParseResults.put(name, result);
@@ -273,28 +272,28 @@ public class ProjectFonts {
 
   private void createEmbeddedFontFamily(@NotNull String name, @NotNull String fileName) {
     String fontName = StringUtil.trimStart(name, "@font/");
-    String fileUrl = FontFamily.FILE_PROTOCOL_START + fileName;
-    FontDetail.Builder detail = new FontDetail.Builder(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, null);
-    FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, PROJECT, fontName, fileUrl, null, Collections.singletonList(detail));
+    String fileUrl = FILE_PROTOCOL_START + fileName;
+    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, "", false);
+    FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, fileUrl, "", Collections.singletonList(detail));
     myProjectFonts.put(name, family);
   }
 
   private FontFamily createUnresolvedFontFamily(@NotNull String name) {
     String fontName = StringUtil.trimStart(name, "@font/");
-    FontDetail.Builder detail = new FontDetail.Builder(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, "", null);
-    FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, PROJECT, fontName, "", null, Collections.singletonList(detail));
+    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false);
+    FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, "", "", Collections.singletonList(detail));
     myProjectFonts.put(name, family);
     return family;
   }
 
   private FontFamily createSynonym(@NotNull String name, @NotNull List<FontDetail> details) {
     assert !details.isEmpty();
-    FontDetail.Builder wanted = new FontDetail.Builder(400, 100, false, "", null);
-    FontDetail best = findBestMatch(details, wanted);
+    MutableFontDetail wanted = new MutableFontDetail(400, 100, false);
+    FontDetail best = wanted.findBestMatch(details);
     assert best != null;
     FontProvider provider = best.getFamily().getProvider();
     String fontName = StringUtil.trimStart(name, "@font/");
-    FontFamily family = FontFamily.createCompound(provider, PROJECT, fontName, best.getFontUrl(), details);
+    FontFamily family = new FontFamily(provider, FontSource.PROJECT, fontName, best.getFontUrl(), "", ImmutableList.copyOf(details));
     myProjectFonts.put(name, family);
     return family;
   }
@@ -302,11 +301,12 @@ public class ProjectFonts {
   private FontFamily createCompoundFamily(@NotNull String name, @NotNull List<FontDetail> fonts) {
     assert !fonts.isEmpty();
     String fontName = StringUtil.trimStart(name, "@font/");
-    FontDetail.Builder wanted = new FontDetail.Builder();
-    FontDetail best = findBestMatch(fonts, wanted);
+    MutableFontDetail wanted = new MutableFontDetail(400, 100, false);
+    FontDetail best = wanted.findBestMatch(fonts);
     assert best != null;
     FontFamily original = best.getFamily();
-    FontFamily family = FontFamily.createCompound(original.getProvider(), PROJECT, fontName, original.getMenu(), fonts);
+    FontFamily family = new FontFamily(
+      original.getProvider(), FontSource.PROJECT, fontName, original.getMenu(), "", ImmutableList.copyOf(fonts));
     myProjectFonts.put(name, family);
     return family;
   }

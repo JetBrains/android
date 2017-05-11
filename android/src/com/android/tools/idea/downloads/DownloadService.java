@@ -162,10 +162,6 @@ public abstract class DownloadService {
       });
   }
 
-  public void loadLatest() {
-    loadData(null);
-  }
-
   private File loadData(@Nullable File downloaded) {
     if (downloaded == null) {
       downloaded = findLatestDownload();

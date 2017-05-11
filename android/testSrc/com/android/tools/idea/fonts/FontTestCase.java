@@ -47,10 +47,10 @@ public abstract class FontTestCase extends AndroidTestCase {
 
     @NotNull
     @Override
-    protected File locateFontCacheInSDK() {
+    protected File locateSdkHome() {
       if (mySdkFontPath == null) {
         try {
-          mySdkFontPath = FileUtil.createTempDirectory("font", "cache");
+          mySdkFontPath = FileUtil.createTempDirectory("font", "sdk");
         }
         catch (IOException ex) {
           throw new RuntimeException(ex);

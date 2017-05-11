@@ -17,66 +17,45 @@ package com.android.tools.idea.fonts;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontLoader;
+import com.android.ide.common.fonts.FontProvider;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
+import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
 /**
  * {@link DownloadableFontCacheServiceImpl} is a threadsafe implementation of {link {@link DownloadableFontCacheService}.
  */
 @ThreadSafe
-class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
-  private static final String PROVIDERS = "providers";
-  private static final String PROVIDERS_FILENAME = "provider_directory.xml";
+class DownloadableFontCacheServiceImpl extends FontLoader implements DownloadableFontCacheService {
   private static final String FONTS = "fonts";
   private static final String FONT = "font";
   private static final String V1 = "v1";
 
   private final SystemFonts mySystemFonts;
-  private final Object myLock;
-  @GuardedBy("myLock")
-  private final List<FontProvider> myProviders;
-  @GuardedBy("myLock")
+  @GuardedBy("getLock()")
   private final Map<String, FontDirectoryDownloadService> myDownloadServiceMap;
-  @GuardedBy("myLock")
-  private final List<FontFamily> mySortedFontFamilies;
-  @GuardedBy("myLock")
-  private final Map<FontFamily, FontFamily> myFontFamilyLookup;
-  @GuardedBy("myLock")
-  private File myFontPath;
-  @GuardedBy("myLock")
-  private boolean myUpdatedFontPath;
 
   @NotNull
   static DownloadableFontCacheServiceImpl getInstance() {
     return (DownloadableFontCacheServiceImpl)DownloadableFontCacheService.getInstance();
-  }
-
-  @Override
-  @NotNull
-  public List<FontFamily> getFontFamilies() {
-    synchronized (myLock) {
-      return new ArrayList<>(mySortedFontFamilies);
-    }
   }
 
   @Override
@@ -99,8 +78,87 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
 
   @Override
   @Nullable
+  public File getCachedMenuFile(@NotNull FontFamily family) {
+    String menu = family.getMenu();
+    if (menu.isEmpty()) {
+      return null;
+    }
+    if (menu.startsWith(FILE_PROTOCOL_START)) {
+      return new File(menu.substring(FILE_PROTOCOL_START.length()));
+    }
+    return getCachedFont(family.getProvider().getAuthority(), menu);
+  }
+
+  /**
+   * Returns a file relative to the font cache path.
+   * Or <code>null</code> if this is not a valid downloadable file.
+   */
+  @Nullable
+  public File getRelativeCachedMenuFile(@NotNull FontFamily family) {
+    String menu = family.getMenu();
+    if (!menu.startsWith(HTTPS_PROTOCOL_START)) {
+      return null;
+    }
+    return getRelativeCachedFont(family.getProvider().getAuthority(), menu);
+  }
+
+  @Override
+  @Nullable
+  public File getCachedFontFile(@NotNull FontDetail font) {
+    String fontUrl = font.getFontUrl();
+    if (fontUrl.isEmpty()) {
+      return null;
+    }
+    if (fontUrl.startsWith(FILE_PROTOCOL_START)) {
+      return new File(fontUrl.substring(FILE_PROTOCOL_START.length()));
+    }
+    return getCachedFont(font.getFamily().getProvider().getAuthority(), fontUrl);
+  }
+
+  @Nullable
+  public File getRelativeFontFile(@NotNull FontDetail font) {
+    String fontUrl = font.getFontUrl();
+    if (!fontUrl.startsWith(HTTPS_PROTOCOL_START)) {
+      return null;
+    }
+    return getRelativeCachedFont(font.getFamily().getProvider().getAuthority(), fontUrl);
+  }
+
+  @Override
+  @Nullable
+  @Language("XML")
+  public String toXml(@NotNull FontFamily family) {
+    StringBuilder output = new StringBuilder("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                             "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\">");
+    boolean hasAnyDownloadedFonts = false;
+    for (FontDetail detail : family.getFonts()) {
+      File cachedFile = getCachedFontFile(detail);
+      if (cachedFile == null || !cachedFile.exists()) {
+        continue;
+      }
+      hasAnyDownloadedFonts = true;
+      output.append(String.format("<font android:font=\"%1$s\" android:fontStyle=\"%2$s\" android:fontWeight=\"%3$d\" />",
+                                  cachedFile.getAbsolutePath(),
+                                  detail.getFontStyle(),
+                                  detail.getWeight()));
+    }
+    if (!hasAnyDownloadedFonts) {
+      return null;
+    }
+    output.append("</font-family>");
+
+    return output.toString();
+  }
+
+  @Override
+  public void download(@NotNull FontFamily family) {
+    FontDownloadService.download(Collections.singletonList(family), false, null, null);
+  }
+
+  @Override
+  @Nullable
   public Font loadMenuFont(@NotNull FontFamily fontFamily) {
-    File file = fontFamily.getCachedMenuFile();
+    File file = getCachedMenuFile(fontFamily);
     if (file != null && file.exists()) {
       try {
         return Font.createFont(Font.TRUETYPE_FONT, file);
@@ -115,7 +173,7 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
   @Override
   @Nullable
   public Font loadDetailFont(@NotNull FontDetail fontDetail) {
-    File file = fontDetail.getCachedFontFile();
+    File file = getCachedFontFile(fontDetail);
     if (file != null && file.exists()) {
       try {
         return Font.createFont(Font.TRUETYPE_FONT, file);
@@ -130,10 +188,8 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
   @Override
   public void refresh(@Nullable Runnable success, @Nullable Runnable failure) {
     Collection<FontDirectoryDownloadService> services;
-    synchronized (myLock) {
-      updateFontPath();
-      if (myUpdatedFontPath) {
-        updateProvidersFromFile();
+    synchronized (getLock()) {
+      if (updateSdkHome()) {
         updateDownloadServices();
       }
       services = myDownloadServiceMap.values();
@@ -144,22 +200,14 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
     }
   }
 
-  @Nullable
-  FontFamily lookup(@NotNull FontFamily family) {
-    synchronized (myLock) {
-      return myFontFamilyLookup.get(family);
-    }
-  }
-
   @VisibleForTesting
   DownloadableFontCacheServiceImpl() {
-    myLock = new Object();
-    myProviders = new ArrayList<>();
     myDownloadServiceMap = new HashMap<>();
-    mySortedFontFamilies = new ArrayList<>();
-    myFontFamilyLookup = new HashMap<>();
     init();
     mySystemFonts = new SystemFonts(this);
+
+    //noinspection AssignmentToStaticFieldFromInstanceMethod
+    instance = this;
   }
 
   @TestOnly
@@ -168,49 +216,34 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
   }
 
   private void init() {
-    File fontPath = locateInitialFontCache();
-    synchronized (myLock) {
-      myFontPath = fontPath;
-      updateProvidersFromFile();
-      updateDownloadServices();
-
-      for (FontDirectoryDownloadService service : myDownloadServiceMap.values()) {
-        service.loadLatest();
-      }
+    File initialSdkHome = locateSdkHome();
+    if (initialSdkHome == null) {
+      initialSdkHome = createTempSdk();
     }
+    synchronized (getLock()) {
+      clear(initialSdkHome);
+      updateDownloadServices();
+    }
+  }
+
+  @Nullable
+  protected File locateSdkHome() {
+    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+    return sdkHandler.getLocation();
   }
 
   @Override
-  @Nullable
-  public File getFontPath() {
-    synchronized (myLock) {
-      return myFontPath;
+  protected void loadFonts() {
+    super.loadFonts();
+    if (getFontFamilies().isEmpty()) {
+      loadDirectory(FontProvider.GOOGLE_PROVIDER, FontDirectoryDownloadService.getFallbackResourceUrl(FontProvider.GOOGLE_PROVIDER));
     }
   }
 
   @Nullable
-  private File locateInitialFontCache() {
-    File fontCacheInSDK = locateFontCacheInSDK();
-    return fontCacheInSDK != null ? fontCacheInSDK : createTempFontCache();
-  }
-
-  @Nullable
-  @VisibleForTesting
-  protected File locateFontCacheInSDK() {
-    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    File sdkLocation = sdkHandler.getLocation();
-    if (sdkLocation == null) {
-      return null;
-    }
-    File fonts = new File(sdkLocation, "fonts");
-    FileUtil.createDirectory(fonts);
-    return fonts;
-  }
-
-  @Nullable
-  private static File createTempFontCache() {
+  private static File createTempSdk() {
     try {
-      return FileUtil.createTempDirectory("temp", "font");
+      return FileUtil.createTempDirectory("temp", "sdk");
     }
     catch (IOException ex) {
       Logger.getInstance(DownloadableFontCacheServiceImpl.class).error(ex);
@@ -218,24 +251,26 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
     }
   }
 
-  private void updateFontPath() {
-    synchronized (myLock) {
-      File fontCacheInSDK = locateFontCacheInSDK();
-      if (fontCacheInSDK != null) {
-        myUpdatedFontPath = !FileUtil.filesEqual(fontCacheInSDK, myFontPath);
-        myFontPath = fontCacheInSDK;
-        return;
+  private boolean updateSdkHome() {
+    synchronized (getLock()) {
+      File newSdkHome = locateSdkHome();
+      File oldSdkHome = getSdkHome();
+      if (Objects.equals(newSdkHome, oldSdkHome)) {
+        return false;
       }
-      if (myFontPath != null && myFontPath.getName().startsWith("temp")) {
-        return;
+      if (newSdkHome == null) {
+        if (oldSdkHome != null && oldSdkHome.getName().startsWith("temp")) {
+          return false;
+        }
+        newSdkHome = createTempSdk();
       }
-      myUpdatedFontPath = true;
-      myFontPath = createTempFontCache();
+      clear(newSdkHome);
+      return true;
     }
   }
 
   @Nullable
-  File getCachedFont(@NotNull String authority, @NotNull String url) {
+  private File getCachedFont(@NotNull String authority, @NotNull String url) {
     File cachePath = getFontPath();
     if (cachePath == null) {
       return null;
@@ -243,7 +278,7 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
     return new File(cachePath, getRelativeCachedFont(authority, url).getPath());
   }
 
-  File getRelativeCachedFont(@NotNull String authority, @NotNull String menu) {
+  private static File getRelativeCachedFont(@NotNull String authority, @NotNull String menu) {
     File providerPath = new File(authority);
     File fontsPath = new File(providerPath, FONTS);
     File fontPath = new File(fontsPath, getChildName(menu, 2, FONT));
@@ -264,53 +299,6 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
       return defaultName;
     }
     return menu.substring(prevIndex + 1, lastIndex);
-  }
-
-  /**
-   * Perform a merge sort of the existing fonts and the list form a newly completed font directory download.
-   * This method will never remove fonts, but only add newly found fonts. If there are multiple providers this
-   * method will be called after each completed download.
-   * Removed fonts will only be detected after the next restart of the IDE.
-   * The result is a list of fonts ordered by font name. Fonts from different providers will be mixed together.
-   * @param fontFamilies the newly list of font families from a provider sorted by name.
-   */
-  void mergeFonts(@NotNull List<FontFamily> fontFamilies) {
-    synchronized (myLock) {
-      List<FontFamily> existingFonts = !myUpdatedFontPath ? new ArrayList<>(mySortedFontFamilies) : Collections.emptyList();
-      mySortedFontFamilies.clear();
-      Iterator<FontFamily> existing = existingFonts.iterator();
-      Iterator<FontFamily> loaded = fontFamilies.iterator();
-      FontFamily existingFont = next(existing);
-      FontFamily loadedFont = next(loaded);
-      while (existingFont != null && loadedFont != null) {
-        switch (existingFont.compareTo(loadedFont)) {
-          case 1:
-            mySortedFontFamilies.add(loadedFont);
-            myFontFamilyLookup.put(loadedFont, loadedFont);
-            loadedFont = next(loaded);
-            break;
-          case -1:
-            mySortedFontFamilies.add(existingFont);
-            existingFont = next(existing);
-            break;
-          default:
-            mySortedFontFamilies.add(loadedFont);
-            myFontFamilyLookup.put(loadedFont, loadedFont);
-            existingFont = next(existing);
-            loadedFont = next(loaded);
-            break;
-        }
-      }
-      while (existingFont != null) {
-        mySortedFontFamilies.add(existingFont);
-        existingFont = next(existing);
-      }
-      while (loadedFont != null) {
-        mySortedFontFamilies.add(loadedFont);
-        myFontFamilyLookup.put(loadedFont, loadedFont);
-        loadedFont = next(loaded);
-      }
-    }
   }
 
   @NotNull
@@ -336,97 +324,15 @@ class DownloadableFontCacheServiceImpl implements DownloadableFontCacheService {
     return builder.toString();
   }
 
-  @Nullable
-  private static FontFamily next(@NotNull Iterator<FontFamily> iterator) {
-    return iterator.hasNext() ? iterator.next() : null;
-  }
-
-  private void updateProvidersFromFile() {
-    synchronized (myLock) {
-      myProviders.clear();
-      if (myFontPath == null) {
-        return;
-      }
-      File providersPath = new File(myFontPath, PROVIDERS);
-      File providers = new File(providersPath, PROVIDERS_FILENAME);
-      if (!providers.exists()) {
-        myProviders.add(GoogleFontProvider.INSTANCE);
-        return;
-      }
-      try {
-        myProviders.addAll(parseProvidersXml(providers));
-      }
-      catch (SAXException | ParserConfigurationException | IOException ex) {
-        Logger.getInstance(DownloadableFontCacheServiceImpl.class).error("Could not load font providers", ex);
-        myProviders.add(GoogleFontProvider.INSTANCE);
-      }
-    }
-  }
-
   private void updateDownloadServices() {
-    synchronized (myLock) {
+    synchronized (getLock() ) {
       myDownloadServiceMap.clear();
-      for (FontProvider provider : myProviders) {
-        myDownloadServiceMap.put(provider.getAuthority(), new FontDirectoryDownloadService(this, provider, myFontPath));
+      File fontPath = getFontPath();
+      if (fontPath != null) {
+        for (FontProvider provider : getProviders().values()) {
+          myDownloadServiceMap.put(provider.getAuthority(), new FontDirectoryDownloadService(this, provider, fontPath));
+        }
       }
-    }
-  }
-
-  private static List<FontProvider> parseProvidersXml(@NotNull File providers)
-    throws ParserConfigurationException, SAXException, IOException {
-    SAXParserFactory factory = SAXParserFactory.newInstance();
-    factory.setNamespaceAware(false);
-    SAXParser parser = factory.newSAXParser();
-    ProviderHandler handler = new ProviderHandler(providers);
-    parser.parse(providers, handler);
-    return handler.getFontProviders();
-  }
-
-  private static class ProviderHandler extends DefaultHandler {
-    private static final String PROVIDER_DIRECTORY = "provider_directory";
-    private static final String PROVIDERS = "providers";
-    private static final String PROVIDER = "provider";
-    private static final String ATTR_NAME = "name";
-    private static final String ATTR_AUTHORITY = "authority";
-    private static final String ATTR_PACKAGE = "package";
-    private static final String ATTR_URL = "url";
-    private static final String ATTR_CERT = "cert";
-    private static final String ATTR_DEV_CERT = "dev_cert";
-
-    private final File myProviderFile;
-    private final Map<String, FontProvider> myProviders;
-
-    private ProviderHandler(@NotNull File provider) {
-      myProviderFile = provider;
-      myProviders = new HashMap<>();
-    }
-
-    @Override
-    public void startElement(@NotNull String uri, @NotNull String localName, @NotNull String qName, @NotNull Attributes attributes) {
-      switch (localName) {
-        case PROVIDER_DIRECTORY:
-        case PROVIDERS:
-          break;
-        case PROVIDER:
-          String name = attributes.getValue(ATTR_NAME);
-          String authority = attributes.getValue(ATTR_AUTHORITY);
-          String packageName = attributes.getValue(ATTR_PACKAGE);
-          String url = attributes.getValue(ATTR_URL);
-          String cert = attributes.getValue(ATTR_CERT);
-          String devCert = attributes.getValue(ATTR_DEV_CERT);
-          if (!isEmpty(name) && !isEmpty(authority) && !isEmpty(packageName) && !isEmpty(url) && !isEmpty(cert)) {
-            myProviders.put(packageName, new FontProvider(name, authority, packageName, url, cert, devCert));
-          }
-          break;
-        default:
-          Logger.getInstance(DownloadableFontCacheServiceImpl.class).warn("Unrecognized tag: " + localName + " in file: " + myProviderFile);
-          break;
-      }
-    }
-
-    @NotNull
-    public List<FontProvider> getFontProviders() {
-      return new ArrayList<>(myProviders.values());
     }
   }
 }

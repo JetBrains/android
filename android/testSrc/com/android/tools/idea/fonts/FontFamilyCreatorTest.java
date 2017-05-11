@@ -16,6 +16,7 @@
 package com.android.tools.idea.fonts;
 
 import com.android.SdkConstants;
+import com.android.ide.common.fonts.*;
 import com.android.resources.ResourceFolderType;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.util.io.FileUtil;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.util.Collections;
 
-import static com.android.tools.idea.fonts.FontFamily.FontSource.DOWNLOADABLE;
+import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -236,8 +237,9 @@ public class FontFamilyCreatorTest extends FontTestCase {
   private static FontDetail createFontDetail(@NotNull String fontName, int weight, int width, boolean italics) {
     String folderName = DownloadableFontCacheServiceImpl.convertNameToFilename(fontName);
     String urlStart = "http://dontcare/fonts/" + folderName + "/v6/";
-    FontFamily family = new FontFamily(GoogleFontProvider.INSTANCE, DOWNLOADABLE, fontName, urlStart + "some.ttf", null,
-                                       Collections.singletonList(new FontDetail.Builder(weight, width, italics, urlStart + "other.ttf", null)));
+    FontFamily family = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, fontName, urlStart + "some.ttf", "",
+                                       Collections.singletonList(
+                                         new MutableFontDetail(weight, width, italics, urlStart + "other.ttf", "", false)));
     return family.getFonts().get(0);
   }
 
@@ -263,7 +265,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
 
   @SuppressWarnings("SameParameterValue")
   private void addFontFileToFontCache(@NotNull String fontFolder, @NotNull String versionFolder, @NotNull String fontFileName) throws IOException {
-    File folder = makeFile(myFontPath, GoogleFontProvider.GOOGLE_FONT_AUTHORITY, "fonts", fontFolder, versionFolder);
+    File folder = makeFile(myFontPath, GOOGLE_FONT_AUTHORITY, "fonts", fontFolder, versionFolder);
     FileUtil.ensureExists(folder);
     File file = new File(folder, fontFileName);
     InputStream inputStream = new ByteArrayInputStream("TrueType file".getBytes(Charsets.UTF_8.toString()));
