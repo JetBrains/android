@@ -244,4 +244,23 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
                           @NotNull InsertType type) {
     // do nothing
   }
+
+  /**
+   * Returns the number of children displayed in the component tree for this component
+   * @param component the component tree element we are checking
+   * @return number of children displayed in the component tree
+   */
+  public int getComponentTreeChildCount(@NotNull Object component) {
+    return ((NlComponent) component).getChildCount();
+  }
+
+  /**
+   * Returns the child at position i in the given component
+   * @param component
+   * @param i
+   * @return
+   */
+  public Object getComponentTreeChild(@NotNull Object component, int i) {
+    return ((NlComponent)component).getChild(i);
+  }
 }
