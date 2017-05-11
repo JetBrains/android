@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.download.DownloadableFileDescription;
@@ -36,6 +38,7 @@ import java.util.List;
  * The menu font file is usually a smaller font file (~4k).
  */
 public class FontDownloadService {
+  private final DownloadableFontCacheServiceImpl myCacheService;
   private final File myFontPath;
   private final List<FontFamily> myFontsToDownload;
   private final boolean myDownloadMenuFontsOnly;
@@ -54,7 +57,8 @@ public class FontDownloadService {
                               boolean menuFontsOnly,
                               @Nullable Runnable success,
                               @Nullable Runnable failure) {
-    myFontPath = DownloadableFontCacheServiceImpl.getInstance().getFontPath();
+    myCacheService = DownloadableFontCacheServiceImpl.getInstance();
+    myFontPath = myCacheService.getFontPath();
     myFontsToDownload = fontsToDownload;
     myDownloadMenuFontsOnly = menuFontsOnly;
     mySuccess = success;
@@ -118,7 +122,7 @@ public class FontDownloadService {
   }
 
   private void addFontFamily(@NotNull List<DownloadableFileDescription> files, @NotNull FontFamily fontFamily) {
-    File file = fontFamily.getRelativeCachedMenuFile();
+    File file = myCacheService.getRelativeCachedMenuFile(fontFamily);
     if (file != null && !cachedFileExists(file)) {
       files.add(createFileDescription(fontFamily.getMenu(), file));
     }
@@ -130,7 +134,7 @@ public class FontDownloadService {
   }
 
   private void addFont(@NotNull List<DownloadableFileDescription> files, @NotNull FontDetail font) {
-    File file = font.getRelativeCachedFontFile();
+    File file = myCacheService.getRelativeFontFile(font);
     if (file != null && !cachedFileExists(file)) {
       files.add(createFileDescription(font.getFontUrl(), file));
     }

@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.fonts.*;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
-import com.android.tools.idea.fonts.FontDetail;
-import com.android.tools.idea.fonts.FontFamily;
-import com.android.tools.idea.fonts.GoogleFontProvider;
+import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -34,11 +33,20 @@ import org.w3c.dom.Element;
 
 import java.io.File;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class LayoutPullParserFactoryTest extends RenderTestBase {
+  private DownloadableFontCacheService myFontCacheServiceMock;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myFontCacheServiceMock = mock(DownloadableFontCacheService.class);
+    registerApplicationComponent(DownloadableFontCacheService.class, myFontCacheServiceMock);
+  }
+
   @SuppressWarnings("ConstantConditions")
   public void testIsSupported() throws Exception {
     VirtualFile layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout-land-v14/foo.xml");
@@ -166,26 +174,24 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     checkRendering(task, "fonts/fontFamily.png");
   }
 
+  private static FontFamily createRobotoFontFamily() {
+    return new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, "Roboto", "", "", ImmutableList.of(
+      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false)));
+  }
+
   @NotNull
-  private static FontFamily createMockFontFamily(boolean fileExists) {
+  private FontFamily createMockFontFamily(boolean fileExists) {
     File fileMock = mock(File.class);
     when(fileMock.exists()).thenReturn(fileExists);
-    FontDetail fontDetail = mock(FontDetail.class);
-    when(fontDetail.isItalics()).thenReturn(true);
-    when(fontDetail.getStyleName()).thenReturn("Italic");
-    when(fontDetail.getFontStyle()).thenReturn("italic");
-    when(fontDetail.getCachedFontFile()).thenReturn(fileMock);
-    return FontFamily.createCompound(GoogleFontProvider.INSTANCE,
-                                     FontFamily.FontSource.DOWNLOADABLE,
-                                     "myFont",
-                                     "Menu name",
-                                     ImmutableList.of(fontDetail));
+    FontFamily family = createRobotoFontFamily();
+    when(myFontCacheServiceMock.getCachedFontFile(any(FontDetail.class))).thenReturn(fileMock);
+    return family;
   }
 
   public void testDownloadedFontFamily() throws Exception {
     FontFamily compoundFontFamily = createMockFontFamily(true);
 
-    VirtualFile file = myFixture.copyFileToProject("fonts/my_downloadable_font_family.xml", "res/font/my_downloadable_font_family.xml");
+    VirtualFile file = myFixture.copyFileToProject("fonts/roboto_bold.xml", "res/font/roboto_bold.xml");
     assertNotNull(file);
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
@@ -204,7 +210,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
       "<TextView",
       "    layout_width=\"wrap_content\"",
       "    layout_height=\"wrap_content\"",
-      "    fontFamily=\"@font/my_downloadable_font_family\"",
+      "    fontFamily=\"@font/roboto_bold\"",
       "    paddingBottom=\"20dp\"",
       "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
       "    textColor=\"" + labelColor + "\"",

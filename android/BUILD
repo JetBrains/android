@@ -80,6 +80,7 @@ iml_module(
         "//tools/base/build-system/java-lib-plugin/java-lib-model-builder:studio.java-lib-model-builder[module]",
         "//tools/base/layoutinspector:studio.layoutinspector[module]",
         "//tools/base/instantapp-deploy:studio.instantapp-deploy[module]",
+        "//tools/base/sdk-common:studio.sdk-common[module]",
     ],
 )
 
@@ -179,6 +180,7 @@ iml_module(
         "//tools/base/layoutinspector:studio.layoutinspector[module, test]",
         "//tools/idea/.idea/libraries:equalsverifier[test]",
         "//tools/base/apkparser/analyzer:studio.analyzer[test]",
+        "//tools/base/sdk-common:studio.sdk-common[module]",
     ],
 )
 

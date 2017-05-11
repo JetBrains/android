@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.tools.idea.fonts.FontFamily;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.*;
@@ -102,6 +103,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private ResourceResolver myResourceResolver;
   @Nullable private final ActionBarHandler myActionBarHandler;
   @Nullable private final RenderTask myRenderTask;
+  @NotNull private final DownloadableFontCacheService myFontCacheService;
   private boolean myUsed = false;
   private Set<File> myParserFiles;
   private int myParserCount;
@@ -147,7 +149,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     } else {
       myNamespace = AUTO_URI;
     }
-
+    myFontCacheService = DownloadableFontCacheService.getInstance();
     myFontFamilies = projectRes.getAllResourceItems().stream()
       .filter(r -> r.getType() == ResourceType.FONT)
       .map(r -> r.getResourceValue(false))
@@ -298,12 +300,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
             if (myProjectFonts != null) {
               FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
-              if (family == null) {
-                return null;
-              }
-              String fontFamilyXml = family.toXml();
+              String fontFamilyXml = myFontCacheService.toXml(family);
               if (fontFamilyXml == null) {
-                family.download();
+                myFontCacheService.download(family);
                 return null;
               }
 
