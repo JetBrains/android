@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
@@ -46,12 +47,28 @@ final class NlComponentTreeModel implements TreeModel {
   @Nullable
   @Override
   public Object getChild(@NotNull Object parent, int i) {
-    return ((NlComponent)parent).getChild(i);
+    if (parent instanceof NlComponent) {
+      NlComponent component = (NlComponent) parent;
+      ViewGroupHandler handler = component.getViewGroupHandler();
+      if (handler != null) {
+        return handler.getComponentTreeChild(component, i);
+      }
+    }
+    return null;
   }
 
   @Override
   public int getChildCount(@NotNull Object parent) {
-    return ((NlComponent)parent).getChildCount();
+    if (parent instanceof NlComponent) {
+      NlComponent component = (NlComponent)parent;
+      ViewGroupHandler handler = component.getViewGroupHandler();
+      if (handler != null) {
+        return handler.getComponentTreeChildCount(component);
+      }
+      return component.getChildCount();
+    } else {
+      return 0;
+    }
   }
 
   @Override

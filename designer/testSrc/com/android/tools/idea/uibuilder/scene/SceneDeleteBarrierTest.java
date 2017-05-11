@@ -47,9 +47,7 @@ public class SceneDeleteBarrierTest extends SceneTest {
                  "    <android.support.constraint.ConstraintHelper\n" +
                  "    android:id=\"@id/barrier\"\n" +
                  "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"20dp\">\n" +
-                 "\n" +
-                 "    </android.support.constraint.ConstraintHelper>\n" +
+                 "    android:layout_height=\"20dp\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }
@@ -78,11 +76,9 @@ public class SceneDeleteBarrierTest extends SceneTest {
                        .id("@id/barrier")
                        .withBounds(900, 1052, 200, 40)
                        .width("100dp")
-                       .height("20dp").children(
-                         component(TAG)
-                         .id("@+id/button")
-                         .withBounds(900, 1052, 10, 10)
+                       .height("20dp")
+                       .withAttribute("app:constraint_referenced_ids", "button")
                      )
-                   ));
+                   );
   }
 }
