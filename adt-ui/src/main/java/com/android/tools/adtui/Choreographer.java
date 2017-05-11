@@ -67,7 +67,9 @@ public class Choreographer implements ActionListener {
     mUpdate = true;
     mUpdating = false;
     mTimer = new Timer(1000 / fps, this);
-    mTimer.start();
+    if (fps >= 0) {
+      mTimer.start();
+    }
   }
 
   public Choreographer(@NotNull JComponent parent) {
