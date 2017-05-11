@@ -73,12 +73,6 @@ public class NlOptionsConfigurable implements SearchableConfigurable, Configurab
     }
   }
 
-  @Nullable
-  @Override
-  public String getHelpTopic() {
-    return null;
-  }
-
   private boolean isPreferXml() {
     return myPreferXml.isSelected();
   }

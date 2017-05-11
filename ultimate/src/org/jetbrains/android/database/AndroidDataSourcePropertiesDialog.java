@@ -401,12 +401,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     return myNameComponent.getNameValue();
   }
 
-  @Nullable
   @Override
-  public String getHelpTopic() {
-    return null; // todo
-  }
-
   public boolean isModified() {
     if (isNewDataSource()) return true;
     AndroidDataSource tempDataSource = getTempDataSource();
