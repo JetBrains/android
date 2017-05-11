@@ -233,6 +233,39 @@ public class ScenePickerTest extends TestCase {
     }
   }
 
+  public void testCircle() {
+    boolean[] found = new boolean[1];
+
+    ScenePicker scenePicker = new ScenePicker();
+    scenePicker.reset();
+    scenePicker.setSelectListener((obj, dist) -> {
+      assertEquals(1, Math.toIntExact((Integer)obj));
+      assertEquals(expectedDistance, dist, error);
+      found[0] = true;
+    });
+
+    int x1 = 10;
+    int y1 = 10;
+    int maxRadius = 10;
+
+    for (int r = 0; r <= maxRadius; r++) {
+      for (int range = 0; range <= maxRadius - r; range++) {
+        for (int x = x1 - maxRadius; x <= x1 + maxRadius; x++) {
+          for (int y = y1 - maxRadius; y <= y1 + maxRadius; y++) {
+            scenePicker.reset();
+            scenePicker.addCircle(new Integer(1), range, x1, y1, r);
+            found[0] = false;
+            expectedDistance = Math.max(Math.hypot(x - x1, y - y1) - r, 0);
+
+            scenePicker.find(x, y);
+
+            assertEquals(x + "," + y + "," + r + "," + range, found[0], expectedDistance <= range);
+          }
+        }
+      }
+    }
+  }
+
   public void testAddingMany() {
     ScenePicker scenePicker = new ScenePicker();
     scenePicker.reset();

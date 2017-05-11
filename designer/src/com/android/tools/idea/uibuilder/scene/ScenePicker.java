@@ -37,17 +37,20 @@ public class ScenePicker {
   private final static int OBJECT_POINT = 1;
   private final static int OBJECT_CURVE = 2;
   private final static int OBJECT_RECTANGLE = 3;
+  private final static int OBJECT_CIRCLE = 4;
   LineSelectionEngine mLine = new LineSelectionEngine();
   PointSelectionEngine mPoint = new PointSelectionEngine();
   CurveToSelectionEngine mCurve = new CurveToSelectionEngine();
   RectangleSelectionEngine mRectangle = new RectangleSelectionEngine();
-  SelectionEngine[] myEngines = new SelectionEngine[OBJECT_RECTANGLE + 1];
+  CircleSelectionEngine mCircle = new CircleSelectionEngine();
+  SelectionEngine[] myEngines = new SelectionEngine[OBJECT_CIRCLE + 1];
 
   {
     myEngines[OBJECT_LINE] = mLine;
     myEngines[OBJECT_POINT] = mPoint;
     myEngines[OBJECT_CURVE] = mCurve;
     myEngines[OBJECT_RECTANGLE] = mRectangle;
+    myEngines[OBJECT_CIRCLE] = mCircle;
   }
 
   /**
@@ -171,6 +174,19 @@ public class ScenePicker {
   }
 
   /**
+   * Add a Circle
+   *
+   * @param e
+   * @param range
+   * @param x1
+   * @param y1
+   * @param r
+   */
+  public void addCircle(Object e, int range, int x1, int y1, int r) {
+    mCircle.add(e, range, x1, y1, r);
+  }
+
+  /**
    * Add a Bezier curve == to moveTo(x1,y1) curveTo(x2,y2,x3,y3,x4,y4);
    *
    * @param e
@@ -249,6 +265,51 @@ public class ScenePicker {
       double y = mObjectData[mDataOffset + 2];
       mDistance = Math.hypot(x - mMouseX, y - mMouseY);
       return mDistance < range;
+    }
+
+    @Override
+    double distance() {
+      return mDistance;
+    }
+  }
+
+  /*-----------------------------------------------------------------------*/
+  // Support circle Selection
+  /*-----------------------------------------------------------------------*/
+
+  class CircleSelectionEngine extends SelectionEngine {
+    public void add(Object select, int range, int x1, int y1, int r) {
+      resizeTables();
+      mTypes[mObjectCount] = OBJECT_CIRCLE;
+      mObjectOffset[mObjectCount] = mObjectDataUsed;
+      mObjectData[mObjectDataUsed++] = range;
+      mObjectData[mObjectDataUsed++] = x1;
+      mObjectData[mObjectDataUsed++] = y1;
+      mObjectData[mObjectDataUsed++] = r;
+      mObjects[mObjectCount] = select;
+      addRect(x1 - range - r, y1 - range - r, x1 + range + r, y1 + range + r);
+      mObjectCount++;
+    }
+
+    double mDistance;
+
+    @Override
+    protected boolean inRange() {
+      double range = mObjectData[mDataOffset];
+      double x = mObjectData[mDataOffset + 1];
+      double y = mObjectData[mDataOffset + 2];
+      double r = mObjectData[mDataOffset + 3];
+
+      double d = Math.hypot(x - mMouseX, y - mMouseY);
+
+      if(d < r)
+      {
+        mDistance = 0;
+        return true;
+      }
+
+      mDistance = d - r;
+      return mDistance <= range;
     }
 
     @Override
