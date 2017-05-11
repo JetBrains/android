@@ -557,6 +557,8 @@ public class AndroidIcons {
     public static final Icon ZoomButtonLarge = load("/icons/palette/zoom-button_large.png"); // 24x24
     public static final Icon ZoomControls = load("/icons/palette/zoom-controls.png"); // 16x16
     public static final Icon ZoomControlsLarge = load("/icons/palette/zoom-controls_large.png"); // 24x24
+    public static final Icon Barrier = load("/icons/sherpa/barrier_vertical.png");
+    public static final Icon BarrierHorizontal = load("/icons/sherpa/barrier_horizontal.png");
   }
 
   public static class ModuleTemplates {

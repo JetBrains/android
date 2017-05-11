@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.*;
 import com.google.common.collect.Sets;
@@ -38,6 +39,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.IJSwingUtilities;
@@ -198,6 +200,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
                                         boolean hasFocus) {
         if (value instanceof NlComponent) {
           StructureTreeDecorator.decorate(this, (NlComponent)value);
+        } else if (value instanceof String){
+          String text = (String) value;
+          this.append(text, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
         }
       }
     };
@@ -249,7 +254,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
     for (int row = 0; row < rowCount; row++) {
       if (isCollapsed(row)) {
-        NlComponent component = (NlComponent)getPathForRow(row).getLastPathComponent();
+        Object last = getPathForRow(row).getLastPathComponent();
+        if (!(last instanceof NlComponent)) {
+          continue;
+        }
+        NlComponent component = (NlComponent)last;
 
         if (component.getChildCount() != 0) {
           components.add(component);
@@ -440,7 +449,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     TreePath[] paths = getSelectionPaths();
     if (paths != null) {
       for (TreePath path : paths) {
-        selected.add((NlComponent)path.getLastPathComponent());
+        Object last = path.getLastPathComponent();
+        if (last instanceof NlComponent) {
+          selected.add((NlComponent) last);
+        }
       }
     }
     return selected;
@@ -638,6 +650,26 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Override
   public void deleteElement(@NotNull DataContext dataContext) {
     SelectionModel selectionModel = myScreenView.getSelectionModel();
+    if (selectionModel.isEmpty()) {
+      // we could be currently on an non-NlComponent leaf
+      if (!getSelectionModel().isSelectionEmpty()) {
+        TreePath[] paths = getSelectionModel().getSelectionPaths();
+        for (int i = 0; i < paths.length; i++) {
+          Object parent = paths[i].getParentPath().getLastPathComponent();
+          if (parent instanceof NlComponent) {
+            NlComponent component = (NlComponent)parent;
+            ViewGroupHandler handler = component.getViewGroupHandler();
+            if (handler != null && handler instanceof ConstraintHelperHandler) {
+              ConstraintHelperHandler helperHandler = (ConstraintHelperHandler)handler;
+              Object last = paths[i].getLastPathComponent();
+              if (last instanceof String) {
+                helperHandler.deleteReference(component, (String)last);
+              }
+            }
+          }
+        }
+      }
+    }
     NlModel model = myScreenView.getModel();
     skipNextUpdateDelay();
     model.delete(selectionModel.getSelection());
