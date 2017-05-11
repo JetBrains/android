@@ -17,12 +17,11 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceConstants;
-import org.jetbrains.android.dom.navigation.*;
+import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
-import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
+import com.android.tools.idea.uibuilder.editor.SetZoomActionGroups;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
-import com.android.tools.idea.uibuilder.editor.VectorToolbarActionGroups;
 import com.android.tools.idea.uibuilder.statelist.StateListActionGroups;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -34,6 +33,7 @@ import org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDe
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
+import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,6 +62,25 @@ public enum NlLayoutType {
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return MenuDomFileDescription.isMenuFile(file);
     }
+
+    @NotNull
+    @Override
+    public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
+      return new SetZoomActionGroups(surface);
+    }
+  },
+
+  NAV(true) {
+    @Override
+    public boolean isResourceTypeOf(@NotNull XmlFile file) {
+      return NavSceneManager.enableNavigationEditor() && NavigationDomFileDescription.isNavFile(file);
+    }
+
+    @NotNull
+    @Override
+    public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
+      return new NavToolbarActionGroups(surface);
+    }
   },
 
   PREFERENCE_SCREEN(true) {
@@ -81,19 +100,6 @@ public enum NlLayoutType {
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
       return new StateListActionGroups(surface);
-    }
-  },
-
-  NAV(true) {
-    @Override
-    public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return NavSceneManager.enableNavigationEditor() && NavigationDomFileDescription.isNavFile(file);
-    }
-
-    @NotNull
-    @Override
-    public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
-      return new NavToolbarActionGroups(surface);
     }
   },
 
@@ -126,7 +132,7 @@ public enum NlLayoutType {
     @NotNull
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
-      return new VectorToolbarActionGroups(surface);
+      return new SetZoomActionGroups(surface);
     }
   };
 

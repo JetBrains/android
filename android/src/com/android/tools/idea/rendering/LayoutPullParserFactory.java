@@ -45,7 +45,6 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -225,10 +224,6 @@ public class LayoutPullParserFactory {
     // LayoutLib to render it in a navigation view instead.
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), "navigation_view")) {
       task.setDecorations(false);
-
-      // TODO Override the preview size for things like navigation view headers and list items
-      // task.setOverrideRenderSize(560, 1280);
-
       return new NavigationViewMenuLayoutPullParserFactory(task).render();
     }
 
@@ -343,10 +338,6 @@ public class LayoutPullParserFactory {
     }
 
     return new DomPullParser(document.getDocumentElement());
-  }
-
-  private static boolean exists(@Nullable File file) {
-    return file != null && file.exists();
   }
 
   public static boolean needSave(@Nullable ResourceFolderType type) {
