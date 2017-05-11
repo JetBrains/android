@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.eclipse;
 
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncFailureHandler;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
@@ -172,7 +173,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         @Override
         public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
           ApplicationManager.getApplication().invokeLater(() -> {
-            createTopLevelProjectAndOpen(project);
+            GradleSyncFailureHandler.getInstance().createTopLevelModelAndOpenProject(project);
             openSummary(project);
           });
         }

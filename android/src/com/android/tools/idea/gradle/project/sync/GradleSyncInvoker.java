@@ -53,7 +53,6 @@ import org.jetbrains.annotations.TestOnly;
 import java.io.File;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
 import static com.android.tools.idea.gradle.util.Projects.setSyncRequestedDuringBuild;
@@ -69,6 +68,7 @@ import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
   @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final GradleSyncFailureHandler mySyncFailureHandler;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
   @NotNull private final PreSyncChecks myPreSyncChecks;
 
@@ -77,22 +77,28 @@ public class GradleSyncInvoker {
     return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager, @NotNull IdeInfo ideInfo) {
-    this(fileDocumentManager, ideInfo, new PreSyncProjectCleanUp(), new PreSyncChecks());
+  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
+                           @NotNull IdeInfo ideInfo,
+                           @NotNull GradleSyncFailureHandler syncFailureHandler) {
+    this(fileDocumentManager, ideInfo, syncFailureHandler, new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
   @VisibleForTesting
   GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
                     @NotNull IdeInfo ideInfo,
+                    @NotNull GradleSyncFailureHandler syncFailureHandler,
                     @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
                     @NotNull PreSyncChecks preSyncChecks) {
     myFileDocumentManager = fileDocumentManager;
     myIdeInfo = ideInfo;
+    mySyncFailureHandler = syncFailureHandler;
     myPreSyncProjectCleanUp = preSyncProjectCleanUp;
     myPreSyncChecks = preSyncChecks;
   }
 
-  public void requestProjectSyncAndSourceGeneration(@NotNull Project project, @Nullable GradleSyncListener listener, GradleSyncStats.Trigger trigger) {
+  public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
+                                                    @Nullable GradleSyncListener listener,
+                                                    GradleSyncStats.Trigger trigger) {
     requestProjectSync(project, new GradleSyncInvoker.Request().setTrigger(trigger), listener);
   }
 
@@ -214,13 +220,13 @@ public class GradleSyncInvoker {
     gradleSync.sync(request, listener);
   }
 
-  private static void handlePreSyncCheckFailure(@NotNull Project project,
-                                                @NotNull String failureCause,
-                                                @Nullable GradleSyncListener syncListener,
-                                                @NotNull GradleSyncStats.Trigger trigger) {
+  private void handlePreSyncCheckFailure(@NotNull Project project,
+                                         @NotNull String failureCause,
+                                         @Nullable GradleSyncListener syncListener,
+                                         @NotNull GradleSyncStats.Trigger trigger) {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (syncState.syncStarted(true, trigger)) {
-      createTopLevelProjectAndOpen(project);
+      mySyncFailureHandler.createTopLevelModelAndOpenProject(project);
       syncState.syncFailed(failureCause);
       if (syncListener != null) {
         syncListener.syncFailed(project, failureCause);
@@ -242,8 +248,6 @@ public class GradleSyncInvoker {
   }
 
   public static class Request {
-    private static final Request DEFAULT_REQUEST = new Request();
-
     private boolean myRunInBackground = true;
     private boolean myGenerateSourcesOnSuccess = true;
     private boolean myCleanProject;
@@ -348,7 +352,8 @@ public class GradleSyncInvoker {
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(myRunInBackground, myCleanProject, myGenerateSourcesOnSuccess, myUseCachedGradleModels, myNewProject, myTrigger);
+      return Objects
+        .hashCode(myRunInBackground, myCleanProject, myGenerateSourcesOnSuccess, myUseCachedGradleModels, myNewProject, myTrigger);
     }
 
     @Override
