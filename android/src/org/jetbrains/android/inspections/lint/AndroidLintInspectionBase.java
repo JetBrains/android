@@ -113,20 +113,23 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
                                      @NotNull Issue issue) {
     List<AndroidLintQuickFix> result = new ArrayList<>(4);
 
-    for (AndroidLintQuickFixProvider provider : fixProviders) {
-      AndroidLintQuickFix[] fixes = provider.getQuickFixes(issue, startElement, endElement, message, fixData);
-      Collections.addAll(result, fixes);
-    }
-
-    if (!result.isEmpty()) {
-      // If one or more fixes were registered by quickfix providers, and this is a Kotlin file,
-      // it's likely that the Kotlin plugin provided an alternative quickfix for this problem,
-      // and we don't want to include the Java-centric quickfixes from the Android plugin
-      PsiFile file = startElement.getContainingFile();
+    // The AndroidLintQuickFixProvider interface is a generic mechanism, but currently
+    // only used by the Kotlin plugin - but it currently adds in Suppress actions for
+    // all file types so limit its lookup to Kotlin files for now
+    PsiFile file = startElement.getContainingFile();
       if (file != null && AndroidLintExternalAnnotator.isKotlin(file.getFileType())) {
-        return result.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
+        for (AndroidLintQuickFixProvider provider : fixProviders) {
+          AndroidLintQuickFix[] fixes = provider.getQuickFixes(issue, startElement, endElement, message, fixData);
+          Collections.addAll(result, fixes);
+        }
+
+        if (!result.isEmpty()) {
+          // If one or more fixes were registered by quickfix providers, and this is a Kotlin file,
+          // it's likely that the Kotlin plugin provided an alternative quickfix for this problem,
+          // and we don't want to include the Java-centric quickfixes from the Android plugin
+          return result.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
+        }
       }
-    }
 
     AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message, fixData);
     Collections.addAll(result, fixes);
