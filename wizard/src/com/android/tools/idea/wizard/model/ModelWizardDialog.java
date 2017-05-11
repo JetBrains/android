@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
 
@@ -64,8 +63,8 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   @NotNull
   private ModelWizard myWizard;
 
-  private BindingsManager myBindings = new BindingsManager();
-  private ListenerManager myListeners = new ListenerManager();
+  private final BindingsManager myBindings = new BindingsManager();
+  private final ListenerManager myListeners = new ListenerManager();
 
   @Nullable private CustomLayout myCustomLayout;
   @Nullable private URL myHelpUrl;
@@ -127,18 +126,11 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     return DialogStyle.COMPACT; // Remove padding from this dialog, we'll fill it in ourselves
   }
 
-  @Nullable
+  @NotNull
   @Override
   protected JComponent createCenterPanel() {
     JPanel wizardContent = myWizard.getContentPanel();
-    JPanel centerPanel;
-    if (myCustomLayout != null) {
-      centerPanel = myCustomLayout.decorate(myWizard.title(), wizardContent);
-    }
-    else {
-      centerPanel = wizardContent;
-    }
-    return centerPanel;
+    return myCustomLayout == null ? wizardContent : myCustomLayout.decorate(myWizard.title(), wizardContent);
   }
 
   @Override
@@ -380,12 +372,9 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
           myActiveAction = myExtraAction.getValueOrNull();
           if (myActiveAction != null) {
             StepActionWrapper.this.putValue(NAME, myActiveAction.getValue(NAME));
-            myActionListener = new PropertyChangeListener() {
-              @Override
-              public void propertyChange(PropertyChangeEvent evt) {
-                if ("enabled".equals(evt.getPropertyName())) {
-                  myEnabled.set((Boolean)evt.getNewValue());
-                }
+            myActionListener = evt -> {
+              if ("enabled".equals(evt.getPropertyName())) {
+                myEnabled.set((Boolean)evt.getNewValue());
               }
             };
             myActiveAction.addPropertyChangeListener(myActionListener);
