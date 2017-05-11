@@ -116,6 +116,10 @@ public class NewInstantAppTest {
                                "        AllowBackup/FullBackupContent Problems\n" +
                                "            AndroidManifest.xml\n" +
                                "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>\n" +
+                               "    Android Lint: Usability\n" +
+                               "        Missing support for Firebase App Indexing\n" +
+                               "            AndroidManifest.xml\n" +
+                               "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details.\n" +
                                "    Declaration redundancy\n" +
                                "        Unnecessary module dependency\n" +
                                "            app\n" +
