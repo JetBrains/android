@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.Lists;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A {@link MarqueeInteraction} is an interaction for swiping out a selection rectangle.
@@ -74,26 +76,13 @@ public class MarqueeInteraction extends Interaction {
     myOverlay.updateSize(xp, yp, w, h);
 
     // Convert to Android coordinates and compute selection overlaps
-    int ax = Coordinates.getAndroidX(mySceneView, xp);
-    int ay = Coordinates.getAndroidY(mySceneView, yp);
-    int aw = Coordinates.getAndroidDimension(mySceneView, w);
-    int ah = Coordinates.getAndroidDimension(mySceneView, h);
-    Collection<NlComponent> within = mySceneView.getModel().findWithin(ax, ay, aw, ah);
-    List<NlComponent> selection = Lists.newArrayList();
-    if (!myInitialSelection.isEmpty()) {
-      // Copy; we're not allowed to touch the passed in collection
-      Set<NlComponent> result = new HashSet<NlComponent>(myInitialSelection);
-      for (NlComponent component : selection) {
-        if (myInitialSelection.contains(component)) {
-          result.remove(component);
-        } else {
-          result.add(component);
-        }
-      }
-      within = result;
-    }
-
-    mySceneView.getSelectionModel().setSelection(within);
+    int ax = Coordinates.getAndroidXDip(mySceneView, xp);
+    int ay = Coordinates.getAndroidYDip(mySceneView, yp);
+    int aw = Coordinates.getAndroidDimensionDip(mySceneView, w);
+    int ah = Coordinates.getAndroidDimensionDip(mySceneView, h);
+    Collection<SceneComponent> within = mySceneView.getScene().findWithin(ax, ay, aw, ah);
+    List<NlComponent> result = within.stream().map(SceneComponent::getNlComponent).collect(Collectors.toList());
+    mySceneView.getSelectionModel().setSelection(result);
     mySceneView.getSurface().repaint();
   }
 
