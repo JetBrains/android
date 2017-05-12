@@ -185,29 +185,11 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
         String packageName = client.getClientData().getPackageName();
 
-        // TODO handle non-development mode + switch over to bazel-built binaries.
-        File agentDir = new File(PathManager.getHomePath(), "../../out/studio/native/out/release");
-        File agent = null;
-        for (String abi : myDevice.getAbis()) {
-          File candidate = new File(agentDir, abi + "/" + AGENT_NAME);
-          if (candidate.exists()) {
-            agent = candidate;
-            break;
-          }
-        }
-
-        File agentLib = new File(PathManager.getHomePath(), "../../out/studio/perfa/libs/" + AGENT_JAR);
-        assert agentLib.exists();
-
-        // TODO: Handle the case where we don't have agent built for the device's abi.
-        assert agent != null;
-
         // TODO: Handle when agent is previously attached.
         String appDataDir = client.getClientData().getDataDir();
         String devicePath = "/data/local/tmp/perfd/";
         try {
-          myDevice.pushFile(agent.getAbsolutePath(), devicePath + AGENT_NAME);
-          myDevice.pushFile(agentLib.getAbsolutePath(), devicePath + AGENT_JAR);
+          // TODO move attachment to perfd
           myDevice.executeShellCommand(String.format("run-as %s cp %s%s %s", packageName, devicePath, AGENT_NAME, appDataDir),
                                        new NullOutputReceiver());
           myDevice.executeShellCommand(String.format("run-as %s cp %s%s %s", packageName, devicePath, AGENT_JAR, appDataDir),
@@ -216,7 +198,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
                                        new NullOutputReceiver());
           status = Profiler.AgentAttachResponse.Status.SUCCESS;
         }
-        catch (TimeoutException | AdbCommandRejectedException | IOException | SyncException | ShellCommandUnresponsiveException e) {
+        catch (TimeoutException | AdbCommandRejectedException | IOException | ShellCommandUnresponsiveException e) {
           getLogger().error("Failed to attach agent.", e);
         }
 
