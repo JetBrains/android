@@ -19,6 +19,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -81,11 +82,11 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     model.getComponents().forEach(component -> addComponents(tag, component, components));
     // Sort by visual order
     components.sort((component1, component2) -> {
-      int delta = component1.y - component2.y;
+      int delta = NlComponentHelperKt.getY(component1) - NlComponentHelperKt.getY(component2);
       if (delta != -1) {
         return delta;
       }
-      delta = component1.x - component2.x;
+      delta = NlComponentHelperKt.getX(component1) - NlComponentHelperKt.getX(component2);
       if (delta != -1) {
         return delta;
       }

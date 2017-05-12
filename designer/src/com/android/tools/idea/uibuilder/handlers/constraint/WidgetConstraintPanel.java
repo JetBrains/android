@@ -481,7 +481,7 @@ public class WidgetConstraintPanel extends JPanel {
       return false;
     }
     NlComponent parent = mComponent.getParent();
-    return parent != null && parent.isOrHasSuperclass(CONSTRAINT_LAYOUT);
+    return parent != null && NlComponentHelperKt.isOrHasSuperclass(parent, CONSTRAINT_LAYOUT);
   }
 
   /*-----------------------------------------------------------------------*/
@@ -614,7 +614,7 @@ public class WidgetConstraintPanel extends JPanel {
         String oldValue = (String)mComponent.getClientProperty(SdkConstants.ATTR_LAYOUT_WIDTH);
         if (oldValue == null) {
           float dipValue = mComponent.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-          oldValue = ((int)(0.5f + mComponent.w / dipValue)) + "dp";
+          oldValue = ((int)(0.5f + NlComponentHelperKt.getW(mComponent) / dipValue)) + "dp";
         }
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, oldValue);
         break;
@@ -637,7 +637,7 @@ public class WidgetConstraintPanel extends JPanel {
         String oldValue = (String)mComponent.getClientProperty(SdkConstants.ATTR_LAYOUT_HEIGHT);
         if (oldValue == null) {
           float dipValue = mComponent.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-          oldValue = ((int)(0.5f + mComponent.h / dipValue)) + "dp";
+          oldValue = ((int)(0.5f + NlComponentHelperKt.getH(mComponent) / dipValue)) + "dp";
         }
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, oldValue);
         break;

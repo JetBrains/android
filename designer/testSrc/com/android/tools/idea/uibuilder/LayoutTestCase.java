@@ -78,7 +78,8 @@ public abstract class LayoutTestCase extends AndroidTestCase {
                             (model, newModel) ->
                               LayoutlibSceneManager
                                 .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
-                                                 model), "layout", NlDesignSurface.class);
+                                                 model),
+                            "layout", NlDesignSurface.class, (tag, model) -> NlDesignSurface.createComponent(tag, model));
   }
 
   private List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {

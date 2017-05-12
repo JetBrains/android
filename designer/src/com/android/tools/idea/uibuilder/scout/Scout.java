@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scout;
 
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.intellij.openapi.application.Result;
@@ -133,7 +134,7 @@ public class Scout {
       return;
     }
     for (NlComponent child : root.getChildren()) {
-        child.ensureId();
+      NlComponentHelperKt.ensureId(child);
     }
     if (!ConstraintComponentUtilities.isConstraintLayout(root)) {
       return;

@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -59,7 +60,7 @@ public class ScrollInteraction extends Interaction {
 
     // Find the component that is the lowest in the hierarchy and can take the scrolling events
     while (currentComponent != null) {
-      ViewHandler viewHandler = currentComponent.getViewHandler();
+      ViewHandler viewHandler = NlComponentHelperKt.getViewHandler(currentComponent);
       if (viewHandler instanceof ViewGroupHandler) {
         ViewGroupHandler viewGroupHandler = (ViewGroupHandler)viewHandler;
         scrollHandler = viewGroupHandler.createScrollHandler(editor, currentComponent);

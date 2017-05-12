@@ -17,10 +17,7 @@ package com.android.tools.idea.uibuilder.mockup;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.MockupLayer;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.pixelprobe.*;
@@ -431,11 +428,11 @@ public class Mockup implements ModelListener {
 
     final int androidX = Coordinates.dpToPx(screenView, myBounds.x);
     final int androidY = Coordinates.dpToPx(screenView, myBounds.y);
-    final int androidWidth = myBounds.width <= 0 ? myComponent.w : Coordinates.dpToPx(screenView, myBounds.width);
-    final int androidHeight = myBounds.height <= 0 ? myComponent.h : Coordinates.dpToPx(screenView, myBounds.height);
+    final int androidWidth = myBounds.width <= 0 ? NlComponentHelperKt.getW(myComponent) : Coordinates.dpToPx(screenView, myBounds.width);
+    final int androidHeight = myBounds.height <= 0 ? NlComponentHelperKt.getH(myComponent) : Coordinates.dpToPx(screenView, myBounds.height);
 
-    mySwingBounds.x = Coordinates.getSwingX(screenView, myComponent.x + androidX);
-    mySwingBounds.y = Coordinates.getSwingY(screenView, myComponent.y + androidY);
+    mySwingBounds.x = Coordinates.getSwingX(screenView, NlComponentHelperKt.getX(myComponent) + androidX);
+    mySwingBounds.y = Coordinates.getSwingY(screenView, NlComponentHelperKt.getY(myComponent) + androidY);
     // if one of the dimension was not set in the xml.
     // it had been set to -1 in the model, meaning we should
     // use the ScreenView dimension and/or the Image dimension

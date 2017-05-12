@@ -111,7 +111,7 @@ public class NavDesignSurface extends DesignSurface {
   public void setCurrentNavigation(@NotNull NlComponent currentNavigation) {
     myCurrentNavigation = currentNavigation;
   }
-  
+
   @Override
   protected void doCreateSceneViews() {
     NlModel model = getModel();

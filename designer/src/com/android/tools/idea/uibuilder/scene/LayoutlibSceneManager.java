@@ -173,18 +173,18 @@ public class LayoutlibSceneManager extends SceneManager {
     NlComponent component = sceneComponent.getNlComponent();
     if (getScene().isAnimated()) {
       long time = System.currentTimeMillis();
-      sceneComponent.setPositionTarget(Coordinates.pxToDp(component.getModel(), component.x),
-                                       Coordinates.pxToDp(component.getModel(), component.y),
+      sceneComponent.setPositionTarget(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component)),
+                                       Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component)),
                                        time, true);
-      sceneComponent.setSizeTarget(Coordinates.pxToDp(component.getModel(), component.w),
-                                   Coordinates.pxToDp(component.getModel(), component.h),
+      sceneComponent.setSizeTarget(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getW(component)),
+                                   Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getH(component)),
                                    time, true);
     }
     else {
-      sceneComponent.setPosition(Coordinates.pxToDp(component.getModel(), component.x),
-                                 Coordinates.pxToDp(component.getModel(), component.y), true);
-      sceneComponent.setSize(Coordinates.pxToDp(component.getModel(), component.w),
-                             Coordinates.pxToDp(component.getModel(), component.h), true);
+      sceneComponent.setPosition(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component)),
+                                 Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component)), true);
+      sceneComponent.setSize(Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getW(component)),
+                             Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getH(component)), true);
     }
   }
 
@@ -202,7 +202,7 @@ public class LayoutlibSceneManager extends SceneManager {
     else {
       component = getScene().getRoot();
     }
-    ViewHandler handler = component.getNlComponent().getViewHandler();
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent());
     if (handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
       component.setTargetProvider(viewGroupHandler, true);
@@ -696,8 +696,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   private static void clearDerivedData(@NotNull NlComponent component) {
-    component.setBounds(0, 0, -1, -1); // -1: not initialized
-    component.viewInfo = null;
+    NlComponentHelperKt.setBounds(component, 0, 0, -1, -1); // -1: not initialized
+    NlComponentHelperKt.setViewInfo(component, null);
   }
 
   // TODO: we shouldn't be going back in and modifying NlComponents here
@@ -720,13 +720,13 @@ public class LayoutlibSceneManager extends SceneManager {
 
   private static void fixBounds(@NotNull NlComponent root) {
     boolean computeBounds = false;
-    if (root.w == -1 && root.h == -1) { // -1: not initialized
+    if (NlComponentHelperKt.getW(root) == -1 && NlComponentHelperKt.getH(root) == -1) { // -1: not initialized
       computeBounds = true;
 
       // Look at parent instead
       NlComponent parent = root.getParent();
-      if (parent != null && parent.w >= 0) {
-        root.setBounds(parent.x, parent.y, 0, 0);
+      if (parent != null && NlComponentHelperKt.getW(parent) >= 0) {
+        NlComponentHelperKt.setBounds(root, NlComponentHelperKt.getX(parent), NlComponentHelperKt.getY(parent), 0, 0);
       }
     }
 
@@ -737,13 +737,15 @@ public class LayoutlibSceneManager extends SceneManager {
       }
 
       if (computeBounds) {
-        Rectangle rectangle = new Rectangle(root.x, root.y, root.w, root.h);
+        Rectangle rectangle = new Rectangle(NlComponentHelperKt.getX(root), NlComponentHelperKt.getY(root), NlComponentHelperKt.getW(root),
+                                            NlComponentHelperKt.getH(root));
         // Grow bounds to include child bounds
         for (NlComponent child : children) {
-          rectangle = rectangle.union(new Rectangle(child.x, child.y, child.w, child.h));
+          rectangle = rectangle.union(new Rectangle(NlComponentHelperKt.getX(child), NlComponentHelperKt.getY(child),
+                                                    NlComponentHelperKt.getW(child), NlComponentHelperKt.getH(child)));
         }
 
-        root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+        NlComponentHelperKt.setBounds(root, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
       }
     }
   }
@@ -763,14 +765,15 @@ public class LayoutlibSceneManager extends SceneManager {
         if (component == null) {
           component = tagToComponent.get(snapshot.tag);
         }
-        if (component != null && component.viewInfo == null) {
-          component.viewInfo = view;
+        if (component != null && NlComponentHelperKt.getViewInfo(component) == null) {
+          NlComponentHelperKt.setViewInfo(component, view);
           int left = parentX + bounds.getLeft();
           int top = parentY + bounds.getTop();
           int width = bounds.getRight() - bounds.getLeft();
           int height = bounds.getBottom() - bounds.getTop();
 
-          component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+          NlComponentHelperKt.setBounds(component, left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE),
+                                        Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
         }
       }
     }

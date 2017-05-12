@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 
@@ -57,7 +58,7 @@ public class StructurePaneComponentHandler extends PropertyComponentHandler {
   @NotNull
   public Icon getIcon(@NotNull NlComponent component) {
     String name = component.getTagName();
-    if (component.isOrHasSuperclass(SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER)) {
       String direction = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION);
       if (direction.equals(SdkConstants.VALUE_TOP) || direction.equals(SdkConstants.VALUE_BOTTOM)) {
         name += "Horizontal";

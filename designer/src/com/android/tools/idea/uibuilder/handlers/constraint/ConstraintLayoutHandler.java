@@ -27,7 +27,10 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayou
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.ComponentProvider;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
 import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
@@ -487,10 +490,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     List<Target> result = new ArrayList<>();
     boolean showAnchors = !isParent;
     NlComponent nlComponent = component.getAuthoritativeNlComponent();
-    ViewInfo vi = nlComponent.viewInfo;
+    ViewInfo vi = NlComponentHelperKt.getViewInfo(nlComponent);
     if (vi != null) {
 
-      if (nlComponent.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_GUIDELINE)) {
         String orientation = nlComponent.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
 
         boolean isHorizontal = true;
@@ -508,7 +511,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         return result;
       }
 
-      if (nlComponent.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_BARRIER)) {
         String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
         boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase()));
         result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, BarrierTarget.parseDirection(side)));
@@ -547,9 +550,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       ActionTarget previousAction = new ClearConstraintsTarget(null);
       result.add(previousAction);
 
-      int baseline = component.getNlComponent().getBaseline();
-      if (baseline <= 0 && component.getNlComponent().viewInfo != null) {
-        baseline = component.getNlComponent().viewInfo.getBaseLine();
+      int baseline = NlComponentHelperKt.getBaseline(component.getNlComponent());
+      if (baseline <= 0 && NlComponentHelperKt.getViewInfo(component.getNlComponent()) != null) {
+        baseline = NlComponentHelperKt.getViewInfo(component.getNlComponent()).getBaseLine();
       }
       if (baseline > 0) {
         result.add(new AnchorTarget(AnchorTarget.Type.BASELINE, true));
@@ -870,15 +873,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
       NlComponent parent = component;
-      while (parent != null && !parent.isOrHasSuperclass(CONSTRAINT_LAYOUT)) {
+      while (parent != null && !NlComponentHelperKt.isOrHasSuperclass(parent, CONSTRAINT_LAYOUT)) {
         parent = parent.getParent();
       }
       if (parent != null) {
         ensureLayersAreShown(editor, 1000);
         switch (myType) {
           case HORIZONTAL_GUIDELINE: {
-            NlComponent guideline = parent.createChild(editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
-            guideline.ensureId();
+            NlComponent guideline = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            NlComponentHelperKt.ensureId(guideline);
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
@@ -887,8 +890,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           }
           break;
           case VERTICAL_GUIDELINE: {
-            NlComponent guideline = parent.createChild(editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
-            guideline.ensureId();
+            NlComponent guideline = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            NlComponentHelperKt.ensureId(guideline);
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
 
@@ -898,26 +901,27 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           }
           break;
           case GROUP: {
-            NlComponent group = parent.createChild(editor, CLASS_CONSTRAINT_LAYOUT_GROUP, null, InsertType.CREATE);
-            group.ensureId();
+            NlComponent group = NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_GROUP, null, InsertType.CREATE);
+            NlComponentHelperKt.ensureId(group);
           }
           break;
           case CONSTRAINT_SET: {
-            NlComponent constraints = parent.createChild(editor, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS, null, InsertType.CREATE);
-            constraints.ensureId();
+            NlComponent constraints =
+              NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS, null, InsertType.CREATE);
+            NlComponentHelperKt.ensureId(constraints);
             ConstraintReferenceManagement.populateConstraints(constraints);
           }
           break;
           case LAYER: {
-            NlComponent layer = parent.createChild(editor, CLASS_CONSTRAINT_LAYOUT_LAYER, null, InsertType.CREATE);
-            layer.ensureId();
+            NlComponent layer = NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_LAYER, null, InsertType.CREATE);
+            NlComponentHelperKt.ensureId(layer);
           }
           break;
           case HORIZONTAL_BARRIER: {
             int barriers = 0;
             int other = 0;
             for (NlComponent child : selectedChildren) {
-              if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+              if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
                 barriers++;
               }
               if (!ConstraintComponentUtilities.isLine(child)) {
@@ -927,7 +931,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             if (barriers == 1 && other > 0) {
               NlComponent barrier = null;
               for (NlComponent child : selectedChildren) {
-                if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+                if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
                   barrier = child;
                   break;
                 }
@@ -938,7 +942,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                     if (ConstraintComponentUtilities.isLine(child)) {
                       continue;
                     }
-                    NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
+                    NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
                     tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                     tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
                     tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
@@ -949,8 +953,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               return;
             }
 
-            NlComponent barrier = parent.createChild(editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
-            barrier.ensureId();
+            NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            NlComponentHelperKt.ensureId(barrier);
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
 
@@ -958,7 +962,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
               if (selectedChildren.size() > 0) {
-                NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
+                NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
                 tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                 tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
                 for (NlComponent child : selectedChildren) {
@@ -976,7 +980,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             int barriers = 0;
             int other = 0;
             for (NlComponent child : selectedChildren) {
-              if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+              if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
                 barriers++;
               }
               if (!ConstraintComponentUtilities.isLine(child)) {
@@ -986,7 +990,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             if (barriers == 1 && other > 0) {
               NlComponent barrier = null;
               for (NlComponent child : selectedChildren) {
-                if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+                if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
                   barrier = child;
                   break;
                 }
@@ -997,7 +1001,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                     if (ConstraintComponentUtilities.isLine(child)) {
                       continue;
                     }
-                    NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
+                    NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
                     tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                     tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
                     tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
@@ -1007,8 +1011,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               } // TODO: add views to the barrier when not using the tags approach
               return;
             }
-            NlComponent barrier = parent.createChild(editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
-            barrier.ensureId();
+            NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            NlComponentHelperKt.ensureId(barrier);
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
@@ -1020,7 +1024,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                   if (ConstraintComponentUtilities.isLine(child)) {
                     continue;
                   }
-                  NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
+                  NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
                   tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                   tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
                   tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
@@ -1047,7 +1051,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           int barriers = 0;
           int other = 0;
           for (NlComponent child : selectedChildren) {
-            if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+            if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
               barriers++;
             }
             if (!ConstraintComponentUtilities.isLine(child)) {
@@ -1294,7 +1298,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       return null;
     }
     NlComponent nlComponent = parent.getNlComponent();
-    if (nlComponent.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CLASS_CONSTRAINT_LAYOUT)) {
       String attribute = nlComponent.getLiveAttribute(SHERPA_URI, "constraints");
       if (attribute != null) {
         return this;

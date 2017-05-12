@@ -173,7 +173,7 @@ public class DragDropInteraction extends Interaction {
                                          Coordinates.getAndroidXDip(mySceneView, x),
                                          Coordinates.getAndroidYDip(mySceneView, y));
 
-    while (viewgroup != null && !viewgroup.getNlComponent().isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
+    while (viewgroup != null && !NlComponentHelperKt.isOrHasSuperclass(viewgroup.getNlComponent(), SdkConstants.CLASS_VIEWGROUP)) {
       viewgroup = viewgroup.getParent();
     }
 

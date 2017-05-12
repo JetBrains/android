@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.common.GenericLinearDragHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -52,9 +53,9 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
                           @NotNull InsertType insertType) {
     if (insertType.isCreate()) {
       // Insert a couple of TabItems:
-      NlComponent tab1 = node.createChild(editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
-      NlComponent tab2 = node.createChild(editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
-      NlComponent tab3 = node.createChild(editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
+      NlComponent tab1 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
+      NlComponent tab2 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
+      NlComponent tab3 = NlComponentHelperKt.createChild(node, editor, CLASS_TAB_ITEM, null, InsertType.VIEW_HANDLER);
 
       tab1.setAndroidAttribute(ATTR_TEXT, "Left");
       tab2.setAndroidAttribute(ATTR_TEXT, "Center");

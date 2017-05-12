@@ -16,10 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
@@ -475,14 +472,14 @@ public class AnchorTarget extends BaseTarget {
     AttributesTransaction attributes = component.startAttributeTransaction();
     String targetId = null;
     NlComponent parent = component.getParent();
-    if (parent.isOrHasSuperclass(SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(parent, SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
       parent = parent.getParent();
     }
     if (targetComponent == parent) {
       targetId = SdkConstants.ATTR_PARENT;
     }
     else {
-      targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureLiveId();
+      targetId = SdkConstants.NEW_ID_PREFIX + NlComponentHelperKt.ensureLiveId(targetComponent);
     }
     attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
     if (myType == Type.BASELINE) {

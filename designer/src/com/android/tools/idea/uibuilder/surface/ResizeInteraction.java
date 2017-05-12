@@ -107,7 +107,9 @@ public class ResizeInteraction extends Interaction {
     final int deltaX = Coordinates.getAndroidDimension(mySceneView, x - myStartX);
     final int deltaY = Coordinates.getAndroidDimension(mySceneView, y - myStartY);
 
-    final Rectangle newBounds = getNewBounds(new Rectangle(myComponent.x, myComponent.y, myComponent.w, myComponent.h), deltaX, deltaY);
+    final Rectangle newBounds = getNewBounds(
+      new Rectangle(NlComponentHelperKt.getX(myComponent), NlComponentHelperKt.getY(myComponent), NlComponentHelperKt.getW(myComponent),
+                    NlComponentHelperKt.getH(myComponent)), deltaX, deltaY);
     myResizeHandler.update(ax, ay, modifiers, newBounds);
     if (commit) {
       NlModel model = mySceneView.getModel();

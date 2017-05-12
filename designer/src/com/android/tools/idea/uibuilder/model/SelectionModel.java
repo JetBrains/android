@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.api.DragType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.datatransfer.Transferable;
 import java.util.*;
@@ -130,7 +129,9 @@ public class SelectionModel {
   @Nullable
   public NlComponent findComponent(@AndroidCoordinate int x, @AndroidCoordinate int y) {
     for (NlComponent component : mySelection) {
-      if (component.x <= x && component.y <= y && component.x + component.w >= x && component.y + component.h >= y) {
+      if (NlComponentHelperKt.getX(component) <= x && NlComponentHelperKt.getY(component) <= y &&
+          NlComponentHelperKt.getX(component) + NlComponentHelperKt.getW(component) >= x &&
+          NlComponentHelperKt.getY(component) + NlComponentHelperKt.getH(component) >= y) {
         return component;
       }
     }
@@ -174,7 +175,8 @@ public class SelectionModel {
   public Transferable getTransferable(long modelId) {
     List<DnDTransferComponent> components = new ArrayList<DnDTransferComponent>(mySelection.size());
     for (NlComponent component : mySelection) {
-      components.add(new DnDTransferComponent(component.getTagName(), component.getTag().getText(), component.w, component.h));
+      components.add(new DnDTransferComponent(component.getTagName(), component.getTag().getText(),
+                                              NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)));
     }
     return new ItemTransferable(new DnDTransferItem(modelId, components));
   }

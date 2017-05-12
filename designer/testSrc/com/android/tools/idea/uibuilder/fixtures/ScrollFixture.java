@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScrollInteraction;
 import org.jetbrains.annotations.NotNull;
@@ -41,8 +42,8 @@ public class ScrollFixture {
 
     assertNotNull(myInteraction);
     // Scroll from center of component
-    int startX = Coordinates.getSwingX(screen, component.x + component.w / 2);
-    int startY = Coordinates.getSwingY(screen, component.y + component.h / 2);
+    int startX = Coordinates.getSwingX(screen, NlComponentHelperKt.getX(component) + NlComponentHelperKt.getW(component) / 2);
+    int startY = Coordinates.getSwingY(screen, NlComponentHelperKt.getY(component) + NlComponentHelperKt.getH(component) / 2);
     myInteraction.begin(startX, startY, 0);
     myCurrentX = startX;
     myCurrentY = startY;

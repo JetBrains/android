@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.absolute;
 
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
@@ -166,7 +167,7 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
       NlComponent component = myModel.find("myText");
       assertThat(component).isNotNull();
       component.setAndroidAttribute(ATTR_LAYOUT_X, "950dp");
-      component.setBounds(1900, 200, 200, 200);
+      NlComponentHelperKt.setBounds(component, 1900, 200, 200, 200);
     });
     mySceneManager.update();
 

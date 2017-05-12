@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.tools.idea.XmlBuilder;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -727,7 +728,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   private static NlComponent createMockComponent(@NotNull String tag) {
-    NlComponent component = mock(NlComponent.class);
+    NlComponent component = LayoutTestUtilities.createMockComponent();
     when(component.getTagName()).thenReturn(tag);
     when(component.getAttribute(ANDROID_URI, ATTR_TEXT)).thenReturn("My value for " + tag);
     return component;

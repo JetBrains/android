@@ -159,7 +159,7 @@ public class CanvasResizeInteraction extends Interaction {
     int androidX = Coordinates.getAndroidX(screenView, x);
     int androidY = Coordinates.getAndroidY(screenView, y);
     if (androidX > 0 && androidY > 0 && androidX < MAX_ANDROID_SIZE && androidY < MAX_ANDROID_SIZE) {
-      screenView.getModel().overrideConfigurationScreenSize(androidX, androidY);
+      NlModelHelperKt.overrideConfigurationScreenSize(screenView.getModel(), androidX, androidY);
       if (isPreviewSurface) {
         updateUnavailableLayer(screenView, false);
       }
@@ -392,7 +392,7 @@ public class CanvasResizeInteraction extends Interaction {
         myDesignSurface.getConfiguration().setEffectiveDevice(deviceToSnap, deviceState);
       }
       else {
-        screenView.getModel().overrideConfigurationScreenSize(androidX, androidY);
+        NlModelHelperKt.overrideConfigurationScreenSize(screenView.getModel(), androidX, androidY);
       }
     }
   }

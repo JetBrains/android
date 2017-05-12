@@ -62,7 +62,8 @@ public class NlGraphics {
   }
 
   public void drawTop(@NotNull NlComponent component) {
-    drawLine(component.x, component.y, component.x + component.w, component.y);
+    drawLine(NlComponentHelperKt.getX(component), NlComponentHelperKt.getY(component),
+             NlComponentHelperKt.getX(component) + NlComponentHelperKt.getW(component), NlComponentHelperKt.getY(component));
   }
 
   public void drawTop(@NotNull Rectangle rectangle) {
@@ -77,7 +78,8 @@ public class NlGraphics {
   }
 
   public void drawLeft(@NotNull NlComponent component) {
-    drawLine(component.x, component.y, component.x, component.y + component.h);
+    drawLine(NlComponentHelperKt.getX(component), NlComponentHelperKt.getY(component), NlComponentHelperKt.getX(component),
+             NlComponentHelperKt.getY(component) + NlComponentHelperKt.getH(component));
   }
 
   public void drawLeft(@NotNull Rectangle rectangle) {
@@ -92,7 +94,9 @@ public class NlGraphics {
   }
 
   public void drawRight(@NotNull NlComponent component) {
-    drawLine(component.x + component.w, component.y, component.x + component.w, component.y + component.h);
+    drawLine(NlComponentHelperKt.getX(component) + NlComponentHelperKt.getW(component), NlComponentHelperKt.getY(component),
+             NlComponentHelperKt.getX(component) + NlComponentHelperKt.getW(component),
+             NlComponentHelperKt.getY(component) + NlComponentHelperKt.getH(component));
   }
 
   public void drawRight(@AndroidCoordinate @NotNull Rectangle rectangle) {
@@ -107,7 +111,9 @@ public class NlGraphics {
   }
 
   public void drawBottom(@NotNull NlComponent component) {
-    drawLine(component.x, component.y + component.h, component.x + component.w, component.y + component.h);
+    drawLine(NlComponentHelperKt.getX(component), NlComponentHelperKt.getY(component) + NlComponentHelperKt.getH(component),
+             NlComponentHelperKt.getX(component) + NlComponentHelperKt.getW(component),
+             NlComponentHelperKt.getY(component) + NlComponentHelperKt.getH(component));
   }
 
   public void drawBottom(@AndroidCoordinate @NotNull Rectangle rectangle) {
