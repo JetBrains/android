@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -64,7 +65,7 @@ public class SceneAnimationTest extends SceneTest {
     SceneComponent component = myScene.getSceneComponent("button");
     long currentTime = System.currentTimeMillis();
     assertEquals(100, component.getDrawX(currentTime));
-    component.getNlComponent().x = 1800;
+    NlComponentHelperKt.setX(component.getNlComponent(), 1800);
     myScene.setAnimated(true);
     mySceneManager.update();
     long time = currentTime + 500;

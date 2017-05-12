@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.structure;
 import com.android.tools.idea.uibuilder.api.StructurePaneComponentHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.text.StringUtil;
@@ -102,14 +103,21 @@ public class StructureTreeDecorator {
     }
 
     if (PropertiesComponent.getInstance().getBoolean(ToggleBoundsVisibility.BOUNDS_VISIBLE_PROPERTY)) {
-      String fragment = " (" + component.x + ", " + component.y + ") " + component.w + " × " + component.h;
+      String fragment = " (" +
+                        NlComponentHelperKt.getX(component) +
+                        ", " +
+                        NlComponentHelperKt.getY(component) +
+                        ") " +
+                        NlComponentHelperKt.getW(component) +
+                        " × " +
+                        NlComponentHelperKt.getH(component);
       container.append(fragment, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
   }
 
   @NotNull
   private static StructurePaneComponentHandler getViewHandler(@NotNull NlComponent component) {
-    StructurePaneComponentHandler handler = component.getViewHandler();
+    StructurePaneComponentHandler handler = NlComponentHelperKt.getViewHandler(component);
     return handler == null ? ViewHandlerManager.NONE : handler;
   }
 }

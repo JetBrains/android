@@ -169,10 +169,10 @@ public class RelativeDragHandler extends GuidelineHandler {
                          int modifierMask) {
     clearSuggestions();
     mySnap = (modifierMask & InputEvent.SHIFT_MASK) == 0;
-    myBounds = new Rectangle(primary.x + myViewEditor.dpToPx(offsetX),
-                             primary.y + myViewEditor.dpToPx(offsetY),
-                             primary.w,
-                             primary.h);
+    myBounds = new Rectangle(NlComponentHelperKt.getX(primary) + myViewEditor.dpToPx(offsetX),
+                             NlComponentHelperKt.getY(primary) + myViewEditor.dpToPx(offsetY),
+                             NlComponentHelperKt.getW(primary),
+                             NlComponentHelperKt.getH(primary));
 
     Segment edge = new Segment(myBounds.y, myBounds.x, x2(myBounds), null, null, SegmentType.TOP, NO_MARGIN);
     List<Match> horizontalMatches = findClosest(edge, myHorizontalEdges);
@@ -197,7 +197,7 @@ public class RelativeDragHandler extends GuidelineHandler {
 
     // Match baseline
     @AndroidCoordinate
-    int baseline = primary.getBaseline();
+    int baseline = NlComponentHelperKt.getBaseline(primary);
     if (baseline != -1) {
       myDraggedBaseline = baseline;
       edge = new Segment(myBounds.y + baseline, myBounds.x, x2(myBounds), primary, null, SegmentType.BASELINE, NO_MARGIN);

@@ -116,7 +116,7 @@ public class IconPreviewFactory implements Disposable {
     NlModel model = sceneView.getModel();
 
     NlComponent component = ApplicationManager.getApplication()
-      .runWriteAction((Computable<NlComponent>)() -> model.createComponent(sceneView, tag, null, null, InsertType.CREATE_PREVIEW));
+      .runWriteAction((Computable<NlComponent>)() -> NlModelHelperKt.createComponent(model, sceneView, tag, null, null, InsertType.CREATE_PREVIEW));
 
     if (component == null) {
       return null;

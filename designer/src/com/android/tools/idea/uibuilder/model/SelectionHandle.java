@@ -114,7 +114,7 @@ public class SelectionHandle {
    */
   @AndroidCoordinate
   public int getCenterX() {
-    return component.x + (int)(myPosition.alignX * component.w);
+    return NlComponentHelperKt.getX(component) + (int)(myPosition.alignX * NlComponentHelperKt.getW(component));
   }
 
   /**
@@ -122,7 +122,7 @@ public class SelectionHandle {
    */
   @AndroidCoordinate
   public int getCenterY() {
-    return component.y + (int)(myPosition.alignY * component.h);
+    return NlComponentHelperKt.getY(component) + (int)(myPosition.alignY * NlComponentHelperKt.getH(component));
   }
 
   /**

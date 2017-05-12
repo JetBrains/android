@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
 import com.android.tools.idea.uibuilder.model.AttributesTransaction
+import com.android.tools.idea.uibuilder.model.ensureLiveId
 import com.android.tools.idea.uibuilder.scene.SceneContext
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList
 import com.android.tools.idea.uibuilder.scene.target.BaseTarget

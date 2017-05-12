@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,8 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
 
   public void testScrollNothing() throws Exception {
     SyncNlModel model = createModel();
-    android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
+    android.view.ViewGroup mockScrollView =
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
 
     screen(model)
       .get("@id/myText1")
@@ -47,7 +49,8 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
 
   public void testCancel() throws Exception {
     SyncNlModel model = createModel();
-    android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
+    android.view.ViewGroup mockScrollView =
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
     doAnswer((invocation -> {
@@ -70,7 +73,8 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
 
   public void testScroll() throws Exception {
     SyncNlModel model = createModel();
-    android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
+    android.view.ViewGroup mockScrollView =
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
     doAnswer((invocation -> {

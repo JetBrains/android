@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlacehold
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
@@ -83,14 +84,16 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       int parentMax = parentMin + myParent.getDrawHeight() - DrawLinearSeparator.STROKE_SIZE;
       myLeft = myParent.getDrawX();
       myRight = myLeft + myParent.getDrawWidth();
-      float y = context.pxToDp(nlComponent.y) + (myAtEnd ? context.pxToDp(nlComponent.h) : 0);
+      float y =
+        context.pxToDp(NlComponentHelperKt.getY(nlComponent)) + (myAtEnd ? context.pxToDp(NlComponentHelperKt.getH(nlComponent)) : 0);
       myTop = myBottom = max(parentMin, min(parentMax, y));
       myCanDisplayPlaceholderAfter = myComponent.getDrawY() + myComponent.getDrawHeight() < parentMax;
     }
     else {
       int parentMin = myParent.getDrawX() + DrawLinearSeparator.STROKE_SIZE / 2;
       int parentMax = parentMin + myParent.getDrawWidth() - DrawLinearSeparator.STROKE_SIZE;
-      float x = context.pxToDp(nlComponent.x) + (myAtEnd ? context.pxToDp(nlComponent.w) : 0);
+      float x =
+        context.pxToDp(NlComponentHelperKt.getX(nlComponent)) + (myAtEnd ? context.pxToDp(NlComponentHelperKt.getW(nlComponent)) : 0);
       myLeft = myRight = max(parentMin, min(parentMax, x));
       myTop = myParent.getDrawY();
       myBottom = myTop + myParent.getDrawHeight();

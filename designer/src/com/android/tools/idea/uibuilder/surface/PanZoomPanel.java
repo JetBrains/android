@@ -22,6 +22,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
@@ -606,20 +607,20 @@ public class PanZoomPanel extends JPanel
 
       final double componentRatio = myDeviceScale;
       gc.drawRect(
-        (int)Math.round(myCenterOffset.x + component.x * componentRatio),
-        (int)Math.round(myCenterOffset.y + component.y * componentRatio),
-        (int)Math.round(component.w * componentRatio),
-        (int)Math.round(component.h * componentRatio));
+        (int)Math.round(myCenterOffset.x + NlComponentHelperKt.getX(component) * componentRatio),
+        (int)Math.round(myCenterOffset.y + NlComponentHelperKt.getY(component) * componentRatio),
+        (int)Math.round(NlComponentHelperKt.getW(component) * componentRatio),
+        (int)Math.round(NlComponentHelperKt.getH(component) * componentRatio));
 
       assert myDesignSurface != null;
 
       NlDesignSurface nlDesignSurface = myDesignSurface;
       if (nlDesignSurface.getScreenMode() == BOTH) {
         gc.drawRect(
-          (int)Math.round(mySecondScreenOffset.x + component.x * componentRatio),
-          (int)Math.round(mySecondScreenOffset.y + component.y * componentRatio),
-          (int)Math.round(component.w * componentRatio),
-          (int)Math.round(component.h * componentRatio)
+          (int)Math.round(mySecondScreenOffset.x + NlComponentHelperKt.getX(component) * componentRatio),
+          (int)Math.round(mySecondScreenOffset.y + NlComponentHelperKt.getY(component) * componentRatio),
+          (int)Math.round(NlComponentHelperKt.getW(component) * componentRatio),
+          (int)Math.round(NlComponentHelperKt.getH(component) * componentRatio)
         );
       }
     }

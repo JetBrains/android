@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.adtui.common.SwingCoordinate;
 import org.jetbrains.annotations.NotNull;
@@ -107,9 +108,9 @@ public class ConstraintsLayer extends Layer {
    * @return true if the component needs a repaint (for example when running an application)
    */
   private boolean drawComponent(@NotNull Graphics2D gc, @NotNull NlComponent component, boolean parentHandlesPainting) {
-    if (component.viewInfo != null) {
+    if (NlComponentHelperKt.getViewInfo(component) != null) {
 
-      ViewHandler handler = component.getViewHandler();
+      ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
       boolean handlesPainting = false;
 
       // Check if the view handler handles the painting

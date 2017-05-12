@@ -133,7 +133,7 @@ public class AttributesTransaction implements NlAttributesHolder {
         myPendingAttributes.put(key, attribute);
       }
 
-      ViewInfo viewInfo = myComponent.viewInfo;
+      ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
       if (viewInfo != null) {
         View cachedView = myCachedView.get();
         if (cachedView == viewInfo.getViewObject()) {
@@ -189,14 +189,14 @@ public class AttributesTransaction implements NlAttributesHolder {
    * It will trigger a layout.
    */
   public void apply() {
-    ViewInfo viewInfo = myComponent.viewInfo;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
     if (hasPendingRelayout && viewInfo != null) {
       View currentView = (View)viewInfo.getViewObject();
       if (currentView != myCachedView.get()) {
         // The view has changed since the last update so re-apply everything
-        applyAllPendingAttributesToView(myComponent.viewInfo);
+        applyAllPendingAttributesToView(NlComponentHelperKt.getViewInfo(myComponent));
       }
-      triggerViewRelayout((View)myComponent.viewInfo.getViewObject());
+      triggerViewRelayout((View)NlComponentHelperKt.getViewInfo(myComponent).getViewObject());
     }
   }
 
@@ -207,14 +207,14 @@ public class AttributesTransaction implements NlAttributesHolder {
    * @return true if the XML was changed as result of this call
    */
   public boolean commit() {
-    ViewInfo viewInfo = myComponent.viewInfo;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(myComponent);
     if (hasPendingRelayout && viewInfo != null) {
       View currentView = (View)viewInfo.getViewObject();
       if (currentView != myCachedView.get()) {
         // The view has changed since the last update so re-apply everything
-        applyAllPendingAttributesToView(myComponent.viewInfo);
+        applyAllPendingAttributesToView(NlComponentHelperKt.getViewInfo(myComponent));
       }
-      triggerViewRelayout((View)myComponent.viewInfo.getViewObject());
+      triggerViewRelayout((View)NlComponentHelperKt.getViewInfo(myComponent).getViewObject());
     }
 
     myLock.writeLock().lock();

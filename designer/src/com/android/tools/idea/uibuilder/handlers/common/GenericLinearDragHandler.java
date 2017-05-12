@@ -19,10 +19,7 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
@@ -107,8 +104,8 @@ public class GenericLinearDragHandler extends DragHandler {
 
     @AndroidDpCoordinate
     int last = myVertical
-               ? layout.getDrawY() + editor.pxToDp(layout.getNlComponent().getPadding().top)
-               : layout.getDrawX() + editor.pxToDp(layout.getNlComponent().getPadding().left);
+               ? layout.getDrawY() + editor.pxToDp(NlComponentHelperKt.getPadding(layout.getNlComponent()).top)
+               : layout.getDrawX() + editor.pxToDp(NlComponentHelperKt.getPadding(layout.getNlComponent()).left);
     int pos = 0;
     boolean lastDragged = false;
     mySelfPos = -1;
@@ -166,7 +163,7 @@ public class GenericLinearDragHandler extends DragHandler {
     myNumPositions = layout.getChildCount() + 1;
     NlComponent component = components.get(0);
     myComponent = new TemporarySceneComponent(layout.getScene(), component);
-    myComponent.setSize(editor.pxToDp(component.w), editor.pxToDp(component.h), false);
+    myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(component)), editor.pxToDp(NlComponentHelperKt.getH(component)), false);
   }
 
   @Nullable
@@ -219,7 +216,7 @@ public class GenericLinearDragHandler extends DragHandler {
 
   @Override
   public void paint(@NotNull NlGraphics gc) {
-    @AndroidCoordinate Insets padding = layout.getNlComponent().getPadding();
+    @AndroidCoordinate Insets padding = NlComponentHelperKt.getPadding(layout.getNlComponent());
     @AndroidDpCoordinate int layoutX = layout.getDrawX() + editor.pxToDp(padding.left);
     @AndroidDpCoordinate int layoutW = layout.getDrawWidth() - editor.pxToDp(padding.width());
     @AndroidDpCoordinate int layoutY = layout.getDrawY() + editor.pxToDp(padding.top);

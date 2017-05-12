@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 
 import java.util.Collections;
@@ -46,7 +47,7 @@ public final class ActionBarTest extends LayoutTestCase {
 
     SceneComponent menu = new SyncLayoutlibSceneManager(model).build().getRoot();
     SceneComponent group = menu.getChildren().get(0);
-    group.getNlComponent().viewInfo = null;
+    NlComponentHelperKt.setViewInfo(group.getNlComponent(), null);
     SceneComponent item = group.getChildren().get(0);
 
     ActionBar actionBar = new ActionBar(menu);

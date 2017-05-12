@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,6 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.ide.common.rendering.api.ViewType.ACTION_BAR_MENU;
+import static com.android.ide.common.rendering.api.ViewType.ACTION_BAR_OVERFLOW_MENU;
 
 final class ActionBar {
   private final List<SceneComponent> myItems;
@@ -54,13 +58,13 @@ final class ActionBar {
     group.getChildren().stream()
       .filter(item -> item.getDrawWidth() != -1 && item.getDrawHeight() != -1)
       .forEach(item -> {
-        if (item.getNlComponent().viewInfo == null) {
+        if (NlComponentHelperKt.getViewInfo(item.getNlComponent()) == null) {
           // item corresponds to a group element
           addToItemsOrOverflowItems(item);
           return;
         }
 
-        switch (item.getNlComponent().viewInfo.getViewType()) {
+        switch (NlComponentHelperKt.getViewInfo(item.getNlComponent()).getViewType()) {
           case ACTION_BAR_MENU:
             myItems.add(item);
             break;

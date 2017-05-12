@@ -19,6 +19,7 @@ import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -262,7 +263,7 @@ public class MockupTest extends MockupTestCase {
     when(mockSurface.getScale()).thenReturn(1.0);
     final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
     final Rectangle destinationRectangle = mockup.getScreenBounds(screenView);
-    assertEquals(new Rectangle(0, 0, component.w, component.h), destinationRectangle);
+    assertEquals(new Rectangle(0, 0, NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)), destinationRectangle);
   }
 }
 

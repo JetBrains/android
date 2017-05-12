@@ -113,7 +113,7 @@ public class LayoutInspectorProviderTest extends PropertyTestCase {
     XmlTag tag = mock(XmlTag.class);
     when(tag.getName()).thenReturn(tagName);
 
-    return new NlComponent(myModel, tag);
+    return myModel.createComponent(tag);
   }
 
   // We do not have access to the design library in this type of test. Fake the properties:

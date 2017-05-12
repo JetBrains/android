@@ -17,13 +17,13 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -48,7 +48,9 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     NlModel model = model("menu.xml", menuDescriptor).build();
     NlComponent menuComponent = model.getComponents().get(0);
-    NlComponent item = Mockito.mock(NlComponent.class);
+    NlComponent item = LayoutTestUtilities.createMockComponent();
+
+
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
     Mockito.when(item.getModel()).thenReturn(model);
 
@@ -74,9 +76,12 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     NlModel model = model("menu.xml", menuDescriptor).build();
     NlComponent menuComponent = model.getComponents().get(0);
-    NlComponent item = Mockito.mock(NlComponent.class);
+    NlComponent item = LayoutTestUtilities.createMockComponent();
+
+
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
     Mockito.when(item.getModel()).thenReturn(model);
+
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(300, 50, 0);
@@ -133,7 +138,9 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
 
-    Mockito.when(editor.getModel()).thenReturn(Mockito.mock(NlModel.class));
+    NlModel mockModel = Mockito.mock(NlModel.class);
+    Mockito.when(mockModel.getFacet()).thenReturn(model.getFacet());
+    Mockito.when(editor.getModel()).thenReturn(mockModel);
 
     SceneComponent sceneComponent = scene.getSceneComponent(item);
     if (sceneComponent == null) {

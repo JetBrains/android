@@ -19,9 +19,7 @@ import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.graphics.NlGraphics
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate
-import com.android.tools.idea.uibuilder.model.NlComponent
+import com.android.tools.idea.uibuilder.model.*
 import com.android.tools.idea.uibuilder.scene.SceneComponent
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent
 import com.android.tools.idea.uibuilder.scene.target.Target

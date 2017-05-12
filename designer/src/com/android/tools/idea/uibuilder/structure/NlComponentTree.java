@@ -658,7 +658,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           Object parent = paths[i].getParentPath().getLastPathComponent();
           if (parent instanceof NlComponent) {
             NlComponent component = (NlComponent)parent;
-            ViewGroupHandler handler = component.getViewGroupHandler();
+            ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
             if (handler != null && handler instanceof ConstraintHelperHandler) {
               ConstraintHelperHandler helperHandler = (ConstraintHelperHandler)handler;
               Object last = paths[i].getLastPathComponent();
@@ -702,7 +702,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       return;
     }
     List<NlComponent> components = ApplicationManager.getApplication().runWriteAction(
-      (Computable<List<NlComponent>>)() -> myModel.createComponents(myScreenView, item, InsertType.PASTE));
+      (Computable<List<NlComponent>>)() -> NlModelHelperKt.createComponents(myModel, myScreenView, item, InsertType.PASTE));
     myModel.addComponents(components, spec.layout, spec.before, InsertType.PASTE);
   }
 
@@ -727,7 +727,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
     else if (selectionCount == 1) {
       NlComponent component = myModel.getSelectionModel().getSelection().get(0);
-      if (component.getViewHandler() instanceof ViewGroupHandler) {
+      if (NlComponentHelperKt.getViewHandler(component) instanceof ViewGroupHandler) {
         return new InsertSpecification(component, component.getChild(0));
       }
       else {
@@ -740,7 +740,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         return null;
       }
       NlComponent component = myModel.getComponents().get(0);
-      return component.getViewHandler() instanceof ViewGroupHandler ? new InsertSpecification(component, component.getChild(0)) : null;
+      return NlComponentHelperKt.getViewHandler(component) instanceof ViewGroupHandler
+             ? new InsertSpecification(component, component.getChild(0))
+             : null;
     }
   }
 }

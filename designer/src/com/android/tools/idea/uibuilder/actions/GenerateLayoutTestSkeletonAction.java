@@ -21,6 +21,7 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
@@ -281,7 +282,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
   private static Rectangle getBounds(@NotNull NlComponent component) {
     NlComponent parent = component.getParent();
     Rectangle parentBounds = parent != null ? getBounds(parent) : new Rectangle(0, 0, 1000, 1000);
-    ViewInfo viewInfo = component.viewInfo;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     if (viewInfo == null) {
       return new Rectangle(parentBounds.x,
                            parentBounds.y,

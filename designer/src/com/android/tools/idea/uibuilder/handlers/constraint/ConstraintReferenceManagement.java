@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -42,9 +43,9 @@ class ConstraintReferenceManagement {
    * @param constraints
    */
   private static void ensurePresence(@NotNull NlComponent component, @NotNull NlComponent constraints) {
-    if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
         || component.getTagName().equals(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
-        || component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_REFERENCE)
+        || NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_REFERENCE)
         || component.getTagName().equals(CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
       return;
     }
@@ -54,7 +55,7 @@ class ConstraintReferenceManagement {
 
     // the component wasn't found, let's add it.
 
-    component.ensureId();
+    NlComponentHelperKt.ensureId(component);
     ApplicationManager.getApplication().runWriteAction(
       () -> {
         XmlTag parentTag = constraints.getTag();
@@ -66,7 +67,7 @@ class ConstraintReferenceManagement {
           childTag.setAttribute(prefix + pair.getSecond(), value);
         }
         NlModel model = constraints.getModel();
-        NlComponent c = new NlComponent(model, childTag);
+        NlComponent c = model.createComponent(childTag);
         model.addTags(Arrays.asList(c), constraints, null, InsertType.CREATE);
       }
     );
@@ -107,7 +108,7 @@ class ConstraintReferenceManagement {
       return;
     }
     for (NlComponent child : parent.getChildren()) {
-      if (child.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(child, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
         continue;
       }
       ensurePresence(child, constraints);
@@ -145,7 +146,7 @@ class ConstraintReferenceManagement {
       return;
     }
     for (NlComponent child : nlComponent.getChildren()) {
-      if (child.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(child, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
         continue;
       }
       ensurePresence(child, constraints);

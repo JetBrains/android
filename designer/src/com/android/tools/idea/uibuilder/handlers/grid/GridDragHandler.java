@@ -19,10 +19,8 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +85,7 @@ final class GridDragHandler extends DragHandler {
 
   @Override
   public void paint(@NotNull NlGraphics graphics) {
-    Insets padding = layout.getNlComponent().getPadding();
+    Insets padding = NlComponentHelperKt.getPadding(layout.getNlComponent());
 
     @AndroidCoordinate int layoutX1 = editor.dpToPx(layout.getDrawX()) + padding.left;
     @AndroidCoordinate int layoutY1 = editor.dpToPx(layout.getDrawY()) + padding.top;
