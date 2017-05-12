@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testComponentActivated() throws Exception {
-    NavDesignSurface surface = new NavDesignSurface(myAndroidFacet, getTestRootDisposable());
+    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
     SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
       .unboundedChildren(
         component(NavigationSchema.TAG_FRAGMENT)
