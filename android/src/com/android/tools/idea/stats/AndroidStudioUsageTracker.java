@@ -46,9 +46,8 @@ import java.util.concurrent.TimeUnit;
  * Tracks Android Studio specific metrics
  **/
 public class AndroidStudioUsageTracker {
-
   private static final String ANONYMIZATION_ERROR = "*ANONYMIZATION_ERROR*";
-  public static ILogger LOGGER = new IntelliJLogger(AndroidStudioUsageTracker.class);
+  public static final ILogger LOGGER = new IntelliJLogger(AndroidStudioUsageTracker.class);
 
   public static void setup(ScheduledExecutorService scheduler) {
     // Send initial report immediately, daily from then on.
@@ -148,7 +147,7 @@ public class AndroidStudioUsageTracker {
   /**
    * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
    */
-  private static class ProjectLifecycleTracker extends ProjectLifecycleListener.Adapter {
+  private static class ProjectLifecycleTracker implements ProjectLifecycleListener {
     @Override
     public void beforeProjectLoaded(@NotNull Project project) {
       int projectsOpen = ProjectManager.getInstance().getOpenProjects().length;
