@@ -163,6 +163,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
         String deviceDir = "/data/local/tmp/perfd/";
         copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../out/studio/native/out/release", deviceDir, true);
+        copyFileToDevice("libperfa.so", "plugins/android/resources/perfd", "../../out/studio/native/out/release", deviceDir, true);
+        copyFileToDevice("perfa.jar", "plugins/android/resources", "../../out/studio/perfa/libs", deviceDir, false);
         // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
         pushSimpleperfIfSupported(deviceDir);
 
@@ -204,9 +206,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     }
 
     /**
-     * Copies a file from host (where Studio is running) to the device. Optionally marks it executable.
+     * Copies a file from host (where Studio is running) to the device.
+     * If executable, then the abi is taken into account.
      */
-    private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, String deviceDir, boolean markItExecutable) {
+    private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, String deviceDir, boolean executable) {
       try {
         File dir = new File(PathManager.getHomePath(), hostReleaseDir);
         if (!dir.exists()) {
@@ -215,11 +218,18 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
 
         File file = null;
-        for (String abi : myDevice.getAbis()) {
-          File candidate = new File(dir, abi + "/" + fileName);
+        if (executable) {
+          for (String abi : myDevice.getAbis()) {
+            File candidate = new File(dir, abi + "/" + fileName);
+            if (candidate.exists()) {
+              file = candidate;
+              break;
+            }
+          }
+        } else {
+          File candidate = new File(dir, fileName);
           if (candidate.exists()) {
             file = candidate;
-            break;
           }
         }
 
@@ -230,7 +240,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         myDevice.executeShellCommand("mkdir -p " + deviceDir, new NullOutputReceiver());
         myDevice.pushFile(file.getAbsolutePath(), deviceDir + fileName);
 
-        if (markItExecutable) {
+        if (executable) {
           /*
            * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
            * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
@@ -255,7 +265,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       if (!(isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_SIMPLEPERF.get())) {
         return;
       }
-      copyFileToDevice("simpleperf", "plugins/android/resources/simpleperf", "../../prebuilts/tools/common/simpleperf", devicePath, false);
+      copyFileToDevice("simpleperf", "plugins/android/resources/simpleperf", "../../prebuilts/tools/common/simpleperf", devicePath, true);
     }
 
     private void createPerfdProxy() {
