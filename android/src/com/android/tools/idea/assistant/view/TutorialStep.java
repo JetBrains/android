@@ -103,7 +103,7 @@ public class TutorialStep extends JPanel {
             ActionData action = element.getAction();
             Optional<AssistActionStateManager>
               stateManager =
-              Arrays.stream(AssistActionStateManager.EP_NAME.getExtensions()).filter(s -> !s.getId().equals(action.getKey())).findFirst();
+              Arrays.stream(AssistActionStateManager.EP_NAME.getExtensions()).filter(s -> s.getId().equals(action.getKey())).findFirst();
             myContents
               .add(new StatefulButton(element.getAction(), listener, stateManager.orElse(null), project));
           }
