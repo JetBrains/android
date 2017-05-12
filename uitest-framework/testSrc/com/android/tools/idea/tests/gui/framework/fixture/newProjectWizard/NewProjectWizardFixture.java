@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.TemplateEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -27,9 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.Optional;
-
-import static com.android.tools.idea.npw.WizardUtils.Feature.NEW_PROJECT;
-import static com.android.tools.idea.npw.WizardUtils.isNpwModelWizardEnabled;
 
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
@@ -82,7 +80,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
-    JRootPane rootPane = findStepWithTitle(isNpwModelWizardEnabled(NEW_PROJECT) ? "Configure Activity" : "Customize the Activity");
+    JRootPane rootPane = findStepWithTitle(StudioFlags.NPW_NEW_PROJECT.get() ? "Configure Activity" : "Customize the Activity");
     return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
   }
 

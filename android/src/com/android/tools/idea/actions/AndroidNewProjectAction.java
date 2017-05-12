@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
-import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.project.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -51,7 +51,7 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    if (WizardUtils.isNpwModelWizardEnabled(e, WizardUtils.Feature.NEW_PROJECT)) {
+    if (StudioFlags.NPW_NEW_PROJECT.get()) {
       if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
         SdkQuickfixUtils.showSdkMissingDialog();
         return;

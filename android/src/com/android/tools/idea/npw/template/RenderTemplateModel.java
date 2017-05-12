@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
@@ -31,7 +31,6 @@ import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -219,7 +218,7 @@ public final class RenderTemplateModel extends WizardModel {
       if (success) {
         Language language = getLanguage().get();
 
-        if (WizardUtils.KOTLIN_ENABLED &&
+        if (StudioFlags.NPW_KOTLIN.get() &&
             (language == Language.KOTLIN ||
              (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false))) {
 
