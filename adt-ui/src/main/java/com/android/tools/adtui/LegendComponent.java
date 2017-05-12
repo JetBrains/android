@@ -54,22 +54,26 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * Side of the (squared) box icon in pixels.
    */
-  private static final int BOX_ICON_WIDTH_PX = 10;
+  @VisibleForTesting
+  public static final int BOX_ICON_WIDTH_PX = 10;
 
   /**
    * Width of the line icons in pixels.
    */
-  private static final int LINE_ICON_WIDTH_PX = 12;
+  @VisibleForTesting
+  public static final int LINE_ICON_WIDTH_PX = 12;
 
   /**
    * Distance, in pixels, between icons and their correspondent labels.
    */
-  private static final int ICON_MARGIN_PX = 5;
+  @VisibleForTesting
+  public static final int ICON_MARGIN_PX = 5;
 
   /**
    * Vertical space, in pixels, between the legend and the border.
    */
-  private static final int DEFAULT_VERTICAL_PADDING_PX = 5;
+  @VisibleForTesting
+  public static final int DEFAULT_VERTICAL_PADDING_PX = 5;
 
   /**
    * Vertical space, in pixels, between legends.
@@ -79,7 +83,8 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * Distance, in pixels, between legends.
    */
-  private static int LEGEND_MARGIN_PX = 10;
+  @VisibleForTesting
+  public final static int LEGEND_MARGIN_PX = 10;
 
   private final int myVerticalPadding;
 
@@ -242,15 +247,34 @@ public class LegendComponent extends AnimatedComponent {
 
   @Override
   public Dimension getPreferredSize() {
-    int totalWidth = 0;
+    // TODO Refactor the logic below to be shared with the draw function.
+    int totalWidth = LEGEND_MARGIN_PX;
     int totalHeight = 0;
     // Using line icon (vs box icon) because it's wider. Extra space is better than lack of space.
-    int iconPaddedSize = LINE_ICON_WIDTH_PX + ICON_MARGIN_PX + LEGEND_MARGIN_PX;
+
+
     // Calculate total size of all icons + labels.
-    for (JLabel label : myLabelsToDraw) {
+    for (int i = 0; i < myLabelsToDraw.size(); i++) {
+      Legend data = myModel.getLegends().get(i);
+      LegendConfig config = getConfig(data);
+      JLabel label = myLabelsToDraw.get(i);
+      int iconPaddedSize = 0;
+      switch (config.getIcon()) {
+        case BOX:
+          iconPaddedSize += BOX_ICON_WIDTH_PX + ICON_MARGIN_PX;
+          break;
+        case LINE:
+        case DASHED_LINE:
+          iconPaddedSize += LINE_ICON_WIDTH_PX + ICON_MARGIN_PX;
+          break;
+        case NONE:
+          break;
+      }
       Dimension size = label.getPreferredSize();
       if (myOrientation == Orientation.HORIZONTAL) {
-        totalWidth += iconPaddedSize + size.width;
+        // Due to the way we draw the legend, we always add the legend margin to the offset.
+        // So if there is more than 1 element we need to compound the legend margin.
+        totalWidth += iconPaddedSize + size.width + LEGEND_MARGIN_PX;
         if (totalHeight < size.height) {
           totalHeight = size.height;
         }
