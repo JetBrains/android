@@ -31,7 +31,6 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileSystemItem;
-import libcore.io.Streams;
 import org.w3c.dom.Node;
 
 import java.io.*;
@@ -85,14 +84,14 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   private static SampleDataResourceItem getFromPlainFile(@NonNull PsiFile sourceElement)
     throws IOException {
     return new SampleDataResourceItem(sourceElement.getName(), output -> {
-      try (InputStream input = sourceElement.getVirtualFile().getInputStream()) {
-        Streams.copy(input, output);
+      try {
+        output.write(sourceElement.getText().getBytes(Charsets.UTF_8));
       }
       catch (IOException e) {
         return e;
       }
       return null;
-    }, () -> sourceElement.getVirtualFile().getModificationStamp() + 1, sourceElement);
+    }, () -> sourceElement.getModificationStamp() + 1, sourceElement);
   }
 
 
@@ -113,8 +112,9 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         return null;
       }
 
-      try (InputStream input = sourceElement.getVirtualFile().getInputStream()) {
-        SampleDataJsonParser parser = SampleDataJsonParser.parse(new InputStreamReader(input));
+      try {
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(sourceElement.getText().getBytes(Charsets.UTF_8)));
+        SampleDataJsonParser parser = SampleDataJsonParser.parse(input);
         if (parser != null) {
           output.write(parser.getContentFromPath(contentPath));
         }
@@ -123,7 +123,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         return e;
       }
       return null;
-    }, () -> sourceElement.getVirtualFile().getModificationStamp() + 1, sourceElement);
+    }, () -> sourceElement.getModificationStamp() + 1, sourceElement);
   }
 
   @NonNull
@@ -176,7 +176,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       }
     }
 
-    return new String(value.getContents(), Charsets.UTF_8);
+    return value != null ? new String(value.getContents(), Charsets.UTF_8) : null;
   }
 
   @NonNull
