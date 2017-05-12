@@ -66,7 +66,7 @@ public class WatchpointTest extends DebuggerTestBase {
     String[] expectedPattern = {variableToSearchPattern("write", "int", "5")};
 
     ideFrame.debugApp(DEBUG_CONFIG_NAME)
-        .selectDevice(emulator.getDefaulAvdName())
+        .selectDevice(emulator.getDefaultAvdName())
         .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);

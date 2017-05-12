@@ -46,7 +46,7 @@ public class LayoutInspectorTest {
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspectorViaChooser() throws Exception {
-    guiTest.ideFrame().runApp("app").selectDevice(emulator.getDefaulAvdName()).clickOk();
+    guiTest.ideFrame().runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
     guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Android", "Layout Inspector");
