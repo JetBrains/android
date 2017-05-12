@@ -22,6 +22,7 @@ import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -130,7 +131,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     int scopeType = scope.getScopeType();
     switch (scopeType) {
       case AnalysisScope.MODULE: {
-        SearchScope searchScope = scope.toSearchScope();
+        SearchScope searchScope = ReadAction.compute(scope::toSearchScope);
         if (searchScope instanceof ModuleWithDependenciesScope) {
           ModuleWithDependenciesScope s = (ModuleWithDependenciesScope)searchScope;
           if (!s.isSearchInLibraries()) {
