@@ -100,9 +100,9 @@ public class DeviceChooserTest {
 
     DeployTargetPickerDialogFixture deployTargetPickerDialog = ideFrame.runApp(APP_NAME);
     deployTargetPickerDialog.getCreateNewVirtualDeviceButton();
-    deployTargetPickerDialog.selectDevice(emulator.getDefaulAvdName());
+    deployTargetPickerDialog.selectDevice(emulator.getDefaultAvdName());
     deployTargetPickerDialog.selectDevice(SECOND_AVD_NAME);
-    deployTargetPickerDialog.selectDevice(emulator.getDefaulAvdName());
+    deployTargetPickerDialog.selectDevice(emulator.getDefaultAvdName());
     deployTargetPickerDialog.clickOk();
 
     ideFrame.getRunToolWindow().findContent(APP_NAME)

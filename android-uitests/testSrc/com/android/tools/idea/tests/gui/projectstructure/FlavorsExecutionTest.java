@@ -114,7 +114,7 @@ public class FlavorsExecutionTest {
       .selectVariantForModule("app", "flavor1Debug");
     guiTest.ideFrame()
       .runApp("app")
-      .selectDevice(emulator.getDefaulAvdName())
+      .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
     guiTest.ideFrame().getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(Pattern.compile(
@@ -129,7 +129,7 @@ public class FlavorsExecutionTest {
       .selectVariantForModule("app", "flavor2Debug");
     guiTest.ideFrame()
       .runApp("app")
-      .selectDevice(emulator.getDefaulAvdName())
+      .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
     guiTest.ideFrame().getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(Pattern.compile(
