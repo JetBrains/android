@@ -91,7 +91,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Id = ?"),
 
     // O+ Allocation Tracking
-    INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, CaptureTime, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?, ?)"),
+    INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?)"),
     INSERT_ALLOC(
       "INSERT INTO Memory_AllocationEvents (Pid, Session, CaptureTime, Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
@@ -99,7 +99,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     INSERT_ENCODED_STACK("INSERT INTO Memory_StackInfos (Pid, Session, StackId, MethodIdData) VALUES (?, ?, ?, ?)"),
     UPDATE_ALLOC(
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND Tag = ?"),
-    QUERY_CLASS("SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND CaptureTime = ?"),
+    QUERY_CLASS("SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ?"),
     // XORing (AllocTime >= startTime AND AllocTime < endTime) and (FreeTime >= startTime AND FreeTime < endTime)
     QUERY_ALLOC_SNAPSHOT("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
                          "WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND AllocTime < ? AND FreeTime >= ? AND " +
@@ -141,9 +141,8 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
                   "EndTime INTEGER", "Status INTEGER", "InfoData BLOB", "DumpData BLOB", "PRIMARY KEY(Pid, Session, StartTime)");
 
       // O+ Allocation Tracking
-      createTable("Memory_AllocatedClass", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "CaptureTime INTEGER",
-                  "Tag INTEGER", "AllocTime INTEGER", "Name TEXT",
-                  "PRIMARY KEY(Pid, Session, CaptureTime, Tag)");
+      createTable("Memory_AllocatedClass", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Tag INTEGER",
+                  "AllocTime INTEGER", "Name TEXT", "PRIMARY KEY(Pid, Session, Tag)");
       createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "CaptureTime INTEGER",
                   "Tag INTEGER", "ClassTag INTEGER", "AllocTime INTEGER", "FreeTime INTERGER", "Size INTEGER", "Length INTEGER",
                   "StackId INTEGER", "PRIMARY KEY(Pid, Session, CaptureTime, Tag)");
@@ -402,7 +401,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     try {
       // Query all the classes
       // TODO: only return classes that are valid for current snapshot?
-      ResultSet klassResult = executeQuery(QUERY_CLASS, pid, session, captureTime);
+      ResultSet klassResult = executeQuery(QUERY_CLASS, pid, session);
       while (klassResult.next()) {
         long allocTime = klassResult.getLong(2);
         AllocationEvent event = AllocationEvent.newBuilder()
@@ -462,8 +461,7 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
         switch (currentCase) {
           case CLASS_DATA:
             AllocationEvent.Klass klass = event.getClassData();
-            applyParams(currentStatement, pid, session, event.getCaptureTime(), klass.getTag(), event.getTimestamp(),
-                        jniToJavaName(klass.getName()));
+            applyParams(currentStatement, pid, session, klass.getTag(), event.getTimestamp(), jniToJavaName(klass.getName()));
             break;
           case ALLOC_DATA:
             AllocationEvent.Allocation allocation = event.getAllocData();
