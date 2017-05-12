@@ -126,6 +126,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
 
     myWorkBench = new WorkBench<>(myProject, "Preview", null);
+    myWorkBench.setLoadingText("Waiting for build to finish...");
   }
 
   private void createContentPanel() {
@@ -314,7 +315,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   // Build was either cancelled or there was an error
   private void buildError() {
-    myWorkBench.setLoadingText("Error.");
+    myWorkBench.loadingStopped("Preview is unavailable until a successful build");
   }
 
   private void initPreviewFormOnEventDispatchThread() {

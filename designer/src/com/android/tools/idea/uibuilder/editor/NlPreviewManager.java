@@ -153,7 +153,6 @@ public class NlPreviewManager implements ProjectComponent {
     content.setPreferredFocusableComponent(contentPanel);
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
-    myToolWindow.setAvailable(false, null);
     myToolWindowForm.setUseInteractiveSelector(isUseInteractiveSelector());
   }
 
