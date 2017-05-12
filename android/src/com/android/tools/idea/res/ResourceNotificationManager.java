@@ -653,7 +653,7 @@ public class ResourceNotificationManager {
     }
   }
 
-  private class FileEventObserver extends BulkFileListener.Adapter {
+  private class FileEventObserver implements BulkFileListener {
     private List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(2);
     private Module myModule;
     private MessageBusConnection myMessageBusConnection;
@@ -705,9 +705,7 @@ public class ResourceNotificationManager {
                  ResourceFolderType.MIPMAP == resType;
         })
         .findAny()
-        .ifPresent((e) -> {
-          notice(Reason.IMAGE_RESOURCE_CHANGED);
-        });
+        .ifPresent((e) -> notice(Reason.IMAGE_RESOURCE_CHANGED));
     }
 
     private boolean hasListeners() {
