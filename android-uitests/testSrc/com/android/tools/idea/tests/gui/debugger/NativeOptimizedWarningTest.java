@@ -66,7 +66,7 @@ public class NativeOptimizedWarningTest {
     final String[] breakPoints = { "return 1+c;" };
     openAndToggleBreakPoints("app/src/main/cpp/hello-jni.c", breakPoints);
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME).selectDevice(emulator.getDefaulAvdName()).clickOk();
+    projectFrame.debugApp(DEBUG_CONFIG_NAME).selectDevice(emulator.getDefaultAvdName()).clickOk();
 
     // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);

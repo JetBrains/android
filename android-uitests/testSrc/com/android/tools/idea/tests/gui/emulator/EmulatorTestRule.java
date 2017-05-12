@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
@@ -23,22 +24,20 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdMana
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
 
-import java.util.ArrayList;
-
 public class EmulatorTestRule extends ExternalResource {
 
-  private ArrayList<String> avdNames = new ArrayList<String>();
   private static final String DEFAULT_AVD_NAME = "device under test";
 
   @NotNull
-  public String getDefaulAvdName() { return DEFAULT_AVD_NAME; }
+  public String getDefaultAvdName() { return DEFAULT_AVD_NAME; }
 
   @Override
   protected void before() throws Throwable {
     MockAvdManagerConnection.inject();
     getEmulatorConnection().stopRunningAvd();
-    for (String avdName: avdNames) {
-      getEmulatorConnection().deleteAvdByDisplayName(avdName);
+    // Remove all AVDs
+    for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {
+      getEmulatorConnection().deleteAvd(avdInfo);
     }
   }
 
@@ -47,8 +46,9 @@ public class EmulatorTestRule extends ExternalResource {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
     getEmulatorConnection().stopRunningAvd();
-    for (String avdName: avdNames) {
-      getEmulatorConnection().deleteAvdByDisplayName(avdName);
+    // Remove all AVDs
+    for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {
+      getEmulatorConnection().deleteAvd(avdInfo);
     }
   }
 
@@ -56,8 +56,6 @@ public class EmulatorTestRule extends ExternalResource {
                         String tab,
                         ChooseSystemImageStepFixture.SystemImage image,
                         String avdName) {
-    avdNames.add(avdName);
-
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
     avdEditWizard.selectHardware()
