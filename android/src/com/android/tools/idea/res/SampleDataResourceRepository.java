@@ -27,8 +27,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.*;
-import com.intellij.psi.PsiFileSystemItem;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -72,17 +71,44 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
       @Override
       public void fileCreated(@NotNull VirtualFileEvent event) {
-        filesUpdated(event);
+        rootsUpdated(event);
       }
 
       @Override
       public void fileDeleted(@NotNull VirtualFileEvent event) {
-        filesUpdated(event);
+        rootsUpdated(event);
       }
 
       @Override
       public void fileMoved(@NotNull VirtualFileMoveEvent event) {
-        filesUpdated(event);
+        rootsUpdated(event);
+      }
+    }, this);
+
+    PsiManager.getInstance(androidFacet.getModule().getProject()).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
+      @Override
+      public void childAdded(@NotNull PsiTreeChangeEvent event) {
+        contentsUpdated(event);
+      }
+
+      @Override
+      public void childRemoved(@NotNull PsiTreeChangeEvent event) {
+        contentsUpdated(event);
+      }
+
+      @Override
+      public void childReplaced(@NotNull PsiTreeChangeEvent event) {
+        contentsUpdated(event);
+      }
+
+      @Override
+      public void childMoved(@NotNull PsiTreeChangeEvent event) {
+        contentsUpdated(event);
+      }
+
+      @Override
+      public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
+        contentsUpdated(event);
       }
     }, this);
     invalidate();
@@ -120,29 +146,52 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
       myFullTable.put(null, ResourceType.SAMPLE_DATA, items.build());
     }
 
+    myGeneration = ourModificationCounter.incrementAndGet();
+
     invalidateParentCaches(null, ResourceType.SAMPLE_DATA);
   }
 
-  private void filesUpdated(@NotNull VirtualFileEvent event) {
-    if (myAndroidFacet.isDisposed()) {
-      return;
-    }
-
+  /**
+   * Returns if the given {@link VirtualFile} is part of the sample data directory (or the directory itself)
+   */
+  private static boolean isSampleDataFile(@NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     VirtualFile sampleDataDir = null;
     try {
-      sampleDataDir = getSampleDataDir(myAndroidFacet, false);
+      sampleDataDir = getSampleDataDir(facet, false);
     }
     catch (IOException ignored) {
     }
 
-    VirtualFile eventFile = event.getFile();
-
-    // Invalidate the existing cache if the change affects any sampledata directory children or the directory itself
-    boolean invalidate = sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, eventFile, false);
+    boolean relevant = sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, file, false);
     // Also account for the case where the directory itself is being added or removed
-    invalidate = invalidate || FD_SAMPLE_DATA.equals(eventFile.getName());
+    return relevant || FD_SAMPLE_DATA.equals(file.getName());
+  }
 
-    if (invalidate) {
+  /**
+   * Files have been added or removed to the sample data directory
+   */
+  private void rootsUpdated(@NotNull VirtualFileEvent event) {
+    if (myAndroidFacet.isDisposed()) {
+      return;
+    }
+
+    if (isSampleDataFile(myAndroidFacet, event.getFile())) {
+      invalidate();
+    }
+  }
+
+  /**
+   * Files have been added or removed to the sample data directory
+   * @param event
+   */
+  private void contentsUpdated(@NotNull PsiTreeChangeEvent event) {
+    if (myAndroidFacet.isDisposed()) {
+      return;
+    }
+
+    PsiFile psiFile = event.getFile();
+    VirtualFile eventFile = psiFile != null ? psiFile.getVirtualFile() : null;
+    if (eventFile != null && isSampleDataFile(myAndroidFacet, eventFile)) {
       invalidate();
     }
   }
