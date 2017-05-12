@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
-import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
@@ -82,7 +82,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
 
   @Override
   public String getPresentableName() {
-    if (WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE)) {
+    if (StudioFlags.NPW_NEW_MODULE.get()) {
       return "Android (New)";
     }
     return MODULE_NAME;
@@ -128,7 +128,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
   @Nullable
   @Override
   public ModuleWizardStep getCustomOptionsStep(WizardContext ctx, Disposable parentDisposable) {
-    if (!WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE)) {
+    if (!StudioFlags.NPW_NEW_MODULE.get()) {
       return null;
     }
     if (myWizardAdapter == null) {
