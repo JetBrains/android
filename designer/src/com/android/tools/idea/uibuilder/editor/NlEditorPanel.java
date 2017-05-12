@@ -48,25 +48,25 @@ import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABL
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends WorkBench<DesignSurface> {
-  private final AndroidFacet myFacet;
   private final NlEditor myEditor;
+  private final Project myProject;
   private final XmlFile myFile;
   private final DesignSurface mySurface;
   private final JPanel myContentPanel;
   private boolean myIsActive;
 
-  public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
+  public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull VirtualFile file) {
     super(project, "NELE_EDITOR", editor);
     setOpaque(true);
 
-    myFacet = facet;
     myEditor = editor;
+    myProject = project;
     myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
     assert myFile != null : file;
     myContentPanel = new JPanel(new BorderLayout());
 
     if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
-      mySurface = new NavDesignSurface(facet, editor);
+      mySurface = new NavDesignSurface(project, editor);
     }
     else {
       mySurface = new NlDesignSurface(project, false, editor);
@@ -83,16 +83,16 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
   }
 
   private void initNeleModel() {
-    DumbService.getInstance(myFacet.getModule().getProject()).smartInvokeLater(this::initNeleModelOnEventDispatchThread);
+    DumbService.getInstance(myProject).smartInvokeLater(this::initNeleModelOnEventDispatchThread);
   }
 
   private void initNeleModelOnEventDispatchThread() {
     if (Disposer.isDisposed(myEditor) || myContentPanel.getComponentCount() > 0) {
       return;
     }
-    Project project = myFacet.getModule().getProject();
-
-    NlModel model = NlModel.create(mySurface, myEditor, myFacet, myFile);
+    AndroidFacet facet = AndroidFacet.getInstance(myFile);
+    assert facet != null;
+    NlModel model = NlModel.create(mySurface, myEditor, facet, myFile);
     mySurface.setModel(model);
     Disposer.register(myEditor, mySurface);
 
@@ -101,13 +101,13 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myContentPanel.add(mySurface);
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
-    tools.add(new NlPropertyPanelDefinition(myFacet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+    tools.add(new NlPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
     if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
       tools.add(new DestinationList.DestinationListDefinition());
     }
     else {
-      tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-      tools.add(new NlComponentTreeDefinition(project, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
+      tools.add(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
+      tools.add(new NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
       if (MOCKUP_EDITOR_ENABLED) {
         tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
       }
