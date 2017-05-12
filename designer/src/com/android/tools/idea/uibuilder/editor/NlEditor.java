@@ -34,15 +34,13 @@ import java.beans.PropertyChangeListener;
 
 public class NlEditor extends UserDataHolderBase implements FileEditor {
   private final Project myProject;
-  private final AndroidFacet myFacet;
   private final VirtualFile myFile;
 
   private NlEditorPanel myEditorPanel;
   private BackgroundEditorHighlighter myBackgroundHighlighter;
 
-  public NlEditor(AndroidFacet facet, VirtualFile file, Project project) {
+  public NlEditor(@NotNull VirtualFile file, Project project) {
     myProject = project;
-    myFacet = facet;
     myFile = file;
   }
 
@@ -50,7 +48,7 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public NlEditorPanel getComponent() {
     if (myEditorPanel == null) {
-      myEditorPanel = new NlEditorPanel(this, myProject, myFacet, myFile);
+      myEditorPanel = new NlEditorPanel(this, myProject, myFile);
     }
     return myEditorPanel;
   }

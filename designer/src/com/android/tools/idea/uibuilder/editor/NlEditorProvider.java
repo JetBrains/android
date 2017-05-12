@@ -54,10 +54,7 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-    AndroidFacet facet = psiFile instanceof XmlFile ? AndroidFacet.getInstance(psiFile) : null;
-    assert facet != null; // checked by accept
-    return new NlEditor(facet, file, project);
+    return new NlEditor(file, project);
   }
 
   @NotNull

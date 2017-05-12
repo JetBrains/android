@@ -17,6 +17,8 @@ package com.android.tools.idea.naveditor.surface;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
@@ -30,10 +32,10 @@ import com.android.tools.idea.uibuilder.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,16 +47,21 @@ import java.io.File;
  */
 public class NavDesignSurface extends DesignSurface {
   private NavView myNavView;
-  private final NavigationSchema mySchema;
+  private NavigationSchema mySchema;
 
-  public NavDesignSurface(@NotNull AndroidFacet facet, @NotNull Disposable parentDisposable) {
-    super(facet.getModule().getProject(), parentDisposable);
-    mySchema = NavigationSchema.getOrCreateSchema(facet);
+  public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
+    super(project, parentDisposable);
     zoomActual();
   }
 
   @NotNull
   public NavigationSchema getSchema() {
+    // TODO: simplify this logic if possible:
+    if (mySchema == null) {
+      NlModel model = getModel();
+      assert model != null;  // TODO: make sure this cannot happen
+      mySchema = NavigationSchema.getOrCreateSchema(model.getFacet());
+    }
     return mySchema;
   }
 
@@ -167,8 +174,10 @@ public class NavDesignSurface extends DesignSurface {
   public void notifyComponentActivate(@NotNull NlComponent component) {
     String layout = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT);
     if (layout != null) {
-      ResourceValue value = getConfiguration().getResourceResolver().findResValue(layout, false);
-      String fileName = value.getValue();
+      Configuration configuration = getConfiguration();
+      ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
+      ResourceValue value = resolver != null ? resolver.findResValue(layout, false) : null;
+      String fileName = value != null ? value.getValue() : null;
       if (fileName != null) {
         File file = new File(fileName);
         if (file.exists()) {
