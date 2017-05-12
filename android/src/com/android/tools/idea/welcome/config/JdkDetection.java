@@ -24,6 +24,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.JdkUtil;
+import com.intellij.openapi.projectRoots.impl.SdkVersionUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +73,7 @@ public class JdkDetection {
   }
 
   private static boolean isJdk7(@NotNull File path) {
-    String jdkVersion = JavaSdk.getJdkVersion(path.getAbsolutePath());
+    String jdkVersion = SdkVersionUtil.detectJdkVersion(path.getAbsolutePath());
     if (jdkVersion != null) {
       JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdkVersion);
       if (version != null && !version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
