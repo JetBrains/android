@@ -76,7 +76,7 @@
     </action>
 
     <action id="ImportApkAction"
-            class="com.android.tools.idea.apk.ImportApkAction" text="Profile or debug APK...">
+            class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
       <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
     </action>
   </actions>
