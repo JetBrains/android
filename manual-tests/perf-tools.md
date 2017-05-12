@@ -1,54 +1,205 @@
-## Performance tools manual tests
+# Performance Tools Manual Tests (Using the QA App)
 
-These tests require a device connected. On emulator it's enough to just test basic monitoring.
-Marked **bold** are test expectations.
+* These tests require a connected device.
+* In order for your own experience to most closely match the screenshots used
+throughout this document, it is recommended you use a quad core Android device.
+* Sections marked **bold** below indicate *test expectations*.
 
-### Test basic monitoring is enabled
+[TOC]
 
-Import the sample "Displaying Bitmaps". (It should be using gradle plugin version 2.2.0)
+## Launching the Application
 
-1. Make sure that the current Run Configuration has "Advance Profiling" disabled.
-2. Launch the app on a device with API >= 21.
-3. Select "Android Profiler" tool window in Android Studio.
-4. Observe the **monitors streaming**, rendering graphs of underlying data.
-5. Interact with the app.
-6. Observe the **CPU monitor changing**.
-7. Click on an image and see that the data in the **memory monitor changes**.
-8. Go back to the main screen menu and clear the cache (via the top-right "..." menu button).
-9. Scroll the app down a page or two, make sure the images start loading in on the device, and observe that the **network monitor changes**. There should be indications that data is being both sent and received.
+If you have access to Android Studio source code (via `repo sync`), the most
+reliable way to open the latest version of the project is to find it at
+`$SRC/tools/base/profiler/integration-tests/ProfilerTester`.
 
-### Advance monitoring
+Otherwise, try downloading it at
+[res/perf-tools/ProfilerTester.zip](res/perf-tools/ProfilerTester.zip)
 
-1. Observe that the top monitor is not enabled, and *has a link to the configuration dialog*.
-2. Follow the link and observe that the edit configuration dialog is opened *in the profiler tab*.
-3. Options should be *disabled* and there should be a *quick-fix* link, click it.
-4. After syncing, observe that *Advance profiling is now enabled*
-5. Enable "Advance Profiling" in the Profiler tab.
-6. Relaunch the app.
-7. Observe that **the current activity shows up in the event monitor** (top area).
-8. Touch and drag the app, rotate the phone, press volume and back buttons. **Observe those events showing up in the monitor**.
+Once the project is opened:
 
-### CPU profiling sanity check
+1. Follow any prompts to install any missing dependencies (SDK, NDK, etc.)
+1. Make sure that the current Run Configuration for "app" has
+   "Advance Profiling" enabled.
+   * `Run > Edit Configurations > app > Profiling tab > Enable Advanced Profiling`
+1. Launch the app on a device with API >= 21 (i.e. Lollipop or newer)
+1. Profiler behavior changes in O. Please test all scenarios twice,
+   once with a pre-O (API <= 25) device and again with an O or newer (API > 25) device.
+1. Select the "Android Profiler" tool window in Android Studio.
+   * Alternately: `Tools > Android > Android Profiler`
 
-1. Click on the CPU monitor.
-2. With "Sampled" selected, start recording and wait 5 seconds.
-3. Stop recording and **observe the trace being rendered on screen**.
-4. Click the back arrow to go back to the monitors.
+## Scenarios
 
-### Memory checks
+The app presents two pulldowns.
 
-1. Click the Memory Monitor
-2. Click on the heap dump icon and observe the **heap dump taking place and displaying**.
-3. Click on "Record" to start allocation tracking and wait 5 seconds.
-4. Click again to stop recording and observe **the allocations being displayed on screen**.
-4. Click the back arrow go to back to the monitors.
+![Profiler QA app screenshot][app]
 
-### Network checks
+You use the first pulldown to chose a category (CPU, Memory, Network, Events)
+and the second pulldown to prepare a particular scenario (Perodic Usage, File
+Writing, etc.)
 
-1. Click the Network Monitor
-2. Interact with the app until there are further network requests.
-3. Select a range in the timeline that contains network activity.
-4. Observe the table **populated with all the network requests**.
-5. Click on any row in the table.
-6. Observe that **a new window opens up showing details about the contents of the request**.
+Once any scenario is selected, press the "run" button to test it. The scenario
+will run for a few seconds before stopping, at which point you can observe and
+confirm its effects.
 
+For convenience, you can aso press the "previous" and "next" buttons to
+navigate through all scenarios in the order presented in this document.
+
+## Profilers
+
+By default, the "Android Profilers" toolbar presents a top-level view of all
+profilers. From that view, you can click on any of the graphs to jump into a
+more detailed view for that profiler. (*Note that Event profiling is an
+exception, as it is always shown above all profilers*).
+
+**Therefore, when running a scenario for a particular area, e.g. CPU, be sure
+to open up that profiler in Android Studio to observe the scenario's detailed
+effects.**
+
+## CPU
+
+### Periodic Usage
+
+1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
+1. In the QA App, select the "Periodic Usage" scenario.
+1. Press the "run" button
+1. You should see **CPU usage increase to around 70% for 2 seconds every 4
+   seconds**
+1. Look at the threads table and make sure you can see **three threads
+   ("CpuAsyncTask #1", "CpuAsyncTask #2", "CpuAsyncTask #3")**
+1. **Each thread should be responsible for its own CPU usage spikes.**
+5. **Each thread should run for 2 seconds (green), sleep for 4 seconds (grey),
+   and then close**.
+
+![CPU - Periodic Usage][cpu1]
+
+### File Writing
+
+1. In the "Android Profiler" Toolbar, make sure you are on the CPU profiler.
+1. In the QA App, select the "File Writing" scenario.
+1. Press the "run" button
+1. You should see **four threads perform "writing" with running (green) and
+   waiting state (light green)**
+1. Wait 2 seconds after all writing threads stop running.
+1. You should see **four threads reading the file.**
+
+![CPU - File Writing][cpu2]
+
+## Memory
+
+### Java Memory Allocaion
+
+1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
+1. In the QA App, select the "Java Memory Allocation" scenario.
+1. Press the "run" button
+1. You should see **java** memory **increase every 2 seconds 5 times before
+   falling back to baseline**
+
+![Memory - Java Memory Allocation][memory1]
+### Native Memory Allocaion
+
+1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
+1. In the QA App, select the "Native Memory Allocation" scenario.
+1. Press the "run" button
+1. You should see **native** memory **increase every 2 seconds 5 times before
+   falling back to baseline**
+
+![Memory - Native Memory Allocation][memory2]
+
+### Object Allocation
+
+1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
+1. In the QA App, select the "Object Allocation" scenario.
+1. Press the "run" button
+1. You should see **the number of objects increases every 2 seconds 5 times
+   before failing back to baseline**
+
+![Memory - Object Allocation][memory3]
+
+## Network
+
+### Http Request
+
+1. In the "Android Profiler" Toolbar, make sure you are on the network profiler.
+1. In the QA App, select the "Http Request" scenario.
+1. Press the "run" button
+1. You should see **five chunks of data downloaded**, with **each chunk
+   approximately twice as big as previous one**
+1. You can also find that **there is only one more connection**
+
+![Network - Http Request][network1]
+
+### OkHttp Request
+
+1. In the "Android Profiler" Toolbar, make sure you are on the network profiler.
+1. In the QA App, select the "OkHttp Request" scenario.
+1. Press the "run" button
+1. You should see **five chunks of data downloaded**, with **each chunk
+   approximately twice as big as previous one**
+1. You can also find that **number of connections is increased by one every
+   time a new download task starts**
+
+![Network - OkHttp Request][network2]
+
+## Events
+
+### Basic Events
+
+To test basic events, just interact with the app and make sure the right icon appears on the event area at the top
+of whichever profiler you have selected.
+
+1. In the QA App, select the "Basic Events" scenario.
+   * This is actually optional - events will be detected in any scenario. This
+     scenario simply exists as a reminder to test them.
+1. Tap the screen and you **should see a purple circle**
+1. Tap and hold the screen and you **should see an extended purple circle**
+1. Press volume down and you **should see a "volume up" icon**
+1. Press volume up and you **should see a "volume down" icon**
+1. Rotate the screen and you **should see a "rotation" icon**
+
+![Events - Basic][event]
+
+### Type Words
+
+1. In the QA App, select the "Type Words" scenario.
+1. Press the "run" button
+1. Tap the text area to bring up the keyboard
+1. Type "e" and you can see the **e icon**
+1. Type Backspace and you can see a **delete iconm**
+1. Type "l", "o" and you can see **"l" and "lo" icons**
+1. Tap the autocompleted word "love" and you can see **the final "love" icon**
+1. Tap the "back" button to hide keyboard
+
+![Events - Type Words][type]
+
+### Switch Activities
+
+1. In the QA App, select the "Switch Activities" scenario.
+1. Press the "run" button
+1. In the QA App, the **screen will be replaced with an empty activity**.
+1. On the event profiler, **MainActivity becomes "saved and stopped" and
+   event.EmptyActivity starts**. You can also see a **purple dot** since we
+   tapped the screen.
+
+![Events - Enter Activty][event1]
+
+1. Hit "back" button to return back to the main activity
+1. On tge event profiler, **event.EmptyActivity becomes "stopped and destroyed"
+   and MainActivity starts**. You can also see a **back icon** since we pressed
+   the "back" button
+
+![Events - Exit Activity][event2]
+
+[toolbar]: res/perf-tools/toolbar.png
+[app]: res/perf-tools/app.png
+[cpu1]: res/perf-tools/cpu1.png
+[cpu2]: res/perf-tools/cpu2.png
+[memory1]: res/perf-tools/memory1.png
+[memory2]: res/perf-tools/memory2.png
+[memory3]: res/perf-tools/memory3.png
+[network1]: res/perf-tools/network1.png
+[network2]: res/perf-tools/network2.png
+[event]: res/perf-tools/event.png
+[event1]: res/perf-tools/event1.png
+[type]: res/perf-tools/type.png
+[event2]: res/perf-tools/event2.png
