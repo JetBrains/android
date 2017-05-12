@@ -33,7 +33,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,13 +73,13 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
       ((NlDesignSurface)mySurface).setCentered(true);
     }
 
-    setLoadingText("Wait for build to complete");
+    setLoadingText("Waiting for build to finish...");
     DelayedInitialization.getInstance(project).runAfterBuild(this::initNeleModel, this::buildError);
   }
 
   // Build was either cancelled or there was an error
   private void buildError() {
-    setLoadingText("Build error. Please fix any errors and retry building.");
+    loadingStopped("Design editor is unavailable until a successful build");
   }
 
   private void initNeleModel() {
