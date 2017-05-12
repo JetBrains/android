@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 
+import static com.android.SdkConstants.SAMPLE_PREFIX;
+import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
 /**
@@ -140,7 +142,12 @@ public class ConstraintUtilities {
     String text = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_TEXT);
     if (text != null) {
       if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-        return resolveStringResource(component, text);
+        if (!text.startsWith(SAMPLE_PREFIX) && !text.startsWith(TOOLS_SAMPLE_PREFIX)) {
+          return resolveStringResource(component, text);
+        }
+        else {
+          return "";
+        }
       }
       return text;
     }
