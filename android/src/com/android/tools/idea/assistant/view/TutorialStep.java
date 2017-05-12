@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.DefaultTutorialBundle;
+import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.google.common.base.Strings;
@@ -47,6 +49,8 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Renders a single step inside of a tutorial.
@@ -96,7 +100,12 @@ public class TutorialStep extends JPanel {
           break;
         case ACTION:
           if (element.getAction() != null) {
-            myContents.add(new StatefulButton(element.getAction(), listener, project));
+            ActionData action = element.getAction();
+            Optional<AssistActionStateManager>
+              stateManager =
+              Arrays.stream(AssistActionStateManager.EP_NAME.getExtensions()).filter(s -> !s.getId().equals(action.getKey())).findFirst();
+            myContents
+              .add(new StatefulButton(element.getAction(), listener, stateManager.orElse(null), project));
           }
           else {
             getLog().warn("Found action element with no action definition: " + element.toString());
