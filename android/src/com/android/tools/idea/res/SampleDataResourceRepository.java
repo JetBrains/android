@@ -20,10 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.sampledata.datasource.CombinerDataSource;
-import com.android.tools.idea.sampledata.datasource.LoremIpsumGenerator;
-import com.android.tools.idea.sampledata.datasource.NumberGenerator;
-import com.android.tools.idea.sampledata.datasource.ResourceContent;
+import com.android.tools.idea.sampledata.datasource.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -38,6 +35,9 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
@@ -60,9 +60,25 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "cities", new ResourceContent(
       SampleDataResourceRepository.class.getClassLoader()
         .getResourceAsStream("sampleData/cities.txt"))),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_postcodes", new NumberGenerator("%05d", 20000, 99999)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_phones", new NumberGenerator("555-%04d", 0, 9999)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator()));
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_zipcodes",
+                                                   new NumberGenerator("%05d", 20000, 99999)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_phones",
+                                                   new NumberGenerator("(800) 555-%04d", 0, 9999)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator()),
+
+    // TODO: Delegate path parsing to the data source to avoid all these declarations
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_day_of_week",
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_ddmmyy",
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_mmddyy",
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_hhmm",
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_hhmmss",
+                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS)));
+
+
   private final ResourceTable myFullTable;
   private AndroidFacet myAndroidFacet;
 
