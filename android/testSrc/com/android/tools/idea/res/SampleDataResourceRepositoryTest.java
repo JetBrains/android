@@ -98,6 +98,24 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("sampledata/refs",
                                "@string/test1\n" +
                                "@string/invalid\n");
+    myFixture.addFileToProject("sampledata/users.json",
+                               "{\n" +
+                               "  \"users\": [\n" +
+                               "    {\n" +
+                               "      \"name\": \"Name1\",\n" +
+                               "      \"surname\": \"Surname1\"\n" +
+                               "    },\n" +
+                               "    {\n" +
+                               "      \"name\": \"Name2\",\n" +
+                               "      \"surname\": \"Surname2\"\n" +
+                               "    },\n" +
+                               "    {\n" +
+                               "      \"name\": \"Name3\",\n" +
+                               "      \"surname\": \"Surname3\",\n" +
+                               "      \"phone\": \"555-00000\"\n" +
+                               "    }\n" +
+                               "  ]\n" +
+                               "}");
     PsiFile image1 = myFixture.addFileToProject("sampledata/images/image1.png",
                                "Insert image here\n");
     PsiFile image2 = myFixture.addFileToProject("sampledata/images/image2.jpg",
@@ -111,6 +129,9 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertEquals("string2", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("string3", resolver.findResValue("@sample/strings", false).getValue());
     assertEquals("2", resolver.findResValue("@sample/ints", false).getValue());
+
+    // Test passing json references
+    assertEquals("Name1", resolver.findResValue("@sample/users.json/users/name", false).getValue());
 
     // The order of the returned paths might depend on the file system
     Set<String> imagePaths = ImmutableSet.of(
@@ -130,6 +151,11 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     // @string/invalid does not exist so the sample data will just return the unresolved reference
     assertEquals("@string/invalid", resolver.resolveResValue(
       new ResourceValue(ResourceUrl.create(null, ResourceType.STRING, "test"), "@sample/refs")).getValue());
+
+    // Check indexing (all calls should return the same)
+    assertEquals("Name2", resolver.findResValue("@sample/users.json/users/name[1]", false).getValue());
+    assertEquals("Name2", resolver.findResValue("@sample/users.json/users/name[1]", false).getValue());
+
 
     assertNull(resolver.findResValue("@sample/invalid", false));
   }
