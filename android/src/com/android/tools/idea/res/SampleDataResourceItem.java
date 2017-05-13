@@ -23,6 +23,7 @@ import com.android.ide.common.resources.sampledata.SampleDataHolder;
 import com.android.ide.common.resources.sampledata.SampleDataJsonParser;
 import com.android.resources.ResourceType;
 import com.google.common.base.Charsets;
+import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
@@ -42,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static com.android.SdkConstants.EXT_JSON;
+import static com.android.SdkConstants.*;
 
 public class SampleDataResourceItem extends SourcelessResourceItem {
   private static final Cache<String, SampleDataHolder> sSampleDataCache =
@@ -68,16 +69,48 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
    *                      content.
    */
   private SampleDataResourceItem(@NonNull String name,
+                                 @Nullable String namespace,
                                  @NonNull Function<OutputStream, Exception> dataSource,
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
                                  PsiElement sourceElement) {
-    super(name, null, ResourceType.SAMPLE_DATA, null, null);
+    super(name, namespace, ResourceType.SAMPLE_DATA, null, null);
 
     myDataSource = dataSource;
     myDataSourceModificationStamp = dataSourceModificationStamp;
     // We use SourcelessResourceItem as parent because we don't really obtain a FolderConfiguration or Qualifiers from
     // the source element (since it's not within the resources directory).
     mySourceElement = sourceElement;
+  }
+
+  /**
+   * Creates a new {@link SampleDataResourceItem}
+   * @param name name of the resource
+   * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
+   *                                   must return any exceptions that happened during the processing of the file.
+   * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
+   *                                                    content changes. If 0, the content won't be cached.
+   * @param sourceElement optional {@link PsiElement} where the content was obtained from. This will be used to display references to the
+   *                      content.
+   */
+  private SampleDataResourceItem(@NonNull String name,
+                                 @NonNull Function<OutputStream, Exception> dataSource,
+                                 @NonNull Supplier<Long> dataSourceModificationStamp,
+                                 PsiElement sourceElement) {
+    this(name, null, dataSource, dataSourceModificationStamp, sourceElement);
+  }
+
+  /**
+   * Returns a {@link SampleDataResourceItem} from the given content generator
+   */
+  @NonNull
+  public static SampleDataResourceItem getFromStaticDataSource(@NonNull String name, Function<OutputStream, Exception> source) {
+    // Extract namespace
+    List<String> sampleDataResource = Splitter.on(':')
+      .trimResults()
+      .omitEmptyStrings()
+      .limit(2)
+      .splitToList(name);
+    return new SampleDataResourceItem(name, sampleDataResource.size() == 2 ? sampleDataResource.get(0) : null, source, () -> 1L, null);
   }
 
   @NonNull
@@ -93,7 +126,6 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       return null;
     }, () -> sourceElement.getModificationStamp() + 1, sourceElement);
   }
-
 
   @NonNull
   private static SampleDataResourceItem getFromDirectory(@NonNull PsiDirectory directory) {
