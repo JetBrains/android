@@ -140,6 +140,11 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletionVariants("tools_targetapi.xml", "HONEYCOMB", "HONEYCOMB_MR1", "HONEYCOMB_MR2");
   }
 
+  // test @tools:sample datasources completion
+  public void testToolsSampleCompletion() throws Throwable {
+    doTestCompletionVariantsContains("tools_sample_completion.xml", "@tools:sample/full_names", "@tools:sample/lorem");
+  }
+
   // "-1" is not a valid tools:targetApi value
   public void testTargetApiErrorMessage1() throws Throwable {
     doTestHighlighting("tools_targetapi_error1.xml");
