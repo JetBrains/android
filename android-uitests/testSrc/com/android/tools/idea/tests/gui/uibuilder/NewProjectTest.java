@@ -129,10 +129,10 @@ public class NewProjectTest {
    *   4. Make a few changes to the properties, like build tools version.
    *   5. Repeat with application module
    *   Verify:
-   *   1. Module setting can be updated and project builds successfully.
+   *   1. Module setting is updated.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37742127
+  @RunIn(TestGroup.QA)
   @Test
   public void changeLibraryModuleSettings() throws  Exception {
     String gradleFileContents = newProject("MyTestApp").withMinSdk("24").create()
@@ -147,7 +147,6 @@ public class NewProjectTest {
       .openFromMenu(ProjectStructureDialogFixture::find, "Open Module Settings")
       .selectPropertiesTab()
       .setCompileSdkVersion("API 24: Android 7.0 (Nougat)")
-      .setBuildToolsVersion("25.0.1")
       .setIgnoreAssetsPattern("TestIgnoreAssetsPattern")
       .setIncrementalDex(false)
       .setSourceCompatibility("1.7")
@@ -158,7 +157,6 @@ public class NewProjectTest {
       .getCurrentFileContents();
 
     assertThat(gradleFileContents).contains("compileSdkVersion 24");
-    assertThat(gradleFileContents).contains("buildToolsVersion '25.0.1'");
     assertThat(gradleFileContents).contains("aaptOptions {\n        ignoreAssetsPattern 'TestIgnoreAssetsPattern'\n    }");
     assertThat(gradleFileContents).contains("dexOptions {\n        incremental false\n    }");
     assertThat(gradleFileContents).contains(
