@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
-import com.android.tools.idea.uibuilder.property.renderer.NlSliceNameRenderer;
+import com.android.tools.idea.uibuilder.property.renderer.NlXmlNameRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +51,7 @@ public class AddPropertyEditor extends NlReferenceEditor {
     textEditor.setText(item.getName());
     textEditor.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     textEditor.setFontStyle(Font.BOLD);
-    textEditor.setTextColor(NlSliceNameRenderer.ATTRIBUTE_COLOR);
+    textEditor.setTextColor(NlXmlNameRenderer.ATTRIBUTE_COLOR);
     return getComponent();
   }
 
@@ -82,6 +82,7 @@ public class AddPropertyEditor extends NlReferenceEditor {
     public Component getTableCellEditorComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, int row, int column) {
       AddPropertyItem item = (AddPropertyItem)value;
       AddPropertyEditor editor = (AddPropertyEditor)getEditor();
+      startCellEditing(table, row);
       return editor.startEditing(item);
     }
 

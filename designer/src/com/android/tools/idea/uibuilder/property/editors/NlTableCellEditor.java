@@ -47,12 +47,16 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
     assert value instanceof NlProperty;
 
     myEditor.setProperty((NlProperty)value);
-    myTable = table;
-    myRow = row;
+    startCellEditing(table, row);
     if (myBrowsePanel != null) {
       myBrowsePanel.setDesignState(getDesignState(table, row));
     }
     return myEditor.getComponent();
+  }
+
+  protected void startCellEditing(@NotNull JTable table, int row) {
+    myTable = table;
+    myRow = row;
   }
 
   @VisibleForTesting
