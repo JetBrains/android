@@ -35,10 +35,7 @@ import com.intellij.psi.PsiFileSystemItem;
 import org.w3c.dom.Node;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -131,7 +128,9 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   private static SampleDataResourceItem getFromDirectory(@NonNull PsiDirectory directory) {
     return new SampleDataResourceItem(directory.getName(), output -> {
       PrintStream printStream = new PrintStream(output);
-      Arrays.stream(directory.getFiles()).forEach(file -> printStream.println(file.getVirtualFile().getPath()));
+      Arrays.stream(directory.getFiles())
+        .sorted(Comparator.comparing(PsiFileSystemItem::getName))
+        .forEach(file -> printStream.println(file.getVirtualFile().getPath()));
       return null;
     }, () -> directory.getVirtualFile().getModificationStamp() + 1, directory);
   }
