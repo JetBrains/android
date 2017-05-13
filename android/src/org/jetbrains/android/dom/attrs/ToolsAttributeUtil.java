@@ -85,6 +85,9 @@ public class ToolsAttributeUtil {
     .put(ATTR_KEEP, NO_FORMATS)
     .put(ATTR_DISCARD, NO_FORMATS)
     .put(ATTR_USE_HANDLER, singletonList(AttributeFormat.Reference))
+    // AppCompatImageView srcCompat attribute
+    // TODO: Remove this definition and make sure the app namespace attributes are handled by AndroidDomUtil#getAttributeDefinition
+    .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.Reference))
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
