@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -23,6 +24,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,11 +32,29 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
+  @NotNull
+  private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo) {
+    return repo.getMap(null, ResourceType.SAMPLE_DATA, true).values().stream()
+      .filter(item -> item.getNamespace() == null)
+      .collect(Collectors.toList());
+  }
+
+  @Nullable
+  private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo, @NotNull String resName) {
+    return repo.getMap(null, ResourceType.SAMPLE_DATA, true).get(resName).stream()
+      .filter(item -> item.getNamespace() == null)
+      .collect(Collectors.toList());
+  }
+
   public void testDataLoad() {
     myFixture.addFileToProject("sampledata/strings",
                                "string1\n" +
@@ -48,9 +68,9 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                                "Insert image here 3\n");
     SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
-    assertEquals(2, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
-    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("strings").size());
-    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("images").size());
+    assertEquals(2, onlyProjectSources(repo).size());
+    assertEquals(1, onlyProjectSources(repo, "strings").size());
+    assertEquals(1, onlyProjectSources(repo, "images").size());
 
     Disposer.dispose(repo);
   }
@@ -117,18 +137,18 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   public void testSampleDataFileInvalidation() throws IOException {
     SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
-    assertNull(repo.getMap(null, ResourceType.SAMPLE_DATA, true));
+    assertTrue(onlyProjectSources(repo).isEmpty());
 
     myFixture.addFileToProject("sampledata/strings",
                                "string1\n" +
                                "string2\n" +
                                "string3\n");
-    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
-    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("strings").size());
+    assertEquals(1, onlyProjectSources(repo).size());
+    assertEquals(1, onlyProjectSources(repo, "strings").size());
 
     myFixture.addFileToProject("sampledata/strings2",
                                "string1\n");
-    assertEquals(2, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
+    assertEquals(2, onlyProjectSources(repo).size());
 
     VirtualFile sampleDir = SampleDataResourceRepository.getSampleDataDir(myFacet, false);
     ApplicationManager.getApplication().runWriteAction(() -> {
@@ -139,7 +159,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
         e.printStackTrace();
       }
     });
-    assertNull(repo.getMap(null, ResourceType.SAMPLE_DATA, true));
+    assertTrue(onlyProjectSources(repo).isEmpty());
     Disposer.dispose(repo);
   }
 
@@ -172,8 +192,8 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
-    assertEquals(3, repo.getMap(null, ResourceType.SAMPLE_DATA, true).size());
-    assertEquals(1, repo.getMap(null, ResourceType.SAMPLE_DATA, true).get("users.json/users/name").size());
+    assertEquals(3, onlyProjectSources(repo).size());
+    assertEquals(1, onlyProjectSources(repo,"users.json/users/name").size());
     Disposer.dispose(repo);
   }
 
@@ -215,5 +235,18 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     // The cursor does not get reset when the file is changed so we expect "new3" as opposed as getting "new1"
     // Ignored temporarily since cache invalidation needs still work
     //assertEquals("new3", resolver.findResValue("@sample/strings", false).getValue());
+  }
+
+  // Temporarily disabled to debug the failed leak test
+  public void ignoredPredefinedSources() {
+    // No project sources defined so only predefined sources should be available
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+
+    assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).isEmpty());
+
+    // Check that none of the items are empty or fail
+    assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).values().stream()
+      .anyMatch(item -> item.getValueText().isEmpty()));
+    Disposer.dispose(repo);
   }
 }

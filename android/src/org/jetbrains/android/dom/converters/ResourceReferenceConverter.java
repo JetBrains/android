@@ -19,6 +19,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -324,6 +325,21 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private static ResourceValue referenceTo(char prefix, String type, String resPackage, String name, boolean explicitResourceType) {
+    if (ResourceType.SAMPLE_DATA.getName().equals(type)) {
+      // Handling of namespaces for SAMPLE_DATA until namespaces are fully supported across
+      // the resources stack
+      List<String> sampleDataResource = Splitter.on(':')
+        .trimResults()
+        .omitEmptyStrings()
+        .limit(2)
+        .splitToList(name);
+
+      if (resPackage == null && sampleDataResource.size() == 2) {
+        resPackage = sampleDataResource.get(0);
+        name = sampleDataResource.get(1);
+      }
+    }
+
     return ResourceValue.referenceTo(prefix, resPackage, explicitResourceType ? type : null, name);
   }
 

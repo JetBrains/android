@@ -108,7 +108,16 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       ResourceType resourceType = myResourceValue.getType();
       if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
         assert resources != null;
-        List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
+
+        String resourceName = myResourceValue.getResourceName();
+        if (resourceType == ResourceType.SAMPLE_DATA  && myResourceValue.getNamespace() != null) {
+          // TODO: Remove this SAMPLE_DATA check once repositories have namespace support
+          // Resource repositories do not support namespaces yet. Because of this
+          // we currently hack the namespace support as part of the item name.
+          resourceName = myResourceValue.getNamespace() + ":" + resourceName;
+        }
+
+        List<ResourceItem> items = resources.getResourceItem(resourceType, resourceName);
         if (items != null) {
           if (FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
             for (ResourceItem item : items) {
