@@ -20,26 +20,26 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class ToggleSlicePropertyEditor extends AnAction {
-  static final String SLICE_PROPERTY_EDITOR = "NlSlicePropertyEditor";
+public class ToggleXmlPropertyEditor extends AnAction {
+  static final String NL_XML_PROPERTY_EDITOR = "NlXmlPropertyEditor";
 
   private NlPropertiesManager myPropertiesManager;
 
-  public ToggleSlicePropertyEditor(@NotNull NlPropertiesManager propertiesManager) {
+  public ToggleXmlPropertyEditor(@NotNull NlPropertiesManager propertiesManager) {
     myPropertiesManager = propertiesManager;
   }
 
   @Override
   public void update(AnActionEvent event) {
     PropertiesComponent properties = PropertiesComponent.getInstance();
-    boolean visible = properties.getBoolean(SLICE_PROPERTY_EDITOR);
-    event.getPresentation().setText(!visible ? "Slice property editor" : "All properties table");
+    boolean visible = properties.getBoolean(NL_XML_PROPERTY_EDITOR);
+    event.getPresentation().setText(!visible ? "XML property editor" : "All properties table");
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
     PropertiesComponent properties = PropertiesComponent.getInstance();
-    properties.setValue(SLICE_PROPERTY_EDITOR, !properties.getBoolean(SLICE_PROPERTY_EDITOR));
+    properties.setValue(NL_XML_PROPERTY_EDITOR, !properties.getBoolean(NL_XML_PROPERTY_EDITOR));
     myPropertiesManager.updateSelection();
   }
 }

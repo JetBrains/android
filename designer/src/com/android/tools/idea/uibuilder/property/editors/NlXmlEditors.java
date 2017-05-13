@@ -28,18 +28,18 @@ import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class NlSliceEditors implements PTableCellEditorProvider, ProjectComponent, LafManagerListener {
+public class NlXmlEditors implements PTableCellEditorProvider, ProjectComponent, LafManagerListener {
   private final Project myProject;
   private NlTableCellEditor myPropertyEditor;
   private NlTableCellEditor myAddPropertyEditor;
   private NlResourceValueEditor myResourceValueEditor;
 
   @NotNull
-  public static NlSliceEditors getInstance(@NotNull Project project) {
-    return project.getComponent(NlSliceEditors.class);
+  public static NlXmlEditors getInstance(@NotNull Project project) {
+    return project.getComponent(NlXmlEditors.class);
   }
 
-  private NlSliceEditors(@NotNull Project project) {
+  private NlXmlEditors(@NotNull Project project) {
     myProject = project;
   }
 
@@ -111,6 +111,6 @@ public class NlSliceEditors implements PTableCellEditorProvider, ProjectComponen
   @NotNull
   @Override
   public String getComponentName() {
-    return NlSliceEditors.class.getSimpleName();
+    return NlXmlEditors.class.getSimpleName();
   }
 }

@@ -29,7 +29,7 @@ import java.awt.*;
 import static com.android.SdkConstants.*;
 import static com.intellij.ui.SimpleTextAttributes.*;
 
-public class NlSliceNameRenderer extends ColoredTableCellRenderer implements PNameRenderer {
+public class NlXmlNameRenderer extends ColoredTableCellRenderer implements PNameRenderer {
   public static final JBColor NAMESPACE_COLOR = new JBColor(new Color(128, 0, 128), new Color(151, 118, 169));
   public static final JBColor ATTRIBUTE_COLOR = new JBColor(new Color(0, 0, 255), Gray._192);
   public static final JBColor TAG_COLOR = new JBColor(new Color(0, 0, 128), new Color(180, 180, 0));
@@ -43,7 +43,9 @@ public class NlSliceNameRenderer extends ColoredTableCellRenderer implements PNa
     Color color = ATTRIBUTE_COLOR;
     if (item instanceof NlResourceHeader) {
       color = TAG_COLOR;
-      setBackground(JBColor.border());
+      if (!selected) {
+        setBackground(JBColor.border());
+      }
       setBorder(BorderFactory.createCompoundBorder(
           IdeBorderFactory.createBorder(SideBorder.BOTTOM),
           BorderFactory.createEmptyBorder(6, 0, 0, 0)));

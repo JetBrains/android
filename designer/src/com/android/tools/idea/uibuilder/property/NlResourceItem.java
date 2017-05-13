@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.FolderTypeRelationship;
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.editors.strings.StringsWriteUtils;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.intellij.openapi.application.TransactionGuard;
@@ -84,7 +86,8 @@ public class NlResourceItem extends PTableItem {
 
   @Override
   public boolean isEditable(int column) {
-    return column == 1 && myItem != null;
+    return column == 1 && myItem != null &&
+           FolderTypeRelationship.getRelatedFolders(myItem.getType()).contains(ResourceFolderType.VALUES);
   }
 
   @Override

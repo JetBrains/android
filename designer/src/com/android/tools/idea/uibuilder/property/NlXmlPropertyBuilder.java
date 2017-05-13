@@ -20,28 +20,28 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.editors.NlSliceEditors;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.idea.uibuilder.property.renderer.NlSliceRenderers;
+import com.android.tools.idea.uibuilder.property.editors.NlXmlEditors;
+import com.android.tools.idea.uibuilder.property.renderer.NlXmlRenderers;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.PathUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NlSlicePropertyBuilder {
+public class NlXmlPropertyBuilder {
   private static final Pattern INTELLIJ_LIBRARY_NAME_PATTERN = Pattern.compile("(.+)-\\d+\\.\\d+\\.\\d+(-.+)");
 
   private final NlPropertiesManager myPropertiesManager;
@@ -50,10 +50,10 @@ public class NlSlicePropertyBuilder {
   private final Table<String, String, NlPropertyItem> myProperties;
   private final Multimap<String, NlResourceItem> mySliceMap;
 
-  NlSlicePropertyBuilder(@NotNull NlPropertiesManager propertiesManager,
-                         @NotNull PTable table,
-                         @NotNull List<NlComponent> components,
-                         Table<String, String, NlPropertyItem> properties) {
+  NlXmlPropertyBuilder(@NotNull NlPropertiesManager propertiesManager,
+                       @NotNull PTable table,
+                       @NotNull List<NlComponent> components,
+                       Table<String, String, NlPropertyItem> properties) {
     myPropertiesManager = propertiesManager;
     myTable = table;
     myComponents = components;
@@ -68,6 +68,7 @@ public class NlSlicePropertyBuilder {
     }
     NlComponent component = myComponents.get(0);
     List<PTableItem> items = new ArrayList<>();
+    items.add(new NlResourceHeader(generateFileHeader(component.getModel().getFile().getVirtualFile().getPath())));
     for (AttributeSnapshot attribute : component.getAttributes()) {
       NlPropertyItem item = myProperties.get(attribute.namespace, attribute.name);
       if (item != null) {
@@ -87,8 +88,8 @@ public class NlSlicePropertyBuilder {
     PTableItem editingItem = editingRow >= 0 ? myTable.getItemAt(editingRow) : null;
 
     myTable.getModel().setItems(items);
-    myTable.setRendererProvider(NlSliceRenderers.getInstance());
-    myTable.setEditorProvider(NlSliceEditors.getInstance(myPropertiesManager.getProject()));
+    myTable.setRendererProvider(NlXmlRenderers.getInstance());
+    myTable.setEditorProvider(NlXmlEditors.getInstance(myPropertiesManager.getProject()));
 
     if (myTable.getRowCount() > 0) {
       myTable.restoreSelection(selectedRow, selectedItem);
@@ -160,11 +161,16 @@ public class NlSlicePropertyBuilder {
     if (!StringUtil.isEmpty(resource.getLibraryName())) {
       return formatLibraryName(resource.getLibraryName()) + " " + type;
     }
-    if (item != null && item.getSource() != null && item.getFile() != null) {
-      File file = item.getFile();
-      return file.getName();
+    if (item != null && item.getSource() != null) {
+      return generateFileHeader(item.getSource().getFile().getPath());
     }
     return type;
+  }
+
+  private static String generateFileHeader(@NotNull String path) {
+    String fileName = PathUtil.getFileName(path);
+    String parentPath = PathUtil.getFileName(PathUtil.getParentPath(path));
+    return parentPath + "/" + fileName;
   }
 
   @NotNull

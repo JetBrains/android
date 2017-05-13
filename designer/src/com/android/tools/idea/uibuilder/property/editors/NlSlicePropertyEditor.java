@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
-import com.android.tools.idea.uibuilder.property.renderer.NlSliceValueRenderer;
+import com.android.tools.idea.uibuilder.property.renderer.NlXmlValueRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ public class NlSlicePropertyEditor extends NlReferenceEditor {
     TextEditorWithAutoCompletion textEditor = getTextEditor();
     textEditor.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     textEditor.setFontStyle(Font.BOLD);
-    textEditor.setTextColor(NlSliceValueRenderer.VALUE_COLOR);
+    textEditor.setTextColor(NlXmlValueRenderer.VALUE_COLOR);
   }
 
   @Override

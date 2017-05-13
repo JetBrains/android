@@ -55,7 +55,7 @@
       <skipForDefaultProject/>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlSliceEditors</implementation-class>
+      <implementation-class>com.android.tools.idea.uibuilder.property.editors.NlXmlEditors</implementation-class>
       <skipForDefaultProject/>
     </component>
   </project-components>
