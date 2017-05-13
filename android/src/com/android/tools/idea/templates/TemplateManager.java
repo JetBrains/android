@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.flags.StudioFlags;
@@ -90,6 +91,9 @@ public class TemplateManager {
    * Cache for {@link #getTemplateMetadata(File)}
    */
   private Map<File, TemplateMetadata> myTemplateMap;
+
+  /** Lock protecting access to {@link #myCategoryTable} */
+  private final Object CATEGORY_TABLE_LOCK = new Object();
 
   /** Table mapping (Category, Template Name) -> Template File */
   private Table<String, String, File> myCategoryTable;
@@ -400,10 +404,14 @@ public class TemplateManager {
    */
   @NotNull
   public List<File> getTemplatesInCategory(@NotNull String category) {
-    if (getCategoryTable().containsRow(category)) {
-      return Lists.newArrayList(getCategoryTable().row(category).values());
-    } else {
-      return Lists.newArrayList();
+    synchronized (CATEGORY_TABLE_LOCK) {
+      Table<String, String, File> table = getCategoryTable();
+      if (table.containsRow(category)) {
+        return Lists.newArrayList(table.row(category).values());
+      }
+      else {
+        return Lists.newArrayList();
+      }
     }
   }
 
@@ -421,21 +429,23 @@ public class TemplateManager {
     }
     myTopGroup.addSeparator();
     ActionManager am = ActionManager.getInstance();
-    for (final String category : getCategoryTable(true, project).rowKeySet()) {
-      if (EXCLUDED_CATEGORIES.contains(category)) {
-        continue;
-      }
-      // Create the menu group item
-      NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
-        @Override
-        public void update(AnActionEvent e) {
-          updateAction(e, category, getChildrenCount() > 0, false);
+    synchronized (CATEGORY_TABLE_LOCK) {
+      for (final String category : getCategoryTable(true, project).rowKeySet()) {
+        if (EXCLUDED_CATEGORIES.contains(category)) {
+          continue;
         }
-      };
-      categoryGroup.setPopup(true);
-      fillCategory(categoryGroup, category, am);
-      myTopGroup.add(categoryGroup);
-      setPresentation(category, categoryGroup);
+        // Create the menu group item
+        NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
+          @Override
+          public void update(AnActionEvent e) {
+            updateAction(e, category, getChildrenCount() > 0, false);
+          }
+        };
+        categoryGroup.setPopup(true);
+        fillCategory(categoryGroup, category, am);
+        myTopGroup.add(categoryGroup);
+        setPresentation(category, categoryGroup);
+      }
     }
   }
 
@@ -450,6 +460,7 @@ public class TemplateManager {
     presentation.setEnabled(disableIfNotReady ? isProjectReady : true);
   }
 
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private void fillCategory(NonEmptyActionGroup categoryGroup, final String category, ActionManager am) {
     Map<String, File> categoryRow = myCategoryTable.row(category);
     if (CATEGORY_ACTIVITY.equals(category)) {
@@ -518,6 +529,7 @@ public class TemplateManager {
       am.unregisterAction(actionId);
       am.registerAction(actionId, templateAction);
       categoryGroup.add(templateAction);
+
     }
   }
 
@@ -527,12 +539,14 @@ public class TemplateManager {
     presentation.setText(category);
   }
 
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> getCategoryTable() {
     return getCategoryTable(false, null);
   }
 
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> getCategoryTable(boolean forceReload, @Nullable Project project) {
-    if (myCategoryTable== null || forceReload) {
+    if (myCategoryTable == null || forceReload) {
       if (myTemplateMap != null) {
         myTemplateMap.clear();
       }
@@ -561,6 +575,7 @@ public class TemplateManager {
     return myCategoryTable;
   }
 
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private void addTemplateToTable(@NotNull File newTemplate) {
     TemplateMetadata newMetadata = getTemplateMetadata(newTemplate);
     if (newMetadata != null) {
@@ -654,7 +669,9 @@ public class TemplateManager {
 
   @Nullable
   public File getTemplateFile(@Nullable String category, @Nullable String templateName) {
-    return getCategoryTable().get(category, templateName);
+    synchronized (CATEGORY_TABLE_LOCK) {
+      return getCategoryTable().get(category, templateName);
+    }
   }
 
   /**
