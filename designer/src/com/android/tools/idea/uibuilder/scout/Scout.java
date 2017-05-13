@@ -118,6 +118,17 @@ public class Scout {
    * @param root the root element to infer from
    */
   public static void inferConstraints(NlComponent root) {
+    inferConstraints(root, true);
+  }
+
+  /**
+   * Infer constraints will only set the attributes via a transaction; a separate
+   * commit need to be done to save them.
+   *
+   * @param root
+   * @param rejectOverlaps if true will not infer if views overlap
+   */
+  public static void inferConstraints(NlComponent root, boolean rejectOverlaps) {
     if (root == null) {
       return;
     }
@@ -127,7 +138,7 @@ public class Scout {
     if (!ConstraintComponentUtilities.isConstraintLayout(root)) {
       return;
     }
-    if (containsOverlap(root)) {
+    if (rejectOverlaps && containsOverlap(root)) {
       System.err.println("containsOverlap!");
       return;
     }
@@ -164,7 +175,7 @@ public class Scout {
    * @param component the root element to infer from
    */
   public static void inferConstraintsAndCommit(NlComponent component) {
-    inferConstraints(component);
+    inferConstraints(component, false);
     ArrayList<NlComponent> list = new ArrayList<>(component.getChildren());
     list.add(0, component);
     commit(list, "Infering constraints");

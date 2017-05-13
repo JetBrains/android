@@ -1435,6 +1435,9 @@ public final class ConstraintComponentUtilities {
 
   public static boolean wouldCreateLoop(NlComponent source, Direction sourceDirection, NlComponent target) {
     HashSet<String> connected;
+    if (source.getParent() == null) {
+      return true;
+    }
     List<NlComponent> sisters = source.getParent().getChildren();
     switch (sourceDirection) {
       case TOP:
