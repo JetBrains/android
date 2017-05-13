@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.sampledata.SampleDataManager;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -110,11 +111,14 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
         assert resources != null;
 
         String resourceName = myResourceValue.getResourceName();
-        if (resourceType == ResourceType.SAMPLE_DATA  && myResourceValue.getNamespace() != null) {
-          // TODO: Remove this SAMPLE_DATA check once repositories have namespace support
-          // Resource repositories do not support namespaces yet. Because of this
-          // we currently hack the namespace support as part of the item name.
-          resourceName = myResourceValue.getNamespace() + ":" + resourceName;
+        if (resourceType == ResourceType.SAMPLE_DATA) {
+          resourceName = SampleDataManager.getResourceNameFromSampleReference(resourceName);
+          if (myResourceValue.getNamespace() != null) {
+            // TODO: Remove this SAMPLE_DATA check once repositories have namespace support
+            // Resource repositories do not support namespaces yet. Because of this
+            // we currently hack the namespace support as part of the item name.
+            resourceName = myResourceValue.getNamespace() + ":" + resourceName;
+          }
         }
 
         List<ResourceItem> items = resources.getResourceItem(resourceType, resourceName);
