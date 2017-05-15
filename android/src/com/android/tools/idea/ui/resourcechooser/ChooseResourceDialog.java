@@ -437,7 +437,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     ToggleAction listView = createListViewAction();
     ToggleAction gridView = createGridViewAction();
     DefaultActionGroup group = new DefaultActionGroup(listView, gridView);
-    JComponent component = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
+    JComponent component = ActionManager.getInstance().createActionToolbar("ChooseResourceDialog", group, true).getComponent();
     component.setBorder(null);
     component.setMaximumSize(new Dimension(JBUI.scale(100), component.getMaximumSize().height));
     return component;
