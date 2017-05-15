@@ -27,10 +27,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
+import static com.android.tools.datastore.database.MemoryTable.NO_STACK_ID;
 import static org.junit.Assert.*;
 
 public class MemoryTableTest {
@@ -280,6 +279,7 @@ public class MemoryTableTest {
     final String JAVA_KLASS2_NAME = "java.lang.Klass2[][]";
     final int VALID_CAPTURE_TIME = 1000;
     final int INVALID_CAPTURE_TIME = 1001;
+    final int STACK_ID = 10;
 
     // A class that is loaded since the beginning (t = 0, tag = 1)
     AllocationEvent klass1 =
@@ -291,7 +291,8 @@ public class MemoryTableTest {
         .setTimestamp(5).setCaptureTime(VALID_CAPTURE_TIME).build();
     // A klass1 instance allocation event (t = 0, tag = 100)
     AllocationEvent alloc1 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG)).setTimestamp(0)
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).addMethodIds(STACK_ID))
+      .setTimestamp(0)
       .setCaptureTime(VALID_CAPTURE_TIME).build();
     // A klass1 instance free event (t = 7, tag = 100)
     AllocationEvent free1 = AllocationEvent.newBuilder()
@@ -313,12 +314,14 @@ public class MemoryTableTest {
     // Deallocated events would have their free time lumped into the AllocData messsage.
     AllocationEvent expectedAlloc1 = AllocationEvent.newBuilder()
       .setAllocData(
-        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).setFreeTimestamp(7))
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).setFreeTimestamp(7)
+          .addMethodIds(STACK_ID))
       .setTimestamp(0).build();
     // Ongoing allocation events would have their FreeTime set to Long.MAX_VALUE.
     AllocationEvent expectedAlloc2 = AllocationEvent.newBuilder()
       .setAllocData(
-        AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG).setFreeTimestamp(Long.MAX_VALUE))
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG).setFreeTimestamp(Long.MAX_VALUE)
+          .addMethodIds(NO_STACK_ID))
       .setTimestamp(6).build();
     AllocationEvent expectedKlass1 =
       AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS1_NAME).setTag(KLASS1_TAG))
@@ -364,6 +367,74 @@ public class MemoryTableTest {
     assertEquals(expectedKlass1, querySample.getEvents(0));
     assertEquals(expectedKlass2, querySample.getEvents(1));
     assertEquals(expectedAlloc1, querySample.getEvents(2));
+  }
+
+  @Test
+  public void testInsertAndQueryMethodInfo() throws Exception {
+    List<StackMethod> methodsToInsert = new ArrayList<>();
+    StackMethod method1 = StackMethod.newBuilder().setMethodId(1).setMethodName("Method1").setClassName("Class1").build();
+    StackMethod method2 = StackMethod.newBuilder().setMethodId(2).setMethodName("Method2").setClassName("Class2").build();
+    methodsToInsert.add(method1);
+    methodsToInsert.add(method2);
+
+    myTable.insertMethodInfo(VALID_PID, VALID_SESSION, methodsToInsert);
+
+    // Valid cases
+    assertEquals(method1, myTable.queryMethodInfo(VALID_PID, VALID_SESSION, method1.getMethodId()));
+    assertEquals(method2, myTable.queryMethodInfo(VALID_PID, VALID_SESSION, method2.getMethodId()));
+
+    // Non-existent methods / invalid pid
+    assertEquals(StackMethod.getDefaultInstance(), myTable.queryMethodInfo(INVALID_PID, VALID_SESSION, method1.getMethodId()));
+    assertEquals(StackMethod.getDefaultInstance(), myTable.queryMethodInfo(VALID_PID, INVALID_SESSION, method2.getMethodId()));
+    assertEquals(StackMethod.getDefaultInstance(), myTable.queryMethodInfo(VALID_PID, VALID_SESSION, 3));
+  }
+
+  @Test
+  public void testInsertAndQueryStackInfo() throws Exception {
+    final long METHOD1 = 10;
+    final long METHOD2 = 11;
+    final long METHOD3 = 12;
+    final int STACK1 = 1;
+    final int STACK2 = 2;
+    final int EMPTY_STACK = 3;
+    final List<Long> STACK_METHODS1 = Arrays.asList(METHOD1, METHOD2);
+    final List<Long> STACK_METHODS2 = Arrays.asList(METHOD2, METHOD3);
+
+    List<StackMethod> methodsToInsert = new ArrayList<>();
+    StackMethod method1 = StackMethod.newBuilder().setMethodId(METHOD1).setMethodName("Method1").setClassName("Class1").build();
+    StackMethod method2 = StackMethod.newBuilder().setMethodId(METHOD2).setMethodName("Method2").setClassName("Class2").build();
+    StackMethod method3 = StackMethod.newBuilder().setMethodId(METHOD3).setMethodName("Method3").setClassName("Class3").build();
+    methodsToInsert.add(method1);
+    methodsToInsert.add(method2);
+    methodsToInsert.add(method3);
+
+    List<EncodedStack> stacksToInsert = new ArrayList<>();
+    EncodedStack stack1 = EncodedStack.newBuilder().setStackId(STACK1).addAllMethodIds(STACK_METHODS1).build();
+    EncodedStack stack2 = EncodedStack.newBuilder().setStackId(STACK2).addAllMethodIds(STACK_METHODS2).build();
+    stacksToInsert.add(stack1);
+    stacksToInsert.add(stack2);
+
+    myTable.insertMethodInfo(VALID_PID, VALID_SESSION, methodsToInsert);
+    myTable.insertStackInfo(VALID_PID, VALID_SESSION, stacksToInsert);
+
+    // Valid cases
+    DecodedStack decodedStack = myTable.queryStackInfo(VALID_PID, VALID_SESSION, STACK1);
+    assertEquals(STACK1, decodedStack.getStackId());
+    assertEquals(2, decodedStack.getMethodsCount());
+    assertEquals(method1, decodedStack.getMethods(0));
+    assertEquals(method2, decodedStack.getMethods(1));
+    decodedStack = myTable.queryStackInfo(VALID_PID, VALID_SESSION, STACK2);
+    assertEquals(STACK2, decodedStack.getStackId());
+    assertEquals(2, decodedStack.getMethodsCount());
+    assertEquals(method2, decodedStack.getMethods(0));
+    assertEquals(method3, decodedStack.getMethods(1));
+
+    // Invalid ids
+    assertEquals(DecodedStack.newBuilder().setStackId(STACK1).build(), myTable.queryStackInfo(INVALID_PID, VALID_SESSION, STACK1));
+    assertEquals(DecodedStack.newBuilder().setStackId(STACK2).build(), myTable.queryStackInfo(VALID_PID, INVALID_SESSION, STACK2));
+    assertEquals(DecodedStack.newBuilder().setStackId(EMPTY_STACK).build(), myTable.queryStackInfo(VALID_PID, VALID_SESSION, EMPTY_STACK));
+
+    // TODO check for invalid id cases...
   }
 
   private static void verifyMemoryDataResultCounts(@NotNull MemoryData result,

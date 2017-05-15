@@ -83,6 +83,8 @@ public class MemoryDataPoller extends PollRunner {
     myMemoryTable.insertGcStats(myProcessId, mySession, response.getGcStatsSamplesList());
 
     for (BatchAllocationSample sample : response.getAllocationSamplesList()) {
+      myMemoryTable.insertMethodInfo(myProcessId, mySession, sample.getMethodsList());
+      myMemoryTable.insertStackInfo(myProcessId, mySession, sample.getStacksList());
       myMemoryTable.insertAllocationData(myProcessId, mySession, sample);
     }
 
