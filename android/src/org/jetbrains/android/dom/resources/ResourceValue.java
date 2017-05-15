@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.SdkConstants.SAMPLE_PREFIX;
 
 /**
  * @author yole
@@ -107,6 +108,7 @@ public class ResourceValue {
 
   @Nullable
   public static ResourceValue reference(String value, boolean withPrefix) {
+
     ResourceValue result = new ResourceValue();
     if (withPrefix) {
       assert value.length() > 0;
@@ -133,6 +135,12 @@ public class ResourceValue {
       }
 
       String suffix = value.substring(pos + 1);
+      if (ResourceType.SAMPLE_DATA.getName().equals(resType)) {
+        // For sample data, we can just take the suffix as the rest of the resource name
+        result.myResourceName = value.substring(pos + 1);
+        return result;
+      }
+
       colonIndex = suffix.indexOf(':');
       if (colonIndex > 0) {
         String aPackage = suffix.substring(0, colonIndex);
