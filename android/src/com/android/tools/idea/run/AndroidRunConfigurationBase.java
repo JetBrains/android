@@ -275,17 +275,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (info != null && supportsInstantRun()) {
       // if there is an existing previous session, then see if we can detect devices to fast deploy to
       deviceFutures = getFastDeployDevices(executor, facet, info);
-
-      // HACK: We also need to support re-run
-      // In the case of re-run, we need to pick the devices from the previous run, but then terminate the app.
-      // This call to destroyProcess doesn't really belong here in the overall flow, but everything else in the flow just fits
-      // without any changes if we can recover the device first and then terminate the process. The alternative would be for
-      // the ReRun action itself to pass in the device just like it happens for the restart device, but that has the complication
-      // that the ReRun is now a global action and doesn't really know much details about each run (and doing that seems like a hack too.)
-      if (InstantRunUtils.isReRun(env)) {
-        killSession(info);
-        info = null;
-      }
     }
 
     if (info != null && deviceFutures == null) {
@@ -386,8 +375,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     env.putCopyableUserData(AndroidRunConfigContext.KEY, runConfigContext);
     runConfigContext.setTargetDevices(deviceFutures);
     runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
-    runConfigContext.setCleanRerun(InstantRunUtils.isCleanReRun(env));
-
     runConfigContext.setForceColdSwap(forceColdswap, couldHaveHotswapped);
 
     // Save the instant run context so that before-run task can access it

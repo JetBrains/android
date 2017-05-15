@@ -21,8 +21,5 @@ import java.util.List;
 
 public interface InstantRunTasksProvider {
   @NotNull
-  List<String> getCleanAndGenerateSourcesTasks();
-
-  @NotNull
   List<String> getFullBuildTasks();
 }

@@ -56,13 +56,6 @@ public class InstantRunNotificationProviderTest {
   }
 
   @Test
-  public void cleanBuildOnUserRequest() {
-    BuildSelection buildSelection = new BuildSelection(BuildCause.USER_REQUESTED_CLEAN_BUILD, false);
-    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");
-    assertEquals(AndroidBundle.message("instant.run.notification.cleanbuild.on.user.request"), provider.getNotificationText());
-  }
-
-  @Test
   public void appNotRunningAndHaveChanges() {
     BuildSelection buildSelection = new BuildSelection(BuildCause.APP_NOT_RUNNING, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.DEX, "");
