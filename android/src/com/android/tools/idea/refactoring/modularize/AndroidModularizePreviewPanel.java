@@ -36,7 +36,9 @@ import com.intellij.util.ui.ColumnInfo;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -86,7 +88,7 @@ public class AndroidModularizePreviewPanel {
     GridConstraints constraints = new GridConstraints();
     constraints.setFill(GridConstraints.FILL_BOTH);
 
-    ColumnInfo[] classesColumns = new ColumnInfo[]{new TreeColumnInfo("Name")}; // TODO: add method counts
+    ColumnInfo[] classesColumns = new ColumnInfo[]{new TreeColumnInfo("")}; // TODO: add method counts
     myTreeView = new CodeAndResourcesTreeTable(myRootNode, renderer, classesColumns);
     myDependenciesPanel.add(new JBScrollPane(myTreeView), constraints);
 
@@ -111,6 +113,7 @@ public class AndroidModularizePreviewPanel {
       myTreeView.getTree().addTreeSelectionListener(e -> ApplicationManager.getApplication().invokeLater(this::updateCounts));
     }
 
+    updateCounts();
     return myPanel;
   }
 
@@ -198,6 +201,9 @@ public class AndroidModularizePreviewPanel {
       CheckboxTreeHelper helper = new CheckboxTreeHelper(selectionPolicy, myEventDispatcher);
       helper.initTree(tree, this, renderer);
       tree.setSelectionRow(0);
+      for (int i = 0; i < root.getChildCount(); i++) {
+        tree.expandPath(new TreePath(((DefaultMutableTreeNode) root.getChildAt(i)).getPath()));
+      }
     }
 
     public void addCheckboxTreeListener(@NotNull CheckboxTreeListener listener) {

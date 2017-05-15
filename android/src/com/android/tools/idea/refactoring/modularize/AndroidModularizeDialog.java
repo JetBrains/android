@@ -16,29 +16,27 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.refactoring.ui.RefactoringDialog;
 import com.intellij.ui.CollectionComboBoxModel;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class AndroidModularizeDialog extends RefactoringDialog {
 
+  private final List<Module> myTargetModules;
   private final AndroidModularizeProcessor myProcessor;
   private ComboBox<Module> myModuleCombo;
 
-  protected AndroidModularizeDialog(@NotNull Project project, AndroidModularizeProcessor processor) {
+  protected AndroidModularizeDialog(@NotNull Project project, @NotNull List<Module> targetModules, AndroidModularizeProcessor processor) {
     super(project, true);
+    myTargetModules = targetModules;
     myProcessor = processor;
     setTitle("Modularize");
     init();
@@ -62,18 +60,7 @@ public class AndroidModularizeDialog extends RefactoringDialog {
         String.format("Move %1$d classes and %2$d resources to:", myProcessor.getClassesCount(), myProcessor.getResourcesCount())),
       BorderLayout.NORTH);
 
-    // Only offer modules that have an Android facet, otherwise we don't know where to move resources.
-    List<Module> suitableModules = new ArrayList<>();
-    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !facet.getAllResourceDirectories().isEmpty()) {
-          suitableModules.add(module);
-        }
-      }
-    }
-
-    ComboBoxModel<Module> model = new CollectionComboBoxModel<>(suitableModules);
+    ComboBoxModel<Module> model = new CollectionComboBoxModel<>(myTargetModules);
     myModuleCombo = new ComboBox<>(model);
     panel.add(myModuleCombo, BorderLayout.CENTER);
     return panel;
