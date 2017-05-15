@@ -67,8 +67,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_USE_JVMTI = Flag.create(
     PROFILER, "jvmti", "Enable JVMTI profiling",
     "Use JVMTI for profiling devices with Android O or newer. " +
-    "This unlocks even more profiling features for these devices.",
-    false);
+     "This unlocks even more profiling features for these devices.",
+     false);
 
   public static final Flag<Boolean> PROFILER_USE_SIMPLEPERF = Flag.create(
     PROFILER, "simpleperf", "Enable Simpleperf profiling",
