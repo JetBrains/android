@@ -176,13 +176,19 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
     }
     else {
-      byte[] data = myMemoryTable.getLegacyAllocationDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
-      if (data == null) {
-        responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
+      if (response.getLegacy()) {
+        byte[] data = myMemoryTable.getLegacyAllocationDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
+        if (data == null) {
+          responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
+        }
+        else {
+          responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
+          responseBuilder.setData(ByteString.copyFrom(data));
+        }
       }
       else {
-        responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
-        responseBuilder.setData(ByteString.copyFrom(data));
+        // O+ allocation does not have legacy data.
+        responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
       }
     }
     responseObserver.onNext(responseBuilder.build());
@@ -202,13 +208,19 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       builder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
     }
     else {
-      LegacyAllocationEventsResponse events =
-        myMemoryTable.getLegacyAllocationData(request.getProcessId(), request.getSession(), request.getStartTime());
-      if (events == null) {
-        builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_READY);
+      if (response.getLegacy()) {
+        LegacyAllocationEventsResponse events =
+          myMemoryTable.getLegacyAllocationData(request.getProcessId(), request.getSession(), request.getStartTime());
+        if (events == null) {
+          builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_READY);
+        }
+        else {
+          builder.mergeFrom(events);
+        }
       }
       else {
-        builder.mergeFrom(events);
+        // O+ allocation does not have legacy data.
+        builder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
       }
     }
     responseObserver.onNext(builder.build());

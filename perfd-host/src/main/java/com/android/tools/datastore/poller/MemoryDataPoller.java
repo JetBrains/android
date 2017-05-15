@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class MemoryDataPoller extends PollRunner {
 
@@ -65,6 +66,13 @@ public class MemoryDataPoller extends PollRunner {
         myProcessId, mySession, myPendingHeapDumpSample.getStartTime(), DumpDataResponse.Status.FAILURE_UNKNOWN, ByteString.EMPTY);
       myPendingHeapDumpSample = null;
     }
+
+    if (myPendingAllocationSample != null) {
+      myMemoryTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, myPendingAllocationSample.toBuilder()
+        .setEndTime(myPendingAllocationSample.getStartTime() + 1).setStatus(
+          AllocationsInfo.Status.FAILURE_UNKNOWN).build());
+    }
+
     super.stop();
   }
 
@@ -145,7 +153,8 @@ public class MemoryDataPoller extends PollRunner {
       }
     }
 
-    fetchAllocDumpData(allocDumpsToFetch);
+    // O+ allocation tracking fetches data continuously and does not go through the following code path - hence we filter out those samples.
+    fetchLegacyAllocData(allocDumpsToFetch.stream().filter(info -> info.getLegacy()).collect(Collectors.toList()));
     fetchHeapDumpData(heapDumpsToFetch);
 
     if (response.getEndTimestamp() > myDataRequestStartTimestampNs) {
@@ -153,7 +162,7 @@ public class MemoryDataPoller extends PollRunner {
     }
   }
 
-  private void fetchAllocDumpData(@NotNull List<AllocationsInfo> dumpsToFetch) {
+  private void fetchLegacyAllocData(@NotNull List<AllocationsInfo> dumpsToFetch) {
     if (dumpsToFetch.isEmpty()) {
       return;
     }

@@ -61,7 +61,7 @@ public class TestGrpcFile {
       try {
         Marshaller marshaller  = JAXBContext.newInstance(GrpcCallStack.class).createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setProperty("com.sun.xml.internal.bind.xmlHeaders", "\n<!-- Auto generated with perfd-host test via flag -Dtest.export.grpx=True -->");
+        marshaller.setProperty("com.sun.xml.internal.bind.xmlHeaders", "\n<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->");
         marshaller.marshal(myGrpcCalls, myFile);
       } catch (JAXBException ex) {
         throw new IOException("Failed to serialize test file", ex);
