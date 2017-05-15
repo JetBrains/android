@@ -43,7 +43,7 @@ public class ThemeEditorVirtualFileTest extends AndroidTestCase {
     }
     finally {
       if (otherProject != null) {
-        ((ProjectManagerImpl)projectManager).closeProject(otherProject, false, true, false);
+        ((ProjectManagerImpl)projectManager).forceCloseProject(otherProject, true);
       }
     }
   }
