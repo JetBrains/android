@@ -24,100 +24,97 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.sdklib.devices.Abi.ARM64_V8A;
+import static com.android.sdklib.devices.Abi.X86;
+import static com.android.tools.idea.apk.debugging.SharedObjectFiles.createSharedObjectFiles;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link NativeLibrary}.
  */
 public class NativeLibraryTest extends IdeaTestCase {
+  private NativeLibrary myLibrary;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myLibrary = new NativeLibrary("library.so");
+  }
+
   public void testSetFilePaths() throws IOException {
-    List<VirtualFile> files = createSharedObjectFiles("x86", "arm65-v8a");
+    Collection<VirtualFile> files = doCreateSharedObjectFiles(X86, ARM64_V8A);
     List<String> filePaths = getPaths(files);
 
-    NativeLibrary library = new NativeLibrary("library");
-    library.setSharedObjectFilePaths(filePaths);
+    myLibrary.setSharedObjectFilePaths(filePaths);
 
-    assertThat(library.abis).containsExactly("arm65-v8a", "x86"); // They should be sorted.
-    assertThat(library.sharedObjectFiles).containsAllIn(files);
-    assertThat(library.getSharedObjectFilePaths()).containsAllIn(filePaths);
+    assertThat(myLibrary.abis).containsExactly(X86, ARM64_V8A);
+    assertEquals(ARM64_V8A, myLibrary.abis.get(0)); // Should be sorted.
+    assertThat(myLibrary.sharedObjectFiles).containsAllIn(files);
+    assertThat(myLibrary.getSharedObjectFilePaths()).containsAllIn(filePaths);
   }
 
   public void testSetFilePathsWithNonExistingPaths() {
     List<String> filePaths = new ArrayList<>();
     filePaths.add("abc.so");
 
-    NativeLibrary library = new NativeLibrary("library");
-    library.setSharedObjectFilePaths(filePaths);
+    myLibrary.setSharedObjectFilePaths(filePaths);
 
-    assertThat(library.abis).isEmpty();
-    assertThat(library.sharedObjectFiles).isEmpty();
+    assertThat(myLibrary.abis).isEmpty();
+    assertThat(myLibrary.sharedObjectFiles).isEmpty();
   }
 
   public void testAddFilesWithFileList() throws IOException {
-    List<VirtualFile> files = createSharedObjectFiles("x86", "arm65-v8a");
-    NativeLibrary library = new NativeLibrary("library");
-    library.addSharedObjectFiles(files);
+    Collection<VirtualFile> files = doCreateSharedObjectFiles(X86, ARM64_V8A);
+    myLibrary.addSharedObjectFiles(files);
 
-    assertThat(library.abis).containsExactly("arm65-v8a", "x86"); // They should be sorted.
-    assertThat(library.sharedObjectFiles).containsAllIn(files);
-    assertThat(library.getSharedObjectFilePaths()).containsAllIn(getPaths(files));
+    assertThat(myLibrary.abis).containsExactly(X86, ARM64_V8A);
+    assertEquals(ARM64_V8A, myLibrary.abis.get(0)); // Should be sorted.
+    assertThat(myLibrary.sharedObjectFiles).containsAllIn(files);
+    assertThat(myLibrary.getSharedObjectFilePaths()).containsAllIn(getPaths(files));
   }
 
   public void testAddFilesWithFileArray() throws IOException {
-    List<VirtualFile> files = createSharedObjectFiles("x86", "arm65-v8a");
-    NativeLibrary library = new NativeLibrary("library");
-    library.addSharedObjectFiles(files);
+    Collection<VirtualFile> files = doCreateSharedObjectFiles(X86, ARM64_V8A);
+    myLibrary.addSharedObjectFiles(files);
 
-    assertThat(library.abis).containsExactly("arm65-v8a", "x86"); // They should be sorted.
-    assertThat(library.sharedObjectFiles).containsAllIn(files);
-    assertThat(library.getSharedObjectFilePaths()).containsAllIn(getPaths(files));
+    assertThat(myLibrary.abis).containsExactly(X86, ARM64_V8A);
+    assertEquals(ARM64_V8A, myLibrary.abis.get(0)); // Should be sorted.
+    assertThat(myLibrary.sharedObjectFiles).containsAllIn(files);
+    assertThat(myLibrary.getSharedObjectFilePaths()).containsAllIn(getPaths(files));
   }
 
   @NotNull
-  private static List<String> getPaths(@NotNull List<VirtualFile> files) {
+  private List<VirtualFile> doCreateSharedObjectFiles(@NotNull Abi... abis) throws IOException {
+    return createSharedObjectFiles(myProject.getBaseDir(), myLibrary.name, abis);
+  }
+
+  @NotNull
+  private static List<String> getPaths(@NotNull Collection<VirtualFile> files) {
     return files.stream().map(VirtualFile::getPath).collect(Collectors.toList());
   }
 
-  @NotNull
-  private List<VirtualFile> createSharedObjectFiles(@NotNull String... abis) throws IOException {
-    return ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<List<VirtualFile>, IOException>() {
-      @Override
-      public List<VirtualFile> compute() throws IOException {
-        List<VirtualFile> files = new ArrayList<>();
-        for (String abi : abis) {
-          VirtualFile folder = myProject.getBaseDir().createChildDirectory(this, abi);
-          files.add(folder.createChildData(this, "library.so"));
-        }
-        return files;
-      }
-    });
-  }
-
   public void testIsMissingPathMappingsWithLocalPaths() {
-    NativeLibrary library = new NativeLibrary("library");
-    assertFalse(library.isMissingPathMappings()); // The map is empty
+    assertFalse(myLibrary.isMissingPathMappings()); // The map is empty
   }
 
   public void testIsMissingPathMappingsWithNonEmptyMappings() {
-    NativeLibrary library = new NativeLibrary("library");
-    library.pathMappings.put("abc.so", "abc.so");
-    assertFalse(library.isMissingPathMappings()); // The all values in the map are not empty
+    myLibrary.pathMappings.put("abc.so", "abc.so");
+    assertFalse(myLibrary.isMissingPathMappings()); // The all values in the map are not empty
   }
 
   public void testIsMissingPathMappingsWithEmptyMappings() {
-    NativeLibrary library = new NativeLibrary("library");
-    library.pathMappings.put("abc.so", "");
-    assertTrue(library.isMissingPathMappings());
+    myLibrary.pathMappings.put("abc.so", "");
+    assertTrue(myLibrary.isMissingPathMappings());
   }
 
   public void testAddDebuggableSharedObjectFile() throws IOException {
-    NativeLibrary library = new NativeLibrary("library");
-    library.hasDebugSymbols = false;
-    library.pathMappings.put("abc.so", "");
-    library.sourceFolderPaths.add("source1");
+    myLibrary.hasDebugSymbols = false;
+    myLibrary.pathMappings.put("abc.so", "");
+    myLibrary.sourceFolderPaths.add("source1");
 
     VirtualFile debuggableFile = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
       @Override
@@ -126,22 +123,21 @@ public class NativeLibraryTest extends IdeaTestCase {
       }
     });
 
-    Abi abi = Abi.X86;
-    library.addDebuggableSharedObjectFile(abi, debuggableFile);
-    assertTrue(library.hasDebugSymbols);
+    Abi abi = X86;
+    myLibrary.addDebuggableSharedObjectFile(abi, debuggableFile);
+    assertTrue(myLibrary.hasDebugSymbols);
 
-    DebuggableSharedObjectFile stored = library.debuggableSharedObjectFilesByAbi.get(abi.toString());
+    DebuggableSharedObjectFile stored = myLibrary.debuggableSharedObjectFilesByAbi.get(abi);
     assertEquals(debuggableFile.getPath(), stored.path);
   }
 
   public void testGetUserSelectedPathsInMappings() {
-    NativeLibrary library = new NativeLibrary("library");
-    assertThat(library.getUserSelectedPathsInMappings()).isEmpty();
+    assertThat(myLibrary.getUserSelectedPathsInMappings()).isEmpty();
 
-    library.pathMappings.put("abc.so", "");
-    assertThat(library.getUserSelectedPathsInMappings()).isEmpty();
+    myLibrary.pathMappings.put("abc.so", "");
+    assertThat(myLibrary.getUserSelectedPathsInMappings()).isEmpty();
 
-    library.pathMappings.put("xyz.so", "123.so");
-    assertThat(library.getUserSelectedPathsInMappings()).containsExactly("123.so");
+    myLibrary.pathMappings.put("xyz.so", "123.so");
+    assertThat(myLibrary.getUserSelectedPathsInMappings()).containsExactly("123.so");
   }
 }
