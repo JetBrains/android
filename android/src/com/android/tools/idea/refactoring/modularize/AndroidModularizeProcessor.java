@@ -388,7 +388,7 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
       super(project, true);
 
       myPanel = new AndroidModularizePreviewPanel(graph, infos);
-      setTitle("Preview Classes and Resources to Be Moved");
+      setTitle("Modularize: Preview Classes and Resources to Be Moved");
       init();
     }
 
