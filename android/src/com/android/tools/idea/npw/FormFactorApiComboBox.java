@@ -492,7 +492,7 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
       runCallbacks.run();
     }, ModalityState.any());
 
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", true, null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Refreshing Targets", true, null);
     sdkHandler.getSdkManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       ImmutableList.of(onLocalComplete), ImmutableList.of(onComplete), ImmutableList.of(onError),
