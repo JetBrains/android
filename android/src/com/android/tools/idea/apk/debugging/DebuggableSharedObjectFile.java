@@ -32,14 +32,12 @@ public class DebuggableSharedObjectFile {
   // These fields are serialized/deserialized to/from XML by ApkFacet.
   // This is not really a class but a container of configuration options.
   @NotNull public String path = "";
-  @NotNull public String abi = "";
   @NotNull public List<String> debugSymbolPaths = new ArrayList<>();
 
   public DebuggableSharedObjectFile() {
   }
 
-  public DebuggableSharedObjectFile(@NotNull String abi, @NotNull VirtualFile file) {
-    this.abi = abi;
+  public DebuggableSharedObjectFile(@NotNull VirtualFile file) {
     File filePath = toSystemDependentPath(file.getPath());
     path = filePath.getPath();
   }
@@ -54,20 +52,18 @@ public class DebuggableSharedObjectFile {
     }
     DebuggableSharedObjectFile file = (DebuggableSharedObjectFile)o;
     return Objects.equals(path, file.path) &&
-           Objects.equals(abi, file.abi) &&
            Objects.equals(debugSymbolPaths, file.debugSymbolPaths);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(path, abi, debugSymbolPaths);
+    return Objects.hash(path, debugSymbolPaths);
   }
 
   @Override
   public String toString() {
     return "DebuggableSharedObjectFile{" +
            "path='" + path + '\'' +
-           ", abi='" + abi + '\'' +
            ", debugSymbolPaths=" + debugSymbolPaths +
            '}';
   }

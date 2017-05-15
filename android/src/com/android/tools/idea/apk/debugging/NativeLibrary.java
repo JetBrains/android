@@ -26,6 +26,7 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class NativeLibrary {
@@ -34,7 +35,7 @@ public class NativeLibrary {
   @NotNull public List<String> sourceFolderPaths = new ArrayList<>();
 
   // Key: ABI, value: debuggable .so file.
-  @NotNull public Map<String, DebuggableSharedObjectFile> debuggableSharedObjectFilesByAbi = new HashMap<>();
+  @NotNull public Map<Abi, DebuggableSharedObjectFile> debuggableSharedObjectFilesByAbi = new HashMap<>();
 
   // Key: original path (found in a debuggable .so file), value: path in the local file system.
   @NotNull public Map<String, String> pathMappings = new HashMap<>();
@@ -42,7 +43,7 @@ public class NativeLibrary {
   @NotNull private List<String> sharedObjectFilePaths = new ArrayList<>();
 
   @Transient @NotNull public List<VirtualFile> sharedObjectFiles = new ArrayList<>();
-  @Transient @NotNull public List<String> abis = new ArrayList<>();
+  @Transient @NotNull public List<Abi> abis = new ArrayList<>();
 
   public boolean hasDebugSymbols;
 
@@ -87,7 +88,7 @@ public class NativeLibrary {
     sortAbis();
   }
 
-  public void addSharedObjectFiles(@NotNull List<VirtualFile> files) {
+  public void addSharedObjectFiles(@NotNull Collection<VirtualFile> files) {
     for (VirtualFile file : files) {
       doAddSharedObjectFile(file);
     }
@@ -96,7 +97,7 @@ public class NativeLibrary {
 
   private void sortAbis() {
     if (abis.size() > 1) {
-      abis.sort(String::compareTo);
+      abis.sort(Comparator.comparing(Abi::toString));
     }
   }
 
@@ -107,10 +108,15 @@ public class NativeLibrary {
   }
 
   @NotNull
-  private static String extractAbiFrom(@NotNull VirtualFile file) {
+  private static Abi extractAbiFrom(@NotNull VirtualFile file) {
     VirtualFile parent = file.getParent();
     assert parent != null;
-    return parent.getName();
+    String folderName = parent.getName();
+    Abi abi = Abi.getEnum(folderName);
+    if (abi == null) {
+      throw new IllegalArgumentException("Failed to find ABI for file: '" + toSystemDependentName(file.getPath()) + "'");
+    }
+    return abi;
   }
 
   public boolean isMissingPathMappings() {
@@ -125,8 +131,9 @@ public class NativeLibrary {
   @NotNull
   public DebuggableSharedObjectFile addDebuggableSharedObjectFile(@NotNull Abi abi, @NotNull VirtualFile file) {
     hasDebugSymbols = true;
-    DebuggableSharedObjectFile sharedObjectFile = new DebuggableSharedObjectFile(abi.toString(), file);
-    debuggableSharedObjectFilesByAbi.put(sharedObjectFile.abi, sharedObjectFile);
+    DebuggableSharedObjectFile sharedObjectFile = new DebuggableSharedObjectFile(file);
+
+    debuggableSharedObjectFilesByAbi.put(abi, sharedObjectFile);
     return sharedObjectFile;
   }
 

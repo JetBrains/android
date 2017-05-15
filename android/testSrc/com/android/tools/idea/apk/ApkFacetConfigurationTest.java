@@ -61,11 +61,11 @@ public class ApkFacetConfigurationTest {
     NativeLibrary testLibrary = new NativeLibrary("test.so");
     DebuggableSharedObjectFile testSoFile = new DebuggableSharedObjectFile();
     testSoFile.path = testX86File.getPath();
-    testLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86.toString(), testSoFile);
+    testLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86, testSoFile);
 
     testSoFile = new DebuggableSharedObjectFile();
     testSoFile.path = testArmeabiV7aFile.getPath();
-    testLibrary.debuggableSharedObjectFilesByAbi.put(Abi.ARMEABI_V7A.toString(), testSoFile);
+    testLibrary.debuggableSharedObjectFilesByAbi.put(Abi.ARMEABI_V7A, testSoFile);
 
     myConfiguration.NATIVE_LIBRARIES.add(testLibrary);
 
@@ -75,11 +75,11 @@ public class ApkFacetConfigurationTest {
     NativeLibrary debugLibrary = new NativeLibrary("test.so");
     DebuggableSharedObjectFile debugSoFile = new DebuggableSharedObjectFile();
     debugSoFile.path = debugX86File.getPath();
-    debugLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86.toString(), debugSoFile);
+    debugLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86, debugSoFile);
 
     debugSoFile = new DebuggableSharedObjectFile();
     debugSoFile.path = debugX86_64File.getPath();
-    debugLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86_64.toString(), debugSoFile);
+    debugLibrary.debuggableSharedObjectFilesByAbi.put(Abi.X86_64, debugSoFile);
 
     myConfiguration.NATIVE_LIBRARIES.add(debugLibrary);
 
