@@ -77,4 +77,7 @@ public interface IdeProfilerServices {
    * request.
    */
   void enableAdvancedProfiling();
+
+  @NotNull
+  FeatureConfig getFeatureConfig();
 }

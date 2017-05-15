@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -484,7 +483,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     // Simpleperf profiling is not supported by devices older than O (API level 26)
     boolean selectedDeviceSupportsSimpleperf = getStudioProfilers().getDevice().getFeatureLevel() >= 26;
-    if ( selectedDeviceSupportsSimpleperf && StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
+    if (selectedDeviceSupportsSimpleperf && getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled()) {
       // Add simpleperf default profiling preference
       ProfilingPreferences simpleperfDefaultPref = new ProfilingPreferences("Sampled (Hybrid)",
                                                                             CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
