@@ -30,7 +30,7 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.AndroidTargetManager;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.npw.*;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
@@ -216,7 +216,7 @@ public class AndroidVersionsInfo {
       runCallbacks.run();
     }, ModalityState.any());
 
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", true, null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, false, "Refreshing Targets", true, null);
     sdkHandler.getSdkManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       ImmutableList.of(onLocalComplete), ImmutableList.of(onComplete), ImmutableList.of(onError),
