@@ -22,33 +22,33 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.TableCellRenderer;
 
-public class NlSliceRenderers implements PTableCellRendererProvider {
-  private static NlSliceRenderers ourInstance = new NlSliceRenderers();
+public class NlXmlRenderers implements PTableCellRendererProvider {
+  private static NlXmlRenderers ourInstance = new NlXmlRenderers();
 
-  private final NlSliceNameRenderer mySliceNameRenderer;
-  private final NlSliceValueRenderer mySliceValueRenderer;
+  private final NlXmlNameRenderer myXmlNameRenderer;
+  private final NlXmlValueRenderer myXmlValueRenderer;
 
-  public static NlSliceRenderers getInstance() {
+  public static NlXmlRenderers getInstance() {
     if (ourInstance == null) {
-      ourInstance = new NlSliceRenderers();
+      ourInstance = new NlXmlRenderers();
     }
     return ourInstance;
   }
 
-  private NlSliceRenderers() {
-    mySliceNameRenderer = new NlSliceNameRenderer();
-    mySliceValueRenderer = new NlSliceValueRenderer();
+  private NlXmlRenderers() {
+    myXmlNameRenderer = new NlXmlNameRenderer();
+    myXmlValueRenderer = new NlXmlValueRenderer();
   }
 
   @NotNull
   @Override
   public PNameRenderer getNameCellRenderer(@NotNull PTableItem item) {
-    return mySliceNameRenderer;
+    return myXmlNameRenderer;
   }
 
   @NotNull
   @Override
   public TableCellRenderer getValueCellRenderer(@NotNull PTableItem item) {
-    return mySliceValueRenderer;
+    return myXmlValueRenderer;
   }
 }

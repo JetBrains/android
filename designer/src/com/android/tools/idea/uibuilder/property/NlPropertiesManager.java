@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -55,7 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.uibuilder.property.ToggleSlicePropertyEditor.SLICE_PROPERTY_EDITOR;
+import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
 
 public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener {
   public final static int UPDATE_DELAY_MSECS = 250;
@@ -151,10 +150,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   @NotNull
   @Override
   public List<AnAction> getGearActions() {
-    if (!Boolean.getBoolean(IdeaApplication.IDEA_IS_INTERNAL_PROPERTY)) {
-      return Collections.emptyList();
-    }
-    return ImmutableList.of(new ToggleSlicePropertyEditor(this));
+    return ImmutableList.of(new ToggleXmlPropertyEditor(this));
   }
 
   @NotNull
@@ -325,7 +321,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
       return;
     }
 
-    if (PropertiesComponent.getInstance().getBoolean(SLICE_PROPERTY_EDITOR) &&
+    if (PropertiesComponent.getInstance().getBoolean(NL_XML_PROPERTY_EDITOR) &&
         (NlPropertyItem.isReference(oldValue) || NlPropertyItem.isReference(newValue))) {
       updateSelection();
     }
@@ -337,7 +333,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
   @SuppressWarnings("unused")
   public void resourceChanged(@NotNull ResourceItem item, @Nullable String oldValue, @Nullable String newValue) {
-    if (PropertiesComponent.getInstance().getBoolean(SLICE_PROPERTY_EDITOR) &&
+    if (PropertiesComponent.getInstance().getBoolean(NL_XML_PROPERTY_EDITOR) &&
         (NlPropertyItem.isReference(oldValue) || NlPropertyItem.isReference(newValue))) {
       updateSelection();
     }

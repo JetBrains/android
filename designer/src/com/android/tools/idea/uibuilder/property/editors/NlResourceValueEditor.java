@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.adtui.ptable.PTableCellEditor;
-import com.android.tools.idea.uibuilder.property.renderer.NlSliceValueRenderer;
+import com.android.tools.idea.uibuilder.property.renderer.NlXmlValueRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -58,7 +58,7 @@ public class NlResourceValueEditor extends PTableCellEditor {
                                                           JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     myTextEditorWithAutoCompletion.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
     myTextEditorWithAutoCompletion.setFontStyle(Font.BOLD);
-    myTextEditorWithAutoCompletion.setTextColor(NlSliceValueRenderer.VALUE_COLOR);
+    myTextEditorWithAutoCompletion.setTextColor(NlXmlValueRenderer.VALUE_COLOR);
     myTextEditorWithAutoCompletion.addFocusListener(new FocusListener() {
       @Override
       public void focusGained(@NotNull FocusEvent event) {
