@@ -32,19 +32,16 @@ import org.jetbrains.annotations.Nullable;
 public class StudioProgressRunner implements ProgressRunner {
   private final boolean myInvokeInUiThread;
   private boolean myModal;
-  private final boolean myBackgroundable;
   private final boolean myCancellable;
   private final Project myProject;
   private final String myProgressTitle;
 
   public StudioProgressRunner(boolean modal,
-                              boolean backgroundable,
                               boolean cancellable,
                               String progressTitle,
                               boolean invokeInUiThread,
                               @Nullable Project project) {
     myModal = modal;
-    myBackgroundable = backgroundable;
     myCancellable = cancellable;
     myProject = project;
     myProgressTitle = progressTitle;
@@ -60,11 +57,6 @@ public class StudioProgressRunner implements ProgressRunner {
           @Override
           public boolean shouldStartInBackground() {
             return !myModal;
-          }
-
-          @Override
-          public void processSentToBackground() {
-            // no special processing needed
           }
         }) {
           @Override
