@@ -47,11 +47,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Nullable
   Runnable myPrePoolExecute;
 
-  /**
-   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean isSimplePerfEnabled = false;
-
   @NotNull
   @Override
   public Executor getMainExecutor() {
@@ -95,31 +90,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     // No-op.
   }
 
-  @NotNull
-  @Override
-  public FeatureConfig getFeatureConfig() {
-    return new FeatureConfig() {
-      @Override
-      public boolean isNetworkThreadViewEnabled() {
-        return true;
-      }
-
-      @Override
-      public boolean isSimplePerfEnabled() {
-        return isSimplePerfEnabled;
-      }
-    };
-  }
-
   public void setOnExecute(@Nullable Runnable onExecute) {
     myOnExecute = onExecute;
   }
 
   public void setPrePoolExecutor(@Nullable Runnable prePoolExecute) {
     myPrePoolExecute = prePoolExecute;
-  }
-
-  public void enableSimplePerf(boolean enabled) {
-    isSimplePerfEnabled = enabled;
   }
 }
