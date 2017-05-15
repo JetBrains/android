@@ -52,6 +52,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean isSimplePerfEnabled = false;
 
+  /**
+   * Toggle for faking live allocation tracking support in tests.
+   */
+  private boolean isLiveTrackingEnabled = false;
+
   @NotNull
   @Override
   public Executor getMainExecutor() {
@@ -108,6 +113,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isSimplePerfEnabled() {
         return isSimplePerfEnabled;
       }
+
+      @Override
+      public boolean isLiveAllocationsEnabled() { return isLiveTrackingEnabled; }
     };
   }
 
@@ -121,5 +129,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableSimplePerf(boolean enabled) {
     isSimplePerfEnabled = enabled;
+  }
+
+  public void enableLiveAllocationTracking(boolean enabled) {
+    isLiveTrackingEnabled = enabled;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
@@ -163,11 +164,20 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
-    myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
+    if (useLiveAllocationTracking()) {
+      trackAllocations(true, null);
+    }
+    else {
+      myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
+    }
   }
 
   @Override
   public void exit() {
+    if (useLiveAllocationTracking()) {
+      trackAllocations(false, null);
+    }
+
     myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myDetailedMemoryUsage);
     getStudioProfilers().getUpdater().unregister(myHeapDumpDurations);
@@ -311,6 +321,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   public boolean isTrackingAllocations() {
     return myTrackingAllocations;
+  }
+
+  public boolean useLiveAllocationTracking() {
+    return getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
+           getStudioProfilers().getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
   }
 
   @NotNull

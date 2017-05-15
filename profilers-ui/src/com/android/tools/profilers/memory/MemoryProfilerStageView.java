@@ -95,6 +95,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         }
         getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater);
       });
+    myAllocationButton.setVisible(!getStage().useLiveAllocationTracking());
 
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
@@ -448,6 +449,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private static Icon getStackedIcon(@Nullable InstanceObject instance, @NotNull Icon stackedIcon, @NotNull Icon nonStackedIcon) {
-    return (instance == null || instance.getCallStack() == null || instance.getCallStack().getStackFramesCount() == 0) ? nonStackedIcon : stackedIcon;
+    return (instance == null || instance.getCallStack() == null || instance.getCallStack().getStackFramesCount() == 0)
+           ? nonStackedIcon
+           : stackedIcon;
   }
 }
