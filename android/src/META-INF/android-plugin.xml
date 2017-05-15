@@ -151,6 +151,9 @@
     <action id="Android.CreateResourceDirectory" class="org.jetbrains.android.actions.CreateResourceDirectoryAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourcesActionGroup"/>
     </action>
+    <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourceDirectory"/>
+    </action>
     <action id="Android.ConvertToNinePatch" class="com.android.tools.idea.actions.ConvertToNinePatchAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
     </action>
