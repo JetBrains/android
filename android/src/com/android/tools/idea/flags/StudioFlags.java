@@ -82,6 +82,11 @@ public final class StudioFlags {
     "Show a view in the network profiler that groups connections by their creation thread.",
     false);
 
+  public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
+    PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
+    "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
+    false);
+
   private StudioFlags() {
   }
 }

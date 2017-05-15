@@ -15,7 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.*;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -23,6 +26,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.collect.ImmutableMap;
@@ -402,5 +406,40 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     assertEquals("Others", legends.getOtherLegend().getName());
     assertEquals("60KB", legends.getOtherLegend().getValue());
+  }
+
+  @Test
+  public void testLiveAllocationTrackingOnEnterExit() {
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").setFeatureLevel(AndroidVersion.VersionCodes.O)
+      .setState(Profiler.Device.State.ONLINE).build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    myProfilerService.addDevice(device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Test that if the the live allocation tracking feature is on and the device is O+, allocation tracking is started on enter stage.
+    myIdeProfilerServices.enableLiveAllocationTracking(true);
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myProfilers.setStage(myStage);
+    assertTrue(myStage.isTrackingAllocations());
+
+    // Test that stage exit would disable the tracking session
+    myProfilers.setStage(new NullMonitorStage(myProfilers));
+    assertFalse(myStage.isTrackingAllocations());
+
+    // Test that if the device is < O, allocation tracking would not start.
+    device = device.toBuilder().setFeatureLevel(AndroidVersion.VersionCodes.N).build();
+    myProfilerService.addDevice(device);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myProfilers.setStage(myStage);
+    assertFalse(myStage.isTrackingAllocations());
   }
 }
