@@ -66,6 +66,7 @@
     <group id="Android.NavBarToolBar">
       <reference id="Android.RunAndroidSdkManager" />
       <reference id="Android.RunAndroidAvdManager" />
+      <reference id="Android.AndroidProfiler" />
       <separator/>
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
     </group>
