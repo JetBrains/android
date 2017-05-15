@@ -46,6 +46,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -1178,6 +1179,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         myMarginIcon = new Icon() {
           @Override
           public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(JBColor.foreground());
             g.setFont(g.getFont().deriveFont(Font.BOLD, 12));
             String m = Integer.toString(margin);
             FontMetrics metrics = g.getFontMetrics();
