@@ -102,6 +102,6 @@
     <orderEntry type="module" module-name="layoutinspector" />
     <orderEntry type="module" module-name="instantapp-deploy" />
     <orderEntry type="module" module-name="sdk-common" />
-    <orderEntry type="module" module-name="flags" />
+    <orderEntry type="module" module-name="studioflags" />
   </component>
 </module>

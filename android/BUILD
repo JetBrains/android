@@ -81,7 +81,7 @@ iml_module(
         "//tools/base/layoutinspector:studio.layoutinspector[module]",
         "//tools/base/instantapp-deploy:studio.instantapp-deploy[module]",
         "//tools/base/sdk-common:studio.sdk-common[module]",
-        "//tools/base/flags:studio.flags[module]",
+        "//tools/adt/idea/studioflags[module]",
     ],
 )
 
