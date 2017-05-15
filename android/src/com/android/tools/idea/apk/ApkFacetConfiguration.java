@@ -56,7 +56,7 @@ public class ApkFacetConfiguration implements FacetConfiguration {
     Set<String> paths = new HashSet<>();
     for (Abi abi : abis) {
       for (NativeLibrary library : NATIVE_LIBRARIES) {
-        DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi.toString());
+        DebuggableSharedObjectFile sharedObjectFile = library.debuggableSharedObjectFilesByAbi.get(abi);
         if (sharedObjectFile != null) {
           File path = toSystemDependentPath(sharedObjectFile.path);
           if (path.exists()) {
