@@ -1132,6 +1132,11 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/src/test/pkg/WifiManagerLeak.java", "java");
   }
 
+  public void testInvalidImeActionId() throws Exception {
+    doTestNoFix(new AndroidLintInvalidImeActionIdInspection(),
+                "/res/layout/layout.xml", "xml");
+  }
+
   private Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     enableOnlySpecificLintInspections(myFixture, inspection);
     return doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
