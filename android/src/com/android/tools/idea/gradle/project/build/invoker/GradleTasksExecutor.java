@@ -73,6 +73,7 @@ import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.*;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.MessageCategory;
 import net.jcip.annotations.GuardedBy;
 import org.gradle.tooling.*;
@@ -249,8 +250,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
       Project project = myRequest.getProject();
       myCloseListener = new CloseListener();
-      ProjectManager.getInstance().addProjectManagerListener(project, myCloseListener);
-
+      MessageBusConnection busConnection = project.getMessageBus().connect();
+      busConnection.subscribe(ProjectManager.TOPIC, myCloseListener);
       Semaphore semaphore = ((CompilerManagerImpl)CompilerManager.getInstance(project)).getCompilationSemaphore();
       boolean acquired = false;
       try {
@@ -272,7 +273,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
       finally {
         try {
           myProgressIndicator.stop();
-          ProjectManager.getInstance().removeProjectManagerListener(project, myCloseListener);
+          busConnection.disconnect();
         }
         finally {
           if (acquired) {
@@ -919,9 +920,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
       @Override
       public boolean canClose(@NotNull Project project) {
-        if (!project.equals(myProject)) {
+        if (project != myProject) {
           return true;
         }
+
         if (shouldPromptUser()) {
           myUserAcceptedCancel = askUserToCancelGradleExecution();
           if (!myUserAcceptedCancel) {
@@ -935,7 +937,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
       @Override
       public void projectClosed(Project project) {
-        if (project.equals(myProject) && myContent != null) {
+        if (project == myProject && myContent != null) {
           myContentManager.removeContent(myContent, true);
         }
       }
