@@ -29,14 +29,16 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_BOLD;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER;
 
-public class NlSliceValueRenderer extends ColoredTableCellRenderer {
+public class NlXmlValueRenderer extends ColoredTableCellRenderer {
   public static final JBColor VALUE_COLOR = new JBColor(new Color(0, 128, 80), new Color(98, 150, 85));
 
   @Override
   protected void customizeCellRenderer(JTable table, @Nullable Object tableValue, boolean selected, boolean hasFocus, int row, int column) {
     if (tableValue instanceof NlResourceHeader) {
       setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-      setBackground(JBColor.border());
+      if (!selected) {
+        setBackground(JBColor.border());
+      }
     }
     else if (hasFocus) {
       setBorder(UIUtil.getTableFocusCellHighlightBorder());

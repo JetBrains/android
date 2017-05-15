@@ -50,12 +50,11 @@ import org.jetbrains.annotations.TestOnly;
 import sun.awt.CausedFocusEvent;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -64,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.uibuilder.property.ToggleSlicePropertyEditor.SLICE_PROPERTY_EDITOR;
+import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
 
 public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model, Disposable,
                                                          DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
@@ -114,6 +113,13 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myTablePanel.setBackground(myTable.getBackground());
     myTablePanel.add(myTable, BorderLayout.NORTH);
     myTablePanel.add(fewerPropertiesLink, BorderLayout.SOUTH);
+    myTablePanel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        super.mouseClicked(e);
+        myTable.editingStopped(new ChangeEvent(myTablePanel));
+      }
+    });
 
     myInspectorPanel = inspectorPanel != null
                        ? inspectorPanel
@@ -226,8 +232,8 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myProperties = extractPropertiesForTable(properties);
     Project project = propertiesManager.getProject();
 
-    if (PropertiesComponent.getInstance().getBoolean(SLICE_PROPERTY_EDITOR)) {
-      myTablePanel.setVisible(new NlSlicePropertyBuilder(propertiesManager, myTable, components, properties).build());
+    if (PropertiesComponent.getInstance().getBoolean(NL_XML_PROPERTY_EDITOR)) {
+      myTablePanel.setVisible(new NlXmlPropertyBuilder(propertiesManager, myTable, components, properties).build());
     }
     else {
       myTablePanel.setVisible(new NlPropertyTableBuilder(project, myTable, components, myProperties).build());
@@ -260,7 +266,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   public void modelRendered(@NotNull NlPropertiesManager propertiesManager) {
     UIUtil.invokeLaterIfNeeded(() -> {
       // Bug:219552 : Make sure updateDefaultProperties is always called from the same thread (the UI thread)
-      if (PropertiesComponent.getInstance().getBoolean(SLICE_PROPERTY_EDITOR)) {
+      if (PropertiesComponent.getInstance().getBoolean(NL_XML_PROPERTY_EDITOR)) {
         propertiesManager.updateSelection();
       }
       else {
