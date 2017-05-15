@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -514,7 +513,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void profilingModesAvailableDependOnDeviceApi() {
-    StudioFlags.PROFILER_USE_SIMPLEPERF.override(true);
+    myServices.enableSimplePerf(true);
 
     // Set a device that doesn't support simplepef
     addAndSetDevice(14, "FakeDevice1");
@@ -542,13 +541,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF, prefs.get(2).getProfiler());
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED, prefs.get(2).getMode());
     assertEquals("Sampled (Hybrid)", prefs.get(2).getName());
-
-    StudioFlags.PROFILER_USE_SIMPLEPERF.clearOverride();
   }
 
   @Test
   public void simpleperfIsOnlyAvailableWhenFlagIsTrue() {
-    StudioFlags.PROFILER_USE_SIMPLEPERF.override(true);
+    myServices.enableSimplePerf(true);
 
     // Set a device that supports simpleperf
     addAndSetDevice(26, "Fake Device 1");
@@ -564,7 +561,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertEquals("Sampled (Hybrid)", prefs.get(2).getName());
 
     // Now disable simpleperf
-    StudioFlags.PROFILER_USE_SIMPLEPERF.override(false);
+    myServices.enableSimplePerf(false);
 
     // Set a device that supports simpleperf
     addAndSetDevice(26, "Fake Device 2");
@@ -574,8 +571,6 @@ public class CpuProfilerStageTest extends AspectObserver {
     // First and second preferences should be the ART ones
     assertEquals("Sampled (Java)", prefs.get(0).getName());
     assertEquals("Instrumented", prefs.get(1).getName());
-
-    StudioFlags.PROFILER_USE_SIMPLEPERF.clearOverride();
   }
 
   @Test

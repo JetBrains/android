@@ -23,6 +23,5 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/adt/idea/studioflags[module]",
     ],
 )
