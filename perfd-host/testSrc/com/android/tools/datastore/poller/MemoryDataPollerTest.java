@@ -57,14 +57,22 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .setEndTime(delayTimeFromBase(1))
     .build();
 
-  private static final AllocationsInfo FINISHED_ALLOCATION_INFO = AllocationsInfo.newBuilder()
+  private static final AllocationsInfo FINISHED_LEGACY_ALLOCATION_INFO = AllocationsInfo.newBuilder()
     .setStartTime(BASE_TIME_NS)
     .setEndTime(delayTimeFromBase(1))
+    .setLegacy(true)
     .build();
 
-  private static final AllocationsInfo IN_PROGRESS_ALLOCATION_INFO = AllocationsInfo.newBuilder()
+  private static final AllocationsInfo IN_PROGRESS_LEGACY_ALLOCATION_INFO = AllocationsInfo.newBuilder()
     .setStartTime(delayTimeFromBase(1))
     .setEndTime(DurationData.UNSPECIFIED_DURATION)
+    .setLegacy(true)
+    .build();
+
+  private static final AllocationsInfo FINISHED_LIVE_ALLOCATION_INFO = AllocationsInfo.newBuilder()
+    .setStartTime(BASE_TIME_NS)
+    .setEndTime(delayTimeFromBase(1))
+    .setLegacy(false)
     .build();
 
   private static final HeapDumpInfo DEFAULT_DUMP_INFO = HeapDumpInfo.newBuilder()
@@ -132,8 +140,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myFakeMemoryService.addMemorySample(DEFAULT_MEMORY_SAMPLE);
     myFakeMemoryService.addAllocStatsSample(DEFAULT_ALLOC_STATS);
     myFakeMemoryService.addGcStatsSample(DEFAULT_GC_STATS);
-    myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
-    myFakeMemoryService.addAllocationInfo(IN_PROGRESS_ALLOCATION_INFO);
+    myFakeMemoryService.addAllocationInfo(FINISHED_LEGACY_ALLOCATION_INFO);
+    myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
     myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
@@ -148,8 +156,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .addMemSamples(DEFAULT_MEMORY_SAMPLE)
       .addAllocStatsSamples(DEFAULT_ALLOC_STATS)
       .addGcStatsSamples(DEFAULT_GC_STATS)
-      .addAllocationsInfo(FINISHED_ALLOCATION_INFO)
-      .addAllocationsInfo(IN_PROGRESS_ALLOCATION_INFO)
+      .addAllocationsInfo(FINISHED_LEGACY_ALLOCATION_INFO)
+      .addAllocationsInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO)
       .addHeapDumpInfos(DEFAULT_DUMP_INFO)
       .addHeapDumpInfos(ERROR_DUMP_INFO)
       .addHeapDumpInfos(NOT_READY_DUMP_INFO)
@@ -164,8 +172,8 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myFakeMemoryService.addMemorySample(DEFAULT_MEMORY_SAMPLE);
     myFakeMemoryService.addAllocStatsSample(DEFAULT_ALLOC_STATS);
     myFakeMemoryService.addGcStatsSample(DEFAULT_GC_STATS);
-    myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
-    myFakeMemoryService.addAllocationInfo(IN_PROGRESS_ALLOCATION_INFO);
+    myFakeMemoryService.addAllocationInfo(FINISHED_LEGACY_ALLOCATION_INFO);
+    myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
     myFakeMemoryService.addHeapDumpInfos(DEFAULT_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(ERROR_DUMP_INFO);
     myFakeMemoryService.addHeapDumpInfos(NOT_READY_DUMP_INFO);
@@ -224,21 +232,21 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     validateResponse(memoryDataObserver, expectedData);
 
     // Enable allocation tracking.
-    myFakeMemoryService.setTrackAllocationsInfo(IN_PROGRESS_ALLOCATION_INFO);
+    myFakeMemoryService.setTrackAllocationsInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
     TrackAllocationsRequest request = TrackAllocationsRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
       .setEnabled(true)
       .build();
     TrackAllocationsResponse trackAllocationsExpected = TrackAllocationsResponse.newBuilder()
       .setStatus(TrackAllocationsResponse.Status.SUCCESS)
-      .setInfo(IN_PROGRESS_ALLOCATION_INFO)
+      .setInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO)
       .build();
     StreamObserver<TrackAllocationsResponse> trackAllocationsObserver = mock(StreamObserver.class);
     myMemoryService.trackAllocations(request, trackAllocationsObserver);
     validateResponse(trackAllocationsObserver, trackAllocationsExpected);
 
     // Tests that the AllocationsInfo exists without having to poll.
-    expectedData = MemoryData.newBuilder().addAllocationsInfo(IN_PROGRESS_ALLOCATION_INFO).build();
+    expectedData = MemoryData.newBuilder().addAllocationsInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO).build();
     memoryDataObserver = mock(StreamObserver.class);
     myMemoryService.getData(memoryRequest, memoryDataObserver);
     validateResponse(memoryDataObserver, expectedData);
@@ -395,12 +403,12 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetLegacyAllocationDump() {
-    myFakeMemoryService.addAllocationInfo(FINISHED_ALLOCATION_INFO);
+    myFakeMemoryService.addAllocationInfo(FINISHED_LEGACY_ALLOCATION_INFO);
     getPollTicker().run();
 
     DumpDataRequest request = DumpDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
-      .setDumpTime(FINISHED_ALLOCATION_INFO.getStartTime())
+      .setDumpTime(FINISHED_LEGACY_ALLOCATION_INFO.getStartTime())
       .build();
     DumpDataResponse expected = DumpDataResponse.newBuilder()
       .setStatus(DumpDataResponse.Status.SUCCESS)
@@ -408,6 +416,70 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       .build();
     StreamObserver<DumpDataResponse> observer = mock(StreamObserver.class);
     myMemoryService.getLegacyAllocationDump(request, observer);
+    validateResponse(observer, expected);
+  }
+
+  @Test
+  public void testOnGoingAllocationTrackingStopped() throws Exception {
+    myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
+    getPollTicker().run();
+    StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
+    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), stopObserver);
+
+    LegacyAllocationEventsRequest eventsRequest = LegacyAllocationEventsRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTime(IN_PROGRESS_LEGACY_ALLOCATION_INFO.getStartTime())
+      .build();
+    LegacyAllocationEventsResponse eventsExpected = LegacyAllocationEventsResponse.newBuilder()
+      .setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN)
+      .build();
+    StreamObserver<LegacyAllocationEventsResponse> eventsObserver = mock(StreamObserver.class);
+    myMemoryService.getLegacyAllocationEvents(eventsRequest, eventsObserver);
+    validateResponse(eventsObserver, eventsExpected);
+
+    DumpDataRequest dumpRequest = DumpDataRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setDumpTime(IN_PROGRESS_LEGACY_ALLOCATION_INFO.getStartTime())
+      .build();
+    DumpDataResponse dumpExpected = DumpDataResponse.newBuilder()
+      .setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN)
+      .build();
+    StreamObserver<DumpDataResponse> dumpObserver = mock(StreamObserver.class);
+    myMemoryService.getLegacyAllocationDump(dumpRequest, dumpObserver);
+    validateResponse(dumpObserver, dumpExpected);
+  }
+
+  @Test
+  public void testGetLegacyAllocationDumpOnLiveAllocation() {
+    myFakeMemoryService.addAllocationInfo(FINISHED_LIVE_ALLOCATION_INFO);
+    getPollTicker().run();
+
+    DumpDataRequest request = DumpDataRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setDumpTime(FINISHED_LIVE_ALLOCATION_INFO.getStartTime())
+      .build();
+    DumpDataResponse expected = DumpDataResponse.newBuilder()
+      .setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN)
+      .build();
+    StreamObserver<DumpDataResponse> observer = mock(StreamObserver.class);
+    myMemoryService.getLegacyAllocationDump(request, observer);
+    validateResponse(observer, expected);
+  }
+
+  @Test
+  public void testGetLegacyAllocationEventsOnLiveAllocation() {
+    myFakeMemoryService.addAllocationInfo(FINISHED_LIVE_ALLOCATION_INFO);
+    getPollTicker().run();
+
+    LegacyAllocationEventsRequest request = LegacyAllocationEventsRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTime(FINISHED_LIVE_ALLOCATION_INFO.getStartTime())
+      .build();
+    LegacyAllocationEventsResponse expected = LegacyAllocationEventsResponse.newBuilder()
+      .setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN)
+      .build();
+    StreamObserver<LegacyAllocationEventsResponse> observer = mock(StreamObserver.class);
+    myMemoryService.getLegacyAllocationEvents(request, observer);
     validateResponse(observer, expected);
   }
 
@@ -488,11 +560,11 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     public void getLegacyAllocationDump(DumpDataRequest request,
                                         StreamObserver<DumpDataResponse> responseObserver) {
       DumpDataResponse.Builder response = DumpDataResponse.newBuilder();
-      if (request.getDumpTime() == FINISHED_ALLOCATION_INFO.getStartTime()) {
+      if (request.getDumpTime() == FINISHED_LEGACY_ALLOCATION_INFO.getStartTime()) {
         response.setData(DUMP_DATA);
         response.setStatus(DumpDataResponse.Status.SUCCESS);
       }
-      else if (request.getDumpTime() == IN_PROGRESS_ALLOCATION_INFO.getStartTime()) {
+      else if (request.getDumpTime() == IN_PROGRESS_LEGACY_ALLOCATION_INFO.getStartTime()) {
         response.setStatus(DumpDataResponse.Status.NOT_READY);
       }
 

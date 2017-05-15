@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!-- Auto generated with perfd-host test via flag -Dtest.export.grpx=True -->
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStartRequest">
         <Message>process_id: 1234
@@ -86,10 +86,12 @@ heap_dump_infos {
 allocations_info {
   start_time: 86400000000000
   end_time: 86401000000000
+  legacy: true
 }
 allocations_info {
   start_time: 86401000000000
   end_time: -1
+  legacy: true
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
@@ -120,10 +122,12 @@ heap_dump_infos {
 allocations_info {
   start_time: 86400000000000
   end_time: 86401000000000
+  legacy: true
 }
 allocations_info {
   start_time: 86401000000000
   end_time: -1
+  legacy: true
 }
 </message>
     </GrpcCall>
