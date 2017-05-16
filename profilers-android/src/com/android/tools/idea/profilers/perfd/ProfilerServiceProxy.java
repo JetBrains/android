@@ -16,7 +16,6 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -39,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
 
@@ -58,10 +58,8 @@ public class ProfilerServiceProxy extends PerfdProxyService
   private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
   @NotNull private final IDevice myDevice;
   @NotNull private final Profiler.Device myProfilerDevice;
-  private final Set<Client> myClients = new HashSet<>();
-  @GuardedBy("myClients")
-  private final Map<Client, Profiler.Process> myCachedProcesses = new HashMap<>();
-  private boolean myIsDeviceApiSupported;
+  private final Map<Client, Profiler.Process> myCachedProcesses = Collections.synchronizedMap(new HashMap<>());
+  private final boolean myIsDeviceApiSupported;
 
   public ProfilerServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
     super(ProfilerServiceGrpc.getServiceDescriptor());
@@ -156,11 +154,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-    synchronized (myClients) {
-      Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myCachedProcesses.values()).build();
-      responseObserver.onNext(response);
-      responseObserver.onCompleted();
-    }
+    Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myCachedProcesses.values()).build();
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
   }
 
   @Override
@@ -207,59 +203,70 @@ public class ProfilerServiceProxy extends PerfdProxyService
     return generatePassThroughDefinitions(overrides, myServiceStub);
   }
 
+  /**
+   * Note: This method is called from the ddmlib thread.
+   */
   private void updateProcesses() {
     if (!myIsDeviceApiSupported) {
       return; // Device not supported. Do nothing.
     }
-    synchronized (myClients) {
-      Set<Client> updatedClients = Sets.newHashSet(myDevice.getClients());
-      ImmutableSet<Client> removedClients = Sets.difference(myClients, updatedClients).immutableCopy();
-      ImmutableSet<Client> addedClients = Sets.difference(updatedClients, myClients).immutableCopy();
 
-      // Only request the time if we added processes, this is needed as:
-      // 1) the service test calls this function without setting up a full profiler service, and
-      // 2) this is potentially being called as the device is being shut down.
-      if (!addedClients.isEmpty()) {
-        updateProcesses(addedClients);
-      }
+    // Retrieve the list of Clients, but skip any that doesn't have a proper name yet.
+    Set<Client> updatedClients =
+      Arrays.stream(myDevice.getClients()).filter(c -> c.getClientData().getClientDescription() != null).collect(Collectors.toSet());
+    Set<Client> existingClients = myCachedProcesses.keySet();
+    ImmutableSet<Client> removedClients = Sets.difference(existingClients, updatedClients).immutableCopy();
+    ImmutableSet<Client> addedClients = Sets.difference(updatedClients, existingClients).immutableCopy();
 
-      for (Client client : removedClients) {
-        myCachedProcesses.remove(client);
-      }
+    // Only request the time if we added processes, this is needed as:
+    // 1) the service test calls this function without setting up a full profiler service, and
+    // 2) this is potentially being called as the device is being shut down.
+    if (!addedClients.isEmpty()) {
+      updateProcesses(addedClients);
+    }
+
+    for (Client client : removedClients) {
+      myCachedProcesses.remove(client);
     }
   }
 
+  /**
+   * Note: This method is called from the ddmlib thread.
+   */
   private void updateProcesses(@NotNull Collection<Client> clients) {
     if (!myIsDeviceApiSupported) {
       return; // Device not supported. Do nothing.
     }
-    synchronized (myClients) {
-      assert myDevice.isOnline();
 
-      Profiler.TimeResponse times;
-      try {
-        // TODO: getTimes should take the device
-        times = myServiceStub.getCurrentTime(Profiler.TimeRequest.getDefaultInstance());
-      }
-      catch (Exception e) {
-        // Most likely the destination server went down, and we're in shut down/disconnect mode.
-        getLog().info(e);
-        return;
-      }
+    assert myDevice.isOnline();
 
-      for (Client client : clients) {
-        myClients.add(client);
-
-        String description = client.getClientData().getClientDescription();
-        if (description == null) {
-          continue; // Process is still starting up and not ready yet
-        }
-
-        // TODO: Set this to the applications actual start time.
-        myCachedProcesses.put(client, Profiler.Process.newBuilder().setName(client.getClientData().getClientDescription())
-          .setPid(client.getClientData().getPid()).setState(Profiler.Process.State.ALIVE).setStartTimestampNs(times.getTimestampNs())
-          .build());
-      }
+    Profiler.TimeResponse times;
+    try {
+      // TODO: getTimes should take the device
+      times = myServiceStub.getCurrentTime(Profiler.TimeRequest.getDefaultInstance());
     }
+    catch (Exception e) {
+      // Most likely the destination server went down, and we're in shut down/disconnect mode.
+      getLog().info(e);
+      return;
+    }
+
+    for (Client client : clients) {
+      String description = client.getClientData().getClientDescription();
+      if (description == null) {
+        continue; // Process is still starting up and not ready yet
+      }
+
+      // TODO: Set this to the applications actual start time.
+      myCachedProcesses.put(client, Profiler.Process.newBuilder().setName(client.getClientData().getClientDescription())
+        .setPid(client.getClientData().getPid()).setState(Profiler.Process.State.ALIVE).setStartTimestampNs(times.getTimestampNs())
+        .build());
+    }
+  }
+
+  @TestOnly
+  @NotNull
+  Map<Client, Profiler.Process> getCachedProcesses() {
+    return myCachedProcesses;
   }
 }
