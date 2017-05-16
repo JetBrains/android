@@ -123,10 +123,10 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertEquals(SWIFT, gpuOtherMode(23, true, true, true));
     assertEquals(SWIFT, gpuOtherMode(23, true, true, false));
 
-    assertEquals(MESA, gpuOtherMode(22, false, true, false));
-    assertEquals(MESA, gpuOtherMode(22, true, true, false));
-    assertEquals(MESA, gpuOtherMode(22, true, false, false));
-    assertEquals(MESA, gpuOtherMode(23, true, false, false));
+    assertEquals(OFF, gpuOtherMode(22, false, true, false));
+    assertEquals(OFF, gpuOtherMode(22, true, true, false));
+    assertEquals(OFF, gpuOtherMode(22, true, false, false));
+    assertEquals(OFF, gpuOtherMode(23, true, false, false));
 
     assertEquals(OFF, gpuOtherMode(22, true, true, true));
     assertEquals(OFF, gpuOtherMode(23, true, false, true));
