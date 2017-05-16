@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlResourceHeader;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +27,7 @@ import javax.swing.*;
 
 import java.awt.*;
 
+import static com.android.tools.idea.uibuilder.property.renderer.NlXmlNameRenderer.NEW_VALUE_COLOR;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_BOLD;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER;
@@ -48,10 +51,17 @@ public class NlXmlValueRenderer extends ColoredTableCellRenderer {
       return;
     }
     String value = item.getValue();
+    Color color = VALUE_COLOR;
+    if (StringUtil.isEmpty(value) && item instanceof AddPropertyItem) {
+      value = "value";
+      if (!selected) {
+        color = NEW_VALUE_COLOR;
+      }
+    }
     if (value == null) {
       return;
     }
-    SimpleTextAttributes attr = REGULAR_ATTRIBUTES.derive(STYLE_SMALLER | STYLE_BOLD, VALUE_COLOR, null, null);
+    SimpleTextAttributes attr = REGULAR_ATTRIBUTES.derive(STYLE_SMALLER | STYLE_BOLD, color, null, null);
     append(value, attr, true);
   }
 
