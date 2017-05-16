@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
@@ -23,6 +22,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,41 +31,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
-
-class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDumpCaptureObject>> {
-  @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
-  private final int myProcessId;
-  @NotNull private final RelativeTimeConverter myConverter;
-  @NotNull private final FeatureTracker myFeatureTracker;
-  @Nullable private final Common.Session mySession;
-
+class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
   public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                   @Nullable Common.Session session,
                                   int processId,
                                   @NotNull RelativeTimeConverter converter,
                                   @NotNull FeatureTracker featureTracker) {
-    myClient = client;
-    myProcessId = processId;
-    mySession = session;
-    myConverter = converter;
-    myFeatureTracker = featureTracker;
+    super(client, session, processId, converter, featureTracker);
   }
 
   @Override
-  public List<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>> getDataForXRange(Range xRange) {
+  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForXRange(Range xRange) {
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
     MemoryProfiler.ListHeapDumpInfosResponse response = myClient.listHeapDumpInfos(
-      MemoryProfiler.ListDumpInfosRequest.newBuilder().setSession(mySession).setProcessId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
+      MemoryProfiler.ListDumpInfosRequest.newBuilder().setSession(mySession).setProcessId(myProcessId).setStartTime(rangeMin)
+        .setEndTime(rangeMax).build());
 
-    List<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>> seriesData = new ArrayList<>();
+    List<SeriesData<CaptureDurationData<CaptureObject>>> seriesData = new ArrayList<>();
     for (MemoryProfiler.HeapDumpInfo info : response.getInfosList()) {
-      long startTime = TimeUnit.NANOSECONDS.toMicros(info.getStartTime());
-      long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
-      seriesData.add(new SeriesData<>(startTime, new CaptureDurationData<>(
-        info.getEndTime() == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : endTime - startTime,
-        new HeapDumpCaptureObject(myClient, mySession, myProcessId, info, null, myConverter, myFeatureTracker))));
+      seriesData.add(new SeriesData<>(
+        getHostTime(info.getStartTime()),
+        new CaptureDurationData<>(
+          getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
+          new CaptureEntry<>(
+            info,
+            () -> new HeapDumpCaptureObject(myClient, mySession, myProcessId, info, null, myConverter, myFeatureTracker)))));
     }
 
     return seriesData;

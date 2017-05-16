@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -38,6 +39,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
+import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,8 +75,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
   private final MemoryServiceBlockingStub myClient;
-  private final DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> myHeapDumpDurations;
-  private final DurationDataModel<CaptureDurationData<LegacyAllocationCaptureObject>> myAllocationDurations;
+  private final DurationDataModel<CaptureDurationData<CaptureObject>> myHeapDumpDurations;
+  private final DurationDataModel<CaptureDurationData<CaptureObject>> myAllocationDurations;
   private final CaptureObjectLoader myLoader;
   private final MemoryProfilerSelection mySelection;
   private final MemoryProfilerConfiguration myConfiguration;
@@ -126,7 +128,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myEventMonitor = new EventMonitor(profilers);
 
     mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange(), profilers.getTimeline().getViewRange());
-    mySelectionModel.setSelectFullConstraint(true);
     mySelectionModel.addConstraint(myAllocationDurations);
     mySelectionModel.addConstraint(myHeapDumpDurations);
     mySelectionModel.addListener(new SelectionListener() {
@@ -188,7 +189,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
     getStudioProfilers().getUpdater().unregister(myGcStats);
-    selectCaptureObject(null, SwingUtilities::invokeLater);
+    loadCaptureObject(null, SwingUtilities::invokeLater);
     myLoader.stop();
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
@@ -211,33 +212,31 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       return;
     }
 
-    Range range = getStudioProfilers().getTimeline().getSelectionRange();
-    CaptureObject captureObject = null;
+    Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
+    Range intersection = new Range();
+    CaptureDurationData<? extends CaptureObject> durationData = null;
+    double overlap = 0.0f; // Weight value to determine which capture is "more" selected.
 
-    double overlap = 0.0f;
-    List<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>>
-      heaps = getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(range);
-    for (SeriesData<CaptureDurationData<HeapDumpCaptureObject>> data : heaps) {
-      Range c = new Range(data.x, data.x + data.value.getDuration());
-      Range intersection = c.getIntersection(range);
-      if (!intersection.isEmpty() && intersection.getLength() > overlap) {
-        captureObject = data.value.getCaptureObject();
+    List<SeriesData<CaptureDurationData<CaptureObject>>> series =
+      new ArrayList<>(getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(selectionRange));
+    // Heap dumps break ties vs allocations.
+    series.addAll(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(selectionRange));
+
+    for (SeriesData<CaptureDurationData<CaptureObject>> data : series) {
+      long rangeMax = data.x + data.value.getDuration();
+      if (rangeMax == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
+        continue;
+      }
+
+      Range c = new Range(data.x, rangeMax);
+      intersection = c.getIntersection(selectionRange);
+      if (!intersection.isEmpty() && intersection.getLength() >= overlap) {
+        durationData = data.value;
         overlap = intersection.getLength();
       }
     }
 
-    List<SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>>>
-      allocs = getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(range);
-    for (SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>> data : allocs) {
-      Range c = new Range(data.x, data.x + data.value.getDuration());
-      Range intersection = c.getIntersection(range);
-      if (!intersection.isEmpty() && intersection.getLength() > overlap) {
-        captureObject = data.value.getCaptureObject();
-        overlap = intersection.getLength();
-      }
-    }
-
-    selectCaptureObject(captureObject, SwingUtilities::invokeLater);
+    selectCaptureDuration(durationData, intersection, SwingUtilities::invokeLater);
   }
 
   @NotNull
@@ -246,7 +245,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   /**
-   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #selectCaptureObject(CaptureObject, Executor)} so
+   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #loadCaptureObject(CaptureObject, Executor)} so
    *                   that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would be
    *                   fired via the desired executor.
    */
@@ -256,9 +255,16 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
         .triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
-        selectCaptureObject(new HeapDumpCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(), null,
-                                                      getStudioProfilers().getRelativeTimeConverter(),
-                                                      getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
+        MemoryProfiler.HeapDumpInfo info = response.getInfo();
+        selectCaptureDuration(
+          new CaptureDurationData<>(
+            CaptureDataSeries.getDurationUs(info.getStartTime(), info.getEndTime()), false, false,
+            new CaptureEntry<CaptureObject>(
+              response.getInfo(),
+              () -> new HeapDumpCaptureObject(myClient, mySessionData, myProcessId, info, null,
+                                              getStudioProfilers().getRelativeTimeConverter(),
+                                              getStudioProfilers().getIdeServices().getFeatureTracker()))
+          ), null, loadJoiner);
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
@@ -276,13 +282,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       MemoryProfiler.ForceGarbageCollectionRequest.newBuilder().setProcessId(myProcessId).setSession(mySessionData).build()));
   }
 
-  public DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> getHeapDumpSampleDurations() {
+  public DurationDataModel<CaptureDurationData<CaptureObject>> getHeapDumpSampleDurations() {
     return myHeapDumpDurations;
   }
 
   /**
    * @param enabled    whether to enable or disable allocation tracking.
-   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #selectCaptureObject(CaptureObject, Executor)} so
+   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #loadCaptureObject(CaptureObject, Executor)} so
    *                   that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would be
    *                   fired via the desired executor.
    * @return the actual status, which may be different from the input
@@ -293,57 +299,54 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
     long timeNs = timeResponse.getTimestampNs();
 
-    TrackAllocationsResponse response = myClient.trackAllocations(
-      MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
-        .setEnabled(enabled).build());
-    switch (response.getStatus()) {
-      case SUCCESS:
-        myTrackingAllocations = enabled;
-        if (!myTrackingAllocations && response.getInfo().getLegacy()) {
-          selectCaptureObject(new LegacyAllocationCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(),
-                                                                getStudioProfilers().getRelativeTimeConverter(),
-                                                                getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
-        }
-        else if (myTrackingAllocations && !response.getInfo().getLegacy()) {
-          LiveAllocationCaptureObject captureObject =
-            new LiveAllocationCaptureObject(myClient, mySessionData, myProcessId, response.getInfo().getStartTime(),
-                                            getStudioProfilers().getIdeServices().getFeatureTracker());
-          selectCaptureObject(captureObject, loadJoiner);
-          registerLiveAllocationCaptureObjectToTimeline(captureObject, loadJoiner == null ? MoreExecutors.directExecutor() : loadJoiner);
-        }
-        break;
-      case IN_PROGRESS:
-        myTrackingAllocations = true;
-        break;
-      case NOT_ENABLED:
-        myTrackingAllocations = false;
-        break;
-      case UNSPECIFIED:
-      case NOT_PROFILING:
-      case FAILURE_UNKNOWN:
-      case UNRECOGNIZED:
-        break;
+    try {
+      TrackAllocationsResponse response = myClient.trackAllocations(
+        MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
+          .setEnabled(enabled).build());
+      MemoryProfiler.AllocationsInfo info = response.getInfo();
+      long duration = CaptureDataSeries.getDurationUs(info.getStartTime(), info.getEndTime());
+      FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
+
+      switch (response.getStatus()) {
+        case SUCCESS:
+          myTrackingAllocations = enabled;
+          if (!myTrackingAllocations && info.getLegacy()) {
+            selectCaptureDuration(
+              new CaptureDurationData<>(
+                duration, false, false,
+                new CaptureEntry<>(
+                  response.getInfo(),
+                  () -> new LegacyAllocationCaptureObject(
+                    myClient, mySessionData, myProcessId, info, getStudioProfilers().getRelativeTimeConverter(), featureTracker))
+              ), null, loadJoiner);
+          }
+          else if (myTrackingAllocations && !response.getInfo().getLegacy()) {
+            selectCaptureDuration(
+              new CaptureDurationData<>(
+                duration, true, true,
+                new CaptureEntry<>(
+                  response.getInfo(),
+                  () -> new LiveAllocationCaptureObject(myClient, mySessionData, myProcessId, info.getStartTime(), featureTracker))
+              ), null, loadJoiner);
+          }
+          break;
+        case IN_PROGRESS:
+          myTrackingAllocations = true;
+          break;
+        case NOT_ENABLED:
+          myTrackingAllocations = false;
+          break;
+        case UNSPECIFIED:
+        case NOT_PROFILING:
+        case FAILURE_UNKNOWN:
+        case UNRECOGNIZED:
+          break;
+      }
+      myAspect.changed(MemoryProfilerAspect.TRACKING_ENABLED);
     }
-    myAspect.changed(MemoryProfilerAspect.TRACKING_ENABLED);
-  }
-
-  private void registerLiveAllocationCaptureObjectToTimeline(@NotNull LiveAllocationCaptureObject captureObject, @NotNull Executor loadJoiner) {
-    List<Range> rangesToRegister =
-      ImmutableList.of(getStudioProfilers().getTimeline().getDataRange(), getStudioProfilers().getTimeline().getSelectionRange());
-
-    rangesToRegister.forEach(
-      range -> range.addDependency(this).onChange(Range.Aspect.RANGE, () -> {
-        Range rangeToUse = getStudioProfilers().getTimeline().getSelectionRange();
-        if (rangeToUse.isEmpty()) {
-          rangeToUse = getStudioProfilers().getTimeline().getDataRange();
-        }
-        if (!rangeToUse.isEmpty()) {
-          captureObject.loadTimeRange(TimeUnit.MICROSECONDS.toNanos((long)rangeToUse.getMin()),
-                                      TimeUnit.MICROSECONDS.toNanos((long)rangeToUse.getMax()),
-                                      loadJoiner);
-        }
-      })
-    );
+    catch (StatusRuntimeException e) {
+      getLogger().debug(e);
+    }
   }
 
   public boolean isTrackingAllocations() {
@@ -356,7 +359,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  public DurationDataModel<CaptureDurationData<LegacyAllocationCaptureObject>> getAllocationInfosDurations() {
+  public DurationDataModel<CaptureDurationData<CaptureObject>> getAllocationInfosDurations() {
     return myAllocationDurations;
   }
 
@@ -396,75 +399,124 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return mySelection.getHeapSet();
   }
 
+  private void registerLiveAllocationCaptureObjectToTimeline(@NotNull LiveAllocationCaptureObject captureObject,
+                                                             @NotNull Executor loadJoiner) {
+    List<Range> rangesToRegister =
+      ImmutableList.of(getStudioProfilers().getTimeline().getDataRange(), getStudioProfilers().getTimeline().getSelectionRange());
+
+    // TODO move this to within LiveAllocationCaptureObject?
+    rangesToRegister.forEach(
+      range -> range.addDependency(this).onChange(Range.Aspect.RANGE, () -> {
+        Range rangeToUse = getStudioProfilers().getTimeline().getSelectionRange();
+        if (rangeToUse.isEmpty()) {
+          rangeToUse = getStudioProfilers().getTimeline().getDataRange();
+        }
+        if (!rangeToUse.isEmpty()) {
+          captureObject.loadTimeRange(TimeUnit.MICROSECONDS.toNanos((long)rangeToUse.getMin()),
+                                      TimeUnit.MICROSECONDS.toNanos((long)rangeToUse.getMax()),
+                                      loadJoiner);
+        }
+      })
+    );
+  }
+
   @VisibleForTesting
-  void selectCaptureObject(@Nullable CaptureObject captureObject, @Nullable Executor joiner) {
-    if (!mySelection.selectCaptureObject(captureObject)) {
+  void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
+                             @Nullable Range subRange,
+                             @Nullable Executor joiner) {
+    if (!mySelection.selectCaptureEntry(durationData == null ? null : durationData.getCaptureEntry())) {
       return;
     }
 
+    CaptureObject captureObject = mySelection.getCaptureObject();
+    loadCaptureObject(captureObject, joiner);
+    CaptureObject selectedCapture = getSelectedCapture();
+
+    if (selectedCapture == null) {
+      return;
+    }
+
+    assert durationData != null;
+    Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
+    myUpdateCaptureOnSelection = false;
+    if (selectedCapture instanceof LiveAllocationCaptureObject) {
+      registerLiveAllocationCaptureObjectToTimeline((LiveAllocationCaptureObject)selectedCapture,
+                                                    joiner == null ? MoreExecutors.directExecutor() : joiner);
+    }
+
+    if (durationData.canSelectPartialRange() && subRange != null) {
+      selectionRange.set(subRange.getMin(), subRange.getMax());
+    }
+    else {
+      selectionRange.set(TimeUnit.NANOSECONDS.toMicros(selectedCapture.getStartTimeNs()),
+                         TimeUnit.NANOSECONDS.toMicros(selectedCapture.getEndTimeNs()));
+    }
+    myUpdateCaptureOnSelection = true;
+  }
+
+  private void loadCaptureObject(@Nullable CaptureObject captureObject, @Nullable Executor joiner) {
     // First remove all aspect dependencies on the previously selected capture object.
+    // TODO move this to within LiveAllocationCaptureObject?
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     ImmutableList.of(timeline.getDataRange(), timeline.getSelectionRange()).forEach(range -> range.removeDependencies(this));
 
-    if (captureObject != null) {
-      myUpdateCaptureOnSelection = false;
-      timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(captureObject.getStartTimeNs()),
-                                       TimeUnit.NANOSECONDS.toMicros(captureObject.getEndTimeNs()));
-      myUpdateCaptureOnSelection = true;
-      ListenableFuture<CaptureObject> future = myLoader.loadCapture(captureObject);
-      future.addListener(
-        () -> {
-          try {
-            CaptureObject loadedCaptureObject = future.get();
-            if (mySelection.finishSelectingCaptureObject(loadedCaptureObject)) {
-              Collection<HeapSet> heaps = loadedCaptureObject.getHeapSets();
-              if (heaps.size() == 0) {
-                return;
-              }
-
-              for (HeapSet heap : heaps) {
-                if (heap.getName().equals("app")) {
-                  selectHeapSet(heap);
-                  return;
-                }
-              }
-
-              for (HeapSet heap : heaps) {
-                if (heap.getName().equals("default")) {
-                  selectHeapSet(heap);
-                  return;
-                }
-              }
-
-              HeapSet heap = new ArrayList<>(heaps).get(0);
-              selectHeapSet(heap);
-            }
-            else {
-              // Capture loading failed.
-              // TODO: loading has somehow failed - we need to inform users about the error status.
-              selectCaptureObject(null, null);
-            }
-          }
-          catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
-            selectCaptureObject(null, null);
-          }
-          catch (ExecutionException exception) {
-            selectCaptureObject(null, null);
-            getLogger().error(exception);
-          }
-          catch (CancellationException ignored) {
-            // No-op: a previous load-capture task is canceled due to another capture being selected and loaded.
-          }
-        },
-        joiner == null ? MoreExecutors.directExecutor() : joiner);
-      setProfilerMode(ProfilerMode.EXPANDED);
-    }
-    else {
+    if (captureObject == null) {
+      mySelection.selectCaptureEntry(null);
       myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
       timeline.getSelectionRange().clear();
       setProfilerMode(ProfilerMode.NORMAL);
+      return;
     }
+
+    ListenableFuture<CaptureObject> future = myLoader.loadCapture(captureObject);
+    future.addListener(
+      () -> {
+        try {
+          CaptureObject loadedCaptureObject = future.get();
+          if (mySelection.finishSelectingCaptureObject(loadedCaptureObject)) {
+            Collection<HeapSet> heaps = loadedCaptureObject.getHeapSets();
+            if (heaps.size() == 0) {
+              return;
+            }
+
+            for (HeapSet heap : heaps) {
+              if (heap.getName().equals("app")) {
+                selectHeapSet(heap);
+                return;
+              }
+            }
+
+            for (HeapSet heap : heaps) {
+              if (heap.getName().equals("default")) {
+                selectHeapSet(heap);
+                return;
+              }
+            }
+
+            HeapSet heap = new ArrayList<>(heaps).get(0);
+            selectHeapSet(heap);
+          }
+          else {
+            // Capture loading failed.
+            // TODO: loading has somehow failed - we need to inform users about the error status.
+            loadCaptureObject(null, null);
+          }
+        }
+        catch (InterruptedException exception) {
+          Thread.currentThread().interrupt();
+          loadCaptureObject(null, null);
+        }
+        catch (ExecutionException exception) {
+          loadCaptureObject(null, null);
+          getLogger().error(exception);
+        }
+        catch (CancellationException ignored) {
+          // No-op: a previous load-capture task is canceled due to another capture being selected and loaded.
+        }
+      },
+      joiner == null ? MoreExecutors.directExecutor() : joiner);
+
+    setProfilerMode(ProfilerMode.EXPANDED);
   }
 
   @Nullable

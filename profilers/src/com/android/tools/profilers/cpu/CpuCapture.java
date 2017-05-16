@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
@@ -34,7 +34,7 @@ import java.nio.BufferUnderflowException;
 import java.util.Map;
 import java.util.Set;
 
-public class CpuCapture implements DurationData {
+public class CpuCapture implements ConfigurableDurationData {
 
   public static final String MAIN_THREAD_NAME = "main";
 
@@ -128,6 +128,16 @@ public class CpuCapture implements DurationData {
     return (long)myRange.getLength();
   }
 
+  @Override
+  public boolean getSelectableWhenMaxDuration() {
+    return false;
+  }
+
+  @Override
+  public boolean canSelectPartialRange() {
+    return true;
+  }
+
   public void updateClockType(@NotNull ClockType clockType) {
     if (myClockType == clockType) {
       // Avoid traversing the capture trees if there is no change.
@@ -135,7 +145,7 @@ public class CpuCapture implements DurationData {
     }
     myClockType = clockType;
 
-    for(CaptureNode tree : myCaptureTrees.values()) {
+    for (CaptureNode tree : myCaptureTrees.values()) {
       updateClockType(tree, clockType);
     }
   }

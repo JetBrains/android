@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.Common;
@@ -37,6 +38,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
@@ -162,40 +164,43 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void defaultHeapSetTest() {
+  public void defaultHeapSetTest() throws ExecutionException, InterruptedException {
     myMockLoader.setReturnImmediateFuture(true);
 
-    FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObject, "DUMMY_CLASS1").setHeapId(0).build();
-    captureObject.addInstanceObjects(ImmutableSet.of(instanceObject));
+    FakeCaptureObject capture0 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
+    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(capture0, "DUMMY_CLASS1").setHeapId(0).build();
+    capture0.addInstanceObjects(ImmutableSet.of(instanceObject));
 
-    myStage.selectCaptureObject(captureObject, null);
-    assertEquals(captureObject, myStage.getSelectedCapture());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture0)),
+                                  new Range(0, 1), null);
+    assertEquals(capture0, myStage.getSelectedCapture());
     assertNotNull(myStage.getSelectedHeapSet());
     assertEquals("default", myStage.getSelectedHeapSet().getName());
 
-    captureObject = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    instanceObject = new FakeInstanceObject.Builder(captureObject, "DUMMY_CLASS1").setHeapId(1).build();
-    captureObject.addInstanceObjects(ImmutableSet.of(instanceObject));
+    FakeCaptureObject capture1 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
+    instanceObject = new FakeInstanceObject.Builder(capture1, "DUMMY_CLASS1").setHeapId(1).build();
+    capture1.addInstanceObjects(ImmutableSet.of(instanceObject));
 
-    myStage.selectCaptureObject(captureObject, null);
-    assertEquals(captureObject, myStage.getSelectedCapture());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture1)),
+                                  new Range(0, 1), null);
+    assertEquals(capture1, myStage.getSelectedCapture());
     assertNotNull(myStage.getSelectedHeapSet());
     assertEquals("app", myStage.getSelectedHeapSet().getName());
 
-    captureObject = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    instanceObject = new FakeInstanceObject.Builder(captureObject, "DUMMY_CLASS1").setHeapId(0).build();
-    FakeInstanceObject otherInstanceObject = new FakeInstanceObject.Builder(captureObject, "DUMMY_CLASS2").setHeapId(1).build();
-    captureObject.addInstanceObjects(ImmutableSet.of(instanceObject, otherInstanceObject));
+    FakeCaptureObject capture2 = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
+    instanceObject = new FakeInstanceObject.Builder(capture2, "DUMMY_CLASS1").setHeapId(0).build();
+    FakeInstanceObject otherInstanceObject = new FakeInstanceObject.Builder(capture2, "DUMMY_CLASS2").setHeapId(1).build();
+    capture2.addInstanceObjects(ImmutableSet.of(instanceObject, otherInstanceObject));
 
-    myStage.selectCaptureObject(captureObject, null);
-    assertEquals(captureObject, myStage.getSelectedCapture());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture2)),
+                                  new Range(0, 1), null);
+    assertEquals(capture2, myStage.getSelectedCapture());
     assertNotNull(myStage.getSelectedHeapSet());
     assertEquals("app", myStage.getSelectedHeapSet().getName());
   }
 
   @Test
-  public void testMemoryObjectSelection() {
+  public void testMemoryObjectSelection() throws ExecutionException, InterruptedException {
     final String dummyClassName = "DUMMY_CLASS1";
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setStartTime(5).setEndTime(10).build();
     InstanceObject mockInstance =
@@ -203,7 +208,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
         .setDepth(1).setShallowSize(2).setRetainedSize(3).build();
     captureObject.addInstanceObjects(Collections.singleton(mockInstance));
 
-    myStage.selectCaptureObject(captureObject, null);
+    Object captureKey = new Object();
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
+                                  new Range(0, 1), null);
     assertEquals(captureObject, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeapSet());
     assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
@@ -216,7 +223,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
 
     // Make sure the same capture selected shouldn't result in aspects getting raised again.
-    myStage.selectCaptureObject(captureObject, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
+                                  new Range(0, 1), null);
+    myMockLoader.runTask();
     assertEquals(captureObject, myStage.getSelectedCapture());
     assertNotNull(myStage.getSelectedHeapSet());
     assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
@@ -306,17 +315,19 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testSelectNewCaptureWhileLoading() {
+  public void testSelectNewCaptureWhileLoading() throws ExecutionException, InterruptedException {
     CaptureObject mockCapture1 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(5).setEndTime(10).build();
     CaptureObject mockCapture2 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setStartTime(10).setEndTime(15).build();
 
-    myStage.selectCaptureObject(mockCapture1, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
+                                  new Range(0, 1), null);
     assertEquals(mockCapture1, myStage.getSelectedCapture());
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     // Make sure selecting a new capture while the first one is loading will select the new one
-    myStage.selectCaptureObject(mockCapture2, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture2)),
+                                  new Range(0, 1), null);
     assertEquals(mockCapture2, myStage.getSelectedCapture());
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
@@ -328,11 +339,12 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testCaptureLoadingFailure() {
+  public void testCaptureLoadingFailure() throws ExecutionException, InterruptedException {
     CaptureObject mockCapture1 =
       new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(5).setEndTime(10).setError(true).build();
 
-    myStage.selectCaptureObject(mockCapture1, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
+                                  new Range(0, 1), null);
     assertEquals(mockCapture1, myStage.getSelectedCapture());
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);

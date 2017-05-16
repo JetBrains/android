@@ -251,7 +251,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
 
     // TODO set proper colors / icons
-    DurationDataRenderer<CaptureDurationData<HeapDumpCaptureObject>> heapDumpRenderer =
+    DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
       new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), Color.BLACK)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))
@@ -260,7 +260,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
           data -> String.format("Dump (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .build();
-    DurationDataRenderer<CaptureDurationData<LegacyAllocationCaptureObject>> allocationRenderer =
+    DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
       new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))
@@ -378,12 +378,18 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       return;
     }
 
-    myAllocationButton.setEnabled(false);
-    myHeapDumpButton.setEnabled(false);
-    myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
-    myCaptureLoadingPanel.setLoadingText("Fetching results");
-    myCaptureLoadingPanel.startLoading();
-    myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());
+    if (myCaptureObject.isDoneLoading()) {
+      // If a capture is initiated on stage enter, we will not have gotten a chance to listen in on the capture done loading event.``
+      captureObjectFinishedLoading();
+    }
+    else {
+      myAllocationButton.setEnabled(false);
+      myHeapDumpButton.setEnabled(false);
+      myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
+      myCaptureLoadingPanel.setLoadingText("Fetching results");
+      myCaptureLoadingPanel.startLoading();
+      myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());
+    }
   }
 
   private void captureObjectFinishedLoading() {

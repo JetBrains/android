@@ -15,20 +15,23 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DefaultDurationData;
+import com.android.tools.adtui.model.DefaultConfigurableDurationData;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
 
-public class CaptureDurationData <T extends CaptureObject> extends DefaultDurationData {
-  @NotNull private final T myCaptureObject;
+public class CaptureDurationData<T extends CaptureObject> extends DefaultConfigurableDurationData {
+  @NotNull private final CaptureEntry<T> myCaptureEntry;
 
-  public CaptureDurationData(long duration, @NotNull T captureObject) {
-    super(duration);
-    myCaptureObject = captureObject;
+  public CaptureDurationData(long duration,
+                             boolean selectableWhenUnspecifiedDuration,
+                             boolean selectPartialRange,
+                             @NotNull CaptureEntry<T> captureEntry) {
+    super(duration, selectableWhenUnspecifiedDuration, selectPartialRange);
+    myCaptureEntry = captureEntry;
   }
 
   @NotNull
-  public T getCaptureObject() {
-    return myCaptureObject;
+  public CaptureEntry<T> getCaptureEntry() {
+    return myCaptureEntry;
   }
 }
