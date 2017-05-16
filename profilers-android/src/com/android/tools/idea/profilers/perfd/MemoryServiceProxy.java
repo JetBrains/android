@@ -79,7 +79,8 @@ public class MemoryServiceProxy extends PerfdProxyService {
     myTrackerSupplier = legacyTrackerSupplier;
     myUpdatingDataLock = new Object();
 
-    if (!StudioFlags.PROFILER_USE_JVMTI.get() || myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
+    if (!(StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get()) ||
+        myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O) {
       myUseLegacyTracking = true;
       myLegacyTrackers = new TIntObjectHashMap<>();
       myTrackingData = new TIntObjectHashMap<>();

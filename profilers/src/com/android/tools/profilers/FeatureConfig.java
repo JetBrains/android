@@ -22,4 +22,5 @@ package com.android.tools.profilers;
 public interface FeatureConfig {
   boolean isNetworkThreadViewEnabled();
   boolean isSimplePerfEnabled();
+  boolean isLiveAllocationsEnabled();
 }

@@ -33,11 +33,13 @@ public abstract class MemoryProfilerTestBase {
   protected FakeCaptureObjectLoader myMockLoader;
   protected MemoryAspectObserver myAspectObserver;
   protected FakeTimer myTimer;
+  protected FakeIdeProfilerServices myIdeProfilerServices;
 
   @Before
   public void setupBase() {
     myTimer = new FakeTimer();
-    myProfilers = new StudioProfilers(getGrpcChannel().getClient(), new FakeIdeProfilerServices(), myTimer);
+    myIdeProfilerServices = new FakeIdeProfilerServices();
+    myProfilers = new StudioProfilers(getGrpcChannel().getClient(), myIdeProfilerServices, myTimer);
     myMockLoader = new FakeCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
     myAspectObserver = new MemoryAspectObserver(myStage.getAspect());
