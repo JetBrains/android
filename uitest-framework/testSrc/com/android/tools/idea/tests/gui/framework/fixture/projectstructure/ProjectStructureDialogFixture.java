@@ -81,6 +81,24 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
   }
 
   @NotNull
+  public DeveloperServicesFixture selectAdsDeveloperService() {
+    selectConfigurable("Ads");
+    return new DeveloperServicesFixture(myDialog, myIdeFrameFixture);
+  }
+
+  @NotNull
+  public DeveloperServicesFixture selectAuthenticationDeveloperService() {
+    selectConfigurable("Authentication");
+    return new DeveloperServicesFixture(myDialog, myIdeFrameFixture);
+  }
+
+  @NotNull
+  public DeveloperServicesFixture selectNotificationsDeveloperService() {
+    selectConfigurable("Notifications");
+    return new DeveloperServicesFixture(myDialog, myIdeFrameFixture);
+  }
+
+  @NotNull
   public IdeFrameFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
