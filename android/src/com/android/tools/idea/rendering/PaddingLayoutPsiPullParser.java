@@ -36,8 +36,8 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   private final static Pattern FLOAT_PATTERN = Pattern.compile("(-?[0-9]+(?:\\.[0-9]+)?)(.*)"); //$NON-NLS-1$
   private final static int PADDING_VALUE = 10;
 
-  private boolean myZeroAttributeIsPadding = false;
-  private boolean myIncreaseExistingPadding = false;
+  private boolean myZeroAttributeIsPadding;
+  private boolean myIncreaseExistingPadding;
 
   @NotNull
   private final Density myDensity;
@@ -61,10 +61,9 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   private final Set<XmlTag> myExplodeNodes;
 
   /**
-   * Use the {@link LayoutPsiPullParser#create(com.intellij.psi.xml.XmlFile, RenderLogger, java.util.Set,
-   * com.android.resources.Density)} factory instead
+   * Use the {@link LayoutPsiPullParser#create(XmlFile, IRenderLogger, Set, Density)} factory instead.
    */
-  PaddingLayoutPsiPullParser(@NotNull XmlFile file, @NotNull RenderLogger logger, @NotNull Set<XmlTag> explodeNodes,
+  PaddingLayoutPsiPullParser(@NotNull XmlFile file, @NotNull IRenderLogger logger, @NotNull Set<XmlTag> explodeNodes,
                              @NotNull Density density) {
     super(file, logger, true);
     myExplodeNodes = explodeNodes;
