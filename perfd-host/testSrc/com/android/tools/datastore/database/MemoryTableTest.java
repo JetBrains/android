@@ -284,11 +284,11 @@ public class MemoryTableTest {
     // A class that is loaded since the beginning (t = 0, tag = 1)
     AllocationEvent klass1 =
       AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JNI_KLASS1_NAME).setTag(KLASS1_TAG))
-        .setTimestamp(0).setCaptureTime(VALID_CAPTURE_TIME).build();
+        .setTimestamp(0).build();
     // A class that is loaded at t=5 (tag = 2)
     AllocationEvent klass2 =
       AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JNI_KLASS2_NAME).setTag(KLASS2_TAG))
-        .setTimestamp(5).setCaptureTime(VALID_CAPTURE_TIME).build();
+        .setTimestamp(5).build();
     // A klass1 instance allocation event (t = 0, tag = 100)
     AllocationEvent alloc1 = AllocationEvent.newBuilder()
       .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).addMethodIds(STACK_ID))
@@ -306,6 +306,7 @@ public class MemoryTableTest {
     BatchAllocationSample insertSample = BatchAllocationSample.newBuilder()
       .addEvents(klass1)
       .addEvents(klass2)
+      .addEvents(klass2)  // Test that insert dups will be ignored
       .addEvents(alloc1)
       .addEvents(free1)
       .addEvents(alloc2).build();
@@ -331,10 +332,12 @@ public class MemoryTableTest {
       AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS2_NAME).setTag(KLASS2_TAG))
         .setTimestamp(5).build();
 
-    // A query that asks for the wrong session returns nothing
+    // A query that asks for the wrong session returns only classes
     BatchAllocationSample querySample =
       myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, INVALID_CAPTURE_TIME, 0, Long.MAX_VALUE);
-    assertEquals(0, querySample.getEventsCount());
+    assertEquals(2, querySample.getEventsCount());
+    assertEquals(expectedKlass1, querySample.getEvents(0));
+    assertEquals(expectedKlass2, querySample.getEvents(1));
 
     // A query that asks for live objects.
     querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, VALID_CAPTURE_TIME, 0, Long.MAX_VALUE);
