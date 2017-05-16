@@ -215,11 +215,11 @@ public class FontFamilyCreator {
     String certName = escapeXmlValue(provider.getCertificateResourceName());
     return String.format(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
-      "<resources>\n" +
+      "<resources>%n" +
       "    <array name=\"" + certName + "\">%n" +
       "        <item>@array/" + certName + "_dev</item>%n" +
       "        <item>@array/" + certName + "_prod</item>%n" +
-      "    </array>\n" +
+      "    </array>%n" +
       "    <string-array name=\"" + certName + "_dev\">%n" +
       "        <item>%n" +
       "            " + provider.getDevelopmentCertificate() + "%n" +
