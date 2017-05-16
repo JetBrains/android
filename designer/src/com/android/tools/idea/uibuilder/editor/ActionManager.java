@@ -57,7 +57,10 @@ public abstract class ActionManager {
     return actionsToolbar.getToolbarComponent();
   }
 
-  abstract protected ActionsToolbar createActionsToolbar();
+  @NotNull
+  protected ActionsToolbar createActionsToolbar() {
+    return new ActionsToolbar(mySurface);
+  }
 
   public void showPopup(@NotNull MouseEvent event) {
     NlComponent component = null;

@@ -30,22 +30,14 @@ import java.util.List;
  * Provides and handles actions in the navigation editor
  */
 public class NavActionManager extends ActionManager {
-  private NavDesignSurface mySurface;
 
   public NavActionManager(@NotNull NavDesignSurface surface) {
     super(surface);
-    mySurface = surface;
   }
 
   @Override
   public void registerActions(@NotNull JComponent component) {
     // TODO
-  }
-
-  @Override
-  protected ActionsToolbar createActionsToolbar() {
-    // TODO
-    return new ActionsToolbar(mySurface);
   }
 
   @NotNull
