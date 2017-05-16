@@ -107,7 +107,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidProjectPath.class);
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
-    Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
+    Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.CURRENT_BUILD_TOOLS_VERSION);
 
     // TODO: remove once maven dependency downloading is available in studio
     StudioSdkUtil.reloadRemoteSdkWithModalProgress();
