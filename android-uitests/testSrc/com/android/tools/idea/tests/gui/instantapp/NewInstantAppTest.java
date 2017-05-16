@@ -143,6 +143,16 @@ public class NewInstantAppTest {
   public void testCanBuildDefaultNewInstantAppProjects() throws IOException {
     createAndOpenDefaultAIAProject("BuildApp", null, null);
 
+    guiTest.ideFrame().getEditor()
+      .open("base/build.gradle") // Check "base" dependencies
+      .moveBetween("application project(':app')", "")
+      .moveBetween("feature project(':feature')", "")
+      .open("feature/build.gradle") // Check "feature" dependencies
+      .moveBetween("implementation project(':base')", "")
+      .open("app/build.gradle") // Check "app" dependencies
+      .moveBetween("implementation project(':feature')", "")
+      .moveBetween("implementation project(':base')", "");
+
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
