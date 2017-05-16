@@ -110,9 +110,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     args.addAll(getFlightRecorderArguments());
 
     List<String> tasks = new LinkedList<>();
-    if (buildSelection.getBuildMode() == BuildMode.CLEAN) {
-      tasks.addAll(myTasksProvider.getCleanAndGenerateSourcesTasks());
-    }
     tasks.addAll(myTasksProvider.getFullBuildTasks());
     return taskRunner.run(tasks, null, args);
   }
@@ -133,10 +130,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
   private BuildCause computeBuildCause(@Nullable IDevice device) {
     if (device == null) { // i.e. emulator is still launching..
       return BuildCause.NO_DEVICE;
-    }
-
-    if (myRunContext.isCleanRerun()) {
-      return BuildCause.USER_REQUESTED_CLEAN_BUILD;
     }
 
     // We assume that the deployment happens to the default user, and in here, we check whether it is still installed for the default user
@@ -243,7 +236,6 @@ public class InstantRunBuilder implements BeforeRunBuilder {
         sb.append(",").append(OptionalCompilationStep.RESTART_ONLY.name());
         break;
       case FULL:
-      case CLEAN:
         sb.append(",").append(OptionalCompilationStep.FULL_APK.name());
         break;
     }

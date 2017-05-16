@@ -19,5 +19,4 @@ enum BuildMode {
   HOT,    // incremental build
   COLD,   // incremental build w/ cold swap patches
   FULL,   // full build
-  CLEAN,  // clean build
 }
