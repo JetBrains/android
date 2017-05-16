@@ -38,17 +38,6 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   }
 
   @NotNull
-  @Override
-  public List<String> getCleanAndGenerateSourcesTasks() {
-    List<String> tasks = Lists.newArrayList();
-
-    tasks.addAll(GradleBuildInvoker.findCleanTasksForModules(myModules));
-    tasks.addAll(GradleBuildInvoker.findTasksToExecute(myModules, BuildMode.SOURCE_GEN, GradleBuildInvoker.TestCompileType.NONE));
-
-    return tasks;
-  }
-
-  @NotNull
   public List<String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);

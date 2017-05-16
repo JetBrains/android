@@ -142,7 +142,6 @@ public class InstantRunBuilderTest {
     myTasksProvider = mock(InstantRunTasksProvider.class);
 
     when(myTasksProvider.getFullBuildTasks()).thenReturn(ASSEMBLE_TASKS);
-    when(myTasksProvider.getCleanAndGenerateSourcesTasks()).thenReturn(CLEAN_TASKS);
 
     myInstalledApkCache = new InstalledApkCache() {
       @Override
@@ -192,17 +191,6 @@ public class InstantRunBuilderTest {
     assertEquals(
       "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK" +
       " :app:assemble",
-      myTaskRunner.getBuilds());
-  }
-
-  @Test
-  public void cleanRerunForcesClean() throws Exception {
-    myRunConfigContext.setCleanRerun(true);
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    myBuilder.build(myTaskRunner, Collections.emptyList());
-    assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
