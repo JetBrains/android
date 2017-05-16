@@ -47,7 +47,6 @@ import java.util.List;
  */
 public class IssuePanel extends JPanel implements Disposable {
   public static final String ISSUE_PANEL_NAME = "Layout Editor Error Panel";
-  private static final String PROPERTY_MINIMIZED = IssuePanel.class.getCanonicalName() + ".minimized";
   private static final String TITLE_NO_ISSUES = "No issues";
   private static final String TITLE_NO_IMPORTANT_ISSUE = "Issues";
   private static final String WARNING = "Warning";
@@ -493,8 +492,6 @@ public class IssuePanel extends JPanel implements Disposable {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       setMinimized(true);
-      // If the user acts on the minimize button, save the preference
-      PropertiesComponent.getInstance().setValue(PROPERTY_MINIMIZED, true, false);
     }
   }
 }
