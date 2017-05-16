@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.BuildTypesTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,5 +72,46 @@ public class BuildTypesTest {
     EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
     String gradleFileContents = editor.getCurrentFileContents();
     assertThat(gradleFileContents).containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
+  }
+
+  private void assertSettingLine(@NotNull String gradleFileContents, @NotNull String buildType, @NotNull String line) {
+    assertThat(gradleFileContents).containsMatch(buildType + " \\{\n[^\\}]* " + line + "\n");
+  }
+
+  /**
+   * Verifies that an existing build type can be updated.
+   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>TR ID: C14606143
+   * <pre>
+   *   Test Steps:
+   *   1. Open the project structure dialog
+   *   2. Select a module
+   *   3. Click the Build Types tab
+   *   4. Select Debug or Release and modify some settings.
+   *   Verification:
+   *   1. Build type selection in gradle build file is updated with the changes.
+   * </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void editBuildType() throws Exception {
+    final String buildType = "release";
+
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    ProjectStructureDialogFixture projectStructureDialog =
+      ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
+
+    BuildTypesTabFixture buildTypesTab = projectStructureDialog.selectConfigurable("app").selectBuildTypesTab();
+    buildTypesTab.selectBuildType(buildType)
+      .setDebuggable("true")
+      .setVersionNameSuffix("suffix");
+
+    projectStructureDialog.clickOk();
+    ideFrame.waitForGradleProjectSyncToFinish();
+
+    EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
+    String gradleFileContents = editor.getCurrentFileContents();
+    assertSettingLine(gradleFileContents, buildType, "debuggable true");
+    assertSettingLine(gradleFileContents, buildType, "versionNameSuffix 'suffix'");
   }
 }
