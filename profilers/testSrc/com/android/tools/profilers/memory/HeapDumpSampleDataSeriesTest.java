@@ -23,6 +23,7 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -53,20 +54,22 @@ public class HeapDumpSampleDataSeriesTest {
     HeapDumpSampleDataSeries series =
       new HeapDumpSampleDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, 1,
                                    new RelativeTimeConverter(0), myIdeProfilerServices.getFeatureTracker());
-    List<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>> dataList =
+    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList =
       series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
-    SeriesData<CaptureDurationData<HeapDumpCaptureObject>> data1 = dataList.get(0);
+    SeriesData<CaptureDurationData<CaptureObject>> data1 = dataList.get(0);
     assertEquals(2, data1.x);
     assertEquals(5, data1.value.getDuration());
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(2), data1.value.getCaptureObject().getStartTimeNs());
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(7), data1.value.getCaptureObject().getEndTimeNs());
+    CaptureObject capture1 = data1.value.getCaptureEntry().getCaptureObject();
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(2), capture1.getStartTimeNs());
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(7), capture1.getEndTimeNs());
 
-    SeriesData<CaptureDurationData<HeapDumpCaptureObject>> data2 = dataList.get(1);
+    SeriesData<CaptureDurationData<CaptureObject>> data2 = dataList.get(1);
     assertEquals(17, data2.x);
-    assertEquals(DurationData.UNSPECIFIED_DURATION, data2.value.getDuration());
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(17), data2.value.getCaptureObject().getStartTimeNs());
-    assertEquals(DurationData.UNSPECIFIED_DURATION, data2.value.getCaptureObject().getEndTimeNs());
+    assertEquals(Long.MAX_VALUE - TimeUnit.MICROSECONDS.toNanos(data2.x), data2.value.getDuration());
+    CaptureObject capture2 = data2.value.getCaptureEntry().getCaptureObject();
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(17), capture2.getStartTimeNs());
+    assertEquals(DurationData.UNSPECIFIED_DURATION, capture2.getEndTimeNs());
   }
 }

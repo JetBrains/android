@@ -186,14 +186,13 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     long queryTimeStartNs;
     boolean refresh = false;
     if (startTimeNs == myPreviousQueryStartTimeNs && endTimeNs >= myPreviousQueryEndTimeNs) {
-      // If we only expanded the range, then do an optimization to only query the delta.
+      // If we only expanded the range to the right, then do an optimization to only query the delta.
+      // TODO add optimizations for range expansion/shrink
       queryTimeStartNs = myPreviousQueryEndTimeNs;
-      myPreviousQueryEndTimeNs = endTimeNs;
     }
     else {
       refresh = true;
       myPreviousQueryStartTimeNs = startTimeNs;
-      myPreviousQueryEndTimeNs = endTimeNs;
       queryTimeStartNs = myPreviousQueryStartTimeNs;
     }
 
@@ -204,9 +203,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         List<InstanceObject> instancesAdded = new ArrayList<>();
         List<InstanceObject> instancesFreed = new ArrayList<>();
 
-
-        assert myPreviousQueryEndTimeNs != DurationData.UNSPECIFIED_DURATION;
-        long newContextEndTime = Math.max(myContextEndTimeNs, myPreviousQueryEndTimeNs);
+        assert endTimeNs != DurationData.UNSPECIFIED_DURATION;
+        long newContextEndTime = Math.max(myContextEndTimeNs, endTimeNs);
         if (newContextEndTime > myContextEndTimeNs) {
           // If we clear, we need to grab all the classes again because we may be in a future range.
           MemoryProfiler.BatchAllocationSample sampleResponse = myClient.getAllocationContexts(
@@ -236,8 +234,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
         MemoryProfiler.BatchAllocationSample sampleResponse = myClient.getAllocations(
           MemoryProfiler.AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-            .setCaptureTime(myCaptureTime).setStartTime(queryTimeStartNs).setEndTime(myPreviousQueryEndTimeNs).build());
+            .setCaptureTime(myCaptureTime).setStartTime(queryTimeStartNs).setEndTime(endTimeNs).build());
 
+        myPreviousQueryEndTimeNs = Math.max(myPreviousQueryEndTimeNs, sampleResponse.getTimestamp());
         for (AllocationEvent event : sampleResponse.getEventsList()) {
           if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
             AllocationEvent.Allocation allocation = event.getAllocData();

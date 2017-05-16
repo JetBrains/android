@@ -43,7 +43,7 @@ public class SelectionModelTest {
   @Test
   public void testSetWithPartialConstraint() throws Exception {
     SelectionModel selection = new SelectionModel(mySelection, myRange);
-    selection.addConstraint(createConstraint(0, 5, 15, 20, 35, 40));
+    selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 18);
 
@@ -54,7 +54,7 @@ public class SelectionModelTest {
   @Test
   public void testSetWithPartialConstraintEmpty() throws Exception {
     SelectionModel selection = new SelectionModel(mySelection, myRange);
-    selection.addConstraint(createConstraint(0, 5, 15, 20, 35, 40));
+    selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 12);
 
@@ -64,7 +64,7 @@ public class SelectionModelTest {
   @Test
   public void testSelectionPrefersCurrentOne() throws Exception {
     SelectionModel selection = new SelectionModel(mySelection, myRange);
-    selection.addConstraint(createConstraint(0, 5, 15, 20, 35, 40));
+    selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
     selection.set(18, 20);
     assertEquals(18, mySelection.getMin(), Float.MIN_VALUE);
     assertEquals(20, mySelection.getMax(), Float.MIN_VALUE);
@@ -83,8 +83,7 @@ public class SelectionModelTest {
   @Test
   public void testFullSelection() throws Exception {
     SelectionModel selection = new SelectionModel(mySelection, myRange);
-    selection.addConstraint(createConstraint(0, 5, 15, 20, 35, 40));
-    selection.setSelectFullConstraint(true);
+    selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
     selection.set(10, 18);
 
@@ -95,9 +94,8 @@ public class SelectionModelTest {
   @Test
   public void testNestedConstraints() throws Exception {
     SelectionModel selection = new SelectionModel(mySelection, myRange);
-    selection.addConstraint(createConstraint(2, 3, 18, 19, 38, 39));
-    selection.addConstraint(createConstraint(0, 5, 15, 20, 35, 40));
-    selection.setSelectFullConstraint(true);
+    selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
+    selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
     selection.set(0, 1);
     assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
@@ -189,8 +187,7 @@ public class SelectionModelTest {
   @Test
   public void testSelectionClearOnRangeChange() {
     SelectionModel model = new SelectionModel(mySelection, myRange);
-    model.addConstraint(createConstraint(2, 3, 18, 19, 38, 39));
-    model.setSelectFullConstraint(true);
+    model.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
 
     final int CREATED = 0;
     final int CLEARED = 1;
@@ -238,12 +235,12 @@ public class SelectionModelTest {
     Arrays.setAll(counts, operand -> 0);
   }
 
-  private DurationDataModel<DefaultDurationData> createConstraint(long... values) {
-    DefaultDataSeries<DefaultDurationData> series = new DefaultDataSeries<>();
-    RangedSeries<DefaultDurationData> ranged = new RangedSeries<>(myRange, series);
-    DurationDataModel<DefaultDurationData> constraint = new DurationDataModel<>(ranged);
+  private DurationDataModel<DefaultConfigurableDurationData> createConstraint(boolean selectableWhenUnspecifiedDuration, boolean selectPartialRange, long... values) {
+    DefaultDataSeries<DefaultConfigurableDurationData> series = new DefaultDataSeries<>();
+    RangedSeries<DefaultConfigurableDurationData> ranged = new RangedSeries<>(myRange, series);
+    DurationDataModel<DefaultConfigurableDurationData> constraint = new DurationDataModel<>(ranged);
     for (int i = 0; i < values.length / 2; i++) {
-      series.add(values[i * 2], new DefaultDurationData(values[i * 2 + 1] - values[i * 2]));
+      series.add(values[i * 2], new DefaultConfigurableDurationData(values[i * 2 + 1] - values[i * 2], selectableWhenUnspecifiedDuration, selectPartialRange));
     }
 
     return constraint;

@@ -253,7 +253,7 @@ final class MemoryClassifierView extends AspectObserver {
           return;
         }
 
-        assert myTreeRoot != null;
+        assert myTreeRoot != null && myHeapSet == changedNode.getClassifierSet();
         if (clear) {
           myTreeRoot.reset();
           myTreeModel.nodeStructureChanged(myTreeRoot);

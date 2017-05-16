@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
@@ -74,7 +75,8 @@ public class MemoryInstanceDetailsViewTest {
     Component component = myDetailsView.getComponent();
     FakeInstanceObject fakeInstanceObject = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(fakeInstanceObject));
-    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+                                  new Range(0, 1), null);
     myStage.selectInstanceObject(fakeInstanceObject);
     assertFalse(component.isVisible());
   }
@@ -89,7 +91,8 @@ public class MemoryInstanceDetailsViewTest {
         .build();
     referer.setFieldValue("mField", OBJECT, referee);
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(referee, referer));
-    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+                                  new Range(0, 1), null);
     myStage.selectInstanceObject(referee);
     assertTrue(component.isVisible());
   }
@@ -103,7 +106,8 @@ public class MemoryInstanceDetailsViewTest {
       .build();
     FakeInstanceObject instance = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setAllocationStack(stack).build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(instance));
-    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+                                  new Range(0, 1), null);
     myStage.selectInstanceObject(instance);
     assertTrue(component.isVisible());
   }
@@ -151,7 +155,8 @@ public class MemoryInstanceDetailsViewTest {
     myFakeCaptureObject
       .addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2, fakeInstance3, fakeInstance4, fakeInstance5, fakeRootObject));
 
-    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+                                  new Range(0, 1), null);
     JTree tree = myDetailsView.buildTree(fakeRootObject);
     DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
     assertNotNull(treeModel);
@@ -191,7 +196,8 @@ public class MemoryInstanceDetailsViewTest {
     referer.setFieldValue("mField", OBJECT, referee);
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(referer, referee));
 
-    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+                                  new Range(0, 1), null);
     assertNotNull(myStage.getSelectedCapture());
     myStage
       .selectClassSet((ClassSet)myFakeCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID).findContainingClassifierSet(referee));
@@ -247,7 +253,8 @@ public class MemoryInstanceDetailsViewTest {
     myFakeCaptureObject
       .addInstanceObjects(ImmutableSet.of(fake1, fake2, fake3, fakeRootObject));
 
-    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+                                  new Range(0, 1), null);
     myStage.selectInstanceObject(fakeRootObject);
 
     JTree tree = myDetailsView.getReferenceTree();
