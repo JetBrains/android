@@ -136,7 +136,7 @@ public class LayoutPullParserFactory {
 
     switch (folderType) {
       case LAYOUT: {
-        RenderLogger logger = renderTask.getLogger();
+        IRenderLogger logger = renderTask.getLogger();
         Set<XmlTag> expandNodes = renderTask.getExpandNodes();
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
@@ -158,7 +158,7 @@ public class LayoutPullParserFactory {
             return createWidgetParser(rootTag);
           }
           else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
-            RenderLogger logger = renderTask.getLogger();
+            IRenderLogger logger = renderTask.getLogger();
             Set<XmlTag> expandNodes = renderTask.getExpandNodes();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());

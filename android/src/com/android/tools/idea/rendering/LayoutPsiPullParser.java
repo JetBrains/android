@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
@@ -81,7 +81,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   };
 
   @NotNull
-  private final LayoutLog myLogger;
+  private final ILayoutLog myLogger;
 
   @NotNull
   private final List<TagSnapshot> myNodeStack = new ArrayList<>();
@@ -109,7 +109,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull RenderLogger logger, boolean honorMergeParentTag) {
+  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger, boolean honorMergeParentTag) {
     if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
       return new MenuPsiPullParser(file, logger);
     }
@@ -124,7 +124,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    */
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull RenderLogger logger) {
+  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger) {
     return create(file, logger, true);
   }
 
@@ -143,7 +143,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    */
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file,
-                                           @NotNull RenderLogger logger,
+                                           @NotNull IRenderLogger logger,
                                            @Nullable Set<XmlTag> explodeNodes,
                                            @NotNull Density density) {
     if (explodeNodes != null && !explodeNodes.isEmpty()) {
@@ -158,12 +158,12 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @NotNull
   public static LayoutPsiPullParser create(@Nullable final AttributeFilter filter,
                                            @NotNull XmlTag root,
-                                           @NotNull RenderLogger logger) {
+                                           @NotNull IRenderLogger logger) {
     return new AttributeFilteredLayoutParser(root, logger, filter);
   }
 
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull TagSnapshot root, @NotNull LayoutLog log) {
+  public static LayoutPsiPullParser create(@NotNull TagSnapshot root, @NotNull ILayoutLog log) {
     return new LayoutPsiPullParser(root, log);
   }
 
@@ -171,7 +171,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * Use one of the {@link #create} factory methods instead
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
-  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull LayoutLog logger, boolean honorMergeParentTag) {
+  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
     this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag);
   }
 
@@ -191,7 +191,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * Use one of the {@link #create} factory methods instead
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
-  protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull LayoutLog logger, boolean honorMergeParentTag) {
+  protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
     myLogger = logger;
 
     if (root != null) {
@@ -220,7 +220,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     myDeclaredAaptAttrs = myRoot != null ? findDeclaredAaptAttrs(myRoot) : Collections.emptyMap();
   }
 
-  protected LayoutPsiPullParser(@Nullable TagSnapshot root, @NotNull LayoutLog log) {
+  protected LayoutPsiPullParser(@Nullable TagSnapshot root, @NotNull ILayoutLog log) {
     myLogger = log;
     myDeclaredAaptAttrs = Collections.emptyMap();
     if (ApplicationManager.getApplication().isReadAccessAllowed()) {
@@ -823,16 +823,15 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   static class AttributeFilteredLayoutParser extends LayoutPsiPullParser {
-
     @Nullable
     private final AttributeFilter myFilter;
 
-    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull LayoutLog logger, @Nullable AttributeFilter filter) {
+    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
       super(root, logger, true);
       this.myFilter = filter;
     }
 
-    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull LayoutLog logger, @Nullable AttributeFilter filter) {
+    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
       super(file, logger, true);
       this.myFilter = filter;
     }
