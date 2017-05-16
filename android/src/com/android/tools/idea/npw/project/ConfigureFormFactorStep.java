@@ -185,7 +185,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();
 
-    myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(null, installItems));
+    myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(installItems));
     myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
   }
 
