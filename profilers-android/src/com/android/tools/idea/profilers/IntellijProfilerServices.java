@@ -149,6 +149,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       public boolean isSimplePerfEnabled() {
         return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
       }
+
+      @Override
+      public boolean isLiveAllocationsEnabled() {
+        return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
+      }
     };
   }
 }
