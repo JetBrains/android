@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
 
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
 
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
@@ -204,7 +205,13 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       return EnumSet.noneOf(ResourceType.class);
     }
 
-    return BrowsePanel.getResourceTypes(property.getName(), definition);
+    EnumSet<ResourceType> resourceTypes = BrowsePanel.getResourceTypes(property.getName(), definition);
+    if (TOOLS_URI.equals(property.getNamespace())) {
+      // Tools attributes can use sample data as source
+      resourceTypes.add(ResourceType.SAMPLE_DATA);
+    }
+
+    return resourceTypes;
   }
 
   @NotNull
