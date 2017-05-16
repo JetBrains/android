@@ -20,7 +20,7 @@ import com.android.tools.idea.rendering.Locale;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBList;
-import com.intellij.util.containers.Convertor;
+import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -36,6 +36,6 @@ final class LocaleList extends JBList<Locale> {
     setFixedCellHeight(20);
     setName("localeList");
 
-    new ListSpeedSearch(this, (Convertor<Object, String>)object -> LocaleMenuAction.getLocaleLabel((Locale)object, false));
+    new ListSpeedSearch(this, (Function<Object, String>)object -> LocaleMenuAction.getLocaleLabel((Locale)object, false));
   }
 }
