@@ -27,9 +27,9 @@
     <action id="Android.AndroidProfiler" class="com.android.tools.idea.profilers.AndroidProfilerAction"
             icon="AndroidIcons.Profiler.Toolbar" >
       <add-to-group group-id="AndroidToolsGroup" anchor="after" relative-to-action="Android.RunAndroidSdkManager" />
+      <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
     </action>
     <group id="Android.AndroidProfilerGroup">
-      <separator/>
       <reference id="Android.AndroidProfiler" />
       <separator/>
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
