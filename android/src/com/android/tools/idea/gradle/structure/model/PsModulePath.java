@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.model;
 import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
-public class PsModulePath extends PsPath {
+public final class PsModulePath extends PsPath {
   @NotNull private final String myModuleName;
 
   public PsModulePath(@NotNull PsModule module) {
