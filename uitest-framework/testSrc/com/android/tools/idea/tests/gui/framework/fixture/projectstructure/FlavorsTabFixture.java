@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.projectstructure;
 
+import com.android.tools.idea.gradle.structure.editors.NamedObjectPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.ui.components.JBList;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -54,6 +58,17 @@ public class FlavorsTabFixture extends ProjectStructureDialogFixture {
 
   public FlavorsTabFixture setTargetSdkVersion(String sdk) {
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Target Sdk Version", JComboBox.class, true)).selectItem(sdk);
+    return this;
+  }
+
+  @NotNull
+  public FlavorsTabFixture selectFlavor(@NotNull String item) {
+    // Find a JBList inside a NamedObjectPanel, so we get the list that's inside the tab-area.
+    NamedObjectPanel namedObjectPanel = robot().finder().findByType(target(), NamedObjectPanel.class, true);
+
+    JBList list = robot().finder().findByType(namedObjectPanel, JBList.class);
+    JListFixture jListFixture = new JListFixture(robot(), list);
+    jListFixture.clickItem(item);
     return this;
   }
 
