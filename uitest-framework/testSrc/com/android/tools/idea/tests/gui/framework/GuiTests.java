@@ -29,6 +29,7 @@ import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.diagnostic.FrequentEventDetector;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -130,6 +131,8 @@ public final class GuiTests {
 
     AndroidPlugin.GuiTestSuiteState state = getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
+
+    FrequentEventDetector.disableUntil(() -> {/* pigs fly */});
 
     // TODO: setUpDefaultGeneralSettings();
   }
