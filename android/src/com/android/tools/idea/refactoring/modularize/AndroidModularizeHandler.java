@@ -27,6 +27,8 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -82,7 +84,24 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       processor.run();
     }
     else {
-      AndroidModularizeDialog dialog = new AndroidModularizeDialog(project, processor);
+      List<Module> suitableModules = new ArrayList<>();
+      // Only offer modules that have an Android facet, otherwise we don't know where to move resources.
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !facet.getAllResourceDirectories().isEmpty()) {
+            suitableModules.add(module);
+          }
+        }
+      }
+      for (PsiElement root : elements) {
+        Module sourceModule = ModuleUtilCore.findModuleForPsiElement(root);
+        if (sourceModule != null) {
+          suitableModules.remove(sourceModule);
+        }
+      }
+
+      AndroidModularizeDialog dialog = new AndroidModularizeDialog(project, suitableModules, processor);
       dialog.show();
     }
   }
@@ -106,7 +125,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       for (PsiElement element : roots) {
         PsiClass ownerClass =
           (element instanceof PsiClass) ? (PsiClass)element : PsiTreeUtil.getParentOfType(element, PsiClass.class);
-        if (myClassRefSet.add(ownerClass)) {
+        if (ownerClass != null && myClassRefSet.add(ownerClass)) {
           myVisitQueue.add(ownerClass);
           myGraphBuilder.addRoot(ownerClass);
         }
