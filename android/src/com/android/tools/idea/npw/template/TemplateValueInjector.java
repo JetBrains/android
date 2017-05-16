@@ -22,7 +22,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -260,7 +259,7 @@ public final class TemplateValueInjector {
     BuildToolInfo buildTool =
       sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class), isInstantApp);
     // If buildTool is null, the template will use buildApi (18.0.1) and that may be to old.
-    String buildToolVersion = buildTool == null ? GradleImport.CURRENT_BUILD_TOOLS_VERSION : buildTool.getRevision().toString();
+    String buildToolVersion = buildTool == null ? SdkConstants.CURRENT_BUILD_TOOLS_VERSION : buildTool.getRevision().toString();
     myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolVersion);
 
     File sdkLocation = sdkHandler.getLocation();
