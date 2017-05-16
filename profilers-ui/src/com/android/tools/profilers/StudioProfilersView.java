@@ -86,7 +86,7 @@ public class StudioProfilersView extends AspectObserver {
     myLayout = new BorderLayout();
     myComponent = new JPanel(myLayout);
 
-    JComboBox<Profiler.Device> deviceCombo = new ComboBox<>();
+    JComboBox<Profiler.Device> deviceCombo = new FlatComboBox<>();
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
                                                 myProfiler::getDevice,
@@ -96,9 +96,8 @@ public class StudioProfilersView extends AspectObserver {
                                                 });
     devices.bind();
     deviceCombo.setRenderer(new DeviceComboBoxRenderer());
-    deviceCombo.setFont(deviceCombo.getFont().deriveFont(12.0f));
 
-    JComboBox<Profiler.Process> processCombo = new ComboBox<>();
+    JComboBox<Profiler.Process> processCombo = new FlatComboBox<>();
     JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,
@@ -108,7 +107,6 @@ public class StudioProfilersView extends AspectObserver {
                                                   });
     processes.bind();
     processCombo.setRenderer(new ProcessComboBoxRenderer());
-    processCombo.setFont(processCombo.getFont().deriveFont(12.0f));
 
     JPanel toolbar = new JPanel(new BorderLayout());
     JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
