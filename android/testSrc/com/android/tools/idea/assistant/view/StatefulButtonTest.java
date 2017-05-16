@@ -17,6 +17,7 @@ package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.datamodel.ActionData;
+import com.android.tools.idea.assistant.datamodel.DefaultActionState;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.awt.event.ActionListener;
@@ -39,7 +40,7 @@ public class StatefulButtonTest extends AndroidTestCase {
 
     myStateManager = mock(AssistActionStateManager.class);
     when(myStateManager.getStateDisplay(getProject(), myAction, null))
-      .thenReturn(new StatefulButtonMessage("fake", AssistActionStateManager.ActionState.COMPLETE));
+      .thenReturn(new StatefulButtonMessage("fake", DefaultActionState.COMPLETE));
   }
 
   public void testDefaultNoStateManager() {
@@ -49,42 +50,42 @@ public class StatefulButtonTest extends AndroidTestCase {
   }
 
   public void testNotApplicable() {
-    when(myStateManager.getState(getProject(), myAction)).thenReturn(AssistActionStateManager.ActionState.NOT_APPLICABLE);
+    when(myStateManager.getState(getProject(), myAction)).thenReturn(DefaultActionState.NOT_APPLICABLE);
     StatefulButton button = new StatefulButton(myAction, myListener, myStateManager, getProject());
     assertTrue(button.myButton.isVisible());
     assertTrue(button.myMessage.isVisible());
   }
 
   public void testPartial() {
-    when(myStateManager.getState(getProject(), myAction)).thenReturn(AssistActionStateManager.ActionState.PARTIALLY_COMPLETE);
+    when(myStateManager.getState(getProject(), myAction)).thenReturn(DefaultActionState.PARTIALLY_COMPLETE);
     StatefulButton button = new StatefulButton(myAction, myListener, myStateManager, getProject());
     assertTrue(button.myButton.isVisible());
     assertTrue(button.myMessage.isVisible());
   }
 
   public void testError() {
-    when(myStateManager.getState(getProject(), myAction)).thenReturn(AssistActionStateManager.ActionState.ERROR);
+    when(myStateManager.getState(getProject(), myAction)).thenReturn(DefaultActionState.ERROR);
     StatefulButton button = new StatefulButton(myAction, myListener, myStateManager, getProject());
     assertFalse(button.myButton.isVisible());
     assertTrue(button.myMessage.isVisible());
   }
 
   public void testComplete() {
-    when(myStateManager.getState(getProject(), myAction)).thenReturn(AssistActionStateManager.ActionState.COMPLETE);
+    when(myStateManager.getState(getProject(), myAction)).thenReturn(DefaultActionState.COMPLETE);
     StatefulButton button = new StatefulButton(myAction, myListener, myStateManager, getProject());
     assertFalse(button.myButton.isVisible());
     assertTrue(button.myMessage.isVisible());
   }
 
   public void testInProgress() {
-    when(myStateManager.getState(getProject(), myAction)).thenReturn(AssistActionStateManager.ActionState.IN_PROGRESS);
+    when(myStateManager.getState(getProject(), myAction)).thenReturn(DefaultActionState.IN_PROGRESS);
     StatefulButton button = new StatefulButton(myAction, myListener, myStateManager, getProject());
     assertTrue(button.myButton.isVisible());
     assertFalse(button.myMessage.isVisible());
   }
 
   public void testIncomplete() {
-    when(myStateManager.getState(getProject(), myAction)).thenReturn(AssistActionStateManager.ActionState.INCOMPLETE);
+    when(myStateManager.getState(getProject(), myAction)).thenReturn(DefaultActionState.INCOMPLETE);
     StatefulButton button = new StatefulButton(myAction, myListener, myStateManager, getProject());
     assertTrue(button.myButton.isVisible());
     assertFalse(button.myMessage.isVisible());

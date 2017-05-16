@@ -15,36 +15,37 @@
  */
 package com.android.tools.idea.assistant.view;
 
-import com.android.tools.idea.assistant.AssistActionStateManager;
+
+import com.android.tools.idea.assistant.datamodel.DefaultActionState;
 import com.intellij.icons.AllIcons;
 import junit.framework.TestCase;
 
 public class StatefulButtonMessageTest extends TestCase {
 
   public void testNotApplicable() {
-    StatefulButtonMessage message = new StatefulButtonMessage("test", AssistActionStateManager.ActionState.NOT_APPLICABLE);
+    StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.NOT_APPLICABLE);
     assertNull(message.myMessageDisplay.getIcon());
   }
 
   public void testInProgress() {
-    StatefulButtonMessage message = new StatefulButtonMessage("test", AssistActionStateManager.ActionState.IN_PROGRESS);
+    StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.IN_PROGRESS);
     assertNull(message.myMessageDisplay.getIcon());
   }
 
   public void testComplete() {
-    StatefulButtonMessage message = new StatefulButtonMessage("test", AssistActionStateManager.ActionState.COMPLETE);
+    StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.COMPLETE);
     assertEquals(message.myMessageDisplay.getIcon(), AllIcons.RunConfigurations.TestPassed);
     assertEquals(message.myMessageDisplay.getForeground(), UIUtils.getSuccessColor());
   }
 
   public void testPartiallyComplete() {
-    StatefulButtonMessage message = new StatefulButtonMessage("test", AssistActionStateManager.ActionState.PARTIALLY_COMPLETE);
+    StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.PARTIALLY_COMPLETE);
     assertEquals(message.myMessageDisplay.getIcon(), AllIcons.RunConfigurations.TestPassed);
     assertEquals(message.myMessageDisplay.getForeground(), UIUtils.getSuccessColor());
   }
 
   public void testError() {
-    StatefulButtonMessage message = new StatefulButtonMessage("test", AssistActionStateManager.ActionState.ERROR);
+    StatefulButtonMessage message = new StatefulButtonMessage("test", DefaultActionState.ERROR);
     assertEquals(message.myMessageDisplay.getIcon(), AllIcons.RunConfigurations.TestFailed);
     assertEquals(message.myMessageDisplay.getForeground(), UIUtils.getFailureColor());
   }
