@@ -137,6 +137,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myProjectRes = projectRes;
     myModule = module;
     myCredential = credential;
+    myLogger = logger;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
 
