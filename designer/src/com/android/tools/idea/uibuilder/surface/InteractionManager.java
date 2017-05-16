@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
@@ -757,6 +758,10 @@ public class InteractionManager {
       }
       else if (keyChar == 'f') {
         mySurface.toggleDeviceFrames();
+      }
+      else if (keyChar == 'e') {
+        IssuePanel panel = mySurface.getIssuePanel();
+        panel.setMinimized(!panel.isMinimized());
       }
       else if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
         SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
