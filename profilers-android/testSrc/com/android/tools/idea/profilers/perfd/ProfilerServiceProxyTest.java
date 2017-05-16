@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Profiler;
@@ -28,17 +29,16 @@ import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.internal.ServerImpl;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -46,7 +46,7 @@ public class ProfilerServiceProxyTest {
 
   @Test
   public void testBindServiceContainsAllMethods() throws Exception {
-    IDevice mockDevice = createMockDevice();
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     ProfilerServiceProxy proxy = new ProfilerServiceProxy(mockDevice, startNamedChannel("testBindServiceContainsAllMethods"));
 
     ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
@@ -59,19 +59,35 @@ public class ProfilerServiceProxyTest {
 
   @Test
   public void testUnknownDeviceLabel() throws Exception {
-    IDevice mockDevice = createMockDevice();
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     Profiler.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
     assertEquals("Unknown", profilerDevice.getModel());
   }
 
   @Test
   public void testUnknownEmulatorLabel() throws Exception {
-    IDevice mockDevice = createMockDevice();
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     when(mockDevice.isEmulator()).thenReturn(true);
     when(mockDevice.getAvdName()).thenReturn(null);
     Profiler.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
 
     assertEquals("Unknown", profilerDevice.getModel());
+  }
+
+  @Test
+  public void testClientsWithNullDescriptionsNotCached() throws Exception {
+    Client client1 = createMockClient(1, "test1", "testClientDescription");
+    Client client2 = createMockClient(2, "test2", null);
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.O, new Client[]{client1, client2});
+
+    ProfilerServiceProxy proxy = new ProfilerServiceProxy(mockDevice, startNamedChannel("testClientsWithNullDescriptionsNotAdded"));
+    Map<Client, Profiler.Process> cachedProcesses = proxy.getCachedProcesses();
+    assertEquals(1, cachedProcesses.size());
+    Map.Entry<Client, Profiler.Process>  cachedProcess = cachedProcesses.entrySet().iterator().next();
+    assertEquals(client1, cachedProcess.getKey());
+    assertEquals(1, cachedProcess.getValue().getPid());
+    assertEquals("testClientDescription", cachedProcess.getValue().getName());
+    assertEquals(Profiler.Process.State.ALIVE, cachedProcess.getValue().getState());
   }
 
   /**
@@ -87,15 +103,27 @@ public class ProfilerServiceProxyTest {
   }
 
   @NotNull
-  private IDevice createMockDevice() {
+  private IDevice createMockDevice(int version, @NotNull Client[] clients) {
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getSerialNumber()).thenReturn("Serial");
     when(mockDevice.getName()).thenReturn("Device");
-    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE, "API"));
+    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(version, "API"));
     when(mockDevice.isOnline()).thenReturn(true);
-    when(mockDevice.getClients()).thenReturn(new Client[0]);
+    when(mockDevice.getClients()).thenReturn(clients);
     when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
     return mockDevice;
+  }
+
+  @NotNull
+  private Client createMockClient(int pid, @Nullable String packageName, @Nullable String clientDescription) {
+    ClientData mockData = mock(ClientData.class);
+    when(mockData.getPid()).thenReturn(pid);
+    when(mockData.getPackageName()).thenReturn(packageName);
+    when(mockData.getClientDescription()).thenReturn(clientDescription);
+
+    Client mockClient = mock(Client.class);
+    when(mockClient.getClientData()).thenReturn(mockData);
+    return mockClient;
   }
 
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
@@ -105,6 +133,12 @@ public class ProfilerServiceProxyTest {
                                                                                    .setSerial("Serial")
                                                                                    .setBootId("Boot")
                                                                                    .build()).build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
+      responseObserver.onNext(Profiler.TimeResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
   }
