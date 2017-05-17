@@ -51,22 +51,28 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     assertFalse(UnresolvedDependenciesReporter.canGetConstraintLayoutFromSdkManager(getModule()));
   }
 
-  public void testRetrieveDependency() {
-    String expectedDependency = "com.android.support.constraint:constraint-layout:+";
-    assertEquals(expectedDependency,
-                 retrieveDependency("any matches for com.android.support.constraint:constraint-layout:+" +
+  private void verifyRetrieveDependency(String dependency) {
+    assertEquals(dependency,
+                 retrieveDependency("any matches for " + dependency +
                                     " as no versions of com.android.support.constraint:constraint-layout are available"));
-    assertEquals(expectedDependency,
-                 retrieveDependency("com.android.support.constraint:constraint-layout:+"));
-
-    assertEquals(expectedDependency,
-                 retrieveDependency("Could not find any matches for com.android.support.constraint:constraint-layout:+" +
+    assertEquals(dependency,
+                 retrieveDependency(dependency));
+    assertEquals(dependency,
+                 retrieveDependency("Could not find any matches for " + dependency +
                                     " as no versions of com.android.support.constraint:constraint-layout are available.\r\n" +
                                     "Searched in the following locations:\r\n"));
-    assertEquals(expectedDependency,
-                 retrieveDependency("Could not find any matches for com.android.support.constraint:constraint-layout:+" +
+    assertEquals(dependency,
+                 retrieveDependency("Could not find any matches for " + dependency +
                                     " as no versions of com.android.support.constraint:constraint-layout are available.\n" +
                                     "Searched in the following locations:\n"));
+    assertEquals(dependency,
+                 retrieveDependency("Could not find "+ dependency + ".\n" +
+                                    "     Searched in the following locations:\n"));
+  }
+
+  public void testRetrieveDependency() {
+    verifyRetrieveDependency("com.android.support.constraint:constraint-layout:+");
+    verifyRetrieveDependency("com.android.support.constraint:constraint-layout:1.0.2");
   }
 
   private void createAndAddModel(@NotNull AndroidModelFeatures features) {
