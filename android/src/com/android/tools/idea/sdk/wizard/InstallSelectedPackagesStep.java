@@ -142,7 +142,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     mySdkManagerOutput.setText("");
     myLabelSdkPath.setText(myRepoManager.getLocalPath().getPath());
 
-    myInstallationFinished.set(Boolean.FALSE);
+    myInstallationFinished.set(false);
     startSdkInstall();
   }
 

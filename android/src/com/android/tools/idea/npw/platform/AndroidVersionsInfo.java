@@ -29,10 +29,7 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.AndroidTargetManager;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSdkUtil;
-import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -43,8 +40,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,17 +106,15 @@ public class AndroidVersionsInfo {
 
   @Nullable
   public static File getSdkManagerLocalPath() {
-    return AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(REPO_LOG).getLocalPath();
+    return IdeSdks.getInstance().getAndroidSdkPath();
   }
 
   @NotNull
-  public List<UpdatablePackage> loadInstallPackageList(@Nullable Project project,
-                                                       @NotNull List<AndroidVersionsInfo.VersionItem> installItems) {
+  public List<UpdatablePackage> loadInstallPackageList(@NotNull List<AndroidVersionsInfo.VersionItem> installItems) {
     Set<String> requestedPaths = Sets.newHashSet();
     AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
 
     // TODO: remove once maven dependency downloading is available in studio
-    StudioSdkUtil.reloadRemoteSdkWithModalProgress();
     GradleCoordinate constraintCoordinate = GradleCoordinate.parseCoordinateString(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
     RepositoryPackages packages = sdkHandler.getSdkManager(REPO_LOG).getPackages();
     RepoPackage constraintPackage = SdkMavenRepository.findBestPackageMatching(constraintCoordinate, packages.getLocalPackages().values());
@@ -169,7 +162,7 @@ public class AndroidVersionsInfo {
       }
     }
 
-    return loadPackageList(project, requestedPaths, sdkHandler);
+    return getPackageList(requestedPaths, sdkHandler);
   }
 
   /**
@@ -260,16 +253,10 @@ public class AndroidVersionsInfo {
   }
 
   @NotNull
-  private static List<UpdatablePackage> loadPackageList(@Nullable Project project,
-                                                        @NotNull Collection<String> requestedPaths,
-                                                        @NotNull AndroidSdkHandler sdkHandler) {
-    RepoManager mgr = sdkHandler.getSdkManager(REPO_LOG);
-    mgr.load(0, null, null, null,
-             new StudioProgressRunner(true, false, false, "Finding Available SDK Components", project),
-             new StudioDownloader(), StudioSettingsController.getInstance(), false);
-
+  private static List<UpdatablePackage> getPackageList(@NotNull Collection<String> requestedPaths,
+                                                       @NotNull AndroidSdkHandler sdkHandler) {
     List<UpdatablePackage> requestedPackages = new ArrayList<>();
-    RepositoryPackages packages = mgr.getPackages();
+    RepositoryPackages packages = sdkHandler.getSdkManager(REPO_LOG).getPackages();
     Map<String, UpdatablePackage> consolidated = packages.getConsolidatedPkgs();
     for (String path : requestedPaths) {
       UpdatablePackage p = consolidated.get(path);
@@ -283,7 +270,7 @@ public class AndroidVersionsInfo {
       resolvedPackages = SdkQuickfixUtils.resolve(requestedPackages, packages);
     }
     catch (SdkQuickfixUtils.PackageResolutionException e) {
-      Messages.showErrorDialog(e.getMessage(), "Error Resolving Packages");
+      REPO_LOG.logError("Error Resolving Packages", e);
     }
 
     return resolvedPackages;
