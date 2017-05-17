@@ -33,10 +33,15 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   private final Map<String, ByteString> myCache;
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
+  private boolean myAttachAgentCalled;
   private Profiler.AgentStatusResponse.Status myAgentStatus;
 
   public FakeProfilerService() {
     this(true);
+  }
+
+  public void reset() {
+    myAttachAgentCalled = false;
   }
 
   /**
@@ -165,6 +170,13 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     responseObserver.onCompleted();
   }
 
+  @Override
+  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> responseObserver) {
+    myAttachAgentCalled = true;
+    responseObserver.onNext(Profiler.AgentAttachResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
   public void setAgentStatus(@NotNull Profiler.AgentStatusResponse.Status status) {
     myAgentStatus = status;
   }
@@ -173,9 +185,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myThrowErrorOnGetDevices = throwErrorOnGetDevices;
   }
 
-  @Override
-  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> responseObserver) {
-    responseObserver.onNext(Profiler.AgentAttachResponse.getDefaultInstance());
-    responseObserver.onCompleted();
+  public boolean getAgentAttachCalled() {
+    return myAttachAgentCalled;
   }
 }

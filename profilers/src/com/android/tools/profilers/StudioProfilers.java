@@ -15,7 +15,11 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.model.*;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.FpsTimer;
+import com.android.tools.adtui.model.StopwatchTimer;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
@@ -333,8 +337,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
 
         // Attach agent for advanced profiling if one is available.
-        myClient.getProfilerClient()
-          .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid()).build());
+        if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O && myIdeServices.getFeatureConfig().isJvmtiAgentEnabled()) {
+          myClient.getProfilerClient()
+            .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid()).build());
+        }
+
         myIdeServices.getFeatureTracker().trackProfilingStarted();
         if (myAgentStatus == Profiler.AgentStatusResponse.Status.ATTACHED) {
           getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
