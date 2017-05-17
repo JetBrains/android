@@ -19,6 +19,7 @@ package com.android.tools.adtui.chart.hchart;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +82,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     mDrawnNodes = new ArrayList<>();
     mDrawnRectangles = new ArrayList<>();
     mXRange = xRange;
-    mRoot = new HNode<>();
+    mRoot = new DefaultHNode<>();
     mReducer = reducer;
     mYRange = new Range(0, 0);
     addMouseWheelListener(this);
@@ -100,10 +101,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     this(xRange, orientation, new DefaultHTreeChartReducer<>());
   }
 
-  public HTreeChart(Range xRange) {
-    this(xRange, Orientation.TOP_DOWN);
-  }
-
   private void changed() {
     mRender = true;
     opaqueRepaint();
@@ -119,7 +116,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    if (mRoot == null || mRoot.getChildren().size() == 0) {
+    if (mRoot == null || mRoot.getChildCount() == 0) {
       g.drawString(NO_HTREE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
                    dim.height / 2);
       return;
@@ -179,7 +176,8 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     while (head < mNodes.size()) {
       HNode<T> curNode = mNodes.get(head++);
 
-      for (HNode<T> child: curNode.getChildren()) {
+      for (int i = 0; i < curNode.getChildCount(); ++i) {
+        HNode<T> child = curNode.getChildAt(i);
         if (inRange(child)) {
           mNodes.add(child);
           mRectangles.add(createRectangle(child));
@@ -199,7 +197,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     Rectangle2D.Float rect = new Rectangle2D.Float();
     rect.x = left;
     rect.y = (float)((mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * node.getDepth()
-                      - getYRange().getMin());
+                     - getYRange().getMin());
     rect.width = right - left;
     rect.height = mDefaultFontMetrics.getHeight();
     return rect;
@@ -293,7 +291,10 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       if (n.getDepth() > maxDepth) {
         maxDepth = n.getDepth();
       }
-      queue.addAll(n.getChildren());
+
+      for (int i = 0; i < n.getChildCount(); ++i) {
+        queue.add(n.getChildAt(i));
+      }
     }
     maxDepth += 1;
     return (mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth;

@@ -46,13 +46,13 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private final LineChartModel mLineChartModel;
 
   private HTreeChart mChart;
-  private HashMap<String, HNode<SampledMethodUsage>> furnace;
+  private HashMap<String, DefaultHNode<SampledMethodUsage>> furnace;
   private JButton mRecordButton;
   private JButton mSaveButton;
   private JButton mLoadButton;
   private JComboBox mComboBox;
   private Sampler mSampler;
-  private HNode<SampledMethodUsage> mtree;
+  private DefaultHNode<SampledMethodUsage> mtree;
 
   private Range mTimeSelectionRangeUs;
   private Range mTimeGlobalRangeUs;
@@ -224,7 +224,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     }
   }
 
-  public void setData(HashMap<String, HNode<SampledMethodUsage>> furnace) {
+  public void setData(HashMap<String, DefaultHNode<SampledMethodUsage>> furnace) {
     this.furnace = furnace;
     mComboBox.removeAllItems();
     for (String threadName : furnace.keySet()) {

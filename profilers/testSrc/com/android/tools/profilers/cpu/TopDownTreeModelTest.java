@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
@@ -30,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 public class TopDownTreeModelTest {
   @Test
   public void testTreeUpdate() throws Exception {
-    HNode<MethodModel> tree = TopDownNodeTest.createTree();
+    CaptureNode tree = TopDownNodeTest.createTree();
     TopDownNode topDown = new TopDownNode(tree);
 
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);

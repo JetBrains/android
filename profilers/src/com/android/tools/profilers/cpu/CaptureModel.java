@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
@@ -153,7 +154,7 @@ class CaptureModel {
   }
 
   @Nullable
-  private HNode<MethodModel> getNode() {
+  private CaptureNode getNode() {
     return myCapture != null ? myCapture.getCaptureNode(myThread) : null;
   }
 
@@ -232,13 +233,13 @@ class CaptureModel {
       FLAME_CHART(FlameChart::new);
 
       @NotNull
-      private final BiFunction<Range, HNode<MethodModel>, Details> myBuilder;
+      private final BiFunction<Range, CaptureNode, Details> myBuilder;
 
-      Type(@NotNull BiFunction<Range, HNode<MethodModel>, Details> builder) {
+      Type(@NotNull BiFunction<Range, CaptureNode, Details> builder) {
         myBuilder = builder;
       }
 
-      public Details build(Range range, HNode<MethodModel> node) {
+      public Details build(Range range, CaptureNode node) {
         return myBuilder.apply(range, node);
       }
     }
@@ -249,7 +250,7 @@ class CaptureModel {
   public static class TopDown implements Details {
     @Nullable private TopDownTreeModel myModel;
 
-    public TopDown(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+    public TopDown(@NotNull Range range, @Nullable CaptureNode node) {
       myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
     }
 
@@ -267,7 +268,7 @@ class CaptureModel {
   public static class BottomUp implements Details {
     @Nullable private BottomUpTreeModel myModel;
 
-    public BottomUp(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+    public BottomUp(@NotNull Range range, @Nullable CaptureNode node) {
       myModel = node == null ? null : new BottomUpTreeModel(range, new BottomUpNode(node));
     }
 
@@ -286,7 +287,7 @@ class CaptureModel {
     @NotNull private final Range myRange;
     @Nullable private HNode<MethodModel> myNode;
 
-    public CallChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+    public CallChart(@NotNull Range range, @Nullable CaptureNode node) {
       myRange = range;
       myNode = node;
     }
@@ -312,7 +313,7 @@ class CaptureModel {
     @Nullable private final HNode<MethodModel> myNode;
     @Nullable private final Range myCaptureRange;
 
-    public FlameChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+    public FlameChart(@NotNull Range range, @Nullable CaptureNode node) {
       myRange = range;
       if (node != null) {
         myCaptureRange = new Range(node.getStart(), node.getEnd());
@@ -339,10 +340,10 @@ class CaptureModel {
       return Type.FLAME_CHART;
     }
 
-    private HNode<MethodModel> convertToHNode(@NotNull TopDownNode topDown, double start, int depth) {
+    private DefaultHNode<MethodModel> convertToHNode(@NotNull TopDownNode topDown, double start, int depth) {
       assert myCaptureRange != null;
       topDown.update(myCaptureRange);
-      HNode<MethodModel> node = new HNode<>(topDown.getNodes().get(0).getData(), (long)start, (long)(start + topDown.getTotal()));
+      DefaultHNode<MethodModel> node = new DefaultHNode<>(topDown.getNodes().get(0).getData(), (long)start, (long)(start + topDown.getTotal()));
       node.setDepth(depth);
 
       for (TopDownNode child : topDown.getChildren()) {
@@ -356,7 +357,7 @@ class CaptureModel {
       sortedChildren.sort(Comparator.comparingDouble(TopDownNode::getTotal).reversed());
 
       for (TopDownNode child : sortedChildren) {
-        node.addHNode(convertToHNode(child, start, depth + 1));
+        node.addChild(convertToHNode(child, start, depth + 1));
         start += child.getTotal();
       }
 
