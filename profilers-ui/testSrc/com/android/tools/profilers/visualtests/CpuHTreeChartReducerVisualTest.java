@@ -18,7 +18,6 @@ package com.android.tools.profilers.visualtests;
 import com.android.testutils.TestUtils;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
@@ -58,7 +57,7 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
 
   @Override
   protected void populateUi(@NotNull JPanel panel) {
-    HNode<MethodModel> node = parseAndGetHNode();
+    CaptureNode node = parseAndGetHNode();
     myRange.set(node.getStart(), node.getEnd());
 
     myChart = new HTreeChart<>(myRange, HTreeChart.Orientation.TOP_DOWN);
@@ -74,7 +73,7 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
     panel.add(myNotOptimizedChart);
   }
 
-  private static HNode<MethodModel> parseAndGetHNode() {
+  private static CaptureNode parseAndGetHNode() {
     File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + "cpu_trace.trace");
     VmTraceParser parser = new VmTraceParser(file);
     CpuTraceArt art = new CpuTraceArt();

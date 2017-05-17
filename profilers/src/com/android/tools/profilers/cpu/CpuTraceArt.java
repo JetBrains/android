@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.perflib.vmtrace.Call;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
@@ -30,14 +29,14 @@ public class CpuTraceArt {
 
   /**
    * Tree representation of ART trace (generated from perflib tree).
-   * Keys are thread ids and values are their respective {@link HNode}
+   * Keys are thread ids and values are their respective {@link CaptureNode}
    */
   Map<ThreadInfo, CaptureNode> myNodes;
 
   public void parse(VmTraceData data) throws IOException {
     myNodes = new HashMap<>();
 
-    // Convert perflib tree to HNode tree.
+    // Convert perflib tree to CaptureNode tree.
     for (ThreadInfo threadInfo : data.getThreads()) {
       if (threadInfo.getTopLevelCall() == null) {
         continue;
@@ -70,11 +69,11 @@ public class CpuTraceArt {
     MethodModel method = new MethodModel(data.getMethod(call.getMethodId()).methodName);
     method.setClassName(data.getMethod(call.getMethodId()).className);
     method.setSignature(data.getMethod(call.getMethodId()).signature);
-    node.setData(method);
+    node.setMethodModel(method);
 
     node.setDepth(depth);
     for (Call callee : call.getCallees()) {
-      node.addHNode(convertCallsToNode(data, callee, depth + 1, topLevelStart));
+      node.addChild(convertCallsToNode(data, callee, depth + 1, topLevelStart));
     }
     return node;
   }

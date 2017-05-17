@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
-import com.google.common.truth.Expect;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -79,13 +77,13 @@ public class BottomUpNodeTest {
     );
 
     // Construct the tree
-    HNode<MethodModel> root = newHNode("main", 0, 20);
-    HNode<MethodModel> childA = newHNode("A", 0, 10);
-    root.addHNode(childA);
-    root.addHNode(newHNode("B", 15, 20));
+    CaptureNode root = newNode("main", 0, 20);
+    CaptureNode childA = newNode("A", 0, 10);
+    root.addChild(childA);
+    root.addChild(newNode("B", 15, 20));
 
-    childA.addHNode(newHNode("B", 2, 7));
-    childA.getChildren().get(0).addHNode(newHNode("C", 3, 4));
+    childA.addChild(newNode("B", 2, 7));
+    childA.getChildren().get(0).addChild(newNode("C", 3, 4));
 
     traverseAndCheck(root, expectedNodes);
   }
@@ -119,9 +117,9 @@ public class BottomUpNodeTest {
       new ExpectedNode("main", 2.0, 0.0)
     );
     // Construct the tree
-    HNode<MethodModel> root = newHNode("main", 0, 20);
-    addChainSubtree(root, newHNode("A", 0, 15), newHNode("B", 3, 13),
-                    newHNode("B", 5, 10), newHNode("B", 5, 7));
+    CaptureNode root = newNode("main", 0, 20);
+    addChainSubtree(root, newNode("A", 0, 15), newNode("B", 3, 13),
+                    newNode("B", 5, 10), newNode("B", 5, 7));
     traverseAndCheck(root, expectedNodes);
   }
 
@@ -163,9 +161,9 @@ public class BottomUpNodeTest {
     );
 
     // Construct the tree
-    HNode<MethodModel> root = newHNode("main", 0, 30);
-    addChainSubtree(root, newHNode("A", 5, 25), newHNode("B", 5, 20),
-                    newHNode("A", 10, 20), newHNode("B", 15, 16));
+    CaptureNode root = newNode("main", 0, 30);
+    addChainSubtree(root, newNode("A", 5, 25), newNode("B", 5, 20),
+                    newNode("A", 10, 20), newNode("B", 15, 16));
 
     traverseAndCheck(root, expectedNodes);
   }
@@ -223,11 +221,11 @@ public class BottomUpNodeTest {
       new ExpectedNode("main", 10.0, 5.0)
     );
 
-    HNode<MethodModel> root = newHNode("main", 0, 40);
-    addChainSubtree(root, newHNode("A", 0, 25), newHNode("B", 0, 20),
-                    newHNode("C", 5, 15));
-    addChainSubtree(root, newHNode("D", 30, 40), newHNode("C", 30, 35),
-                    newHNode("B", 30, 33));
+    CaptureNode root = newNode("main", 0, 40);
+    addChainSubtree(root, newNode("A", 0, 25), newNode("B", 0, 20),
+                    newNode("C", 5, 15));
+    addChainSubtree(root, newNode("D", 30, 40), newNode("C", 30, 35),
+                    newNode("B", 30, 33));
 
     traverseAndCheck(root, expectedNodes);
   }
@@ -245,14 +243,14 @@ public class BottomUpNodeTest {
    */
   @Test
   public void testPartialRangeWithMixedTwoMethods() {
-    HNode<MethodModel> root = newHNode("main", 0, 100);
+    CaptureNode root = newNode("main", 0, 100);
 
-    addChainSubtree(root, newHNode("A", 0, 100), newHNode("A", 0, 40),
-                    newHNode("A", 0, 20));
-    addChainSubtree(root.getFirstChild(), newHNode("B", 45, 100), newHNode("A", 50, 70),
-                    newHNode("B", 55, 65));
-    addChainSubtree(root.getFirstChild().getFirstChild(), newHNode("B", 21, 40),
-                    newHNode("A", 25, 28));
+    addChainSubtree(root, newNode("A", 0, 100), newNode("A", 0, 40),
+                    newNode("A", 0, 20));
+    addChainSubtree(root.getChildren().get(0), newNode("B", 45, 100), newNode("A", 50, 70),
+                    newNode("B", 55, 65));
+    addChainSubtree(root.getChildren().get(0), newNode("B", 21, 40),
+                    newNode("A", 25, 28));
 
     BottomUpNode node = new BottomUpNode(root);
 
@@ -270,7 +268,7 @@ public class BottomUpNodeTest {
     assertEquals(1, nodeA.getChildrenTotal(), EPS);
   }
 
-  private static void traverseAndCheck(HNode<MethodModel> root, List<ExpectedNode> expectedNodes) {
+  private static void traverseAndCheck(CaptureNode root, List<ExpectedNode> expectedNodes) {
     List<BottomUpNode> traverseOrder = new ArrayList<>();
     traverse(new BottomUpNode(root), traverseOrder);
 
@@ -279,10 +277,10 @@ public class BottomUpNodeTest {
     checkTraverseOrder(expectedNodes, traverseOrder);
   }
 
-  private static void addChainSubtree(HNode<MethodModel> root, HNode<MethodModel>... chainNodes) {
-    HNode<MethodModel> last = root;
-    for (HNode<MethodModel> node : chainNodes) {
-      last.addHNode(node);
+  private static void addChainSubtree(CaptureNode root, CaptureNode... chainNodes) {
+    CaptureNode last = root;
+    for (CaptureNode node : chainNodes) {
+      last.addChild(node);
       last = node;
     }
   }
@@ -306,23 +304,29 @@ public class BottomUpNodeTest {
   }
 
   @NotNull
-  private static HNode<MethodModel> newHNode(String method, long start, long end) {
-    return new HNode<>(new MethodModel(method), start, end);
+  private static CaptureNode newNode(String method, long start, long end) {
+    CaptureNode node = new CaptureNode();
+    node.setMethodModel(new MethodModel(method));
+    node.setStartGlobal(start);
+    node.setEndGlobal(end);
+    node.setStartThread(start);
+    node.setEndThread(end);
+    return node;
   }
 
   @NotNull
-  public static HNode<MethodModel> createComplexTree() {
-    HNode<MethodModel> root = newHNode("main", 0, 40);
-    HNode<MethodModel> childA = newHNode("A", 0, 15);
-    HNode<MethodModel> childC = newHNode("C", 20, 30);
-    HNode<MethodModel> childB = newHNode("B", 35, 40);
+  public static CaptureNode createComplexTree() {
+    CaptureNode root = newNode("main", 0, 40);
+    CaptureNode childA = newNode("A", 0, 15);
+    CaptureNode childC = newNode("C", 20, 30);
+    CaptureNode childB = newNode("B", 35, 40);
 
-    root.addHNode(childA);
-    root.addHNode(childC);
-    root.addHNode(childB);
-    childA.addHNode(newHNode("B", 5, 10));
-    childC.addHNode(newHNode("A", 20, 25));
-    childC.getChildren().get(0).addHNode(newHNode("B", 20, 25));
+    root.addChild(childA);
+    root.addChild(childC);
+    root.addChild(childB);
+    childA.addChild(newNode("B", 5, 10));
+    childC.addChild(newNode("A", 20, 25));
+    childC.getChildren().get(0).addChild(newNode("B", 20, 25));
     return root;
   }
 

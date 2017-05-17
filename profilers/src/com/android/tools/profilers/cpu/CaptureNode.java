@@ -15,11 +15,16 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.perflib.vmtrace.ClockType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class CaptureNode extends HNode<MethodModel> {
+import java.util.ArrayList;
+import java.util.List;
+
+public class CaptureNode implements HNode<MethodModel> {
 
   /**
    * Start time with GLOBAL clock.
@@ -42,11 +47,56 @@ public class CaptureNode extends HNode<MethodModel> {
   private long myEndThread;
 
   @NotNull
+  private final List<CaptureNode> myChildren;
+
+  @NotNull
   private ClockType myClockType;
 
+  /**
+   * The parent of its child is set to it when it is added {@link #addChild(CaptureNode)}
+   */
+  private CaptureNode myParent;
+
+  /**
+   * The corresponding method of this node.
+   */
+  private MethodModel myMethodModel;
+
+  /**
+   * The shortest distance from the root.
+   */
+  private int myDepth;
+
   public CaptureNode() {
-    super();
+    myChildren = new ArrayList<>();
     myClockType = ClockType.GLOBAL;
+  }
+
+  public void addChild(CaptureNode node) {
+    myChildren.add(node);
+    node.myParent = this;
+  }
+
+  @NotNull
+  public List<CaptureNode> getChildren() {
+    return myChildren;
+  }
+
+  @Override
+  public int getChildCount() {
+    return myChildren.size();
+  }
+
+  @NotNull
+  @Override
+  public CaptureNode getChildAt(int index) {
+    return myChildren.get(index);
+  }
+
+  @Nullable
+  @Override
+  public HNode<MethodModel> getParent() {
+    return myParent;
   }
 
   @Override
@@ -59,9 +109,15 @@ public class CaptureNode extends HNode<MethodModel> {
     return myClockType == ClockType.THREAD ? myEndThread : myEndGlobal;
   }
 
+  @Nullable
   @Override
-  public long duration() {
-    return getEnd() - getStart();
+  public MethodModel getData() {
+    return myMethodModel;
+  }
+
+  @Override
+  public int getDepth() {
+    return myDepth;
   }
 
   public void setStartGlobal(long startGlobal) {
@@ -112,5 +168,13 @@ public class CaptureNode extends HNode<MethodModel> {
   @NotNull
   public ClockType getClockType() {
     return myClockType;
+  }
+
+  public void setMethodModel(MethodModel methodModel) {
+    myMethodModel = methodModel;
+  }
+
+  public void setDepth(int depth) {
+    myDepth = depth;
   }
 }

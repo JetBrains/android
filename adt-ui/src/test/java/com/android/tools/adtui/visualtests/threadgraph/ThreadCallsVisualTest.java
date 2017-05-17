@@ -43,13 +43,13 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private static final String ACTION_THREAD_SELECTED = "thread_selected";
 
   private HTreeChart mChart;
-  private HashMap<String, HNode<Method>> forest;
+  private HashMap<String, DefaultHNode<Method>> forest;
   private JButton mRecordButton;
   private JButton mSaveButton;
   private JButton mLoadButton;
   private JComboBox mComboBox;
   private Sampler mSampler;
-  private HNode<Method> mtree;
+  private DefaultHNode<Method> mtree;
 
   private Range mTimeSelectionRangeUs;
   private Range mTimeGlobalRangeUs;
@@ -198,7 +198,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     }
   }
 
-  public void setData(HashMap<String, HNode<Method>> forest) {
+  public void setData(HashMap<String, DefaultHNode<Method>> forest) {
     this.forest = forest;
     mComboBox.removeAllItems();
     for (String threadName : forest.keySet()) {

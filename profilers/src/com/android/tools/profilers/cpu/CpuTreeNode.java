@@ -24,10 +24,10 @@ import java.util.List;
 
 public abstract class CpuTreeNode<T extends CpuTreeNode> {
   /**
-   * References to HNode that are used to extract information from to represent this CpuTreeNode,
+   * References to {@link CaptureNode} that are used to extract information from to represent this CpuTreeNode,
    * such as {@link #getTotal()}, {@link #getChildrenTotal()}, etc...
    */
-  protected final List<HNode<MethodModel>> myNodes = new ArrayList<>();
+  protected final List<CaptureNode> myNodes = new ArrayList<>();
   private final List<T> myChildren = new ArrayList<>();
 
   private final String myId;
@@ -42,16 +42,16 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
     return myId;
   }
 
-  protected void addNode(@NotNull HNode<MethodModel> node) {
+  protected void addNode(@NotNull CaptureNode node) {
     myNodes.add(node);
   }
 
-  protected void addNodes(@NotNull List<HNode<MethodModel>> nodes) {
+  protected void addNodes(@NotNull List<CaptureNode> nodes) {
     nodes.forEach(this::addNode);
   }
 
   @NotNull
-  public List<HNode<MethodModel>> getNodes() {
+  public List<CaptureNode> getNodes() {
     return myNodes;
   }
 
@@ -79,7 +79,7 @@ public abstract class CpuTreeNode<T extends CpuTreeNode> {
     myTotal = 0.0;
     myChildrenTotal = 0;
 
-    for (HNode<MethodModel> node: myNodes) {
+    for (CaptureNode node : myNodes) {
       myTotal += getIntersection(range, node);
       for (HNode<MethodModel> child : node.getChildren()) {
         myChildrenTotal += getIntersection(range, child);
