@@ -19,11 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.BuildTypesTabFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,25 +53,20 @@ public class BuildTypesTest {
   @RunIn(TestGroup.QA)
   @Test
   public void addNewBuildType() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-    ProjectStructureDialogFixture projectStructureDialog =
-      ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
-
-    BuildTypesTabFixture buildTypesTab = projectStructureDialog.selectConfigurable("app").selectBuildTypesTab();
-    buildTypesTab.setName("newBuildType")
+    String gradleFileContents = guiTest.importSimpleApplication()
+      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
+      .selectConfigurable("app")
+      .selectBuildTypesTab()
+      .setName("newBuildType")
       .setDebuggable("true")
-      .setVersionNameSuffix("suffix");
-
-    projectStructureDialog.clickOk();
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
-    String gradleFileContents = editor.getCurrentFileContents();
-    assertThat(gradleFileContents).containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
-  }
-
-  private void assertSettingLine(@NotNull String gradleFileContents, @NotNull String buildType, @NotNull String line) {
-    assertThat(gradleFileContents).containsMatch(buildType + " \\{\n[^\\}]* " + line + "\n");
+      .setVersionNameSuffix("suffix")
+      .clickOk()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("/app/build.gradle")
+      .getCurrentFileContents();
+    assertThat(gradleFileContents)
+      .containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
   }
 
   /**
@@ -95,23 +86,19 @@ public class BuildTypesTest {
   @RunIn(TestGroup.QA)
   @Test
   public void editBuildType() throws Exception {
-    final String buildType = "release";
-
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-    ProjectStructureDialogFixture projectStructureDialog =
-      ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
-
-    BuildTypesTabFixture buildTypesTab = projectStructureDialog.selectConfigurable("app").selectBuildTypesTab();
-    buildTypesTab.selectBuildType(buildType)
+    String gradleFileContents = guiTest.importSimpleApplication()
+      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
+      .selectConfigurable("app")
+      .selectBuildTypesTab()
+      .selectBuildType("release")
       .setDebuggable("true")
-      .setVersionNameSuffix("suffix");
-
-    projectStructureDialog.clickOk();
-    ideFrame.waitForGradleProjectSyncToFinish();
-
-    EditorFixture editor = ideFrame.getEditor().open("/app/build.gradle");
-    String gradleFileContents = editor.getCurrentFileContents();
-    assertSettingLine(gradleFileContents, buildType, "debuggable true");
-    assertSettingLine(gradleFileContents, buildType, "versionNameSuffix 'suffix'");
+      .setVersionNameSuffix("suffix")
+      .clickOk()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("/app/build.gradle")
+      .getCurrentFileContents();
+    assertThat(gradleFileContents).containsMatch("release \\{\n[^\\}]* debuggable true\n");
+    assertThat(gradleFileContents).containsMatch("release \\{\n[^\\}]* versionNameSuffix 'suffix'\n");
   }
 }
