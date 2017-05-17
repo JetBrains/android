@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -101,6 +102,18 @@ public class InstantApps {
   @Nullable
   public static Module findBaseFeature(@NotNull Project project) {
     return findBaseFeature(AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_FEATURE));
+  }
+
+  /**
+   * This method will find and return the monolithic app, if one exists, in the given project.
+   *
+   * @param project the {@link Project} whose Monolithic module you want to find.
+   * @return The Monolithic {@link Module} name or {@code null} if none is found.
+   */
+  @Nullable
+  public static String findMonolithicModuleName(@NotNull Project project) {
+    List<Module> moduleList = AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP);
+    return moduleList.isEmpty() ? null : moduleList.get(0).getName();
   }
 
   @Nullable
