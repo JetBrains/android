@@ -90,11 +90,10 @@ public class CpuProfilerStageTest extends AspectObserver {
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
     myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.STARTING, myStage.getCaptureState()));
     // Start a capture using INSTRUMENTED mode
-    CpuProfilerStage.ProfilingPreferences instrumented =
-      new CpuProfilerStage.ProfilingPreferences("My Instrumented Pref",
-                                                CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
-                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-    myStage.setProfilingPreferences(instrumented);
+    ProfilingConfiguration instrumented = new ProfilingConfiguration("My Instrumented Pref",
+                                                                     CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
+                                                                     CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+    myStage.setProfilingConfiguration(instrumented);
     startCapturing();
     assertEquals(CpuProfilerStage.CaptureState.CAPTURING, myStage.getCaptureState());
   }
@@ -515,10 +514,10 @@ public class CpuProfilerStageTest extends AspectObserver {
   public void profilingModesAvailableDependOnDeviceApi() {
     myServices.enableSimplePerf(true);
 
-    // Set a device that doesn't support simplepef
+    // Set a device that doesn't support simpleperf
     addAndSetDevice(14, "FakeDevice1");
 
-    List<CpuProfilerStage.ProfilingPreferences> prefs = myStage.getProfilingPreferencesList();
+    List<ProfilingConfiguration> prefs = myStage.getProfilingConfigurations();
     assertEquals(2, prefs.size());
     // First pref should be ART Sampled
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART, prefs.get(0).getProfiler());
@@ -532,7 +531,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Simpleperf is supported on API 26 and greater.
     addAndSetDevice(26, "FakeDevice2");
 
-    prefs = myStage.getProfilingPreferencesList();
+    prefs = myStage.getProfilingConfigurations();
     assertEquals(3, prefs.size());
     // First and second preferences should be the same
     assertEquals("Sampled (Java)", prefs.get(0).getName());
@@ -550,7 +549,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Set a device that supports simpleperf
     addAndSetDevice(26, "Fake Device 1");
 
-    List<CpuProfilerStage.ProfilingPreferences> prefs = myStage.getProfilingPreferencesList();
+    List<ProfilingConfiguration> prefs = myStage.getProfilingConfigurations();
     assertEquals(3, prefs.size());
     // First and second preferences should be the same
     assertEquals("Sampled (Java)", prefs.get(0).getName());
@@ -565,7 +564,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Set a device that supports simpleperf
     addAndSetDevice(26, "Fake Device 2");
-    prefs = myStage.getProfilingPreferencesList();
+    prefs = myStage.getProfilingConfigurations();
     // Simpleperf should not be listed as a profiling option
     assertEquals(2, prefs.size());
     // First and second preferences should be the ART ones
@@ -576,23 +575,21 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void stopProfilerIsConsistentToStartProfiler() throws InterruptedException {
     assertNull(myCpuService.getStopProfiler());
-    CpuProfilerStage.ProfilingPreferences pref1 =
-      new CpuProfilerStage.ProfilingPreferences("My Pref",
-                                                CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
-                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    myStage.setProfilingPreferences(pref1);
+    ProfilingConfiguration pref1 = new ProfilingConfiguration("My Pref",
+                                                              CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
+                                                              CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myStage.setProfilingConfiguration(pref1);
     captureSuccessfully();
     assertEquals(CpuProfiler.CpuProfilingAppStopRequest.Profiler.SIMPLE_PERF, myCpuService.getStopProfiler());
 
-    CpuProfilerStage.ProfilingPreferences pref2 =
-      new CpuProfilerStage.ProfilingPreferences("My Pref 2",
-                                                CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
-                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    myStage.setProfilingPreferences(pref2);
+    ProfilingConfiguration pref2 = new ProfilingConfiguration("My Pref 2",
+                                                              CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
+                                                              CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myStage.setProfilingConfiguration(pref2);
     // Start capturing with ART
     startCapturingSuccess();
     // Change the profiling preferences in the middle of the capture and stop capturing
-    myStage.setProfilingPreferences(pref1);
+    myStage.setProfilingConfiguration(pref1);
     stopCapturing();
     // Stop profiler should be the same as the one passed in the start request
     assertEquals(CpuProfiler.CpuProfilingAppStopRequest.Profiler.ART, myCpuService.getStopProfiler());
@@ -601,11 +598,10 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void exitingStateAndEnteringAgainShouldPreserveCaptureState() {
     assertNull(myCpuService.getStopProfiler());
-    CpuProfilerStage.ProfilingPreferences pref1 =
-      new CpuProfilerStage.ProfilingPreferences("My Pref",
-                                                CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
-                                                CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    myStage.setProfilingPreferences(pref1);
+    ProfilingConfiguration pref1 = new ProfilingConfiguration("My Pref",
+                                                              CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
+                                                              CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    myStage.setProfilingConfiguration(pref1);
     myCpuService.setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS);
     startCapturing();
 
