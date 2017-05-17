@@ -95,21 +95,24 @@ public class NavDesignSurface extends DesignSurface {
     requestRender();
   }
 
-  @Override
-  public void repaint() {
-    super.repaint();
-  }
-
   @NotNull
   public NlComponent getCurrentNavigation() {
     if (myCurrentNavigation == null || myCurrentNavigation.getModel() != getModel()) {
-      myCurrentNavigation = getModel().getComponents().get(0);
+      if (getModel() != null) {
+        myCurrentNavigation = getModel().getComponents().get(0);
+      }
     }
     return myCurrentNavigation;
   }
 
   public void setCurrentNavigation(@NotNull NlComponent currentNavigation) {
     myCurrentNavigation = currentNavigation;
+    //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
+    getSceneManager().update();
+    getSelectionModel().clear();
+    getSceneManager().layout(false);
+    currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
+    getScene().repaint();
   }
 
   @Override
@@ -185,19 +188,24 @@ public class NavDesignSurface extends DesignSurface {
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
-    String layout = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT);
-    if (layout != null) {
-      Configuration configuration = getConfiguration();
-      ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
-      ResourceValue value = resolver != null ? resolver.findResValue(layout, false) : null;
-      String fileName = value != null ? value.getValue() : null;
-      if (fileName != null) {
-        File file = new File(fileName);
-        if (file.exists()) {
-          VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
-          if (virtualFile != null) {
-            FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
-            return;
+    if (getSchema().getDestinationType(component.getTagName()) == NavigationSchema.DestinationType.NAVIGATION) {
+       setCurrentNavigation(component);
+    }
+    else {
+      String layout = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT);
+      if (layout != null) {
+        Configuration configuration = getConfiguration();
+        ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
+        ResourceValue value = resolver != null ? resolver.findResValue(layout, false) : null;
+        String fileName = value != null ? value.getValue() : null;
+        if (fileName != null) {
+          File file = new File(fileName);
+          if (file.exists()) {
+            VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
+            if (virtualFile != null) {
+              FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
+              return;
+            }
           }
         }
       }
