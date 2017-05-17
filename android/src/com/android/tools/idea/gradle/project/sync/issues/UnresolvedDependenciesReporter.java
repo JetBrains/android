@@ -91,6 +91,12 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
     if (matcher.matches()) {
       return matcher.group(1);
     }
+    pattern = Pattern.compile("^.*?Could not find ([^\\s]+)\\..*", Pattern.DOTALL);
+    matcher = pattern.matcher(dependency);
+    if (matcher.matches()) {
+      return matcher.group(1);
+    }
+
     return dependency;
   }
 
