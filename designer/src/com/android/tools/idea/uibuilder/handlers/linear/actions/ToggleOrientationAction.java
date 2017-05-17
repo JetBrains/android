@@ -31,7 +31,8 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 /**
- * TODO Write documention
+ * Changes orientation from horizontal to vertical and vice versa. The direction
+ * of the change is based on the state of the first selected component.
  */
 public class ToggleOrientationAction extends DirectViewAction {
   @Override
@@ -39,10 +40,14 @@ public class ToggleOrientationAction extends DirectViewAction {
                       @NotNull List<NlComponent> selectedChildren,
                       @JdkConstants.InputEventMask int modifiers) {
     assert handler instanceof LinearLayoutHandler;
-    LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-    boolean isHorizontal = !linearLayoutHandler.isVertical(component);
-    String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
-    component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
+    if (!selectedChildren.isEmpty()) {
+      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+      boolean isHorizontal = !linearLayoutHandler.isVertical(selectedChildren.get(0));
+      for (NlComponent selected : selectedChildren) {
+        String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
+        selected.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
+      }
+    }
   }
 
   @Override
@@ -53,11 +58,17 @@ public class ToggleOrientationAction extends DirectViewAction {
                                  @NotNull List<NlComponent> selectedChildren,
                                  @JdkConstants.InputEventMask int modifiers) {
     assert handler instanceof LinearLayoutHandler;
-    LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-    boolean vertical = linearLayoutHandler.isVertical(component);
+    if (selectedChildren.isEmpty()) {
+      presentation.setVisible(false);
+    }
+    else {
+      presentation.setVisible(true);
+      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+      boolean vertical = linearLayoutHandler.isVertical(selectedChildren.get(0));
 
-    presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
-    Icon icon = vertical ? AndroidDesignerIcons.SwitchVerticalLinear : AndroidDesignerIcons.SwitchHorizontalLinear;
-    presentation.setIcon(icon);
+      presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
+      Icon icon = vertical ? AndroidDesignerIcons.SwitchVerticalLinear : AndroidDesignerIcons.SwitchHorizontalLinear;
+      presentation.setIcon(icon);
+    }
   }
 }
