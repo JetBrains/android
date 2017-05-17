@@ -598,7 +598,7 @@ public class AndroidIcons {
   }
 
   public static class Assistant {
-    public static final Icon Assist = load("/icons/assistant/assist.png"); // 13x13
+    public static final Icon Assistant = load("/icons/assistant/assistant.png"); // 13x13
     public static final Icon TutorialIndicator = load("/icons/assistant/tutorialIndicator.png"); // 16x16
   }
 
