@@ -318,6 +318,10 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
           baseModuleRoot = new File(projectRoot, moduleName);
           baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
           templateState.put(ATTR_IS_BASE_FEATURE, true);
+          String monolithicModuleName = InstantApps.findMonolithicModuleName(project);
+          if (monolithicModuleName != null) {
+            templateState.put(ATTR_MONOLITHIC_MODULE_NAME, monolithicModuleName);
+          }
         }
         else {
           AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);

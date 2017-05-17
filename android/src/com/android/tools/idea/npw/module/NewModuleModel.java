@@ -237,6 +237,10 @@ public final class NewModuleModel extends WizardModel {
               baseModuleRoot = new File(projectRoot, myModuleName.get());
               baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
               renderTemplateValues.put(ATTR_IS_BASE_FEATURE, true);
+              String monolithicModuleName = InstantApps.findMonolithicModuleName(project);
+              if (monolithicModuleName != null) {
+                renderTemplateValues.put(ATTR_MONOLITHIC_MODULE_NAME, monolithicModuleName);
+              }
             }
             else {
               AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
