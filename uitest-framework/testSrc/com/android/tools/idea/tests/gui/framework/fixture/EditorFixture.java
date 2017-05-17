@@ -241,6 +241,10 @@ public class EditorFixture {
     return this;
   }
 
+  public boolean contains(@NotNull String regex) {
+    return Pattern.compile(regex).matcher(getCurrentFileContents()).find();
+  }
+
   private static class SelectTarget {
     JComponent component;
     Point startPoint;

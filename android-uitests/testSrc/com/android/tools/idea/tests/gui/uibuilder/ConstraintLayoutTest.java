@@ -17,10 +17,16 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -140,5 +146,47 @@ public class ConstraintLayoutTest {
       .createBaselineConstraintWith(layoutEditor.findView("TextView", 0));
     layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
     assertThat(layoutContents).contains("app:layout_constraintBaseline_toBaselineOf=\"@+id/textView\"");
+  }
+
+  /**
+   * To verify that items from the tool kit can be added to a layout.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14606128
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open layout editor for the default activity.
+   *   2. Add each item from the toolbar.
+   *   3. Switch to xml view.
+   *   Verify:
+   *   1. Verify the item displays in the preview pane and also in the xml view.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void addAllLayoutItemsFromToolbar() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+
+    String group = "Widgets";
+    String layout_xml = "app/src/main/res/layout/activity_my.xml";
+
+    NlEditorFixture design = ideFrameFixture.getEditor()
+      .open(layout_xml, EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(false);
+
+    List<String> widgets =
+      new ArrayList<>(Arrays.asList("Button", "ToggleButton", "CheckBox", "RadioButton", "CheckedTextView",
+                                    "Spinner", "ProgressBar", "SeekBar", "RatingBar", "Switch", "Space"));
+    for (String widget : widgets) {
+      design.dragComponentToSurface(group, widget);
+    }
+    EditorFixture editor = ideFrameFixture
+      .getEditor()
+      .open(layout_xml, EditorFixture.Tab.EDITOR);
+    for (String widget: widgets) {
+       editor.contains("<"+widget);
+    }
   }
 }
