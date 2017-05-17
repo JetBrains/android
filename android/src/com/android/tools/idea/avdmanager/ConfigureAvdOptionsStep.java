@@ -237,9 +237,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     if (supportGuest) {
       otherMode = GpuMode.SWIFT;
     }
-    else if (!isMac) {
-      otherMode = GpuMode.MESA;
-    }
     return otherMode;
   }
 
@@ -253,7 +250,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       case HOST:
         myHostGraphics.setSelectedIndex(1);
         break;
-      case MESA:
       case SWIFT:
       case OFF:
       default:
