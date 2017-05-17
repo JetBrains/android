@@ -22,8 +22,8 @@ public enum CpuProfilerAspect {
   SELECTED_THREADS,
   // The capture details has changed, e.g the user selected "Bottom Up" or "Top Down" tab.
   CAPTURE_DETAILS,
-  // The profiling preferences (e.g. profiler type or sampling frequency) have changed.
-  PROFILING_PREFERENCES,
+  // The profiling configuration (e.g. profiler type or sampling frequency) has changed.
+  PROFILING_CONFIGURATION,
   // Clock type (i.e. wall or thread) has changed.
   CLOCK_TYPE,
   // Time elapsed since the capture has started has changed.
