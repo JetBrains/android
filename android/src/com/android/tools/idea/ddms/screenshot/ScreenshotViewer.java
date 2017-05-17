@@ -314,7 +314,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }.queue();
   }
 
-  private static class ImageProcessorTask extends Task.Modal {
+  private static class ImageProcessorTask extends Task.Backgroundable {
     private final BufferedImage mySrcImage;
     private final int myRotationAngle;
     private final DeviceArtDescriptor myDescriptor;
