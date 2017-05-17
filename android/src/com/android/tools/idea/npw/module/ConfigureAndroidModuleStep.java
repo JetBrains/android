@@ -195,7 +195,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myInstallLicenseRequests.clear();
 
     List<AndroidVersionsInfo.VersionItem> installItems = Collections.singletonList(myRenderModel.androidSdkInfo().getValue());
-    myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(project, installItems));
+    myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(installItems));
     myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
   }
 
