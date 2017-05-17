@@ -133,6 +133,9 @@ public class ActionTarget extends BaseTarget {
 
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+    if (mySourceRect == null || myDestRect == null) {
+      return;
+    }
     CurvePoints points = getCurvePoints(mySourceRect, myDestRect);
     picker.addCurveTo(this, 5, points.p1.x, points.p1.y, points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
   }

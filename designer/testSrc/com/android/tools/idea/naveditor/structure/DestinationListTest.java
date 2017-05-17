@@ -16,38 +16,77 @@
 package com.android.tools.idea.naveditor.structure;
 
 import com.android.tools.idea.naveditor.NavigationTestCase;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
+
+import java.awt.*;
+import java.awt.event.MouseEvent;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link DestinationList}
  */
 public class DestinationListTest extends NavigationTestCase {
-  public void testSelection() throws Exception {
-    SyncNlModel model = model("nav.xml",
-                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
-                                component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
-                                component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"))).build();
 
+  private SyncNlModel myModel;
+  private DestinationList myList;
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    myModel = model("nav.xml",
+                    component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
+                      component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
+                      component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
+                      component(NavigationSchema.TAG_NAVIGATION).id("@id/subnav")
+                                             .unboundedChildren(component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3"))))
+      .build();
+    DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
+    myList = (DestinationList)def.getFactory().create();
+    DesignSurface surface = myModel.getSurface();
+    SceneView sceneView = mock(SceneView.class);
+    when(surface.getCurrentSceneView()).thenReturn(sceneView);
+    when(sceneView.getModel()).thenReturn(myModel);
+    myList.setToolContext(surface);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myModel = null;
+      myList = null;
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
+  public void testSelection() throws Exception {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
-    list.setToolContext(model.getSurface());
-    ImmutableList<NlComponent> selection = ImmutableList.of(model.find("fragment1"));
-    SelectionModel modelSelectionModel = model.getSelectionModel();
+    list.setToolContext(myModel.getSurface());
+    ImmutableList<NlComponent> selection = ImmutableList.of(myModel.find("fragment1"));
+    SelectionModel modelSelectionModel = myModel.getSelectionModel();
     modelSelectionModel.setSelection(selection);
     SelectionModel listSelectionModel = list.mySelectionModel;
     assertEquals(selection, listSelectionModel.getSelection());
 
-    selection = ImmutableList.of(model.find("fragment2"));
+    selection = ImmutableList.of(myModel.find("fragment2"));
     modelSelectionModel.setSelection(selection);
     assertEquals(selection, listSelectionModel.getSelection());
 
-    selection = ImmutableList.of(model.find("fragment1"), model.find("fragment2"));
+    selection = ImmutableList.of(myModel.find("fragment1"), myModel.find("fragment2"));
     modelSelectionModel.setSelection(selection);
     assertEquals(selection, listSelectionModel.getSelection());
 
@@ -55,37 +94,31 @@ public class DestinationListTest extends NavigationTestCase {
     modelSelectionModel.setSelection(selection);
     assertEquals(selection, listSelectionModel.getSelection());
 
-    selection = ImmutableList.of(model.find("fragment1"));
+    selection = ImmutableList.of(myModel.find("fragment1"));
     listSelectionModel.setSelection(selection);
     assertEquals(selection, modelSelectionModel.getSelection());
 
-    selection = ImmutableList.of(model.find("fragment2"));
+    selection = ImmutableList.of(myModel.find("fragment2"));
     listSelectionModel.setSelection(selection);
     assertEquals(selection, modelSelectionModel.getSelection());
 
-    selection = ImmutableList.of(model.find("fragment1"), model.find("fragment2"));
+    selection = ImmutableList.of(myModel.find("fragment1"), myModel.find("fragment2"));
     listSelectionModel.setSelection(selection);
     assertEquals(selection, modelSelectionModel.getSelection());
   }
 
   public void testSubflow() throws Exception {
-    SyncNlModel model = model("nav.xml",
-                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
-                                component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1")
-                                  .unboundedChildren(component(NavigationSchema.TAG_NAVIGATION).id("@id/subnav")
-                                                       .unboundedChildren(component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2")))))
-      .build();
 
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
-    list.setToolContext(model.getSurface());
-    ImmutableList<NlComponent> selection = ImmutableList.of(model.find("subnav"));
-    SelectionModel modelSelectionModel = model.getSelectionModel();
+    list.setToolContext(myModel.getSurface());
+    ImmutableList<NlComponent> selection = ImmutableList.of(myModel.find("subnav"));
+    SelectionModel modelSelectionModel = myModel.getSelectionModel();
     modelSelectionModel.setSelection(selection);
     SelectionModel listSelectionModel = list.mySelectionModel;
     assertEquals(selection, listSelectionModel.getSelection());
 
-    selection = ImmutableList.of(model.find("subnav"));
+    selection = ImmutableList.of(myModel.find("subnav"));
     listSelectionModel.setSelection(selection);
     assertEquals(selection, modelSelectionModel.getSelection());
   }
@@ -98,6 +131,10 @@ public class DestinationListTest extends NavigationTestCase {
     SyncNlModel model = modelBuilder.build();
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
+    SceneView sceneView = mock(SceneView.class);
+    when(model.getSurface().getCurrentSceneView()).thenReturn(sceneView);
+    when(sceneView.getModel()).thenReturn(myModel);
+    when(sceneView.getPreferredSize()).thenReturn(new Dimension(100, 100));
     list.setToolContext(model.getSurface());
 
     assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2")), list.myComponentList);
@@ -106,5 +143,12 @@ public class DestinationListTest extends NavigationTestCase {
     modelBuilder.updateModel(model);
 
     assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2"), model.find("fragment3")), list.myComponentList);
+  }
+
+  public void testDoubleClickActivity() throws Exception {
+    NlComponent nlComponent = myModel.find("fragment2");
+    myModel.getSelectionModel().setSelection(ImmutableList.of(nlComponent));
+    myList.myList.dispatchEvent(new MouseEvent(myList.myList, MouseEvent.MOUSE_CLICKED, 1, 0, 0, 0, 2, false));
+    verify((NavDesignSurface)myModel.getSurface()).notifyComponentActivate(nlComponent);
   }
 }

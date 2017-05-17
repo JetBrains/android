@@ -37,6 +37,7 @@ public class NavColorSet extends ColorSet {
     mSelectedText = Color.blue;
     mText = Color.black;
     mHighlightedFrames = new Color(106, 161, 211);
+    mSubduedBackground = new Color(0xfc, 0xfc, 0xfc);
 
     mDrawBackground = true;
     mDrawWidgetInfos = false;

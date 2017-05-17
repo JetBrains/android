@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.util.PropertiesMap;
@@ -81,7 +80,11 @@ abstract public class SceneManager implements Disposable {
     Set<SceneComponent> usedComponents = new HashSet<>();
     Set<SceneComponent> oldComponents = new HashSet<>(scene.getSceneComponents());
 
-    NlComponent rootComponent = components.get(0).getRoot();
+    NlComponent rootComponent = getRoot();
+    if (myScene.getRoot() != null && rootComponent != myScene.getRoot().getNlComponent()) {
+      scene.removeAllComponents();
+      scene.setRoot(null);
+    }
 
     SceneComponent root = createHierarchy(rootComponent);
     if (root != null) {
@@ -94,6 +97,11 @@ abstract public class SceneManager implements Disposable {
 
     scene.setRoot(root);
     scene.needsRebuildList();
+  }
+
+  @NotNull
+  protected NlComponent getRoot() {
+    return getModel().getComponents().get(0).getRoot();
   }
 
   /**

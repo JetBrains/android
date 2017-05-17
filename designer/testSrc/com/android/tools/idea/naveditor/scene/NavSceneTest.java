@@ -27,6 +27,8 @@ import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
+import static org.mockito.Mockito.when;
+
 /**
  * Tests for the nav editor Scene.
  */
@@ -139,4 +141,69 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentFrame,50,50,200,333,1,false\n" +
                  "UNClip\n", list.serialize());
   }
+
+  public void testSubflow() {
+    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
+      .unboundedChildren(
+        component(NavigationSchema.TAG_FRAGMENT)
+          .id("@+id/fragment1")
+          .unboundedChildren(
+            component(NavigationSchema.TAG_ACTION)
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
+          ),
+        component(NavigationSchema.TAG_FRAGMENT)
+          .id("@+id/fragment2")
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2")
+          .unboundedChildren(
+            component(NavigationSchema.TAG_ACTION)
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment3")
+          ),
+        component(NavigationSchema.TAG_NAVIGATION)
+          .id("@+id/subnav")
+          .unboundedChildren(
+            component(NavigationSchema.TAG_FRAGMENT)
+              .id("@+id/fragment3")
+              .unboundedChildren(
+                component(NavigationSchema.TAG_ACTION)
+                  .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment4")),
+            component(NavigationSchema.TAG_FRAGMENT)
+              .id("@+id/fragment4")
+              .unboundedChildren(
+                component(NavigationSchema.TAG_ACTION)
+                  .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment1"))));
+    ModelBuilder modelBuilder = model("nav.xml", root);
+    SyncNlModel model = modelBuilder.build();
+    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    surface.setSize(1000, 1000);
+    surface.setModel(model);
+    surface.zoomToFit();
+
+    Scene scene = surface.getScene();
+    DisplayList list = new DisplayList();
+    scene.layout(0, SceneContext.get());
+
+    NavView view = new NavView(surface, model);
+    scene.buildDisplayList(list, 0, view);
+    assertEquals("Clip,0,0,1000,1000\n" +
+                 "DrawComponentFrame,200,0,200,333,1,false\n" +
+                 "DrawAction,NORMAL,200x0x200x333,0x0x200x333,NORMAL\n" +
+                 "DrawNavScreen,1,1,199,332\n" +
+                 "DrawComponentFrame,0,0,200,333,1,false\n" +
+                 "DrawAction,NORMAL,-220x0x200x333,0x0x200x333,NORMAL\n" +
+                 "DrawTextRegion,400,0,140,34,0,20,true,false,4,4,14,1.0,\"navigation\"\n" +
+                 "DrawComponentFrame,400,0,140,34,1,true\n" +
+                 "DrawAction,NORMAL,400x0x140x34,200x0x200x333,NORMAL\n" +
+                 "UNClip\n", list.serialize());
+    list.clear();
+    surface.setCurrentNavigation(model.find("subnav"));
+    scene.layout(0, SceneContext.get(view));
+    scene.buildDisplayList(list, 0, view);
+    assertEquals("Clip,0,0,1000,1000\n" +
+                 "DrawComponentFrame,200,0,200,333,1,false\n" +
+                 "DrawAction,NORMAL,200x0x200x333,0x0x200x333,NORMAL\n" +
+                 "DrawComponentFrame,0,0,200,333,1,false\n" +
+                 "UNClip\n", list.serialize());
+  }
+
 }
