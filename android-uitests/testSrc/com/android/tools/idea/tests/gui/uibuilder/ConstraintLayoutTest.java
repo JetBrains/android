@@ -170,10 +170,9 @@ public class ConstraintLayoutTest {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
     String group = "Widgets";
-    String layout_xml = "app/src/main/res/layout/activity_my.xml";
 
     NlEditorFixture design = ideFrameFixture.getEditor()
-      .open(layout_xml, EditorFixture.Tab.DESIGN)
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false);
 
     List<String> widgets =
@@ -182,11 +181,12 @@ public class ConstraintLayoutTest {
     for (String widget : widgets) {
       design.dragComponentToSurface(group, widget);
     }
-    EditorFixture editor = ideFrameFixture
+    String layoutXml = ideFrameFixture
       .getEditor()
-      .open(layout_xml, EditorFixture.Tab.EDITOR);
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
     for (String widget: widgets) {
-       editor.contains("<"+widget);
+      assertThat(layoutXml).containsMatch("<" + widget);
     }
   }
 }
