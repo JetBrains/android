@@ -49,6 +49,7 @@ public class AndroidProjectInfo {
    * @param projectType the Project type as an integer given in {@link AndroidProject}
    * @return An array of all Modules in the project of that type
    */
+  @NotNull
   public List<Module> getAllModulesOfProjectType(int projectType) {
     return Stream.of(ModuleManager.getInstance(myProject).getModules())
       .filter(module -> {
