@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.IdDisplay;
@@ -131,6 +132,12 @@ public class SystemImagePreview {
       myVendor.setText("<html>" + vendorName + "</html>");
       myAbi.setText(myImageDescription.getAbiType());
     }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JBLabel getReleaseIcon() {
+    return myReleaseIcon;
   }
 
   public void showExplanationForRecommended(ImageRecommendation recommendationChoice) {
