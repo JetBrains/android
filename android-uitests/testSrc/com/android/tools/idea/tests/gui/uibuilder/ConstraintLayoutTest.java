@@ -161,7 +161,7 @@ public class ConstraintLayoutTest {
    *   2. Add each item from the toolbar.
    *   3. Switch to xml view.
    *   Verify:
-   *   1. Verify the item displays in the preview pane and also in the xml view.
+   *   1. Verify the item displays in the xml view.
    *   </pre>
    */
   @RunIn(TestGroup.QA)
@@ -177,8 +177,8 @@ public class ConstraintLayoutTest {
       .getLayoutEditor(false);
 
     List<String> widgets =
-      new ArrayList<>(Arrays.asList("Button", "ToggleButton", "CheckBox", "RadioButton", "CheckedTextView",
-                                    "Spinner", "ProgressBar", "SeekBar", "RatingBar", "Switch", "Space"));
+      Arrays.asList("Button", "ToggleButton", "CheckBox", "RadioButton", "CheckedTextView",
+                    "Spinner", "ProgressBar", "SeekBar", "RatingBar", "Switch", "Space");
     for (String widget : widgets) {
       design.dragComponentToSurface(group, widget);
     }
