@@ -477,8 +477,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     availableHeight -= padding.height;
 
     Dimension preferredSize = getPreferredContentSize(availableWidth, availableHeight);
-    double scaleX = (double)availableWidth / preferredSize.getWidth();
-    double scaleY = (double)availableHeight / preferredSize.getHeight();
+    double scaleX = preferredSize.width == 0 ? 1 : (double)availableWidth / preferredSize.width;
+    double scaleY = preferredSize.height == 0 ? 1 : (double)availableHeight / preferredSize.height;
     double scale = Math.min(scaleX, scaleY);
     if (fitInto) {
       double min = (SystemInfo.isMac && UIUtil.isRetina()) ? 0.5 : 1.0;
