@@ -598,6 +598,10 @@ public class DrawConnection implements DrawCommand {
             }
           }
         }
+        if (startx - endx == 0 || starty - endy == 0) {
+          scale_source = 0;
+          scale_dest = 0;
+        }
         g.setColor(constraintColor);
         if (sourceDirection == destDirection && margin == 0) {
           scale_source /= 3;
