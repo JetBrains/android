@@ -126,7 +126,11 @@ public class AndroidVersionsInfo {
     }
 
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(REPO_LOG, false);
-    Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
+    if (buildTool == null) {
+      buildTool = sdkHandler.getLatestBuildTool(REPO_LOG, true);
+    }
+
+    Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.CURRENT_BUILD_TOOLS_VERSION);
     if (buildTool == null || buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) < 0) {
       // We need to install a new build tools version
       requestedPaths.add(DetailsTypes.getBuildToolsPath(minimumRequiredBuildToolVersion));
