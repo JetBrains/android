@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
 
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
@@ -126,16 +127,8 @@ public class AndroidVersionsInfo {
       }
     }
 
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(REPO_LOG, false);
-    if (buildTool == null) {
-      buildTool = sdkHandler.getLatestBuildTool(REPO_LOG, true);
-    }
-
-    Revision minimumRequiredBuildToolVersion = Revision.parseRevision(SdkConstants.CURRENT_BUILD_TOOLS_VERSION);
-    if (buildTool == null || buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) < 0) {
-      // We need to install a new build tools version
-      requestedPaths.add(DetailsTypes.getBuildToolsPath(minimumRequiredBuildToolVersion));
-    }
+    // Install build tools, if not already installed
+    requestedPaths.add(DetailsTypes.getBuildToolsPath(getRecommendedBuildToolsRevision(sdkHandler, REPO_LOG)));
 
     for (VersionItem versionItem : installItems) {
       AndroidVersion androidVersion = versionItem.myAndroidVersion;
