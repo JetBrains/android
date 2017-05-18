@@ -25,7 +25,6 @@ import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
@@ -54,6 +53,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
 import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
 import static com.android.xml.AndroidManifest.NODE_INSTRUMENTATION;
 import static com.google.common.base.Charsets.UTF_8;
 import static java.io.File.separator;
@@ -1107,15 +1107,7 @@ public class GradleImport {
   String getBuildToolsVersion() {
     AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(mySdkLocation);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
-    if (buildTool == null) {
-      buildTool = sdkHandler.getLatestBuildTool(progress, true);
-    }
-    if (buildTool != null) {
-      return buildTool.getRevision().toString();
-    }
-
-    return CURRENT_BUILD_TOOLS_VERSION;
+    return getRecommendedBuildToolsRevision(sdkHandler, progress).toString();
   }
 
   private void createProjectBuildGradle(@NonNull File file) throws IOException {

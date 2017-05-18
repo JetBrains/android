@@ -17,6 +17,8 @@ package com.android.tools.idea.npw.template;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.repository.Revision;
+import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
@@ -58,6 +60,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -262,11 +265,9 @@ public final class TemplateValueInjector {
     }
 
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    BuildToolInfo buildTool =
-      sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class), isInstantApp);
-    // If buildTool is null, the template will use buildApi (18.0.1) and that may be to old.
-    String buildToolVersion = buildTool == null ? SdkConstants.CURRENT_BUILD_TOOLS_VERSION : buildTool.getRevision().toString();
-    myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolVersion);
+    ProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class);
+    Revision buildToolRevision = getRecommendedBuildToolsRevision(sdkHandler, progress, isInstantApp);
+    myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolRevision.toString());
 
     File sdkLocation = sdkHandler.getLocation();
     if (sdkLocation != null) {
