@@ -262,17 +262,17 @@ public class CpuProfilingConfigPanel {
     myConfigPanel.add(traceTechnologyPanel);
 
     ButtonGroup profilersType = new ButtonGroup();
-    myArtSampledButton = new JRadioButton("Sampled (Java)");
+    myArtSampledButton = new JRadioButton(ProfilingConfiguration.ART_SAMPLED);
     createRadioButtonUi(myArtSampledButton, "Samples Java code using Android Runtime.", TraceTechnology.ART_SAMPLED, profilersType);
 
-    mySimpleperfButton = new JRadioButton("Sampled (Hybrid)");
+    mySimpleperfButton = new JRadioButton(ProfilingConfiguration.SIMPLEPERF);
     if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
       createRadioButtonUi(mySimpleperfButton, "<html>Samples Java and native code using simpleperf. " +
                                               "Available for Android O and greater.</html>",
                           TraceTechnology.SIMPLEPERF, profilersType);
     }
 
-    myArtInstrumentedButton = new JRadioButton("Instrumented");
+    myArtInstrumentedButton = new JRadioButton(ProfilingConfiguration.ART_INSTRUMENTED);
     createRadioButtonUi(myArtInstrumentedButton, "Instruments Java code using Android Runtime.",
                         TraceTechnology.ART_INSTRUMENTED, profilersType);
   }

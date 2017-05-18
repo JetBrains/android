@@ -522,7 +522,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // First pref should be ART Sampled
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART, prefs.get(0).getProfiler());
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED, prefs.get(0).getMode());
-    assertEquals("Sampled (Java)", prefs.get(0).getName());
+    assertEquals("Sampled", prefs.get(0).getName());
     // First pref should be ART Instrumented
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART, prefs.get(1).getProfiler());
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED, prefs.get(1).getMode());
@@ -534,7 +534,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     prefs = myStage.getProfilingConfigurations();
     assertEquals(3, prefs.size());
     // First and second preferences should be the same
-    assertEquals("Sampled (Java)", prefs.get(0).getName());
+    assertEquals("Sampled", prefs.get(0).getName());
     assertEquals("Instrumented", prefs.get(1).getName());
     // Third pref should be simpleperf
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF, prefs.get(2).getProfiler());
@@ -552,7 +552,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     List<ProfilingConfiguration> prefs = myStage.getProfilingConfigurations();
     assertEquals(3, prefs.size());
     // First and second preferences should be the same
-    assertEquals("Sampled (Java)", prefs.get(0).getName());
+    assertEquals("Sampled", prefs.get(0).getName());
     assertEquals("Instrumented", prefs.get(1).getName());
     // Third pref should be simpleperf
     assertEquals(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF, prefs.get(2).getProfiler());
@@ -568,7 +568,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Simpleperf should not be listed as a profiling option
     assertEquals(2, prefs.size());
     // First and second preferences should be the ART ones
-    assertEquals("Sampled (Java)", prefs.get(0).getName());
+    assertEquals("Sampled", prefs.get(0).getName());
     assertEquals("Instrumented", prefs.get(1).getName());
   }
 
