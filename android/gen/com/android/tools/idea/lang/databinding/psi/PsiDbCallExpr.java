@@ -22,15 +22,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface PsiDbMethodExpr extends PsiDbExpr {
-
-  @NotNull
-  PsiDbExpr getExpr();
+public interface PsiDbCallExpr extends PsiDbExpr {
 
   @Nullable
   PsiDbExpressionList getExpressionList();
 
   @NotNull
-  PsiDbMethodName getMethodName();
+  PsiDbRefExpr getRefExpr();
 
 }

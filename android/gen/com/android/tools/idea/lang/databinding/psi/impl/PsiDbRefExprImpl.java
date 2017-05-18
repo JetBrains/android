@@ -27,14 +27,14 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import com.android.tools.idea.lang.databinding.psi.*;
 
-public class PsiDbMethodExprImpl extends PsiDbExprImpl implements PsiDbMethodExpr {
+public class PsiDbRefExprImpl extends PsiDbExprImpl implements PsiDbRefExpr {
 
-  public PsiDbMethodExprImpl(ASTNode node) {
+  public PsiDbRefExprImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull PsiDbVisitor visitor) {
-    visitor.visitMethodExpr(this);
+    visitor.visitRefExpr(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -43,21 +43,15 @@ public class PsiDbMethodExprImpl extends PsiDbExprImpl implements PsiDbMethodExp
   }
 
   @Override
-  @NotNull
-  public PsiDbExpr getExpr() {
-    return findNotNullChildByClass(PsiDbExpr.class);
-  }
-
-  @Override
   @Nullable
-  public PsiDbExpressionList getExpressionList() {
-    return findChildByClass(PsiDbExpressionList.class);
+  public PsiDbExpr getExpr() {
+    return findChildByClass(PsiDbExpr.class);
   }
 
   @Override
   @NotNull
-  public PsiDbMethodName getMethodName() {
-    return findNotNullChildByClass(PsiDbMethodName.class);
+  public PsiDbId getId() {
+    return findNotNullChildByClass(PsiDbId.class);
   }
 
 }
