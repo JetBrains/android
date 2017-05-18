@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.plugin;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
-import org.junit.Ignore;
 
 import java.io.File;
 
@@ -31,9 +30,9 @@ import static com.android.tools.idea.testing.TestProjectPaths.PLUGIN_IN_APP;
 /**
  * Tests for {@link AndroidPluginInfo}.
  */
-@Ignore("http://b/35788105")
 public class AndroidPluginInfoTest extends AndroidGradleTestCase {
-  public void testFake() {
+  public void testDisabled() {
+    // http://b/35788105
   }
 
   public void /*test*/FindWithExperimentalPlugin() throws Exception {
