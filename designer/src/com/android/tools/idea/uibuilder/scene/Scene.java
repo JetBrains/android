@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -963,6 +964,46 @@ public class Scene implements SelectionListener {
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Finds any components that overlap the given rectangle.
+   *
+   * @param x      The top left x corner defining the selection rectangle.
+   * @param y      The top left y corner defining the selection rectangle.
+   * @param width  The w of the selection rectangle
+   * @param height The h of the selection rectangle
+   */
+  public List<SceneComponent> findWithin(@AndroidDpCoordinate int x,
+                                         @AndroidDpCoordinate int y,
+                                         @AndroidDpCoordinate int width,
+                                         @AndroidDpCoordinate int height) {
+    List<SceneComponent> within = Lists.newArrayList();
+    addWithin(within, getRoot(), x, y, width, height);
+    return within;
+  }
+
+  private static boolean addWithin(@NotNull List<SceneComponent> result,
+                                   @NotNull SceneComponent component,
+                                   @AndroidDpCoordinate int x,
+                                   @AndroidDpCoordinate int y,
+                                   @AndroidDpCoordinate int width,
+                                   @AndroidDpCoordinate int height) {
+    if (component.getDrawX() + component.getDrawWidth() <= x ||
+        x + width <= component.getDrawX() ||
+        component.getDrawY() + component.getDrawHeight() <= y ||
+        y + height <= component.getDrawY()) {
+      return false;
+    }
+
+    boolean found = false;
+    for (SceneComponent child : component.getChildren()) {
+      found |= addWithin(result, child, x, y, width, height);
+    }
+    if (!found) {
+      result.add(component);
+    }
+    return true;
+  }
 
   @Nullable
   public SceneComponent findComponent(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
