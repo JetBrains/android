@@ -2,6 +2,7 @@ package org.jetbrains.android.formatter;
 
 import com.intellij.formatting.FormattingDocumentModel;
 import com.intellij.formatting.Indent;
+import com.intellij.formatting.Spacing;
 import com.intellij.formatting.WrapType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
@@ -42,8 +43,7 @@ public class AndroidXmlPolicy extends XmlPolicy {
     return myCustomSettings.WRAP_ATTRIBUTES;
   }
 
-  @Override
-  public boolean insertLineBreakBeforeFirstAttribute(XmlAttribute attribute) {
+  private boolean insertLineBreakBeforeFirstAttribute(XmlAttribute attribute) {
     if (myCustomSettings.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE) {
       // Even if setting for inserting line break before the first attribute, we want
       // _not_ to insert it if the first attribute would be namespace declaration.
@@ -75,7 +75,22 @@ public class AndroidXmlPolicy extends XmlPolicy {
   }
 
   @Override
-  public boolean insertLineBreakAfterLastAttribute(XmlAttribute attribute) {
+  public Spacing getSpacingBeforeFirstAttribute(XmlAttribute attribute) {
+    if (insertLineBreakBeforeFirstAttribute(attribute)) {
+      return Spacing.createSpacing(1, 1, 1, getShouldKeepLineBreaks(), getKeepBlankLines());
+    }
+    return super.getSpacingBeforeFirstAttribute(attribute);
+  }
+
+  @Override
+  public Spacing getSpacingAfterLastAttribute(XmlAttribute attribute) {
+    if (insertLineBreakAfterLastAttribute(attribute)) {
+      return Spacing.createSpacing(0, 0, 1, getShouldKeepLineBreaks(), getKeepBlankLines());
+    }
+    return super.getSpacingAfterLastAttribute(attribute);
+  }
+
+  private boolean insertLineBreakAfterLastAttribute(XmlAttribute attribute) {
     if (!myCustomSettings.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE) {
       return false;
     }
