@@ -28,6 +28,6 @@ public interface PsiDbFunctionRefExpr extends PsiDbExpr {
   PsiDbExpr getExpr();
 
   @NotNull
-  PsiDbMethodName getMethodName();
+  PsiDbId getId();
 
 }

@@ -16,12 +16,31 @@
 
 // ATTENTION: This file has been automatically generated from db.bnf. Do not edit it manually.
 
-package com.android.tools.idea.lang.databinding.psi;
+package com.android.tools.idea.lang.databinding.psi.impl;
 
 import java.util.List;
 import org.jetbrains.annotations.*;
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.util.PsiTreeUtil;
+import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
+import com.android.tools.idea.lang.databinding.DataBindingPsiElement;
+import com.android.tools.idea.lang.databinding.psi.*;
 
-public interface PsiDbMethodName extends PsiElement {
+public class PsiDbIdImpl extends DataBindingPsiElement implements PsiDbId {
+
+  public PsiDbIdImpl(ASTNode node) {
+    super(node);
+  }
+
+  public void accept(@NotNull PsiDbVisitor visitor) {
+    visitor.visitId(this);
+  }
+
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof PsiDbVisitor) accept((PsiDbVisitor)visitor);
+    else super.accept(visitor);
+  }
 
 }

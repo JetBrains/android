@@ -247,6 +247,11 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     toTestCompletion("binding3.xml", "binding3_after.xml");
   }
 
+  public void testDataBindingCompletion3() throws Throwable {
+    toTestCompletion("binding4.xml", "binding4_after.xml");
+    //doTestCompletionVariants("binding4.xml", "safeUnbox", "superCool");
+  }
+
   public void testCustomTagCompletion() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     toTestCompletion("ctn.xml", "ctn_after.xml");
