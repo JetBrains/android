@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.scene;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -40,7 +41,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link ThumbnailManager}
  */
-public class ThumbnailManagerTest extends NavSceneTest {
+public class ThumbnailManagerTest extends NavigationTestCase {
   private static final float MAX_PERCENT_DIFFERENT = 6.5f;
 
   @Override

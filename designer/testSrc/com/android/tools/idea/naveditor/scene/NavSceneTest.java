@@ -34,18 +34,25 @@ public class NavSceneTest extends NavigationTestCase {
 
   public void testDisplayList() {
     ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
-      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
+      .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment1")
       .unboundedChildren(
         component(NavigationSchema.TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
           .unboundedChildren(
             component(NavigationSchema.TAG_ACTION)
-              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/subnav"),
+            component(NavigationSchema.TAG_ACTION)
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@id/activity")
           ),
-        component(NavigationSchema.TAG_FRAGMENT)
-          .id("@+id/fragment2")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"));
+        component(NavigationSchema.TAG_NAVIGATION).id("@+id/subnav")
+          .unboundedChildren(
+            component(NavigationSchema.TAG_FRAGMENT)
+              .id("@+id/fragment2")
+              .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2")
+              .unboundedChildren(component(NavigationSchema.TAG_ACTION)
+                                   .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@id/activity"))),
+        component("activity").id("@+id/activity"));
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     Scene scene = model.getSurface().getScene();
@@ -54,12 +61,15 @@ public class NavSceneTest extends NavigationTestCase {
     scene.layout(0, SceneContext.get());
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,0,0\n" +
-                 "DrawNavScreen,51,441,199,332\n" +
-                 "DrawComponentFrame,50,440,200,333,1\n" +
-                 "DrawAction,NORMAL,50x440x200x333,50x50x200x333,NORMAL\n" +
                  "DrawNavScreen,51,51,199,332\n" +
-                 "DrawComponentFrame,50,50,200,333,1\n" +
+                 "DrawComponentFrame,50,50,200,333,1,false\n" +
+                 "DrawAction,NORMAL,50x50x200x333,50x440x140x34,NORMAL\n" +
+                 "DrawAction,NORMAL,50x50x200x333,50x440x200x333,NORMAL\n" +
                  "DrawAction,NORMAL,-170x50x200x333,50x50x200x333,NORMAL\n" +
+                 "DrawTextRegion,50,440,140,34,0,20,true,false,4,4,14,1.0,\"navigation\"\n" +
+                 "DrawComponentFrame,50,440,140,34,1,true\n" +
+                 "DrawAction,NORMAL,50x440x140x34,50x440x200x333,NORMAL\n" +
+                 "DrawComponentFrame,50,440,200,333,1,false\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -90,12 +100,12 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,0,0\n" +
                  "DrawNavScreen,51,441,199,332\n" +
-                 "DrawComponentFrame,50,440,200,333,1\n" +
+                 "DrawComponentFrame,50,440,200,333,1,false\n" +
                  "DrawAction,NORMAL,50x440x200x333,50x830x200x333,NORMAL\n" +
                  "DrawNavScreen,51,831,199,332\n" +
-                 "DrawComponentFrame,50,830,200,333,1\n" +
+                 "DrawComponentFrame,50,830,200,333,1,false\n" +
                  "DrawAction,NORMAL,-170x830x200x333,50x830x200x333,NORMAL\n" +
-                 "DrawComponentFrame,50,50,200,333,1\n" +
+                 "DrawComponentFrame,50,50,200,333,1,false\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -126,7 +136,7 @@ public class NavSceneTest extends NavigationTestCase {
     scene.buildDisplayList(list, 0, new NavView((NavDesignSurface)model.getSurface(), model));
     assertEquals("Clip,0,0,0,0\n" +
                  "DrawNavScreen,51,51,199,332\n" +
-                 "DrawComponentFrame,50,50,200,333,1\n" +
+                 "DrawComponentFrame,50,50,200,333,1,false\n" +
                  "UNClip\n", list.serialize());
   }
 }

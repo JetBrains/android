@@ -12,36 +12,44 @@
   ~ limitations under the License.
   -->
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@+id/main_activity">
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            app:startDestination="@+id/main_activity">
     <activity android:id="@+id/main_activity"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/title_activity_main"
-        app:navType="primary"
-        android:name="google.navigation.MainActivity"
-        tools:layout="@layout/activity_main" >
+              android:icon="@mipmap/ic_launcher"
+              android:label="@string/title_activity_main"
+              app:navType="primary"
+              android:name="google.navigation.MainActivity"
+              tools:layout="@layout/activity_main" >
         <default-argument app:argname="myarg" app:argvalue="Home" />
         <action android:id="@+id/next" app:destination="@+id/main_fragment"/>
     </activity>
     <fragment android:id="@+id/main_fragment"
-        android:icon="@mipmap/ic_launcher"
-        android:label="MainFragment"
-        app:navType="primary"
-        android:name="google.navigation.MyFragment"
-        tools:layout="@layout/fragment_my">
+              android:icon="@mipmap/ic_launcher"
+              android:label="MainFragment"
+              app:navType="primary"
+              android:name="google.navigation.MyFragment"
+              tools:layout="@layout/fragment_my">
         <default-argument app:argname="myarg" app:argvalue="Android!" />
         <action android:id="@+id/next2" app:destination="@+id/first_screen"/>
     </fragment>
     <activity android:id="@+id/first_screen"
-        android:name="google.navigation.FirstScreen"
-        tools:layout="@layout/activity_first_screen">
+              android:name="google.navigation.FirstScreen"
+              tools:layout="@layout/activity_first_screen">
         <default-argument app:argname="myarg" app:argvalue="one" />
     </activity>
     <fragment android:id="@+id/next_fragment"
-        android:name="google.navigation.NextFragment"
-        tools:layout="@layout/fragment_next">
+              android:name="google.navigation.NextFragment"
+              tools:layout="@layout/fragment_next">
         <default-argument app:argname="myarg" app:argvalue="two" />
-        <action android:id="@+id/next4" app:destination="@+id/first_screen"/>
+        <action android:id="@+id/next4" app:destination="@id/subnav"/>
     </fragment>
+    <navigation app:startDestination="@id/next_fragment2" android:label="sub nav" android:id="@+id/subnav">
+        <fragment android:id="@+id/next_fragment2"
+                  android:name="google.navigation.NextFragment"
+                  tools:layout="@layout/fragment_next">
+            <default-argument app:argname="myarg" app:argvalue="two" />
+            <action android:id="@+id/out_of_nav" app:destination="@id/first_screen"/>
+        </fragment>
+    </navigation>
 </navigation>

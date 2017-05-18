@@ -68,6 +68,28 @@ public class DestinationListTest extends NavigationTestCase {
     assertEquals(selection, modelSelectionModel.getSelection());
   }
 
+  public void testSubflow() throws Exception {
+    SyncNlModel model = model("nav.xml",
+                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
+                                component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1")
+                                  .unboundedChildren(component(NavigationSchema.TAG_NAVIGATION).id("@id/subnav")
+                                                       .unboundedChildren(component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2")))))
+      .build();
+
+    DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
+    DestinationList list = (DestinationList)def.getFactory().create();
+    list.setToolContext(model.getSurface());
+    ImmutableList<NlComponent> selection = ImmutableList.of(model.find("subnav"));
+    SelectionModel modelSelectionModel = model.getSelectionModel();
+    modelSelectionModel.setSelection(selection);
+    SelectionModel listSelectionModel = list.mySelectionModel;
+    assertEquals(selection, listSelectionModel.getSelection());
+
+    selection = ImmutableList.of(model.find("subnav"));
+    listSelectionModel.setSelection(selection);
+    assertEquals(selection, modelSelectionModel.getSelection());
+  }
+
   public void testModifyModel() throws Exception {
     ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
       component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
