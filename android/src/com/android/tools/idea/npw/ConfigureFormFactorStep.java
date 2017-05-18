@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -181,12 +180,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           setErrorHtml(formFactor + " must have a Minimum SDK level selected.");
           return false;
         }
-        if (myState.getNotNull(IS_INSTANT_APP_KEY, false)) {
-          int iappMinSdk = InstantApps.getMinTargetSdk();
-          if (new Integer(myState.getNotNull(getMinApiKey(formFactor), "0")) < iappMinSdk) {
-            setErrorHtml(formFactor + " must have a Minimum SDK >= " + iappMinSdk + " for Instant App Support.");
-            return false;
-          }
+        if (myState.getNotNull(IS_INSTANT_APP_KEY, false) && new Integer(myState.getNotNull(getMinApiKey(formFactor), "0")) < 16) {
+          setErrorHtml(formFactor + " must have a Minimum SDK >= 16 for Instant App Support.");
+          return false;
         }
       }
     }
