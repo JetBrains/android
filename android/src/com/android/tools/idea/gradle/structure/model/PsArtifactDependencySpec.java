@@ -39,10 +39,9 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * differently on each model.
  */
 public class PsArtifactDependencySpec {
-  @NotNull public String name;
-
-  @Nullable public String group;
-  @Nullable public String version;
+  @NotNull private String myName;
+  @Nullable private String myGroup;
+  @Nullable private String myVersion;
 
   @Nullable
   public static PsArtifactDependencySpec create(@NotNull String notation) {
@@ -109,9 +108,9 @@ public class PsArtifactDependencySpec {
   }
 
   public PsArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {
-    this.name = name;
-    this.group = emptyToNull(group);
-    this.version = emptyToNull(version);
+    this.myName = name;
+    this.myGroup = emptyToNull(group);
+    this.myVersion = emptyToNull(version);
   }
 
   @Override
@@ -123,14 +122,29 @@ public class PsArtifactDependencySpec {
       return false;
     }
     PsArtifactDependencySpec that = (PsArtifactDependencySpec)o;
-    return Objects.equal(name, that.name) &&
-           Objects.equal(group, that.group) &&
-           Objects.equal(version, that.version);
+    return Objects.equal(myName, that.myName) &&
+           Objects.equal(myGroup, that.myGroup) &&
+           Objects.equal(myVersion, that.myVersion);
+  }
+
+  @NotNull
+  public String getName() {
+    return myName;
+  }
+
+  @Nullable
+  public String getGroup() {
+    return myGroup;
+  }
+
+  @Nullable
+  public String getVersion() {
+    return myVersion;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(name, group, version);
+    return Objects.hashCode(myName, myGroup, myVersion);
   }
 
   @Override
@@ -140,7 +154,7 @@ public class PsArtifactDependencySpec {
 
   @NotNull
   public String compactNotation() {
-    List<String> segments = Lists.newArrayList(group, name, version);
+    List<String> segments = Lists.newArrayList(myGroup, myName, myVersion);
     return Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(segments);
   }
 
@@ -148,12 +162,12 @@ public class PsArtifactDependencySpec {
   public String getDisplayText() {
     boolean showGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
     StringBuilder text = new StringBuilder();
-    if (showGroupId && isNotEmpty(group)) {
-      text.append(group).append(GRADLE_PATH_SEPARATOR);
+    if (showGroupId && isNotEmpty(myGroup)) {
+      text.append(myGroup).append(GRADLE_PATH_SEPARATOR);
     }
-    text.append(name);
-    if (isNotEmpty(version)) {
-      text.append(GRADLE_PATH_SEPARATOR).append(version);
+    text.append(myName);
+    if (isNotEmpty(myVersion)) {
+      text.append(GRADLE_PATH_SEPARATOR).append(myVersion);
     }
     return text.toString();
   }

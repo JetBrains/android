@@ -34,7 +34,7 @@ public class PsLibraryDependencyVersionQuickFixPath extends PsPath {
   public PsLibraryDependencyVersionQuickFixPath(@NotNull PsLibraryDependency dependency) {
     myModuleName = dependency.getParent().getName();
     myDependency = getCompactNotation(dependency);
-    String version = dependency.getResolvedSpec().version;
+    String version = dependency.getResolvedSpec().getVersion();
     assert version != null;
     myVersion = version;
   }

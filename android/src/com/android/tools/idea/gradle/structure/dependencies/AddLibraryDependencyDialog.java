@@ -131,14 +131,14 @@ public class AddLibraryDependencyDialog extends AbstractAddDependenciesDialog {
         if (dependency instanceof PsLibraryAndroidDependency) {
           PsLibraryAndroidDependency libraryDependency = (PsLibraryAndroidDependency)dependency;
           PsArtifactDependencySpec resolvedSpec = libraryDependency.getResolvedSpec();
-          if (Objects.equals(spec.group, resolvedSpec.group) && Objects.equals(spec.name, resolvedSpec.name)) {
+          if (Objects.equals(spec.getGroup(), resolvedSpec.getGroup()) && Objects.equals(spec.getName(), resolvedSpec.getName())) {
             found.set(true);
           }
         }
       });
 
       if (found.get()) {
-        String msg = String.format("Library '%1$s' is already a dependency", spec.name);
+        String msg = String.format("Library '%1$s' is already a dependency", spec.getName());
         return new ValidationInfo(msg, myLibraryDependenciesForm.getPreferredFocusedComponent());
       }
     }
