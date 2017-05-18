@@ -52,10 +52,10 @@ public interface PsLibraryDependency extends PsBaseDependency {
     if (modified) {
       GradleVersion parsedVersion = GradleVersion.parse(version);
       PsArtifactDependencySpec resolvedSpec = getResolvedSpec();
-      String resolvedVersion = nullToEmpty(resolvedSpec.version);
+      String resolvedVersion = nullToEmpty(resolvedSpec.getVersion());
       if (parsedVersion.compareTo(resolvedVersion) != 0) {
         // Update the "resolved" spec with the new version
-        resolvedSpec = new PsArtifactDependencySpec(resolvedSpec.name, resolvedSpec.group, version);
+        resolvedSpec = new PsArtifactDependencySpec(resolvedSpec.getName(), resolvedSpec.getGroup(), version);
         setResolvedSpec(resolvedSpec);
       }
 

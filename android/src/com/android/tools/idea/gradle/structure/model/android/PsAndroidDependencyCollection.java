@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -283,11 +283,12 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     if (dependency != null) {
       return dependency;
     }
-    if (isEmpty(spec.version)) {
+    if (isEmpty(spec.getVersion())) {
       List<String> found = Lists.newArrayList();
       for (String specText : myLibraryDependenciesBySpec.keySet()) {
         PsArtifactDependencySpec storedSpec = PsArtifactDependencySpec.create(specText);
-        if (storedSpec != null && Objects.equals(storedSpec.group, spec.group) && Objects.equals(storedSpec.name, spec.name)) {
+        if (storedSpec != null && Objects.equals(storedSpec.getGroup(), spec.getGroup()) && Objects.equals(storedSpec.getName(),
+                                                                                                           spec.getName())) {
           found.add(specText);
         }
       }
