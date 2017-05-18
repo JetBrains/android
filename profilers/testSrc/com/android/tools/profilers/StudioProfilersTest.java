@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
@@ -23,6 +24,8 @@ import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuCaptureTest;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -33,6 +36,11 @@ import static org.junit.Assert.*;
 public final class StudioProfilersTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
   @Rule public FakeGrpcServer myGrpcServer = new FakeGrpcServer("StudioProfilerTestChannel", myProfilerService);
+
+  @Before
+  public void setup() {
+    myProfilerService.reset();
+  }
 
   @Test
   public void testVersion() throws Exception {
@@ -291,7 +299,8 @@ public final class StudioProfilersTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS * 5);
 
     assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMin(), 0.001);
-    assertEquals(TimeUnit.SECONDS.toMicros(dataNow + 5), profilers.getTimeline().getDataRange().getMax(), TimeUnit.MILLISECONDS.toMicros(10));
+    assertEquals(TimeUnit.SECONDS.toMicros(dataNow + 5), profilers.getTimeline().getDataRange().getMax(),
+                 TimeUnit.MILLISECONDS.toMicros(10));
   }
 
   @Test
@@ -770,30 +779,89 @@ public final class StudioProfilersTest {
     assertEquals(0, myGrpcServer.getProfiledProcessCount());
   }
 
+  @Test
+  public void testAttachAgentCalledWhenFeatureEnabled() throws Exception {
+    FakeIdeProfilerServices fakeIdeService = new FakeIdeProfilerServices();
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeIdeService, timer);
+
+    Profiler.Device device = createDevice(AndroidVersion.VersionCodes.O, "FakeDevice", Profiler.Device.State.ONLINE);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    Profiler.Process process1 = createProcess(1, "FakeProcess1", Profiler.Process.State.ALIVE);
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(session, process1);
+
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(device, profilers.getDevice());
+    assertEquals(process1, profilers.getProcess());
+    assertFalse(myProfilerService.getAgentAttachCalled());
+
+    fakeIdeService.enableJvmtiAgent(true);
+    Profiler.Process process2 = createProcess(2, "FakeProcess2", Profiler.Process.State.ALIVE);
+    myProfilerService.addProcess(session, process2);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.setProcess(process2);
+    assertEquals(device, profilers.getDevice());
+    assertEquals(process2, profilers.getProcess());
+    assertTrue(myProfilerService.getAgentAttachCalled());
+  }
+
+  @Test
+  public void testAttachAgentNotCalledPreO() throws Exception {
+    FakeIdeProfilerServices fakeIdeService = new FakeIdeProfilerServices();
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeIdeService, timer);
+
+    fakeIdeService.enableJvmtiAgent(true);
+    Profiler.Device device = createDevice(AndroidVersion.VersionCodes.N, "FakeDevice", Profiler.Device.State.ONLINE);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    Profiler.Process process1 = createProcess(1, "FakeProcess1", Profiler.Process.State.ALIVE);
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(session, process1);
+
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(device, profilers.getDevice());
+    assertEquals(process1, profilers.getProcess());
+    assertFalse(myProfilerService.getAgentAttachCalled());
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
-    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Profiler.Device.State.ONLINE);
     myProfilerService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
-    assertEquals("FakeDevice", profilers.getDevice().getSerial());
+    assertEquals(device, profilers.getDevice());
     assertNull(profilers.getProcess());
     Common.Session session = Common.Session.newBuilder()
       .setBootId(device.getBootId())
       .setDeviceSerial(device.getSerial())
       .build();
 
-    Profiler.Process process = Profiler.Process.newBuilder()
-      .setPid(20)
-      .setName("FakeProcess")
-      .setState(Profiler.Process.State.ALIVE)
-      .build();
+    Profiler.Process process = createProcess(20, "FakeProcess", Profiler.Process.State.ALIVE);
     myProfilerService.addProcess(session, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    assertEquals(process, profilers.getProcess());
     return profilers;
+  }
+
+  // TODO refactor tests to use this helper
+  private Profiler.Device createDevice(int featureLevel, @NotNull String serial, @NotNull Profiler.Device.State state) {
+    return Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(state).build();
+  }
+
+  // TODO refactor tests to use this helper
+  private Profiler.Process createProcess(int pid, @NotNull String name, Profiler.Process.State state) {
+    return Profiler.Process.newBuilder().setPid(pid).setName(name).setState(state).build();
   }
 
   private static class AgentStatusAspectObserver extends AspectObserver {
