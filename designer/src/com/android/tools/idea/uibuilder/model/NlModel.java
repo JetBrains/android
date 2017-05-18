@@ -905,48 +905,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return null;
   }
 
-  /**
-   * Finds any components that overlap the given rectangle.
-   *
-   * @param x      The top left x corner defining the selection rectangle.
-   * @param y      The top left y corner defining the selection rectangle.
-   * @param width  The w of the selection rectangle
-   * @param height The h of the selection rectangle
-   */
-  public List<NlComponent> findWithin(@AndroidCoordinate int x,
-                                      @AndroidCoordinate int y,
-                                      @AndroidCoordinate int width,
-                                      @AndroidCoordinate int height) {
-    List<NlComponent> within = Lists.newArrayList();
-    for (NlComponent component : myComponents) {
-      addWithin(within, component, x, y, width, height);
-    }
-    return within;
-  }
-
-  private static boolean addWithin(@NotNull List<NlComponent> result,
-                                   @NotNull NlComponent component,
-                                   @AndroidCoordinate int x,
-                                   @AndroidCoordinate int y,
-                                   @AndroidCoordinate int width,
-                                   @AndroidCoordinate int height) {
-    if (component.x + component.w <= x ||
-        x + width <= component.x ||
-        component.y + component.h <= y ||
-        y + height <= component.y) {
-      return false;
-    }
-
-    boolean found = false;
-    for (NlComponent child : component.getChildren()) {
-      found |= addWithin(result, child, x, y, width, height);
-    }
-    if (!found) {
-      result.add(component);
-    }
-    return true;
-  }
-
   public void delete(final Collection<NlComponent> components) {
     // Group by parent and ask each one to participate
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", myFile) {
