@@ -137,10 +137,10 @@ public class CpuProfilingConfigPanel {
     return myConfigPanel;
   }
 
-  void setConfiguration(@Nullable ProfilingConfiguration configuration) {
+  void setConfiguration(@Nullable ProfilingConfiguration configuration, boolean isDefaultConfiguration) {
     myConfiguration = configuration;
     if (configuration == null) {
-      clearAndDisableFields();
+      clearFields();
     }
     else {
       myConfigName.setText(configuration.getName());
@@ -153,6 +153,10 @@ public class CpuProfilingConfigPanel {
       myFileSizeLimit.setEnabled(!myIsDeviceAtLeastO);
 
       mySamplingInterval.setText(String.valueOf(configuration.getProfilingSamplingIntervalUs()));
+    }
+    // Default configurations shouldn't be editable.
+    if (isDefaultConfiguration) {
+      disableFields();
     }
   }
 
@@ -184,21 +188,21 @@ public class CpuProfilingConfigPanel {
     }
   }
 
-  private void clearAndDisableFields() {
+  private void clearFields() {
     myConfigName.setText("");
-    myConfigName.setEnabled(false);
-
     myArtSampledButton.setSelected(false);
-    myArtSampledButton.setEnabled(false);
     myArtInstrumentedButton.setSelected(false);
-    myArtInstrumentedButton.setEnabled(false);
     mySimpleperfButton.setSelected(false);
-    mySimpleperfButton.setEnabled(false);
-
     mySamplingInterval.setText("");
-    mySamplingInterval.setEnabled(false);
-
     myFileSizeLimit.setText("");
+  }
+
+  private void disableFields() {
+    myConfigName.setEnabled(false);
+    myArtSampledButton.setEnabled(false);
+    myArtInstrumentedButton.setEnabled(false);
+    mySimpleperfButton.setEnabled(false);
+    mySamplingInterval.setEnabled(false);
     myFileSizeLimit.setEnabled(false);
   }
 
@@ -219,7 +223,7 @@ public class CpuProfilingConfigPanel {
     bottomFiller.setPreferredSize(new Dimension(10, 1000));
     myConfigPanel.add(bottomFiller);
 
-    clearAndDisableFields();
+    disableFields();
   }
 
   private void addSeparator() {

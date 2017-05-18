@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -483,8 +484,16 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public void openProfilingConfigurationsDialog() {
+    Consumer<ProfilingConfiguration> dialogCallback = (configuration) -> {
+      updateProfilingConfigurations();
+      // If there was a configuration selected when the dialog was closed,
+      // make sure to select it in the combobox
+      if (configuration != null) {
+        setProfilingConfiguration(configuration);
+      }
+    };
     int selectedDeviceApi = getStudioProfilers().getDevice().getFeatureLevel();
-    getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(selectedDeviceApi, this::updateProfilingConfigurations);
+    getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilingConfiguration, selectedDeviceApi, dialogCallback);
   }
 
   public void updateProfilingConfigurations() {

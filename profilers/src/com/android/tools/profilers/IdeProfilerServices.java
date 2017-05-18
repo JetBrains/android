@@ -85,10 +85,13 @@ public interface IdeProfilerServices {
 
   /**
    * Open the dialog for managing the CPU profiling configurations.
+   * @param configuration Profiling configuration to be selected when opening the dialog
    * @param deviceApi API level of the selected device
-   * @param dialogCallback callback to be called once the dialog is closed.
+   * @param dialogCallback Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
+   *                       that was selected on the configurations list when the dialog was closed.
    */
-  void openCpuProfilingConfigurationsDialog(int deviceApi, Runnable dialogCallback);
+  void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, int deviceApi,
+                                            Consumer<ProfilingConfiguration> dialogCallback);
 
   /**
    * Returns the profiling configurations saved for a project.

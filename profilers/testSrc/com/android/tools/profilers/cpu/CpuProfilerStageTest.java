@@ -583,7 +583,8 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void editConfigurationsEntryCantBeSetAsProfilingConfiguration() {
     assertNotNull(myStage.getProfilingConfiguration());
-    // ART Sampled should be the default configuration when starting the stage
+    // ART Sampled should be the default configuration when starting the stage,
+    // as it's the first configuration on the list.
     assertEquals("Sampled", myStage.getProfilingConfiguration().getName());
 
     // Set a new configuration and check it's actually set as stage's profiling configuration
