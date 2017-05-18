@@ -51,6 +51,11 @@ class SdkReplacer {
       public boolean isInstantAppSdkEnabled() {
         return activate;
       }
+
+      @Override
+      public int getMinTargetSdk() {
+        return 21;
+      }
     });
   }
 
