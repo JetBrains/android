@@ -20,7 +20,6 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
-import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
 import com.android.tools.idea.npw.module.NewModuleModel;
@@ -246,8 +245,8 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
           }
         }
 
-        if (formFactorInfo.newModuleModel.instantApp().get() && minTargetSdk < InstantApps.getMinTargetSdk()) {
-          message = message("android.wizard.project.invalid.iapp.min.sdk", formFactor, InstantApps.getMinTargetSdk());
+        if (formFactorInfo.newModuleModel.instantApp().get() && minTargetSdk < 16) {
+          message = message("android.wizard.project.invalid.iapp.min.sdk", formFactor);
           break;
         }
       }

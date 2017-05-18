@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.instantapp.sdk.InstantAppSdkException;
-import com.android.instantapp.sdk.Metadata;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
@@ -138,9 +136,5 @@ public class InstantAppSdks {
       }
     }
     return myInstantAppSdkAvailable;
-  }
-
-  public int getMinTargetSdk() throws InstantAppSdkException {
-    return Metadata.getInstance(getInstantAppSdk(false)).getMinApiLevelSupported();
   }
 }
