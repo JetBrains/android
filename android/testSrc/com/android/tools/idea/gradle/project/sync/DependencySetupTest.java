@@ -29,7 +29,6 @@ import com.intellij.testFramework.LeakHunter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.util.Collections;
@@ -49,9 +48,9 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 /**
  * Tests dependency configuration during Gradle Sync.
  */
-@Ignore("http://b/35788105")
 public class DependencySetupTest extends AndroidGradleTestCase {
-  public void testFake() {
+  public void testDisabled() {
+    // http://b/35788105
   }
 
   private Modules myModules;

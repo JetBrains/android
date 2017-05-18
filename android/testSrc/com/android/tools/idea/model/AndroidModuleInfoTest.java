@@ -32,7 +32,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
-import org.junit.Ignore;
 import org.w3c.dom.Element;
 
 import java.util.Arrays;
@@ -44,9 +43,9 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
 
-@Ignore("http://b/35788105")
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
-  public void testFake() {
+  public void testDisabled() {
+    // http://b/35788105
   }
 
   public void /*test*/ManifestOnly() throws Exception {

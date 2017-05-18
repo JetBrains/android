@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import org.junit.Ignore;
 
 import java.io.*;
 
@@ -32,9 +31,9 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAN
 /**
  * Tests for {@link AndroidModuleModel}.
  */
-@Ignore("http://b/35788105")
 public class AndroidModuleModelTest extends AndroidGradleTestCase {
-  public void testFake() {
+  public void testDisabled() {
+    // http://b/35788105
   }
 
   private AndroidProjectStub myAndroidProject;

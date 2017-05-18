@@ -21,7 +21,6 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.util.List;
@@ -35,9 +34,9 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link OldAndroidPluginErrorHandler}.
  */
-@Ignore("http://b/35788260")
 public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
-  public void testFake() {
+  public void testDisabled() {
+    // http://b/35788260
   }
 
   private GradleSyncMessagesStub mySyncMessagesStub;
