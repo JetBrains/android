@@ -145,6 +145,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
+      public boolean isJvmtiAgentEnabled() {
+        return StudioFlags.PROFILER_USE_JVMTI.get();
+      }
+
+      @Override
       public boolean isNetworkThreadViewEnabled() {
         return StudioFlags.PROFILER_SHOW_THREADS_VIEW.get();
       }

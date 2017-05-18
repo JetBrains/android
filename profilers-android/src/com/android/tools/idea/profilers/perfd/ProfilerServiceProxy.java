@@ -17,16 +17,16 @@ package com.android.tools.idea.profilers.perfd;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.ManagedChannel;
@@ -38,8 +38,6 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
@@ -51,12 +49,10 @@ import static com.android.ddmlib.Client.CHANGE_NAME;
 public class ProfilerServiceProxy extends PerfdProxyService
   implements AndroidDebugBridge.IClientChangeListener, AndroidDebugBridge.IDeviceChangeListener {
 
-  private static Logger getLogger() {
+  private static Logger getLog() {
     return Logger.getInstance(ProfilerServiceProxy.class);
   }
 
-  private static final String AGENT_NAME = "libperfa.so";
-  private static final String AGENT_JAR = "perfa.jar";
   private static final String EMULATOR = "Emulator";
 
   private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
@@ -150,7 +146,8 @@ public class ProfilerServiceProxy extends PerfdProxyService
     if (myIsDeviceApiSupported) {
       // if device API is supported, use grpc to get the current time
       response = myServiceStub.getCurrentTime(request);
-    } else {
+    }
+    else {
       // otherwise, return a default (any) instance of TimeResponse
       response = Profiler.TimeResponse.getDefaultInstance();
     }
@@ -163,52 +160,6 @@ public class ProfilerServiceProxy extends PerfdProxyService
       Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myCachedProcesses.values()).build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
-    }
-  }
-
-  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> observer) {
-    // Agent attaching is only available on post-O devices.
-    if (!StudioFlags.PROFILER_USE_JVMTI.get() ||
-        !myDevice.isOnline() ||
-        myDevice.getVersion().getFeatureLevel() < 26) {
-      observer.onNext(Profiler.AgentAttachResponse.getDefaultInstance());
-      observer.onCompleted();
-      return;
-    }
-
-    synchronized (myClients) {
-      Profiler.AgentAttachResponse.Status status = Profiler.AgentAttachResponse.Status.FAILURE_UNKNOWN;
-      for (Client client : myClients) {
-        if (client.getClientData().getPid() != request.getProcessId()) {
-          continue;
-        }
-
-        String packageName = client.getClientData().getPackageName();
-
-        // TODO: Handle when agent is previously attached.
-        String appDataDir = client.getClientData().getDataDir();
-        String devicePath = "/data/local/tmp/perfd/";
-        try {
-          // TODO move attachment to perfd
-          myDevice.executeShellCommand(String.format("run-as %s cp %s%s %s", packageName, devicePath, AGENT_NAME, appDataDir),
-                                       new NullOutputReceiver());
-          myDevice.executeShellCommand(String.format("run-as %s cp %s%s %s", packageName, devicePath, AGENT_JAR, appDataDir),
-                                       new NullOutputReceiver());
-          myDevice.executeShellCommand(String.format("cmd activity attach-agent %s %s/%s", packageName, appDataDir, AGENT_NAME),
-                                       new NullOutputReceiver());
-          status = Profiler.AgentAttachResponse.Status.SUCCESS;
-        }
-        catch (TimeoutException | AdbCommandRejectedException | IOException | ShellCommandUnresponsiveException e) {
-          getLogger().error("Failed to attach agent.", e);
-        }
-
-        break;
-      }
-      observer.onNext(Profiler.AgentAttachResponse.newBuilder().setStatus(status).build());
-      observer.onCompleted();
-
-      // Inform the on-device daemon to establish the communication channel with the agent.
-      myServiceStub.attachAgent(request);
     }
   }
 
@@ -249,19 +200,11 @@ public class ProfilerServiceProxy extends PerfdProxyService
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getProcesses((Profiler.GetProcessesRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(ProfilerServiceGrpc.METHOD_ATTACH_AGENT,
-                  ServerCalls.asyncUnaryCall((request, observer) -> {
-                    attachAgent((Profiler.AgentAttachRequest)request, (StreamObserver)observer);
-                  }));
     overrides.put(ProfilerServiceGrpc.METHOD_GET_CURRENT_TIME,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getCurrentTime((Profiler.TimeRequest)request, (StreamObserver)observer);
                   }));
     return generatePassThroughDefinitions(overrides, myServiceStub);
-  }
-
-  private static Logger getLog() {
-    return Logger.getInstance(ProfilerServiceProxy.class);
   }
 
   private void updateProcesses() {

@@ -42,6 +42,9 @@ public class FakeGrpcServer extends FakeGrpcChannel {
           new MemoryService(),
           new NetworkService(),
           new CpuService());
+    // TODO the current static map keeps around values from previous tests. We should refactor this properly so this doesn't have to be
+    // a static.
+    ourProfiledProcesses.clear();
   }
 
   /**

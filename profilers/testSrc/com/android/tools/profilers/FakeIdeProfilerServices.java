@@ -51,6 +51,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   Runnable myPrePoolExecute;
 
   /**
+   * Toggle for faking jvmti agent support in tests.
+   */
+  private boolean isJvmtiAgentEnabled = false;
+
+  /**
    * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean isSimplePerfEnabled = false;
@@ -108,6 +113,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
+      public boolean isJvmtiAgentEnabled() {
+        return isJvmtiAgentEnabled;
+      }
+
+      @Override
       public boolean isNetworkThreadViewEnabled() {
         return true;
       }
@@ -118,7 +128,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isLiveAllocationsEnabled() { return isLiveTrackingEnabled; }
+      public boolean isLiveAllocationsEnabled() {
+        return isLiveTrackingEnabled;
+      }
     };
   }
 
@@ -138,6 +150,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setPrePoolExecutor(@Nullable Runnable prePoolExecute) {
     myPrePoolExecute = prePoolExecute;
+  }
+
+  public void enableJvmtiAgent(boolean enabled) {
+    isJvmtiAgentEnabled = enabled;
   }
 
   public void enableSimplePerf(boolean enabled) {
