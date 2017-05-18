@@ -29,6 +29,13 @@ public class ProfilingConfiguration {
 
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
 
+  // TODO: change ART sampled configuration name to Sampled (Java) when we enable simpleperf flag on
+  public static final String ART_SAMPLED = "Sampled";
+
+  public static final String ART_INSTRUMENTED = "Instrumented";
+
+  public static final String SIMPLEPERF = "Sampled (Hybrid)";
+
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
    */
@@ -104,13 +111,13 @@ public class ProfilingConfiguration {
   }
 
   public static List<ProfilingConfiguration> getDefaultProfilingConfigurations() {
-    ProfilingConfiguration artSampled = new ProfilingConfiguration("Sampled (Java)",
+    ProfilingConfiguration artSampled = new ProfilingConfiguration(ART_SAMPLED,
                                                                    CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
                                                                    CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    ProfilingConfiguration artInstrumented = new ProfilingConfiguration("Instrumented",
+    ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ART_INSTRUMENTED,
                                                                         CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
                                                                         CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-    ProfilingConfiguration simpleperf = new ProfilingConfiguration("Sampled (Hybrid)",
+    ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
                                                                    CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF,
                                                                    CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
     return ImmutableList.of(artSampled, artInstrumented, simpleperf);
