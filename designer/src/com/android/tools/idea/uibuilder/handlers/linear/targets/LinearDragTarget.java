@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.linear.targets;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
@@ -66,7 +67,7 @@ public class LinearDragTarget extends DragBaseTarget {
     myHandler.setDragging(myComponent, true);
     // Need to call this to update the targetsProvider when moving from one layout to another during a drag
     // but we should have a better scenario to recreate the targets
-    parent.getScene().getSceneManager().addTargets(myComponent);
+    ((LayoutlibSceneManager)parent.getScene().getSceneManager()).addTargets(myComponent);
     parent.updateTargets(true);
     myDragHandled = false;
     super.mouseDown(x, y);

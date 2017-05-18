@@ -72,11 +72,6 @@ public class NavSceneManager extends SceneManager {
     return Boolean.getBoolean(ENABLE_NAV_PROPERTY);
   }
 
-  @Override
-  public void addTargets(@NotNull SceneComponent component) {
-    // TODO: Remove this method?
-  }
-
   @NotNull
   @Override
   public Scene build() {
