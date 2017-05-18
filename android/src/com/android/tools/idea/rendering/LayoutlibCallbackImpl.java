@@ -16,15 +16,15 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.fonts.FontFamily;
-import com.android.tools.idea.fonts.DownloadableFontCacheService;
-import com.android.tools.idea.fonts.ProjectFonts;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.fonts.DownloadableFontCacheService;
+import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -67,8 +67,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -82,9 +82,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
   /** Class names that are not a view. When instantiating them, errors should be logged by LayoutLib. */
-  private static final Set<String> NOT_VIEW = Collections.unmodifiableSet(Sets.newHashSet(RecyclerViewHelper.CN_RV_ADAPTER,
-                                                                                          RecyclerViewHelper.CN_RV_LAYOUT_MANAGER,
-                                                                                          "android.support.v7.internal.app.WindowDecorActionBar"));
+  private static final Set<String> NOT_VIEW = ImmutableSet.of(RecyclerViewHelper.CN_RV_ADAPTER,
+                                                              RecyclerViewHelper.CN_RV_LAYOUT_MANAGER,
+                                                             "android.support.v7.internal.app.WindowDecorActionBar");
   /** Directory name for the bundled layoutlib installation */
   public static final String FD_LAYOUTLIB = "layoutlib";
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
@@ -96,7 +96,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final Object myCredential;
   private final boolean myHasAppCompat;
   @Nullable private String myNamespace;
-  @Nullable private RenderLogger myLogger;
+  @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
@@ -104,7 +104,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final ActionBarHandler myActionBarHandler;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
-  private boolean myUsed = false;
+  private boolean myUsed;
   private Set<File> myParserFiles;
   private int myParserCount;
   private ParserFactory myParserFactory;
@@ -129,13 +129,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @NotNull AppResourceRepository projectRes,
                                @NotNull Module module,
                                @NotNull AndroidFacet facet,
-                               @NotNull RenderLogger logger,
+                               @NotNull IRenderLogger logger,
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
     myModule = module;
+    myLogger = logger;
     myCredential = credential;
     myLogger = logger;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
@@ -157,6 +158,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       .filter(value -> value.getRawXmlValue().endsWith(DOT_XML))
       .collect(Collectors.toMap(ResourceValue::getRawXmlValue, (ResourceValue value) -> value));
   }
+
   /** Resets the callback state for another render */
   void reset() {
     myParserCount = 0;
@@ -167,22 +169,22 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   /**
-   * Sets the {@link LayoutLog} logger to use for error messages during problems
+   * Sets the {@link LayoutLog} logger to use for error messages during problems.
    *
-   * @param logger the new logger to use, or null to clear it out
+   * @param logger the new logger to use
    */
-  public void setLogger(@Nullable RenderLogger logger) {
+  public void setLogger(@NotNull IRenderLogger logger) {
     myLogger = logger;
     myClassLoader.setLogger(logger);
   }
 
   /**
-   * Returns the {@link LayoutLog} logger used for error messages, or null
+   * Returns the {@link ILayoutLog} logger used for error messages.
    *
-   * @return the logger being used, or null if no logger is in use
+   * @return the logger being used
    */
-  @Nullable
-  public LayoutLog getLogger() {
+  @NotNull
+  public ILayoutLog getLogger() {
     return myLogger;
   }
 
@@ -361,7 +363,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     ILayoutPullParser parser;
     if (value != null && !myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
       TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(layoutResource.getValue(), AAPT_ATTR_PREFIX));
-      assert myLogger != null;
       parser = LayoutPsiPullParser.create(aaptResource, myLogger);
     }
     else {
@@ -424,8 +425,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           if (file != null) {
             PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
             if (psiFile instanceof XmlFile) {
-              assert myLogger != null;
-
               // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
               // layout so we already have a parent.
               LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false);
@@ -465,9 +464,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * been asked to provide parsers for
    */
   private boolean findCycles() {
-    Map<File,String> fileToLayout = Maps.newHashMap();
-    Map<String,File> layoutToFile = Maps.newHashMap();
-    Multimap<String,String> includeMap = ArrayListMultimap.create();
+    Map<File, String> fileToLayout = new HashMap<>();
+    Map<String, File> layoutToFile = new HashMap<>();
+    Multimap<String, String> includeMap = ArrayListMultimap.create();
     for (File file : myParserFiles) {
       String layoutName = LintUtils.getLayoutName(file);
       layoutToFile.put(layoutName, file);
@@ -513,34 +512,32 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         Set<String> visiting = Sets.newHashSetWithExpectedSize(includeMap.size());
         List<String> chain = dfs(from, visiting, includeMap);
         if (chain != null) {
-          if (myLogger != null) {
-            RenderProblem.Html problem = RenderProblem.create(WARNING);
-            HtmlBuilder builder = problem.getHtmlBuilder();
-            builder.add("Found cyclical <include> chain: ");
-            boolean first = true;
-            Collections.reverse(chain);
-            for (String layout : chain) {
-              if (first) {
-                first = false;
-              } else {
-                builder.add(" includes ");
+          RenderProblem.Html problem = RenderProblem.create(WARNING);
+          HtmlBuilder builder = problem.getHtmlBuilder();
+          builder.add("Found cyclical <include> chain: ");
+          boolean first = true;
+          Collections.reverse(chain);
+          for (String layout : chain) {
+            if (first) {
+              first = false;
+            } else {
+              builder.add(" includes ");
+            }
+            File file = layoutToFile.get(layout);
+            if (file != null) {
+              try {
+                String url = SdkUtils.fileToUrlString(file);
+                builder.addLink(layout, url);
               }
-              File file = layoutToFile.get(layout);
-              if (file != null) {
-                try {
-                  String url = SdkUtils.fileToUrlString(file);
-                  builder.addLink(layout, url);
-                }
-                catch (MalformedURLException e) {
-                  builder.add(layout);
-                }
-              } else {
+              catch (MalformedURLException e) {
                 builder.add(layout);
               }
+            } else {
+              builder.add(layout);
             }
-
-            myLogger.addMessage(problem);
           }
+
+          myLogger.addMessage(problem);
           return true;
         }
       }

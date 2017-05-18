@@ -50,7 +50,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * A {@link LayoutLog} which records the problems it encounters and offers them as a
  * single summary at the end
  */
-public class RenderLogger extends LayoutLog {
+public class RenderLogger extends LayoutLog implements IRenderLogger {
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
@@ -175,6 +175,7 @@ public class RenderLogger extends LayoutLog {
     return null;
   }
 
+  @Override
   public void addMessage(@NotNull RenderProblem message) {
     if (myMessages == null) {
       myMessages = Lists.newArrayList();
@@ -591,6 +592,7 @@ public class RenderLogger extends LayoutLog {
     return myTags.stream().anyMatch(s -> s.startsWith(prefix));
   }
 
+  @Override
   @NotNull
   public HtmlLinkManager getLinkManager() {
     if (myLinkManager == null) {
@@ -599,6 +601,7 @@ public class RenderLogger extends LayoutLog {
     return myLinkManager;
   }
 
+  @Override
   public void setHasLoadedClasses() {
     myHasLoadedClasses = true;
   }
@@ -615,6 +618,7 @@ public class RenderLogger extends LayoutLog {
     return myMissingResourceClass;
   }
 
+  @Override
   public void setMissingResourceClass() {
     myMissingResourceClass = true;
   }
@@ -624,6 +628,7 @@ public class RenderLogger extends LayoutLog {
     return myResourceClass;
   }
 
+  @Override
   public void setResourceClass(@NotNull String resourceClass) {
     myResourceClass = resourceClass;
   }
@@ -643,6 +648,7 @@ public class RenderLogger extends LayoutLog {
     return myMissingClasses != null ? myMissingClasses : Collections.emptySet();
   }
 
+  @Override
   public void addMissingClass(@NotNull String className) {
     if (!className.equals(VIEW_FRAGMENT)) {
       if (myMissingClasses == null) {
@@ -652,6 +658,7 @@ public class RenderLogger extends LayoutLog {
     }
   }
 
+  @Override
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   public void addIncorrectFormatClass(@NotNull String className, @NotNull Throwable exception) {
     if (myClassesWithIncorrectFormat == null) {
@@ -660,6 +667,7 @@ public class RenderLogger extends LayoutLog {
     myClassesWithIncorrectFormat.put(className, exception);
   }
 
+  @Override
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   public void addBrokenClass(@NotNull String className, @NotNull Throwable exception) {
     while (exception.getCause() != null && exception.getCause() != exception) {

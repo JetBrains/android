@@ -236,7 +236,7 @@ public class RenderTask implements IImageFactory {
   }
 
   @NotNull
-  public RenderLogger getLogger() {
+  public IRenderLogger getLogger() {
     return myLogger;
   }
 
@@ -281,7 +281,7 @@ public class RenderTask implements IImageFactory {
       catch (InterruptedException | ExecutionException e) {
         LOG.warn(e);
       }
-      myLayoutlibCallback.setLogger(null);
+      myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
       myLayoutlibCallback.setResourceResolver(null);
       if (myRenderSession != null) {
         try {
@@ -869,18 +869,18 @@ public class RenderTask implements IImageFactory {
   private void addDiagnostics(@NotNull Result result) {
     if (!myLogger.hasProblems() && !result.isSuccess()) {
       if (result.getException() != null || result.getErrorMessage() != null) {
-        myLogger.error(null, result.getErrorMessage(), result.getException(), null);
+        myLogger.error(null, result.getErrorMessage(), result.getException(), null, null);
       } else if (result.getStatus() == Result.Status.ERROR_TIMEOUT) {
-        myLogger.error(null, "Rendering timed out.", null);
+        myLogger.error(null, "Rendering timed out.", null, null, null);
       } else {
-        myLogger.error(null, "Unknown render problem: " + result.getStatus(), null);
+        myLogger.error(null, "Unknown render problem: " + result.getStatus(), null, null, null);
       }
     } else if (myIncludedWithin != null && myIncludedWithin != IncludeReference.NONE) {
       ILayoutPullParser layoutEmbeddedParser = myLayoutlibCallback.getLayoutEmbeddedParser();
       if (layoutEmbeddedParser != null) {  // Should have been nulled out if used
         myLogger.error(null, String.format("The surrounding layout (%1$s) did not actually include this layout. " +
                                            "Remove tools:" + SdkConstants.ATTR_SHOW_IN + "=... from the root tag.",
-                                           myIncludedWithin.getFromResourceUrl()), null);
+                                           myIncludedWithin.getFromResourceUrl()), null, null, null);
       }
     }
   }
