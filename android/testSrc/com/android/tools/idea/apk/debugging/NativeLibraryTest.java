@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import static com.android.sdklib.devices.Abi.ARM64_V8A;
 import static com.android.sdklib.devices.Abi.X86;
 import static com.android.tools.idea.apk.debugging.SharedObjectFiles.createSharedObjectFiles;
+import static com.android.utils.FileUtils.toSystemIndependentPath;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -128,7 +129,7 @@ public class NativeLibraryTest extends IdeaTestCase {
     assertTrue(myLibrary.hasDebugSymbols);
 
     DebuggableSharedObjectFile stored = myLibrary.debuggableSharedObjectFilesByAbi.get(abi);
-    assertEquals(debuggableFile.getPath(), stored.path);
+    assertEquals(debuggableFile.getPath(), toSystemIndependentPath(stored.path));
   }
 
   public void testGetUserSelectedPathsInMappings() {
