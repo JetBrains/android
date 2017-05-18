@@ -143,13 +143,31 @@ public class WorkBenchTest {
   @Test
   public void testComponentResize() {
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
-      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
+      .isEqualTo(-1);
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
-      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
+      .isEqualTo(-1);
     mySplitter.setFirstSize(400);
     fireComponentResize(myContent);
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
       .isEqualTo(AdtUiUtils.unscale(400));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
+  }
+
+  @Test
+  public void testComponentDownSize() {
+    mySplitter.setFirstSize(1000);
+    mySplitter.setLastSize(2800);
+    fireComponentResize(myContent);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(1000));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(2800));
+    mySplitter.setFirstSize(-30);
+    mySplitter.setLastSize(-50);
+    fireComponentResize(myContent);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
       .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
   }
@@ -302,6 +320,7 @@ public class WorkBenchTest {
     verify(myLeftMinimizePanel).drag(eq(myToolWindow1), eq(75));
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void fireButtonDragged(@NotNull JComponent dragImage, int xStart, int yStart, int x, int y) {
     AbstractButton button = myToolWindow1.getMinimizedButton();
     MouseEvent mouseEvent = new MouseEvent(button, MouseEvent.MOUSE_DRAGGED, 1, InputEvent.BUTTON1_MASK, x, y, 1, false);
@@ -326,6 +345,7 @@ public class WorkBenchTest {
     verify(myRightMinimizePanel).dragDrop(eq(myToolWindow1), eq(20));
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void fireButtonDropped(@NotNull JComponent dragImage, int xStart, int yStart, int x, int y) {
     AbstractButton button = myToolWindow1.getMinimizedButton();
     MouseEvent mouseEvent = new MouseEvent(button, MouseEvent.MOUSE_RELEASED, 1, InputEvent.BUTTON1_MASK, x, y, 1, false);

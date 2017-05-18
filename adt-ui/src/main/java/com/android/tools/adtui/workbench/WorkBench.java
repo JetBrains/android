@@ -262,18 +262,21 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   private int getInitialSideWidth(@NotNull Side side) {
+    int minimalWidth = getMinimumWidth(side);
     int width = getSideWidth(Layout.CURRENT, side);
-    if (width != -1) {
-      return width;
+    if (width == -1) {
+      setSideWidth(Layout.DEFAULT, side, width);
+      setSideWidth(Layout.CURRENT, side, width);
     }
-    Optional<Integer> minimumWidth = myToolDefinitions.stream()
+    return Math.max(width, minimalWidth);
+  }
+
+  private int getMinimumWidth(@NotNull Side side) {
+    Optional<Integer> initialMinimumWidth = myToolDefinitions.stream()
       .filter(tool -> tool.getSide() == side)
       .map(ToolWindowDefinition::getInitialMinimumWidth)
       .max(Comparator.comparing(size -> size));
-    width = minimumWidth.orElse(ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
-    setSideWidth(Layout.DEFAULT, side, width);
-    setSideWidth(Layout.CURRENT, side, width);
-    return width;
+    return initialMinimumWidth.orElse(ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
   }
 
   @NotNull
@@ -297,7 +300,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   private void updateWidth(@NotNull Side side) {
+    int minimalWidth = getMinimumWidth(side);
     int width = side.isLeft() ? mySplitter.getFirstSize() : mySplitter.getLastSize();
+    width = Math.max(minimalWidth, width);
     if (width != 0 && width != getSideWidth(Layout.CURRENT, side)) {
       setSideWidth(Layout.CURRENT, side, width);
     }
@@ -504,6 +509,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private int translate(int pos, int offset, int min, int max) {
       return Math.min(Math.max(pos - offset, min), max);
     }
