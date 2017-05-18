@@ -39,13 +39,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
-  private Runnable myOnCloseCallback;
+  private Consumer<ProfilingConfiguration> myOnCloseCallback;
 
-  public CpuProfilingConfigurationsDialog(final Project project, int deviceApi, Runnable onCloseCallback) {
-    super(project, new ProfilingConfigurable(project, deviceApi), IdeModalityType.IDE);
+  public CpuProfilingConfigurationsDialog(final Project project,
+                                          int deviceApi,
+                                          ProfilingConfiguration preSelectedConfiguration,
+                                          Consumer<ProfilingConfiguration> onCloseCallback) {
+    super(project, new ProfilingConfigurable(project, preSelectedConfiguration, deviceApi), IdeModalityType.IDE);
     myOnCloseCallback = onCloseCallback;
     setHorizontalStretch(1.3F);
     // TODO: add help button on the bottom-left corner when we have the URL for it.
@@ -53,14 +57,22 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
   @Override
   protected void doOKAction() {
+    ProfilingConfiguration lastSelectedConfig = getSelectedConfiguration();
     super.doOKAction();
-    myOnCloseCallback.run();
+    myOnCloseCallback.accept(lastSelectedConfig);
   }
 
   @Override
   public void doCancelAction(AWTEvent source) {
+    ProfilingConfiguration lastSelectedConfig = getSelectedConfiguration();
     super.doCancelAction(source);
-    myOnCloseCallback.run();
+    myOnCloseCallback.accept(lastSelectedConfig);
+  }
+
+  @Nullable
+  private ProfilingConfiguration getSelectedConfiguration() {
+    ProfilingConfigurable configurable = (ProfilingConfigurable)getConfigurable();
+    return configurable.getSelectedConfiguration();
   }
 
   private static class ProfilingConfigurable extends BaseConfigurable {
@@ -85,8 +97,16 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     @NotNull
     private final JList<ProfilingConfiguration> myConfigurations;
 
+    /**
+     * The configurations model contains the custom configurations created by users followed by the default ones.
+     * We need to make sure to respect this invariant. The custom configurations can have any order, but their indices
+     * must be less than the indices of the default ones. Therefore, the default configuration indexes must be
+     * greater than or equal to {@link #getCustomConfigurationCount()}.
+     */
     @NotNull
     private final DefaultListModel<ProfilingConfiguration> myConfigurationsModel;
+
+    private int myDefaultConfigurationsCount;
 
     private final Project myProject;
 
@@ -95,14 +115,14 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
      */
     private CpuProfilingConfigPanel myProfilersPanel;
 
-    // TODO: pre-select configuration (if one exists) that was selected in the configurations combobox.
-    public ProfilingConfigurable(Project project, int deviceApi) {
+    public ProfilingConfigurable(Project project, ProfilingConfiguration preSelectedConfiguration, int deviceApi) {
       myProject = project;
       myProfilersPanel = new CpuProfilingConfigPanel(deviceApi >= AndroidVersion.VersionCodes.O);
 
       myConfigurationsModel = new DefaultListModel<>();
       myConfigurations = new JBList<>(myConfigurationsModel);
       setUpConfigurationsList();
+      selectConfiguration(preSelectedConfiguration);
     }
 
     private void setUpConfigurationsList() {
@@ -115,13 +135,18 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
                               int index,
                               boolean selected,
                               boolean hasFocus) {
-          setText(value.getName());
+          String cellText = value.getName();
+          if (index >= getCustomConfigurationCount()) {
+            cellText += " - Default";
+          }
+          setText(cellText);
         }
       });
       myConfigurations.addListSelectionListener((e) -> {
         int index = myConfigurations.getSelectedIndex();
-        myProfilersPanel.setConfiguration(index < 0 ? null : myConfigurationsModel.get(index));
+        myProfilersPanel.setConfiguration(index < 0 ? null : myConfigurationsModel.get(index), index >= getCustomConfigurationCount());
       });
+
       // Restore saved configurations
       for (ProfilingConfiguration configuration : CpuProfilingConfigService.getInstance(myProject).getConfigurations()) {
         // We don't check for device API when listing the configurations. The user should be able to view and the simpleperf configurations,
@@ -132,6 +157,35 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         }
         myConfigurationsModel.addElement(configuration);
       }
+
+      // Add default configurations
+      int defaultConfigCount = 0;
+      for (ProfilingConfiguration configuration : ProfilingConfiguration.getDefaultProfilingConfigurations()) {
+        if (configuration.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF
+            && !StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
+          continue; // Don't add simpleperf default configurations if flag is disabled.
+        }
+        myConfigurationsModel.addElement(configuration);
+        defaultConfigCount++;
+      }
+      myDefaultConfigurationsCount = defaultConfigCount;
+    }
+
+    private int getCustomConfigurationCount() {
+      return myConfigurationsModel.size() - myDefaultConfigurationsCount;
+    }
+
+    private void selectConfiguration(ProfilingConfiguration configuration) {
+      for (int i = 0; i < myConfigurationsModel.size(); i++) {
+        if (configuration.getName().equals(myConfigurationsModel.get(i).getName())) {
+          myConfigurations.setSelectedIndex(i);
+          return;
+        }
+      }
+    }
+
+    public ProfilingConfiguration getSelectedConfiguration() {
+      return myConfigurations.getSelectedValue();
     }
 
     private JComponent createLeftPanel() {
@@ -172,7 +226,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     public void apply() throws ConfigurationException {
       CpuProfilingConfigService profilingConfigService = CpuProfilingConfigService.getInstance(myProject);
       List<ProfilingConfiguration> configsToSave = new ArrayList<>();
-      for (int i = 0; i < myConfigurationsModel.size(); i++) {
+      for (int i = 0; i < getCustomConfigurationCount(); i++) {
         configsToSave.add(myConfigurationsModel.get(i));
       }
 
@@ -236,9 +290,10 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         ProfilingConfiguration configuration = new ProfilingConfiguration("Unnamed",
                                                                           CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART,
                                                                           CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-        myConfigurationsModel.addElement(configuration);
+        int lastConfigurationIndex = getCustomConfigurationCount();
+        myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration
-        myConfigurations.setSelectedIndex(myConfigurationsModel.size() - 1);
+        myConfigurations.setSelectedIndex(lastConfigurationIndex);
       }
     }
 
@@ -273,15 +328,12 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       private void removeSelectedConfiguration() {
         if (selectionExists()) {
           int removedIndex = myConfigurations.getSelectedIndex();
-          myConfigurationsModel.remove(removedIndex);
-          // select a neighbor index if it exists.
-          if (myConfigurationsModel.size() > 0) {
-            // handle the edge case of removing the last index
-            if (removedIndex == myConfigurationsModel.size()) {
-              removedIndex--;
-            }
-            myConfigurations.setSelectedIndex(removedIndex);
+          if (removedIndex >= getCustomConfigurationCount()) {
+            // TODO: display an error popup saying we can't remove default configurations.
+            return;
           }
+          myConfigurationsModel.remove(removedIndex);
+          myConfigurations.setSelectedIndex(removedIndex);
         }
       }
     }
@@ -328,8 +380,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         if (myConfigurations.getSelectedIndex() < 0) {
           return false; // Nothing is selected
         }
+        if (myConfigurations.getSelectedIndex() >= getCustomConfigurationCount()) {
+          return false; // Default configuration is selected.
+        }
         if (myConfigurations.getSelectedIndex() + myMoveDownCount < 0 ||
-            myConfigurations.getSelectedIndex() + myMoveDownCount >= myConfigurationsModel.size()) {
+            myConfigurations.getSelectedIndex() + myMoveDownCount >= getCustomConfigurationCount()) {
           return false; // Selected element is already on the first/last available position.
         }
         return true;

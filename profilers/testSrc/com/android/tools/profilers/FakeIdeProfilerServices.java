@@ -135,7 +135,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void openCpuProfilingConfigurationsDialog(int deviceApi, Runnable callbackDialog) {
+  public void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, int deviceApi,
+                                                   Consumer<ProfilingConfiguration> callbackDialog) {
     // No-op.
   }
 
