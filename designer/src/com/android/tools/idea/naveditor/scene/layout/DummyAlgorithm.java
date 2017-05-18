@@ -38,21 +38,20 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
   @Override
   public void layout(@NotNull SceneComponent component) {
     NavigationSchema.DestinationType type = mySchema.getDestinationType(component.getNlComponent().getTagName());
-    // TODO: support other destinations
-    if (type != NavigationSchema.DestinationType.FRAGMENT) {
+    if (type == NavigationSchema.DestinationType.NAVIGATION && component.getParent() == null) {
       return;
     }
     SceneComponent root = component.getScene().getRoot();
     Map<SceneComponent, Rectangle> bounds =
       root.flatten()
         .filter(c -> mySchema.getDestinationType(c.getNlComponent().getTagName()) == NavigationSchema.DestinationType.FRAGMENT)
-        .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(null, 0)));
+        .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(0, null)));
 
     int xOffset = 50;
     int yOffset = 50;
     while (true) {
       component.setPosition(xOffset, yOffset);
-      Rectangle newBounds = component.fillDrawRect(null, 0);
+      Rectangle newBounds = component.fillDrawRect(0, null);
       bounds.put(component, newBounds);
       xOffset += 130;
       if (xOffset + 100 > root.getDrawWidth()) {
@@ -66,7 +65,7 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
   }
 
   private static boolean checkOverlaps(@NotNull Map<SceneComponent, Rectangle> bounds, @NotNull SceneComponent component) {
-    Rectangle componentBounds = component.fillDrawRect(null, 0);
+    Rectangle componentBounds = component.fillDrawRect(0, null);
     for (Map.Entry<SceneComponent, Rectangle> existing : bounds.entrySet()) {
       if (componentBounds.intersects(existing.getValue()) && existing.getKey() != component) {
         return false;

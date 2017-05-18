@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
@@ -26,7 +28,9 @@ import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_START_DESTINATION;
 
@@ -48,12 +52,25 @@ public class NavScreenTargetProvider implements TargetProvider {
   @Override
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     List<Target> result = new ArrayList<>();
-    for (NlComponent nlChild : sceneComponent.getNlComponent().getChildren()) {
-      if (nlChild.getTagName().equals(NavigationSchema.TAG_ACTION)) {
-        result.add(new ActionTarget(sceneComponent, nlChild));
-      }
-    }
     if (mySchema.getDestinationType(sceneComponent.getNlComponent().getTagName()) != null) {
+      if (sceneComponent.getParent() != null) {
+        Map<String, SceneComponent> groupMap = new HashMap<>();
+        for (SceneComponent sibling : sceneComponent.getParent().getChildren()) {
+          if (sibling == sceneComponent) {
+            continue;
+          }
+          sibling.flatten().forEach(component -> groupMap.put(component.getId(), sibling));
+        }
+        sceneComponent.getNlComponent().flatten()
+          .filter(component -> component.getTagName().equals(NavigationSchema.TAG_ACTION))
+          .forEach(nlChild -> {
+            String destinationId = NlComponent.stripId(nlChild.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
+            SceneComponent destination = groupMap.get(destinationId);
+            if (destination != null) {
+              result.add(new ActionTarget(sceneComponent, destination, nlChild));
+            }
+          });
+      }
       if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
         result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
       }
