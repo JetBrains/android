@@ -842,6 +842,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         else {
           addToEventLog(statusMsg, messageType);
         }
+        getLogger().info(statusMsg);
       }
     }
 
