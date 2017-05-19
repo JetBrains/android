@@ -49,6 +49,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
+  /**
+   * Configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
+   */
+  static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration();
   private static final long INVALID_CAPTURE_START_TIME = Long.MAX_VALUE;
 
   private final CpuThreadsModel myThreadsStates;
@@ -111,7 +115,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private CaptureElapsedTimeUpdatable myCaptureElapsedTimeUpdatable;
 
-  @Nullable
   private ProfilingConfiguration myProfilingConfiguration;
 
   private List<ProfilingConfiguration> myProfilingConfigurations;
@@ -274,12 +277,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public void startCapturing() {
-    if (myProfilingConfiguration == null) {
-      // TODO: communicate it in the UI in a better way.
-      getLogger().warn("Unable to start tracing. No configurations set.");
-      return;
-    }
-
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
@@ -467,7 +464,16 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public void setProfilingConfiguration(@Nullable ProfilingConfiguration mode) {
-    myProfilingConfiguration = mode;
+    // EDIT_CONFIGURATIONS_ENTRY should be a transient state for myProfilingConfiguration and should be used
+    // only to open the configurations dialog. When calling setProfilingConfiguration(EDIT_CONFIGURATIONS_ENTRY),
+    // we open the dialog but don't actually change the value of myProfilingConfiguration.
+    assert myProfilingConfiguration != EDIT_CONFIGURATIONS_ENTRY;
+    if (mode != EDIT_CONFIGURATIONS_ENTRY) {
+      myProfilingConfiguration = mode;
+    }
+    else {
+      openProfilingConfigurationsDialog();
+    }
     myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
   }
 
@@ -483,6 +489,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void updateProfilingConfigurations() {
     myProfilingConfigurations = new ArrayList<>();
+    // EDIT_CONFIGURATIONS_ENTRY should represent the entry to open the configurations dialog
+    myProfilingConfigurations.add(EDIT_CONFIGURATIONS_ENTRY);
     List<ProfilingConfiguration> savedConfigs = getStudioProfilers().getIdeServices().getCpuProfilingConfigurations();
     List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
 
@@ -499,7 +507,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       myProfilingConfigurations.addAll(defaultConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList()));
     }
 
-    setProfilingConfiguration(myProfilingConfigurations.isEmpty() ? null : myProfilingConfigurations.get(0));
+    // Configurations should have more than one element, as it contains at least EDIT_CONFIGURATIONS_ENTRY and the default configurations.
+    assert myProfilingConfigurations.size() > 1;
+    myProfilingConfiguration = myProfilingConfigurations.get(1);
   }
 
   @NotNull
