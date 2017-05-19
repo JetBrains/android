@@ -32,6 +32,7 @@ import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBLabel;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -96,6 +97,12 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
   @Override
   protected JComponent getComponent() {
     return myRootPanel;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myCppStandardCombo;
   }
 
   @Override
