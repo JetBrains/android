@@ -67,7 +67,7 @@ public class InstantAppActivityDefaultsTest {
 
     newProjectWizard
       .getConfigureFormFactorStep()
-      .selectMinimumSdkApi(MOBILE, "16")
+      .selectMinimumSdkApi(MOBILE, "23")
       .selectInstantAppSupport(MOBILE);
 
     ChooseOptionsForNewFileStepFixture templateSettingsFixture = newProjectWizard
