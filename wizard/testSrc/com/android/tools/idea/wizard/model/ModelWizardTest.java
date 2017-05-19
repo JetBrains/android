@@ -217,18 +217,12 @@ public class ModelWizardTest {
     Disposer.dispose(wizard);
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void cantCreateWizardWithoutSteps() throws Exception {
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    try {
-      wizardBuilder.build();
-      fail();
-    }
-    catch (IllegalStateException expected) {
-    }
+    new ModelWizard.Builder().build();
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void cantCreateWizardWithoutAtLeastOneVisibleStep() throws Exception {
     DummyModel model = new DummyModel();
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
@@ -237,79 +231,56 @@ public class ModelWizardTest {
     grandparentStep.setShouldSkip();
 
     wizardBuilder.addStep(grandparentStep);
-
-    try {
-      wizardBuilder.build();
-      fail();
-    }
-    catch (IllegalStateException expected) {
-    }
+    wizardBuilder.build();
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void wizardCantGoForwardAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
-    wizard.goForward();
-
-    assertThat(wizard.isFinished()).isTrue();
     try {
       wizard.goForward();
-      fail();
-    }
-    catch (IllegalStateException expected) {
+      assertThat(wizard.isFinished()).isTrue();
+      wizard.goForward();
     }
     finally {
       Disposer.dispose(wizard);
     }
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void wizardCantGoBackAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
-    wizard.goForward();
-
-    assertThat(wizard.isFinished()).isTrue();
     try {
+      wizard.goForward();
+      assertThat(wizard.isFinished()).isTrue();
       wizard.goBack();
-      fail();
-    }
-    catch (IllegalStateException expected) {
     }
     finally {
       Disposer.dispose(wizard);
     }
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void wizardCantCancelAfterFinishing() throws Exception {
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(new DummyModel())).build();
-    wizard.goForward();
-
-    assertThat(wizard.isFinished()).isTrue();
     try {
+      wizard.goForward();
+      assertThat(wizard.isFinished()).isTrue();
       wizard.cancel();
-      fail();
-    }
-    catch (IllegalStateException expected) {
     }
     finally {
       Disposer.dispose(wizard);
     }
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void wizardCantGoBackIfNoPreviousSteps() throws Exception {
     DummyModel model = new DummyModel();
     ModelWizard wizard = new ModelWizard.Builder(new DummyStep(model), new DummyStep(model)).build();
-
-    wizard.goForward();
-    wizard.goBack();
-
     try {
+      wizard.goForward();
       wizard.goBack();
-      fail();
-    }
-    catch (IllegalStateException expected) {
+      wizard.goBack();
     }
     finally {
       Disposer.dispose(wizard);
@@ -336,7 +307,7 @@ public class ModelWizardTest {
     Disposer.dispose(wizard);
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void wizardCantContinueIfStepPreventsIt() throws Exception {
     DummyModel dummyModel = new DummyModel();
 
@@ -345,19 +316,15 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new DummyStep(dummyModel));
 
     ModelWizard wizard = wizardBuilder.build();
-
     try {
       wizard.goForward();
-      fail();
-    }
-    catch (IllegalStateException expected) {
     }
     finally {
       Disposer.dispose(wizard);
     }
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void wizardCantGoBackIfStepPreventsIt() throws Exception {
     DummyModel dummyModel = new DummyModel();
 
@@ -366,13 +333,9 @@ public class ModelWizardTest {
     wizardBuilder.addStep(new PreventNavigatingBackwardStep(dummyModel));
 
     ModelWizard wizard = wizardBuilder.build();
-    wizard.goForward();
-
     try {
+      wizard.goForward();
       wizard.goBack();
-      fail();
-    }
-    catch (IllegalStateException expected) {
     }
     finally {
       Disposer.dispose(wizard);
@@ -702,7 +665,6 @@ public class ModelWizardTest {
       super(model);
     }
 
-    @NotNull
     @Override
     protected boolean canGoBack() {
       return false;
