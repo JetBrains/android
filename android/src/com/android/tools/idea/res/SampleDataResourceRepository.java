@@ -32,10 +32,10 @@ import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -47,7 +47,26 @@ import java.util.stream.Stream;
 import static com.android.SdkConstants.FD_SAMPLE_DATA;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 
+/**
+ * A {@link LocalResourceRepository} that provides sample data to be used within "tools" attributes. This provider
+ * defines a set of predefined sources that are always available but also allows to define new data sources in the project.
+ * To define new project data sources a new file of folder needs to be created under the sampledata folder in the project
+ * root.
+ * The repository provides access to the full contents of the data sources. Selection of items is done by the
+ * {@link com.android.ide.common.resources.sampledata.SampleDataManager}
+ * <p/>
+ * The {@link SampleDataResourceRepository} currently supports 3 data formats:
+ * <ul>
+ *   <li><b>Plain files</b>: Files that allow defining a new item per line
+ *   <li><b>JSON files</b>: The SampleDataResourceRepository will extract every possible path that gives access to an array of
+ *   elements and provide access to them
+ *   <li><b>Directories</b>: Folders that contain a list of images
+ * </ul>
+ */
 public class SampleDataResourceRepository extends LocalResourceRepository {
+  /**
+   * List of predefined data sources that are always available within studio
+   */
   private static final ImmutableList<SampleDataResourceItem> PREDEFINED_SOURCES = ImmutableList.of(
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "full_names", new CombinerDataSource(
       SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"),
@@ -67,22 +86,26 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator()),
 
     // TODO: Delegate path parsing to the data source to avoid all these declarations
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_day_of_week",
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/day_of_week",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_ddmmyy",
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/ddmmyy",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_mmddyy",
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/mmddyy",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_hhmm",
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/hhmm",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date_hhmmss",
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/hhmmss",
                                                    new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS)));
 
 
   private final ResourceTable myFullTable;
   private AndroidFacet myAndroidFacet;
 
-  @Nullable
+  /**
+   * Returns the "sampledata" directory from the project (if it exists) or null otherwise.
+   * @param create when true, if the directory does not exist, it will be created
+   */
+  @Contract("!null, true -> !null")
   public static VirtualFile getSampleDataDir(@NotNull AndroidFacet androidFacet, boolean create) throws IOException {
     VirtualFile contentRoot = AndroidRootUtil.getMainContentRoot(androidFacet);
     if (contentRoot == null) {
@@ -161,8 +184,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
   }
 
   private static void addPredefinedItems(@NotNull ImmutableListMultimap.Builder<String, ResourceItem> items) {
-    PREDEFINED_SOURCES.forEach(source ->
-                                 items.put(source.getName(), source));
+    PREDEFINED_SOURCES.forEach(source -> items.put(source.getName(), source));
   }
 
   /**
@@ -173,7 +195,8 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     try {
       sampleDataDir = getSampleDataDir(myAndroidFacet, false);
     }
-    catch (IOException ignore) {
+    catch (IOException e) {
+      LOG.warn("Error getting 'sampledir'", e);
     }
     myFullTable.clear();
 
@@ -203,7 +226,8 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     try {
       sampleDataDir = getSampleDataDir(facet, false);
     }
-    catch (IOException ignored) {
+    catch (IOException e) {
+      LOG.warn("Error getting 'sampledir'", e);
     }
 
     boolean relevant = sampleDataDir != null && VfsUtilCore.isAncestor(sampleDataDir, file, false);
@@ -220,6 +244,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     }
 
     if (isSampleDataFile(myAndroidFacet, event.getFile())) {
+      LOG.debug("sampledata roots updated " + event.getFile());
       invalidate();
     }
   }
@@ -236,6 +261,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     PsiFile psiFile = event.getFile();
     VirtualFile eventFile = psiFile != null ? psiFile.getVirtualFile() : null;
     if (eventFile != null && isSampleDataFile(myAndroidFacet, eventFile)) {
+      LOG.debug("sampledata file updated " + eventFile);
       invalidate();
     }
   }

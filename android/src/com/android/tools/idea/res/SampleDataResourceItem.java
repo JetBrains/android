@@ -27,6 +27,7 @@ import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
@@ -42,7 +43,18 @@ import java.util.function.Supplier;
 
 import static com.android.SdkConstants.*;
 
+/**
+ * This class defines a sample data source. It also handles the caching and invalidation according
+ * to the given functions passed in the creation.
+ */
 public class SampleDataResourceItem extends SourcelessResourceItem {
+  private static final Logger LOG = Logger.getInstance(SampleDataResourceItem.class);
+
+  private static final Splitter NAMESPACE_SPLITTER = Splitter.on(':')
+    .trimResults()
+    .omitEmptyStrings()
+    .limit(2);
+
   private static final Cache<String, SampleDataHolder> sSampleDataCache =
     CacheBuilder.newBuilder()
       .expireAfterAccess(2, TimeUnit.MINUTES)
@@ -58,6 +70,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   /**
    * Creates a new {@link SampleDataResourceItem}
    * @param name name of the resource
+   * @param namespace optional resource namespace. Pre-defined data sources will probably use the "tools" namespace
    * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
    *                                   must return any exceptions that happened during the processing of the file.
    * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
@@ -69,7 +82,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
                                  @Nullable String namespace,
                                  @NonNull Function<OutputStream, Exception> dataSource,
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
-                                 PsiElement sourceElement) {
+                                 @Nullable PsiElement sourceElement) {
     super(name, namespace, ResourceType.SAMPLE_DATA, null, null);
 
     myDataSource = dataSource;
@@ -92,38 +105,44 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   private SampleDataResourceItem(@NonNull String name,
                                  @NonNull Function<OutputStream, Exception> dataSource,
                                  @NonNull Supplier<Long> dataSourceModificationStamp,
-                                 PsiElement sourceElement) {
+                                 @Nullable PsiElement sourceElement) {
     this(name, null, dataSource, dataSourceModificationStamp, sourceElement);
   }
 
   /**
-   * Returns a {@link SampleDataResourceItem} from the given content generator
+   * Returns a {@link SampleDataResourceItem} from the given static content generator. Static content generators can be cached indefinitely
+   * since the never change.
    */
   @NonNull
   public static SampleDataResourceItem getFromStaticDataSource(@NonNull String name, Function<OutputStream, Exception> source) {
     // Extract namespace
-    List<String> sampleDataResource = Splitter.on(':')
-      .trimResults()
-      .omitEmptyStrings()
-      .limit(2)
-      .splitToList(name);
+    List<String> sampleDataResource = NAMESPACE_SPLITTER.splitToList(name);
     return new SampleDataResourceItem(name, sampleDataResource.size() == 2 ? sampleDataResource.get(0) : null, source, () -> 1L, null);
   }
 
+  /**
+   * Returns a {@link SampleDataResourceItem} from the given {@link PsiFile}. The file is tracked to invalidate the contents
+   * of the {@link SampleDataResourceItem} if the sourceElement changes.
+   */
   @NonNull
-  private static SampleDataResourceItem getFromPlainFile(@NonNull PsiFile sourceElement)
-    throws IOException {
-    return new SampleDataResourceItem(sourceElement.getName(), output -> {
+  private static SampleDataResourceItem getFromPlainFile(@NonNull PsiFile sourceElement) {
+    String fileName = sourceElement.getName();
+    return new SampleDataResourceItem(fileName, output -> {
       try {
         output.write(sourceElement.getText().getBytes(Charsets.UTF_8));
       }
       catch (IOException e) {
+        LOG.warn("Unable to load content from plain file " + fileName, e);
         return e;
       }
       return null;
     }, () -> sourceElement.getModificationStamp() + 1, sourceElement);
   }
 
+  /**
+   * Returns a {@link SampleDataResourceItem} from the given {@link PsiDirectory}. The directory is tracked to invalidate the contents
+   * of the {@link SampleDataResourceItem} if the directory contents change.
+   */
   @NonNull
   private static SampleDataResourceItem getFromDirectory(@NonNull PsiDirectory directory) {
     return new SampleDataResourceItem(directory.getName(), output -> {
@@ -135,10 +154,15 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
     }, () -> directory.getVirtualFile().getModificationStamp() + 1, directory);
   }
 
+  /**
+   * Similar to {@link SampleDataResourceItem#getFromPlainFile(PsiFile)} but it takes a JSON file and a path as inputs.
+   * The {@link SampleDataResourceItem} will be the selection of elements from the sourceElement that are found with the
+   * given path.
+   */
   @NonNull
-  private static SampleDataResourceItem getFromJsonFile(@NonNull PsiFile sourceElement, @NonNull String contentPath)
-    throws IOException {
-    return new SampleDataResourceItem(sourceElement.getName() + contentPath, output -> {
+  private static SampleDataResourceItem getFromJsonFile(@NonNull PsiFile sourceElement, @NonNull String contentPath) {
+    String fileName = sourceElement.getName();
+    return new SampleDataResourceItem(fileName + contentPath, output -> {
       if (contentPath.isEmpty()) {
         return null;
       }
@@ -151,12 +175,17 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         }
       }
       catch (IOException e) {
+        LOG.warn("Unable to load content from json file " + fileName, e);
         return e;
       }
       return null;
     }, () -> sourceElement.getModificationStamp() + 1, sourceElement);
   }
 
+  /**
+   * Returns a {@link SampleDataResourceItem}s from the given {@link PsiFileSystemItem}. The method will detect the type
+   * of file or directory and return a number of items.
+   */
   @NonNull
   public static List<SampleDataResourceItem> getFromPsiFileSystemItem(@NonNull PsiFileSystemItem sampleDataSource) throws IOException {
     if (!EXT_JSON.equals(sampleDataSource.getVirtualFile().getExtension())) {
@@ -203,6 +232,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
           sSampleDataCache.put(getName(), value);
         }
       } catch (Exception e) {
+        LOG.warn(e);
         return null;
       }
     }
