@@ -62,11 +62,19 @@ public class CpuProfilingConfigPanel {
    */
   private JTextField mySamplingInterval;
 
+  private final JLabel mySamplingIntervalText = new JLabel("Sampling interval:");
+
+  private final JLabel mySamplingIntervalUnit = new JLabel("microseconds (µs)");
+
   /**
    * Size of the buffer file containing the output of the recording.
    * Should be disabled when selected device is O+.
    */
   private JTextField myFileSizeLimit;
+
+  private final JLabel myFileSizeLimitText = new JLabel("File size limit:");
+
+  private final JLabel myFileSizeLimitUnit = new JLabel("MB");
 
   /**
    * Radio button representing Art Sampled configuration.
@@ -150,7 +158,7 @@ public class CpuProfilingConfigPanel {
 
       myFileSizeLimit.setText(String.valueOf(configuration.getProfilingBufferSizeInMb()));
       // Starting from Android O, there is no limit on file size, so there is no need to set it.
-      myFileSizeLimit.setEnabled(!myIsDeviceAtLeastO);
+      setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
 
       mySamplingInterval.setText(String.valueOf(configuration.getProfilingSamplingIntervalUs()));
     }
@@ -168,11 +176,11 @@ public class CpuProfilingConfigPanel {
     if (configuration.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) {
       if (configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
         myArtSampledButton.setSelected(true);
-        mySamplingInterval.setEnabled(true);
+        setEnabledSamplingIntervalPanel(true);
       }
       else if (configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
         myArtInstrumentedButton.setSelected(true);
-        mySamplingInterval.setEnabled(false);
+        setEnabledSamplingIntervalPanel(false);
       }
       else {
         getLogger().warn("Invalid trace technology detected.");
@@ -181,7 +189,7 @@ public class CpuProfilingConfigPanel {
     else if (configuration.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF) {
       assert configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
       mySimpleperfButton.setSelected(true);
-      mySamplingInterval.setEnabled(true);
+      setEnabledSamplingIntervalPanel(true);
     }
     else {
       getLogger().warn("Invalid trace technology detected.");
@@ -202,8 +210,8 @@ public class CpuProfilingConfigPanel {
     myArtSampledButton.setEnabled(false);
     myArtInstrumentedButton.setEnabled(false);
     mySimpleperfButton.setEnabled(false);
-    mySamplingInterval.setEnabled(false);
-    myFileSizeLimit.setEnabled(false);
+    setEnabledSamplingIntervalPanel(false);
+    setEnabledFileSizeLimit(false);
   }
 
   private void createUiComponents() {
@@ -286,17 +294,17 @@ public class CpuProfilingConfigPanel {
       case ART_SAMPLED:
         myConfiguration.setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART);
         myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-        mySamplingInterval.setEnabled(true);
+        setEnabledSamplingIntervalPanel(true);
         break;
       case ART_INSTRUMENTED:
         myConfiguration.setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART);
         myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-        mySamplingInterval.setEnabled(false);
+        setEnabledSamplingIntervalPanel(false);
         break;
       case SIMPLEPERF:
         myConfiguration.setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF);
         myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-        mySamplingInterval.setEnabled(true);
+        setEnabledSamplingIntervalPanel(true);
     }
   }
 
@@ -329,10 +337,16 @@ public class CpuProfilingConfigPanel {
     myConfigPanel.add(descriptionPanel);
   }
 
+  private void setEnabledSamplingIntervalPanel(boolean isEnabled) {
+    mySamplingInterval.setEnabled(isEnabled);
+    mySamplingIntervalText.setEnabled(isEnabled);
+    mySamplingIntervalUnit.setEnabled(isEnabled);
+  }
+
   private void createSamplingIntervalPanel() {
     JPanel samplingIntervalPanel = new JPanel();
     samplingIntervalPanel.setLayout(new BoxLayout(samplingIntervalPanel, BoxLayout.X_AXIS));
-    samplingIntervalPanel.add(new JLabel("Sampling interval:"));
+    samplingIntervalPanel.add(mySamplingIntervalText);
     samplingIntervalPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 
     mySamplingInterval = createNumberTextField(MIN_SAMPLING_INTERVAL_US, MAX_SAMPLING_INTERVAL_US,
@@ -348,16 +362,22 @@ public class CpuProfilingConfigPanel {
     samplingIntervalPanel.add(mySamplingInterval);
 
     samplingIntervalPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-    samplingIntervalPanel.add(new JLabel("microseconds (µs)"));
+    samplingIntervalPanel.add(mySamplingIntervalUnit);
     samplingIntervalPanel.add(Box.createHorizontalGlue());
 
     myConfigPanel.add(samplingIntervalPanel);
   }
 
+  private void setEnabledFileSizeLimit(boolean isEnabled) {
+    myFileSizeLimit.setEnabled(isEnabled);
+    myFileSizeLimitText.setEnabled(isEnabled);
+    myFileSizeLimitUnit.setEnabled(isEnabled);
+  }
+
   private void createFileLimitPanel() {
     JPanel fileSizeLimitPanel = new JPanel();
     fileSizeLimitPanel.setLayout(new BoxLayout(fileSizeLimitPanel, BoxLayout.X_AXIS));
-    fileSizeLimitPanel.add(new JLabel("File size limit:"));
+    fileSizeLimitPanel.add(myFileSizeLimitText);
     fileSizeLimitPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 
     myFileSizeLimit = createNumberTextField(MIN_FILE_SIZE_LIMIT_MB, myMaxFileSizeLimitMb, ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB,
@@ -372,7 +392,7 @@ public class CpuProfilingConfigPanel {
     fileSizeLimitPanel.add(myFileSizeLimit);
 
     fileSizeLimitPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-    fileSizeLimitPanel.add(new JLabel("MB"));
+    fileSizeLimitPanel.add(myFileSizeLimitUnit);
     fileSizeLimitPanel.add(Box.createHorizontalGlue());
 
     myConfigPanel.add(fileSizeLimitPanel);
