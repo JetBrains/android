@@ -21,17 +21,13 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.junit.Ignore;
 
 import java.util.concurrent.ExecutionException;
 
-@Ignore("http://b/36872873")
 public class AdbServiceTest extends AndroidTestCase {
-  public void testFake() {
-  }
 
   // tests that basic API for getting and terminating a debug bridge works
-  public void /*test*/Basics() throws ExecutionException {
+  public void testBasics() throws ExecutionException {
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
       return;
