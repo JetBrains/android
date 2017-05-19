@@ -47,14 +47,14 @@ final class NlComponentTreeModel implements TreeModel {
   @Nullable
   @Override
   public Object getChild(@NotNull Object parent, int i) {
-    if (parent instanceof NlComponent) {
-      NlComponent component = (NlComponent) parent;
-      ViewGroupHandler handler = component.getViewGroupHandler();
-      if (handler != null) {
-        return handler.getComponentTreeChild(component, i);
-      }
+    if (!(parent instanceof NlComponent)) {
+      return null;
     }
-    return null;
+
+    NlComponent component = (NlComponent)parent;
+    ViewGroupHandler handler = component.getViewGroupHandler();
+
+    return handler == null ? component.getChild(i) : handler.getComponentTreeChild(component, i);
   }
 
   @Override
@@ -66,7 +66,8 @@ final class NlComponentTreeModel implements TreeModel {
         return handler.getComponentTreeChildCount(component);
       }
       return component.getChildCount();
-    } else {
+    }
+    else {
       return 0;
     }
   }
