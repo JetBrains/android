@@ -181,7 +181,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
     getModel().moduleName().set(myModuleName.getText());
     Project project = moduleModel.getProject().getValue();
-    File moduleRoot = new File(moduleModel.moduleName().get(), project.getBasePath());
+    File moduleRoot = new File(project.getBasePath(), moduleModel.moduleName().get());
     myRenderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot));
 
     if (myIsLibrary) {
