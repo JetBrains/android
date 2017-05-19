@@ -169,6 +169,12 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     return myPanel;
   }
 
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return mySourceLocation;
+  }
+
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
