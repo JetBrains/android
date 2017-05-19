@@ -57,6 +57,12 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     myGradleFiles = new GradleFiles(getProject(), myDocumentManager);
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    myGradleFiles = null;
+    super.tearDown();
+  }
+
   public void testAreGradleFilesModifiedWithNegativeReferenceTime() {
     try {
       myGradleFiles.areGradleFilesModified(-1);
