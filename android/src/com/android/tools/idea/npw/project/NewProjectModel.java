@@ -28,7 +28,6 @@ import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -38,8 +37,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -47,15 +44,12 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -359,36 +353,6 @@ public class NewProjectModel extends WizardModel {
       catch (IOException | ConfigurationException e) {
         Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));
         getLogger().error(e);
-      }
-    }
-  }
-
-  // Unfortunately the reformatting happens after the editors get opened. Something notices that the files changed and the user gets a
-  // banner to retry the Gradle sync. That's annoying for users and is causing UI test failures. See http://b/37965951.
-  // TODO See if opening the editors after the reformatting happens fixes that
-  @SuppressWarnings("unused")
-  private static final class ReformattingGradleSyncListener extends NewProjectImportGradleSyncListener {
-    @Override
-    public void syncSucceeded(@NotNull Project project) {
-      WriteCommandAction.runWriteCommandAction(project, () -> reformat(project));
-    }
-
-    private static void reformat(@NotNull Project project) {
-      VirtualFileVisitor visitor = new VirtualFileVisitor() {
-        @Override
-        public boolean visitFile(@NotNull VirtualFile file) {
-          if (!file.isDirectory()) {
-            TemplateUtils.reformatAndRearrange(project, file);
-          }
-
-          return true;
-        }
-      };
-
-      for (Module module : ModuleManager.getInstance(project).getModules()) {
-        for (VirtualFile root : ModuleRootManager.getInstance(module).getSourceRoots()) {
-          VfsUtilCore.visitChildrenRecursively(root, visitor);
-        }
       }
     }
   }
