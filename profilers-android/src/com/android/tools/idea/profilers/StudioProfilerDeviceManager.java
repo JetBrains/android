@@ -237,6 +237,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
         assert file != null;
         // TODO: Add debug support for development
+        /*
+         * If copying the agent fails, we will attach the previous version of the agent
+         * Hence we first delete old agent before copying new one
+         */
+        myDevice.executeShellCommand("rm -f " + deviceDir + fileName, new NullOutputReceiver());
         myDevice.executeShellCommand("mkdir -p " + deviceDir, new NullOutputReceiver());
         myDevice.pushFile(file.getAbsolutePath(), deviceDir + fileName);
 
