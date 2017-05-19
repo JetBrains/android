@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
@@ -41,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
 
@@ -55,6 +57,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private static Logger getLogger() {
     return Logger.getInstance(StudioProfilerDeviceManager.class);
   }
+
+  private static final String BOOT_COMPLETE_PROPERTY = "dev.bootcomplete";
+  private static final String BOOT_COMPLETE_MESSAGE = "1";
 
   private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
   private static final int DEVICE_PORT = 12389;
@@ -160,6 +165,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     @Override
     public void run() {
       try {
+        // Waits to make sure the device has completed boot sequence.
+        if (!waitForBootComplete()) {
+          throw new TimeoutException("Timed out waiting for device to be ready.");
+        }
 
         String deviceDir = "/data/local/tmp/perfd/";
         copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../out/studio/native/out/release", deviceDir, true);
@@ -200,7 +209,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
         getLogger().info("Terminating perfd thread");
       }
-      catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
+      catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException | InterruptedException e) {
         throw new RuntimeException(e);
       }
     }
@@ -226,7 +235,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
               break;
             }
           }
-        } else {
+        }
+        else {
           File candidate = new File(dir, fileName);
           if (candidate.exists()) {
             file = candidate;
@@ -279,7 +289,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
           myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME,
                                  IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-        } else {
+        }
+        else {
           myDevice.createForward(myLocalPort, DEVICE_PORT);
         }
         if (myLocalPort < 0) {
@@ -331,7 +342,28 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      * Whether the device is running O or higher APIs
      */
     private boolean isAtLeastO(IDevice device) {
-      return device.getVersion().getFeatureLevel() >= 26;
+      return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+    }
+
+    /**
+     * A helper method to check whether the device has completed the boot sequence.
+     * In emulator userdebug builds, the device can appear online before boot has finished, and pushing and running perfd on device at that
+     * point would result in a failure. Therefore we poll a device property (dev.bootcomplete) at regular intervals to make sure the device
+     * is ready for perfd. Whe problem only seems to manifest in emulators but not real devices. Here we check the property in both cases to
+     * be sure, as this is only called once when the device comes online.
+     */
+    private boolean waitForBootComplete() throws InterruptedException {
+      // This checks the flag for a minute before giving up.
+      // TODO: move ProfilerServiceProxy to support user-triggered retries, in cases where 1m isn't enough for the emulator to boot.
+      for (int i = 0; i < 60; i++) {
+        String state = myDevice.getProperty(BOOT_COMPLETE_PROPERTY);
+        if (BOOT_COMPLETE_MESSAGE.equals(state)) {
+          return true;
+        }
+        Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+      }
+
+      return false;
     }
   }
 
