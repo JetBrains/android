@@ -19,6 +19,7 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.JournalingUsageTracker;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
@@ -40,6 +41,7 @@ import java.util.Set;
 
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
@@ -64,7 +66,6 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
       spoolLocation = getProject().getBasePath();
     }
     myUsageTracker = new JournalingUsageTracker(new AnalyticsSettings(), myScheduler, Paths.get(spoolLocation));
-    UsageTracker.setInstanceForTest(myUsageTracker);
 
     Project project = getProject();
     GradleProjectSettings projectSettings = new GradleProjectSettings();
@@ -262,6 +263,23 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
 
   public void testGradleSyncPerf() throws Exception {
     loadProject("android-studio-gradle-test");
+
+    runWriteCommandAction(getProject(), () -> {
+      try {
+        // Build the project, since sync times can be different for built/unbuilt projects
+        GradleBuildInvoker.getInstance(getProject()).generateSources(false);
+
+        // Do a few syncs to warm up the JVM to get typical real-world runtimes
+        requestSyncAndWait();
+        requestSyncAndWait();
+        requestSyncAndWait();
+
+        UsageTracker.setInstanceForTest(myUsageTracker); // Start logging data for performance dashboard
+        requestSyncAndWait();
+      } catch(Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   // Update build.gradle in root directory
