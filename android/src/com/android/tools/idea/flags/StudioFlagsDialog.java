@@ -47,6 +47,8 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
+import java.util.Comparator;
 
 import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions.not;
 
@@ -72,60 +74,64 @@ public final class StudioFlagsDialog extends DialogWrapper {
 
     replaceOverrides(myBackupOverrides, StudioFlagSettings.getInstance());
 
-    myGroupedFlags.asMap().forEach((group, flags) -> {
-      if (flags.isEmpty()) {
-        return;
-      }
-
-      JPanel groupPanel = new JPanel(new VerticalFlowLayout(5, 0));
-      TitledBorder titledBorder = BorderFactory.createTitledBorder(group.getDisplayName());
-      titledBorder.setTitleFont(titledBorder.getTitleFont().deriveFont(Font.BOLD, titledBorder.getTitleFont().getSize() + 2));
-      groupPanel.setBorder(titledBorder);
-
-      boolean firstFlag = true;
-      for (Flag<?> flag : flags) {
-        JPanel flagPanel = new JPanel(new VerticalFlowLayout(5, 0));
-        if (!firstFlag) {
-          flagPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
+    myGroupedFlags.asMap().entrySet().stream()
+      .sorted(Comparator.comparing(entry -> entry.getKey().getDisplayName()))
+      .forEach(entry -> {
+        FlagGroup group = entry.getKey();
+        Collection<Flag<?>> flags = entry.getValue();
+        if (flags.isEmpty()) {
+          return;
         }
 
-        JBLabel name = new JBLabel(flag.getDisplayName());
-        name.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
-        name.setToolTipText(flag.getId());
+        JPanel groupPanel = new JPanel(new VerticalFlowLayout(5, 0));
+        TitledBorder titledBorder = BorderFactory.createTitledBorder(group.getDisplayName());
+        titledBorder.setTitleFont(titledBorder.getTitleFont().deriveFont(Font.BOLD, titledBorder.getTitleFont().getSize() + 2));
+        groupPanel.setBorder(titledBorder);
 
-        JTextArea description = new JTextArea(flag.getDescription());
-        description.setFont(UIUtil.getLabelFont());
-        description.setLineWrap(true);
-        description.setWrapStyleWord(true);
-        description.setEditable(false);
-        description.setOpaque(false);
-        description.setForeground(UIUtil.getInactiveTextColor());
-
-        FlagEditor<?> flagEditor = createFlagEditor(flag);
-
-        HyperlinkLabel resetLink = new HyperlinkLabel("Reset to default");
-        resetLink.addHyperlinkListener(new HyperlinkAdapter() {
-          @Override
-          protected void hyperlinkActivated(HyperlinkEvent e) {
-            flagEditor.flagProperty().clearOverride();
+        boolean firstFlag = true;
+        for (Flag<?> flag : flags) {
+          JPanel flagPanel = new JPanel(new VerticalFlowLayout(5, 0));
+          if (!firstFlag) {
+            flagPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
           }
-        });
-        myBindings.bind(new VisibleProperty(resetLink), flagEditor.flagProperty().isOverridden());
 
-        JPanel flagEditorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        flagEditorPanel.add(flagEditor.editorComponent());
-        flagEditorPanel.add(resetLink);
+          JBLabel name = new JBLabel(flag.getDisplayName());
+          name.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
+          name.setToolTipText(flag.getId());
 
-        flagPanel.add(name);
-        flagPanel.add(description);
-        flagPanel.add(flagEditorPanel);
-        groupPanel.add(flagPanel);
+          JTextArea description = new JTextArea(flag.getDescription());
+          description.setFont(UIUtil.getLabelFont());
+          description.setLineWrap(true);
+          description.setWrapStyleWord(true);
+          description.setEditable(false);
+          description.setOpaque(false);
+          description.setForeground(UIUtil.getInactiveTextColor());
 
-        firstFlag = false;
-      }
+          FlagEditor<?> flagEditor = createFlagEditor(flag);
 
-      myContentPanel.add(groupPanel);
-    });
+          HyperlinkLabel resetLink = new HyperlinkLabel("Reset to default");
+          resetLink.addHyperlinkListener(new HyperlinkAdapter() {
+            @Override
+            protected void hyperlinkActivated(HyperlinkEvent e) {
+              flagEditor.flagProperty().clearOverride();
+            }
+          });
+          myBindings.bind(new VisibleProperty(resetLink), flagEditor.flagProperty().isOverridden());
+
+          JPanel flagEditorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+          flagEditorPanel.add(flagEditor.editorComponent());
+          flagEditorPanel.add(resetLink);
+
+          flagPanel.add(name);
+          flagPanel.add(description);
+          flagPanel.add(flagEditorPanel);
+          groupPanel.add(flagPanel);
+
+          firstFlag = false;
+        }
+
+        myContentPanel.add(groupPanel);
+      });
 
     init();
 
