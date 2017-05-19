@@ -38,7 +38,9 @@ public final class CopyVerification {
         }
         catch (InvocationTargetException e) {
           Throwable exception = e.getTargetException();
-          if (exception instanceof UnusedModelMethodException || exception instanceof UnsupportedMethodException) {
+          if (exception instanceof UnusedModelMethodException ||
+              exception instanceof UnsupportedMethodException ||
+              exception instanceof UnsupportedOperationException) {
             continue;
           }
           throw exception != null ? exception : e;
