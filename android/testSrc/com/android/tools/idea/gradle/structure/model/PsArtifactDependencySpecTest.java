@@ -237,7 +237,6 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
   }
 
   public void testEqualsAndHashCode() {
-    EqualsVerifier.forClass(PsArtifactDependencySpec.class)
-      .verify();
+    EqualsVerifier.forClass(PsArtifactDependencySpec.class).verify();
   }
 }
