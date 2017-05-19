@@ -65,7 +65,6 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private final CpuProfilerStage myStage;
 
-  private final JButton myOpenConfigDialogButton;
   private final JButton myCaptureButton;
   private final JBList myThreads;
   /**
@@ -267,20 +266,14 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                             int index,
                             boolean selected,
                             boolean hasFocus) {
-        assert value != null;
-        setText(value.getName());
+        if (value == CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY) {
+          setIcon(AllIcons.Actions.EditSource);
+          setText("Edit configurations...");
+        } else {
+          setText(value.getName());
+        }
       }
     });
-    myOpenConfigDialogButton = createOpenProfilingDialogButton();
-  }
-
-  private JButton createOpenProfilingDialogButton() {
-    // TODO: move launcher to combobox
-    JButton button = new FlatButton(AllIcons.Actions.EditSource);
-    button.setToolTipText("Edit profiling configurations");
-    // TODO: consider moving the responsibility of handling the dialog to CpuProfilerStageView and IdeProfilerComponents
-    button.addActionListener(e -> myStage.openProfilingConfigurationsDialog());
-    return button;
   }
 
   private void selectionChanged() {
@@ -318,7 +311,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     toolbar.add(myProfilingConfigurationCombo);
     toolbar.add(myCaptureButton);
-    toolbar.add(myOpenConfigDialogButton);
 
     StudioProfilers profilers = getStage().getStudioProfilers();
     profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, () -> myCaptureButton.setEnabled(profilers.isProcessAlive()));
