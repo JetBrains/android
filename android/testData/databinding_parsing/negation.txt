@@ -1,5 +1,6 @@
 FILE(0,4)
   PsiDbNegationExprImpl(NEGATION_EXPR)(0,4)
     PsiElement(!)('!')(0,1)
-    PsiDbIdExprImpl(ID_EXPR)(1,4)
-      PsiElement(IDENTIFIER)('abc')(1,4)
+    PsiDbRefExprImpl(REF_EXPR)(1,4)
+      PsiDbIdImpl(ID)(1,4)
+        PsiElement(IDENTIFIER)('abc')(1,4)

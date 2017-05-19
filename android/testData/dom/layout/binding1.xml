@@ -21,6 +21,7 @@
     <data>
         <variable name="user" type="com.android.example.bindingdemo.vo.User"/>
         <variable name="clickListener" type="android.view.View.OnClickListener"/>
+        <variable name="boxedBoolean" type="java.lang.Boolean"/>
     </data>
     <LinearLayout
         android:orientation="horizontal" android:layout_width="wrap_content"
@@ -47,6 +48,7 @@
             android:id="@+id/fullname"
             android:gravity="center"
             android:text='@{user.name.substring(0,1).toUpperCase() + "." + user.lastName}'
+            android:layout_weight="@{safeUnbox(boxedBoolean) ? 2 : 3}"
             android:layout_width="wrap_content"
             android:layout_height="match_parent" />
     </LinearLayout>
