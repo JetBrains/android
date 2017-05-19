@@ -22,9 +22,9 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,6 +41,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    StudioFlags.NELE_SAMPLE_DATA.override(true);
+  }
+
   @NotNull
   private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo) {
     return repo.getMap(null, ResourceType.SAMPLE_DATA, true).values().stream()

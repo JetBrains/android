@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.converters;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
@@ -34,7 +35,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.*;
-import org.jetbrains.android.Features;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -302,7 +302,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
     }
-    if (Features.NELE_MOCK_DATA && TOOLS_URI.equals(element.getXmlElementNamespace())) {
+    if (StudioFlags.NELE_SAMPLE_DATA.get() && TOOLS_URI.equals(element.getXmlElementNamespace())) {
       // For tools: attributes, we also add the mock types
       types.add(ResourceType.SAMPLE_DATA);
     }

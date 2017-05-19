@@ -19,6 +19,7 @@ import com.android.tools.adtui.workbench.AutoHide;
 import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.WorkBench;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -43,7 +44,6 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.android.Features;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,7 +111,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
     myRenderingQueue.setRestartTimerOnAdd(true);
 
-    if (Features.NELE_ANIMATIONS_PREVIEW) {
+    if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get()) {
       myAnimationToolbar = new AnimationToolbar(this, (timeMs) -> {
         ScreenView screenView = mySurface.getCurrentSceneView();
         NlModel model = screenView != null ? screenView.getModel() : null;
