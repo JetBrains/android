@@ -42,6 +42,7 @@ import java.nio.file.Paths;
 public class DesignerTestSuite {
 
   private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+  private static final String HOST_DIR = OsType.getHostOs().getFolderName();
 
   static {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
@@ -54,7 +55,7 @@ public class DesignerTestSuite {
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
     symbolicLinkInTmpDir("tools/base/templates");
     symbolicLinkInTmpDir("tools/idea/java");
-    symbolicLinkInTmpDir("prebuilts/studio/sdk/host/platforms/" + TestUtils.getLatestAndroidPlatform());
+    symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
 
     provideRealJdkPathForGradle("prebuilts/studio/jdk");
     setUpOfflineMavenRepos();
