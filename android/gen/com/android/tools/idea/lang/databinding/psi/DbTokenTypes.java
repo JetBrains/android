@@ -31,18 +31,17 @@ public interface DbTokenTypes {
   IElementType BINARY_XOR_EXPR = new DbElementType("BINARY_XOR_EXPR");
   IElementType BIT_SHIFT_EXPR = new DbElementType("BIT_SHIFT_EXPR");
   IElementType BRACKET_EXPR = new DbElementType("BRACKET_EXPR");
+  IElementType CALL_EXPR = new DbElementType("CALL_EXPR");
   IElementType CAST_EXPR = new DbElementType("CAST_EXPR");
   IElementType CLASS_EXTRACTION_EXPR = new DbElementType("CLASS_EXTRACTION_EXPR");
   IElementType CLASS_OR_INTERFACE_TYPE = new DbElementType("CLASS_OR_INTERFACE_TYPE");
   IElementType CONSTANT_VALUE = new DbElementType("CONSTANT_VALUE");
   IElementType DEFAULTS = new DbElementType("DEFAULTS");
-  IElementType DOT_EXPR = new DbElementType("DOT_EXPR");
   IElementType EQ_COMPARISON_EXPR = new DbElementType("EQ_COMPARISON_EXPR");
   IElementType EXPR = new DbElementType("EXPR");
   IElementType EXPRESSION_LIST = new DbElementType("EXPRESSION_LIST");
-  IElementType FIELD_NAME = new DbElementType("FIELD_NAME");
   IElementType FUNCTION_REF_EXPR = new DbElementType("FUNCTION_REF_EXPR");
-  IElementType ID_EXPR = new DbElementType("ID_EXPR");
+  IElementType ID = new DbElementType("ID");
   IElementType INEQ_COMPARISON_EXPR = new DbElementType("INEQ_COMPARISON_EXPR");
   IElementType INFERRED_FORMAL_PARAMETER_LIST = new DbElementType("INFERRED_FORMAL_PARAMETER_LIST");
   IElementType INSTANCE_OF_EXPR = new DbElementType("INSTANCE_OF_EXPR");
@@ -51,13 +50,12 @@ public interface DbTokenTypes {
   IElementType LITERAL_EXPR = new DbElementType("LITERAL_EXPR");
   IElementType LOGICAL_AND_EXPR = new DbElementType("LOGICAL_AND_EXPR");
   IElementType LOGICAL_OR_EXPR = new DbElementType("LOGICAL_OR_EXPR");
-  IElementType METHOD_EXPR = new DbElementType("METHOD_EXPR");
-  IElementType METHOD_NAME = new DbElementType("METHOD_NAME");
   IElementType MUL_EXPR = new DbElementType("MUL_EXPR");
   IElementType NEGATION_EXPR = new DbElementType("NEGATION_EXPR");
   IElementType NULL_COALESCE_EXPR = new DbElementType("NULL_COALESCE_EXPR");
   IElementType PAREN_EXPR = new DbElementType("PAREN_EXPR");
   IElementType PRIMITIVE_TYPE = new DbElementType("PRIMITIVE_TYPE");
+  IElementType REF_EXPR = new DbElementType("REF_EXPR");
   IElementType RESOURCES_EXPR = new DbElementType("RESOURCES_EXPR");
   IElementType RESOURCE_PARAMETERS = new DbElementType("RESOURCE_PARAMETERS");
   IElementType SIGN_CHANGE_EXPR = new DbElementType("SIGN_CHANGE_EXPR");
@@ -144,6 +142,9 @@ public interface DbTokenTypes {
       else if (type == BRACKET_EXPR) {
         return new PsiDbBracketExprImpl(node);
       }
+      else if (type == CALL_EXPR) {
+        return new PsiDbCallExprImpl(node);
+      }
       else if (type == CAST_EXPR) {
         return new PsiDbCastExprImpl(node);
       }
@@ -159,23 +160,17 @@ public interface DbTokenTypes {
       else if (type == DEFAULTS) {
         return new PsiDbDefaultsImpl(node);
       }
-      else if (type == DOT_EXPR) {
-        return new PsiDbDotExprImpl(node);
-      }
       else if (type == EQ_COMPARISON_EXPR) {
         return new PsiDbEqComparisonExprImpl(node);
       }
       else if (type == EXPRESSION_LIST) {
         return new PsiDbExpressionListImpl(node);
       }
-      else if (type == FIELD_NAME) {
-        return new PsiDbFieldNameImpl(node);
-      }
       else if (type == FUNCTION_REF_EXPR) {
         return new PsiDbFunctionRefExprImpl(node);
       }
-      else if (type == ID_EXPR) {
-        return new PsiDbIdExprImpl(node);
+      else if (type == ID) {
+        return new PsiDbIdImpl(node);
       }
       else if (type == INEQ_COMPARISON_EXPR) {
         return new PsiDbIneqComparisonExprImpl(node);
@@ -201,12 +196,6 @@ public interface DbTokenTypes {
       else if (type == LOGICAL_OR_EXPR) {
         return new PsiDbLogicalOrExprImpl(node);
       }
-      else if (type == METHOD_EXPR) {
-        return new PsiDbMethodExprImpl(node);
-      }
-      else if (type == METHOD_NAME) {
-        return new PsiDbMethodNameImpl(node);
-      }
       else if (type == MUL_EXPR) {
         return new PsiDbMulExprImpl(node);
       }
@@ -221,6 +210,9 @@ public interface DbTokenTypes {
       }
       else if (type == PRIMITIVE_TYPE) {
         return new PsiDbPrimitiveTypeImpl(node);
+      }
+      else if (type == REF_EXPR) {
+        return new PsiDbRefExprImpl(node);
       }
       else if (type == RESOURCES_EXPR) {
         return new PsiDbResourcesExprImpl(node);

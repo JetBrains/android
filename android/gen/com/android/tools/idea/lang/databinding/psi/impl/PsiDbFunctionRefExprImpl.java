@@ -50,8 +50,8 @@ public class PsiDbFunctionRefExprImpl extends PsiDbExprImpl implements PsiDbFunc
 
   @Override
   @NotNull
-  public PsiDbMethodName getMethodName() {
-    return findNotNullChildByClass(PsiDbMethodName.class);
+  public PsiDbId getId() {
+    return findNotNullChildByClass(PsiDbId.class);
   }
 
 }

@@ -22,12 +22,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface PsiDbDotExpr extends PsiDbExpr {
+public interface PsiDbRefExpr extends PsiDbExpr {
 
-  @NotNull
+  @Nullable
   PsiDbExpr getExpr();
 
   @NotNull
-  PsiDbFieldName getFieldName();
+  PsiDbId getId();
 
 }

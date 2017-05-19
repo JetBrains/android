@@ -48,6 +48,10 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
+  public void visitCallExpr(@NotNull PsiDbCallExpr o) {
+    visitExpr(o);
+  }
+
   public void visitCastExpr(@NotNull PsiDbCastExpr o) {
     visitExpr(o);
   }
@@ -68,10 +72,6 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitDotExpr(@NotNull PsiDbDotExpr o) {
-    visitExpr(o);
-  }
-
   public void visitEqComparisonExpr(@NotNull PsiDbEqComparisonExpr o) {
     visitExpr(o);
   }
@@ -84,16 +84,12 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitFieldName(@NotNull PsiDbFieldName o) {
-    visitPsiElement(o);
-  }
-
   public void visitFunctionRefExpr(@NotNull PsiDbFunctionRefExpr o) {
     visitExpr(o);
   }
 
-  public void visitIdExpr(@NotNull PsiDbIdExpr o) {
-    visitExpr(o);
+  public void visitId(@NotNull PsiDbId o) {
+    visitPsiElement(o);
   }
 
   public void visitIneqComparisonExpr(@NotNull PsiDbIneqComparisonExpr o) {
@@ -128,14 +124,6 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
-  public void visitMethodExpr(@NotNull PsiDbMethodExpr o) {
-    visitExpr(o);
-  }
-
-  public void visitMethodName(@NotNull PsiDbMethodName o) {
-    visitPsiElement(o);
-  }
-
   public void visitMulExpr(@NotNull PsiDbMulExpr o) {
     visitExpr(o);
   }
@@ -154,6 +142,10 @@ public class PsiDbVisitor extends PsiElementVisitor {
 
   public void visitPrimitiveType(@NotNull PsiDbPrimitiveType o) {
     visitPsiElement(o);
+  }
+
+  public void visitRefExpr(@NotNull PsiDbRefExpr o) {
+    visitExpr(o);
   }
 
   public void visitResourceParameters(@NotNull PsiDbResourceParameters o) {
