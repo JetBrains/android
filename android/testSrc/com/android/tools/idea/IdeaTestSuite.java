@@ -60,9 +60,6 @@ import java.nio.file.Paths;
 
   // http://b/35788260
   com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
-
-  // http://b/36872873
-  com.android.tools.idea.ddms.adb.AdbServiceTest.class,
 })
 public class IdeaTestSuite {
 
