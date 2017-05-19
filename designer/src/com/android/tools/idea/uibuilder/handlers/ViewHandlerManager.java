@@ -31,11 +31,11 @@ import com.android.tools.idea.uibuilder.handlers.leanback.DetailsFragmentHandler
 import com.android.tools.idea.uibuilder.handlers.leanback.PlaybackOverlayFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.SearchFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.menu.GroupHandler;
-import com.android.tools.idea.uibuilder.handlers.menu.ItemHandler;
-import com.android.tools.idea.uibuilder.handlers.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
+import com.android.tools.idea.uibuilder.menu.GroupHandler;
+import com.android.tools.idea.uibuilder.menu.ItemHandler;
+import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -256,7 +256,8 @@ public class ViewHandlerManager implements ProjectComponent {
       case FLEXBOX_LAYOUT:
         if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
           return new FlexboxLayoutHandler();
-        } else {
+        }
+        else {
           return NONE;
         }
       case COORDINATOR_LAYOUT:
