@@ -17,12 +17,14 @@ package com.android.tools.idea.instantapp;
 
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
+import com.android.instantapp.sdk.InstantAppSdkException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -163,6 +165,16 @@ public class InstantApps {
     return sdk;
   }
 
+  public static int getMinTargetSdk() {
+    try {
+      return InstantAppSdks.getInstance().getMinTargetSdk();
+    }
+    catch (InstantAppSdkException ex) {
+      getLogger().error(ex);
+    }
+    return 21; // If there is any exception return the default value
+  }
+
   public static boolean isInstantAppApplicationModule(@NotNull Module module) {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     return model != null && model.getProjectType() == PROJECT_TYPE_INSTANTAPP;
@@ -206,5 +218,9 @@ public class InstantApps {
     }
 
     return false;
+  }
+
+  private static Logger getLogger() {
+    return Logger.getInstance(InstantApps.class);
   }
 }
