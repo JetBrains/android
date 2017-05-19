@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
@@ -31,7 +32,6 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.Features;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -112,7 +112,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
       result.add(new AndroidJniFolderNode(project, ndkModuleModel, settings));
     }
 
-    if (Features.NELE_MOCK_DATA) {
+    if (StudioFlags.NELE_SAMPLE_DATA.get()) {
       try {
         VirtualFile sampleDataDirectory = SampleDataResourceRepository.getSampleDataDir(facet, false);
         PsiDirectory sampleDataPsi = sampleDataDirectory != null ? PsiManager.getInstance(project).findDirectory(sampleDataDirectory) : null;

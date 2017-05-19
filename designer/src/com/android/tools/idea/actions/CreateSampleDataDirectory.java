@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.intellij.openapi.actionSystem.*;
@@ -22,7 +23,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.PlatformIcons;
-import org.jetbrains.android.Features;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +51,7 @@ public class CreateSampleDataDirectory extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    if (!Features.NELE_MOCK_DATA) {
+    if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
       e.getPresentation().setVisible(false);
       return;
     }
