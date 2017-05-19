@@ -35,7 +35,7 @@ public class MinSdkForInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void testErrorWhenSDK15Selected() {
+  public void testErrorWhenInvalidMinSdkSelected() {
     SdkReplacer.replaceSdkLocationAndActivate(null, true);
 
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
@@ -44,9 +44,9 @@ public class MinSdkForInstantAppTest {
 
     newProjectWizard
       .getConfigureFormFactorStep()
-      .selectMinimumSdkApi(MOBILE, "15")
+      .selectMinimumSdkApi(MOBILE, "20")
       .selectInstantAppSupport(MOBILE)
-      .waitForErrorMessageToContain("Phone and Tablet must have a Minimum SDK >= 16 for Instant App Support.");
+      .waitForErrorMessageToContain("Phone and Tablet must have a Minimum SDK >= 21 for Instant App Support.");
 
     newProjectWizard
       .clickCancel();
