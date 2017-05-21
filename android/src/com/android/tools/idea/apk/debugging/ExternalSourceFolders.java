@@ -50,7 +50,7 @@ public class ExternalSourceFolders {
   @NotNull
   public List<VirtualFile> addSourceFolders(@NotNull VirtualFile[] files, @Nullable Runnable runOnFinish) {
     List<VirtualFile> roots = new ArrayList<>();
-    List<ContentEntry> contentEntries = new ArrayList<>();
+    Set<ContentEntry> contentEntries = new HashSet<>();
     for (VirtualFile file : files) {
       ContentEntry contentEntry = findParentContentEntry(virtualToIoFile(file), Arrays.stream(myModuleModel.getContentEntries()));
       if (contentEntry == null) {
@@ -71,7 +71,7 @@ public class ExternalSourceFolders {
     return roots;
   }
 
-  private void addSourceRoots(@NotNull List<ContentEntry> contentEntries, @Nullable Runnable runOnFinish) {
+  private void addSourceRoots(@NotNull Set<ContentEntry> contentEntries, @Nullable Runnable runOnFinish) {
     Map<ContentEntry, Collection<JavaModuleSourceRoot>> entryToRootMap = new HashMap<>();
     Map<File, ContentEntry> fileToEntryMap = new HashMap<>();
     for (ContentEntry contentEntry : contentEntries) {

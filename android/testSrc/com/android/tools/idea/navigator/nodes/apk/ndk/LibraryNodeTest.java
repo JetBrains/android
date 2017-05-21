@@ -25,12 +25,13 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -38,8 +39,14 @@ import static org.mockito.Mockito.mock;
  */
 public class LibraryNodeTest extends IdeaTestCase {
   public void testGetChildren() throws IOException {
-    NativeLibrary library = new NativeLibrary("test");
-    createSourceFoldersAndAddPathToLibrary(library, "z", "y", "x", "a", "b", "c");
+    List<String> sourceFolderPaths = createSourceFolders("z", "y", "x", "a", "b", "c");
+    NativeLibrary library = new NativeLibrary("test") {
+      @Override
+      @NotNull
+      public List<String> getSourceFolderPaths() {
+        return sourceFolderPaths;
+      }
+    };
 
     LibraryNode libraryNode = new LibraryNode(getProject(), library, mock(ViewSettings.class));
     List<? extends AbstractTreeNode> children = new ArrayList<>(libraryNode.getChildren());
@@ -58,10 +65,14 @@ public class LibraryNodeTest extends IdeaTestCase {
     assertEquals(Arrays.asList("a", "b", "c", "x", "y", "z"), folderNames);
   }
 
-  private void createSourceFoldersAndAddPathToLibrary(@NotNull NativeLibrary library, @NotNull String... folderNames) throws IOException {
+  @NotNull
+  private List<String> createSourceFolders(@NotNull String... folderNames) throws IOException {
+    List<String> sourceFolderPaths = new ArrayList<>();
     for (String folderName : folderNames) {
       VirtualFile folder = createFolderInProjectRoot(getProject(), folderName);
-      library.sourceFolderPaths.add(virtualToIoFile(folder).getPath());
+      sourceFolderPaths.add(toSystemDependentName(folder.getPath()));
     }
+    sourceFolderPaths.sort(Comparator.naturalOrder());
+    return sourceFolderPaths;
   }
 }

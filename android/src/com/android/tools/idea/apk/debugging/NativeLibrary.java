@@ -16,23 +16,25 @@
 package com.android.tools.idea.apk.debugging;
 
 import com.android.sdklib.devices.Abi;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class NativeLibrary {
   // These fields get serialized to/from XML in ApkFacet.
   @NotNull public String name = "";
-  @NotNull public List<String> sourceFolderPaths = new ArrayList<>();
 
   // Key: ABI, value: debuggable .so file.
   @NotNull public Map<Abi, DebuggableSharedObjectFile> debuggableSharedObjectFilesByAbi = new HashMap<>();
@@ -40,10 +42,19 @@ public class NativeLibrary {
   // Key: original path (found in a debuggable .so file), value: path in the local file system.
   @NotNull public Map<String, String> pathMappings = new HashMap<>();
 
-  @NotNull private List<String> sharedObjectFilePaths = new ArrayList<>();
+  // Paths of .so files inside APK.
+  @NotNull private List<String> mySharedObjectFilePaths = new ArrayList<>();
 
-  @Transient @NotNull public List<VirtualFile> sharedObjectFiles = new ArrayList<>();
-  @Transient @NotNull public List<Abi> abis = new ArrayList<>();
+  // .so files inside the APK.
+  @Transient @NotNull public final List<VirtualFile> sharedObjectFiles = new ArrayList<>();
+
+  // ABIs supported by the APK.
+  @Transient @NotNull public final List<Abi> abis = new ArrayList<>();
+
+  // Cached list of all the source folders in this library. This list is calculated from the debug symbols in every .so file in this
+  // library.
+  @VisibleForTesting
+  @Transient @Nullable List<String> sourceFolderPaths;
 
   public boolean hasDebugSymbols;
 
@@ -56,12 +67,12 @@ public class NativeLibrary {
 
   @NotNull
   public List<String> getSharedObjectFilePaths() {
-    return sharedObjectFilePaths;
+    return mySharedObjectFilePaths;
   }
 
   // This is being invoked when NativeLibrary is deserialized from XML.
   public void setSharedObjectFilePaths(@NotNull List<String> sharedObjectFilePaths) {
-    this.sharedObjectFilePaths = sharedObjectFilePaths;
+    mySharedObjectFilePaths = sharedObjectFilePaths;
 
     List<String> nonExistingPaths = new ArrayList<>();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
@@ -78,14 +89,39 @@ public class NativeLibrary {
 
     if (!nonExistingPaths.isEmpty()) {
       // Remove paths not found in the file system.
-      this.sharedObjectFilePaths.removeAll(nonExistingPaths);
+      mySharedObjectFilePaths.removeAll(nonExistingPaths);
     }
   }
 
-  @TestOnly
-  public void addSharedObjectFile(@NotNull VirtualFile file) {
-    doAddSharedObjectFile(file);
-    sortAbis();
+  public void clearDebugSymbols() {
+    debuggableSharedObjectFilesByAbi.clear();
+    pathMappings.clear();
+    hasDebugSymbols = false;
+    clearSourceFolderCache();
+  }
+
+  public boolean containsMappingForRemotePath(@NotNull String remotePath) {
+    return pathMappings.containsKey(remotePath);
+  }
+
+  public void addPathMapping(@NotNull String remotePath, @NotNull String localPath) {
+    pathMappings.put(remotePath, localPath);
+    clearSourceFolderCache();
+  }
+
+  public void removePathMapping(@NotNull String remotePath) {
+    pathMappings.remove(remotePath);
+    clearSourceFolderCache();
+  }
+
+  public void replacePathMappingsWith(@NotNull Map<String, String> newPathMappings) {
+    pathMappings.clear();
+    pathMappings.putAll(newPathMappings);
+    clearSourceFolderCache();
+  }
+
+  public boolean needsPathMappings() {
+    return !pathMappings.isEmpty();
   }
 
   public void addSharedObjectFiles(@NotNull Collection<VirtualFile> files) {
@@ -104,7 +140,7 @@ public class NativeLibrary {
   private void doAddSharedObjectFile(@NotNull VirtualFile file) {
     sharedObjectFiles.add(file);
     abis.add(extractAbiFrom(file));
-    sharedObjectFilePaths.add(file.getPath());
+    mySharedObjectFilePaths.add(file.getPath());
   }
 
   @NotNull
@@ -134,7 +170,12 @@ public class NativeLibrary {
     DebuggableSharedObjectFile sharedObjectFile = new DebuggableSharedObjectFile(file);
 
     debuggableSharedObjectFilesByAbi.put(abi, sharedObjectFile);
+    clearSourceFolderCache();
     return sharedObjectFile;
+  }
+
+  private void clearSourceFolderCache() {
+    sourceFolderPaths = null; // Need to recalculate all the source folders in this library.
   }
 
   @NotNull
@@ -154,19 +195,55 @@ public class NativeLibrary {
     NativeLibrary library = (NativeLibrary)o;
     return hasDebugSymbols == library.hasDebugSymbols &&
            Objects.equals(name, library.name) &&
-           Objects.equals(sourceFolderPaths, library.sourceFolderPaths) &&
            Objects.equals(pathMappings, library.pathMappings) &&
-           Objects.equals(sharedObjectFilePaths, library.sharedObjectFilePaths) &&
+           Objects.equals(mySharedObjectFilePaths, library.mySharedObjectFilePaths) &&
            Objects.equals(debuggableSharedObjectFilesByAbi, library.debuggableSharedObjectFilesByAbi);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, sourceFolderPaths, pathMappings, sharedObjectFilePaths, debuggableSharedObjectFilesByAbi, hasDebugSymbols);
+    return Objects.hash(name, pathMappings, mySharedObjectFilePaths, debuggableSharedObjectFilesByAbi, hasDebugSymbols);
   }
 
   @Override
   public String toString() {
     return name;
+  }
+
+  @NotNull
+  public List<String> getSourceFolderPaths() {
+    if (sourceFolderPaths != null) {
+      return sourceFolderPaths;
+    }
+    recalculateSourceFolderPaths();
+    return sourceFolderPaths;
+  }
+
+  public void recalculateSourceFolderPaths() {
+    if (debuggableSharedObjectFilesByAbi.isEmpty()) {
+      sourceFolderPaths = Collections.emptyList();
+      return;
+    }
+    sourceFolderPaths = new ArrayList<>();
+    for (DebuggableSharedObjectFile sharedObjectFile : debuggableSharedObjectFilesByAbi.values()) {
+      for (String debugSymbolPath : sharedObjectFile.debugSymbolPaths) {
+        File path = new File(debugSymbolPath);
+        if (path.exists()) {
+          sourceFolderPaths.add(debugSymbolPath);
+          continue;
+        }
+        // path is not local. Check for path mapping.
+        String mappedPath = pathMappings.get(debugSymbolPath);
+        if (isNotEmpty(mappedPath)) {
+          path = new File(mappedPath);
+          if (path.exists()) {
+            sourceFolderPaths.add(mappedPath);
+          }
+        }
+      }
+    }
+    if (sourceFolderPaths.size() > 1) {
+      sourceFolderPaths.sort(Comparator.naturalOrder());
+    }
   }
 }

@@ -17,22 +17,24 @@ package com.android.tools.idea.apk.debugging;
 
 import com.android.sdklib.devices.Abi;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.sdklib.devices.Abi.ARM64_V8A;
-import static com.android.sdklib.devices.Abi.X86;
+import static com.android.sdklib.devices.Abi.*;
 import static com.android.tools.idea.apk.debugging.SharedObjectFiles.createSharedObjectFiles;
+import static com.android.tools.idea.testing.ProjectFiles.createFile;
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.android.utils.FileUtils.toSystemIndependentPath;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link NativeLibrary}.
@@ -102,20 +104,27 @@ public class NativeLibraryTest extends IdeaTestCase {
     assertFalse(myLibrary.isMissingPathMappings()); // The map is empty
   }
 
+  public void testAddPathMapping() {
+    myLibrary.sourceFolderPaths = new ArrayList<>();
+    myLibrary.addPathMapping("abc.so", "xyz.so");
+    verifySourceFolderPathCacheWasCleared();
+    assertEquals("xyz.so", myLibrary.pathMappings.get("abc.so"));
+  }
+
   public void testIsMissingPathMappingsWithNonEmptyMappings() {
-    myLibrary.pathMappings.put("abc.so", "abc.so");
+    myLibrary.addPathMapping("abc.so", "abc.so");
     assertFalse(myLibrary.isMissingPathMappings()); // The all values in the map are not empty
   }
 
   public void testIsMissingPathMappingsWithEmptyMappings() {
-    myLibrary.pathMappings.put("abc.so", "");
+    myLibrary.addPathMapping("abc.so", "");
     assertTrue(myLibrary.isMissingPathMappings());
   }
 
   public void testAddDebuggableSharedObjectFile() throws IOException {
+    myLibrary.sourceFolderPaths = new ArrayList<>();
     myLibrary.hasDebugSymbols = false;
-    myLibrary.pathMappings.put("abc.so", "");
-    myLibrary.sourceFolderPaths.add("source1");
+    myLibrary.addPathMapping("abc.so", "");
 
     VirtualFile debuggableFile = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
       @Override
@@ -124,21 +133,98 @@ public class NativeLibraryTest extends IdeaTestCase {
       }
     });
 
-    Abi abi = X86;
-    myLibrary.addDebuggableSharedObjectFile(abi, debuggableFile);
+    myLibrary.addDebuggableSharedObjectFile(X86, debuggableFile);
     assertTrue(myLibrary.hasDebugSymbols);
+    verifySourceFolderPathCacheWasCleared();
 
-    DebuggableSharedObjectFile stored = myLibrary.debuggableSharedObjectFilesByAbi.get(abi);
+    DebuggableSharedObjectFile stored = myLibrary.debuggableSharedObjectFilesByAbi.get(X86);
     assertEquals(debuggableFile.getPath(), toSystemIndependentPath(stored.path));
   }
 
   public void testGetUserSelectedPathsInMappings() {
     assertThat(myLibrary.getUserSelectedPathsInMappings()).isEmpty();
 
-    myLibrary.pathMappings.put("abc.so", "");
+    myLibrary.addPathMapping("abc.so", "");
     assertThat(myLibrary.getUserSelectedPathsInMappings()).isEmpty();
 
-    myLibrary.pathMappings.put("xyz.so", "123.so");
+    myLibrary.addPathMapping("xyz.so", "123.so");
     assertThat(myLibrary.getUserSelectedPathsInMappings()).containsExactly("123.so");
+  }
+
+  public void testClearDebugSymbols() {
+    myLibrary.sourceFolderPaths = new ArrayList<>();
+    myLibrary.debuggableSharedObjectFilesByAbi.put(ARMEABI, mock(DebuggableSharedObjectFile.class));
+    myLibrary.pathMappings.put("abc.so", "xyz.so");
+    myLibrary.hasDebugSymbols = true;
+
+    myLibrary.clearDebugSymbols();
+
+    verifySourceFolderPathCacheWasCleared();
+    assertThat(myLibrary.debuggableSharedObjectFilesByAbi).isEmpty();
+    assertThat(myLibrary.pathMappings).isEmpty();
+    assertFalse(myLibrary.hasDebugSymbols);
+  }
+
+  public void testReplacePathMappingsWith() {
+    myLibrary.sourceFolderPaths = new ArrayList<>();
+    myLibrary.pathMappings.put("1.so", "9.so");
+    myLibrary.pathMappings.put("2.so", "8.so");
+
+    Map<String, String> newPathMappings = new HashMap<>();
+    newPathMappings.put("3.so", "7.so");
+    newPathMappings.put("4.so", "6.so");
+
+    myLibrary.replacePathMappingsWith(newPathMappings);
+    assertEquals(newPathMappings, myLibrary.pathMappings);
+    verifySourceFolderPathCacheWasCleared();
+  }
+
+  public void testRemovePathMapping() {
+    myLibrary.sourceFolderPaths = new ArrayList<>();
+    myLibrary.pathMappings.put("abc.so", "xyz.so");
+    myLibrary.pathMappings.put("def.so", "vuw.so");
+
+    myLibrary.removePathMapping("def.so");
+    assertThat(myLibrary.pathMappings).hasSize(1);
+    assertEquals("xyz.so", myLibrary.pathMappings.get("abc.so"));
+    verifySourceFolderPathCacheWasCleared();
+  }
+
+  private void verifySourceFolderPathCacheWasCleared() {
+    assertNull(myLibrary.sourceFolderPaths);
+  }
+
+  public void testGetSourceFolderPaths() throws IOException {
+    myLibrary.sourceFolderPaths = null; // Make sure the cache has not been created yet.
+
+    Project project = getProject();
+    VirtualFile libFolder = createFolderInProjectRoot(project, "lib");
+
+    DebuggableSharedObjectFile soFile1 = new DebuggableSharedObjectFile(createFile(libFolder, "lib1.so"));
+    myLibrary.debuggableSharedObjectFilesByAbi.put(X86, soFile1);
+
+    DebuggableSharedObjectFile soFile2 = new DebuggableSharedObjectFile(createFile(libFolder, "lib2.so"));
+    myLibrary.debuggableSharedObjectFilesByAbi.put(ARMEABI, soFile2);
+
+    String javaFolderPath = createFolderAndGetPath("java");
+    soFile1.debugSymbolPaths.add(javaFolderPath);
+
+    String remotePath = "remotePath";
+    String kotlinFolderPath = createFolderAndGetPath("kotlin");
+    soFile1.debugSymbolPaths.add(remotePath);
+    myLibrary.pathMappings.put(remotePath, kotlinFolderPath);
+
+    String cppFolderPath = createFolderAndGetPath("cpp");
+    soFile2.debugSymbolPaths.add(cppFolderPath);
+
+    List<String> sourceFolderPaths = myLibrary.getSourceFolderPaths();
+    assertThat(sourceFolderPaths).containsExactly(javaFolderPath, kotlinFolderPath, cppFolderPath);
+
+    assertSame(sourceFolderPaths, myLibrary.getSourceFolderPaths()); // verify we return the same instance once calculated.
+  }
+
+  @NotNull
+  private String createFolderAndGetPath(@NotNull String folderName) throws IOException {
+    return toSystemDependentName(createFolderInProjectRoot(getProject(), folderName).getPath());
   }
 }

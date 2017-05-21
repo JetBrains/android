@@ -20,6 +20,7 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.TreeVisitor;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.ToolWindow;
@@ -63,9 +64,11 @@ public class AndroidViewNodes {
     AbstractTreeBuilder treeBuilder = androidViewPane.getTreeBuilder();
     if (!treeBuilder.isDisposed()) {
       Ref<T> nodeRef = new Ref<>();
-      treeBuilder.accept(nodeType, (TreeVisitor<T>)node -> {
-        nodeRef.set(node);
-        return true;
+      ApplicationManager.getApplication().runReadAction(() -> {
+        treeBuilder.accept(nodeType, (TreeVisitor<T>)node -> {
+          nodeRef.set(node);
+          return true;
+        });
       });
       T node = nodeRef.get();
       if (node != null) {
