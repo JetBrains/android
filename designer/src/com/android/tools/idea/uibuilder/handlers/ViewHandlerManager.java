@@ -249,6 +249,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ConstraintLayoutChainHandler();
       case CLASS_CONSTRAINT_LAYOUT_BARRIER:
         return new ConstraintLayoutBarrierHandler();
+      case CLASS_CONSTRAINT_LAYOUT_HELPER:
+        return new ConstraintHelperHandler();
       case CLASS_CONSTRAINT_LAYOUT_LAYER:
         return new ConstraintLayoutLayerHandler();
       case FLEXBOX_LAYOUT:
