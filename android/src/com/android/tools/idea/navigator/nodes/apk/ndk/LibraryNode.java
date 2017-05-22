@@ -69,10 +69,7 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
     ViewSettings settings = getSettings();
     children.add(new LibraryFileNode(myProject, myLibrary, settings));
 
-    List<String> sourceFolderPaths = new ArrayList<>(myLibrary.sourceFolderPaths);
-    if (sourceFolderPaths.size() > 1) {
-      sourceFolderPaths.sort(String::compareTo);
-    }
+    List<String> sourceFolderPaths = new ArrayList<>(myLibrary.getSourceFolderPaths());
     if (!sourceFolderPaths.isEmpty()) {
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
       for (String path : sourceFolderPaths) {
