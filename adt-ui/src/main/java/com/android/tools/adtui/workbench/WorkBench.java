@@ -33,7 +33,6 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBLoadingPanelListener;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -284,9 +283,43 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     return new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent event) {
+        adjustSplitterForInsufficentSpace();
         updateBothWidths();
       }
     };
+  }
+
+  // TODO: Consider modifying ThreeComponentsSplitter.doLayout since this code will create some resize flickering.
+  private void adjustSplitterForInsufficentSpace() {
+    JComponent content = mySplitter.getInnerComponent();
+    int actualCenterWidth = mySplitter.getWidth() - (mySplitter.getFirstSize() + mySplitter.getLastSize());
+    int minCenterWidth = Math.max((content != null ? content.getMinimumSize().width : 0), ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+    int minLeftWidth = myModel.getVisibleTools(Side.LEFT).isEmpty() ? 0 : getMinimumWidth(Side.LEFT);
+    int minRightWidth = myModel.getVisibleTools(Side.RIGHT).isEmpty() ? 0 : getMinimumWidth(Side.RIGHT);
+    if (mySplitter.getFirstSize() >= minLeftWidth && mySplitter.getLastSize() >= minRightWidth && actualCenterWidth >= minCenterWidth) {
+      // No adjustment required
+      return;
+    }
+    if (mySplitter.getWidth() >= minLeftWidth + minCenterWidth + minRightWidth) {
+      int excess = mySplitter.getWidth() - (minLeftWidth + minCenterWidth + minRightWidth);
+      int leftExcess = Math.max(0, mySplitter.getFirstSize() - minLeftWidth);
+      int rightExcess = Math.max(0, mySplitter.getLastSize() - minRightWidth);
+      if (leftExcess + rightExcess > excess) {
+        double reduction = 1.0 * excess / (leftExcess + rightExcess);
+        mySplitter.setFirstSize(minLeftWidth + (int)(leftExcess * reduction));
+        mySplitter.setLastSize(minRightWidth + (int)(rightExcess * reduction));
+      }
+    }
+    else {
+      int sections = 1 + (minLeftWidth > 0 ? 1 : 0) + (minRightWidth > 0 ? 1 : 0);
+      int sectionWidth = mySplitter.getWidth() / sections;
+      if (minLeftWidth > 0) {
+        mySplitter.setFirstSize(sectionWidth);
+      }
+      if (minRightWidth > 0) {
+        mySplitter.setLastSize(sectionWidth);
+      }
+    }
   }
 
   private void updateBothWidths() {
@@ -524,7 +557,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     private final MyMessagePanel myMessagePanel;
     private boolean myShowingMessagePanel;
 
-    MyLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent, int startDelayMs) {
+    MyLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent, @SuppressWarnings("SameParameterValue") int startDelayMs) {
       super(new BorderLayout());
       myMessagePanel = new MyMessagePanel();
       myLoadingPanel = new JBLoadingPanel(manager, parent, startDelayMs);
@@ -541,24 +574,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       myLoadingPanel.stopLoading();
     }
 
-    public boolean isLoading() {
-      return myLoadingPanel.isLoading();
-    }
-
     public void setLoadingText(String text) {
       myLoadingPanel.setLoadingText(text);
-    }
-
-    public void addListener(@NotNull JBLoadingPanelListener listener) {
-      myLoadingPanel.addListener(listener);
-    }
-
-    public boolean removeListener(@NotNull JBLoadingPanelListener listener) {
-      return myLoadingPanel.removeListener(listener);
-    }
-
-    public JPanel getContentPanel() {
-      return myLoadingPanel.getContentPanel();
     }
 
     @Override
@@ -584,7 +601,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     /**
      * Replaces loading animation with the given message.
      */
-    void abortLoading(String message, Icon icon) {
+    void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon) {
       myMessagePanel.setText(message);
       myMessagePanel.setIcon(icon);
       if (!myShowingMessagePanel) {
