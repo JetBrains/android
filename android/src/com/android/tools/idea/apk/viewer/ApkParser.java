@@ -30,11 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
 
 public class ApkParser {
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
@@ -90,31 +86,6 @@ public class ApkParser {
     ArchiveNode node = ArchiveTreeStructure.create(myArchive);
     ArchiveTreeStructure.updateRawFileSizes(node, myApkSizeCalculator);
     return node;
-  }
-
-  public static void sort(@NotNull DefaultMutableTreeNode node) {
-    if (node.getChildCount() == 0) {
-      return;
-    }
-
-    List<DefaultMutableTreeNode> children = new ArrayList<>();
-    for (int i = 0; i < node.getChildCount(); i++) {
-      children.add((DefaultMutableTreeNode)node.getChildAt(i));
-    }
-
-    Collections.sort(children, (o1, o2) -> {
-      ApkEntry entry1 = ApkEntry.fromNode(o1);
-      ApkEntry entry2 = ApkEntry.fromNode(o2);
-      if (entry1 == null || entry2 == null) {
-        return 0;
-      }
-      return Long.compare(entry2.getSize(), entry1.getSize());
-    });
-
-    node.removeAllChildren();
-    for (DefaultMutableTreeNode child : children) {
-      node.add(child);
-    }
   }
 
   @NotNull
