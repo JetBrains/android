@@ -53,6 +53,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -108,6 +109,12 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
   @Override
   protected JComponent getComponent() {
     return myRootPanel;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myFormFactorPanel;
   }
 
   @NotNull
