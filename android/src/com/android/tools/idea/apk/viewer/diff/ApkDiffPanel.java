@@ -16,7 +16,8 @@
 package com.android.tools.idea.apk.viewer.diff;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.idea.apk.viewer.ApkEntry;
+import com.android.tools.apk.analyzer.internal.ApkDiffEntry;
+import com.android.tools.apk.analyzer.internal.ApkEntry;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.FutureCallBackAdapter;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.NameRenderer;
 import com.android.tools.idea.ddms.EdtExecutor;
@@ -44,13 +45,18 @@ public class ApkDiffPanel {
   private Tree myTree;
   private DefaultTreeModel myTreeModel;
 
-  public ApkDiffPanel(ApkDiffParser apkDiffParser) {
+  public ApkDiffPanel(ApkDiff apkDiffParser) {
     // construct the main tree
     ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = apkDiffParser.constructTreeStructure();
     FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
       @Override
       public void onSuccess(DefaultMutableTreeNode result) {
         setRootNode(result);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        super.onFailure(t);
       }
     };
     Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
@@ -71,7 +77,7 @@ public class ApkDiffPanel {
           return null;
         }
 
-        return e.getPath();
+        return e.getPath().toString();
       }
     };
 

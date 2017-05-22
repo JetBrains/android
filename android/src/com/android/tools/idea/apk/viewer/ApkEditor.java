@@ -23,7 +23,7 @@ import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
-import com.android.tools.idea.apk.viewer.diff.ApkDiffParser;
+import com.android.tools.idea.apk.viewer.diff.ApkDiff;
 import com.android.tools.idea.editors.NinePatchEditorProvider;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -43,7 +43,6 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.testFramework.BinaryLightVirtualFile;
@@ -149,12 +148,12 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       // user canceled
       return;
     }
-    VirtualFile newApk = ApkFileSystem.getInstance().getRootByLocal(file);
-    assert newApk != null;
+    VirtualFile oldApk = ApkFileSystem.getInstance().getRootByLocal(file);
+    assert oldApk != null;
 
     DialogBuilder builder = new DialogBuilder(myProject);
-    builder.setTitle(myRoot.getName() + " vs " + newApk.getName());
-    ApkDiffParser parser = new ApkDiffParser(myRoot, newApk);
+    builder.setTitle(oldApk.getName() + " (old) vs " + myRoot.getName() + " (new)");
+    ApkDiff parser = new ApkDiff(oldApk, myRoot);
     ApkDiffPanel panel = new ApkDiffPanel(parser);
     builder.setCenterPanel(panel.getContainer());
     builder.setPreferredFocusComponent(panel.getPreferredFocusedComponent());
