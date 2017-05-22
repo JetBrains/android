@@ -58,7 +58,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_MODULE = Flag.create(
     NPW, "new.module", "Migrate \"New Module\"",
     "Use the new wizard framework for the \"New > New Module...\" wizard flow.",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_IMPORT_MODULE = Flag.create(
     NPW, "import.module", "Migrate \"Import Module\"",
