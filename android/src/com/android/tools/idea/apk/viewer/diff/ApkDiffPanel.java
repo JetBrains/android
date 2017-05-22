@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.apk.viewer.diff;
 
+import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.ApkDiffEntry;
+import com.android.tools.apk.analyzer.internal.ApkDiffParser;
 import com.android.tools.apk.analyzer.internal.ApkEntry;
+import com.android.tools.apk.analyzer.internal.ApkFileByFileDiffParser;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.FutureCallBackAdapter;
-import com.android.tools.idea.apk.viewer.ApkViewPanel.NameRenderer;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.TreeSpeedSearch;
@@ -30,33 +38,86 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.Function;
 import com.intellij.util.containers.Convertor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+
 import static com.android.tools.idea.apk.viewer.ApkViewPanel.getHumanizedSize;
 
 public class ApkDiffPanel {
+
+  private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
+  private ListenableFuture<DefaultMutableTreeNode> myFbfTreeStructureFuture;
+
   private JPanel myContainer;
   private JScrollPane myColumnTreePane;
+  private JCheckBox myCalculateFileByFileCheckBox;
+
+  @NonNull private final VirtualFile myOldApk;
+  @NonNull private final VirtualFile myNewApk;
 
   private Tree myTree;
   private DefaultTreeModel myTreeModel;
 
-  public ApkDiffPanel(ApkDiff apkDiffParser) {
-    // construct the main tree
-    ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = apkDiffParser.constructTreeStructure();
+  public ApkDiffPanel(VirtualFile oldApk, VirtualFile newApk) {
+    myOldApk = oldApk;
+    myNewApk = newApk;
+
+    myCalculateFileByFileCheckBox.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (myCalculateFileByFileCheckBox.isSelected()){
+          myCalculateFileByFileCheckBox.setEnabled(false);
+          constructFbfTree();
+        } else {
+          constructDiffTree();
+        }
+      }
+    });
+
+    constructDiffTree();
+
+  }
+
+  private void constructFbfTree(){
+    if (myFbfTreeStructureFuture == null) {
+      myFbfTreeStructureFuture = ourExecutorService.submit(() -> {
+        try (Archive archive1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
+             Archive archive2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
+          return ApkFileByFileDiffParser.createTreeNode(archive1, archive2);
+        }
+      });
+    }
+
     FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
       @Override
       public void onSuccess(DefaultMutableTreeNode result) {
         setRootNode(result);
+        myCalculateFileByFileCheckBox.setEnabled(true);
       }
+    };
+    Futures.addCallback(myFbfTreeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
+  }
 
+  private void constructDiffTree(){
+    // construct the main tree
+    ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = ourExecutorService.submit(() -> {
+      try (Archive archive1 = Archives.open(VfsUtilCore.virtualToIoFile(myOldApk).toPath());
+           Archive archive2 = Archives.open(VfsUtilCore.virtualToIoFile(myNewApk).toPath())) {
+        return ApkDiffParser.createTreeNode(archive1, archive2);
+      }
+    });
+    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
       @Override
-      public void onFailure(@NotNull Throwable t) {
-        super.onFailure(t);
+      public void onSuccess(DefaultMutableTreeNode result) {
+        setRootNode(result);
+        myCalculateFileByFileCheckBox.setEnabled(true);
       }
     };
     Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
@@ -88,7 +149,7 @@ public class ApkDiffPanel {
                    .setName("File")
                    .setPreferredWidth(600)
                    .setHeaderAlignment(SwingConstants.LEADING)
-                   .setRenderer(new NameRenderer(treeSpeedSearch)))
+                   .setRenderer(new NameRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Old Size")
                    .setPreferredWidth(150)
@@ -124,7 +185,8 @@ public class ApkDiffPanel {
     assert entry != null;
 
     myTree.setPaintBusy(false);
-    myTree.setRootVisible(false);
+    myTree.setRootVisible(true);
+    myTree.expandPath(new TreePath(root));
     myTree.setModel(myTreeModel);
   }
 
@@ -153,6 +215,29 @@ public class ApkDiffPanel {
       }
 
       append(getHumanizedSize(mySizeMapper.fun(entry)));
+    }
+  }
+
+  static class NameRenderer extends ColoredTreeCellRenderer {
+
+    NameRenderer() {}
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      ApkEntry entry = ApkEntry.fromNode(value);
+      ApkEntry root = ApkEntry.fromNode(tree.getModel().getRoot());
+
+      if (entry == null || root == null) {
+        return;
+      }
+
+      append(entry.getName());
     }
   }
 }
