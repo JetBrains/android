@@ -119,7 +119,8 @@ public class GradleSyncState {
   GradleSyncState(@NotNull Project project,
                   @NotNull AndroidProjectInfo androidProjectInfo,
                   @NotNull GradleProjectInfo gradleProjectInfo,
-                  @NotNull GradleFiles gradleFiles, @NotNull MessageBus messageBus,
+                  @NotNull GradleFiles gradleFiles,
+                  @NotNull MessageBus messageBus,
                   @NotNull StateChangeNotification changeNotification,
                   @NotNull GradleSyncSummary summary) {
     myProject = project;
@@ -290,54 +291,8 @@ public class GradleSyncState {
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
   }
 
-  private GradleSyncStats.Trigger getTrigger() {
-    return myTrigger;
-  }
-
   private long getSyncDurationMS(long syncEndTimestamp) {
     return syncEndTimestamp - mySyncStartedTimestamp;
-  }
-
-  @VisibleForTesting
-  long getSyncGradleTimeMs() {
-    if (mySyncSetupStartedTimeStamp >= 0) {
-      return mySyncSetupStartedTimeStamp - mySyncStartedTimestamp;
-    }
-    // Gradle part has not been done
-    return -1;
-  }
-
-  @VisibleForTesting
-  long getSyncIdeTimeMs() {
-    if (mySyncEndedTimeStamp >= 0) {
-      // Sync finished
-      if (mySyncSetupStartedTimeStamp >= 0) {
-        return mySyncEndedTimeStamp - mySyncSetupStartedTimeStamp;
-      }
-      // Sync was done from cache (no gradle nor IDE part was done)
-      return -1;
-    }
-    // Since Ide part is the last one, it did not started or it failed
-    return -1;
-  }
-
-  @VisibleForTesting
-  long getSyncTotalTimeMs() {
-    if (mySyncEndedTimeStamp >= 0) {
-      // Sync was successful
-      return mySyncEndedTimeStamp - mySyncStartedTimestamp;
-    }
-    if (mySyncFailedTimeStamp >= 0) {
-      // Sync failed
-      return mySyncFailedTimeStamp - mySyncStartedTimestamp;
-    }
-    // If more sync steps are added, they should be checked in reverse order
-    if (mySyncSetupStartedTimeStamp >= 0) {
-      // Only Gradle part has finished
-      return mySyncSetupStartedTimeStamp - mySyncStartedTimestamp;
-    }
-    // Nothing has finished yet
-    return 0;
   }
 
   @VisibleForTesting
@@ -488,14 +443,59 @@ public class GradleSyncState {
     }
   }
 
-  private AndroidStudioEvent.Builder generateSyncEvent(AndroidStudioEvent.EventKind kind) {
-    return AndroidStudioEvent.newBuilder()
-      .setCategory(GRADLE_SYNC)
-      .setKind(kind)
-      .setGradleSyncStats(GradleSyncStats.newBuilder()
-                            .setTotalTimeMs(getSyncTotalTimeMs())
-                            .setIdeTimeMs(getSyncIdeTimeMs())
-                            .setGradleTimeMs(getSyncGradleTimeMs())
-                            .setTrigger(getTrigger()));
+  @NotNull
+  private AndroidStudioEvent.Builder generateSyncEvent(@NotNull AndroidStudioEvent.EventKind kind) {
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
+    GradleSyncStats.Builder syncStats = GradleSyncStats.newBuilder();
+    // @formatter:off
+    syncStats.setTotalTimeMs(getSyncTotalTimeMs())
+             .setIdeTimeMs(getSyncIdeTimeMs())
+             .setGradleTimeMs(getSyncGradleTimeMs())
+             .setTrigger(myTrigger);
+    // @formatter:on
+    event.setCategory(GRADLE_SYNC).setKind(kind).setGradleSyncStats(syncStats);
+    return event;
+  }
+
+  @VisibleForTesting
+  long getSyncTotalTimeMs() {
+    if (mySyncEndedTimeStamp >= 0) {
+      // Sync was successful
+      return mySyncEndedTimeStamp - mySyncStartedTimestamp;
+    }
+    if (mySyncFailedTimeStamp >= 0) {
+      // Sync failed
+      return mySyncFailedTimeStamp - mySyncStartedTimestamp;
+    }
+    // If more sync steps are added, they should be checked in reverse order
+    if (mySyncSetupStartedTimeStamp >= 0) {
+      // Only Gradle part has finished
+      return mySyncSetupStartedTimeStamp - mySyncStartedTimestamp;
+    }
+    // Nothing has finished yet
+    return 0;
+  }
+
+  @VisibleForTesting
+  long getSyncIdeTimeMs() {
+    if (mySyncEndedTimeStamp >= 0) {
+      // Sync finished
+      if (mySyncSetupStartedTimeStamp >= 0) {
+        return mySyncEndedTimeStamp - mySyncSetupStartedTimeStamp;
+      }
+      // Sync was done from cache (no gradle nor IDE part was done)
+      return -1;
+    }
+    // Since Ide part is the last one, it did not start or it failed
+    return -1;
+  }
+
+  @VisibleForTesting
+  long getSyncGradleTimeMs() {
+    if (mySyncSetupStartedTimeStamp >= 0) {
+      return mySyncSetupStartedTimeStamp - mySyncStartedTimestamp;
+    }
+    // Gradle part has not been done
+    return -1;
   }
 }
