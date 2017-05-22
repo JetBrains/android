@@ -459,7 +459,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
-  @Nullable
+  @NotNull
   public ProfilingConfiguration getProfilingConfiguration() {
     return myProfilingConfiguration;
   }
