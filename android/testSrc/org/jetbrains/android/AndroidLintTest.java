@@ -468,16 +468,6 @@ public class AndroidLintTest extends AndroidTestCase {
     AndroidSdks.getInstance().setSdkData(prevSdkData);
   }
 
-  public void testObsoleteDependency() throws Exception {
-    doTestWithFix(new AndroidLintGradleDependencyInspection(),
-                  "Change to 21.0", "build.gradle", "gradle");
-  }
-
-  public void testObsoleteLongDependency() throws Exception {
-    doTestWithFix(new AndroidLintGradleDependencyInspection(),
-                  "Change to 21.0", "build.gradle", "gradle");
-  }
-
   public void testGradleDeprecation() throws Exception {
     doTestWithFix(new AndroidLintGradleDeprecatedInspection(),
                   "Replace with com.android.library", "build.gradle", "gradle");
