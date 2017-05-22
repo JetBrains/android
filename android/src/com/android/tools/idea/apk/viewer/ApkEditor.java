@@ -23,7 +23,6 @@ import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
-import com.android.tools.idea.apk.viewer.diff.ApkDiff;
 import com.android.tools.idea.editors.NinePatchEditorProvider;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -153,8 +152,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
     DialogBuilder builder = new DialogBuilder(myProject);
     builder.setTitle(oldApk.getName() + " (old) vs " + myRoot.getName() + " (new)");
-    ApkDiff parser = new ApkDiff(oldApk, myRoot);
-    ApkDiffPanel panel = new ApkDiffPanel(parser);
+    ApkDiffPanel panel = new ApkDiffPanel(oldApk, myRoot);
     builder.setCenterPanel(panel.getContainer());
     builder.setPreferredFocusComponent(panel.getPreferredFocusedComponent());
     builder.show();
