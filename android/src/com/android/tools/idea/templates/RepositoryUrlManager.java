@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
@@ -84,7 +85,11 @@ public class RepositoryUrlManager {
   private final boolean myForceRepositoryChecksInTests;
 
   public static RepositoryUrlManager get() {
-    return new RepositoryUrlManager(false);
+    return ServiceManager.getService(RepositoryUrlManager.class);
+  }
+
+  RepositoryUrlManager() {
+    this(false);
   }
 
   @VisibleForTesting
