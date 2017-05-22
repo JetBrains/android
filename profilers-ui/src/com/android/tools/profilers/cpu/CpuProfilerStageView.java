@@ -191,7 +191,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     CpuThreadsModel model = myStage.getThreadStates();
     myThreads = new JBList(model);
     myThreads.addListSelectionListener((e) -> {
-      // TODO: support selecting multiple threads simultaneously.
       int selectedIndex = myThreads.getSelectedIndex();
       if (selectedIndex >= 0) {
         CpuThreadsModel.RangedCpuThread thread = model.getElementAt(selectedIndex);
