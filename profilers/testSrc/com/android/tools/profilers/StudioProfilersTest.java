@@ -831,6 +831,29 @@ public final class StudioProfilersTest {
     assertFalse(myProfilerService.getAgentAttachCalled());
   }
 
+  @Test
+  public void testAttachAgentNotCalledIfAlreadyAttached() throws Exception {
+    FakeIdeProfilerServices fakeIdeService = new FakeIdeProfilerServices();
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeIdeService, timer);
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    fakeIdeService.enableJvmtiAgent(true);
+    Profiler.Device device = createDevice(AndroidVersion.VersionCodes.O, "FakeDevice", Profiler.Device.State.ONLINE);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    Profiler.Process process1 = createProcess(1, "FakeProcess1", Profiler.Process.State.ALIVE);
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(session, process1);
+
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(device, profilers.getDevice());
+    assertEquals(process1, profilers.getProcess());
+    assertFalse(myProfilerService.getAgentAttachCalled());
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
