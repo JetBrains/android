@@ -81,7 +81,7 @@ public final class Haxm extends InstallableComponent {
     ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
   private ProgressStep myProgressStep;
-  private HaxmInstallationIntention myInstallationIntention;
+  private final HaxmInstallationIntention myInstallationIntention;
   private boolean myHaxmInstallerSuccessfullyCompleted = false;
   private static AccelerationErrorCode ourInitialCheck;
 
@@ -200,9 +200,13 @@ public final class Haxm extends InstallableComponent {
   }
 
   @NotNull
-  private static GeneralCommandLine getWindowsHaxmCommandLine(File source) {
+  private static GeneralCommandLine getWindowsHaxmCommandLine(File source) throws IOException {
     File batFile = new File(source, "silent_install.bat");
-    return new ElevatedCommandLine(batFile.getAbsolutePath()).withWorkDirectory(source);
+    File logFile = FileUtil.createTempFile("haxm_log", ".txt");
+    return new ElevatedCommandLine(batFile.getAbsolutePath())
+      .withTempFilePrefix("haxm")
+      .withWorkDirectory(source)
+      .withParameters("-log", logFile.getPath());
   }
 
   private static int getRecommendedMemoryAllocation() {
@@ -237,7 +241,7 @@ public final class Haxm extends InstallableComponent {
           GeneralCommandLine commandLine = getUninstallCommandLine(sdkHandler.getLocation());
           runInstaller(installContext, commandLine);
         }
-        catch (WizardException e) {
+        catch (WizardException|IOException e) {
           LOG.warn(String.format("Tried to uninstall HAXM on %s OS", Platform.current().name()), e);
           installContext.print("Unable to uninstall Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
           String message = e.getMessage();
@@ -274,7 +278,7 @@ public final class Haxm extends InstallableComponent {
           GeneralCommandLine commandLine = getInstallCommandLine(sdkHandler.getLocation());
           runInstaller(installContext, commandLine);
         }
-        catch (WizardException e) {
+        catch (WizardException|IOException e) {
           LOG.warn(String.format("Tried to install HAXM on %s OS with %s memory size",
                                   Platform.current().name(), String.valueOf(AvdManagerConnection.getMemorySize())), e);
           installContext.print("Unable to install Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
@@ -297,7 +301,7 @@ public final class Haxm extends InstallableComponent {
     }
   }
 
-  private void runInstaller(InstallContext installContext, GeneralCommandLine commandLine) {
+  private void runInstaller(@NotNull InstallContext installContext, @NotNull GeneralCommandLine commandLine) {
     try {
       ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
       if (progressIndicator != null) {
@@ -353,11 +357,15 @@ public final class Haxm extends InstallableComponent {
             installContext.print("Failed to read installer output log.\n", ConsoleViewContentType.ERROR_OUTPUT);
           }
         }
-        progressIndicator.setFraction(1);
+        if (progressIndicator != null) {
+          progressIndicator.setFraction(1);
+        }
         myHaxmInstallerSuccessfullyCompleted = false;
         return;
       }
-      progressIndicator.setFraction(1);
+      if (progressIndicator != null) {
+        progressIndicator.setFraction(1);
+      }
       myHaxmInstallerSuccessfullyCompleted = true;
     }
     catch (ExecutionException e) {
@@ -373,7 +381,7 @@ public final class Haxm extends InstallableComponent {
    * @throws IllegalStateException if called on an unsupported OS
    */
   @NotNull
-  private GeneralCommandLine getInstallCommandLine(File sdk) throws WizardException {
+  private GeneralCommandLine getInstallCommandLine(File sdk) throws WizardException, IOException {
     int memorySize = myStateStore.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
     if (SystemInfo.isMac) {
       return addInstallParameters(getMacHaxmCommandLine(getSourceLocation(sdk)), memorySize);
@@ -388,7 +396,7 @@ public final class Haxm extends InstallableComponent {
   }
 
   @NotNull
-  private GeneralCommandLine getUninstallCommandLine(File sdk) throws WizardException {
+  private static GeneralCommandLine getUninstallCommandLine(File sdk) throws WizardException, IOException {
     if (SystemInfo.isMac) {
       return addUninstallParameters(getMacHaxmCommandLine(getSourceLocation(sdk)));
     }
@@ -402,7 +410,7 @@ public final class Haxm extends InstallableComponent {
   }
 
   @NotNull
-  private File getSourceLocation(File sdk) {
+  private static File getSourceLocation(File sdk) {
     String path = FileUtil.join(SdkConstants.FD_EXTRAS, ID_INTEL.getId(), COMPONENT_PATH);
     return new File(sdk, path);
   }
