@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.sdkmanager;
 
 import com.android.SdkConstants;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.*;
@@ -49,8 +50,8 @@ public class IntegratedSdkManagerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  private static final String INSTALL_PACKAGE_TAB = "SDK Tools";
-  private static final String INSTALL_PACKAGE = "GPU Debugging tools";
+  private static final String INSTALL_PACKAGE_TAB = "SDK Platforms";
+  private static final String SDK_PLATFORM_VERSION = "API 21";
 
   /**
    * To verify that the new SDK Manager integrates into the Android Studio user interface,
@@ -87,8 +88,8 @@ public class IntegratedSdkManagerTest {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode)ttv.getTableModel().getRoot();
         for (Object object : Collections.list(root.children())) {
           try {
-            if (INSTALL_PACKAGE.equals(method("getDisplayName").withReturnType(String.class).in(object).invoke())) {
-              assertThat(method("getStatusString").withReturnType(String.class).in(object).invoke()).isEqualTo("Not Installed");
+            if (SDK_PLATFORM_VERSION.equals(method("getVersion").withReturnType(AndroidVersion.class).in(object).invoke().toString())) {
+              assertThat(method("getStatusString").withReturnType(String.class).in(object).invoke()).isEqualTo("Not installed");
               method("cycleState").in(object).invoke();
               return true;
             }
