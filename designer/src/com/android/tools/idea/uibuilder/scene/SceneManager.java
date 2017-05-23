@@ -54,6 +54,10 @@ abstract public class SceneManager implements Disposable {
   public void dispose() {
   }
 
+  /**
+   * Constructs a {@link Scene} from our {@link NlModel}. Must only be called once. For updates use {@link #update()}.
+   * @return
+   */
   @NotNull
   public Scene build() {
     assert myScene == null;
@@ -64,6 +68,7 @@ abstract public class SceneManager implements Disposable {
   /**
    * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
    * {@link #build()} must have been invoked already.
+   * This includes marking the display list as dirty.
    */
   public void update() {
     List<NlComponent> components = getModel().getComponents();
@@ -87,15 +92,9 @@ abstract public class SceneManager implements Disposable {
     oldComponents.removeIf(component -> component instanceof TemporarySceneComponent);
     oldComponents.forEach(scene::removeComponent);
 
-    SelectionModel selectionModel = getDesignSurface().getSelectionModel();
     scene.setRoot(root);
-    if (root != null && selectionModel.isEmpty()) {
-      addTargets(root);
-    }
     scene.needsRebuildList();
   }
-
-  public abstract void addTargets(@NotNull SceneComponent component);
 
   /**
    * Returns false if the value of the tools:visible attribute is false, true otherwise.
@@ -148,7 +147,7 @@ abstract public class SceneManager implements Disposable {
    * @param seenComponents Collector of components that were seen during NlComponent tree traversal.
    * @return the SceneComponent paired with the given NlComponent
    */
-  protected void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
+  protected final void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
     seenComponents.add(component);
 
     updateFromComponent(component);
@@ -177,10 +176,12 @@ abstract public class SceneManager implements Disposable {
     return tempComponent;
   }
 
+  /**
+   * Updates a single SceneComponent from its corresponding NlComponent.
+   */
   protected void updateFromComponent(SceneComponent sceneComponent) {
     sceneComponent.setToolLocked(false); // the root is always unlocked.
   }
-
 
   @NotNull
   protected DesignSurface getDesignSurface() {

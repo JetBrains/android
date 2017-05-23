@@ -188,12 +188,19 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  @Override
+  public void update() {
+    super.update();
+    SelectionModel selectionModel = getDesignSurface().getSelectionModel();
+    if (getScene().getRoot() != null && selectionModel.isEmpty()) {
+      addTargets(getScene().getRoot());
+    }
+  }
 
   /**
    * Add targets to the given component (by asking the associated
    * {@linkplain ViewGroupHandler} to do it)
    */
-  @Override
   public void addTargets(@NotNull SceneComponent component) {
     SceneComponent parent = component.getParent();
     if (parent != null) {
