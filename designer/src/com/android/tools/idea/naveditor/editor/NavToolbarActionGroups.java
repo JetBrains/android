@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
+import com.android.tools.idea.naveditor.actions.CreateFragmentAction;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -32,8 +34,7 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   @NotNull
   @Override
   protected ActionGroup getNorthGroup() {
-    // TODO
-    return new DefaultActionGroup();
+    return new DefaultActionGroup(new CreateFragmentAction((NavDesignSurface)mySurface));
   }
 
   @NotNull
