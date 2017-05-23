@@ -47,6 +47,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -550,6 +551,12 @@ class AttachedToolWindow<T> implements Disposable {
     public void update() {
       AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
       ActionUtil.performDumbAwareUpdate(false, myAction, event, false);
+    }
+
+    @Override
+    protected void presentationPropertyChanded(@NotNull PropertyChangeEvent event) {
+      super.presentationPropertyChanded(event);
+      update();
     }
   }
 

@@ -21,7 +21,6 @@ import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +28,7 @@ public class NlPropertyPanelDefinition extends ToolWindowDefinition<DesignSurfac
 
   public NlPropertyPanelDefinition(@NotNull AndroidFacet facet, @NotNull Side side, @NotNull Split split, @NotNull AutoHide autoHide) {
     // TODO: Get a different 13x13 tool window icon
-    super("Properties", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", side, split, autoHide,
+    super("Attributes", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", side, split, autoHide,
           () -> new NlPropertiesManager(facet, null));
   }
 }
