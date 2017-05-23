@@ -22,17 +22,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.event.MouseEvent;
-import java.awt.geom.*;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 
 /**
  * A custom renderer to support drawing {@link DurationData} over line charts
@@ -110,9 +108,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     for (int i = 0; i < seriesList.size(); i++) {
       Rectangle2D.Float rect = new Rectangle2D.Float();
       SeriesData<E> data = seriesList.get(i);
-      double xStart = (data.x - xMin) / (xMax - xMin);
-      double xDuration = data.value.getDuration() == UNSPECIFIED_DURATION ?
-                         (xMax - data.x) / xLength : data.value.getDuration() / xLength;
+      double xStart = (data.x - xMin) / xLength;
+      double xDuration = data.value.getDuration() / xLength;
       rect.setRect(xStart, 0, xDuration, 1);
       myPathCache.add(rect);
       myDataCache.add(data.value);
@@ -354,7 +351,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     /**
      * Sets the colors to use for the label.
      */
-    public Builder<E> setLabelColors(@NotNull Color bgColor, @NotNull Color hoveredColor, @NotNull Color clickedColor, @NotNull Color color) {
+    public Builder<E> setLabelColors(@NotNull Color bgColor,
+                                     @NotNull Color hoveredColor,
+                                     @NotNull Color clickedColor,
+                                     @NotNull Color color) {
       myLabelBgColor = bgColor;
       myLabelHoveredBgColor = hoveredColor;
       myLabelClickedBgColor = clickedColor;

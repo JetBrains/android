@@ -16,14 +16,9 @@
 package com.android.tools.adtui.model;
 
 /**
- * An object that models data with duration
+ * An object that models data with duration.
+ * For unfinished events, use Long.MAX_VALUE;
  */
 public interface DurationData {
-  /**
-   * Represents data that have an infinite/unspecified duration (e.g. unfinished events).
-   * TODO replace unspecified duration with Long.MAX_VALUE on perfd side so we don't have to deal with this.
-   */
-  int UNSPECIFIED_DURATION = -1;
-
   long getDuration();
 }

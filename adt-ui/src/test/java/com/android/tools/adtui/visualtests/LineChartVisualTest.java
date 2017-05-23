@@ -16,8 +16,13 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.linechart.*;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.SelectionComponent;
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
+import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -35,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.tools.adtui.common.AdtUiUtils.GBC_FULL;
-import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 
 public class LineChartVisualTest extends VisualTest {
 
@@ -74,7 +78,7 @@ public class LineChartVisualTest extends VisualTest {
 
     List<Updatable> componentsList = new ArrayList<>();
 
-    SelectionModel selection =  new SelectionModel(new Range(0, 0), timeGlobalRangeUs);
+    SelectionModel selection = new SelectionModel(new Range(0, 0), timeGlobalRangeUs);
     mySelectionComponent = new SelectionComponent(selection);
     myOverlayComponent = new OverlayComponent(mySelectionComponent);
 
@@ -251,7 +255,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         // Starts a new test event and give it a max duration.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        DefaultDurationData newEvent = new DefaultDurationData(UNSPECIFIED_DURATION);
+        DefaultDurationData newEvent = new DefaultDurationData(Long.MAX_VALUE);
         mDurationData1.add(nowUs, newEvent);
       }
 
@@ -272,7 +276,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mousePressed(MouseEvent e) {
         // Starts a new test event and give it a max duration.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        DefaultDurationData newEvent = new DefaultDurationData(UNSPECIFIED_DURATION);
+        DefaultDurationData newEvent = new DefaultDurationData(Long.MAX_VALUE);
         mDurationData2.add(nowUs, newEvent);
       }
 

@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -84,8 +83,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     int infoEnd = 10;
     myService.advanceTime(1);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS,
-                                         infoStart, DurationData.UNSPECIFIED_DURATION, true);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
     myStage.trackAllocations(true, null);
     assertEquals(true, myStage.isTrackingAllocations());
     assertEquals(null, myStage.getSelectedCapture());

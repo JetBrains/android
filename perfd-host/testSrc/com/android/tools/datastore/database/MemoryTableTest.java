@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
@@ -83,10 +82,10 @@ public class MemoryTableTest {
     MemoryData.MemorySample memSample = MemoryData.MemorySample.newBuilder().setTimestamp(1).build();
     MemoryData.AllocStatsSample allocStatsSample = MemoryData.AllocStatsSample.newBuilder().setTimestamp(2).build();
     HeapDumpInfo ongoingHeapSample =
-      HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
+      HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(Long.MAX_VALUE).build();
     HeapDumpInfo finishedHeapSample = HeapDumpInfo.newBuilder().setStartTime(4).setEndTime(5).build();
     AllocationsInfo ongoingAllocSample =
-      AllocationsInfo.newBuilder().setStartTime(6).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
+      AllocationsInfo.newBuilder().setStartTime(6).setEndTime(Long.MAX_VALUE).build();
     AllocationsInfo finishedAllocSample = AllocationsInfo.newBuilder().setStartTime(7).setEndTime(8).build();
     MemoryData.GcStatsSample gcStatsSample = MemoryData.GcStatsSample.newBuilder().setStartTime(8).setEndTime(9).build();
 

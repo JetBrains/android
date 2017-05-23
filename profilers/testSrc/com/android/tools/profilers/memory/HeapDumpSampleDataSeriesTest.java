@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -47,7 +46,7 @@ public class HeapDumpSampleDataSeriesTest {
     MemoryProfiler.HeapDumpInfo dumpInfo1 = com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo.newBuilder()
       .setStartTime(TimeUnit.MICROSECONDS.toNanos(2)).setEndTime(TimeUnit.MICROSECONDS.toNanos(7)).build();
     MemoryProfiler.HeapDumpInfo dumpInfo2 = com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo.newBuilder()
-      .setStartTime(TimeUnit.MICROSECONDS.toNanos(17)).setEndTime(DurationData.UNSPECIFIED_DURATION).build();
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos(17)).setEndTime(Long.MAX_VALUE).build();
     myService.addExplicitHeapDumpInfo(dumpInfo1);
     myService.addExplicitHeapDumpInfo(dumpInfo2);
 
@@ -67,9 +66,9 @@ public class HeapDumpSampleDataSeriesTest {
 
     SeriesData<CaptureDurationData<CaptureObject>> data2 = dataList.get(1);
     assertEquals(17, data2.x);
-    assertEquals(Long.MAX_VALUE - TimeUnit.MICROSECONDS.toNanos(data2.x), data2.value.getDuration());
+    assertEquals(Long.MAX_VALUE, data2.value.getDuration());
     CaptureObject capture2 = data2.value.getCaptureEntry().getCaptureObject();
     assertEquals(TimeUnit.MICROSECONDS.toNanos(17), capture2.getStartTimeNs());
-    assertEquals(DurationData.UNSPECIFIED_DURATION, capture2.getEndTimeNs());
+    assertEquals(Long.MAX_VALUE, capture2.getEndTimeNs());
   }
 }

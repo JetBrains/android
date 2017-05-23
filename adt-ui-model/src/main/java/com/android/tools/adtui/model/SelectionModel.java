@@ -163,11 +163,12 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
       DataSeries<? extends ConfigurableDurationData> series = constraint.getSeries().getDataSeries();
       List<? extends SeriesData<? extends ConfigurableDurationData>> constraints = series.getDataForXRange(new Range(min, max));
       for (SeriesData<? extends ConfigurableDurationData> data : constraints) {
-        long dataMax = data.x + data.value.getDuration();
-        if (dataMax == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
+        long duration = data.value.getDuration();
+        if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
           continue;
         }
 
+        long dataMax = duration == Long.MAX_VALUE ? duration : data.x + duration;
         Range r = new Range(data.x, dataMax);
         // Check if this constraint intersects the proposedRange.
         if (!r.getIntersection(proposedRange).isEmpty()) {

@@ -26,8 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
-
 abstract class CaptureDataSeries<T extends CaptureObject> implements DataSeries<CaptureDurationData<T>> {
   @NotNull protected final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   @Nullable protected final Common.Session mySession;
@@ -50,6 +48,6 @@ abstract class CaptureDataSeries<T extends CaptureObject> implements DataSeries<
   }
 
   public static long getDurationUs(long startTimeNs, long endTimeNs) {
-    return endTimeNs == UNSPECIFIED_DURATION ? Long.MAX_VALUE - startTimeNs : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
+    return endTimeNs == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
   }
 }

@@ -70,7 +70,7 @@ heap_dump_infos {
 }
 heap_dump_infos {
   start_time: 86402000000000
-  end_time: -1
+  end_time: 9223372036854775807
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
@@ -85,7 +85,7 @@ heap_dump_infos {
 }
 heap_dump_infos {
   start_time: 86402000000000
-  end_time: -1
+  end_time: 9223372036854775807
 }
 </message>
     </GrpcCall>

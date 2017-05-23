@@ -223,12 +223,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     series.addAll(getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(selectionRange));
 
     for (SeriesData<CaptureDurationData<CaptureObject>> data : series) {
-      long rangeMax = data.x + data.value.getDuration();
-      if (rangeMax == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
+      long duration = data.value.getDuration();
+      if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
         continue;
       }
 
-      Range c = new Range(data.x, rangeMax);
+      long dataMax = duration == Long.MAX_VALUE ? duration : data.x + duration;
+      Range c = new Range(data.x, dataMax);
       intersection = c.getIntersection(selectionRange);
       if (!intersection.isEmpty() && intersection.getLength() >= overlap) {
         durationData = data.value;
