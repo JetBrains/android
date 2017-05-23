@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
@@ -29,7 +28,6 @@ import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * Model that represents the import of an existing library (.jar or .aar) into a Gradle project as a new Module
@@ -86,10 +84,8 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
       myProject,
       path.startsWith(GRADLE_PATH_SEPARATOR) ? path : GRADLE_PATH_SEPARATOR + path,
       myArchive.get(),
-      inModule().get() && myMoveArchive.get(),
+      myMoveArchive.get(),
       getContainingModule(new File(myArchive.get()), myProject)).execute();
-
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
   }
 
 }
