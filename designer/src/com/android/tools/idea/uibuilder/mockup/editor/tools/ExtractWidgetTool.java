@@ -23,8 +23,8 @@ import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreator;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.WidgetCreatorFactory;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ToolRootPanel;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
@@ -234,7 +234,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
   }
 
   private static boolean canAddChild(@NotNull CreatorAction creatorAction, @NotNull NlComponent component) {
-    if (!component.isOrHasSuperclass(CLASS_VIEWGROUP)) {
+    if (!NlComponentHelperKt.isOrHasSuperclass(component, CLASS_VIEWGROUP)) {
       return false;
     }
     if (isListClass(component) && !creatorAction.myHandleListComponent) return false;
@@ -243,7 +243,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
 
   private static boolean isListClass(@NotNull NlComponent component) {
     for (String className : LIST_CLASSES) {
-      if (component.isOrHasSuperclass(className)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(component, className)) {
         return true;
       }
     }

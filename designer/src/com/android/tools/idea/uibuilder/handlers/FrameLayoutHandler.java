@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
@@ -65,8 +66,8 @@ public class FrameLayoutHandler extends ViewGroupHandler {
 
         int x = layout.getDrawX();
         int y = layout.getDrawY();
-        int w = nlComponent.w;
-        int h = nlComponent.h;
+        int w = NlComponentHelperKt.getW(nlComponent);
+        int h = NlComponentHelperKt.getH(nlComponent);
 
         graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
         graphics.drawRectDp(x, y, w, h);

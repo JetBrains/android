@@ -416,7 +416,7 @@ public class InteractionManager {
           return;
         }
       }
-      ViewGroupHandler viewGroupHandler = component != null ? component.getViewGroupHandler() : null;
+      ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
       if (viewGroupHandler == null) {
         return;
       }
@@ -430,8 +430,8 @@ public class InteractionManager {
         if (parent != null) {
           int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
           int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
-          if (primary.containsX(ax) && primary.containsY(ay)) {
-            ViewGroupHandler handler = parent.getViewGroupHandler();
+          if (NlComponentHelperKt.containsX(primary, ax) && NlComponentHelperKt.containsY(primary, ay)) {
+            ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
             if (handler != null) {
               interaction = handler.createInteraction(screenView, primary);
             }
@@ -809,8 +809,9 @@ public class InteractionManager {
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
 
+        // TODO: support nav editor
         List<NlComponent> dragged = ApplicationManager.getApplication()
-          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(sceneView, item, insertType));
+          .runWriteAction((Computable<List<NlComponent>>)() -> NlModelHelperKt.createComponents(model, sceneView, item, insertType));
 
         if (dragged == null) {
           event.reject();
@@ -921,7 +922,8 @@ public class InteractionManager {
         components = model.getSelectionModel().getSelection();
       }
       else {
-        components = model.createComponents(sceneView, item, insertType);
+        // TODO: support nav editor
+        components = NlModelHelperKt.createComponents(model, sceneView, item, insertType);
 
         if (components == null) {
           return null;  // User cancelled
@@ -932,8 +934,8 @@ public class InteractionManager {
           String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
       }
       for (int index = 0; index < dragged.size(); index++) {
-        components.get(index).x = dragged.get(index).x;
-        components.get(index).y = dragged.get(index).y;
+        NlComponentHelperKt.setX(components.get(index), NlComponentHelperKt.getX(dragged.get(index)));
+        NlComponentHelperKt.setY(components.get(index), NlComponentHelperKt.getY(dragged.get(index)));
       }
       dragged.clear();
       dragged.addAll(components);

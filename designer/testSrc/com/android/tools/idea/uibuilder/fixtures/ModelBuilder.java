@@ -16,15 +16,11 @@
 package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -44,12 +40,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /** Fixture for building up models for tests */
@@ -62,6 +60,7 @@ public class ModelBuilder {
   private final BiConsumer<? super NlModel, ? super NlModel> myModelUpdater;
   private final String myPath;
   private final Class<? extends DesignSurface> mySurfaceClass;
+  private final BiFunction<XmlTag, NlModel, NlComponent> myComponentFactory;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
                       @NotNull JavaCodeInsightTestFixture fixture,
@@ -70,7 +69,8 @@ public class ModelBuilder {
                       @NotNull Function<? super SyncNlModel, ? extends SceneManager> managerFactory,
                       @NotNull BiConsumer<? super NlModel, ? super NlModel> modelUpdater,
                       @NotNull String path,
-                      @NotNull Class<? extends DesignSurface> surfaceClass) {
+                      @NotNull Class<? extends DesignSurface> surfaceClass,
+                      @NotNull BiFunction<XmlTag, NlModel, NlComponent> componentFactory) {
     assertTrue(name, name.endsWith(DOT_XML));
     myFacet = facet;
     myFixture = fixture;
@@ -80,6 +80,7 @@ public class ModelBuilder {
     myModelUpdater = modelUpdater;
     myPath = path;
     mySurfaceClass = surfaceClass;
+    myComponentFactory = componentFactory;
   }
 
   public ModelBuilder name(@NotNull String name) {
@@ -149,11 +150,11 @@ public class ModelBuilder {
       assertNotNull(document);
 
       SyncNlModel model = SyncNlModel.create(createSurface(mySurfaceClass), myFixture.getProject(), myFacet, xmlFile);
-      SceneManager sceneManager = myManagerFactory.apply(model);
       DesignSurface surface = model.getSurface();
+      when(surface.getModel()).thenReturn(model);
+      SceneManager sceneManager = myManagerFactory.apply(model);
       SelectionModel selectionModel = model.getSelectionModel();
       when(surface.getSelectionModel()).thenReturn(selectionModel);
-      when(surface.getModel()).thenReturn(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
       Scene scene = sceneManager.build();
       when(surface.getScene()).thenReturn(scene);
@@ -164,7 +165,7 @@ public class ModelBuilder {
     });
   }
 
-  /** Update the given model to reflect the component hierarchy in the given builder */
+  /** Update the given model to reflect the NlComponentHelperKt.getH(component)ierarchy in the given builder */
   public void updateModel(NlModel model) {
     assertThat(model).isNotNull();
     NlModel newModel = build();
@@ -175,7 +176,9 @@ public class ModelBuilder {
   }
 
   private static void checkStructure(NlComponent component) {
-    assertThat(component.w).isNotEqualTo(-1);
+    if (NlComponentHelperKt.getHasNlComponentInfo(component)) {
+      assertThat(NlComponentHelperKt.getW(component)).isNotEqualTo(-1);
+    }
     assertThat(component.getSnapshot()).isNotNull();
     assertThat(component.getTag()).isNotNull();
     assertThat(component.getTagName()).isEqualTo(component.getTag().getName());

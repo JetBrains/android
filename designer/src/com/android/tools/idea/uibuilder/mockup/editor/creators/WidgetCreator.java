@@ -280,7 +280,7 @@ public abstract class WidgetCreator {
     if (myComponent == null) {
       final XmlTag parentTag = myMockup.getComponent().getTag();
       final XmlTag childTag = parentTag.createChildTag(getAndroidViewTag(), null, null, false);
-      myComponent = new NlComponent(myModel, childTag);
+      myComponent = myModel.createComponent(childTag);
     }
   }
 

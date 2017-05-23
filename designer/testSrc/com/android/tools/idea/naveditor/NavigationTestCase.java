@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
@@ -101,7 +102,8 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     };
 
     return new ModelBuilder(myAndroidFacet, myFixture, name, root, managerFactory,
-                            NavSceneManager::updateHierarchy, "nav", NavDesignSurface.class);
+                            NavSceneManager::updateHierarchy, "nav", NavDesignSurface.class,
+                            (tag, model) -> DesignSurface.createComponent(tag, model));
   }
 
   protected ComponentDescriptor component(@NotNull String tag) {

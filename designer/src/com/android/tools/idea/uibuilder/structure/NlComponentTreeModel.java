@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,7 +53,7 @@ final class NlComponentTreeModel implements TreeModel {
     }
 
     NlComponent component = (NlComponent)parent;
-    ViewGroupHandler handler = component.getViewGroupHandler();
+    ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
 
     return handler == null ? component.getChild(i) : handler.getComponentTreeChild(component, i);
   }
@@ -61,7 +62,7 @@ final class NlComponentTreeModel implements TreeModel {
   public int getChildCount(@NotNull Object parent) {
     if (parent instanceof NlComponent) {
       NlComponent component = (NlComponent)parent;
-      ViewGroupHandler handler = component.getViewGroupHandler();
+      ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
       if (handler != null) {
         return handler.getComponentTreeChildCount(component);
       }

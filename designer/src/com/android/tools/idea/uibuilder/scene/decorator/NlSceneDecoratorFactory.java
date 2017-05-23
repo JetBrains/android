@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -60,7 +61,7 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       }
     }
 
-    String className = component.getMostSpecificClass(ourConstructorMap.keySet());
+    String className = NlComponentHelperKt.getMostSpecificClass(component, ourConstructorMap.keySet());
     if (className != null) {
       SceneDecorator decorator = get(className).orElse(BASIC_DECORATOR);
       decorator.setFrameFactory(FRAME_FRACTORY);

@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
@@ -395,7 +396,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
   @Override
   public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    ViewHandler handler = component.getViewHandler();
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
     String propertyName = handler != null ? handler.getPreferredProperty() : null;
     if (propertyName == null) {
       return false;

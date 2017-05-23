@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,9 +65,9 @@ public class WarningLayer extends Layer {
         continue;
       }
 
-      int x = Coordinates.getSwingX(myScreenView, component.x);
-      int y = Coordinates.getSwingY(myScreenView, component.y);
-      int w = Coordinates.getSwingDimension(myScreenView, component.w);
+      int x = Coordinates.getSwingX(myScreenView, NlComponentHelperKt.getX(component));
+      int y = Coordinates.getSwingY(myScreenView, NlComponentHelperKt.getY(component));
+      int w = Coordinates.getSwingDimension(myScreenView, NlComponentHelperKt.getW(component));
 
       // buildDisplayList the icon at the top right corner of the component
       icon.paintIcon(null, gc, x + w - icon.getIconWidth() - PADDING, y + PADDING);
@@ -89,9 +90,9 @@ public class WarningLayer extends Layer {
         continue;
       }
 
-      int x = Coordinates.getSwingX(myScreenView, component.x);
-      int y = Coordinates.getSwingY(myScreenView, component.y);
-      int w = Coordinates.getSwingDimension(myScreenView, component.w);
+      int x = Coordinates.getSwingX(myScreenView, NlComponentHelperKt.getX(component));
+      int y = Coordinates.getSwingY(myScreenView, NlComponentHelperKt.getY(component));
+      int w = Coordinates.getSwingDimension(myScreenView, NlComponentHelperKt.getW(component));
 
       if (mx > (x + w - icon.getIconWidth() - PADDING) && mx < (x + w - PADDING)) {
         if (my > (y + PADDING) && my < (y + PADDING + icon.getIconHeight())) {

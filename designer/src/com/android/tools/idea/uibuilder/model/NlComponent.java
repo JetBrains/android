@@ -18,30 +18,15 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.intellij.lang.LanguageNamesValidation;
-import com.intellij.lang.java.JavaLanguage;
-import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -61,22 +46,10 @@ import static com.android.SdkConstants.*;
  * if visual it has bounds, etc.
  */
 public class NlComponent implements NlAttributesHolder {
-  // TODO Add a needsId method to the handler classes
-  private static final Collection<String> TAGS_THAT_DONT_NEED_DEFAULT_IDS = new ImmutableSet.Builder<String>()
-    .add(REQUEST_FOCUS)
-    .add(SPACE)
-    .add(TAG_ITEM)
-    .add(VIEW_INCLUDE)
-    .add(VIEW_MERGE)
-    .addAll(PreferenceUtils.VALUES)
-    .build();
+
+  @Nullable private XmlModelComponentMixin myMixin;
 
   @Nullable public List<NlComponent> children;
-  @Nullable public ViewInfo viewInfo;
-  @AndroidCoordinate public int x;
-  @AndroidCoordinate public int y;
-  @AndroidCoordinate public int w;
-  @AndroidCoordinate public int h;
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
   @NotNull private XmlTag myTag;
@@ -95,6 +68,16 @@ public class NlComponent implements NlAttributesHolder {
     myModel = model;
     myTag = tag;
     myTagName = tag.getName();
+  }
+
+  public void setMixin(@NotNull XmlModelComponentMixin mixin) {
+    assert myMixin == null;
+    myMixin = mixin;
+  }
+
+  @Nullable
+  public XmlModelComponentMixin getMixin() {
+    return myMixin;
   }
 
   @NotNull
@@ -119,13 +102,6 @@ public class NlComponent implements NlAttributesHolder {
 
   public void setSnapshot(@Nullable TagSnapshot snapshot) {
     mySnapshot = snapshot;
-  }
-
-  public void setBounds(@AndroidCoordinate int x, @AndroidCoordinate int y, @AndroidCoordinate int w, @AndroidCoordinate int h) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
   }
 
   public void addChild(@NotNull NlComponent component) {
@@ -251,28 +227,6 @@ public class NlComponent implements NlAttributesHolder {
     return result;
   }
 
-  public boolean contains(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    return containsX(x) && containsY(y);
-  }
-
-  public boolean containsX(@AndroidCoordinate int x) {
-    return Ranges.contains(this.x, this.x + w, x);
-  }
-
-  public boolean containsY(@AndroidCoordinate int y) {
-    return Ranges.contains(this.y, this.y + h, y);
-  }
-
-  @AndroidCoordinate
-  public int getMidpointX() {
-    return x + w / 2;
-  }
-
-  @AndroidCoordinate
-  public int getMidpointY() {
-    return y + h / 2;
-  }
-
   public boolean isRoot() {
     return !(myTag.getParent() instanceof XmlTag);
   }
@@ -309,119 +263,6 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   /**
-   * Determines whether the given new component should have an id attribute.
-   * This is generally false for layouts, and generally true for other views,
-   * not including the {@code <include>} and {@code <merge>} tags. Note that
-   * {@code <fragment>} tags <b>should</b> specify an id.
-   *
-   * @return true if the component should have a default id
-   */
-  public boolean needsDefaultId() {
-    if (TAGS_THAT_DONT_NEED_DEFAULT_IDS.contains(myTagName)) {
-      return false;
-    }
-
-    // Handle <Space> in the compatibility library package
-    if (myTagName.endsWith(SPACE) && myTagName.length() > SPACE.length() && myTagName.charAt(myTagName.length() - SPACE.length()) == '.') {
-      return false;
-    }
-
-    // Assign id's to ViewGroups like ListViews, but not to views like LinearLayout
-    ViewHandler viewHandler = getViewHandler();
-    if (viewHandler == null) {
-      if (myTagName.endsWith("Layout")) {
-        return false;
-      }
-    }
-    else if (viewHandler instanceof ViewGroupHandler) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Returns the ID, but also assigns a default id if the component does not already have an id (even if the component does
-   * not need one according to {@link #needsDefaultId()}
-   */
-  public String ensureId() {
-    String id = getId();
-    if (id != null) {
-      return id;
-    }
-
-    return assignId();
-  }
-
-  /**
-   * Ensure that there's a id, if not execute a write command to add
-   * the id to the component.
-   *
-   * @return
-   */
-  public String ensureLiveId() {
-    String id = getId();
-    if (id != null) {
-      return id;
-    }
-
-    AttributesTransaction attributes = startAttributeTransaction();
-    id = assignId();
-    attributes.apply();
-    WriteCommandAction action = new WriteCommandAction(getModel().getProject(),
-                                                       "Added id", getModel().getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        attributes.commit();
-      }
-    };
-    action.execute();
-    return id;
-  }
-
-  private String assignId() {
-    Collection<String> idList = getIds(myModel);
-    return assignId(this, idList);
-  }
-
-  @NotNull
-  public static String assignId(@NotNull NlComponent component, @NotNull Collection<String> idList) {
-    String tagName = component.getTagName();
-    tagName = tagName.substring(tagName.lastIndexOf('.') + 1);
-    String idValue = StringUtil.decapitalize(tagName);
-
-    Module module = component.getModel().getModule();
-    Project project = module.getProject();
-    idValue = ResourceHelper.prependResourcePrefix(module, idValue, ResourceFolderType.LAYOUT);
-
-    String nextIdValue = idValue;
-    int index = 0;
-
-    // Ensure that we don't create something like "switch" as an id, which won't compile when used
-    // in the R class
-    NamesValidator validator = LanguageNamesValidation.INSTANCE.forLanguage(JavaLanguage.INSTANCE);
-
-    while (idList.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
-      ++index;
-      if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
-        nextIdValue = idValue;
-      }
-      else {
-        nextIdValue = idValue + Integer.toString(index);
-      }
-    }
-
-    String newId = idValue + (index == 0 ? "" : Integer.toString(index));
-
-    // If the component has an open transaction, assign the id in that transaction
-    NlAttributesHolder attributes = component.myCurrentTransaction != null ? component.myCurrentTransaction : component;
-    attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
-
-    component.myModel.getPendingIds().add(newId); // TODO clear the pending ids
-    return newId;
-  }
-
-  /**
    * Looks up the existing set of id's reachable from the given module
    */
   public static Collection<String> getIds(@NotNull NlModel model) {
@@ -436,197 +277,6 @@ public class NlComponent implements NlAttributesHolder {
       ids = all;
     }
     return ids;
-  }
-
-  @AndroidCoordinate
-  public int getBaseline() {
-    try {
-      if (viewInfo != null) {
-        Object viewObject = viewInfo.getViewObject();
-        return (Integer)viewObject.getClass().getMethod("getBaseline").invoke(viewObject);
-      }
-    }
-    catch (Throwable ignore) {
-    }
-
-    return -1;
-  }
-
-  public int getMinimumWidth() {
-    try {
-      if (viewInfo != null) {
-        Object viewObject = viewInfo.getViewObject();
-        return (Integer)viewObject.getClass().getMethod("getMinimumWidth").invoke(viewObject);
-      }
-    }
-    catch (Throwable ignore) {
-    }
-
-    return 0;
-  }
-
-  public int getMinimumHeight() {
-    try {
-      if (viewInfo != null) {
-        Object viewObject = viewInfo.getViewObject();
-        return (Integer)viewObject.getClass().getMethod("getMinimumHeight").invoke(viewObject);
-      }
-    }
-    catch (Throwable ignore) {
-    }
-
-    return 0;
-  }
-
-  /**
-   * Return the current view visibility from layout lib
-   *
-   * @return the view visibility, or 0 (visible) if impossible to get
-   */
-  public int getAndroidViewVisibility() {
-    try {
-      if (viewInfo != null) {
-        Object viewObject = viewInfo.getViewObject();
-        return (Integer)viewObject.getClass().getMethod("getVisibility").invoke(viewObject);
-      }
-    }
-    catch (Throwable ignore) {
-    }
-    return 0;
-  }
-
-  private Insets myMargins;
-  private Insets myPadding;
-
-  private static int fixDefault(int value) {
-    return value == Integer.MIN_VALUE ? 0 : value;
-  }
-
-  @NotNull
-  public Insets getMargins() {
-    if (myMargins == null) {
-      if (viewInfo == null) {
-        return Insets.NONE;
-      }
-      try {
-        Object layoutParams = viewInfo.getLayoutParamsObject();
-        Class<?> layoutClass = layoutParams.getClass();
-
-        int left = fixDefault(layoutClass.getField("leftMargin").getInt(layoutParams));
-        int top = fixDefault(layoutClass.getField("topMargin").getInt(layoutParams));
-        int right = fixDefault(layoutClass.getField("rightMargin").getInt(layoutParams));
-        int bottom = fixDefault(layoutClass.getField("bottomMargin").getInt(layoutParams));
-        // Doesn't look like we need to read startMargin and endMargin here;
-        // ViewGroup.MarginLayoutParams#doResolveMargins resolves and assigns values to the others
-
-        if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-          myMargins = Insets.NONE;
-        }
-        else {
-          myMargins = new Insets(left, top, right, bottom);
-        }
-      }
-      catch (Throwable e) {
-        myMargins = Insets.NONE;
-      }
-    }
-    return myMargins;
-  }
-
-  @NotNull
-  public Insets getPadding() {
-    return getPadding(false);
-  }
-
-  @NotNull
-  public Insets getPadding(boolean force) {
-    if (myPadding == null || force) {
-      if (viewInfo == null) {
-        return Insets.NONE;
-      }
-      try {
-        Object layoutParams = viewInfo.getViewObject();
-        Class<?> layoutClass = layoutParams.getClass();
-
-        int left = fixDefault((Integer)layoutClass.getMethod("getPaddingLeft").invoke(layoutParams)); // TODO: getPaddingStart!
-        int top = fixDefault((Integer)layoutClass.getMethod("getPaddingTop").invoke(layoutParams));
-        int right = fixDefault((Integer)layoutClass.getMethod("getPaddingRight").invoke(layoutParams));
-        int bottom = fixDefault((Integer)layoutClass.getMethod("getPaddingBottom").invoke(layoutParams));
-        if (left == 0 && top == 0 && right == 0 && bottom == 0) {
-          myPadding = Insets.NONE;
-        }
-        else {
-          myPadding = new Insets(left, top, right, bottom);
-        }
-      }
-      catch (Throwable e) {
-        myPadding = Insets.NONE;
-      }
-    }
-    return myPadding;
-  }
-
-  public boolean isGroup() {
-    if (isOrHasSuperclass(CLASS_VIEWGROUP)) {
-      return true;
-    }
-
-    switch (myTagName) {
-      case TAG_MENU:
-      case TAG_GROUP:
-      case PreferenceTags.PREFERENCE_SCREEN:
-      case PreferenceTags.PREFERENCE_CATEGORY:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  /**
-   * Returns true if this NlComponent's class is the specified class,
-   * or if one of its super classes is the specified class.
-   *
-   * @param className A fully qualified class name
-   */
-  public boolean isOrHasSuperclass(@NotNull String className) {
-    if (viewInfo != null) {
-      Object viewObject = viewInfo.getViewObject();
-      if (viewObject == null) {
-        return ApplicationManager.getApplication().isUnitTestMode() && myTagName.equals(className);
-      }
-      Class<?> viewClass = viewObject.getClass();
-      while (viewClass != Object.class) {
-        if (className.equals(viewClass.getName())) {
-          return true;
-        }
-        viewClass = viewClass.getSuperclass();
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns the class within the className set that is the
-   * the most derived (specific) class that matches NlComponent's class
-   *
-   * @param classNames Set of class names to search
-   */
-  public String getMostSpecificClass(@NotNull Set<String> classNames) {
-
-    if (viewInfo != null) {
-      Object viewObject = viewInfo.getViewObject();
-      if (viewObject == null) {
-        return null;
-      }
-      Class<?> viewClass = viewObject.getClass();
-      while (viewClass != Object.class) {
-        if (classNames.contains(viewClass.getName())) {
-          return viewClass.getName();
-        }
-        viewClass = viewClass.getSuperclass();
-      }
-    }
-    return null;
   }
 
   @Nullable
@@ -645,7 +295,10 @@ public class NlComponent implements NlAttributesHolder {
 
   @Override
   public String toString() {
-    return String.format("<%s> (%s, %s) %s × %s", myTagName, x, y, w, h);
+    if (this.getMixin() != null) {
+      return getMixin().toString();
+    }
+    return String.format("<%s>", myTagName);
   }
 
   /**
@@ -777,78 +430,6 @@ public class NlComponent implements NlAttributesHolder {
     return mySnapshot != null;
   }
 
-  @Nullable
-  public ViewHandler getViewHandler() {
-    if (!myTag.isValid()) {
-      return null;
-    }
-    return ViewHandlerManager.get(myTag.getProject()).getHandler(this);
-  }
-
-  @Nullable
-  public ViewGroupHandler getViewGroupHandler() {
-    if (!myTag.isValid()) {
-      return null;
-    }
-    return ViewHandlerManager.get(myTag.getProject()).findLayoutHandler(this, false);
-  }
-
-  /**
-   * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
-   * Note: This operation can only be called when the caller is already holding a write lock. This will be the
-   * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link DragHandler#commit}.
-   *
-   * @param editor     The editor showing the component
-   * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}
-   *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
-   *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
-   *                   you can omit the package.)
-   * @param before     The sibling to insert immediately before, or null to append
-   * @param insertType The type of insertion
-   */
-  public NlComponent createChild(@NotNull ViewEditor editor,
-                                 @NotNull String fqcn,
-                                 @Nullable NlComponent before,
-                                 @NotNull InsertType insertType) {
-    String tagName = viewClassToTag(fqcn);
-    XmlTag tag = getTag().createChildTag(tagName, null, null, false);
-
-    return myModel.createComponent(((ViewEditorImpl)editor).getSceneView(), tag, this, before, insertType);
-  }
-
-  /**
-   * Returns true if views with the given fully qualified class name need to include
-   * their package in the layout XML tag
-   *
-   * @param fqcn the fully qualified class name, such as android.widget.Button
-   * @return true if the full package path should be included in the layout XML element
-   * tag
-   */
-  private static boolean viewNeedsPackage(String fqcn) {
-    return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX)
-             || fqcn.startsWith(ANDROID_VIEW_PKG)
-             || fqcn.startsWith(ANDROID_WEBKIT_PKG));
-  }
-
-  /**
-   * Maps a custom view class to the corresponding layout tag;
-   * e.g. {@code android.widget.LinearLayout} maps to just {@code LinearLayout}, but
-   * {@code android.support.v4.widget.DrawerLayout} maps to
-   * {@code android.support.v4.widget.DrawerLayout}.
-   *
-   * @param fqcn fully qualified class name
-   * @return the corresponding view tag
-   */
-  @NotNull
-  public static String viewClassToTag(@NotNull String fqcn) {
-    if (!viewNeedsPackage(fqcn)) {
-      return fqcn.substring(fqcn.lastIndexOf('.') + 1);
-    }
-
-    return fqcn;
-  }
-
   /**
    * Utility function to extract the id
    *
@@ -935,10 +516,16 @@ public class NlComponent implements NlAttributesHolder {
     myListeners.forEach(listener -> listener.stateChanged(myChangeEvent));
   }
 
-  public void clearAttributes() {
-    ViewGroupHandler viewGroupHandler = getViewGroupHandler();
-    if (viewGroupHandler != null) {
-      viewGroupHandler.clearAttributes(this);
+  public abstract static class XmlModelComponentMixin {
+    private final NlComponent myComponent;
+
+    public XmlModelComponentMixin(@NotNull NlComponent component) {
+      myComponent = component;
+    }
+
+    @NotNull
+    protected NlComponent getComponent() {
+      return myComponent;
     }
   }
 }

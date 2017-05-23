@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -37,6 +39,8 @@ import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -168,6 +172,7 @@ public class LayoutTestUtilities {
     when(surface.getSelectionModel()).thenReturn(new SelectionModel());
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
+    when(surface.createComponent(any())).thenCallRealMethod();
     return surface;
   }
 
@@ -227,5 +232,11 @@ public class LayoutTestUtilities {
   public static void cleanUsageTrackerAfterTesting(@NotNull DesignSurface surface) {
     NlUsageTrackerManager.cleanAfterTesting(surface);
     UsageTracker.cleanAfterTesting();
+  }
+
+  public static NlComponent createMockComponent() {
+    NlComponent mock = mock(NlComponent.class);
+    when(mock.getMixin()).thenReturn(new NlComponentMixin(mock));
+    return mock;
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.target.Target;
@@ -57,8 +58,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getMidPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int midX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w / 2);
-    int midY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h / 2);
+    int midX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent) + NlComponentHelperKt.getW(myComponent) / 2);
+    int midY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent) + NlComponentHelperKt.getH(myComponent) / 2);
     return new Point(midX, midY);
   }
 
@@ -66,8 +67,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getBottomCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int midX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w / 2);
-    int bottomY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h);
+    int midX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent) + NlComponentHelperKt.getW(myComponent) / 2);
+    int bottomY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent) + NlComponentHelperKt.getH(myComponent));
     return new Point(midX, bottomY);
   }
 
@@ -75,8 +76,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getTopCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int midX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w / 2);
-    int topY = Coordinates.getSwingY(sceneView, myComponent.y);
+    int midX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent) + NlComponentHelperKt.getW(myComponent) / 2);
+    int topY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent));
     return new Point(midX, topY);
   }
 
@@ -84,8 +85,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getLeftCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int leftX = Coordinates.getSwingX(sceneView, myComponent.x);
-    int midY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h / 2);
+    int leftX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent));
+    int midY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent) + NlComponentHelperKt.getH(myComponent) / 2);
     return new Point(leftX, midY);
   }
 
@@ -93,8 +94,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getRightCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int rightX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w);
-    int midY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h / 2);
+    int rightX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent) + NlComponentHelperKt.getW(myComponent));
+    int midY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent) + NlComponentHelperKt.getH(myComponent) / 2);
     return new Point(rightX, midY);
   }
 
@@ -139,10 +140,11 @@ public class NlComponentFixture {
     myComponentDriver.click(mySurface, p);
 
     Point sourceBaseline = getTopCenterPoint();
-    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, myComponent.getBaseline()) - 1);
+    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)) - 1);
     myDragAndDrop.drag(mySurface, sourceBaseline);
     Point destinationBaseline = destination.getTopCenterPoint();
-    destinationBaseline.translate(0, Coordinates.getSwingDimension(sceneView, destination.getComponent().getBaseline()) - 1);
+    destinationBaseline
+      .translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(destination.getComponent())) - 1);
     myDragAndDrop.drop(mySurface, destinationBaseline);
     return this;
   }
@@ -152,7 +154,7 @@ public class NlComponentFixture {
   }
 
   public Object getViewObject() {
-    return myComponent.viewInfo.getViewObject();
+    return NlComponentHelperKt.getViewInfo(myComponent).getViewObject();
   }
 
   public String getText() {

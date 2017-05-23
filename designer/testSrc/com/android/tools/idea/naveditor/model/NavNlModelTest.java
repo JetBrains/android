@@ -38,9 +38,9 @@ public class NavNlModelTest extends NavigationTestCase {
                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2")));
     SyncNlModel model = modelBuilder.build();
 
-    assertEquals("NlComponent{tag=<navigation>, bounds=[0,0:0x0, instance=0}\n" +
-                 "    NlComponent{tag=<fragment>, bounds=[0,0:400x666, instance=1}\n" +
-                 "    NlComponent{tag=<fragment>, bounds=[0,0:400x666, instance=2}",
+    assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
+                 "    NlComponent{tag=<fragment>, instance=1}\n" +
+                 "    NlComponent{tag=<fragment>, instance=2}",
                  treeDumper.toTree(model.getComponents()));
 
     // Add child
@@ -49,10 +49,10 @@ public class NavNlModelTest extends NavigationTestCase {
     parent.addChild(component(NavigationSchema.TAG_ACTION).id("@id/action"), null);
     modelBuilder.updateModel(model);
 
-    assertEquals("NlComponent{tag=<navigation>, bounds=[0,0:0x0, instance=0}\n" +
-                 "    NlComponent{tag=<fragment>, bounds=[0,0:400x666, instance=1}\n" +
-                 "    NlComponent{tag=<fragment>, bounds=[0,0:400x666, instance=2}\n" +
-                 "    NlComponent{tag=<action>, bounds=[0,0:0x0, instance=3}",
+    assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
+                 "    NlComponent{tag=<fragment>, instance=1}\n" +
+                 "    NlComponent{tag=<fragment>, instance=2}\n" +
+                 "    NlComponent{tag=<action>, instance=3}",
                  treeDumper.toTree(model.getComponents()));
   }
 

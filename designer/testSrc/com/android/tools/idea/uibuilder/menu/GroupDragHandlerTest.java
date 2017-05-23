@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
@@ -102,7 +103,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
         overflowItem(366, 258, 392, 96))).build();
 
     NlComponent group = model.find("group");
-    group.setBounds(0, 0, -1, -1);
+    NlComponentHelperKt.setBounds(group, 0, 0, -1, -1);
     GroupDragHandler handler = getMenuHandler(model);
 
     @AndroidDpCoordinate int y = 45;
@@ -140,7 +141,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
         overflowItem(366, 258, 392, 96))).build();
 
     NlComponent group = model.flattenComponents().filter(c -> "group".equals(c.getId())).findFirst().get();
-    group.setBounds(0, 0, -1, -1);
+    NlComponentHelperKt.setBounds(group, 0, 0, -1, -1);
     GroupDragHandler handler = getMenuHandler(model);
 
     @AndroidDpCoordinate int y = 45;
@@ -178,7 +179,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
         group(368, 164, 1, 1).id("@+id/group"))).build();
 
     NlComponent group = model.flattenComponents().filter(c -> "group".equals(c.getId())).findFirst().get();
-    group.setBounds(0, 0, -1, -1);
+    NlComponentHelperKt.setBounds(group, 0, 0, -1, -1);
     GroupDragHandler handler = getMenuHandler(model);
 
     @AndroidDpCoordinate int y = 45;

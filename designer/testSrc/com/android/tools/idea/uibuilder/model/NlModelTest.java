@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
@@ -363,7 +364,7 @@ public class NlModelTest extends LayoutTestCase {
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
-      () -> model.createComponent(screen(model).getScreen(), recyclerViewTag, frameLayout, null, InsertType.CREATE),
+      () -> NlModelHelperKt.createComponent(model, screen(model).getScreen(), recyclerViewTag, frameLayout, null, InsertType.CREATE),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
     when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
@@ -399,8 +400,8 @@ public class NlModelTest extends LayoutTestCase {
     XmlTag recyclerViewTag =
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
 
-    NlComponent recyclerView = model.createComponent(
-      screen(model).getScreen(), recyclerViewTag, null, null, InsertType.CREATE);
+    NlComponent recyclerView =
+      NlModelHelperKt.createComponent(model, screen(model).getScreen(), recyclerViewTag, null, null, InsertType.CREATE);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
     when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
@@ -591,7 +592,9 @@ public class NlModelTest extends LayoutTestCase {
                                                   "     android:layout_width=\"match_parent\"" +
                                                   "     android:layout_height=\"match_parent\" />" +
                                                   "</merge>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, mergeXml);
+    DesignSurface surface = createSurface(NlDesignSurface.class);
+    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, mergeXml);
+    when(surface.getModel()).thenReturn(model);
 
     XmlTag parentRoot = parentXml.getRootTag();
     TagSnapshot parentRootSnapshot = TagSnapshot.createTagSnapshot(parentRoot, null);
@@ -605,8 +608,8 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent rootComponent = model.getComponents().get(0);
     assertNotNull(rootComponent);
     assertEquals(2, rootComponent.getChildCount());
-    assertNull(rootComponent.getChild(0).viewInfo);
-    assertNull(rootComponent.getChild(1).viewInfo);
+    assertNull(NlComponentHelperKt.getViewInfo(rootComponent.getChild(0)));
+    assertNull(NlComponentHelperKt.getViewInfo(rootComponent.getChild(1)));
   }
 
   /**
@@ -624,7 +627,9 @@ public class NlModelTest extends LayoutTestCase {
                                                             "               android:layout_width=\"match_parent\"" +
                                                             "               android:layout_height=\"48dp\" />" +
                                                             "</LinearLayout>");
-    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
+    DesignSurface surface = createSurface(NlDesignSurface.class);
+    NlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, modelXml);
+    when(surface.getModel()).thenReturn(model);
 
     TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(modelXml.getRootTag(), null);
     ViewInfo rootViewInfo = new ViewInfo("android.widget.LinearLayout", rootSnapshot, 0, 0, 500, 500);
@@ -635,7 +640,7 @@ public class NlModelTest extends LayoutTestCase {
 
     //noinspection OptionalGetWithoutIsPresent
     NlComponent searchViewComponent = model.flattenComponents().filter(c -> c.getTagName().equals("SearchView")).findFirst().get();
-    assertEquals("android.widget.SearchView", searchViewComponent.viewInfo.getClassName());
+    assertEquals("android.widget.SearchView", NlComponentHelperKt.getViewInfo(searchViewComponent).getClassName());
   }
 
   public void testLayoutListenersModifyListenerList() throws Exception {

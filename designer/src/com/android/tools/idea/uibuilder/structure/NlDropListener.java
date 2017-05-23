@@ -118,8 +118,10 @@ public class NlDropListener extends DropTargetAdapter {
           myDragged.addAll(keepOnlyAncestors(model.getSelectionModel().getSelection()));
         }
         else {
+          // TODO: support nav editor
           Collection<NlComponent> captured = ApplicationManager.getApplication()
-            .runWriteAction((Computable<Collection<NlComponent>>)() -> model.createComponents(screenView, myTransferItem, insertType));
+            .runWriteAction(
+              (Computable<Collection<NlComponent>>)() -> NlModelHelperKt.createComponents(model, screenView, myTransferItem, insertType));
 
           if (captured != null) {
             myDragged.addAll(keepOnlyAncestors(captured));
@@ -175,17 +177,17 @@ public class NlDropListener extends DropTargetAdapter {
     NlModel model = myTree.getDesignerModel();
     assert model != null;
 
-    if (myDragReceiver.isGroup() && model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0))) {
+    if (NlComponentHelperKt.isGroup(myDragReceiver) && model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0))) {
       performNormalDrop(event, insertType, model);
     }
     else if (!myDragReceiver.isRoot()
              && !NlModel.isDescendant(myDragReceiver, myDragged)
-             && NlModel.isMorphableToViewGroup(myDragReceiver)) {
+             && NlComponentHelperKt.isMorphableToViewGroup(myDragReceiver)) {
       morphReceiverIntoViewGroup(model);
       performNormalDrop(event, insertType, model);
     } else {
       // Not a viewgroup, but let's give a chance to the handler to do something with the drop event
-      ViewHandler handler = myDragReceiver.getViewHandler();
+      ViewHandler handler = NlComponentHelperKt.getViewHandler(myDragReceiver);
       if (handler instanceof ViewGroupHandler) {
         ViewGroupHandler groupHandler = (ViewGroupHandler) handler;
         groupHandler.performDrop(model, event, myDragReceiver, myDragged, myNextDragSibling, insertType);

@@ -19,10 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -168,7 +165,7 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private String getNamespace() {
-    return editor.getModel().isModuleDependency(APPCOMPAT_LIB_ARTIFACT) ? AUTO_URI : ANDROID_URI;
+    return NlModelHelperKt.isModuleDependency(editor.getModel(), APPCOMPAT_LIB_ARTIFACT) ? AUTO_URI : ANDROID_URI;
   }
 
   @Nullable

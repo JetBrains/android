@@ -19,6 +19,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -127,7 +128,7 @@ public class EnumSupportFactory {
     }
     Map<String, String> values = null;
     for (NlComponent component : components) {
-      ViewHandler handler = component.getViewHandler();
+      ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
       if (handler == null) {
         return null;
       }

@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -522,7 +523,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   public static boolean hasBaseline(@NotNull NlComponent component) {
-    return component.getBaseline() > 0;
+    return NlComponentHelperKt.getBaseline(component) > 0;
   }
 
   /**

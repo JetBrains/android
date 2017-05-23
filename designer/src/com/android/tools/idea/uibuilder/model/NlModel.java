@@ -15,33 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Screen;
-import com.android.sdklib.devices.State;
-import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.configurations.ConfigurationMatcher;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
-import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
@@ -54,17 +42,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -85,11 +68,9 @@ import java.awt.dnd.InvalidDnDOperationException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.IN_PLATFORM;
 
 /**
  * Model for an XML file
@@ -277,8 +258,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (CHECK_MODEL_INTEGRITY) {
       // This is written like this instead of just "assert component.w != -1" to ease
       // setting breakpoint to debug problems
-      if (component.w == -1) {
-        assert false : component.w;
+      if (NlComponentHelperKt.getHasNlComponentInfo(component)) {
+        int w = NlComponentHelperKt.getW(component);
+        if (w == -1) {
+          assert false : w;
+        }
       }
       if (component.getSnapshot() == null) {
         assert false;
@@ -388,112 +372,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public Configuration getConfiguration() {
     return myConfiguration;
-  }
-
-  /**
-   * Returns true if the current module depends on the specified library.
-   *
-   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
-   */
-  public boolean isModuleDependency(@NotNull String artifact) {
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(myFacet);
-    return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
-  }
-
-  /**
-   * Returns the {@link GradleVersion} of the specified library that the current module depends on.
-   *
-   * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
-   * @return the revision or null if the module does not depend on the specified library.
-   */
-  @Nullable
-  public GradleVersion getModuleDependencyVersion(@NotNull String artifact) {
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(myFacet);
-    return gradleModel != null ? GradleUtil.getModuleDependencyVersion(gradleModel, artifact) : null;
-  }
-
-  /**
-   * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
-   */
-  public void overrideConfigurationScreenSize(@AndroidCoordinate int xDimension, @AndroidCoordinate int yDimension) {
-    Device original = myConfiguration.getDevice();
-    Device.Builder deviceBuilder = new Device.Builder(original); // doesn't copy tag id
-    if (original != null) {
-      deviceBuilder.setTagId(original.getTagId());
-    }
-    deviceBuilder.setName("Custom");
-    deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
-    Device device = deviceBuilder.build();
-    for (State state : device.getAllStates()) {
-      Screen screen = state.getHardware().getScreen();
-      screen.setXDimension(xDimension);
-      screen.setYDimension(yDimension);
-
-      double dpi = screen.getPixelDensity().getDpiValue();
-      double width = xDimension / dpi;
-      double height = yDimension / dpi;
-      double diagonalLength = Math.sqrt(width * width + height * height);
-
-      screen.setDiagonalLength(diagonalLength);
-      screen.setSize(AvdScreenData.getScreenSize(diagonalLength));
-
-      screen.setRatio(AvdScreenData.getScreenRatio(xDimension, yDimension));
-
-      screen.setScreenRound(device.getDefaultHardware().getScreen().getScreenRound());
-      screen.setChin(device.getDefaultHardware().getScreen().getChin());
-    }
-
-    // If a custom device already exists, remove it before adding the latest one
-    List<Device> devices = myConfiguration.getConfigurationManager().getDevices();
-    boolean customDeviceReplaced = false;
-    for (int i = 0; i < devices.size(); i++) {
-      if ("Custom".equals(devices.get(i).getId())) {
-        devices.set(i, device);
-        customDeviceReplaced = true;
-        break;
-      }
-    }
-
-    if (!customDeviceReplaced) {
-      devices.add(device);
-    }
-
-    VirtualFile better;
-    State newState;
-    //Change the orientation of the device depending on the shape of the canvas
-    if (xDimension > yDimension) {
-      better = ConfigurationMatcher.getBetterMatch(myConfiguration, device, "Landscape", null, null);
-      newState = device.getState("Landscape");
-    }
-    else {
-      better = ConfigurationMatcher.getBetterMatch(myConfiguration, device, "Portrait", null, null);
-      newState = device.getState("Portrait");
-    }
-
-    if (better != null) {
-      VirtualFile old = myConfiguration.getFile();
-      assert old != null;
-      Project project = mySurface.getProject();
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, better, -1);
-      FileEditorManager manager = FileEditorManager.getInstance(project);
-      FileEditor selectedEditor = manager.getSelectedEditor(old);
-      manager.openEditor(descriptor, true);
-      // Switch to the same type of editor (XML or Layout Editor) in the target file
-      if (selectedEditor instanceof NlEditor) {
-        manager.setSelectedEditor(better, NlEditorProvider.DESIGNER_ID);
-      }
-      else if (selectedEditor != null) {
-        manager.setSelectedEditor(better, TextEditorProvider.getInstance().getEditorTypeId());
-      }
-
-      AndroidFacet facet = AndroidFacet.getInstance(myConfiguration.getModule());
-      assert facet != null;
-      Configuration configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(better);
-      configuration.setEffectiveDevice(device, newState);
-    }
-    else {
-      myConfiguration.setEffectiveDevice(device, newState);
-    }
   }
 
   @NotNull
@@ -790,7 +668,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (component == null) {
         // New component: tag didn't exist in the previous component hierarchy,
         // and no similar tag was found
-        component = new NlComponent(myModel, tag);
+        component = myModel.createComponent(tag);
         recordComponentMapping(tag, component);
       }
 
@@ -925,8 +803,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // Segment the deleted components into lists of siblings
     Map<NlComponent, List<NlComponent>> siblingLists = groupSiblings(components);
 
-    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(myFacet);
-
     // Notify parent components about children getting deleted
     for (Map.Entry<NlComponent, List<NlComponent>> entry : siblingLists.entrySet()) {
       NlComponent parent = entry.getKey();
@@ -934,14 +810,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         continue;
       }
       List<NlComponent> children = entry.getValue();
-      boolean finished = false;
 
-      ViewHandler handler = viewHandlerManager.getHandler(parent);
-      if (handler instanceof ViewGroupHandler) {
-        finished = ((ViewGroupHandler)handler).deleteChildren(parent, children);
-      }
-
-      if (!finished) {
+      if (!NlModelHelper.INSTANCE.handleDeletion(parent, children)) {
         for (NlComponent component : children) {
           NlComponent p = component.getParent();
           if (p != null) {
@@ -998,17 +868,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <p/>
    * Note: The caller is responsible for calling {@link #notifyModified(ChangeType)} if the creation completes successfully.
    *
-   * @param sceneView  The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
    * @param tag        The XmlTag for the component.
    * @param parent     The parent to add this component to.
    * @param before     The sibling to insert immediately before, or null to append
-   * @param insertType The type of insertion
    */
-  public NlComponent createComponent(@NotNull SceneView sceneView,
-                                     @NotNull XmlTag tag,
+  public NlComponent createComponent(@NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
-                                     @Nullable NlComponent before,
-                                     @NotNull InsertType insertType) {
+                                     @Nullable NlComponent before) {
     if (parent != null) {
       // Creating a component intended to be inserted into an existing layout
       XmlTag parentTag = parent.getTag();
@@ -1018,57 +884,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       else {
         tag = parentTag.addSubTag(tag, false);
       }
-
-      // Required attribute for all views; drop handlers can adjust as necessary
-      if (tag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {
-        tag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT);
-      }
-      if (tag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
-        tag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT);
-      }
-    }
-    else {
-      // No namespace yet: use the default prefix instead
-      if (tag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
-        tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
-      }
-      if (tag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT) == null) {
-        tag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
-      }
     }
 
-    NlComponent child = new NlComponent(this, tag);
+    NlComponent child = createComponent(tag);
 
     if (parent != null) {
       parent.addChild(child, before);
     }
 
-    // Notify view handlers
-    ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
-    ViewHandler childHandler = viewHandlerManager.getHandler(child);
-    ViewEditor editor = new ViewEditorImpl(sceneView);
-
-    if (childHandler != null) {
-      boolean ok = childHandler.onCreate(editor, parent, child, insertType);
-      if (parent != null) {
-        ok &= addDependencies(ImmutableList.of(child), InsertType.CREATE);
-      }
-      if (!ok) {
-        if (parent != null) {
-          parent.removeChild(child);
-        }
-        tag.delete();
-        return null;
-      }
-    }
-    if (parent != null) {
-      ViewHandler parentHandler = viewHandlerManager.getHandler(parent);
-      if (parentHandler instanceof ViewGroupHandler) {
-        ((ViewGroupHandler)parentHandler).onChildInserted(editor, parent, child, insertType);
-      }
-    }
-
     return child;
+  }
+
+  /**
+   * Simply create a component. In most cases you probably want
+   * {@link #createComponent(SceneView, XmlTag, NlComponent, NlComponent, InsertType)}.
+   */
+  public NlComponent createComponent(@NotNull XmlTag tag) {
+    return mySurface.createComponent(tag);
   }
 
   @NotNull
@@ -1083,28 +915,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (before != null && before.getParent() != receiver) {
       return false;
     }
-
-    Object parentHandler = receiver.getViewHandler();
-
-    if (!(parentHandler instanceof ViewGroupHandler)) {
-      return false;
-    }
-    final ViewGroupHandler groupHandler = (ViewGroupHandler)parentHandler;
-
     if (toAdd == null || toAdd.isEmpty()) {
       return false;
     }
+    if (!NlModelHelperKt.canAddComponents(this, receiver, toAdd)) {
+      return false;
+    }
+
     for (NlComponent component : toAdd) {
-      if (!groupHandler.acceptsChild(receiver, component)) {
-        return false;
-      }
-
-      ViewHandler handler = ViewHandlerManager.get(getProject()).getHandler(component);
-
-      if (handler != null && !handler.acceptsParent(receiver, component)) {
-        return false;
-      }
-
       // If the receiver is a (possibly indirect) child of any of the dragged components, then reject the operation
       NlComponent same = receiver;
       while (same != null) {
@@ -1119,39 +937,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
-   * Make sure the dependencies of the components being added are present in the module.
-   * If they are not: ask the user if they can be added now.
-   * Return true if the dependencies are present now (they may have just been added).
-   */
-  private boolean addDependencies(@Nullable List<NlComponent> toAdd, @NotNull InsertType insertType) {
-    if (toAdd == null || insertType.isMove()) {
-      return true;
-    }
-    Set<String> artifacts = new HashSet<>();
-    getDependencies(toAdd, artifacts);
-    List<GradleCoordinate> dependencies = artifacts.stream()
-      .map(artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+"))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-    GradleDependencyManager manager = GradleDependencyManager.getInstance(getProject());
-    return manager.ensureLibraryIsIncluded(getModule(), dependencies, null);
-  }
-
-  private void getDependencies(@NotNull List<NlComponent> toAdd, @NotNull Set<String> artifacts) {
-    for (NlComponent component : toAdd) {
-      ViewHandler handler = ViewHandlerManager.get(getProject()).getHandler(component);
-      if (handler != null) {
-        String artifactId = handler.getGradleCoordinateId(component);
-
-        if (!artifactId.equals(IN_PLATFORM)) {
-          artifacts.add(artifactId);
-        }
-      }
-      getDependencies(component.getChildren(), artifacts);
-    }
-  }
-
-  /**
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
    */
@@ -1162,7 +947,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
-    if (!addDependencies(toAdd, insertType)) {
+    if (!NlModelHelperKt.addDependencies(this, toAdd, insertType)) {
       return;
     }
     assert toAdd != null;
@@ -1219,26 +1004,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
                               @NotNull InsertType insertType) {
-    Set<String> ids = Sets.newHashSet(NlComponent.getIds(this));
-
-    ViewGroupHandler groupHandler = (ViewGroupHandler)receiver.getViewHandler();
-    assert groupHandler != null;
-
-    SceneView view = mySurface.getCurrentSceneView();
-    assert view != null;
-
-    ViewEditor editor = new ViewEditorImpl(view);
+    // TODO: remove this
+    NlModelHelperKt.handleAddition(this, added, receiver, insertType, mySurface);
 
     for (NlComponent component : added) {
-      if (insertType.isMove()) {
-        insertType = component.getParent() == receiver ? InsertType.MOVE_WITHIN : InsertType.MOVE_INTO;
-      }
-      if (component.needsDefaultId() && (StringUtil.isEmpty(component.getId()) || !insertType.isMove())) {
-        ids.add(NlComponent.assignId(component, ids));
-      }
-
-      groupHandler.onChildInserted(editor, receiver, component, insertType);
-
       NlComponent parent = component.getParent();
       if (parent != null) {
         parent.removeChild(component);
@@ -1368,24 +1137,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return item;
   }
 
-  @Nullable
-  public List<NlComponent> createComponents(@NotNull SceneView sceneView,
-                                            @NotNull DnDTransferItem item,
-                                            @NotNull InsertType insertType) {
-    List<NlComponent> components = new ArrayList<>(item.getComponents().size());
-    for (DnDTransferComponent dndComponent : item.getComponents()) {
-      XmlTag tag = createTag(sceneView.getModel().getProject(), dndComponent.getRepresentation());
-      NlComponent component = createComponent(sceneView, tag, null, null, insertType);
-      if (component == null) {
-        return null;  // User may have cancelled
-      }
-      component.w = dndComponent.getWidth();
-      component.h = dndComponent.getHeight();
-      components.add(component);
-    }
-    return components;
-  }
-
   @NotNull
   @VisibleForTesting
   public static XmlTag createTag(@NotNull Project project, @NotNull String text) {
@@ -1440,13 +1191,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       default:
         return InsertType.PASTE;
     }
-  }
-
-  /**
-   * @return true if the receiver can be safely morphed into a view group
-   */
-  public static boolean isMorphableToViewGroup(@NotNull NlComponent receiver) {
-    return VIEW.equals(receiver.getTagName()) && receiver.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
   }
 
   /**

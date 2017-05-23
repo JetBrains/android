@@ -17,9 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.structure.NlDropListener;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -57,7 +55,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
                           @NotNull List<NlComponent> dragged,
                           @Nullable NlComponent before,
                           @NotNull InsertType insertType) {
-    if (receiver.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(receiver, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
       try {
         if (USE_HELPER_TAGS) {
           for (NlComponent toDrag : dragged) {
@@ -67,7 +65,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
               insert = InsertType.CREATE;
               XmlTag tag = receiver.getTag().createChildTag(TAG, null, null, false);
               tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));
-              component = new NlComponent(model, tag);
+              component = model.createComponent(tag);
             }
             model.addTags(Arrays.asList(component), receiver, before, insert);
           }
@@ -77,7 +75,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
           String originalIdsList = transaction.getAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
           List<String> draggedIds = new ArrayList<>();
           for (NlComponent component : dragged) {
-            draggedIds.add(component.ensureLiveId());
+            draggedIds.add(NlComponentHelperKt.ensureLiveId(component));
           }
           String idList = flatIdList(originalIdsList, draggedIds, false);
           transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, idList);
@@ -150,7 +148,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
     if (USE_HELPER_TAGS) {
       ArrayList<NlComponent> toRemove = new ArrayList<>();
       for (NlComponent child : parent.getChildren()) {
-        if (child.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+        if (NlComponentHelperKt.isOrHasSuperclass(child, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
           for (NlComponent reference : child.getChildren()) {
             if (reference.getId().equals(id)) {
               toRemove.add(reference);
@@ -168,7 +166,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
     }
     else {
       for (NlComponent child : parent.getChildren()) {
-        if (child.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+        if (NlComponentHelperKt.isOrHasSuperclass(child, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
           String ids = child.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
           if (ids != null) {
             ids = flatIdList(ids, Arrays.asList(id), true);
@@ -191,7 +189,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
   public int getComponentTreeChildCount(@NotNull Object element) {
     if (element instanceof NlComponent) {
       NlComponent component = (NlComponent)element;
-      if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
           String[] list = ids.split(",");
@@ -206,7 +204,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
   public Object getComponentTreeChild(@NotNull Object element, int i) {
     if (element instanceof NlComponent) {
       NlComponent component = (NlComponent)element;
-      if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
         String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
         if (ids != null) {
           String[] list = ids.split(",");

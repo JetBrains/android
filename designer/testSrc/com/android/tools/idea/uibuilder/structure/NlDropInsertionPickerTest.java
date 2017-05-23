@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.uibuilder.model.EmptyXmlTag;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.enumeration.EmptyEnumeration;
 import org.jetbrains.annotations.NotNull;

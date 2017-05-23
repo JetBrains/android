@@ -20,10 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -89,7 +86,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
   @Override
   public NlComponent addToModel() {
     NlComponent component = getMockup().getComponent();
-    if (component.isOrHasSuperclass(CLASS_RECYCLER_VIEW)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_RECYCLER_VIEW)) {
       addListItemAttribute(component);
       return component;
     }

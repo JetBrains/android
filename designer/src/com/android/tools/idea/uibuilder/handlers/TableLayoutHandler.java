@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +62,7 @@ public class TableLayoutHandler extends LinearLayoutHandler {
     if (insertType.isCreate()) {
       // Start the table with 4 rows
       for (int i = 0; i < 4; i++) {
-        node.createChild(editor, FQCN_TABLE_ROW, null, InsertType.VIEW_HANDLER);
+        NlComponentHelperKt.createChild(node, editor, FQCN_TABLE_ROW, null, InsertType.VIEW_HANDLER);
       }
     }
 
