@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.menu.ItemHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -146,7 +147,7 @@ public class ViewHandlerManager implements ProjectComponent {
     ViewHandler handler = myHandlers.get(viewTag);
     if (handler == null) {
       if (viewTag.indexOf('.') != -1) {
-        String tag = NlComponent.viewClassToTag(viewTag);
+        String tag = NlComponentHelper.INSTANCE.viewClassToTag(viewTag);
         if (!tag.equals(viewTag)) {
           handler = getHandler(tag);
           if (handler != null) {
@@ -420,7 +421,7 @@ public class ViewHandlerManager implements ProjectComponent {
               if (superClass != null) {
                 String fqn = superClass.getQualifiedName();
                 if (fqn != null) {
-                  return getHandler(NlComponent.viewClassToTag(fqn));
+                  return getHandler(NlComponentHelper.INSTANCE.viewClassToTag(fqn));
                 }
               }
             }

@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.model;
+package com.android.tools.idea.uibuilder.model
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.*;
-
-@Retention(RetentionPolicy.SOURCE)
-@Target({METHOD, PARAMETER, LOCAL_VARIABLE, FIELD})
-public @interface AndroidCoordinate {
-}
+@Retention(AnnotationRetention.SOURCE)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.VALUE_PARAMETER,
+    AnnotationTarget.LOCAL_VARIABLE, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+annotation class AndroidCoordinate

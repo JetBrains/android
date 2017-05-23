@@ -150,7 +150,8 @@ class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyPro
       return false;
     }
     InsertType insertType = model.determineInsertType(DragType.PASTE, item, checkOnly);
-    List<NlComponent> pasted = model.createComponents(sceneView, item, insertType);
+    // TODO: support nav editor
+    List<NlComponent> pasted = NlModelHelperKt.createComponents(model, sceneView, item, insertType);
     if (!model.canAddComponents(pasted, receiver, before)) {
       return false;
     }

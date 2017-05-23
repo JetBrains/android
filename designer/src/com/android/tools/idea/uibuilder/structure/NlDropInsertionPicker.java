@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,7 +103,7 @@ class NlDropInsertionPicker {
       // the insertion should be.
       // There is an ambiguity if either the user tries to insert the component after the last row
       // in between a component deeper than the one on the next row:
-      // shall we insert at the component after the last leaf or after the last leaf acestor
+      // shall we insert at the component after the last leaf or after the last leaf ancestor
       // -- root
       //   |-- parent
       //       |-- child1
@@ -166,7 +167,7 @@ class NlDropInsertionPicker {
 
   protected boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver) {
     return model.canAddComponents(myDragged, receiver, receiver.getChild(0))
-           || (NlModel.isMorphableToViewGroup(receiver)
+           || (NlComponentHelperKt.isMorphableToViewGroup(receiver)
                && !NlModel.isDescendant(receiver, myDragged));
   }
 

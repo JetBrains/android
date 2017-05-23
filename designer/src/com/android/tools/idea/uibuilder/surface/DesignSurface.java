@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -68,6 +69,8 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFACE_BG;
 
@@ -1224,5 +1227,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       float proportion = 1 - (height / (float)getHeight());
       myErrorPanelSplitter.setProportion(Math.max(0.5f, proportion));
     }
+  }
+
+  @NotNull
+  public NlComponent createComponent(@NotNull XmlTag tag) {
+    return createComponent(tag, getModel());
+  }
+
+  @VisibleForTesting
+  public static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
+    return new NlComponent(model, tag);
   }
 }

@@ -21,10 +21,7 @@ import com.android.tools.idea.uibuilder.mockup.colorextractor.ColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.DBSCANColorExtractor;
 import com.android.tools.idea.uibuilder.mockup.colorextractor.ExtractedColor;
 import com.android.tools.idea.uibuilder.mockup.editor.creators.forms.ViewAndColorForm;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -60,8 +57,8 @@ public class SimpleViewCreator extends WidgetCreator {
 
     Rectangle cropping = getMockup().getComputedCropping();
     final NlComponent component = getMockup().getComponent();
-    final float xScale = component.w / (float)cropping.width;
-    final float yScale = component.h / (float)cropping.height;
+    final float xScale = NlComponentHelperKt.getW(component) / (float)cropping.width;
+    final float yScale = NlComponentHelperKt.getH(component) / (float)cropping.height;
     myAndroidBounds.setBounds(Math.round(xScale * mySelectionBounds.x),
                               Math.round(yScale * mySelectionBounds.y),
                               Math.round(xScale * mySelectionBounds.width),

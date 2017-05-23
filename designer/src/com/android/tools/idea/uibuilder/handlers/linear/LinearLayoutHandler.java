@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearResizeTarg
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearSeparatorTarget;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneInteraction;
@@ -117,7 +118,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     // Attempt to set fill-properties on newly added views such that for example,
     // in a vertical layout, a text field defaults to filling horizontally, but not
     // vertically.
-    ViewHandler viewHandler = newChild.getViewHandler();
+    ViewHandler viewHandler = NlComponentHelperKt.getViewHandler(newChild);
     if (viewHandler != null) {
       boolean vertical = isVertical(layout);
       FillPolicy fill = viewHandler.getFillPolicy();

@@ -16,11 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import android.view.View;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.Ranges;
+import com.android.tools.idea.uibuilder.model.*;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,17 +34,18 @@ final class NavigationViewHandler extends FrameLayoutHandler {
                                         @NotNull NlComponent component,
                                         @AndroidCoordinate int x,
                                         @AndroidCoordinate int y) {
-    if (component.viewInfo == null) {
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
+    if (viewInfo == null) {
       return;
     }
 
-    View view = getHeaderView(component.viewInfo.getViewObject(), 0);
+    View view = getHeaderView(viewInfo.getViewObject(), 0);
     String resource;
 
     if (view != null && contains(view, x, y)) {
       resource = component.getAttribute(AUTO_URI, ATTR_HEADER_LAYOUT);
     }
-    else if (component.contains(x, y)) {
+    else if (NlComponentHelperKt.contains(component, x, y)) {
       resource = component.getAttribute(AUTO_URI, ATTR_MENU);
     }
     else {

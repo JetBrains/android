@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ public class ConstraintLayoutBarrierHandler extends ConstraintHelperHandler {
   @NotNull
   public String getTitle(@NotNull NlComponent component) {
     String title = getSimpleTagName(component.getTagName());
-    if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CHAIN)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_CHAIN)) {
       boolean horizontal = true;
       String direction = component.getLiveAttribute(ANDROID_URI, ATTR_BARRIER_DIRECTION);
       if (direction != null && (direction.equals("top") || direction.equals("bottom"))) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.linear;
 import com.android.tools.idea.uibuilder.api.DefaultResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -210,7 +211,8 @@ class LinearResizeHandler extends DefaultResizeHandler {
       }
     }
 
-    Rectangle layoutBounds = new Rectangle(layout.x, layout.y, layout.w, layout.h);
+    Rectangle layoutBounds = new Rectangle(NlComponentHelperKt.getX(layout), NlComponentHelperKt.getY(layout), NlComponentHelperKt.getW(layout), NlComponentHelperKt
+      .getH(layout));
     int remaining = (isVertical ? layoutBounds.height : layoutBounds.width) - totalLength;
     Dimension nodeBounds = sizes != null ? sizes.get(component) : null;
     if (nodeBounds == null) {

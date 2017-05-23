@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -410,8 +412,8 @@ public class SceneComponent {
       myAnimatedDrawX.setValue(dx);
       myAnimatedDrawY.setValue(dy);
       if (isFromModel) {
-        myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
-        myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
+        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
       }
       else {
         myScene.needsRebuildList();
@@ -435,8 +437,8 @@ public class SceneComponent {
       myAnimatedDrawX.setTarget(dx, time);
       myAnimatedDrawY.setTarget(dy, time);
       if (isFromModel) {
-        myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
-        myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dx));
+        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), dy));
       }
       else {
         myScene.needsRebuildList();
@@ -452,9 +454,10 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawWidth.setValue(width);
       myAnimatedDrawHeight.setValue(height);
-      if (isFromModel) {
-        myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
-        myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
+      // TODO: remove this
+      if (isFromModel && NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), width));
+        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), height));
       }
       else {
         myScene.needsRebuildList();
@@ -478,8 +481,8 @@ public class SceneComponent {
       myAnimatedDrawWidth.setTarget(width, time);
       myAnimatedDrawHeight.setTarget(height, time);
       if (isFromModel) {
-        myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
-        myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
+        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), width));
+        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myNlComponent.getModel(), height));
       }
     }
   }
@@ -546,7 +549,7 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   public int getBaseline() {
-    return Coordinates.pxToDp(myNlComponent.getModel(), myNlComponent.getBaseline());
+    return Coordinates.pxToDp(myNlComponent.getModel(), NlComponentHelperKt.getBaseline(myNlComponent));
   }
 
   public void setSelected(boolean selected) {
@@ -681,7 +684,7 @@ public class SceneComponent {
    */
   public void clearAttributes() {
     NlComponent component = getAuthoritativeNlComponent();
-    ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
+    ViewGroupHandler viewGroupHandler = NlComponentHelperKt.getViewGroupHandler(component);
     viewGroupHandler.clearAttributes(component);
     for (SceneComponent child : getChildren()) {
       viewGroupHandler.clearAttributes(child.getAuthoritativeNlComponent());
@@ -822,10 +825,11 @@ public class SceneComponent {
   }
 
   public String getComponentClassName() {
-    if (myNlComponent.viewInfo == null) {
+    ViewInfo info = NlComponentHelperKt.getViewInfo(myNlComponent);
+    if (info == null) {
       return null;
     }
-    return myNlComponent.viewInfo.getClassName();
+    return info.getClassName();
   }
 
   public boolean containsX(@AndroidDpCoordinate int xDp) {

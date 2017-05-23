@@ -32,10 +32,7 @@ import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.menu.NavigationViewSceneView;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -389,8 +386,8 @@ public class NlDesignSurface extends DesignSurface {
         && myScreenView != null && !myScreenView.getSelectionModel().isEmpty()) {
       NlComponent component = myScreenView.getSelectionModel().getPrimary();
       if (component != null) {
-        x = Coordinates.getSwingX(myScreenView, component.getMidpointX());
-        y = Coordinates.getSwingY(myScreenView, component.getMidpointY());
+        x = Coordinates.getSwingX(myScreenView, NlComponentHelperKt.getMidpointX(component));
+        y = Coordinates.getSwingY(myScreenView, NlComponentHelperKt.getMidpointY(component));
       }
     }
     super.zoom(type, x, y);
@@ -598,7 +595,7 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
-    ViewHandler handler = component.getViewHandler();
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
     ViewEditor editor = getViewEditor();
 
     if (handler != null && editor != null) {
@@ -610,7 +607,7 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
-    ViewHandler handler = component.getViewHandler();
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
     ViewEditor editor = getViewEditor();
 
     if (handler != null && editor != null) {
@@ -790,5 +787,19 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   protected boolean useSmallProgressIcon() {
     return getCurrentSceneView() != null && getCurrentSceneView().getResult() != null;
+  }
+
+  @Override
+  @NotNull
+  public NlComponent createComponent(@NotNull XmlTag tag) {
+    return createComponent(tag, getModel());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public static NlComponent createComponent(@NotNull XmlTag tag, @NotNull NlModel model) {
+    NlComponent result = DesignSurface.createComponent(tag, model);
+    NlComponentHelper.INSTANCE.registerComponent(result);
+    return result;
   }
 }

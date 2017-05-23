@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.util;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.base.MoreObjects;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -79,9 +80,19 @@ public class NlTreeDumper {
 
   @NotNull
   private String describe(@NotNull NlComponent root) {
+
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(root).omitNullValues()
-      .add("tag", describe(root.getTag()))
-      .add("bounds", "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h);
+      .add("tag", describe(root.getTag()));
+    if (NlComponentHelperKt.getHasNlComponentInfo(root)) {
+      helper.add("bounds", "[" +
+                           NlComponentHelperKt.getX(root) +
+                           "," +
+                           NlComponentHelperKt.getY(root) +
+                           ":" +
+                           NlComponentHelperKt.getW(root) +
+                           "x" +
+                           NlComponentHelperKt.getH(root));
+    }
     if (myIncludeIdentity) {
       helper.add("instance", getInstanceId(root));
     }

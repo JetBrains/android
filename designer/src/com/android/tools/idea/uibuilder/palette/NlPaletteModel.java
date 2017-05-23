@@ -28,7 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
@@ -242,7 +242,9 @@ public class NlPaletteModel implements Disposable {
                                  @Nullable String preferredProperty,
                                  @NotNull List<String> properties,
                                  @NotNull List<String> layoutProperties) {
-    if (tagName.indexOf('.') < 0 || !NlComponent.viewClassToTag(tagName).equals(tagName) || tagName.equals(CONSTRAINT_LAYOUT)) {
+    if (tagName.indexOf('.') < 0 ||
+        !NlComponentHelper.INSTANCE.viewClassToTag(tagName).equals(tagName) ||
+        tagName.equals(CONSTRAINT_LAYOUT)) {
       // Do NOT allow third parties to overwrite predefined Google handlers
       return false;
     }

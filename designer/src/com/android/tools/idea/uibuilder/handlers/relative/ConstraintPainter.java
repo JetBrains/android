@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.Insets;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
-import com.android.tools.idea.uibuilder.model.TextDirection;
+import com.android.tools.idea.uibuilder.model.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.HashSet;
@@ -60,12 +58,14 @@ public class ConstraintPainter {
       return;
     }
 
-    Insets padding = node.getPadding();
+    Insets padding = NlComponentHelperKt.getPadding(node);
     Rectangle targetBounds =
       node == state.layout
-      ? new Rectangle(node.x + padding.left, node.y + padding.top, Math.max(0, node.w - padding.left - padding.right),
-                      Math.max(0, node.h - padding.top - padding.bottom))
-      : new Rectangle(node.x, node.y, node.w, node.h);
+      ? new Rectangle(NlComponentHelperKt.getX(node) + padding.left, NlComponentHelperKt.getY(node) + padding.top,
+                      Math.max(0, NlComponentHelperKt.getW(node) - padding.left - padding.right),
+                      Math.max(0, NlComponentHelperKt.getH(node) - padding.top - padding.bottom))
+      : new Rectangle(NlComponentHelperKt.getX(node), NlComponentHelperKt.getY(node), NlComponentHelperKt.getW(node),
+                      NlComponentHelperKt.getH(node));
 
     ConstraintType type = match.type;
     assert type != null;
@@ -104,7 +104,8 @@ public class ConstraintPainter {
   }
 
   private static Rectangle getBounds(NlComponent component) {
-    return new Rectangle(component.x, component.y, component.w, component.h);
+    return new Rectangle(NlComponentHelperKt.getX(component), NlComponentHelperKt.getY(component), NlComponentHelperKt.getW(component),
+                         NlComponentHelperKt.getH(component));
   }
 
   /**
@@ -407,7 +408,7 @@ public class ConstraintPainter {
                                               boolean highlightTargetEdge) {
     SegmentType sourceSegmentTypeY = type.sourceSegmentTypeY;
     SegmentType targetSegmentTypeY = type.targetSegmentTypeY;
-    Insets targetMargins = targetNode.getMargins();
+    Insets targetMargins = NlComponentHelperKt.getMargins(targetNode);
 
     assert sourceSegmentTypeY != SegmentType.UNKNOWN;
     assert targetBounds != null;
@@ -648,7 +649,7 @@ public class ConstraintPainter {
                                                 TextDirection textDirection) {
     SegmentType sourceSegmentTypeX = type.sourceSegmentTypeX;
     SegmentType targetSegmentTypeX = type.targetSegmentTypeX;
-    Insets targetMargins = targetNode.getMargins();
+    Insets targetMargins = NlComponentHelperKt.getMargins(targetNode);
 
     assert sourceSegmentTypeX != SegmentType.UNKNOWN;
     assert targetBounds != null;

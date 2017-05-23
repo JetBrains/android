@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
@@ -69,7 +70,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
       // Insert a default linear layout (which will in turn be registered as
       // a child of this node and the create child method above will set its
       // fill parent attributes, its id, etc.
-      NlComponent linear = node.createChild(editor, FQCN_LINEAR_LAYOUT, null, InsertType.VIEW_HANDLER);
+      NlComponent linear = NlComponentHelperKt.createChild(node, editor, FQCN_LINEAR_LAYOUT, null, InsertType.VIEW_HANDLER);
       linear.setAttribute(ANDROID_URI, ATTR_ORIENTATION, VALUE_VERTICAL);
     }
 
@@ -108,7 +109,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
    */
   @Nullable
   static ViewGroup getViewGroupFromComponent(@NotNull NlComponent component) {
-    ViewInfo viewInfo = component.viewInfo;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     Object viewObject = viewInfo != null ? viewInfo.getViewObject() : null;
 
     if (viewObject != null && viewObject instanceof ViewGroup) {

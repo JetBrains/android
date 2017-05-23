@@ -45,7 +45,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
 
     NlComponent screen = model.getComponents().get(0);
     List<NlComponent> actualCategoryChildren = screen.getChildren().get(1).getChildren();
-    NlComponent preference = new NlComponent(model, NlModel.createTag(myModule.getProject(), "<CheckBoxPreference />"));
+    NlComponent preference = model.createComponent(NlModel.createTag(myModule.getProject(), "<CheckBoxPreference />"));
 
     List<NlComponent> expectedCategoryChildren = Arrays.asList(
       actualCategoryChildren.get(0),

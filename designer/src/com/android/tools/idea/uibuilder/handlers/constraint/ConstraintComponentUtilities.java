@@ -21,8 +21,8 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
@@ -573,11 +573,11 @@ public final class ConstraintComponentUtilities {
    * @return
    */
   public static NlComponent getOriginalComponent(@NotNull NlComponent component) {
-    if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
       NlComponent parent = component.getParent();
-      if (parent.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(parent, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
         parent = parent.getParent();
-        if (parent.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT)) {
+        if (NlComponentHelperKt.isOrHasSuperclass(parent, CLASS_CONSTRAINT_LAYOUT)) {
           for (NlComponent child : parent.getChildren()) {
             if (child.getId() != null && child.getId().equals(component.getId())) {
               return child;
@@ -666,7 +666,7 @@ public final class ConstraintComponentUtilities {
       int offsetX = 0;
       NlComponent parent = component.getParent();
       if (parent != null) {
-        offsetX = component.x - parent.x;
+        offsetX = NlComponentHelperKt.getX(component) - NlComponentHelperKt.getX(parent);
         // convert px to dp
         float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
         offsetX = (int)(0.5f + offsetX / dpiFactor);
@@ -677,7 +677,7 @@ public final class ConstraintComponentUtilities {
       int offsetY = 0;
       NlComponent parent = component.getParent();
       if (parent != null) {
-        offsetY = component.y - parent.y;
+        offsetY = NlComponentHelperKt.getY(component) - NlComponentHelperKt.getY(parent);
         // convert px to dp
         float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
         offsetY = (int)(0.5f + offsetY / dpiFactor);
@@ -690,8 +690,10 @@ public final class ConstraintComponentUtilities {
     clearAttributes(SHERPA_URI, ourConstraintLayoutAttributesToClear, transaction);
     clearAttributes(ANDROID_URI, ourLayoutAttributesToClear, transaction);
     component = getOriginalComponent(component);
-    int offsetX = Coordinates.pxToDp(component.getModel(), component.x - (component.isRoot() ? 0 : component.getParent().x));
-    int offsetY = Coordinates.pxToDp(component.getModel(), component.y - (component.isRoot() ? 0 : component.getParent().y));
+    int offsetX = Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component) -
+                                                           (component.isRoot() ? 0 : NlComponentHelperKt.getX(component.getParent())));
+    int offsetY = Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component) -
+                                                           (component.isRoot() ? 0 : NlComponentHelperKt.getY(component.getParent())));
     setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
     setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
   }
@@ -754,7 +756,7 @@ public final class ConstraintComponentUtilities {
     if (hasHorizontalConstraints(component)) {
       return;
     }
-    int dx = component.x - (component.getParent() != null ? component.getParent().x : 0);
+    int dx = NlComponentHelperKt.getX(component) - (component.getParent() != null ? NlComponentHelperKt.getX(component.getParent()) : 0);
     if (dx > 0) {
       float dipValue = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
       String position = String.format(VALUE_N_DP, ((int)(0.5f + dx / dipValue)));
@@ -766,7 +768,7 @@ public final class ConstraintComponentUtilities {
     if (hasVerticalConstraints(component)) {
       return;
     }
-    int dy = component.y - (component.getParent() != null ? component.getParent().y : 0);
+    int dy = NlComponentHelperKt.getY(component) - (component.getParent() != null ? NlComponentHelperKt.getY(component.getParent()) : 0);
     if (dy > 0) {
       float dipValue = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
       String position = String.format(VALUE_N_DP, ((int)(0.5f + dy / dipValue)));
@@ -777,7 +779,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isConstraintModelGreaterThan(NlModel model, int major, int ... version) {
     String constraint_artifact = CONSTRAINT_LAYOUT_LIB_GROUP_ID + ":" + CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID;
-    GradleVersion v = model.getModuleDependencyVersion(constraint_artifact);
+    GradleVersion v = NlModelHelperKt.getModuleDependencyVersion(model, constraint_artifact);
     return (versionGreaterThan(v, major,
                                (version.length>0)?version[0]:-1,
                                (version.length>1)?version[1]:-1, 0, 0));
@@ -835,7 +837,7 @@ public final class ConstraintComponentUtilities {
 
   public static int getDpX(@NotNull NlComponent component) {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + component.x / dpiFactor);
+    return (int)(0.5f + NlComponentHelperKt.getX(component) / dpiFactor);
   }
 
   private static boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
@@ -1129,26 +1131,26 @@ public final class ConstraintComponentUtilities {
 
   public static int getDpY(@NotNull NlComponent component) {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + component.y / dpiFactor);
+    return (int)(0.5f + NlComponentHelperKt.getY(component) / dpiFactor);
   }
 
   public static int getDpWidth(@NotNull NlComponent component) {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + component.w / dpiFactor);
+    return (int)(0.5f + NlComponentHelperKt.getW(component) / dpiFactor);
   }
 
   public static int getDpHeight(@NotNull NlComponent component) {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + component.h / dpiFactor);
+    return (int)(0.5f + NlComponentHelperKt.getH(component) / dpiFactor);
   }
 
   public static int getDpBaseline(@NotNull NlComponent component) {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-    return (int)(0.5f + component.getBaseline() / dpiFactor);
+    return (int)(0.5f + NlComponentHelperKt.getBaseline(component) / dpiFactor);
   }
 
   public static boolean hasBaseline(@NotNull NlComponent component) {
-    return component.getBaseline() > 0;
+    return NlComponentHelperKt.getBaseline(component) > 0;
   }
 
   /**
@@ -1157,14 +1159,14 @@ public final class ConstraintComponentUtilities {
    * @return
    */
   public static boolean isLine(@NotNull NlComponent component) {
-    ViewInfo viewInfo = component.viewInfo;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     if (viewInfo == null) {
       return false;
     }
-    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
       return true;
     }
-    return component.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER);
+    return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER);
   }
 
   /**
@@ -1173,17 +1175,17 @@ public final class ConstraintComponentUtilities {
    * @return
    */
   public static boolean isVerticalLine(@NotNull NlComponent component) {
-    ViewInfo viewInfo = component.viewInfo;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     if (viewInfo == null) {
       return false;
     }
-    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         return true;
       }
     }
-    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER)) {
       String dir = component.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
       if (dir != null) {
         if (dir.equalsIgnoreCase(CONSTRAINT_BARRIER_LEFT)
@@ -1203,17 +1205,17 @@ public final class ConstraintComponentUtilities {
    * @return
    */
   public static boolean isHorizontalLine(@NotNull NlComponent component) {
-    ViewInfo viewInfo = component.viewInfo;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     if (viewInfo == null) {
       return false;
     }
-    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
         return true;
       }
     }
-    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_BARRIER)) {
       String dir = component.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
 
       if (dir != null) {
@@ -1229,7 +1231,8 @@ public final class ConstraintComponentUtilities {
 
 
   public static boolean isHorizontalGuideline(@NotNull NlComponent component) {
-    if (component.viewInfo != null && component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.getViewInfo(component) != null &&
+        NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
         return true;
@@ -1239,7 +1242,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isVerticalGuideline(@NotNull NlComponent component) {
-    if (component.viewInfo != null && component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+    if (NlComponentHelperKt.getViewInfo(component) != null && NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT_GUIDELINE)) {
       String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         return true;
@@ -1366,7 +1369,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
-    return component.isOrHasSuperclass(CONSTRAINT_LAYOUT)
+    return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT)
            || component.getTag().getName().equals(CONSTRAINT_LAYOUT); // used during layout conversion
   }
 
@@ -1413,7 +1416,7 @@ public final class ConstraintComponentUtilities {
       targetId = ATTR_PARENT;
     }
     else {
-      targetId = NEW_ID_PREFIX + target.ensureLiveId();
+      targetId = NEW_ID_PREFIX + NlComponentHelperKt.ensureLiveId(target);
     }
     transaction.setAttribute(SHERPA_URI, attrib, targetId);
     if ((srcIndex <= Direction.BASELINE.ordinal()) && (margin > 0)) {

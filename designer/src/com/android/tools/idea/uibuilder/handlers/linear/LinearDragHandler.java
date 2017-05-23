@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearDragTarget
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
@@ -51,7 +52,7 @@ class LinearDragHandler extends DragHandler {
     NlComponent dragged = components.get(0);
     myComponent = new TemporarySceneComponent(layout.getScene(), components.get(0));
     myDragTarget = new LinearDragTarget(handler, type.equals(DragType.CREATE));
-    myComponent.setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false);
+    myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(dragged)), editor.pxToDp(NlComponentHelperKt.getH(dragged)), false);
     myComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(myDragTarget), false);
     myComponent.setDrawState(SceneComponent.DrawState.DRAG);
     layout.addChild(myComponent);

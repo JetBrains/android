@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.scout.Scout;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -89,7 +89,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     if (target != null) {
       String tagName = target.getTagName();
       // Don't show action if it's already a ConstraintLayout
-      if (target.isOrHasSuperclass(CONSTRAINT_LAYOUT)) {
+      if (NlComponentHelperKt.isOrHasSuperclass(target, CONSTRAINT_LAYOUT)) {
         presentation.setVisible(false);
         return;
       }
@@ -147,7 +147,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     // Step #2: Ensure ConstraintLayout is available in the project
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(CONSTRAINT_LAYOUT_LIB_ARTIFACT + ":+");
     if (!manager.ensureLibraryIsIncluded(screenView.getModel().getModule(), Collections.singletonList(coordinate), null)) {
       return;
     }
@@ -241,10 +241,10 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     private void processComponent(NlComponent component) {
       // Work bottom up to ensure the children aren't invalidated when processing the parent
       for (NlComponent child : component.getChildren()) {
-        int dpx = myEditor.pxToDp(child.x - myRoot.x);
-        int dpy = myEditor.pxToDp(child.y - myRoot.y);
-        int dpw = myEditor.pxToDp(child.w);
-        int dph = myEditor.pxToDp(child.h);
+        int dpx = myEditor.pxToDp(NlComponentHelperKt.getX(child) - NlComponentHelperKt.getX(myRoot));
+        int dpy = myEditor.pxToDp(NlComponentHelperKt.getY(child) - NlComponentHelperKt.getY(myRoot));
+        int dpw = myEditor.pxToDp(NlComponentHelperKt.getW(child));
+        int dph = myEditor.pxToDp(NlComponentHelperKt.getH(child));
 
         child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
         child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
@@ -365,8 +365,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         // If the child is a <requestFocus> we don't know
       }
 
-      if (component.viewInfo != null) {
-        Object viewObject = component.viewInfo.getViewObject();
+      if (NlComponentHelperKt.getViewInfo(component) != null) {
+        Object viewObject = NlComponentHelperKt.getViewInfo(component).getViewObject();
         if (viewObject != null) {
           Class<?> cls = viewObject.getClass();
           while (cls != null) {
