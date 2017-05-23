@@ -336,8 +336,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myTimeline.reset(myRelativeTimeConverter, runTime);
         myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
 
-        // Attach agent for advanced profiling if one is available.
-        if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O && myIdeServices.getFeatureConfig().isJvmtiAgentEnabled()) {
+        // Attach agent for advanced profiling if JVMTI is enabled and not yet attached.
+        if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
+            myIdeServices.getFeatureConfig().isJvmtiAgentEnabled() &&
+            myAgentStatus != Profiler.AgentStatusResponse.Status.ATTACHED) {
           myClient.getProfilerClient()
             .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid()).build());
         }
