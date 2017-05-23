@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
@@ -65,7 +64,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   private static final AllocationsInfo IN_PROGRESS_LEGACY_ALLOCATION_INFO = AllocationsInfo.newBuilder()
     .setStartTime(delayTimeFromBase(1))
-    .setEndTime(DurationData.UNSPECIFIED_DURATION)
+    .setEndTime(Long.MAX_VALUE)
     .setLegacy(true)
     .build();
 
@@ -87,7 +86,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
 
   private static final HeapDumpInfo NOT_READY_DUMP_INFO = HeapDumpInfo.newBuilder()
     .setStartTime(delayTimeFromBase(2))
-    .setEndTime(DurationData.UNSPECIFIED_DURATION)
+    .setEndTime(Long.MAX_VALUE)
     .build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);

@@ -63,7 +63,7 @@ enabled: true
         <Message>status: SUCCESS
 info {
   start_time: 86401000000000
-  end_time: -1
+  end_time: 9223372036854775807
   legacy: true
 }
 </Message>
@@ -72,7 +72,7 @@ info {
         <message>status: SUCCESS
 info {
   start_time: 86401000000000
-  end_time: -1
+  end_time: 9223372036854775807
   legacy: true
 }
 </message>

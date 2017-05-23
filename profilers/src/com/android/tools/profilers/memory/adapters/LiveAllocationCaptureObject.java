@@ -203,7 +203,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         List<InstanceObject> instancesAdded = new ArrayList<>();
         List<InstanceObject> instancesFreed = new ArrayList<>();
 
-        assert endTimeNs != DurationData.UNSPECIFIED_DURATION;
         long newContextEndTime = Math.max(myContextEndTimeNs, endTimeNs);
         if (newContextEndTime > myContextEndTimeNs) {
           // If we clear, we need to grab all the classes again because we may be in a future range.

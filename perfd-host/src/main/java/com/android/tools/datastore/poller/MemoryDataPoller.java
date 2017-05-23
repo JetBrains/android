@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.datastore.database.MemoryTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
@@ -103,8 +102,7 @@ public class MemoryDataPoller extends PollRunner {
         AllocationsInfo info = response.getAllocationsInfo(i);
         assert myPendingAllocationSample.getStartTime() == info.getStartTime();
         // Deduping - ignoring identical ongoing tracking samples.
-        if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
-          assert response.getAllocationsInfoCount() == 1;
+        if (info.getEndTime() == Long.MAX_VALUE) {
           break;
         }
 
@@ -115,7 +113,7 @@ public class MemoryDataPoller extends PollRunner {
       else {
         AllocationsInfo info = response.getAllocationsInfo(i);
         myMemoryTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, info);
-        if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
+        if (info.getEndTime() == Long.MAX_VALUE) {
           // Note - there should be at most one unfinished allocation tracking info at a time. e.g. the final info from the response.
           assert i == response.getAllocationsInfoCount() - 1;
           myPendingAllocationSample = info;
@@ -132,8 +130,9 @@ public class MemoryDataPoller extends PollRunner {
         assert i == 0;
         HeapDumpInfo info = response.getHeapDumpInfos(i);
         assert myPendingHeapDumpSample.getStartTime() == info.getStartTime();
-        if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
-          throw new RuntimeException("Invalid endTime: " + info.getEndTime() + " for Dump: " + info.getStartTime());
+        if (info.getEndTime() == Long.MAX_VALUE) {
+          // Deduping - ignoring identical ongoing heap dump samples.
+          break;
         }
         myMemoryTable.insertOrReplaceHeapInfo(myProcessId, mySession, info);
         heapDumpsToFetch.add(info);
@@ -142,7 +141,7 @@ public class MemoryDataPoller extends PollRunner {
       else {
         HeapDumpInfo info = response.getHeapDumpInfos(i);
         myMemoryTable.insertOrReplaceHeapInfo(myProcessId, mySession, info);
-        if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
+        if (info.getEndTime() == Long.MAX_VALUE) {
           // Note - there should be at most one unfinished heap dump request at a time. e.g. the final info from the response.
           assert i == response.getHeapDumpInfosCount() - 1;
           myPendingHeapDumpSample = info;

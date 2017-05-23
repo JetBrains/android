@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.google.protobuf3jarjar.ByteString;
@@ -64,9 +63,8 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
       "INSERT OR REPLACE INTO Memory_HeapDump (Pid, Session, StartTime, EndTime, Status, InfoData) VALUES (?, ?, ?, ?, ?, ?)"),
     UPDATE_HEAP_DUMP("UPDATE Memory_HeapDump SET DumpData = ?, Status = ? WHERE Pid = ? AND Session = ? AND StartTime = ?"),
     // EndTime = UNSPECIFIED_DURATION checks for the special case where we have an ongoing duration sample
-    QUERY_HEAP_INFO_BY_TIME(String.format(
-      "SELECT InfoData FROM Memory_HeapDump where Pid = ? AND Session = ? AND (EndTime = %d OR EndTime > ?) AND StartTime <= ?",
-      DurationData.UNSPECIFIED_DURATION)),
+    QUERY_HEAP_INFO_BY_TIME(
+      "SELECT InfoData FROM Memory_HeapDump where Pid = ? AND Session = ? AND EndTime > ? AND StartTime <= ?"),
     QUERY_HEAP_DUMP_BY_ID("SELECT DumpData FROM Memory_HeapDump where Pid = ? AND Session = ? AND StartTime = ?"),
     QUERY_HEAP_STATUS_BY_ID("SELECT Status FROM Memory_HeapDump where Pid = ? AND Session = ? AND StartTime = ?"),
 
@@ -77,9 +75,8 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP(
       "UPDATE Memory_AllocationInfo SET LegacyDumpData = ? WHERE Pid = ? AND Session = ? AND StartTime = ?"),
     // EndTime = UNSPECIFIED_DURATION checks for the special case where we have an ongoing duration sample
-    QUERY_ALLOCATION_INFO_BY_TIME(String.format(
-      "SELECT InfoData FROM Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND (EndTime = %d OR EndTime > ?) AND StartTime <= ?",
-      DurationData.UNSPECIFIED_DURATION)),
+    QUERY_ALLOCATION_INFO_BY_TIME(
+      "SELECT InfoData FROM Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND EndTime > ? AND StartTime <= ?"),
     QUERY_ALLOCATION_INFO_BY_ID("SELECT InfoData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),
     QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID(
       "SELECT LegacyEventsData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),

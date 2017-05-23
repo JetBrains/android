@@ -94,7 +94,7 @@ public class SelectionModelTest {
   @Test
   public void testNestedConstraints() throws Exception {
     SelectionModel selection = new SelectionModel(mySelection, myRange);
-    selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
+    selection.addConstraint(createConstraint(false, true, 2, 3, 18, 19, 38, 39));
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
 
     selection.set(0, 1);
@@ -102,8 +102,8 @@ public class SelectionModelTest {
     assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
 
     selection.set(2.5, 2.6);
-    assertEquals(2, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(3, mySelection.getMax(), Float.MIN_VALUE);
+    assertEquals(2.5, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(2.6, mySelection.getMax(), Float.MIN_VALUE);
 
     selection.set(4, 5);
     assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
@@ -114,8 +114,8 @@ public class SelectionModelTest {
     assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
 
     selection.set(38.5, 38.6);
-    assertEquals(38, mySelection.getMin(), Float.MIN_VALUE);
-    assertEquals(39, mySelection.getMax(), Float.MIN_VALUE);
+    assertEquals(38.5, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(38.6, mySelection.getMax(), Float.MIN_VALUE);
 
     selection.set(39.5, 39.6);
     assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);

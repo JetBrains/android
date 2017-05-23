@@ -22,7 +22,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -257,16 +256,17 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setStroke(new BasicStroke(2))
         .setIsBlocking(true)
         .setLabelProvider(
-          data -> String.format("Dump (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
+          data -> String.format("Dump (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .build();
     DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
       new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))
-        .setLabelProvider(data -> String
-          .format("Allocation record (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
-                                            TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+        .setLabelProvider(
+          data -> String.format("Allocation record (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
+                                                          TimeAxisFormatter.DEFAULT
+                                                            .getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
       .setIcon(ProfilerIcons.GARBAGE_EVENT)

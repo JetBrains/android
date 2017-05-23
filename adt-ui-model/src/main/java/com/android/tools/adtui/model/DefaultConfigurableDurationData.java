@@ -16,18 +16,18 @@
 package com.android.tools.adtui.model;
 
 public class DefaultConfigurableDurationData extends DefaultDurationData implements ConfigurableDurationData {
-  private final boolean mySelectableWhenUnspecifiedDuration;
+  private final boolean mySelectableWhenMaxDuration;
   private final boolean mySelectPartialRange;
 
-  public DefaultConfigurableDurationData(long duration, boolean selectableWhenUnspecifiedDuration, boolean selectPartialRange) {
+  public DefaultConfigurableDurationData(long duration, boolean selectableWhenMaxDuration, boolean selectPartialRange) {
     super(duration);
-    mySelectableWhenUnspecifiedDuration = selectableWhenUnspecifiedDuration;
+    mySelectableWhenMaxDuration = selectableWhenMaxDuration;
     mySelectPartialRange = selectPartialRange;
   }
 
   @Override
   public boolean getSelectableWhenMaxDuration() {
-    return mySelectableWhenUnspecifiedDuration;
+    return mySelectableWhenMaxDuration;
   }
 
   @Override

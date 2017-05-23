@@ -19,7 +19,6 @@ import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.model.DurationData;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -129,9 +128,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
           // Dedeup is handled in MemoryDataPoller.
           List<AllocationsInfo> infosToReturn = new ArrayList<>();
           infos.forEachValue(trackingData -> {
-            if (trackingData.myInfo.getStartTime() <= requestEndTime &&
-                (trackingData.myInfo.getEndTime() > requestStartTime ||
-                 trackingData.myInfo.getEndTime() == DurationData.UNSPECIFIED_DURATION)) {
+            if (trackingData.myInfo.getStartTime() <= requestEndTime && trackingData.myInfo.getEndTime() > requestStartTime) {
               infosToReturn.add(trackingData.myInfo);
             }
 
@@ -142,7 +139,8 @@ public class MemoryServiceProxy extends PerfdProxyService {
           for (int i = 0; i < infosToReturn.size(); i++) {
             AllocationsInfo info = infosToReturn.get(i);
             rebuilder.addAllocationsInfo(info);
-            rebuilder.setEndTimestamp(Math.max(rebuilder.getEndTimestamp(), Math.max(info.getStartTime(), info.getEndTime())));
+            long infoMax = info.getEndTime() == Long.MAX_VALUE ? info.getStartTime() : info.getEndTime();
+            rebuilder.setEndTimestamp(Math.max(rebuilder.getEndTimestamp(), infoMax));
           }
 
           data = rebuilder.build();
@@ -272,7 +270,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
       if (success) {
         AllocationsInfo newInfo = AllocationsInfo.newBuilder()
           .setStartTime(startTimeNs)
-          .setEndTime(DurationData.UNSPECIFIED_DURATION)
+          .setEndTime(Long.MAX_VALUE)
           .setStatus(IN_PROGRESS)
           .setLegacy(true)
           .build();

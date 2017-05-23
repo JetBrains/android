@@ -62,7 +62,7 @@ end_time: 9223372036854775807
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
         <Message>allocations_info {
   start_time: 86401000000000
-  end_time: -1
+  end_time: 9223372036854775807
   legacy: true
 }
 </Message>
@@ -70,7 +70,7 @@ end_time: 9223372036854775807
         <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
         <message>allocations_info {
   start_time: 86401000000000
-  end_time: -1
+  end_time: 9223372036854775807
   legacy: true
 }
 </message>
