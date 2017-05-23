@@ -41,6 +41,7 @@ import java.util.function.Function;
 import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC;
 import static org.mockito.Mockito.when;
 
+// TODO: in most cases this probably doesn't need to extend AndroidGradleTestCase/doesn't need to load the project.
 public abstract class NavigationTestCase extends AndroidGradleTestCase {
 
   protected CodeStyleSettings mySettings;

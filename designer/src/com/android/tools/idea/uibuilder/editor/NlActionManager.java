@@ -81,11 +81,6 @@ public class NlActionManager extends ActionManager {
     mySelectParent.registerCustomShortcutSet(KeyEvent.VK_ESCAPE, 0, component);
   }
 
-  @Override
-  protected ActionsToolbar createActionsToolbar() {
-    return new ActionsToolbar(mySurface);
-  }
-
   @NotNull
   private static ActionGroup createRefactoringMenu() {
     DefaultActionGroup group = new DefaultActionGroup("_Refactor", true);
