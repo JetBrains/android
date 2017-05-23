@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.sampledata;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.Features;
 import org.jetbrains.android.facet.AndroidFacet;
 
 /**
@@ -37,7 +37,7 @@ public class AddSampleDataFileAction extends AnAction {
     super.update(e);
 
     Project project = e.getProject();
-    if (!Features.NELE_MOCK_DATA || project == null) {
+    if (!StudioFlags.NELE_SAMPLE_DATA.get() || project == null) {
       e.getPresentation().setVisible(false);
       return;
     }
