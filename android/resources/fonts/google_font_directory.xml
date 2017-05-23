@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Font directory that is downloaded from https://fonts.gstatic.com/s/a/directory.xml i.e. Google Fonts -->
 <!-- This is a snapshot which provides as a fallback if the user cannot connect to the internet and download the latest -->
-<font_directory version='1'>
+<font_directory version='2'>
   <families>
     <family name='ABeeZee' menu='//fonts.gstatic.com/s/abeezee/v9/dMic27xq-TfXD55NQqy0eg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/abeezee/v9/mE5BOuZKGln_Ex0uYKpIaw.ttf'/>
@@ -20,42 +20,42 @@
     <family name='Abril Fatface' menu='//fonts.gstatic.com/s/abrilfatface/v8/X1g_KwGeBV3ajZIXQ9VnDuSG1Vhs6WuJu5OMHVi2V1g.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/abrilfatface/v8/X1g_KwGeBV3ajZIXQ9VnDojjx0o0jr6fNXxPgYh_a8Q.ttf'/>
     </family>
-    <family name='Aclonica' menu='//fonts.gstatic.com/s/aclonica/v6/OIsgPgYJ1aoI55vNeGIonfesZW2xOQ-xsNqO47m55DA.ttf'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/aclonica/v6/M6pHZMPwK3DiBSlo3jwAKQ.ttf'/>
+    <family name='Aclonica' menu='//fonts.gstatic.com/s/aclonica/v7/OIsgPgYJ1aoI55vNeGIonfesZW2xOQ-xsNqO47m55DA.ttf'>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/aclonica/v7/M6pHZMPwK3DiBSlo3jwAKQ.ttf'/>
     </family>
-    <family name='Acme' menu='//fonts.gstatic.com/s/acme/v5/4j2BBC5To3wP4cLn-2hWaQ.ttf'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/acme/v5/-J6XNtAHPZBEbsifCdBt-g.ttf'/>
+    <family name='Acme' menu='//fonts.gstatic.com/s/acme/v6/4j2BBC5To3wP4cLn-2hWaQ.ttf'>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/acme/v6/-J6XNtAHPZBEbsifCdBt-g.ttf'/>
     </family>
     <family name='Actor' menu='//fonts.gstatic.com/s/actor/v6/2gs-3H3oLERkeckSgaLcEA.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/actor/v6/ugMf40CrRK6Jf6Yz_xNSmQ.ttf'/>
     </family>
-    <family name='Adamina' menu='//fonts.gstatic.com/s/adamina/v8/uCveMloNS8gH9mri6LGlJw.ttf'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/adamina/v8/RUQfOodOMiVVYqFZcSlT9w.ttf'/>
+    <family name='Adamina' menu='//fonts.gstatic.com/s/adamina/v9/uCveMloNS8gH9mri6LGlJw.ttf'>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/adamina/v9/RUQfOodOMiVVYqFZcSlT9w.ttf'/>
     </family>
-    <family name='Advent Pro' menu='//fonts.gstatic.com/s/adventpro/v4/MI0zNg3qkrkgsD_L7QlRjC3USBnSvpkopQaUR-2r7iU.ttf'>
-      <font weight='100' width='100.0' italic='0.0' styleName='Thin' url='//fonts.gstatic.com/s/adventpro/v4/87-JOpSUecTG50PBYK4ysi3USBnSvpkopQaUR-2r7iU.ttf'/>
-      <font weight='200' width='100.0' italic='0.0' styleName='ExtraLight' url='//fonts.gstatic.com/s/adventpro/v4/URTSSjIp0Wr-GrjxFdFWnGeudeTO44zf-ht3k-KNzwg.ttf'/>
-      <font weight='300' width='100.0' italic='0.0' styleName='Light' url='//fonts.gstatic.com/s/adventpro/v4/sJaBfJYSFgoB80OL1_66m0eOrDcLawS7-ssYqLr2Xp4.ttf'/>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/adventpro/v4/1NxMBeKVcNNH2H46AUR3wfesZW2xOQ-xsNqO47m55DA.ttf'/>
-      <font weight='500' width='100.0' italic='0.0' styleName='Medium' url='//fonts.gstatic.com/s/adventpro/v4/7kBth2-rT8tP40RmMMXMLJp-63r6doWhTEbsfBIRJ7A.ttf'/>
-      <font weight='600' width='100.0' italic='0.0' styleName='SemiBold' url='//fonts.gstatic.com/s/adventpro/v4/3Jo-2maCzv2QLzQBzaKHV_pTEJqju4Hz1txDWij77d4.ttf'/>
-      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/adventpro/v4/M4I6QiICt-ey_wZTpR2gKwJKKGfqHaYFsRG-T3ceEVo.ttf'/>
+    <family name='Advent Pro' menu='//fonts.gstatic.com/s/adventpro/v5/MI0zNg3qkrkgsD_L7QlRjC3USBnSvpkopQaUR-2r7iU.ttf'>
+      <font weight='100' width='100.0' italic='0.0' styleName='Thin' url='//fonts.gstatic.com/s/adventpro/v5/87-JOpSUecTG50PBYK4ysi3USBnSvpkopQaUR-2r7iU.ttf'/>
+      <font weight='200' width='100.0' italic='0.0' styleName='ExtraLight' url='//fonts.gstatic.com/s/adventpro/v5/URTSSjIp0Wr-GrjxFdFWnGeudeTO44zf-ht3k-KNzwg.ttf'/>
+      <font weight='300' width='100.0' italic='0.0' styleName='Light' url='//fonts.gstatic.com/s/adventpro/v5/sJaBfJYSFgoB80OL1_66m0eOrDcLawS7-ssYqLr2Xp4.ttf'/>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/adventpro/v5/1NxMBeKVcNNH2H46AUR3wfesZW2xOQ-xsNqO47m55DA.ttf'/>
+      <font weight='500' width='100.0' italic='0.0' styleName='Medium' url='//fonts.gstatic.com/s/adventpro/v5/7kBth2-rT8tP40RmMMXMLJp-63r6doWhTEbsfBIRJ7A.ttf'/>
+      <font weight='600' width='100.0' italic='0.0' styleName='SemiBold' url='//fonts.gstatic.com/s/adventpro/v5/3Jo-2maCzv2QLzQBzaKHV_pTEJqju4Hz1txDWij77d4.ttf'/>
+      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/adventpro/v5/M4I6QiICt-ey_wZTpR2gKwJKKGfqHaYFsRG-T3ceEVo.ttf'/>
     </family>
     <family name='Aguafina Script' menu='//fonts.gstatic.com/s/aguafinascript/v5/65g7cgMtMGnNlNyq_Z6CvIviYBFu9JIpHYqRdC2B0b0.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/aguafinascript/v5/65g7cgMtMGnNlNyq_Z6CvMxLhO8OSNnfAp53LK1_iRs.ttf'/>
     </family>
-    <family name='Akronim' menu='//fonts.gstatic.com/s/akronim/v5/sIOJy86lilHhoABLqn4MXw.ttf'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/akronim/v5/qA0L2CSArk3tuOWE1AR1DA.ttf'/>
+    <family name='Akronim' menu='//fonts.gstatic.com/s/akronim/v6/sIOJy86lilHhoABLqn4MXw.ttf'>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/akronim/v6/qA0L2CSArk3tuOWE1AR1DA.ttf'/>
     </family>
     <family name='Aladin' menu='//fonts.gstatic.com/s/aladin/v5/pjtjX2RNCSDmNP8-ksitmQ.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/aladin/v5/PyuJ5cVHkduO0j5fAMKvAA.ttf'/>
     </family>
-    <family name='Aldrich' menu='//fonts.gstatic.com/s/aldrich/v6/earrdrOXg6ijYRv2YJXgYw.ttf'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/aldrich/v6/kMMW1S56gFx7RP_mW1g-Eg.ttf'/>
+    <family name='Aldrich' menu='//fonts.gstatic.com/s/aldrich/v7/earrdrOXg6ijYRv2YJXgYw.ttf'>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/aldrich/v7/kMMW1S56gFx7RP_mW1g-Eg.ttf'/>
     </family>
-    <family name='Alef' menu='//fonts.gstatic.com/s/alef/v6/r0HJ-hIT2pcQZ3AvF9TsDg.ttf'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alef/v6/ENvZ_P0HBDQxNZYCQO0lUA.ttf'/>
-      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/alef/v6/VDgZJhEwudtOzOFQpZ8MEA.ttf'/>
+    <family name='Alef' menu='//fonts.gstatic.com/s/alef/v8/r0HJ-hIT2pcQZ3AvF9TsDg.ttf'>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alef/v8/ENvZ_P0HBDQxNZYCQO0lUA.ttf'/>
+      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/alef/v8/VDgZJhEwudtOzOFQpZ8MEA.ttf'/>
     </family>
     <family name='Alegreya' menu='//fonts.gstatic.com/s/alegreya/v7/FxsTWu30OY-hZ-ExBv3tsvesZW2xOQ-xsNqO47m55DA.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alegreya/v7/62J3atXd6bvMU4qO_ca-eA.ttf'/>
@@ -105,8 +105,8 @@
       <font weight='900' width='100.0' italic='0.0' styleName='Black' url='//fonts.gstatic.com/s/alegreyasanssc/v3/AjAmkoP1y0Vaad0UPPR461Rf9EWUSEX_PR1d_gLKfpM.ttf'/>
       <font weight='900' width='100.0' italic='1.0' styleName='Black Italic' url='//fonts.gstatic.com/s/alegreyasanssc/v3/0VweK-TO3aQgazdxg8fs0IvtwEfTCJoOJugANj-jWDI.ttf'/>
     </family>
-    <family name='Alex Brush' menu='//fonts.gstatic.com/s/alexbrush/v6/xHlkUG5uUVmTWoklRekfXS3USBnSvpkopQaUR-2r7iU.ttf'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alexbrush/v6/ooh3KJFbKJSUoIRWfiu8o_esZW2xOQ-xsNqO47m55DA.ttf'/>
+    <family name='Alex Brush' menu='//fonts.gstatic.com/s/alexbrush/v7/xHlkUG5uUVmTWoklRekfXS3USBnSvpkopQaUR-2r7iU.ttf'>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alexbrush/v7/ooh3KJFbKJSUoIRWfiu8o_esZW2xOQ-xsNqO47m55DA.ttf'/>
     </family>
     <family name='Alfa Slab One' menu='//fonts.gstatic.com/s/alfaslabone/v6/Qx6FPcitRwTC_k88tLPc-eSG1Vhs6WuJu5OMHVi2V1g.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alfaslabone/v6/Qx6FPcitRwTC_k88tLPc-Yjjx0o0jr6fNXxPgYh_a8Q.ttf'/>
@@ -114,8 +114,8 @@
     <family name='Alice' menu='//fonts.gstatic.com/s/alice/v8/s2Z9oJkxYVUdxJSnTnC9rw.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alice/v8/wZTAfivekBqIg-rk63nFvQ.ttf'/>
     </family>
-    <family name='Alike' menu='//fonts.gstatic.com/s/alike/v8/2iplPLRzkhuV1Wn2_oLi9g.ttf'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alike/v8/Ho8YpRKNk_202fwDiGNIyw.ttf'/>
+    <family name='Alike' menu='//fonts.gstatic.com/s/alike/v9/2iplPLRzkhuV1Wn2_oLi9g.ttf'>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alike/v9/Ho8YpRKNk_202fwDiGNIyw.ttf'/>
     </family>
     <family name='Alike Angular' menu='//fonts.gstatic.com/s/alikeangular/v6/OpeCu4xxI3qO1C7CZcJtPWijIjgXwTnTJuQZbcaL9N8.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/alikeangular/v6/OpeCu4xxI3qO1C7CZcJtPT3XH2uEnVI__ynTBvNyki8.ttf'/>
@@ -188,9 +188,6 @@
     </family>
     <family name='Andika' menu='//fonts.gstatic.com/s/andika/v7/vawS0kFm1OGpk5xCGDPyIg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/andika/v7/oe-ag1G0lcqZ3IXfeEgaGg.ttf'/>
-    </family>
-    <family name='Angkor' menu='//fonts.gstatic.com/s/angkor/v8/icr58ZdPS9efoDM0Eann0g.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/angkor/v8/DLpLgIS-8F10ecwKqCm95Q.ttf'/>
     </family>
     <family name='Annie Use Your Telescope' menu='//fonts.gstatic.com/s/annieuseyourtelescope/v6/2cuiO5VmaR09C8SLGEQjGoU1ZAq0MJgrUHcxrvp09pj3rGVtsTkPsbDajuO5ueQw.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/annieuseyourtelescope/v6/2cuiO5VmaR09C8SLGEQjGqbp7mtG8sPlcZvOaO8HBak.ttf'/>
@@ -406,15 +403,8 @@
     <family name='Basic' menu='//fonts.gstatic.com/s/basic/v6/cuSrI6YngCvNZ8E-dQwZeA.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/basic/v6/hNII2mS5Dxw5C0u_m3mXgA.ttf'/>
     </family>
-    <family name='Battambang' menu='//fonts.gstatic.com/s/battambang/v9/xcow0hp0xeMF3tr6Ft2MQy3USBnSvpkopQaUR-2r7iU.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/battambang/v9/MzrUfQLefYum5vVGM3EZVPesZW2xOQ-xsNqO47m55DA.ttf'/>
-      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/battambang/v9/dezbRtMzfzAA99DmrCYRMgJKKGfqHaYFsRG-T3ceEVo.ttf'/>
-    </family>
     <family name='Baumans' menu='//fonts.gstatic.com/s/baumans/v5/w4_ZFsY1ejUOw_GvaFNWzQ.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/baumans/v5/o0bFdPW1H5kd5saqqOcoVg.ttf'/>
-    </family>
-    <family name='Bayon' menu='//fonts.gstatic.com/s/bayon/v8/oo7IJ4ppzoSrZS9ZQAIMJA.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/bayon/v8/yTubusjTnpNRZwA4_50iVw.ttf'/>
     </family>
     <family name='Belgrano' menu='//fonts.gstatic.com/s/belgrano/v6/037LSjd68aCwWuJPLgA85PesZW2xOQ-xsNqO47m55DA.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/belgrano/v6/iq8DUa2s7g6WRCeMiFrmtQ.ttf'/>
@@ -454,11 +444,11 @@
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/biorhyme/v1/n6v5UkVPy_CjbP3fvsu1CA.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/biorhyme/v1/36KN76U1iKt5TFDm2lBz0KCWcynf_cDxXwCLxiixG1c.ttf'/>
       <font weight='800' width='100.0' italic='0.0' styleName='ExtraBold' url='//fonts.gstatic.com/s/biorhyme/v1/k6bYbUnESjLYnworWvSTL6CWcynf_cDxXwCLxiixG1c.ttf'/>
-      <font weight='200' width='125.0' italic='0.0' styleName='Expanded ExtraLight' url='//fonts.gstatic.com/s/biorhymeexpanded/v1/FKL4Vyxmq2vsiDrSOzz2sC7oxZzNh3ej55UHm-HviBI.ttf'/>
-      <font weight='300' width='125.0' italic='0.0' styleName='Expanded Light' url='//fonts.gstatic.com/s/biorhymeexpanded/v1/FKL4Vyxmq2vsiDrSOzz2sFu4cYPPksG4MRjB5UiYPPw.ttf'/>
-      <font weight='400' width='125.0' italic='0.0' styleName='Expanded Regular' url='//fonts.gstatic.com/s/biorhymeexpanded/v1/hgBNpgjTRZzGmZxqN5OuVjndr_hij4ilAk2n1d1AhsE.ttf'/>
-      <font weight='700' width='125.0' italic='0.0' styleName='Expanded Bold' url='//fonts.gstatic.com/s/biorhymeexpanded/v1/FKL4Vyxmq2vsiDrSOzz2sMVisRVfPEfQ0jijOMQbr0Q.ttf'/>
-      <font weight='800' width='125.0' italic='0.0' styleName='Expanded ExtraBold' url='//fonts.gstatic.com/s/biorhymeexpanded/v1/FKL4Vyxmq2vsiDrSOzz2sIv1v1eCT6RPbcYZYQ1T1CE.ttf'/>
+      <font weight='200' width='125.0' italic='0.0' styleName='Expanded ExtraLight' url='//fonts.gstatic.com/s/biorhymeexpanded/v2/FKL4Vyxmq2vsiDrSOzz2sC7oxZzNh3ej55UHm-HviBI.ttf'/>
+      <font weight='300' width='125.0' italic='0.0' styleName='Expanded Light' url='//fonts.gstatic.com/s/biorhymeexpanded/v2/FKL4Vyxmq2vsiDrSOzz2sFu4cYPPksG4MRjB5UiYPPw.ttf'/>
+      <font weight='400' width='125.0' italic='0.0' styleName='Expanded Regular' url='//fonts.gstatic.com/s/biorhymeexpanded/v2/hgBNpgjTRZzGmZxqN5OuVjndr_hij4ilAk2n1d1AhsE.ttf'/>
+      <font weight='700' width='125.0' italic='0.0' styleName='Expanded Bold' url='//fonts.gstatic.com/s/biorhymeexpanded/v2/FKL4Vyxmq2vsiDrSOzz2sMVisRVfPEfQ0jijOMQbr0Q.ttf'/>
+      <font weight='800' width='125.0' italic='0.0' styleName='Expanded ExtraBold' url='//fonts.gstatic.com/s/biorhymeexpanded/v2/FKL4Vyxmq2vsiDrSOzz2sIv1v1eCT6RPbcYZYQ1T1CE.ttf'/>
     </family>
     <family name='Biryani' menu='//fonts.gstatic.com/s/biryani/v1/rW_FlEaEcKjjRYlyQSNuAg.ttf'>
       <font weight='200' width='100.0' italic='0.0' styleName='ExtraLight' url='//fonts.gstatic.com/s/biryani/v1/Xx38YzyTFF8n6mRS1Yd88vesZW2xOQ-xsNqO47m55DA.ttf'/>
@@ -476,9 +466,6 @@
     </family>
     <family name='Black Ops One' menu='//fonts.gstatic.com/s/blackopsone/v7/2XW-DmDsGbDLE372KrMW1eSG1Vhs6WuJu5OMHVi2V1g.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/blackopsone/v7/2XW-DmDsGbDLE372KrMW1Yjjx0o0jr6fNXxPgYh_a8Q.ttf'/>
-    </family>
-    <family name='Bokor' menu='//fonts.gstatic.com/s/bokor/v8/kAt3DExXcPmLZfthoLLIPw.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/bokor/v8/uAKdo0A85WW23Gs6mcbw7A.ttf'/>
     </family>
     <family name='Bonbon' menu='//fonts.gstatic.com/s/bonbon/v7/hc_oau42IAKpUCRkFzNSVw.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/bonbon/v7/IW3u1yzG1knyW5oz0s9_6Q.ttf'/>
@@ -538,10 +525,10 @@
       <font weight='600' width='100.0' italic='1.0' styleName='SemiBold Italic' url='//fonts.gstatic.com/s/cabin/v10/sFQpQDBd3G2om0Nl5dD2CvesZW2xOQ-xsNqO47m55DA.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/cabin/v10/4EKhProuY1hq_WCAomq9Dg.ttf'/>
       <font weight='700' width='100.0' italic='1.0' styleName='Bold Italic' url='//fonts.gstatic.com/s/cabin/v10/K83QKi8MOKLEqj6bgZ7LrfesZW2xOQ-xsNqO47m55DA.ttf'/>
-      <font weight='400' width='75.0' italic='0.0' styleName='Condensed Regular' url='//fonts.gstatic.com/s/cabincondensed/v10/B0txb0blf2N29WdYPJjMSiQPsWWoiv__AzYJ9Zzn9II.ttf'/>
-      <font weight='500' width='75.0' italic='0.0' styleName='Condensed Medium' url='//fonts.gstatic.com/s/cabincondensed/v10/Ez4zJbsGr2BgXcNUWBVgEARL_-ABKXdjsJSPT0lc2Bk.ttf'/>
-      <font weight='600' width='75.0' italic='0.0' styleName='Condensed SemiBold' url='//fonts.gstatic.com/s/cabincondensed/v10/Ez4zJbsGr2BgXcNUWBVgELS5sSASxc8z4EQTQj7DCAI.ttf'/>
-      <font weight='700' width='75.0' italic='0.0' styleName='Condensed Bold' url='//fonts.gstatic.com/s/cabincondensed/v10/Ez4zJbsGr2BgXcNUWBVgEMAWgzcA047xWLixhLCofl8.ttf'/>
+      <font weight='400' width='75.0' italic='0.0' styleName='Condensed Regular' url='//fonts.gstatic.com/s/cabincondensed/v9/B0txb0blf2N29WdYPJjMSiQPsWWoiv__AzYJ9Zzn9II.ttf'/>
+      <font weight='500' width='75.0' italic='0.0' styleName='Condensed Medium' url='//fonts.gstatic.com/s/cabincondensed/v9/Ez4zJbsGr2BgXcNUWBVgEARL_-ABKXdjsJSPT0lc2Bk.ttf'/>
+      <font weight='600' width='75.0' italic='0.0' styleName='Condensed SemiBold' url='//fonts.gstatic.com/s/cabincondensed/v9/Ez4zJbsGr2BgXcNUWBVgELS5sSASxc8z4EQTQj7DCAI.ttf'/>
+      <font weight='700' width='75.0' italic='0.0' styleName='Condensed Bold' url='//fonts.gstatic.com/s/cabincondensed/v9/Ez4zJbsGr2BgXcNUWBVgEMAWgzcA047xWLixhLCofl8.ttf'/>
     </family>
     <family name='Cabin Sketch' menu='//fonts.gstatic.com/s/cabinsketch/v10/d9fijO34zQajqQvl3YHRCfXvv67LPsgjo12DOhGlfyc.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/cabinsketch/v10/d9fijO34zQajqQvl3YHRCS3USBnSvpkopQaUR-2r7iU.ttf'/>
@@ -667,9 +654,6 @@
     <family name='Chelsea Market' menu='//fonts.gstatic.com/s/chelseamarket/v4/qSdzwh2A4BbNemy78sJLfNLBGAWCaSC9jx9bfqcCTxY.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/chelseamarket/v4/qSdzwh2A4BbNemy78sJLfAAI1i8fIftCBXsBF2v9UMI.ttf'/>
     </family>
-    <family name='Chenla' menu='//fonts.gstatic.com/s/chenla/v9/nLPmP-P92ttVmPAwoG0Esw.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/chenla/v9/aLNpdAUDq2MZbWz2U1a16g.ttf'/>
-    </family>
     <family name='Cherry Cream Soda' menu='//fonts.gstatic.com/s/cherrycreamsoda/v6/OrD-AUnFcZeeKa6F_c0_W9zWrxnZYsf1IHD0OFxPLtE.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/cherrycreamsoda/v6/OrD-AUnFcZeeKa6F_c0_WxOiHiuAPYA9ry3O1RG2XIU.ttf'/>
     </family>
@@ -732,10 +716,6 @@
     </family>
     <family name='Condiment' menu='//fonts.gstatic.com/s/condiment/v4/gL0q7QJZjyYXZWO_pj_ceaCWcynf_cDxXwCLxiixG1c.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/condiment/v4/CstmdiPpgFSV0FUNL5LrJA.ttf'/>
-    </family>
-    <family name='Content' menu='//fonts.gstatic.com/s/content/v8/-14DypcBMSRmLZuBSPfiMQ.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/content/v8/l8qaLjygvOkDEU2G6-cjfQ.ttf'/>
-      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/content/v8/7PivP8Zvs2qn6F6aNbSQe_esZW2xOQ-xsNqO47m55DA.ttf'/>
     </family>
     <family name='Contrail One' menu='//fonts.gstatic.com/s/contrailone/v6/b41KxjgiyqX-hkggANDU6PXvv67LPsgjo12DOhGlfyc.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/contrailone/v6/b41KxjgiyqX-hkggANDU6C3USBnSvpkopQaUR-2r7iU.ttf'/>
@@ -868,9 +848,6 @@
     <family name='Dancing Script' menu='//fonts.gstatic.com/s/dancingscript/v8/DK0eTGXiZjN6yA8zAEyM2TudAVv5AROE4DjbBSpdYlc.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/dancingscript/v8/DK0eTGXiZjN6yA8zAEyM2RnpV0hQCek3EmWnCPrvGRM.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/dancingscript/v8/KGBfwabt0ZRLA5W1ywjowb_dAmXiKjTPGCuO6G2MbfA.ttf'/>
-    </family>
-    <family name='Dangrek' menu='//fonts.gstatic.com/s/dangrek/v8/A1WruEbhXuZTxIM2HTQ8qg.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/dangrek/v8/LOaFhBT-EHNxZjV8DAW_ew.ttf'/>
     </family>
     <family name='David Libre' menu='//fonts.gstatic.com/s/davidlibre/v1/Vz9vXoACjmVAoW3IxuaHLWeudeTO44zf-ht3k-KNzwg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/davidlibre/v1/Fp_YuX4CP0pzlSUtACdOo6CWcynf_cDxXwCLxiixG1c.ttf'/>
@@ -1094,9 +1071,6 @@
     <family name='Faster One' menu='//fonts.gstatic.com/s/fasterone/v6/rkiFJI6T2bVoSDyrpSaj4S3USBnSvpkopQaUR-2r7iU.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/fasterone/v6/YxTOW2sf56uxD1T7byP5K_esZW2xOQ-xsNqO47m55DA.ttf'/>
     </family>
-    <family name='Fasthand' menu='//fonts.gstatic.com/s/fasthand/v7/MKrOimHQ5JkdXe7X-lW32_esZW2xOQ-xsNqO47m55DA.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/fasthand/v7/6XAagHH_KmpZL67wTvsETQ.ttf'/>
-    </family>
     <family name='Fauna One' menu='//fonts.gstatic.com/s/faunaone/v4/lQgL9qgBBZvvvS4vgNbXI6CWcynf_cDxXwCLxiixG1c.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/faunaone/v4/8kL-wpAPofcAMELI_5NRnQ.ttf'/>
     </family>
@@ -1221,9 +1195,6 @@
     </family>
     <family name='Fredoka One' menu='//fonts.gstatic.com/s/fredokaone/v4/SL0aFUFfkFMMdariYQ3_YWeudeTO44zf-ht3k-KNzwg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/fredokaone/v4/QKfwXi-z-KtJAlnO2ethYqCWcynf_cDxXwCLxiixG1c.ttf'/>
-    </family>
-    <family name='Freehand' menu='//fonts.gstatic.com/s/freehand/v8/toCHSLJiKoeOTYWssQd3UPesZW2xOQ-xsNqO47m55DA.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/freehand/v8/uEBQxvA0lnn_BrD6krlxMw.ttf'/>
     </family>
     <family name='Fresca' menu='//fonts.gstatic.com/s/fresca/v5/pPj5w4ytwAqkevI_FOFjkw.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/fresca/v5/2q7Qm9sCo1tWvVgSDVWNIw.ttf'/>
@@ -1365,10 +1336,6 @@
     </family>
     <family name='Handlee' menu='//fonts.gstatic.com/s/handlee/v5/UdzaSZWll7Z2EuRtTlCXVg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/handlee/v5/6OfkXkyC0E5NZN80ED8u3A.ttf'/>
-    </family>
-    <family name='Hanuman' menu='//fonts.gstatic.com/s/hanuman/v9/gzPNcqCB07_xHNMHhUZRkA.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/hanuman/v9/hRhwOGGmElJSl6KSPvEnOQ.ttf'/>
-      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/hanuman/v9/lzzXZ2l84x88giDrbfq76vesZW2xOQ-xsNqO47m55DA.ttf'/>
     </family>
     <family name='Happy Monkey' menu='//fonts.gstatic.com/s/happymonkey/v5/c2o0ps8nkBmaOYctqBq1rfXvv67LPsgjo12DOhGlfyc.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/happymonkey/v5/c2o0ps8nkBmaOYctqBq1rS3USBnSvpkopQaUR-2r7iU.ttf'/>
@@ -1680,9 +1647,6 @@
       <font weight='600' width='100.0' italic='0.0' styleName='SemiBold' url='//fonts.gstatic.com/s/khand/v4/zggGWYIiPJyMTgkfxP_kaA.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/khand/v4/0I0UWaN-X5QBmfexpXKhqg.ttf'/>
     </family>
-    <family name='Khmer' menu='//fonts.gstatic.com/s/khmer/v9/d3xAcGJ6FKrfYoHJuaN8Yw.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/khmer/v9/vWaBJIbaQuBNz02ALIKJ3A.ttf'/>
-    </family>
     <family name='Khula' menu='//fonts.gstatic.com/s/khula/v1/5aofAXiLRUp3hN04K41e5A.ttf'>
       <font weight='300' width='100.0' italic='0.0' styleName='Light' url='//fonts.gstatic.com/s/khula/v1/_1LySU5Upq-sc4OZ1b_GIw.ttf'/>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/khula/v1/izcPIFyCSd16XI1Ak_Wk7Q.ttf'/>
@@ -1698,9 +1662,6 @@
     </family>
     <family name='Kotta One' menu='//fonts.gstatic.com/s/kottaone/v4/Wn5u-dE4mtA6GcTlSuxOhqCWcynf_cDxXwCLxiixG1c.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/kottaone/v4/AB2Q7hVw6niJYDgLvFXu5w.ttf'/>
-    </family>
-    <family name='Koulen' menu='//fonts.gstatic.com/s/koulen/v10/1w367zCEtk7PWeJNidboRA.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/koulen/v10/AAYOK8RSRO7FTskTzFuzNw.ttf'/>
     </family>
     <family name='Kranky' menu='//fonts.gstatic.com/s/kranky/v6/ldc8T7zNziV-3ItOP2e1eg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/kranky/v6/C8dxxTS99-fZ84vWk8SDrg.ttf'/>
@@ -2003,9 +1964,6 @@
       <font weight='800' width='100.0' italic='0.0' styleName='ExtraBold' url='//fonts.gstatic.com/s/merriweathersans/v8/6LmGj5dOJopQKEkt88GowYufzO2zUYSj5LqoJ3UGkco.ttf'/>
       <font weight='800' width='100.0' italic='1.0' styleName='ExtraBold Italic' url='//fonts.gstatic.com/s/merriweathersans/v8/nAqt4hiqwq3tzCecpgPmVdDmPrYMy3aZO4LmnZsxTQw.ttf'/>
     </family>
-    <family name='Metal' menu='//fonts.gstatic.com/s/metal/v9/i0w7TRoSab3-2tsmajrhZw.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/metal/v9/zA3UOP13ooQcxjv04BZX5g.ttf'/>
-    </family>
     <family name='Metal Mania' menu='//fonts.gstatic.com/s/metalmania/v6/_MPduYXiaptg6GQ2M6AHtGeudeTO44zf-ht3k-KNzwg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/metalmania/v6/isriV_rAUgj6bPWPN6l9QKCWcynf_cDxXwCLxiixG1c.ttf'/>
     </family>
@@ -2094,12 +2052,6 @@
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/montserratsubrayada/v4/nzoCWCz0e9c7Mr2Gl8bbgrJymm6ilkk9f0nDA_sC_qk.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/montserratsubrayada/v4/wf-IKpsHcfm0C9uaz9IeGJvEcF1LWArDbGWgKZSH9go.ttf'/>
     </family>
-    <family name='Moul' menu='//fonts.gstatic.com/s/moul/v8/GvPHeWmO8-o3W4LGfqLZQQ.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/moul/v8/Kb0ALQnfyXawP1a_P_gpTQ.ttf'/>
-    </family>
-    <family name='Moulpali' menu='//fonts.gstatic.com/s/moulpali/v9/WcG9UuAMaER_pmEMjd4cSvesZW2xOQ-xsNqO47m55DA.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/moulpali/v9/diD74BprGhmVkJoerKmrKA.ttf'/>
-    </family>
     <family name='Mountains of Christmas' menu='//fonts.gstatic.com/s/mountainsofchristmas/v8/dVGBFPwd6G44IWDbQtPew0rOAs2SB6C3LIofa4A2JSY.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/mountainsofchristmas/v8/dVGBFPwd6G44IWDbQtPew2Auds3jz1Fxb61CgfaGDr4.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/mountainsofchristmas/v8/PymufKtHszoLrY0uiAYKNM9cPTbSBTrQyTa5TWAe3vE.ttf'/>
@@ -2182,10 +2134,6 @@
       <font weight='400' width='100.0' italic='1.0' styleName='Regular Italic' url='//fonts.gstatic.com/s/nobile/v7/vGmrpKzWQQSrb-PR6FWBIA.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/nobile/v7/9p6M-Yrg_r_QPmSD1skrOg.ttf'/>
       <font weight='700' width='100.0' italic='1.0' styleName='Bold Italic' url='//fonts.gstatic.com/s/nobile/v7/oQ1eYPaXV638N03KvsNvyKCWcynf_cDxXwCLxiixG1c.ttf'/>
-    </family>
-    <family name='Nokora' menu='//fonts.gstatic.com/s/nokora/v9/jotPQ9OkN6_pqf1LeqF2Xw.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/nokora/v9/dRyz1JfnyKPNaRcBNX9F9A.ttf'/>
-      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/nokora/v9/QMqqa4QEOhQpiig3cAPmbQ.ttf'/>
     </family>
     <family name='Norican' menu='//fonts.gstatic.com/s/norican/v4/aPN-cqQEkydgfCoQKP0ocQ.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/norican/v4/SHnSqhYAWG5sZTWcPzEHig.ttf'/>
@@ -2309,9 +2257,9 @@
       <font weight='700' width='100.0' italic='1.0' styleName='Bold Italic' url='//fonts.gstatic.com/s/opensans/v13/PRmiXeptR36kaC0GEAetxne1Pd76Vl7zRpE7NLJQ7XU.ttf'/>
       <font weight='800' width='100.0' italic='0.0' styleName='ExtraBold' url='//fonts.gstatic.com/s/opensans/v13/EInbV5DfGHOiMmvb1Xr-hi3USBnSvpkopQaUR-2r7iU.ttf'/>
       <font weight='800' width='100.0' italic='1.0' styleName='ExtraBold Italic' url='//fonts.gstatic.com/s/opensans/v13/PRmiXeptR36kaC0GEAetxg89PwPrYLaRFJ-HNCU9NbA.ttf'/>
-      <font weight='300' width='75.0' italic='0.0' styleName='Condensed Light' url='//fonts.gstatic.com/s/opensanscondensed/v13/gk5FxslNkTTHtojXrkp-xEMwSSh38KQVJx4ABtsZTnA.ttf'/>
-      <font weight='300' width='75.0' italic='1.0' styleName='Condensed Light Italic' url='//fonts.gstatic.com/s/opensanscondensed/v13/jIXlqT1WKafUSwj6s9AzV4_LkTZ_uhAwfmGJ084hlvM.ttf'/>
-      <font weight='700' width='75.0' italic='0.0' styleName='Condensed Bold' url='//fonts.gstatic.com/s/opensanscondensed/v13/gk5FxslNkTTHtojXrkp-xBEM87DM3yorPOrvA-vB930.ttf'/>
+      <font weight='300' width='75.0' italic='0.0' styleName='Condensed Light' url='//fonts.gstatic.com/s/opensanscondensed/v10/gk5FxslNkTTHtojXrkp-xEMwSSh38KQVJx4ABtsZTnA.ttf'/>
+      <font weight='300' width='75.0' italic='1.0' styleName='Condensed Light Italic' url='//fonts.gstatic.com/s/opensanscondensed/v10/jIXlqT1WKafUSwj6s9AzV4_LkTZ_uhAwfmGJ084hlvM.ttf'/>
+      <font weight='700' width='75.0' italic='0.0' styleName='Condensed Bold' url='//fonts.gstatic.com/s/opensanscondensed/v10/gk5FxslNkTTHtojXrkp-xBEM87DM3yorPOrvA-vB930.ttf'/>
     </family>
     <family name='Oranienbaum' menu='//fonts.gstatic.com/s/oranienbaum/v5/WyaFSM_en0pjtlmUWwS7GWeudeTO44zf-ht3k-KNzwg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/oranienbaum/v5/M98jYwCSn0PaFhXXgviCoaCWcynf_cDxXwCLxiixG1c.ttf'/>
@@ -2566,9 +2514,6 @@
     <family name='Prata' menu='//fonts.gstatic.com/s/prata/v7/L-aOMNx1djx4fXqlX_yr4g.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/prata/v7/3gmx8r842loRRm9iQkCDGg.ttf'/>
     </family>
-    <family name='Preahvihear' menu='//fonts.gstatic.com/s/preahvihear/v8/cpaaICAt4KvyjuVad3qn9meudeTO44zf-ht3k-KNzwg.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/preahvihear/v8/82tDI-xTc53CxxOzEG4hDaCWcynf_cDxXwCLxiixG1c.ttf'/>
-    </family>
     <family name='Press Start 2P' menu='//fonts.gstatic.com/s/pressstart2p/v5/8Lg6LX8-ntOHUQnvQ0E7owGZ0S8COhkrExLtnpk12xc.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/pressstart2p/v5/8Lg6LX8-ntOHUQnvQ0E7o1jfl3W46Sz5gOkEVhcFWF4.ttf'/>
     </family>
@@ -2769,25 +2714,25 @@
     <family name='Risque' menu='//fonts.gstatic.com/s/risque/v4/u8epsYdrEBC0-xL2zez3qg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/risque/v4/92RnElGnl8yHP97-KV3Fyg.ttf'/>
     </family>
-    <family name='Roboto' menu='//fonts.gstatic.com/s/roboto/v15/KJ3Wc3npvp3YB3L7JnP-hg.ttf'>
-      <font weight='100' width='100.0' italic='0.0' styleName='Thin' url='//fonts.gstatic.com/s/roboto/v15/7MygqTe2zs9YkP0adA9QQQ.ttf'/>
-      <font weight='100' width='100.0' italic='1.0' styleName='Thin Italic' url='//fonts.gstatic.com/s/roboto/v15/T1xnudodhcgwXCmZQ490TPesZW2xOQ-xsNqO47m55DA.ttf'/>
-      <font weight='300' width='100.0' italic='0.0' styleName='Light' url='//fonts.gstatic.com/s/roboto/v15/dtpHsbgPEm2lVWciJZ0P-A.ttf'/>
-      <font weight='300' width='100.0' italic='1.0' styleName='Light Italic' url='//fonts.gstatic.com/s/roboto/v15/iE8HhaRzdhPxC93dOdA056CWcynf_cDxXwCLxiixG1c.ttf'/>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/roboto/v15/W5F8_SL0XFawnjxHGsZjJA.ttf'/>
-      <font weight='400' width='100.0' italic='1.0' styleName='Regular Italic' url='//fonts.gstatic.com/s/roboto/v15/hcKoSgxdnKlbH5dlTwKbow.ttf'/>
-      <font weight='500' width='100.0' italic='0.0' styleName='Medium' url='//fonts.gstatic.com/s/roboto/v15/Uxzkqj-MIMWle-XP2pDNAA.ttf'/>
-      <font weight='500' width='100.0' italic='1.0' styleName='Medium Italic' url='//fonts.gstatic.com/s/roboto/v15/daIfzbEw-lbjMyv4rMUUTqCWcynf_cDxXwCLxiixG1c.ttf'/>
-      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/roboto/v15/bdHGHleUa-ndQCOrdpfxfw.ttf'/>
-      <font weight='700' width='100.0' italic='1.0' styleName='Bold Italic' url='//fonts.gstatic.com/s/roboto/v15/owYYXKukxFDFjr0ZO8NXh6CWcynf_cDxXwCLxiixG1c.ttf'/>
-      <font weight='900' width='100.0' italic='0.0' styleName='Black' url='//fonts.gstatic.com/s/roboto/v15/H1vB34nOKWXqzKotq25pcg.ttf'/>
-      <font weight='900' width='100.0' italic='1.0' styleName='Black Italic' url='//fonts.gstatic.com/s/roboto/v15/b9PWBSMHrT2zM5FgUdtu0aCWcynf_cDxXwCLxiixG1c.ttf'/>
-      <font weight='300' width='75.0' italic='0.0' styleName='Condensed Light' url='//fonts.gstatic.com/s/robotocondensed/v15/b9QBgL0iMZfDSpmcXcE8nJRhFVcex_hajThhFkHyhYk.ttf'/>
-      <font weight='300' width='75.0' italic='1.0' styleName='Condensed Light Italic' url='//fonts.gstatic.com/s/robotocondensed/v15/mg0cGfGRUERshzBlvqxeAPYa9bgCHecWXGgisnodcS0.ttf'/>
-      <font weight='400' width='75.0' italic='0.0' styleName='Condensed Regular' url='//fonts.gstatic.com/s/robotocondensed/v15/Zd2E9abXLFGSr9G3YK2MsKDbm6fPDOZJsR8PmdG62gY.ttf'/>
-      <font weight='400' width='75.0' italic='1.0' styleName='Condensed Regular Italic' url='//fonts.gstatic.com/s/robotocondensed/v15/BP5K8ZAJv9qEbmuFp8RpJY_eiqgTfYGaH0bJiUDZ5GA.ttf'/>
-      <font weight='700' width='75.0' italic='0.0' styleName='Condensed Bold' url='//fonts.gstatic.com/s/robotocondensed/v15/b9QBgL0iMZfDSpmcXcE8nPOYkGiSOYDq_T7HbIOV1hA.ttf'/>
-      <font weight='700' width='75.0' italic='1.0' styleName='Condensed Bold Italic' url='//fonts.gstatic.com/s/robotocondensed/v15/mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf'/>
+    <family name='Roboto' menu='//fonts.gstatic.com/s/roboto/v16/KJ3Wc3npvp3YB3L7JnP-hg.ttf'>
+      <font weight='100' width='100.0' italic='0.0' styleName='Thin' url='//fonts.gstatic.com/s/roboto/v16/7MygqTe2zs9YkP0adA9QQQ.ttf'/>
+      <font weight='100' width='100.0' italic='1.0' styleName='Thin Italic' url='//fonts.gstatic.com/s/roboto/v16/T1xnudodhcgwXCmZQ490TPesZW2xOQ-xsNqO47m55DA.ttf'/>
+      <font weight='300' width='100.0' italic='0.0' styleName='Light' url='//fonts.gstatic.com/s/roboto/v16/dtpHsbgPEm2lVWciJZ0P-A.ttf'/>
+      <font weight='300' width='100.0' italic='1.0' styleName='Light Italic' url='//fonts.gstatic.com/s/roboto/v16/iE8HhaRzdhPxC93dOdA056CWcynf_cDxXwCLxiixG1c.ttf'/>
+      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/roboto/v16/W5F8_SL0XFawnjxHGsZjJA.ttf'/>
+      <font weight='400' width='100.0' italic='1.0' styleName='Regular Italic' url='//fonts.gstatic.com/s/roboto/v16/hcKoSgxdnKlbH5dlTwKbow.ttf'/>
+      <font weight='500' width='100.0' italic='0.0' styleName='Medium' url='//fonts.gstatic.com/s/roboto/v16/Uxzkqj-MIMWle-XP2pDNAA.ttf'/>
+      <font weight='500' width='100.0' italic='1.0' styleName='Medium Italic' url='//fonts.gstatic.com/s/roboto/v16/daIfzbEw-lbjMyv4rMUUTqCWcynf_cDxXwCLxiixG1c.ttf'/>
+      <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/roboto/v16/bdHGHleUa-ndQCOrdpfxfw.ttf'/>
+      <font weight='700' width='100.0' italic='1.0' styleName='Bold Italic' url='//fonts.gstatic.com/s/roboto/v16/owYYXKukxFDFjr0ZO8NXh6CWcynf_cDxXwCLxiixG1c.ttf'/>
+      <font weight='900' width='100.0' italic='0.0' styleName='Black' url='//fonts.gstatic.com/s/roboto/v16/H1vB34nOKWXqzKotq25pcg.ttf'/>
+      <font weight='900' width='100.0' italic='1.0' styleName='Black Italic' url='//fonts.gstatic.com/s/roboto/v16/b9PWBSMHrT2zM5FgUdtu0aCWcynf_cDxXwCLxiixG1c.ttf'/>
+      <font weight='300' width='75.0' italic='0.0' styleName='Condensed Light' url='//fonts.gstatic.com/s/robotocondensed/v14/b9QBgL0iMZfDSpmcXcE8nJRhFVcex_hajThhFkHyhYk.ttf'/>
+      <font weight='300' width='75.0' italic='1.0' styleName='Condensed Light Italic' url='//fonts.gstatic.com/s/robotocondensed/v14/mg0cGfGRUERshzBlvqxeAPYa9bgCHecWXGgisnodcS0.ttf'/>
+      <font weight='400' width='75.0' italic='0.0' styleName='Condensed Regular' url='//fonts.gstatic.com/s/robotocondensed/v14/Zd2E9abXLFGSr9G3YK2MsKDbm6fPDOZJsR8PmdG62gY.ttf'/>
+      <font weight='400' width='75.0' italic='1.0' styleName='Condensed Regular Italic' url='//fonts.gstatic.com/s/robotocondensed/v14/BP5K8ZAJv9qEbmuFp8RpJY_eiqgTfYGaH0bJiUDZ5GA.ttf'/>
+      <font weight='700' width='75.0' italic='0.0' styleName='Condensed Bold' url='//fonts.gstatic.com/s/robotocondensed/v14/b9QBgL0iMZfDSpmcXcE8nPOYkGiSOYDq_T7HbIOV1hA.ttf'/>
+      <font weight='700' width='75.0' italic='1.0' styleName='Condensed Bold Italic' url='//fonts.gstatic.com/s/robotocondensed/v14/mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf'/>
     </family>
     <family name='Roboto Mono' menu='//fonts.gstatic.com/s/robotomono/v4/hMqPNLsu_dywMa4C_DEpY2eudeTO44zf-ht3k-KNzwg.ttf'>
       <font weight='100' width='100.0' italic='0.0' styleName='Thin' url='//fonts.gstatic.com/s/robotomono/v4/aOIeRp72J9_Hp_8KwQ9M-YAWxXGWZ3yJw6KhWS7MxOk.ttf'/>
@@ -2981,9 +2926,6 @@
     <family name='Shrikhand' menu='//fonts.gstatic.com/s/shrikhand/v1/5Q7__Q-cC5CmNnyVJDCB9qCWcynf_cDxXwCLxiixG1c.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/shrikhand/v1/45jwHiwIDTWCy3Ir85vvKA.ttf'/>
     </family>
-    <family name='Siemreap' menu='//fonts.gstatic.com/s/siemreap/v9/e_qFXwFfLXmnxIHW3GOya_esZW2xOQ-xsNqO47m55DA.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/siemreap/v9/JSK-mOIsXwxo-zE9XDDl_g.ttf'/>
-    </family>
     <family name='Sigmar One' menu='//fonts.gstatic.com/s/sigmarone/v7/Wmjg6wZKC6ktxvvp678xRC3USBnSvpkopQaUR-2r7iU.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/sigmarone/v7/oh_5NxD5JBZksdo2EntKefesZW2xOQ-xsNqO47m55DA.ttf'/>
     </family>
@@ -3161,9 +3103,6 @@
     <family name='Suravaram' menu='//fonts.gstatic.com/s/suravaram/v3/CacOH8paJ3tDyPSsQDTqXaCWcynf_cDxXwCLxiixG1c.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/suravaram/v3/G4dPee4pel_w2HqzavW4MA.ttf'/>
     </family>
-    <family name='Suwannaphum' menu='//fonts.gstatic.com/s/suwannaphum/v9/uAaVNZcr8xz6YTjJpK0Zz2eudeTO44zf-ht3k-KNzwg.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/suwannaphum/v9/1jIPOyXied3T79GCnSlCN6CWcynf_cDxXwCLxiixG1c.ttf'/>
-    </family>
     <family name='Swanky and Moo Moo' menu='//fonts.gstatic.com/s/swankyandmoomoo/v6/orVNZ9kDeE3lWp3U3YELu9dFpznXl2PXvB3LAQB7JRI.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/swankyandmoomoo/v6/orVNZ9kDeE3lWp3U3YELu9DVLKqNC3_XMNHhr8S94FU.ttf'/>
     </family>
@@ -3174,9 +3113,6 @@
     <family name='Tangerine' menu='//fonts.gstatic.com/s/tangerine/v7/N3tHuUrQVE3FJr1SnuxxwqCWcynf_cDxXwCLxiixG1c.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/tangerine/v7/DTPeM3IROhnkz7aYG2a9sA.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/tangerine/v7/UkFsr-RwJB_d2l9fIWsx3i3USBnSvpkopQaUR-2r7iU.ttf'/>
-    </family>
-    <family name='Taprom' menu='//fonts.gstatic.com/s/taprom/v8/2BNxVLtXeN9ViUZz_Po7eA.ttf' menuName='ខ្ញុំអាចញ៉ាំកញ្ចក់បាន'>
-      <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/taprom/v8/-KByU3BaUsyIvQs79qFObg.ttf'/>
     </family>
     <family name='Tauri' menu='//fonts.gstatic.com/s/tauri/v4/1GKpi89kGceV-gZFm6iGsw.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/tauri/v4/XIWeYJDXNqiVNej0zEqtGg.ttf'/>
@@ -3306,7 +3242,7 @@
       <font weight='500' width='100.0' italic='1.0' styleName='Medium Italic' url='//fonts.gstatic.com/s/ubuntu/v9/NWdMogIO7U6AtEM4dDdf_aCWcynf_cDxXwCLxiixG1c.ttf'/>
       <font weight='700' width='100.0' italic='0.0' styleName='Bold' url='//fonts.gstatic.com/s/ubuntu/v9/B7BtHjNYwAp3HgLNagENOQ.ttf'/>
       <font weight='700' width='100.0' italic='1.0' styleName='Bold Italic' url='//fonts.gstatic.com/s/ubuntu/v9/pqisLQoeO9YTDCNnlQ9bf6CWcynf_cDxXwCLxiixG1c.ttf'/>
-      <font weight='400' width='75.0' italic='0.0' styleName='Condensed Regular' url='//fonts.gstatic.com/s/ubuntucondensed/v9/DBCt-NXN57MTAFjitYxdrKDbm6fPDOZJsR8PmdG62gY.ttf'/>
+      <font weight='400' width='75.0' italic='0.0' styleName='Condensed Regular' url='//fonts.gstatic.com/s/ubuntucondensed/v7/DBCt-NXN57MTAFjitYxdrKDbm6fPDOZJsR8PmdG62gY.ttf'/>
     </family>
     <family name='Ubuntu Mono' menu='//fonts.gstatic.com/s/ubuntumono/v6/ViZhet7Ak-LRXZMXzuAfkWeudeTO44zf-ht3k-KNzwg.ttf'>
       <font weight='400' width='100.0' italic='0.0' styleName='Regular' url='//fonts.gstatic.com/s/ubuntumono/v6/EgeuS9OtEmA0y_JRo03MQaCWcynf_cDxXwCLxiixG1c.ttf'/>

@@ -81,6 +81,8 @@ public class MoreFontsDialog extends DialogWrapper {
   private final DefaultListModel<FontDetail> myDetailModel;
   private final FontFamilyCreator myFontCreator;
   private final ResourceResolver myResolver;
+  private final StringProperty myNewFontName;
+  private final SelectedListValueProperty<FontFamily> mySelectedFontFamily;
   private SearchField mySearchField;
   private JBList<FontFamily> myFontList;
   private JComboBox<String> myProvider;
@@ -98,8 +100,6 @@ public class MoreFontsDialog extends DialogWrapper {
   private ValidatorPanel myValidatorPanel;
   private FontFamily myLastSelectedFont;
   private String myResultingFont;
-  private StringProperty myNewFontName;
-  private SelectedListValueProperty<FontFamily> mySelectedFontFamily;
 
   private void createUIComponents() {
     myContentPanel = new JPanel();
@@ -263,6 +263,7 @@ public class MoreFontsDialog extends DialogWrapper {
   private void addValidators() {
     myValidatorPanel.registerValidator(myNewFontName, this::checkFontName);
     myValidatorPanel.registerValidator(mySelectedFontFamily, this::checkSelectedFontFamily);
+    myValidatorPanel.registerValidator(myValidatorPanel.hasErrors(), this::updateOkButton);
   }
 
   @NotNull
@@ -285,9 +286,15 @@ public class MoreFontsDialog extends DialogWrapper {
     return Result.fromNullableMessage(myModel.getErrorMessage(font.orElse(null)));
   }
 
+  @NotNull
+  private Result updateOkButton(@NotNull Boolean hasErrors) {
+    setOKActionEnabled(!hasErrors.booleanValue());
+    return Result.OK;
+  }
+
   private void fontListSelectionChanged() {
     FontFamily family = myFontList.getSelectedValue();
-    if (family == myLastSelectedFont) {
+    if (Objects.equals(family, myLastSelectedFont)) {
       // Often we get multiple selection notifications. Avoid multiple downloads of the same files:
       return;
     }
@@ -311,7 +318,7 @@ public class MoreFontsDialog extends DialogWrapper {
   }
 
   private void selectedFontLoadedEDT(@NotNull FontFamily familyLoaded) {
-    if (familyLoaded != myLastSelectedFont) {
+    if (!familyLoaded.equals(myLastSelectedFont)) {
       return;
     }
     switch (familyLoaded.getFontSource()) {
@@ -319,6 +326,7 @@ public class MoreFontsDialog extends DialogWrapper {
       case PROJECT:
         myFontName.setText("Font Name: " + familyLoaded.getName());
         myFontNameEditor.setVisible(false);
+        myFontNameEditor.setText("");
         myDownloadable.setVisible(false);
         break;
       case DOWNLOADABLE:
