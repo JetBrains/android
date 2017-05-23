@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Joiner;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
@@ -137,6 +138,18 @@ public class ProjectFontsTest extends FontTestCase {
                      "exo2", "v3", "xxA5ZscX9sTU6U0lZJUlYA.ttf");
     assertFontDetail(family.getFonts().get(4), "Exo 2", "Bold Italic", 700, 100, true,
                      "exo2", "v3", "Sdo-zW-4_--pDkTg6bYrY_esZW2xOQ-xsNqO47m55DA.ttf");
+  }
+
+  public void testNonExistingXmlFile() throws Exception {
+    VirtualFile file = myFixture.copyFileToProject("fonts/misc.xml", "res/font/misc.xml");
+    ProjectFonts project = createProjectFonts(file);
+    new WriteCommandAction.Simple(getProject(), "Delete misc.xml") {
+      @Override
+      protected void run() throws Throwable {
+        file.delete(this);
+      }
+    }.execute();
+    assertUnresolvedFont(project.getFont("@font/misc"), "misc");
   }
 
   private ProjectFonts createProjectFonts(@NotNull VirtualFile file) {
