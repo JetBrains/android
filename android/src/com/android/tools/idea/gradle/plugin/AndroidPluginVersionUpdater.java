@@ -106,11 +106,12 @@ public class AndroidPluginVersionUpdater {
     }
     else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
       // Update successful. Sync project.
-      mySyncState.syncEnded();
+      if (!mySyncState.lastSyncFailedOrHasIssues()) {
+        mySyncState.syncEnded();
+      }
 
       // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject().setTrigger(
-        TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setCleanProject().setTrigger(TRIGGER_PROJECT_MODIFIED);
       mySyncInvoker.requestProjectSync(myProject, request, null);
     }
   }
