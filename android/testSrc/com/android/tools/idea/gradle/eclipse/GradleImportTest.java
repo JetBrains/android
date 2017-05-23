@@ -38,6 +38,7 @@ import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
 import static com.android.tools.idea.gradle.eclipse.ImportSummary.*;
+import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertAbout;
@@ -3339,6 +3340,19 @@ public class GradleImportTest extends AndroidTestCase {
     return SdkUtils.startsWithIgnoreCase(System.getProperty("os.name"), "windows");
   }
 
+  private static void removeJcenter(File buildFile) throws IOException {
+    // So it doesn't try to download dependencies. All the necessary dependencies must be in prebuilts.
+    if (!buildFile.exists()) {
+      return;
+    }
+    String contentsOrig = Files.toString(buildFile, UTF_8);
+    String contents = contentsOrig;
+    contents = contents.replaceAll("jcenter\\(\\)", "");
+    if (!contents.equals(contentsOrig)) {
+      Files.write(contents, buildFile, UTF_8);
+    }
+  }
+
   public static void assertBuildsCleanly(File base, boolean allowWarnings) throws Exception {
     File gradlew = new File(base, isWindows() ? FN_GRADLE_WRAPPER_WIN : FN_GRADLE_WRAPPER_UNIX);
     if (!gradlew.exists()) {
@@ -3355,6 +3369,8 @@ public class GradleImportTest extends AndroidTestCase {
     }
     args.add("assembleDebug");
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
+    removeJcenter(new File(base, "build.gradle"));
+    updateGradleVersions(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
     cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());
