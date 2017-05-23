@@ -69,15 +69,16 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
                                           new FileChooserDescriptor(true, false, true, true, false, false)
                                             .withFileFilter(ArchiveToGradleModuleStep::isValidExtension));
 
-    myBindings.bindTwoWay(model.archive(), new TextProperty(myArchivePath.getTextField()));
-    myBindings.bindTwoWay(model.gradlePath(), new TextProperty(myGradlePath));
+    myBindings.bindTwoWay(new TextProperty(myArchivePath.getTextField()), model.archive());
+    myBindings.bindTwoWay(new TextProperty(myGradlePath), model.gradlePath());
+
+    // Note: model.inModule() depends on the value of model.archive(), so lets setup model.archive() first
+    myListeners.receiveAndFire(model.archive(), archivePath -> model.gradlePath().set(Files.getNameWithoutExtension(archivePath)));
 
     SelectedProperty removeOriginal = new SelectedProperty(myRemoveOriginalFileCheckBox);
     myBindings.bind(model.moveArchive(), removeOriginal.and(model.inModule()));
     myBindings.bind(removeOriginal, model.moveArchive());
     myBindings.bind(new VisibleProperty(myRemoveOriginalFileCheckBox), model.inModule());
-
-    myListeners.listen(model.archive(), updated -> model.gradlePath().set(Files.getNameWithoutExtension(model.archive().get())));
   }
 
   static boolean isValidExtension(VirtualFile file) {
