@@ -91,7 +91,7 @@ class DownloadableFontCacheServiceImpl extends FontLoader implements Downloadabl
 
   /**
    * Returns a file relative to the font cache path.
-   * Or <code>null</code> if this is not a valid downloadable file.
+   * Or {@code null} if this is not a valid downloadable file.
    */
   @Nullable
   public File getRelativeCachedMenuFile(@NotNull FontFamily family) {
@@ -222,6 +222,7 @@ class DownloadableFontCacheServiceImpl extends FontLoader implements Downloadabl
     }
     synchronized (getLock()) {
       clear(initialSdkHome);
+      fontsLoaded();
       updateDownloadServices();
     }
   }
