@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
+import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Shorts;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;

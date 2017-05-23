@@ -16,26 +16,29 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.annotations.NonNull;
+import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
+import java.nio.file.Path;
 
 public class SelectProguardMapsDialog {
   private final Project myProject;
   private final VirtualFile myApkFolder;
 
-  private VirtualFile myMappingFile;
-  private VirtualFile mySeedsFile;
-  private VirtualFile myUsageFile;
+  private ProguardMappingFiles myMappingFiles;
 
   public SelectProguardMapsDialog(@NonNull Project project, @NonNull VirtualFile apkFolder) {
     myProject = project;
     myApkFolder = apkFolder;
   }
 
-  public boolean showAndGet() {
+  public boolean showAndGet() throws IOException {
     FileChooserDescriptor desc = new FileChooserDescriptor(true, true, false, false, false, true);
     desc.setDescription(
       "Please select the proguard mapping files (mapping, seeds or usage) or a folder containing these files.");
@@ -49,30 +52,12 @@ public class SelectProguardMapsDialog {
       return false;
     }
 
-    if (files[0].isDirectory()) {
-      //first try if the exact filenames are in the folder...
-      myMappingFile = files[0].findChild("mapping.txt");
-      mySeedsFile = files[0].findChild("seeds.txt");
-      myUsageFile = files[0].findChild("usage.txt");
-      files = files[0].getChildren();
+    Path[] paths = new Path[files.length];
+    for (int i = 0; i < files.length; i++) {
+      paths[i] = VfsUtilCore.virtualToIoFile(files[i]).toPath();
     }
 
-    //if we don't have all 3 already, go through the files list and search for partial names
-    if (myMappingFile == null || myUsageFile == null || mySeedsFile == null) {
-      for (VirtualFile virtualFile : files) {
-        if ("txt".equals(virtualFile.getExtension())) {
-          if (myMappingFile == null && virtualFile.getName().contains("mapping")) {
-            myMappingFile = virtualFile;
-          }
-          else if (mySeedsFile == null && virtualFile.getName().contains("seeds")) {
-            mySeedsFile = virtualFile;
-          }
-          else if (myUsageFile == null && virtualFile.getName().contains("usage")) {
-            myUsageFile = virtualFile;
-          }
-        }
-      }
-    }
+    myMappingFiles = ProguardMappingFiles.from(paths);
 
     return true;
   }
@@ -103,6 +88,6 @@ public class SelectProguardMapsDialog {
 
   @NonNull
   public ProguardMappingFiles getMappingFiles() {
-    return new ProguardMappingFiles(myMappingFile, mySeedsFile, myUsageFile);
+    return myMappingFiles;
   }
 }

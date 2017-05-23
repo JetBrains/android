@@ -30,16 +30,7 @@ public final class DexFiles {
 
   @NotNull
   public static DexBackedDexFile getDexFile(@NotNull VirtualFile file) throws IOException {
-    return getDexFile(file.contentsToByteArray());
+    return com.android.tools.apk.analyzer.dex.DexFiles.getDexFile(file.contentsToByteArray());
   }
 
-  @NotNull
-  public static DexBackedDexFile getDexFile(@NotNull Path p) throws IOException {
-    return getDexFile(Files.readAllBytes(p));
-  }
-
-  @NotNull
-  public static DexBackedDexFile getDexFile(@NotNull byte[] contents) {
-    return new DexBackedDexFile(Opcodes.forApi(15), contents);
-  }
 }

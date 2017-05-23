@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.apk.analyzer.dex.tree.*;
+import com.intellij.util.PlatformIcons;
 
-public class ProguardMappingFiles {
-  @Nullable public final VirtualFile mappingFile;
-  @Nullable public final VirtualFile seedsFile;
-  @Nullable public final VirtualFile usageFile;
+import javax.swing.*;
 
-  public ProguardMappingFiles(@Nullable VirtualFile mappingFile, @Nullable VirtualFile seedsFile, @Nullable VirtualFile usageFile) {
-    this.mappingFile = mappingFile;
-    this.seedsFile = seedsFile;
-    this.usageFile = usageFile;
+public class DexNodeIcons {
+  public static Icon forNode(DexElementNode node){
+    if (node instanceof DexClassNode){
+      return PlatformIcons.CLASS_ICON;
+    } else if (node instanceof DexFieldNode){
+      return PlatformIcons.FIELD_ICON;
+    } else if (node instanceof DexMethodNode){
+      return PlatformIcons.METHOD_ICON;
+    } else if (node instanceof DexPackageNode){
+      return PlatformIcons.PACKAGE_ICON;
+    } else {
+      throw new IllegalArgumentException("No icon defined for this node type.");
+    }
   }
 }

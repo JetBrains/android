@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexPackageNode;
+import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
+import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
+import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
@@ -24,12 +26,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getDexPath;
-import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getTestDexFile;
+import static com.android.tools.apk.analyzer.dex.DexFiles.getDexFile;
 import static com.google.common.truth.Truth.assertThat;
 
 public class GenerateProguardKeepRuleActionTest {
@@ -46,6 +49,14 @@ public class GenerateProguardKeepRuleActionTest {
     myPackageTree = new PackageTreeCreator(null, false).constructPackageTree(myDexMap);
   }
 
+  public static Path getDexPath(String s) {
+    return Paths.get(AndroidTestBase.getTestDataPath(), "apk/" + s);
+  }
+
+  @NotNull
+  public static DexBackedDexFile getTestDexFile(@NotNull Path dexPath) throws IOException {
+    return getDexFile(Files.readAllBytes(dexPath));
+  }
 
   @Test
   public void canGenerateRule_package_nofqn() {
