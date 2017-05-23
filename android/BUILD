@@ -182,6 +182,7 @@ iml_module(
         "//tools/idea/.idea/libraries:equalsverifier[test]",
         "//tools/base/apkparser/analyzer:studio.analyzer[test]",
         "//tools/base/sdk-common:studio.sdk-common[module]",
+        "//tools/base/flags:studio.flags[module]",
     ],
 )
 

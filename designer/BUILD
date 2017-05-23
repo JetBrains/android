@@ -33,6 +33,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/adt/idea/wizard[module]",
+        "//tools/base/flags:studio.flags[module]",
     ],
 )
 
@@ -90,5 +91,6 @@ iml_module(
         "//tools/adt/idea/sdk-updates[module, test]",
         "//tools/base/layoutinspector:studio.layoutinspector[module, test]",
         "//tools/idea/.idea/libraries:Gradle[test]",
+        "//tools/base/flags:studio.flags[module]",
     ],
 )

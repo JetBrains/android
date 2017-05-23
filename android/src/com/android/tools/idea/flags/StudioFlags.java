@@ -105,6 +105,17 @@ public final class StudioFlags {
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
     false);
 
+  private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
+  public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
+    NELE, "animated.preview", "Show preview animations toolbar",
+    "Show an animations bar that allows playback of vector drawable animations.",
+    false);
+
+  public static final Flag<Boolean> NELE_SAMPLE_DATA = Flag.create(
+    NELE, "mock.data", "Enable \"Sample Data\" for the layout editor",
+    "Enables the use of @sample references in the tools namespace to use sample data.",
+    true);
+
   private StudioFlags() {
   }
 }

@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.uipreview;
 
-import org.jetbrains.android.Features;
 import org.jetbrains.org.objectweb.asm.*;
 
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
