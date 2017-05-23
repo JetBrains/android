@@ -16,7 +16,6 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.apk.analyzer.*;
@@ -24,8 +23,6 @@ import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.TreeTraverser;
 import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -57,7 +54,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 public class ApkViewPanel implements TreeSelectionListener {
   private JPanel myContainer;
@@ -123,7 +119,7 @@ public class ApkViewPanel implements TreeSelectionListener {
       Futures.transformAsync(treeStructureFuture,
                              input -> {
                                assert input != null;
-                               return apkParser.getApplicationInfo(getFirstManifestArchive(input));
+                               return apkParser.getApplicationInfo(Archives.getFirstManifestArchive(input));
                              }, PooledThreadExecutor.INSTANCE);
 
     Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {
@@ -175,23 +171,6 @@ public class ApkViewPanel implements TreeSelectionListener {
                                                                  .build()));
                           }
                         });
-  }
-
-  @VisibleForTesting
-  static Archive getFirstManifestArchive(@NotNull ArchiveNode input) {
-    FluentIterable<ArchiveNode> bfsIterable = new TreeTraverser<ArchiveNode>() {
-      @Override
-      public Iterable<ArchiveNode> children(@NotNull ArchiveNode root) {
-        return root.getChildren();
-      }
-    }.breadthFirstTraversal(input);
-
-    return StreamSupport.stream(bfsIterable.spliterator(), false)
-      .map(node -> node.getData().getArchive()).distinct()
-      .filter(archive -> Files.exists(
-        archive.getContentRoot()
-          .resolve(SdkConstants.FN_ANDROID_MANIFEST_XML)))
-      .findFirst().orElse(null);
   }
 
   private void createUIComponents() {

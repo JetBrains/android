@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
+import static com.android.tools.apk.analyzer.dex.DexFiles.getDexFile;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static com.intellij.concurrency.JobSchedulerImpl.CORES_COUNT;
 import static org.jf.baksmali.Baksmali.disassembleDexFile;

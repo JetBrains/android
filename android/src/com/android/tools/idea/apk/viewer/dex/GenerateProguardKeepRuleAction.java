@@ -16,7 +16,8 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.apk.viewer.dex.tree.*;
+import com.android.tools.apk.analyzer.dex.KeepRuleBuilder;
+import com.android.tools.apk.analyzer.dex.tree.*;
 import com.android.tools.idea.lang.proguard.ProguardFileType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -44,14 +45,6 @@ import javax.swing.*;
 import javax.swing.tree.TreePath;
 
 public class GenerateProguardKeepRuleAction extends AnAction {
-  private static final String KEEP_PREAMBLE = "# Add *one* of the following rules to your Proguard configuration file.\n" +
-                                              "# Alternatively, you can annotate classes " +
-                                              "and class members with @android.support.annotation.Keep\n\n";
-  private static final String KEEP_RULE = "# keep the class and specified members from being removed or renamed\n";
-  private static final String KEEPCLASSMEMBERS_RULE = "# keep the specified class members from being removed or renamed \n" +
-                                                      "# only if the class is preserved\n";
-  private static final String KEEPNAMES_RULE = "# keep the class and specified members from being renamed only\n";
-  private static final String KEEPCLASSMEMBERNAMES_RULE = "# keep the specified class members from being renamed only\n";
   @NotNull private final Tree myTree;
 
 
@@ -64,7 +57,7 @@ public class GenerateProguardKeepRuleAction extends AnAction {
   @VisibleForTesting
   static String getKeepRule(@NotNull DexElementNode node) {
     StringBuilder keepRule = new StringBuilder();
-    keepRule.append(KEEP_PREAMBLE);
+    keepRule.append(KeepRuleBuilder.KEEP_PREAMBLE);
 
     if (node instanceof DexPackageNode) {
       KeepRuleBuilder ruleBuilder = new KeepRuleBuilder();
@@ -82,16 +75,16 @@ public class GenerateProguardKeepRuleAction extends AnAction {
       ruleBuilder.setPackage(packageNode.getPackageName() == null ? "" : packageNode.getPackageName())
         .setClass(classNode.getName())
         .setMember(node.getName());
-      keepRule.append(KEEP_RULE);
+      keepRule.append(KeepRuleBuilder.KEEP_RULE);
       keepRule.append(ruleBuilder.build(KeepRuleBuilder.KeepType.KEEP));
       keepRule.append("\n\n");
-      keepRule.append(KEEPCLASSMEMBERS_RULE);
+      keepRule.append(KeepRuleBuilder.KEEPCLASSMEMBERS_RULE);
       keepRule.append(ruleBuilder.build(KeepRuleBuilder.KeepType.KEEPCLASSMEMBERS));
       keepRule.append("\n\n");
-      keepRule.append(KEEPNAMES_RULE);
+      keepRule.append(KeepRuleBuilder.KEEPNAMES_RULE);
       keepRule.append(ruleBuilder.build(KeepRuleBuilder.KeepType.KEEPNAMES));
       keepRule.append("\n\n");
-      keepRule.append(KEEPCLASSMEMBERNAMES_RULE);
+      keepRule.append(KeepRuleBuilder.KEEPCLASSMEMBERNAMES_RULE);
       keepRule.append(ruleBuilder.build(KeepRuleBuilder.KeepType.KEEPCLASSMEMBERNAMES));
       keepRule.append("\n\n");
     }
@@ -100,16 +93,16 @@ public class GenerateProguardKeepRuleAction extends AnAction {
       KeepRuleBuilder ruleBuilder = new KeepRuleBuilder();
       ruleBuilder.setPackage(packageNode.getPackageName() == null ? "" : packageNode.getPackageName())
         .setClass(node.getName());
-      keepRule.append(KEEP_RULE);
+      keepRule.append(KeepRuleBuilder.KEEP_RULE);
       keepRule.append(ruleBuilder.build(KeepRuleBuilder.KeepType.KEEP));
       keepRule.append("\n\n");
-      keepRule.append(KEEPCLASSMEMBERS_RULE);
+      keepRule.append(KeepRuleBuilder.KEEPCLASSMEMBERS_RULE);
       keepRule.append(ruleBuilder.build(KeepRuleBuilder.KeepType.KEEPCLASSMEMBERS));
       keepRule.append("\n\n");
-      keepRule.append(KEEPNAMES_RULE);
+      keepRule.append(KeepRuleBuilder.KEEPNAMES_RULE);
       keepRule.append(ruleBuilder.build(KeepRuleBuilder.KeepType.KEEPNAMES));
       keepRule.append("\n\n");
-      keepRule.append(KEEPCLASSMEMBERNAMES_RULE);
+      keepRule.append(KeepRuleBuilder.KEEPCLASSMEMBERNAMES_RULE);
       keepRule.append(ruleBuilder.build(KeepRuleBuilder.KeepType.KEEPCLASSMEMBERNAMES));
       keepRule.append("\n\n");
     }

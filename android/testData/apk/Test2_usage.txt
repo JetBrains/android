@@ -1,3 +1,0 @@
-AnotherClass:
-    44:46:AnotherClass(int,TestSubclass)
-RemovedSubclass

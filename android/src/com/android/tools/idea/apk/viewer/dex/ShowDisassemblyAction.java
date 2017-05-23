@@ -16,10 +16,11 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.apk.dex.DexFiles;
-import com.android.tools.idea.apk.viewer.dex.tree.DexClassNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexMethodNode;
+import com.android.tools.apk.analyzer.dex.DexDisassembler;
+import com.android.tools.apk.analyzer.dex.DexFiles;
+import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
+import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.google.common.util.concurrent.*;
 import com.intellij.debugger.impl.DebuggerUtilsEx;

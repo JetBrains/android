@@ -16,11 +16,12 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.idea.apk.dex.DexFiles;
+import com.android.tools.apk.analyzer.FilteredTreeModel;
+import com.android.tools.apk.analyzer.dex.*;
+import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
-import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexFieldNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexPackageNode;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
+import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
@@ -57,6 +58,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.*;
@@ -86,6 +88,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     myApkFolder = apkFolder;
 
     //noinspection Convert2Lambda // we need a new instance of this disposable every time, not just a lambda method
+    //noinspection AnonymousInnerClassMayBeStatic
     myDisposable = new Disposable() {
       @Override
       public void dispose() {
@@ -186,74 +189,78 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
   public void selectProguardMapping() {
     SelectProguardMapsDialog dialog = new SelectProguardMapsDialog(myProject, myApkFolder);
-    if (!dialog.showAndGet()) { // user cancelled
-      return;
-    }
-
-    ProguardMappingFiles mappingFiles = dialog.getMappingFiles();
-
-    List<String> loaded = new ArrayList<>(3);
-    List<String> errors = new ArrayList<>(3);
-
-    VirtualFile mappingFile = mappingFiles.mappingFile;
-    ProguardMap proguardMap = new ProguardMap();
-    if (mappingFile != null) {
-      try {
-        proguardMap.readFromReader(new InputStreamReader(mappingFile.getInputStream(), Charsets.UTF_8));
-        loaded.add(mappingFile.getName());
+    try {
+      if (!dialog.showAndGet()) { // user cancelled
+        return;
       }
-      catch (IOException | ParseException e) {
-        errors.add(mappingFile.getName());
-        proguardMap = null;
-      }
-    }
 
-    VirtualFile seedsFile = mappingFiles.seedsFile;
-    ProguardSeedsMap seeds = null;
-    if (seedsFile != null) {
-      try {
-        seeds = ProguardSeedsMap.parse(new InputStreamReader(seedsFile.getInputStream(), Charsets.UTF_8));
-        loaded.add(seedsFile.getName());
-      }
-      catch (IOException e) {
-        errors.add(seedsFile.getName());
-      }
-    }
+      ProguardMappingFiles mappingFiles = dialog.getMappingFiles();
+      List<String> loaded = new ArrayList<>(3);
+      List<String> errors = new ArrayList<>(3);
 
-    //automatically enable deobfuscation if loading mapping file for the first time
-    if ((myProguardMappings == null || myProguardMappings.map == null) && proguardMap != null) {
-      myDeobfuscateNames = true;
-    }
-
-    VirtualFile usageFile = mappingFiles.usageFile;
-    ProguardUsagesMap usage = null;
-    if (usageFile != null) {
-      try {
-        usage = ProguardUsagesMap.parse(new InputStreamReader(usageFile.getInputStream(), Charsets.UTF_8));
-        loaded.add(usageFile.getName());
+      Path mappingFile = mappingFiles.mappingFile;
+      ProguardMap proguardMap = new ProguardMap();
+      if (mappingFile != null) {
+        try {
+          proguardMap.readFromReader(new InputStreamReader(Files.newInputStream(mappingFile), Charsets.UTF_8));
+          loaded.add(mappingFile.getFileName().toString());
+        }
+        catch (IOException | ParseException e) {
+          errors.add(mappingFile.getFileName().toString());
+          proguardMap = null;
+        }
       }
-      catch (IOException e) {
-        errors.add(usageFile.getName());
-      }
-    }
 
-    myProguardMappings = loaded.isEmpty() ? null : new ProguardMappings(proguardMap, seeds, usage);
-    if (errors.isEmpty() && loaded.isEmpty()) {
-      Messages.showWarningDialog("No Proguard mapping files found. The filenames must match one of: mapping.txt, seeds.txt, usage.txt",
+      Path seedsFile = mappingFiles.seedsFile;
+      ProguardSeedsMap seeds = null;
+      if (seedsFile != null) {
+        try {
+          seeds = ProguardSeedsMap.parse(new InputStreamReader(Files.newInputStream(seedsFile), Charsets.UTF_8));
+          loaded.add(seedsFile.getFileName().toString());
+        }
+        catch (IOException e) {
+          errors.add(seedsFile.getFileName().toString());
+        }
+      }
+
+      //automatically enable deobfuscation if loading mapping file for the first time
+      if ((myProguardMappings == null || myProguardMappings.map == null) && proguardMap != null) {
+        myDeobfuscateNames = true;
+      }
+
+      Path usageFile = mappingFiles.usageFile;
+      ProguardUsagesMap usage = null;
+      if (usageFile != null) {
+        try {
+          usage = ProguardUsagesMap.parse(new InputStreamReader(Files.newInputStream(usageFile), Charsets.UTF_8));
+          loaded.add(usageFile.getFileName().toString());
+        }
+        catch (IOException e) {
+          errors.add(usageFile.getFileName().toString());
+        }
+      }
+
+      myProguardMappings = loaded.isEmpty() ? null : new ProguardMappings(proguardMap, seeds, usage);
+      if (errors.isEmpty() && loaded.isEmpty()) {
+        Messages.showWarningDialog("No Proguard mapping files found. The filenames must match one of: mapping.txt, seeds.txt, usage.txt",
+                                   "Load Proguard Mappings...");
+      }
+      else if (errors.isEmpty()) {
+        Messages.showInfoMessage("Successfully loaded maps from: " + StringUtil.join(loaded, ", "),
                                  "Load Proguard Mappings...");
-    }
-    else if (errors.isEmpty()) {
-      Messages.showInfoMessage("Successfully loaded maps from: " + StringUtil.join(loaded, ", "),
-                               "Load Proguard Mappings...");
-    }
-    else {
-      Messages.showErrorDialog("Successfully loaded maps from: " + StringUtil.join(loaded, ",") + "\n"
-                               + "There were problems loading: " + StringUtil.join(errors, ", "),
-                               "Load Proguard Mappings...");
-    }
+      }
+      else {
+        Messages.showErrorDialog("Successfully loaded maps from: " + StringUtil.join(loaded, ",") + "\n"
+                                 + "There were problems loading: " + StringUtil.join(errors, ", "),
+                                 "Load Proguard Mappings...");
+      }
 
-    myDexTreeRenderer.setMappings(myProguardMappings);
-    initDex();
+      myDexTreeRenderer.setMappings(myProguardMappings);
+      initDex();
+    }
+    catch (IOException e) {
+      Messages.showErrorDialog(e.getMessage(), "Error Loading Mappings...");
+    }
   }
 
   public void initDex() {
@@ -268,7 +275,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
     ListenableFuture<DexPackageNode> treeNodeFuture =
       Futures.transform(dexFileFuture, new Function<Map<Path, DexBackedDexFile>, DexPackageNode>() {
-        @Nullable
+        @NotNull
         @Override
         public DexPackageNode apply(@Nullable Map<Path, DexBackedDexFile> input) {
           assert input != null;
@@ -311,14 +318,15 @@ public class DexFileViewer implements ApkFileEditorComponent {
       }
     }, EdtExecutor.INSTANCE);
 
-    ListenableFuture<DexFileStats> dexStatsFuture = Futures.transform(dexFileFuture, new Function<Map<Path, DexBackedDexFile>, DexFileStats>() {
-      @Nullable
-      @Override
-      public DexFileStats apply(@Nullable Map<Path, DexBackedDexFile> input) {
-        assert input != null;
-        return DexFileStats.create(input.values());
-      }
-    }, pooledThreadExecutor);
+    ListenableFuture<DexFileStats> dexStatsFuture =
+      Futures.transform(dexFileFuture, new Function<Map<Path, DexBackedDexFile>, DexFileStats>() {
+        @NotNull
+        @Override
+        public DexFileStats apply(@Nullable Map<Path, DexBackedDexFile> input) {
+          assert input != null;
+          return DexFileStats.create(input.values());
+        }
+      }, pooledThreadExecutor);
 
     //this will never change for a given dex file, regardless of proguard mappings
     //so it doesn't make sense to recompute every time
@@ -372,7 +380,8 @@ public class DexFileViewer implements ApkFileEditorComponent {
     return myDeobfuscateNames;
   }
 
-  @Nullable ListenableFuture<DexReferences> getDexReferences(){
+  @Nullable
+  ListenableFuture<DexReferences> getDexReferences() {
     if (myDexReferences == null) {
       ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
       ListenableFuture<DexBackedDexFile[]> dexFileFuture = pooledThreadExecutor.submit(() -> {
@@ -429,7 +438,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
         append(node.getName());
       }
 
-      setIcon(node.getIcon());
+      setIcon(DexNodeIcons.forNode(node));
     }
   }
 

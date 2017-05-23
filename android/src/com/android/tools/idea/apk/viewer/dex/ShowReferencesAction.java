@@ -16,10 +16,13 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.apk.viewer.dex.tree.DexClassNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexFieldNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexMethodNode;
+import com.android.tools.apk.analyzer.dex.DexReferences;
+import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
+import com.android.tools.apk.analyzer.dex.ProguardMappings;
+import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
+import com.android.tools.apk.analyzer.dex.tree.DexFieldNode;
+import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
@@ -140,7 +143,7 @@ public class ShowReferencesAction extends AnAction {
           append(" ", attr);
           append(PackageTreeCreator.decodeFieldName(fieldRef, usedProguardMap), attr);
         }
-        setIcon(node.getIcon());
+        setIcon(DexNodeIcons.forNode(node));
       }
     });
 

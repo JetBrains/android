@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
+import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
+import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
@@ -27,9 +28,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getDexMap;
-import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getDexPath;
-import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getTestDexFile;
+import static com.android.tools.idea.apk.viewer.dex.GenerateProguardKeepRuleActionTest.getDexPath;
+import static com.android.tools.idea.apk.viewer.dex.GenerateProguardKeepRuleActionTest.getTestDexFile;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ShowDisassemblyActionTest {

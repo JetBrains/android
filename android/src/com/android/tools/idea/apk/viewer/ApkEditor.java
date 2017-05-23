@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.apk.analyzer.ApkSizeCalculator;
 import com.android.tools.apk.analyzer.Archive;
 import com.android.tools.apk.analyzer.Archives;
+import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
