@@ -35,7 +35,6 @@ import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
@@ -260,11 +259,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     profilingConfiguration.bind();
     myProfilingConfigurationCombo.setRenderer(new ListCellRendererWrapper<ProfilingConfiguration>() {
       @Override
-      public void customize(JList list,
-                            ProfilingConfiguration value,
-                            int index,
-                            boolean selected,
-                            boolean hasFocus) {
+      public void customize(JList list, ProfilingConfiguration value, int index, boolean selected, boolean hasFocus) {
         if (value == CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY) {
           setIcon(AllIcons.Actions.EditSource);
           setText("Edit configurations...");
@@ -286,10 +281,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         }
       }
     }
-  }
-
-  private static Logger getLog() {
-    return Logger.getInstance(CpuProfilerStageView.class);
   }
 
   @VisibleForTesting
@@ -384,6 +375,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
       FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
       ProfilingConfiguration profilingConfiguration = myStage.getProfilingConfiguration();
+
       if (profilingConfiguration.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) {
         if (profilingConfiguration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
           featureTracker.trackTraceArtSampled();
@@ -546,8 +538,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
      * Contains a state chart and its corresponding model.
      */
     private static class StateChartData {
-      private StateChart<CpuProfilerStage.ThreadState> myChart;
-      private StateChartModel<CpuProfilerStage.ThreadState> myModel;
+      private final StateChart<CpuProfilerStage.ThreadState> myChart;
+      private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
 
       public StateChartData(StateChart<CpuProfilerStage.ThreadState> chart, StateChartModel<CpuProfilerStage.ThreadState> model) {
         myChart = chart;
