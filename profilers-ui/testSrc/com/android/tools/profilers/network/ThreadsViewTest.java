@@ -113,7 +113,7 @@ public class ThreadsViewTest {
 
   @NotNull
   private JTable getTable() {
-    return (JTable)myView.getComponent();
+    return (JTable)new TreeWalker(myView.getComponent()).descendantStream().filter(c -> c instanceof JTable).findFirst().get();
   }
 
   @NotNull
