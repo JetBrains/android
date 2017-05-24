@@ -71,8 +71,10 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
 
     myBindings.bindTwoWay(model.archive(), new TextProperty(myArchivePath.getTextField()));
     myBindings.bindTwoWay(model.gradlePath(), new TextProperty(myGradlePath));
-    myBindings.bindTwoWay(model.moveArchive(), new SelectedProperty(myRemoveOriginalFileCheckBox));
 
+    SelectedProperty removeOriginal = new SelectedProperty(myRemoveOriginalFileCheckBox);
+    myBindings.bind(model.moveArchive(), removeOriginal.and(model.inModule()));
+    myBindings.bind(removeOriginal, model.moveArchive());
     myBindings.bind(new VisibleProperty(myRemoveOriginalFileCheckBox), model.inModule());
 
     myListeners.listen(model.archive(), updated -> model.gradlePath().set(Files.getNameWithoutExtension(model.archive().get())));
