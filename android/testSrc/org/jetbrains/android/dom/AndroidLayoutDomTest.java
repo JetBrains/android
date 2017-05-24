@@ -445,7 +445,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
 
   public void testResourceCompletion() throws Throwable {
     doTestCompletionVariantsContains("av3.xml", "@color/color0", "@color/color1", "@android:", "@drawable/picture2", "@drawable/picture1");
-    doTestCompletionVariantsContains("av8.xml", "@android:", "@anim/anim1", "@color/color0", "@color/color1", "@dimen/myDimen", "@id/idd1",
+    doTestCompletionVariantsContains("av8.xml", "@android:", "@anim/anim1", "@color/color0", "@color/color1", "@dimen/myDimen",
                                      "@drawable/picture1", "@layout/av3", "@layout/av8", "@string/itStr", "@string/hello", "@style/style1");
   }
 
@@ -634,7 +634,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testIdCompletion1() throws Throwable {
-    doTestCompletionVariants("idcompl1.xml", "@android:", "@+id/", "@id/idd1", "@id/idd2");
+    doTestCompletionVariants("idcompl1.xml", "@android:", "@+id/");
   }
 
   public void testIdCompletion2() throws Throwable {
@@ -892,7 +892,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testRelativeIdsCompletion() throws Throwable {
-    doTestCompletionVariants(getTestName(false) + ".xml", "@+id/", "@android:", "@id/idd1", "@id/idd2");
+    doTestCompletionVariants(getTestName(false) + ".xml", "@+id/", "@android:", "@id/btn1", "@id/btn2");
   }
 
   public void testCreateResourceFromUsage() throws Throwable {

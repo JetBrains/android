@@ -20,6 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
@@ -30,6 +31,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
@@ -195,7 +197,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
         final boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
         for (final ResourceType type : recommendedTypes) {
-          addResourceReferenceValues(facet, prefix, type, resourcePackage, result, explicitResourceType);
+          addResourceReferenceValues(facet, element, prefix, type, resourcePackage, result, explicitResourceType);
         }
       }
       else {
@@ -207,7 +209,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           final String type = resourceType.getName();
           String typePrefix = getTypePrefix(resourcePackage, type);
           if (value.startsWith(typePrefix)) {
-            addResourceReferenceValues(facet, prefix, resourceType, resourcePackage, result, true);
+            addResourceReferenceValues(facet, element, prefix, resourceType, resourcePackage, result, true);
           }
           else if (recommendedTypes.contains(resourceType) &&
                    (filteringSet == null || filteringSet.contains(resourceType))) {
@@ -241,14 +243,14 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   private static void completeAttributeReferences(String value, AndroidFacet facet, Set<ResourceValue> result) {
     if (StringUtil.startsWith(value, "?attr/")) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR, null, result, true);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, true);
     }
     else if (StringUtil.startsWith(value, "?android:attr/")) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, true);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, true);
     }
     else if (StringUtil.startsWithChar(value, '?')) {
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR, null, result, false);
-      addResourceReferenceValues(facet, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, false);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, false);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, false);
       result.add(ResourceValue.literal("?attr/"));
       result.add(ResourceValue.literal("?android:attr/"));
     }
@@ -310,17 +312,36 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private static void addResourceReferenceValues(AndroidFacet facet,
+                                                 @Nullable XmlElement element,
                                                  char prefix,
                                                  ResourceType type,
                                                  @Nullable String resPackage,
                                                  Collection<ResourceValue> result,
                                                  boolean explicitResourceType) {
-    final ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
+    PsiFile file = element != null ? element.getContainingFile() : null;
+    Collection<String> names =
+      type == ResourceType.ID && resPackage == null && file != null && isNonValuesResourceFile(file) ?
+      ResourceHelper.findIdsInFile(file) : findResourceNames(facet, type, resPackage);
     String typeName = type.getName();
-    if (manager != null) {
-      for (String name : manager.getResourceNames(type, true)) {
-        result.add(referenceTo(prefix, typeName, resPackage, name, explicitResourceType));
-      }
+    for (String name : names) {
+      result.add(referenceTo(prefix, typeName, resPackage, name, explicitResourceType));
+    }
+  }
+
+  private static boolean isNonValuesResourceFile(@NotNull PsiFile file) {
+    ResourceFolderType resourceType = ResourceHelper.getFolderType(file.getOriginalFile());
+    return resourceType != null && resourceType != ResourceFolderType.VALUES;
+  }
+
+  private static Collection<String> findResourceNames(@NotNull AndroidFacet facet,
+                                                      @NotNull ResourceType type,
+                                                      @Nullable String resPackage) {
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
+    if (manager == null) {
+      return Collections.emptySet();
+    }
+    else {
+      return manager.getResourceNames(type, true);
     }
   }
 
