@@ -43,8 +43,8 @@ public class MultipleLibraryDependenciesDetails implements DependencyDetails {
     myDependency = (PsLibraryDependency)dependency;
 
     PsArtifactDependencySpec resolvedSpec = myDependency.getResolvedSpec();
-    myArtifactNameLabel.setText(resolvedSpec.name);
-    myGroupIdLabel.setText(resolvedSpec.group);
+    myArtifactNameLabel.setText(resolvedSpec.getName());
+    myGroupIdLabel.setText(resolvedSpec.getGroup());
   }
 
   @Override

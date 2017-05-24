@@ -45,11 +45,6 @@ public class SearchResult {
   }
 
   @NotNull
-  public String getRepositoryName() {
-    return myRepositoryName;
-  }
-
-  @NotNull
   public List<FoundArtifact> getArtifacts() {
     return myArtifacts;
   }

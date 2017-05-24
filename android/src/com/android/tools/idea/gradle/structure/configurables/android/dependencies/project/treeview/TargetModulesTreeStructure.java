@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.PsRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.PsRootNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.SimpleNodeComparator;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.android.*;
@@ -69,7 +69,7 @@ class TargetModulesTreeStructure extends AbstractBaseTreeStructure {
           }
           // For library dependencies we display the version of the library being used.
           PsAndroidModule module = dependency.getParent();
-          versionByModule.put(module.getName(), spec.version);
+          versionByModule.put(module.getName(), spec.getVersion());
         }
       }
 
