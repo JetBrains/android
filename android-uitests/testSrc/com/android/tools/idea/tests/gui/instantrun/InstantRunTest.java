@@ -44,6 +44,7 @@ import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
 @RunWith(GuiTestRunner.class)
+@RunIn(TestGroup.QA)
 public class InstantRunTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
@@ -79,7 +80,6 @@ public class InstantRunTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37480946
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -132,7 +132,6 @@ public class InstantRunTest {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37959653
   @Test
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -185,7 +184,6 @@ public class InstantRunTest {
    *   Verify:
    *   Verify that instant run cold swap is applied in Run tool window.
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37512428
   @Test
   public void ActivityRunningOnSeparateProcess() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -242,7 +240,6 @@ public class InstantRunTest {
    *   2. Make sure the instant run is applied in EventLog tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37506663
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -293,7 +290,6 @@ public class InstantRunTest {
    *   1. Clicking on re-run should not do a clean build just install application to emulator/device
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37506663
   @Test
   public void unnecessaryCleanCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -356,7 +352,6 @@ public class InstantRunTest {
    *   2. Variable console should print x value (as 150)
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37912103
   @Test
   public void modifyVariableDuringDebugSession() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProject("Project204792");
@@ -424,7 +419,6 @@ public class InstantRunTest {
    *   2. Make sure the instant run hot swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/37480946
   @Test
   public void cmakeHotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
@@ -472,7 +466,6 @@ public class InstantRunTest {
    *   If you answer yes, application should deploy and run with Instant Run enabled.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/38344797
   @Test
   public void installingPlatformWhileDeployingApp() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
