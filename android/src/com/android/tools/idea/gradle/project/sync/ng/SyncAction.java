@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
 import org.gradle.tooling.BuildAction;
@@ -63,6 +64,7 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
 
     // Key: module's Gradle path.
     @NotNull private final Map<String, ModuleModels> myModelsByModule = new HashMap<>();
+    @Nullable private GlobalLibraryMap myGlobalLibraryMap;
 
     public ProjectModels(@NotNull Set<Class<?>> androidModelTypes, @NotNull Set<Class<?>> javaModelTypes) {
       myAndroidModelTypes = androidModelTypes;
@@ -74,6 +76,16 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
 
       GradleProject root = controller.findModel(rootProject, GradleProject.class);
       populateModels(root, controller);
+
+      // Request for GlobalLibraryMap, it can only be requested by android module.
+      // For plugins prior to 3.0.0, controller.findModel returns null.
+      for (ModuleModels moduleModels : myModelsByModule.values()) {
+        AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
+        if (androidProject != null) {
+          myGlobalLibraryMap = controller.findModel(moduleModels.findModel(GradleProject.class), GlobalLibraryMap.class);
+          break;
+        }
+      }
     }
 
     private void populateModels(@NotNull GradleProject project, @NotNull BuildController controller) {
@@ -95,6 +107,20 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
     public ModuleModels getModels(@NotNull String gradlePath) {
       return myModelsByModule.get(gradlePath);
     }
+
+    /**
+     * @return {@link GlobalLibraryMap} retrieved from android plugin.
+     * <br/>
+     * The return value could be null in two cases:
+     * <ol>
+     * <li>The version of Android plugin doesn't support GlobalLibraryMap. i.e. pre 3.0.0 plugin.</li>
+     * <li>There is no Android module in this project.</li>
+     * </ol>
+     */
+    @Nullable
+    public GlobalLibraryMap getGlobalLibraryMap() {
+      return myGlobalLibraryMap;
+    }
   }
 
   public static class ModuleModels implements Serializable {
@@ -104,7 +130,9 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
 
     @NotNull private final Map<Class, Object> myModelsByType = new HashMap<>();
 
-    public ModuleModels(@NotNull GradleProject gradleProject, @NotNull Set<Class<?>> androidModelTypes, @NotNull Set<Class<?>> javaModelTypes) {
+    public ModuleModels(@NotNull GradleProject gradleProject,
+                        @NotNull Set<Class<?>> androidModelTypes,
+                        @NotNull Set<Class<?>> javaModelTypes) {
       myGradleProject = gradleProject;
       myAndroidModelTypes = androidModelTypes;
       myJavaModelTypes = javaModelTypes;
@@ -126,7 +154,7 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
         return;
       }
       JavaProject javaProject = findAndAddModel(gradleProject, controller, JavaProject.class);
-      if(javaProject != null){
+      if (javaProject != null) {
         for (Class<?> type : myJavaModelTypes) {
           findAndAddModel(gradleProject, controller, type);
         }
