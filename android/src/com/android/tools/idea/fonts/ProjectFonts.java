@@ -218,9 +218,16 @@ public class ProjectFonts {
       return;
     }
     if (value.endsWith(".xml")) {
-      QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(new File(value));
+      File fontFile = new File(value);
+      if (!fontFile.exists()) {
+        createUnresolvedFontFamily(name);
+        return;
+      }
+
+      QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(fontFile);
       if (result instanceof FontFamilyParser.ParseErrorResult) {
         createUnresolvedFontFamily(name);
+        return;
       }
       myParseResults.put(name, result);
       if (result instanceof FontFamilyParser.CompoundFontResult) {
