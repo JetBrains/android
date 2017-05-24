@@ -58,11 +58,11 @@ public class SingleLibraryDependencyDetails implements DependencyDetails {
       spec = myDependency.getResolvedSpec();
     }
 
-    myGroupIdLabel.setText(spec.group);
-    myArtifactNameLabel.setText(spec.name);
-    myResolvedVersionLabel.setText(myDependency.getResolvedSpec().version);
+    myGroupIdLabel.setText(spec.getGroup());
+    myArtifactNameLabel.setText(spec.getName());
+    myResolvedVersionLabel.setText(myDependency.getResolvedSpec().getVersion());
 
-    myRequestedVersionLabel.setText(spec.version);
+    myRequestedVersionLabel.setText(spec.getVersion());
 
     String scopeToDisplay = isNotEmpty(configurationNames) ? configurationNames : dependency.getJoinedConfigurationNames();
     myScopeLabel.setText(scopeToDisplay);

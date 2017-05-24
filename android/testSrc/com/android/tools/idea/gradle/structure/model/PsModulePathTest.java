@@ -51,7 +51,6 @@ public class PsModulePathTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(PsModulePath.class)
-      .verify();
+    EqualsVerifier.forClass(PsModulePath.class).verify();
   }
 }

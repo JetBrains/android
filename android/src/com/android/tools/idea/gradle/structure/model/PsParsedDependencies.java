@@ -89,7 +89,7 @@ public class PsParsedDependencies {
 
   @NotNull
   private static String createIdFrom(@NotNull PsArtifactDependencySpec spec) {
-    List<String> segments = Lists.newArrayList(spec.group, spec.name);
+    List<String> segments = Lists.newArrayList(spec.getGroup(), spec.getName());
     return joinAsGradlePath(segments);
   }
 

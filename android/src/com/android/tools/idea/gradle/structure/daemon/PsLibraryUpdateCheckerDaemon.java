@@ -37,7 +37,10 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EventListener;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -179,10 +182,10 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
             if (dependency instanceof PsLibraryDependency) {
               PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
               PsArtifactDependencySpec spec = libraryDependency.getDeclaredSpec();
-              if (spec != null && isNotEmpty(spec.version)) {
-                GradleVersion version = GradleVersion.tryParse(spec.version);
+              if (spec != null && isNotEmpty(spec.getVersion())) {
+                GradleVersion version = GradleVersion.tryParse(spec.getVersion());
                 if (version != null) {
-                  ids.add(new LibraryUpdateId(spec.name, spec.group));
+                  ids.add(new LibraryUpdateId(spec.getName(), spec.getGroup()));
                 }
               }
             }
