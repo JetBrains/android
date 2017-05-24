@@ -55,7 +55,7 @@ public class AndroidModularizeAction extends BaseRefactoringAction {
     }
 
     PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
-    return isAvailableForFile(file);
+    return file == null || isAvailableForFile(file);
   }
 
   @Override
