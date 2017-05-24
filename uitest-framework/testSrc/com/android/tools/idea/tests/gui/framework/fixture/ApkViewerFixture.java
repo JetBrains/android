@@ -58,4 +58,16 @@ public class ApkViewerFixture extends EditorFixture {
     }
     return builder.build();
   }
+
+  public ApkViewerFixture clickApkEntry(@NotNull String entryName) {
+    JTree tree = robot.finder().findByType((Container)myTarget, JTree.class, true);
+    JTreeFixture treeFixture = new JTreeFixture(robot, tree);
+    treeFixture.replaceCellReader(TREE_NODE_CELL_READER);
+    for (int i = 0; i < tree.getRowCount(); i++) {
+      if (treeFixture.valueAt(i).equals(entryName)) {
+        treeFixture.clickRow(i);
+      }
+    }
+    return this;
+  }
 }
