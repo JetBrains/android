@@ -25,7 +25,7 @@ import java.awt.geom.RoundRectangle2D;
 
 public final class TooltipComponent extends AnimatedComponent {
 
-  private Component myComponent;
+  private final Component myComponent;
 
   @Nullable
   private Point myLastPoint;
