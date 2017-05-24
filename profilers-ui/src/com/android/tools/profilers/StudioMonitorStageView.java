@@ -17,7 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
 import com.android.tools.profilers.cpu.CpuMonitorView;
@@ -85,7 +85,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     myTooltip = new JPanel(new BorderLayout());
     myTooltip.setMinimumSize(new Dimension(200, 10));
 
-    TooltipComponent tooltip = new TooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltip);
+    RangeTooltipComponent
+      tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), myTooltip);
 
     myTooltipBinder = new ViewBinder<>();
     myTooltipBinder.bind(NetworkMonitor.class, NetworkMonitorTooltipView::new);
