@@ -1,5 +1,8 @@
 package org.jetbrains.android.uipreview;
 
+import com.android.builder.model.AndroidBundle;
+import com.android.builder.model.JavaLibrary;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
@@ -13,6 +16,7 @@ import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
+import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -337,25 +341,26 @@ public final class ModuleClassLoader extends RenderClassLoader {
   }
 
   /**
-   * Returns a {@link Stream<VirtualFile>} of the referenced libraries for the {@link Module} of this class loader.
+   * Returns a {@link Stream<File>} of the referenced libraries for the {@link Module} of this class loader.
    */
   @NotNull
-  private Stream<VirtualFile> getExternalLibraries() {
+  private Stream<File> getExternalLibraries() {
     final Module module = myModuleReference.get();
     if (module == null) {
       return Stream.empty();
     }
 
-    List<VirtualFile> externalLibraries;
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-      AndroidModel androidModel = facet.getAndroidModel();
-      externalLibraries = androidModel.getClassJarProvider().getModuleExternalLibraries(module);
-    } else {
-      externalLibraries = AndroidRootUtil.getExternalLibraries(module);
+    if (facet != null && facet.requiresAndroidModel()) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+      if (androidModuleModel != null) {
+        return Stream.concat(
+          androidModuleModel.getSelectedMainCompileDependencies().getLibraries().stream().map(AndroidBundle::getJarFile),
+          androidModuleModel.getSelectedMainCompileDependencies().getJavaLibraries().stream().map(JavaLibrary::getJarFile));
+      }
     }
 
-    return externalLibraries.stream();
+    return AndroidRootUtil.getExternalLibraries(module).stream().map(f -> new File(f.getPath()));
   }
 
   private static void registerLibraryResourceFiles(@NotNull Module module, @NotNull File jarFile) {
@@ -400,10 +405,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * Returns a {@link Stream<File>} of the JAR files for the given external libraries.
    */
   @NotNull
-  private static Stream<File> getLibraryJarFiles(@NotNull Stream<VirtualFile> externalLibraries) {
+  private static Stream<File> getLibraryJarFiles(@NotNull Stream<File> externalLibraries) {
     return externalLibraries
-      .filter(vFile -> EXT_JAR.equals(vFile.getExtension()))
-      .map(vFile -> new File(vFile.getPath()))
+      .filter(vFile -> EXT_JAR.equals(Files.getFileExtension(vFile.getName())))
       .filter(File::exists);
   }
 
