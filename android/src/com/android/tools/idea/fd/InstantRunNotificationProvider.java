@@ -94,8 +94,7 @@ public class InstantRunNotificationProvider {
         return AndroidBundle.message("instant.run.notification.hotswap", getRestartActivityShortcutText());
       case WARMSWAP:
         return AndroidBundle.message("instant.run.notification.warmswap");
-      case SPLITAPK:
-      case DEX: {
+      case SPLITAPK: {
         StringBuilder sb = new StringBuilder("Instant Run applied code changes and restarted the app.");
         if (buildCause.getBuildMode() == BuildMode.HOT) {
           // we requested a hot swap build, but we got cold swap artifacts

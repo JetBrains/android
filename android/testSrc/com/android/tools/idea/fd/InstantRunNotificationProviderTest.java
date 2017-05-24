@@ -58,7 +58,7 @@ public class InstantRunNotificationProviderTest {
   @Test
   public void appNotRunningAndHaveChanges() {
     BuildSelection buildSelection = new BuildSelection(BuildCause.APP_NOT_RUNNING, false);
-    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.DEX, "");
+    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.SPLITAPK, "");
     assertEquals(AndroidBundle.message("instant.run.notification.coldswap"), provider.getNotificationText());
   }
 
@@ -99,7 +99,7 @@ public class InstantRunNotificationProviderTest {
     assertEquals("Instant Run re-installed and restarted the app.", provider.getNotificationText());
 
     // but if we generated cold swap patches, then we should specify that we did so because of multi process
-    provider = new InstantRunNotificationProvider(buildSelection, DeployType.DEX, "");
+    provider = new InstantRunNotificationProvider(buildSelection, DeployType.SPLITAPK, "");
     assertEquals(AndroidBundle.message("instant.run.notification.coldswap.multiprocess"), provider.getNotificationText());
   }
 

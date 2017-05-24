@@ -55,7 +55,7 @@ public class InstantRunNotificationTask implements LaunchTask {
   public InstantRunNotificationTask(@NotNull Project project,
                                     @NotNull InstantRunContext context,
                                     @NotNull InstantRunNotificationProvider provider,
-                                    @NotNull BuildSelection buildSelection) {
+                                    @Nullable BuildSelection buildSelection) {
     myProject = project;
     myContext = context;
     myNotificationsProvider = provider;
@@ -86,7 +86,7 @@ public class InstantRunNotificationTask implements LaunchTask {
       showNotification(myProject, myContext, notificationText);
     }
 
-    if (shouldShowIRAd(myBuildSelection.why, myContext.getInstantRunBuildInfo().getBuildInstantRunEligibility())) {
+    if (myBuildSelection != null && shouldShowIRAd(myBuildSelection.why, myContext.getInstantRunBuildInfo().getBuildInstantRunEligibility())) {
       ourShouldShowIRAd = false;
       new InstantRunPrompt(myProject).show();
     }
