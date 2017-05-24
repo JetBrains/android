@@ -19,8 +19,10 @@ import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -37,7 +39,7 @@ public class CreateFragmentActionTest extends NavigationTestCase {
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
 
     CreateFragmentAction action = new CreateFragmentAction(surface);
-    action.actionPerformed(null);
+    action.actionPerformed(mock(AnActionEvent.class));
 
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
                  "    NlComponent{tag=<fragment>, instance=1}\n" +
@@ -56,7 +58,7 @@ public class CreateFragmentActionTest extends NavigationTestCase {
     when(surface.getCurrentNavigation()).thenReturn(model.find("subflow"));
 
     CreateFragmentAction action = new CreateFragmentAction(surface);
-    action.actionPerformed(null);
+    action.actionPerformed(mock(AnActionEvent.class));
 
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
                  "    NlComponent{tag=<navigation>, instance=1}\n" +
