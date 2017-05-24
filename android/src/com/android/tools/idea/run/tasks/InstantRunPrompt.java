@@ -37,6 +37,7 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Optional;
 
 public class InstantRunPrompt {
   private final Project myProject;
@@ -88,12 +89,9 @@ public class InstantRunPrompt {
       Field f = rootPane.getClass().getDeclaredField("myToolbar");
       f.setAccessible(true);
       ActionToolbar toolbar = (ActionToolbar)f.get(rootPane);
-      Component c = Arrays.stream(toolbar.getComponent().getComponents())
+      return Arrays.stream(toolbar.getComponent().getComponents())
         .filter((component) -> component instanceof ActionButton && ((ActionButton)component).getAction() instanceof HotswapAction)
-        .findFirst().get();
-      if (c != null) {
-        return c;
-      }
+        .findFirst().orElse(null);
     }
     catch (IllegalAccessException | NoSuchFieldException e) {
       Logger.getInstance("InstantRunPrompt").debug("Error finding Apply Changes Button: ", e);
