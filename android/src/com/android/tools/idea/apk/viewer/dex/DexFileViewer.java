@@ -324,9 +324,14 @@ public class DexFileViewer implements ApkFileEditorComponent {
     //so it doesn't make sense to recompute every time
     if (((BorderLayout)myTopPanel.getLayout()).getLayoutComponent(BorderLayout.EAST) == null) {
       SimpleColoredComponent titleComponent = new SimpleColoredComponent();
+      titleComponent.setIcon(AllIcons.Actions.Refresh);
+      titleComponent.append("Loading dex stats");
+      myTopPanel.add(titleComponent, BorderLayout.EAST);
+
       Futures.addCallback(dexStatsFuture, new FutureCallback<DexFileStats>() {
         @Override
         public void onSuccess(DexFileStats result) {
+          titleComponent.clear();
           titleComponent.setIcon(AllIcons.General.Information);
           titleComponent.append(myDexFiles.length == 1 ? "This dex file defines " : "These dex files define ");
           titleComponent.append(Integer.toString(result.classCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
@@ -335,14 +340,13 @@ public class DexFileViewer implements ApkFileEditorComponent {
           titleComponent.append(" methods, and references ");
           titleComponent.append(Integer.toString(result.referencedMethodCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
           titleComponent.append(" methods.");
-          myTopPanel.add(titleComponent, BorderLayout.EAST);
         }
 
         @Override
         public void onFailure(@NotNull Throwable t) {
+          titleComponent.clear();
           titleComponent.setIcon(AllIcons.General.Error);
           titleComponent.append("Error parsing dex file: " + t.getMessage());
-          myTopPanel.add(titleComponent, BorderLayout.EAST);
         }
       }, EdtExecutor.INSTANCE);
     }
