@@ -298,7 +298,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
     if (myPendingFile != null) {
       myPendingFile.invalidate();
       // Set the model to null so the progressbar is displayed
-      mySurface.setModel(null);
+      // TODO: find another way to decide that the progress indicator should be shown, so that the design surface model can be non-null
+      // mySurface.setModel(null);
     }
 
     if (myContentPanel == null) {  // First time: Make sure we have compiled the project at least once...
