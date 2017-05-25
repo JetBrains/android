@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -49,6 +49,7 @@ public class IconPickerDialogTest {
         "access alarm        access alarms       add alarm           alarm add           alarm               alarm off           \n" +
         "alarm on                                                                                                                \n"
       );
+      dialog.close(DialogWrapper.CLOSE_EXIT_CODE);
     });
   }
 
