@@ -282,10 +282,15 @@ public class HeapDumpCaptureObject implements CaptureObject {
     return myIsLoadingError;
   }
 
+  @Override
+  public void unload() {
+
+  }
+
   @NotNull
   @Override
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return Arrays.asList(LABEL, COUNT, SHALLOW_SIZE, RETAINED_SIZE);
+    return Arrays.asList(LABEL, ALLOC_COUNT, SHALLOW_SIZE, RETAINED_SIZE);
   }
 
   @Override

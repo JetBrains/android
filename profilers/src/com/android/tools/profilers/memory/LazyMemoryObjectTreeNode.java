@@ -146,6 +146,7 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
 
   public void reset() {
     removeAll();
+    myMemoizedChildrenCount = INVALID_CHILDREN_COUNT;
     myCurrentPageCount = 1;
     myChildrenView = myChildren.subList(0, 0);
   }

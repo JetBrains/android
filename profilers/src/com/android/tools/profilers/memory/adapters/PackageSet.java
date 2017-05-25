@@ -17,7 +17,9 @@ package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,17 +58,16 @@ public class PackageSet extends ClassifierSet {
       myPackageNameIndex = packageNameIndex;
     }
 
+    @NotNull
     @Override
-    public boolean partition(@NotNull InstanceObject instance) {
+    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
       if (myPackageNameIndex >= instance.getClassEntry().getSplitPackageName().length) {
-        myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new).addInstanceObject(instance);
+        return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
       }
       else {
-        myPackageElements.computeIfAbsent(instance.getClassEntry().getSplitPackageName()[myPackageNameIndex],
-                                          name -> new PackageSet(myCaptureObject, name, myPackageNameIndex))
-          .addInstanceObject(instance);
+        return myPackageElements.computeIfAbsent(instance.getClassEntry().getSplitPackageName()[myPackageNameIndex],
+                                                 name -> new PackageSet(myCaptureObject, name, myPackageNameIndex));
       }
-      return true;
     }
 
     @NotNull

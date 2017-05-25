@@ -17,9 +17,11 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -40,6 +42,7 @@ import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 final class MemoryClassSetView extends AspectObserver {
@@ -47,6 +50,8 @@ final class MemoryClassSetView extends AspectObserver {
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
   @NotNull private final MemoryProfilerStage myStage;
+
+  @NotNull private final RelativeTimeConverter myTimeConverter;
 
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
 
@@ -74,6 +79,7 @@ final class MemoryClassSetView extends AspectObserver {
 
   public MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
+    myTimeConverter = myStage.getStudioProfilers().getRelativeTimeConverter();
     myIdeProfilerComponents = ideProfilerComponents;
 
     myStage.getAspect().addDependency(this)
@@ -119,12 +125,50 @@ final class MemoryClassSetView extends AspectObserver {
         DEFAULT_COLUMN_WIDTH,
         Comparator.comparingInt(o -> ((ValueObject)o.getAdapter()).getDepth())));
     myAttributeColumns.put(
+      InstanceAttribute.ALLOCATION_TIME,
+      new AttributeColumn<>(
+        "Alloc Time",
+        () -> new SimpleColumnRenderer<>(value -> {
+          MemoryObject node = value.getAdapter();
+          if (node instanceof InstanceObject) {
+            InstanceObject instanceObject = (InstanceObject)node;
+            if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
+              return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
+                TimeUnit.MILLISECONDS.toMicros(1),
+                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getAllocTime())));
+            }
+          }
+          return "";
+        }, value -> null, SwingConstants.RIGHT),
+        SwingConstants.RIGHT,
+        DEFAULT_COLUMN_WIDTH,
+        Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getAllocTime())));
+    myAttributeColumns.put(
+      InstanceAttribute.DEALLOCATION_TIME,
+      new AttributeColumn<>(
+        "Dealloc Time",
+        () -> new SimpleColumnRenderer<>(value -> {
+          MemoryObject node = value.getAdapter();
+          if (node instanceof InstanceObject) {
+            InstanceObject instanceObject = (InstanceObject)node;
+            if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
+              return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
+                TimeUnit.MILLISECONDS.toMicros(1),
+                TimeUnit.NANOSECONDS.toMicros(myTimeConverter.convertToRelativeTime(instanceObject.getDeallocTime())));
+            }
+          }
+          return "";
+        }, value -> null, SwingConstants.RIGHT),
+        SwingConstants.RIGHT,
+        DEFAULT_COLUMN_WIDTH,
+        Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
+    myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn<>(
         "Shallow Size",
         () -> new SimpleColumnRenderer<>(value -> {
           MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? Integer.toString(((ValueObject)value.getAdapter()).getShallowSize()) : "";
+          return node instanceof ValueObject ? Integer.toString(((ValueObject)node).getShallowSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -135,7 +179,7 @@ final class MemoryClassSetView extends AspectObserver {
         "Retained Size",
         () -> new SimpleColumnRenderer<>(value -> {
           MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? Long.toString(((ValueObject)value.getAdapter()).getRetainedSize()) : "";
+          return node instanceof ValueObject ? Long.toString(((ValueObject)node).getRetainedSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -278,9 +322,11 @@ final class MemoryClassSetView extends AspectObserver {
         TreePath selectionPath = myTree.getSelectionPath();
         myTreeRoot.sort(comparator);
         myTreeModel.nodeStructureChanged(myTreeRoot);
-        myTree.expandPath(selectionPath.getParentPath());
-        myTree.setSelectionPath(selectionPath);
-        myTree.scrollPathToVisible(selectionPath);
+        if (selectionPath != null) {
+          myTree.expandPath(selectionPath.getParentPath());
+          myTree.setSelectionPath(selectionPath);
+          myTree.scrollPathToVisible(selectionPath);
+        }
       }
     });
 

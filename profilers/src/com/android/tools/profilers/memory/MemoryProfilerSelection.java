@@ -26,6 +26,7 @@ import java.util.Objects;
 public final class MemoryProfilerSelection {
   @NotNull private final MemoryProfilerStage myStage;
 
+  @Nullable private CaptureEntry myCaptureEntry;
   @Nullable private CaptureObject myCaptureObject;
   @Nullable private HeapSet myHeapSet;
   @Nullable private ClassSet myClassSet;
@@ -64,8 +65,8 @@ public final class MemoryProfilerSelection {
   /**
    * @return true if the internal state changed, otherwise false
    */
-  public boolean selectCaptureObject(@Nullable CaptureObject captureObject) {
-    if (myCaptureObject == captureObject) {
+  public boolean selectCaptureEntry(@Nullable CaptureEntry<? extends CaptureObject> captureEntry) {
+    if (Objects.equals(myCaptureEntry, captureEntry)) {
       return false;
     }
 
@@ -73,7 +74,11 @@ public final class MemoryProfilerSelection {
     setInstanceObject(null);
     setClassSet(null);
     setHeapSet(null);
-    myCaptureObject = captureObject;
+    if (myCaptureObject != null) {
+      myCaptureObject.unload();
+    }
+    myCaptureEntry = captureEntry;
+    myCaptureObject = myCaptureEntry == null ? null : captureEntry.getCaptureObject();
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE);
     return true;
   }

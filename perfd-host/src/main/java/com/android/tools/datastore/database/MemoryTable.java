@@ -99,13 +99,14 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     INSERT_ENCODED_STACK("INSERT INTO Memory_StackInfos (Pid, Session, StackId, MethodIdData) VALUES (?, ?, ?, ?)"),
     UPDATE_ALLOC(
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND Tag = ?"),
-    QUERY_CLASS("SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ?"),
-    // XORing (AllocTime >= startTime AND AllocTime < endTime) and (FreeTime >= startTime AND FreeTime < endTime)
-    QUERY_ALLOC_SNAPSHOT("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
-                         "WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND AllocTime < ? AND FreeTime >= ? AND " +
-                         "((AllocTime >= ? OR FreeTime < ?) AND " +
-                         "NOT (AllocTime >= ? AND FreeTime < ?))"),
+    QUERY_CLASS(
+      "SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+    QUERY_ALLOC_BY_ALLOC_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
+                              "WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND AllocTime >= ? AND AllocTime < ?"),
+    QUERY_ALLOC_BY_FREE_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
+                             "WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND FreeTime >= ? AND FreeTime < ?"),
     QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Pid = ? AND Session = ? AND MethodId = ?"),
+
     QUERY_ENCODED_STACK_INFO("Select MethodIdData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND StackId = ?");
 
     @NotNull private final String mySqlStatement;
@@ -150,7 +151,8 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
                   "MethodName TEXT", "ClassName TEXT", "PRIMARY KEY(Pid, Session, MethodId)");
       createTable("Memory_StackInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StackId INTEGER", "MethodIdData BLOB",
                   "PRIMARY KEY(Pid, Session, StackId)");
-      createIndex("Memory_AllocationEvents", "Pid", "Session", "CaptureTime", "AllocTime", "FreeTime");
+      createIndex("Memory_AllocationEvents", 0, "Pid", "Session", "CaptureTime", "AllocTime");
+      createIndex("Memory_AllocationEvents", 1, "Pid", "Session", "CaptureTime", "FreeTime");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -392,37 +394,67 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     return builder.build();
   }
 
-  public BatchAllocationSample getAllocationSnapshot(int pid,
-                                                     Common.Session session,
-                                                     long captureTime,
-                                                     long startTime,
-                                                     long endTime) {
+  public BatchAllocationSample getAllocations(int pid, Common.Session session, long captureTime, long startTime, long endTime) {
+    BatchAllocationSample.Builder sampleBuilder = BatchAllocationSample.newBuilder();
+    try {
+      // Then get all allocation events that are valid for requestTime.
+      ResultSet allocResult = executeQuery(QUERY_ALLOC_BY_ALLOC_TIME, pid, session, captureTime, startTime, endTime);
+      long timestamp = Long.MIN_VALUE;
+
+      while (allocResult.next()) {
+        long allocTime = allocResult.getLong(3);
+        if (allocTime >= startTime) {
+          AllocationEvent event = AllocationEvent.newBuilder()
+            .setAllocData(
+              AllocationEvent.Allocation.newBuilder().setTag(allocResult.getLong(1)).setClassTag(allocResult.getLong(2))
+                .setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).addMethodIds(allocResult.getLong(7)).build())
+            .setTimestamp(allocTime).build();
+          sampleBuilder.addEvents(event);
+          timestamp = Math.max(timestamp, allocTime);
+        }
+      }
+
+      ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, pid, session, captureTime, startTime, endTime);
+      while (freeResult.next()) {
+        long freeTime = freeResult.getLong(4);
+        if (freeTime < endTime) {
+          AllocationEvent event = AllocationEvent.newBuilder()
+            .setFreeData(
+              AllocationEvent.Deallocation.newBuilder().setTag(freeResult.getLong(1)).setClassTag(freeResult.getLong(2))
+                .setSize(freeResult.getLong(5)).setLength(freeResult.getInt(6)).build())
+            .setTimestamp(freeTime).build();
+          sampleBuilder.addEvents(event);
+          timestamp = Math.max(timestamp, freeTime);
+        }
+      }
+
+      sampleBuilder.setTimestamp(timestamp);
+    }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+
+    return sampleBuilder.build();
+  }
+
+  public BatchAllocationSample getAllocationContexts(int pid, Common.Session session, long startTime, long endTime) {
+    // TODO merge with listAllocationContexts
     BatchAllocationSample.Builder sampleBuilder = BatchAllocationSample.newBuilder();
     try {
       // Query all the classes
       // TODO: only return classes that are valid for current snapshot?
-      ResultSet klassResult = executeQuery(QUERY_CLASS, pid, session);
+      ResultSet klassResult = executeQuery(QUERY_CLASS, pid, session, startTime, endTime);
+      long timestamp = Long.MIN_VALUE;
+
       while (klassResult.next()) {
         long allocTime = klassResult.getLong(2);
         AllocationEvent event = AllocationEvent.newBuilder()
           .setClassData(AllocationEvent.Klass.newBuilder().setTag(klassResult.getLong(1)).setName(klassResult.getString(3)))
           .setTimestamp(allocTime).build();
         sampleBuilder.addEvents(event);
+        timestamp = Math.max(timestamp, allocTime);
       }
-
-      // Then get all allocation events that are valid for requestTime.
-      ResultSet allocResult =
-        executeQuery(QUERY_ALLOC_SNAPSHOT, pid, session, captureTime, endTime, startTime, startTime, endTime, startTime, endTime);
-      while (allocResult.next()) {
-        long allocTime = allocResult.getLong(3);
-        long freeTime = allocResult.getLong(4);
-        AllocationEvent event = AllocationEvent.newBuilder()
-          .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(allocResult.getLong(1)).setClassTag(allocResult.getLong(2))
-                          .setFreeTimestamp(freeTime).setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6))
-                          .addMethodIds(allocResult.getLong(7)).build())
-          .setTimestamp(allocTime).build();
-        sampleBuilder.addEvents(event);
-      }
+      sampleBuilder.setTimestamp(timestamp);
     }
     catch (SQLException ex) {
       getLogger().error(ex);

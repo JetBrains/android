@@ -42,7 +42,6 @@ public class MethodSet extends ClassifierSet {
     myCaptureObject = captureObject;
     myCallstackDepth = callstackDepth;
     myCodeLocation = codeLocation;
-    myHasStackInfo = true;
   }
 
   @NotNull
@@ -86,17 +85,17 @@ public class MethodSet extends ClassifierSet {
       myDepth = depth;
     }
 
+    @NotNull
     @Override
-    public boolean partition(@NotNull InstanceObject instance) {
+    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
       AllocationStack allocationStack = instance.getCallStack();
       if (allocationStack != null && allocationStack.getStackFramesCount() > 0 && myDepth < allocationStack.getStackFramesCount()) {
         CodeLocation codeLocation = AllocationStackConverter.getCodeLocation(allocationStack.getStackFrames(allocationStack.getStackFramesCount() - myDepth - 1));
-        myStackLineMap.computeIfAbsent(codeLocation, cl -> new MethodSet(myCaptureObject, cl, myDepth + 1)).addInstanceObject(instance);
+        return myStackLineMap.computeIfAbsent(codeLocation, cl -> new MethodSet(myCaptureObject, cl, myDepth + 1));
       }
       else {
-        myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new).addInstanceObject(instance);
+        return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
       }
-      return true;
     }
 
     @NotNull

@@ -17,13 +17,13 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
 import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -82,7 +82,9 @@ public class MemoryClassSetViewTest {
         .setShallowSize(9).setRetainedSize(10).build());
     myCaptureObject.addInstanceObjects(new HashSet<>(myInstanceObjects));
 
-    myStage.selectCaptureObject(myCaptureObject, MoreExecutors.directExecutor());
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myCaptureObject)),
+      new Range(0, 1), null);
     myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
 
     myClassifierSetTree = myStageView.getClassifierView().getTree();
@@ -149,7 +151,7 @@ public class MemoryClassSetViewTest {
     JScrollPane columnTreePane = (JScrollPane)myClassSetView.getColumnTree();
     assertNotNull(columnTreePane);
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(myClassSetTree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Instance", "Depth", "Shallow Size", "Retained Size");
+    treeInfo.verifyColumnHeaders("Instance", "Alloc Time", "Dealloc Time", "Depth", "Shallow Size", "Retained Size");
 
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)myClassSetTree.getModel().getRoot();
     assertEquals(myInstanceObjects.size(), root.getChildCount());
@@ -157,6 +159,8 @@ public class MemoryClassSetViewTest {
       InstanceObject instance = myInstanceObjects.get(2 - i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
                                     new String[]{instance.getName(), null, instance.getValueText(), null, instance.getToStringText()},
+                                    new String[]{""},
+                                    new String[]{""},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
                                                  Integer.toString(instance.getDepth()) : ""},
                                     new String[]{Integer.toString(instance.getShallowSize())},
@@ -210,7 +214,9 @@ public class MemoryClassSetViewTest {
 
     Set<InstanceObject> instanceObjects = new HashSet<>(Arrays.asList(instanceFoo, instanceBar, instanceFooField, instanceBarField));
     captureObject.addInstanceObjects(instanceObjects);
-    myStage.selectCaptureObject(captureObject, MoreExecutors.directExecutor());
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                             new Range(0, 1), null);
 
     assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNotNull(myStage.getSelectedHeapSet());
@@ -284,7 +290,9 @@ public class MemoryClassSetViewTest {
           .build());
     }
     myCaptureObject.addInstanceObjects(new HashSet<>(fakeInstances));
-    myStage.selectCaptureObject(myCaptureObject, MoreExecutors.directExecutor());
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myCaptureObject)),
+      new Range(0, 1), null);
     myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
 
     myClassifierSetTree = myStageView.getClassifierView().getTree();

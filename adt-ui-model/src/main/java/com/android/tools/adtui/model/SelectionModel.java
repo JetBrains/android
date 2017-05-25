@@ -50,9 +50,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   private final List<SelectionListener> myListeners = new ArrayList<>();
 
   @NotNull
-  private final List<DurationDataModel<? extends DurationData>> myConstraints;
-
-  private boolean mySelectFullConstraint;
+  private final List<DurationDataModel<? extends ConfigurableDurationData>> myConstraints;
 
   private boolean mySelectionEnabled;
 
@@ -73,7 +71,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     myConstraints = new ArrayList<>();
   }
 
-  public void addConstraint(@Nullable DurationDataModel<? extends DurationData> constraints) {
+  public void addConstraint(@Nullable DurationDataModel<? extends ConfigurableDurationData> constraints) {
     myConstraints.add(constraints);
   }
 
@@ -156,19 +154,25 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
       return;
     }
 
-
-    Range candidate = new Range(min, max);
-    Range result = null;
+    Range proposedRange = new Range(min, max);
+    Range resultRange = null;
+    ConfigurableDurationData resultDurationData = null;
     boolean found = false;
 
-    for (DurationDataModel<? extends DurationData> constraint : myConstraints) {
-      DataSeries<? extends DurationData> series = constraint.getSeries().getDataSeries();
-      List<? extends SeriesData<? extends DurationData>> constraints = series.getDataForXRange(new Range(min, max));
-      for (SeriesData<? extends DurationData> data : constraints) {
-        Range r = new Range(data.x, data.x + data.value.getDuration());
-        // Check if this constraint intersects the candidate range.
-        if (!r.getIntersection(candidate).isEmpty()) {
-          result = r;
+    for (DurationDataModel<? extends ConfigurableDurationData> constraint : myConstraints) {
+      DataSeries<? extends ConfigurableDurationData> series = constraint.getSeries().getDataSeries();
+      List<? extends SeriesData<? extends ConfigurableDurationData>> constraints = series.getDataForXRange(new Range(min, max));
+      for (SeriesData<? extends ConfigurableDurationData> data : constraints) {
+        long dataMax = data.x + data.value.getDuration();
+        if (dataMax == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
+          continue;
+        }
+
+        Range r = new Range(data.x, dataMax);
+        // Check if this constraint intersects the proposedRange.
+        if (!r.getIntersection(proposedRange).isEmpty()) {
+          resultRange = r;
+          resultDurationData = data.value;
           // If this constraint already intersects the current range, use it.
           if (!r.getIntersection(mySelectionRange).isEmpty()) {
             found = true;
@@ -180,18 +184,18 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
         break;
       }
     }
-    if (result == null) {
+    if (resultRange == null) {
       mySelectionRange.clear();
     }
-    else if (!mySelectionRange.equals(result)) {
+    else if (!mySelectionRange.equals(resultRange)) {
       // In this case, we're completely replacing the existing selection with a brand new selection.
       // If we didn't clear the previous range, it would look like we were just modifying the old selection.
       myPreviousSelectionRange.clear();
-      if (mySelectFullConstraint) {
-        mySelectionRange.set(result);
+      if (resultDurationData.canSelectPartialRange()) {
+        mySelectionRange.set(resultRange.getIntersection(proposedRange));
       }
       else {
-        mySelectionRange.set(result.getIntersection(candidate));
+        mySelectionRange.set(resultRange);
       }
     }
   }
@@ -204,13 +208,6 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   @NotNull
   public Range getRange() {
     return myRange;
-  }
-
-  /**
-   * If set, it will force the selection to cover the full constraint ranges.
-   */
-  public void setSelectFullConstraint(boolean selectFullConstraint) {
-    mySelectFullConstraint = selectFullConstraint;
   }
 
   /**
