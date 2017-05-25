@@ -16,6 +16,7 @@
 package com.android.tools.adtui.flat;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 
@@ -100,7 +101,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
   @Override
   public Dimension getMinimumSize(JComponent c) {
     Dimension size = super.getMinimumSize(c);
-    return new Dimension(size.width, Math.max(size.height, 25));
+    return new Dimension(size.width, Math.max(size.height, JBUI.scale(25)));
   }
 
   @Override
@@ -147,7 +148,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
 
     @Override
     public Dimension getMinimumSize() {
-      return new Dimension(15, 25);
+      return new JBDimension(15, 25);
     }
 
     @Override

@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.flat;
 
+import com.intellij.util.ui.JBUI;
+
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
@@ -47,7 +49,7 @@ class FlatButtonUI extends BasicButtonUI {
     super.installDefaults(b);
     b.setOpaque(false);
     // TODO: This is only for 16x16 icon buttons
-    b.setBorder(BorderFactory.createEmptyBorder(4, 4, 5, 5));
+    b.setBorder(BorderFactory.createEmptyBorder(JBUI.scale(4), JBUI.scale(4), JBUI.scale(5), JBUI.scale(5)));
   }
 
   @Override
