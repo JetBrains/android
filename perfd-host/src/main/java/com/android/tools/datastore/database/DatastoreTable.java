@@ -86,6 +86,12 @@ public abstract class DatastoreTable<T extends Enum> {
     executeUniqueStatement(statement, indexList);
   }
 
+  protected void createIndex(String table, int indexId, String... indexList) throws SQLException {
+    StringBuilder statement = new StringBuilder();
+    statement.append(String.format("CREATE INDEX IF NOT EXISTS idx_%s_%d_pk ON %s", table, indexId, table));
+    executeUniqueStatement(statement, indexList);
+  }
+
   private void executeUniqueStatement(StringBuilder statement, String[] params) throws SQLException {
     myConnection.createStatement().execute(String.format("%s ( %s )", statement, String.join(",", params)));
   }

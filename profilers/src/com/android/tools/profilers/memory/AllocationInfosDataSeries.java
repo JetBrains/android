@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
@@ -23,7 +22,9 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
+import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,23 +32,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
-
-class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<LegacyAllocationCaptureObject>> {
-  @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
-  private final int myProcessId;
-  @NotNull private final RelativeTimeConverter myConverter;
-  @Nullable private final Common.Session mySession;
-  @NotNull private final FeatureTracker myFeatureTracker;
-
+class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
   public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
                                    @Nullable Common.Session session, int processId,
                                    @NotNull RelativeTimeConverter converter, @NotNull FeatureTracker featureTracker) {
-    myClient = client;
-    myProcessId = processId;
-    myConverter = converter;
-    mySession = session;
-    myFeatureTracker = featureTracker;
+    super(client, session, processId, converter, featureTracker);
   }
 
   @NotNull
@@ -62,23 +51,31 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Legacy
   }
 
   @Override
-  public List<SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>>> getDataForXRange(Range xRange) {
+  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForXRange(Range xRange) {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
 
     List<MemoryProfiler.AllocationsInfo> infos = getDataForXRange(rangeMin, rangeMax);
 
-    List<SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>>> seriesData = new ArrayList<>();
+    List<SeriesData<CaptureDurationData<CaptureObject>>> seriesData = new ArrayList<>();
     for (MemoryProfiler.AllocationsInfo info : infos) {
       long startTimeNs = info.getStartTime();
-      long endTimeNs = info.getEndTime();
-      long durationUs = endTimeNs == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : TimeUnit.NANOSECONDS.toMicros(endTimeNs - startTimeNs);
-      seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTimeNs),
-                                      new CaptureDurationData<>(
-                                        durationUs,
-                                        new LegacyAllocationCaptureObject(myClient, mySession, myProcessId, info, myConverter,
-                                                                          myFeatureTracker))));
+      long durationUs = getDurationUs(startTimeNs, info.getEndTime());
+
+      seriesData.add(
+        new SeriesData<>(
+          getHostTime(startTimeNs),
+          new CaptureDurationData<>(durationUs, !info.getLegacy(), !info.getLegacy(), new CaptureEntry<>(
+            info,
+            () -> {
+              if (info.getLegacy()) {
+                return new LegacyAllocationCaptureObject(myClient, mySession, myProcessId, info, myConverter, myFeatureTracker);
+              }
+              else {
+                return new LiveAllocationCaptureObject(myClient, mySession, myProcessId, startTimeNs, myFeatureTracker);
+              }
+            }))));
     }
     return seriesData;
   }

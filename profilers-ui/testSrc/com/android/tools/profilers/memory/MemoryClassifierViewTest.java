@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
@@ -99,7 +100,8 @@ public class MemoryClassifierViewTest {
     Set<InstanceObject> instanceObjects = new HashSet<>(
       Arrays.asList(instanceFoo0, instanceFoo1, instanceFoo2, instanceBar0, instanceBaz0, instanceBaz1, instanceBaz2, instanceBaz3));
     captureObject.addInstanceObjects(instanceObjects);
-    myStage.selectCaptureObject(captureObject, MoreExecutors.directExecutor());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                                  new Range(0, 1), null);
 
     assertTrue(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_0));
     assertTrue(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_1));
@@ -226,7 +228,8 @@ public class MemoryClassifierViewTest {
     Set<InstanceObject> instanceObjects = new HashSet<>(
       Arrays.asList(instanceFoo0, instanceFoo1, instanceFoo2, instanceBar0, instanceBaz0, instanceBaz1, instanceBaz2, instanceBaz3));
     captureObject.addInstanceObjects(instanceObjects);
-    myStage.selectCaptureObject(captureObject, MoreExecutors.directExecutor());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                                  new Range(0, 1), null);
 
     assertTrue(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_0));
     assertTrue(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_1));
@@ -352,7 +355,8 @@ public class MemoryClassifierViewTest {
     Set<InstanceObject> instanceObjects =
       new HashSet<>(Arrays.asList(instance1, instance2, instance3, instance4, instance5, instance6, instance7, instance8));
     captureObject.addInstanceObjects(instanceObjects);
-    myStage.selectCaptureObject(captureObject, MoreExecutors.directExecutor());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                                  new Range(0, 1), null);
 
     HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
     assertNotNull(heapSet);
@@ -465,7 +469,8 @@ public class MemoryClassifierViewTest {
     Set<InstanceObject> instanceObjects =
       new HashSet<>(Arrays.asList(instance1, instance2, instance3, instance4, instance5, instance6, instance7, instance8));
     captureObject.addInstanceObjects(instanceObjects);
-    myStage.selectCaptureObject(captureObject, MoreExecutors.directExecutor());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                                  new Range(0, 1), null);
 
     HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
     assertNotNull(heapSet);
@@ -521,7 +526,7 @@ public class MemoryClassifierViewTest {
     assertEquals(callstack3BarClassSet, callstack3BarClassSet.findContainingClassifierSet(instance7));
 
     ClassSet noStackIntArrayClassSet = findChildClassSetWithName(rootNode.getAdapter(), CLASS_NAME_2);
-    assertEquals(1, noStackIntArrayClassSet.getCount());
+    assertEquals(1, noStackIntArrayClassSet.getAllocatedCount());
 
     //noinspection unchecked
     MemoryObjectTreeNode<? extends ClassifierSet> nodeToSelect = findChildClassSetNodeWithClassName((MemoryObjectTreeNode<ClassifierSet>)codeLocation4Node, CLASS_NAME_0);
@@ -547,7 +552,8 @@ public class MemoryClassifierViewTest {
         .setShallowSize(0).setRetainedSize(0).build();
     Set<InstanceObject> instanceObjects = new HashSet<>(Collections.singleton(instance1));
     captureObject.addInstanceObjects(instanceObjects);
-    myStage.selectCaptureObject(captureObject, MoreExecutors.directExecutor());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                                  new Range(0, 1), null);
 
     HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
     assertNotNull(heapSet);
@@ -597,7 +603,8 @@ public class MemoryClassifierViewTest {
     InstanceObject instance3 =
       new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("ghi").setDepth(1).setShallowSize(2).setRetainedSize(3).build();
     captureObject.addInstanceObjects(new HashSet<>(Arrays.asList(instance1, instance2, instance3)));
-    myStage.selectCaptureObject(captureObject, MoreExecutors.directExecutor());
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                                  new Range(0, 1), null);
 
     HeapSet heapSet = captureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID);
     assertNotNull(heapSet);
@@ -608,7 +615,7 @@ public class MemoryClassifierViewTest {
     JScrollPane columnTreePane = (JScrollPane)myClassifierView.getColumnTree();
     assertNotNull(columnTreePane);
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
-    treeInfo.verifyColumnHeaders("Class Name", "Heap Count", "Shallow Size", "Retained Size");
+    treeInfo.verifyColumnHeaders("Class Name", "Alloc Count", "Dealloc Count", "Shallow Size", "Retained Size");
 
     Object root = tree.getModel().getRoot();
     assertTrue(root instanceof MemoryObjectTreeNode);
@@ -630,9 +637,10 @@ public class MemoryClassifierViewTest {
                                       classSet.getClassEntry().getPackageName().isEmpty()
                                       ? null
                                       : " (" + classSet.getClassEntry().getPackageName() + ")"},
-                                    new String[]{Integer.toString(classSet.getCount())},
-                                    new String[]{Long.toString(classSet.getShallowSize())},
-                                    new String[]{Long.toString(classSet.getRetainedSize())});
+                                    new String[]{Integer.toString(classSet.getAllocatedCount())},
+                                    new String[]{Integer.toString(classSet.getDeallocatedCount())},
+                                    new String[]{Long.toString(classSet.getTotalShallowSize())},
+                                    new String[]{Long.toString(classSet.getTotalRetainedSize())});
     }
   }
 

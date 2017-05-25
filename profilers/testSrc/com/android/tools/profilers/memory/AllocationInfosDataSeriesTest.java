@@ -19,11 +19,12 @@ import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RelativeTimeConverter;
-import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,31 +46,33 @@ public class AllocationInfosDataSeriesTest {
   public void testGetDataForXRange() throws Exception {
     MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder()
       .setEndTimestamp(1)
-      .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(TimeUnit.MICROSECONDS.toNanos(2))
-                            .setEndTime(TimeUnit.MICROSECONDS.toNanos(7)))
       .addAllocationsInfo(
-        MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(TimeUnit.MICROSECONDS.toNanos(17)).setEndTime(
-          DurationData.UNSPECIFIED_DURATION))
+        AllocationsInfo.newBuilder()
+          .setStartTime(TimeUnit.MICROSECONDS.toNanos(2)).setEndTime(TimeUnit.MICROSECONDS.toNanos(7)).setLegacy(true))
+      .addAllocationsInfo(
+        AllocationsInfo.newBuilder()
+          .setStartTime(TimeUnit.MICROSECONDS.toNanos(17)).setEndTime(DurationData.UNSPECIFIED_DURATION).setLegacy(true))
       .build();
     myService.setMemoryData(memoryData);
 
     AllocationInfosDataSeries series =
       new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, 1,
                                     new RelativeTimeConverter(0), myIdeProfilerServices.getFeatureTracker());
-    List<SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>>> dataList =
-      series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
-    SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>> data1 = dataList.get(0);
+    SeriesData<CaptureDurationData<CaptureObject>> data1 = dataList.get(0);
     assertEquals(2, data1.x);
     assertEquals(5, data1.value.getDuration());
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(2), data1.value.getCaptureObject().getStartTimeNs());
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(7), data1.value.getCaptureObject().getEndTimeNs());
+    CaptureObject capture1 = data1.value.getCaptureEntry().getCaptureObject();
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(2), capture1.getStartTimeNs());
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(7), capture1.getEndTimeNs());
 
-    SeriesData<CaptureDurationData<LegacyAllocationCaptureObject>> data2 = dataList.get(1);
+    SeriesData<CaptureDurationData<CaptureObject>> data2 = dataList.get(1);
     assertEquals(17, data2.x);
-    assertEquals(DurationData.UNSPECIFIED_DURATION, data2.value.getDuration());
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(17), data2.value.getCaptureObject().getStartTimeNs());
-    assertEquals(DurationData.UNSPECIFIED_DURATION, data2.value.getCaptureObject().getEndTimeNs());
+    assertEquals(Long.MAX_VALUE - TimeUnit.MICROSECONDS.toNanos(data2.x), data2.value.getDuration());
+    CaptureObject capture2 = data2.value.getCaptureEntry().getCaptureObject();
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(17), capture2.getStartTimeNs());
+    assertEquals(DurationData.UNSPECIFIED_DURATION, capture2.getEndTimeNs());
   }
 }

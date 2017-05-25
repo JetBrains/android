@@ -29,14 +29,33 @@ public final class ClassDb {
   public static final String JAVA_LANG_CLASS = "java.lang.Class";
 
   private final Map<Long, Map<String, ClassEntry>> myClassEntries = new HashMap<>();
+  private final Map<Long, ClassEntry> myTagMap = new HashMap<>();
+
+  public void clear() {
+    myClassEntries.clear();
+    myTagMap.clear();
+  }
 
   @NotNull
   public ClassEntry registerClass(long classLoaderId, @NotNull String className) {
     return myClassEntries.computeIfAbsent(classLoaderId, id -> new HashMap<>()).computeIfAbsent(className, ClassEntry::new);
   }
 
+  @NotNull
+  public ClassEntry registerClass(long classLoaderId, @NotNull String className, long tag) {
+    ClassEntry entry = registerClass(classLoaderId, className);
+    myTagMap.put(tag, entry);
+    return entry;
+  }
+
   public boolean containsClassEntry(long classLoaderId, @NotNull String className) {
     return myClassEntries.containsKey(classLoaderId) && myClassEntries.get(classLoaderId).containsKey(className);
+  }
+
+  @NotNull
+  public ClassEntry getEntry(long tag) {
+    assert myTagMap.containsKey(tag);
+    return myTagMap.get(tag);
   }
 
   public static class ClassEntry {

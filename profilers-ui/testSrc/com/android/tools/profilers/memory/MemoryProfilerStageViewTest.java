@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.StudioProfilers;
@@ -95,7 +96,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     assertView(null, null, null, null, false);
 
-    myStage.selectCaptureObject(fakeCapture1, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
+                                  new Range(0, 1), null);
     assertView(fakeCapture1, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
@@ -109,7 +111,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     // Tests selecting a capture which loads immediately.
     myMockLoader.setReturnImmediateFuture(true);
-    myStage.selectCaptureObject(fakeCapture2, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
+                                  new Range(0, 1), null);
     classifierTree = classifierView.getTree();
     assertNotNull(classifierTree);
     selectedHeap = myStage.getSelectedHeapSet();
@@ -142,7 +145,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), fakeInstance3);
     assertView(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), fakeInstance3, false);
 
-    myStage.selectCaptureObject(null, null);
+    myStage.selectCaptureDuration(null, null, null);
     assertView(null, null, null, null, false);
   }
 
@@ -160,12 +163,14 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
         .setRetainedSize(6).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance1));
 
-    myStage.selectCaptureObject(fakeCapture1, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
+                                  new Range(0, 1), null);
     assertView(fakeCapture1, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     // Select a new capture before the first is loaded.
-    myStage.selectCaptureObject(fakeCapture2, null);
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
+                                  new Range(0, 1), null);
     assertView(fakeCapture2, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();

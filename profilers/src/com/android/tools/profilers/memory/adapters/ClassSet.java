@@ -53,10 +53,10 @@ public class ClassSet extends ClassifierSet {
   private static final class ClassClassifier extends Classifier {
     @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new LinkedHashMap<>();
 
+    @NotNull
     @Override
-    public boolean partition(@NotNull InstanceObject instance) {
-      myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new).addInstanceObject(instance);
-      return true;
+    public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
+      return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
     }
 
     @NotNull

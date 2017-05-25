@@ -164,6 +164,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
       .build();
     MemoryProfiler.LegacyAllocationContextsResponse contextsResponse = myClient.listLegacyAllocationContexts(contextRequest);
 
+    // TODO remove this map, since we have built-in functionality in ClassDb now.
     Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
     Map<ByteString, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
     contextsResponse.getAllocatedClassesList().forEach(
@@ -194,9 +195,14 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   }
 
   @Override
+  public void unload() {
+
+  }
+
+  @Override
   @NotNull
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return Arrays.asList(ClassifierAttribute.LABEL, ClassifierAttribute.COUNT);
+    return Arrays.asList(ClassifierAttribute.LABEL, ClassifierAttribute.ALLOC_COUNT);
   }
 
   @NotNull

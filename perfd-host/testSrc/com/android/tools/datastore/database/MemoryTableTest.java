@@ -278,7 +278,6 @@ public class MemoryTableTest {
     final String JAVA_KLASS1_NAME = "java.lang.Klass1";
     final String JAVA_KLASS2_NAME = "java.lang.Klass2[][]";
     final int VALID_CAPTURE_TIME = 1000;
-    final int INVALID_CAPTURE_TIME = 1001;
     final int STACK_ID = 10;
 
     // A class that is loaded since the beginning (t = 0, tag = 1)
@@ -294,8 +293,8 @@ public class MemoryTableTest {
       .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).addMethodIds(STACK_ID))
       .setTimestamp(0)
       .setCaptureTime(VALID_CAPTURE_TIME).build();
-    // A klass1 instance free event (t = 7, tag = 100)
-    AllocationEvent free1 = AllocationEvent.newBuilder()
+    // A klass1 instance deallocation event (t = 7, tag = 100)
+    AllocationEvent dealloc1 = AllocationEvent.newBuilder()
       .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG)).setTimestamp(7)
       .setCaptureTime(VALID_CAPTURE_TIME).build();
     // A klass2 instance allocation event (t = 6, tag = 101)
@@ -306,23 +305,24 @@ public class MemoryTableTest {
     BatchAllocationSample insertSample = BatchAllocationSample.newBuilder()
       .addEvents(klass1)
       .addEvents(klass2)
-      .addEvents(klass2)  // Test that insert dups will be ignored
+      .addEvents(klass2)  // Test that insert dupes will be ignored
       .addEvents(alloc1)
-      .addEvents(free1)
+      .addEvents(dealloc1)
       .addEvents(alloc2).build();
     myTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
 
-    // Deallocated events would have their free time lumped into the AllocData messsage.
     AllocationEvent expectedAlloc1 = AllocationEvent.newBuilder()
       .setAllocData(
-        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).setFreeTimestamp(7)
+        AllocationEvent.Allocation.newBuilder().setClassTag(KLASS1_TAG).setTag(KLASS1_INSTANCE1_TAG)
           .addMethodIds(STACK_ID))
       .setTimestamp(0).build();
+    AllocationEvent expectedDealloc1 = AllocationEvent.newBuilder()
+      .setFreeData(AllocationEvent.Deallocation.newBuilder().setClassTag(KLASS1_TAG).setTag(KLASS1_INSTANCE1_TAG).build()).setTimestamp(7)
+      .build();
     // Ongoing allocation events would have their FreeTime set to Long.MAX_VALUE.
     AllocationEvent expectedAlloc2 = AllocationEvent.newBuilder()
       .setAllocData(
-        AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG).setFreeTimestamp(Long.MAX_VALUE)
-          .addMethodIds(NO_STACK_ID))
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG).addMethodIds(NO_STACK_ID))
       .setTimestamp(6).build();
     AllocationEvent expectedKlass1 =
       AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS1_NAME).setTag(KLASS1_TAG))
@@ -332,44 +332,35 @@ public class MemoryTableTest {
       AllocationEvent.newBuilder().setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS2_NAME).setTag(KLASS2_TAG))
         .setTimestamp(5).build();
 
-    // A query that asks for the wrong session returns only classes
     BatchAllocationSample querySample =
-      myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, INVALID_CAPTURE_TIME, 0, Long.MAX_VALUE);
+      myTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(2, querySample.getEventsCount());
     assertEquals(expectedKlass1, querySample.getEvents(0));
     assertEquals(expectedKlass2, querySample.getEvents(1));
+    assertEquals(expectedKlass2.getTimestamp(), querySample.getTimestamp());
 
     // A query that asks for live objects.
-    querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, VALID_CAPTURE_TIME, 0, Long.MAX_VALUE);
-    // .... should returns class data + klass 2 instance
+    querySample = myTable.getAllocations(VALID_PID, VALID_SESSION, VALID_CAPTURE_TIME, 0, Long.MAX_VALUE);
     assertEquals(3, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
-    assertEquals(expectedAlloc2, querySample.getEvents(2));
+    assertEquals(expectedAlloc1, querySample.getEvents(0));
+    assertEquals(expectedAlloc2, querySample.getEvents(1));
+    assertEquals(expectedDealloc1, querySample.getEvents(2));
+    assertEquals(expectedDealloc1.getTimestamp(), querySample.getTimestamp());
 
     // A query that asks for live objects between t=0 and t=7
-    querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, VALID_CAPTURE_TIME, 0, 7);
+    querySample = myTable.getAllocations(VALID_PID, VALID_SESSION, VALID_CAPTURE_TIME, 0, 7);
     // .... should returns class data + both class instances
-    assertEquals(4, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
-    assertEquals(expectedAlloc1, querySample.getEvents(2));
-    assertEquals(expectedAlloc2, querySample.getEvents(3));
-
-    // A query that asks for live objects between t=1 and t=6
-    querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, VALID_CAPTURE_TIME, 1, 6);
-    // .... should returns class data only - since no allocation/free has occurred over the timespan.
     assertEquals(2, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
+    assertEquals(expectedAlloc1, querySample.getEvents(0));
+    assertEquals(expectedAlloc2, querySample.getEvents(1));
+    assertEquals(expectedAlloc2.getTimestamp(), querySample.getTimestamp());
 
     // A query that asks for live objects between t=7 and t=MAX_VALUE
-    querySample = myTable.getAllocationSnapshot(VALID_PID, VALID_SESSION, VALID_CAPTURE_TIME, 7, Long.MAX_VALUE);
-    // .... should returns class data + klass1 instance (free event)
-    assertEquals(3, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
-    assertEquals(expectedAlloc1, querySample.getEvents(2));
+    querySample = myTable.getAllocations(VALID_PID, VALID_SESSION, VALID_CAPTURE_TIME, 7, Long.MAX_VALUE);
+    // .... should return only the free event
+    assertEquals(1, querySample.getEventsCount());
+    assertEquals(expectedDealloc1, querySample.getEvents(0));
+    assertEquals(expectedDealloc1.getTimestamp(), querySample.getTimestamp());
   }
 
   @Test

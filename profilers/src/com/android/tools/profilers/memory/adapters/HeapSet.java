@@ -47,6 +47,10 @@ public class HeapSet extends ClassifierSet {
     myInstances.addAll(descendantsStream);
   }
 
+  public void clearClassifierSets() {
+    resetDescendants();
+  }
+
   public int getId() {
     return myId;
   }
