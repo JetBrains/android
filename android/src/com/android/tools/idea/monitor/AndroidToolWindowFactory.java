@@ -139,7 +139,8 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
         }
       }, project);
     } else {
-      northPanel.add(searchComponent, BorderLayout.EAST);
+      searchComponent.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+      northPanel.add(searchComponent, BorderLayout.CENTER);
     }
 
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
