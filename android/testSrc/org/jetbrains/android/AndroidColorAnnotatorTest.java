@@ -172,6 +172,7 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
 
     AndroidColorAnnotator annotator = new AndroidColorAnnotator();
     annotator.annotate(element, holder);
+    Mockito.reset(holder);
     assertThat(annotations).isNotEmpty();
     return annotations.get(0);
   }
