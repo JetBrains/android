@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class VariantStub implements Variant {
@@ -115,7 +116,7 @@ public class VariantStub implements Variant {
   @Override
   @NotNull
   public Collection<TestedTargetVariant> getTestedTargetVariants() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   public void addProductFlavors(@NotNull String... flavorNames) {

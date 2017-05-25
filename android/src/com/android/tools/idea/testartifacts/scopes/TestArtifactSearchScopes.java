@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
@@ -278,7 +277,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   private DependencySet extractUnitTestDependencies(@NotNull AndroidModuleModel androidModel) {
     BaseArtifact artifact = androidModel.getUnitTestArtifactInSelectedVariant();
     if (unitTestDependencies == null) {
-      unitTestDependencies = extractTestDependencies(artifact, androidModel.getModelVersion());
+      unitTestDependencies = extractTestDependencies(artifact);
     }
     return unitTestDependencies;
   }
@@ -287,30 +286,28 @@ public final class TestArtifactSearchScopes implements Disposable {
   private DependencySet extractAndroidTestDependencies(@NotNull AndroidModuleModel androidModel) {
     BaseArtifact artifact = androidModel.getAndroidTestArtifactInSelectedVariant();
     if (androidTestDependencies == null) {
-      androidTestDependencies = extractTestDependencies(artifact, androidModel.getModelVersion());
+      androidTestDependencies = extractTestDependencies(artifact);
     }
     return androidTestDependencies;
   }
 
   @NotNull
-  private static DependencySet extractTestDependencies(@Nullable BaseArtifact artifact,
-                                                       @Nullable GradleVersion modelVersion) {
-    return extractDependencies(TEST, artifact, modelVersion);
+  private static DependencySet extractTestDependencies(@Nullable BaseArtifact artifact) {
+    return extractDependencies(TEST, artifact);
   }
 
   @NotNull
   private DependencySet extractMainDependencies(AndroidModuleModel androidModel) {
     if (mainDependencies == null) {
-      mainDependencies = extractDependencies(COMPILE, androidModel.getMainArtifact(), androidModel.getModelVersion());
+      mainDependencies = extractDependencies(COMPILE, androidModel.getMainArtifact());
     }
     return mainDependencies;
   }
 
   @NotNull
   private static DependencySet extractDependencies(@NotNull DependencyScope scope,
-                                                   @Nullable BaseArtifact artifact,
-                                                   @Nullable GradleVersion modelVersion) {
-    return artifact != null ? DependenciesExtractor.getInstance().extractFrom(artifact, scope, modelVersion) : DependencySet.EMPTY;
+                                                   @Nullable BaseArtifact artifact) {
+    return artifact != null ? DependenciesExtractor.getInstance().extractFrom(artifact, scope) : DependencySet.EMPTY;
   }
 
   @Nullable

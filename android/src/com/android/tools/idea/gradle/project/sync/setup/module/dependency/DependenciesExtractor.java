@@ -16,28 +16,22 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.builder.model.*;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.util.GradleUtil.androidModelSupportsInstantApps;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class DependenciesExtractor {
   @NotNull
@@ -46,56 +40,37 @@ public class DependenciesExtractor {
   }
 
   @NotNull
-  public DependencySet extractFrom(@NotNull AndroidModuleModel androidModel) {
+  public DependencySet extractFrom(@NotNull Variant variant) {
     DependencySet dependencies = new DependencySet();
-    GradleVersion modelVersion = androidModel.getModelVersion();
 
-    for (BaseArtifact testArtifact : androidModel.getTestArtifactsInSelectedVariant()) {
-      populate(dependencies, testArtifact, TEST, modelVersion);
+    for (BaseArtifact testArtifact : AndroidModuleModel.getTestArtifacts(variant)) {
+      populate(dependencies, testArtifact, TEST);
     }
 
-    AndroidArtifact mainArtifact = androidModel.getMainArtifact();
-    populate(dependencies, mainArtifact, COMPILE, modelVersion);
+    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    populate(dependencies, mainArtifact, COMPILE);
 
     return dependencies;
   }
 
   @NotNull
-  public DependencySet extractFrom(@NotNull BaseArtifact artifact, @NotNull DependencyScope scope, @Nullable GradleVersion modelVersion) {
+  public DependencySet extractFrom(@NotNull BaseArtifact artifact, @NotNull DependencyScope scope) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifact, scope, modelVersion);
+    populate(dependencies, artifact, scope);
     return dependencies;
   }
 
   private static void populate(@NotNull DependencySet dependencies,
                                @NotNull BaseArtifact artifact,
-                               @NotNull DependencyScope scope,
-                               @Nullable GradleVersion modelVersion) {
-    Dependencies artifactDependencies = getDependencies(artifact, modelVersion);
-    boolean supportsInstantApps = modelVersion != null && androidModelSupportsInstantApps(modelVersion);
-
+                               @NotNull DependencyScope scope) {
+    Dependencies artifactDependencies = getDependencies(artifact, null);
     addJavaLibraries(dependencies, artifactDependencies.getJavaLibraries(), scope);
 
     Set<File> unique = Sets.newHashSet();
     for (AndroidLibrary library : artifactDependencies.getLibraries()) {
       addAndroidLibrary(library, dependencies, scope, unique);
     }
-    if (supportsInstantApps) {
-      Collection<AndroidAtom> atoms = null;
-      try {
-        atoms = artifactDependencies.getAtoms();
-      }
-      catch (Throwable e) {
-        getLogger().warn("Android plugin version " + modelVersion.toString() + " should support Atoms", e);
-      }
-      if (atoms != null) {
-        for (AndroidAtom androidAtom : atoms) {
-          addAndroidAtom(androidAtom, dependencies, scope, unique);
-        }
-      }
-    }
 
-    //noinspection deprecation
     for (String gradleProjectPath : artifactDependencies.getProjects()) {
       if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
         ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
@@ -152,33 +127,6 @@ public class DependenciesExtractor {
     addBundleTransitiveDependencies(library, dependencies, scope, unique);
   }
 
-
-  /**
-   * Add an Android atom, along with any recursive atom dependencies
-   */
-  private static void addAndroidAtom(@NotNull AndroidAtom atom,
-                                     @NotNull DependencySet dependencies,
-                                     @NotNull DependencyScope scope,
-                                     @NotNull Set<File> unique) {
-    if (isAlreadySeen(atom, unique)) {
-      return;
-    }
-
-    String gradleProjectPath = atom.getProject();
-    if (isEmpty(gradleProjectPath)) {
-      getLogger().error(message("android.gradle.dependency.atom.invalid.external", atom.getName()));
-    }
-    else {
-      dependencies.add(new ModuleDependency(gradleProjectPath, scope));
-      addAtomTransitiveDependencies(atom, dependencies, scope, unique);
-    }
-  }
-
-  @NotNull
-  private static Logger getLogger() {
-    return Logger.getInstance(DependenciesExtractor.class);
-  }
-
   private static void addBundleTransitiveDependencies(@NotNull AndroidBundle bundle,
                                                       @NotNull DependencySet dependencies,
                                                       @NotNull DependencyScope scope,
@@ -186,16 +134,6 @@ public class DependenciesExtractor {
     for (AndroidLibrary dependentLibrary : bundle.getLibraryDependencies()) {
       addAndroidLibrary(dependentLibrary, dependencies, scope, unique);
     }
-  }
-
-  private static void addAtomTransitiveDependencies(@NotNull AndroidAtom atom,
-                                                    @NotNull DependencySet dependencies,
-                                                    @NotNull DependencyScope scope,
-                                                    @NotNull Set<File> unique) {
-    for (AndroidAtom dependentAtom : atom.getAtomDependencies()) {
-      addAndroidAtom(dependentAtom, dependencies, scope, unique);
-    }
-    addBundleTransitiveDependencies(atom, dependencies, scope, unique);
   }
 
   @NotNull

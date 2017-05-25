@@ -61,7 +61,7 @@ public class SourceProviderStub implements SourceProvider {
   @Override
   @NotNull
   public String getName() {
-    throw new UnsupportedOperationException();
+    return "test";
   }
 
   @Override
@@ -70,7 +70,7 @@ public class SourceProviderStub implements SourceProvider {
     if (myManifestFile != null) {
       return myManifestFile;
     }
-    throw new UnsupportedOperationException();
+    return new File("fake");
   }
 
   /**
