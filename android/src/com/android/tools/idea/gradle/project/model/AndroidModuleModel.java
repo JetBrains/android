@@ -81,7 +81,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
-  @NotNull private AndroidProject myAndroidProject;
+  @NotNull private IdeAndroidProject myAndroidProject;
 
   @NotNull private transient AndroidModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
@@ -124,13 +124,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    try {
-      myAndroidProject = new IdeAndroidProject(androidProject);
-    }
-    catch (RuntimeException e) {
-      Logger.getInstance(getClass()).warn("Failed to copy Android model", e);
-      myAndroidProject = androidProject;
-    }
+    myAndroidProject = new IdeAndroidProject(androidProject);
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
 
@@ -875,7 +869,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myProjectSystemId = (ProjectSystemId)in.readObject();
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
-    myAndroidProject = (AndroidProject)in.readObject();
+    myAndroidProject = (IdeAndroidProject)in.readObject();
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
