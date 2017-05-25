@@ -29,11 +29,11 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -112,7 +112,8 @@ public class StudioProfilersView extends AspectObserver {
     JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
     toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER));
-    toolbar.setPreferredSize(new Dimension(15, 30));
+    // There is a border of 5 pixels that is not scaled.
+    toolbar.setPreferredSize(new Dimension(15, JBUI.scale(25) + 5));
 
     myMonitoringToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
     myMonitoringToolbar.add(deviceCombo);
