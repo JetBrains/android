@@ -41,18 +41,24 @@ public class IntellijDataViewer implements DataViewer {
 
   @NotNull
   public static IntellijDataViewer createEditorViewer(@NotNull String content, @Nullable FileType contentType) {
-    EditorFactory editorFactory = EditorFactory.getInstance();
-    Document document = editorFactory.createDocument(content.toCharArray());
-    document.setReadOnly(true);
-    EditorEx editor = (EditorEx)editorFactory.createViewer(document);
-    editor.setCaretVisible(false);
-    editor.getSettings().setLineNumbersShown(false);
-    editor.getSettings().setLineMarkerAreaShown(false);
-    editor.getSettings().setFoldingOutlineShown(false);
-    if (contentType != null) {
-      editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, contentType));
+    try {
+      EditorFactory editorFactory = EditorFactory.getInstance();
+      Document document = editorFactory.createDocument(content.toCharArray());
+      document.setReadOnly(true);
+      EditorEx editor = (EditorEx)editorFactory.createViewer(document);
+      editor.setCaretVisible(false);
+      editor.getSettings().setLineNumbersShown(false);
+      editor.getSettings().setLineMarkerAreaShown(false);
+      editor.getSettings().setFoldingOutlineShown(false);
+      if (contentType != null) {
+        editor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(null, contentType));
+      }
+      return new IntellijDataViewer(editor.getComponent(), null);
     }
-    return new IntellijDataViewer(editor.getComponent(), null);
+    catch (Exception | AssertionError e) {
+      // Exceptions and AssertionErrors can be thrown by editorFactory.createDocument and editorFactory.createViewer
+      return createInvalidViewer();
+    }
   }
 
   @NotNull
