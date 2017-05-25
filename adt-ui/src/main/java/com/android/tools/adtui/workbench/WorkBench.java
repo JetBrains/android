@@ -291,6 +291,10 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   // TODO: Consider modifying ThreeComponentsSplitter.doLayout since this code will create some resize flickering.
   private void adjustSplitterForInsufficentSpace() {
+    if (mySplitter.getWidth() <= 0 || !mySplitter.isVisible()) {
+      // No adjustment required
+      return;
+    }
     JComponent content = mySplitter.getInnerComponent();
     int actualCenterWidth = mySplitter.getWidth() - (mySplitter.getFirstSize() + mySplitter.getLastSize());
     int minCenterWidth = Math.max((content != null ? content.getMinimumSize().width : 0), ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
