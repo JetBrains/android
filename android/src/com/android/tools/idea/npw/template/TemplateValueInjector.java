@@ -141,6 +141,12 @@ public final class TemplateValueInjector {
     // Note here that the target is null for a non-preview release
     // @see VersionItem#getAndroidTarget()
     myTemplateValues.put(ATTR_BUILD_API_REVISION, target == null ? 0 : target.getRevision());
+    if (target != null) { // this is a preview release
+      BuildToolInfo info = target.getBuildToolInfo();
+      if (info != null) {
+        myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, info.getRevision().toString());
+      }
+    }
     return this;
   }
 

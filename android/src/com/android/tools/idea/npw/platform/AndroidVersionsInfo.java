@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.platform;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.repository.Revision;
@@ -401,7 +402,8 @@ public class AndroidVersionsInfo {
       this(new AndroidVersion(apiLevel, null), SystemImage.DEFAULT_TAG);
     }
 
-    VersionItem(@NotNull IAndroidTarget target) {
+    @VisibleForTesting
+    public VersionItem(@NotNull IAndroidTarget target) {
       this(target.getVersion(), SystemImage.DEFAULT_TAG);
       this.myAndroidTarget = target;
     }
