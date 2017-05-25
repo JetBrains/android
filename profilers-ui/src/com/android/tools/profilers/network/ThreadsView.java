@@ -321,7 +321,7 @@ final class ThreadsView {
       myTable = table;
       myStage = stage;
 
-      myLabel = new JLabel("");
+      myLabel = new JLabel();
       myLabel.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
       myLabel.setBorder(new EmptyBorder(5, 10, 5, 10));
       myLabel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
@@ -376,12 +376,12 @@ final class ThreadsView {
       myTooltipComponent.setVisible(true);
 
       StringBuilder text = new StringBuilder("<html> <style> p { margin-bottom: 5px; }  p, li { font-size: 11;}</style>");
-      text.append("<p style='font-size:12.5'>" + data.getJavaThreads().get(0).getName() + "</p>");
+      text.append("<p style='font-size:12.5'>").append(data.getJavaThreads().get(0).getName()).append("</p>");
 
-      text.append("<p>" + HttpData.getUrlName(data.getUrl()) + "</p>");
+      text.append("<p>").append(HttpData.getUrlName(data.getUrl())).append("</p>");
 
       if (data.getJavaThreads().size() > 1) {
-        text.append("<p style='margin-bottom:-5;'>Other threads:</p>");
+        text.append("<p style='margin-bottom:-5;'>Also accessed by:</p>");
         text.append("<ul>");
         for (int i = 1; i < data.getJavaThreads().size(); ++i) {
           text.append("<li>").append(data.getJavaThreads().get(i).getName()).append("</li>");
