@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.codeInsight.lookup.Lookup;
@@ -34,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
 import icons.AndroidIcons;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,8 +45,7 @@ import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.List;
 
 public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<String> {
@@ -120,8 +121,8 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     myLookupListeners.add(listener);
   }
 
-  public void updateCompletionsFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> types) {
-    myCompletionProvider.updateCompletionsFromTypes(facet, types);
+  public void updateCompletionsFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> types, @Nullable NlProperty property) {
+    myCompletionProvider.updateCompletionsFromTypes(facet, types, property);
   }
 
   public void updateCompletions(@NotNull List<String> items) {
@@ -189,17 +190,41 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
       return ResourceHelper.compareResourceReferences(item1, item2);
     }
 
-    private void updateCompletionsFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> types) {
-      // We include mipmap directly in the drawable maps
-      if (types.contains(ResourceType.MIPMAP)) {
-        types = types.clone();
-        types.remove(ResourceType.MIPMAP);
-        types.add(ResourceType.DRAWABLE);
+    private void updateCompletionsFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> types,
+                                            @Nullable NlProperty property) {
+      Collection<String> items = new ArrayList<>();
+
+      if (property != null) {
+        AttributeDefinition definition = property.getDefinition();
+        if (definition != null && definition.getValues().length > 0) {
+          items.addAll(Arrays.asList(definition.getValues()));
+        }
+
+        if (types.contains(ResourceType.ID)) {
+          types = types.clone();
+          types.remove(ResourceType.ID);
+
+          for (String id : ResourceHelper.findIdsInFile(property.getModel().getFile())) {
+            items.add("@id/" + id);
+          }
+        }
       }
 
       // No point sorting: TextFieldWithAutoCompletionListProvider performs its
       // own sorting afterwards (by calling compare() above)
-      setItems(ResourceHelper.getCompletionFromTypes(facet, types, false));
+      if (!types.isEmpty()) {
+
+        // We include mipmap directly in the drawable maps
+        if (types.contains(ResourceType.MIPMAP)) {
+          types = types.clone();
+          types.remove(ResourceType.MIPMAP);
+          types.add(ResourceType.DRAWABLE);
+        }
+
+        items.addAll(ResourceHelper.getCompletionFromTypes(facet, types, false));
+      }
+
+      setItems(items);
     }
   }
 }
