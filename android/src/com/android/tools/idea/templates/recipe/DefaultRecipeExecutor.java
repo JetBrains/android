@@ -471,9 +471,14 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       if (configurationFilter.test(dependency.getKey())) {
         dependencies.append("  ")
           .append(dependency.getKey())
-          .append(" '")
-          .append(dependency.getValue())
-          .append("'\n");
+          .append(" ");
+        final String dependencyValue = dependency.getValue();
+        // Interpolated values need to be in double quotes
+        boolean isInterpolated = dependencyValue.contains("$");
+        dependencies.append(isInterpolated ? '"' : '\'')
+          .append(dependencyValue)
+          .append(isInterpolated ? '"' : '\'')
+          .append("\n");
       }
     }
     dependencies.append("}\n");
