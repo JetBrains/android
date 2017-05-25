@@ -25,6 +25,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBus;
@@ -132,6 +133,7 @@ public class FloatingToolWindowManagerTest {
     KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
     myManager.projectClosed();
     myManager.disposeComponent();
+    Disposer.dispose(ProjectManager.getInstance().getDefaultProject());
   }
 
   @Test
