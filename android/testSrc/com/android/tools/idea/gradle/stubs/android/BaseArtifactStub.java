@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -37,6 +38,7 @@ public class BaseArtifactStub implements BaseArtifact {
   @NotNull protected final String myBuildType;
   @NotNull protected final FileStructure myFileStructure;
   @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
+  @NotNull private final Set<File> myAdditionalClassesFolders = new HashSet<>();
 
   public BaseArtifactStub(@NotNull String name,
                           @NotNull String folderName,
@@ -74,6 +76,12 @@ public class BaseArtifactStub implements BaseArtifact {
   public File getClassesFolder() {
     String path = "build/intermediates/classes/" + myFolderName;
     return new File(myFileStructure.getRootFolderPath(), path);
+  }
+
+  @NotNull
+  @Override
+  public Set<File> getAdditionalClassesFolders() {
+    return myAdditionalClassesFolders;
   }
 
   @Override
@@ -134,5 +142,9 @@ public class BaseArtifactStub implements BaseArtifact {
   public void addGeneratedSourceFolder(@NotNull String path) {
     File directory = myFileStructure.createProjectDir(path);
     myGeneratedSourceFolders.add(directory);
+  }
+
+  public void addAdditionalClassesFolder(@NotNull File folder) {
+    myAdditionalClassesFolders.add(folder);
   }
 }

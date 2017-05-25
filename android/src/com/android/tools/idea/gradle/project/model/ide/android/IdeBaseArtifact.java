@@ -48,6 +48,7 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   @Nullable private final DependencyGraphs myDependencyGraphs;
   @Nullable private final IdeSourceProvider myVariantSourceProvider;
   @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
+  @NotNull private final Set<File> myAdditionalClassFolders;
 
   protected IdeBaseArtifact(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
     super(artifact, modelCache);
@@ -72,6 +73,7 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
     myGeneratedSourceFolders = new ArrayList<>(getGeneratedSourceFolders(artifact));
     myVariantSourceProvider = createSourceProvider(modelCache, artifact.getVariantSourceProvider());
     myMultiFlavorSourceProvider = createSourceProvider(modelCache, artifact.getMultiFlavorSourceProvider());
+    myAdditionalClassFolders = copyNewProperty(artifact::getAdditionalClassesFolders, Collections.emptySet());
 
     myHashCode = calculateHashCode();
   }
@@ -196,6 +198,12 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   }
 
   @Override
+  public Set<File> getAdditionalClassesFolders() {
+    return myAdditionalClassFolders;
+  }
+
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -209,6 +217,7 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
            Objects.equals(myCompileTaskName, artifact.myCompileTaskName) &&
            Objects.equals(myAssembleTaskName, artifact.myAssembleTaskName) &&
            Objects.equals(myClassesFolder, artifact.myClassesFolder) &&
+           Objects.equals(myAdditionalClassFolders, artifact.myAdditionalClassFolders) &&
            Objects.equals(myJavaResourcesFolder, artifact.myJavaResourcesFolder) &&
            Objects.equals(myDependencies, artifact.myDependencies) &&
            Objects.equals(myCompileDependencies, artifact.myCompileDependencies) &&
@@ -231,7 +240,7 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   protected int calculateHashCode() {
     return Objects.hash(myName, myCompileTaskName, myAssembleTaskName, myClassesFolder, myJavaResourcesFolder, myDependencies,
                         myCompileDependencies, myDependencyGraphs, myIdeSetupTaskNames, myGeneratedSourceFolders,
-                        myVariantSourceProvider, myMultiFlavorSourceProvider);
+                        myVariantSourceProvider, myMultiFlavorSourceProvider, myAdditionalClassFolders);
   }
 
   @Override

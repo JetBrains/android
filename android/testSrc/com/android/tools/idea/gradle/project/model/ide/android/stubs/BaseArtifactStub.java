@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 public class BaseArtifactStub extends BaseStub implements BaseArtifact {
@@ -41,9 +42,12 @@ public class BaseArtifactStub extends BaseStub implements BaseArtifact {
   @NotNull private final Collection<File> myGeneratedSourceFolders;
   @Nullable private final SourceProvider myVariantSourceProvider;
   @Nullable private final SourceProvider myMultiFlavorSourceProvider;
+  @NotNull private final Set<File> myAdditionalClassesFolders;
+    ;
 
   public BaseArtifactStub() {
-    this("name", "compile", "assemble", new File("classes"), new File("javaResources"), new DependenciesStub(), new DependenciesStub(),
+    this("name", "compile", "assemble", new File("classes"), new HashSet<>(),
+         new File("javaResources"), new DependenciesStub(), new DependenciesStub(),
          new DependencyGraphsStub(), Sets.newHashSet("setup"), Lists.newArrayList(new File("generated")),
          new SourceProviderStub(), new SourceProviderStub());
   }
@@ -52,6 +56,7 @@ public class BaseArtifactStub extends BaseStub implements BaseArtifact {
                           @NotNull String compileTaskName,
                           @NotNull String assembleTaskName,
                           @NotNull File classesFolder,
+                          @NotNull Set<File> classesFolders,
                           @NotNull File javaResourcesFolder,
                           @NotNull Dependencies dependencies,
                           @NotNull Dependencies compileDependencies,
@@ -64,6 +69,7 @@ public class BaseArtifactStub extends BaseStub implements BaseArtifact {
     myCompileTaskName = compileTaskName;
     myAssembleTaskName = assembleTaskName;
     myClassesFolder = classesFolder;
+    myAdditionalClassesFolders = classesFolders;
     myJavaResourcesFolder = javaResourcesFolder;
     myDependencies = dependencies;
     myCompileDependencies = compileDependencies;
@@ -147,12 +153,19 @@ public class BaseArtifactStub extends BaseStub implements BaseArtifact {
   }
 
   @Override
+  @NotNull
+  public Set<File> getAdditionalClassesFolders() {
+    return myAdditionalClassesFolders;
+  }
+
+  @Override
   public String toString() {
     return "BaseArtifactStub{" +
            "myName='" + myName + '\'' +
            ", myCompileTaskName='" + myCompileTaskName + '\'' +
            ", myAssembleTaskName='" + myAssembleTaskName + '\'' +
            ", myClassesFolder=" + myClassesFolder +
+           ", myAdditionalClassesFolders=" + myAdditionalClassesFolders +
            ", myJavaResourcesFolder=" + myJavaResourcesFolder +
            ", myDependencies=" + myDependencies +
            ", myCompileDependencies=" + myCompileDependencies +
