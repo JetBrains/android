@@ -110,7 +110,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
 
     try {
       // this temporary copy is destroyed while disposing the archive, see #disposeArchive
-      Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), apkVirtualFile.getExtension());
+      Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
       Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
       myArchive = Archives.open(copyOfApk);
       myApkViewPanel = new ApkViewPanel(new ApkParser(myArchive, ApkSizeCalculator.getDefault()));
