@@ -74,6 +74,10 @@ public class NavScreenTargetProvider implements TargetProvider {
       if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
         result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
       }
+
+      if (sceneComponent.getParent() != null) {
+        result.add(new ActionHandleTarget(sceneComponent));
+      }
     }
     SceneComponent parent = sceneComponent.getParent();
     NlComponent parentNlComponent = null;
