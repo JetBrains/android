@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.scopes;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -48,6 +49,8 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   private Set<String> myExampleClassPathSet;
   private String myRealAndroidJar;
   private String myMockableAndroidJar;
+  private String myKotlinClasses;
+  private String myTestKotlinClasses;
   private Collection<String> myResourcesDirs;
 
   private AndroidJunitPatcher myPatcher;
@@ -81,6 +84,8 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
                          "/idea/production/java-runtime", "/idea/production/junit_rt");
 
     myMockableAndroidJar = myRoot + "/build/intermediates/mockable-" + TestUtils.getLatestAndroidPlatform() + ".jar";
+    myKotlinClasses = myRoot + "/build/tmp/kotlin-classes/debug";
+    myTestKotlinClasses = myRoot + "/build/tmp/kotlin-classes/debugUnitTest";
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myModule);
     assertNotNull(androidPlatform);
     myRealAndroidJar = TestUtils.getPlatformFile("android.jar").toString();
@@ -167,5 +172,22 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 
     assertEquals(normalize(myMockableAndroidJar), normalize(Iterables.getLast(myJavaParameters.getClassPath().getPathList())));
+  }
+
+  public void testKotlinClasses() throws Exception {
+    myJavaParameters.getClassPath().remove(myMockableAndroidJar);
+
+    AndroidModuleModel model = AndroidModuleModel.get(myFacet);
+    assert model != null;
+
+    AndroidArtifactStub artifact = (AndroidArtifactStub)model.getMainArtifact();
+    artifact.addAdditionalClassesFolder(new File(myKotlinClasses));
+    JavaArtifactStub testArtifact = (JavaArtifactStub)model.getUnitTestArtifactInSelectedVariant();
+    assert testArtifact != null;
+    testArtifact.addAdditionalClassesFolder(new File(myTestKotlinClasses));
+
+    myPatcher.patchJavaParameters(myModule, myJavaParameters);
+
+    assertContainsElements(myJavaParameters.getClassPath().getPathList(), myTestKotlinClasses);
   }
 }

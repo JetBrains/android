@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
@@ -25,7 +27,6 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,6 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 
 /**
@@ -47,7 +47,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
   @Override
   public void patchJavaParameters(@Nullable Module module, @NotNull JavaParameters javaParameters) {
     // Only patch if the project is a Gradle project.
-    if (module == null || !isBuildWithGradle(module.getProject())) {
+    if (module == null || !GradleProjectInfo.getInstance(module.getProject()).isBuildWithGradle()) {
       return;
     }
 
@@ -87,14 +87,14 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     String originalClassPath = classPath.getPathsString();
     try {
       handlePlatformJar(classPath, platform, testArtifact);
-      handleJavaResources(module, androidModel, classPath);
+      handleAdditionalFolders(module, androidModel, classPath);
     }
     catch (RuntimeException e) {
       throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath), e);
     }
   }
 
-  // Removes real android.jar from the classpath and puts the mockable one at the end.
+  /** Removes real android.jar from the classpath and puts the mockable one at the end. */
   private static void handlePlatformJar(@NotNull PathsList classPath,
                                         @NotNull AndroidPlatform platform,
                                         @NotNull JavaArtifact artifact) {
@@ -122,7 +122,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       classPath.remove(mockableJar);
     }
 
-    File mockableJar = getMockableJarFromModel(artifact);
+    File mockableJar = artifact.getMockablePlatformJar();
 
     if (mockableJar != null) {
       classPath.addTail(mockableJar.getPath());
@@ -139,19 +139,6 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
   }
 
-  @Nullable
-  @Deprecated
-  // TODO use IdeJavaArtifact#getMockablePlatformJar
-  private static File getMockableJarFromModel(@NotNull JavaArtifact model) {
-    try {
-      return model.getMockablePlatformJar();
-    }
-    catch (UnsupportedMethodException e) {
-      // Older model.
-      return null;
-    }
-  }
-
   /**
    * Puts folders with merged java resources for the selected variant of every module on the classpath.
    *
@@ -163,9 +150,9 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    *
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
    */
-  private static void handleJavaResources(@NotNull Module module,
-                                          @NotNull AndroidModuleModel androidModel,
-                                          @NotNull PathsList classPath) {
+  private static void handleAdditionalFolders(@NotNull Module module,
+                                              @NotNull AndroidModuleModel androidModel,
+                                              @NotNull PathsList classPath) {
     CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
@@ -173,14 +160,12 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
 
     if (testArtifact != null) {
-      try {
-        // TODO use IdeBaseArtifact#getJavaResourcesFolder
-        classPath.add(testArtifact.getJavaResourcesFolder());
-      }
-      catch (UnsupportedMethodException ignored) {
-        // Java resources were not present in older versions of the gradle plugin.
+      classPath.add(testArtifact.getJavaResourcesFolder());
+      for (File additionalTestClasses : testArtifact.getAdditionalClassesFolders()) {
+        classPath.add(additionalTestClasses);
       }
     }
+
     FileRootSearchScope excludeScope = null;
     TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
     if (testScopes != null) {
@@ -192,18 +177,20 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       if (facet != null) {
         AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(facet);
         if (affectedAndroidModel != null) {
-          try {
-            File resourceFolder = affectedAndroidModel.getMainArtifact().getJavaResourcesFolder();
-            if (excludeScope != null && excludeScope.accept(resourceFolder)) {
-              continue;
-            }
-            classPath.add(resourceFolder);
-          }
-          catch (UnsupportedMethodException ignored) {
-            // Java resources were not present in older versions of the gradle plugin.
+          AndroidArtifact mainArtifact = affectedAndroidModel.getMainArtifact();
+          addToClasspath(mainArtifact.getJavaResourcesFolder(), classPath, excludeScope);
+          for (File additionalClassesFolder : mainArtifact.getAdditionalClassesFolders()) {
+            addToClasspath(additionalClassesFolder, classPath, excludeScope);
           }
         }
       }
     }
+  }
+
+  private static void addToClasspath(File resourceFolder, @NotNull PathsList classPath, FileRootSearchScope excludeScope) {
+    if (excludeScope != null && excludeScope.accept(resourceFolder)) {
+      return;
+    }
+    classPath.add(resourceFolder);
   }
 }
