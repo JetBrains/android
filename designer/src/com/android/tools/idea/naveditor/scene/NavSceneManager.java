@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene;
 
 import com.android.sdklib.devices.Screen;
+import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
@@ -44,16 +45,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * {@link SceneManager} for the navigation editor.
  */
 public class NavSceneManager extends SceneManager {
   public final NavScreenTargetProvider myScreenTargetProvider;
+  // TODO: enable layout algorithm switching
+  //noinspection CanBeFinal
   private NavSceneLayoutAlgorithm myLayoutAlgorithm;
 
   private SceneDecoratorFactory myDecoratorFactory;
@@ -113,7 +114,9 @@ public class NavSceneManager extends SceneManager {
           break;
         case FRAGMENT:
         case ACTIVITY:
-          Screen screen = getModel().getConfiguration().getDeviceState().getHardware().getScreen();
+          State state = getModel().getConfiguration().getDeviceState();
+          assert state != null;
+          Screen screen = state.getHardware().getScreen();
           // TODO: is this conversion correct?
           double scale = (double)Coordinates.getAndroidDimension(getDesignSurface(), SCREEN_WIDTH)/screen.getXDimension();
           sceneComponent.setSize((int)(scale * screen.getXDimension()), (int)(scale * screen.getYDimension()), true);
@@ -165,25 +168,24 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   public void requestRender() {
-    List<NlComponent> components = getModel().getComponents();
-    if (components.size() != 0) {
-      NlComponent rootComponent = components.get(0).getRoot();
-      SceneComponent root = createHierarchy(rootComponent);
-      updateFromComponent(root, new HashSet<>());
-
-      getScene().setRoot(root);
-      layoutAll(root);
+    update();
+    SceneComponent root = getScene().getRoot();
+    if (root != null) {
       root.updateTargets(true);
+      layoutAll();
     }
-    getScene().needsRebuildList();
   }
 
-  private void layoutAll(@NotNull SceneComponent root) {
-    root.flatten().forEach(myLayoutAlgorithm::layout);
+  private void layoutAll() {
+    SceneComponent root = getScene().getRoot();
+    if (root != null) {
+      root.flatten().forEach(myLayoutAlgorithm::layout);
+    }
   }
 
   @Override
   public void layout(boolean animate) {
+    layoutAll();
     getScene().needsRebuildList();
   }
 
@@ -208,7 +210,10 @@ public class NavSceneManager extends SceneManager {
       newRoot = AndroidPsiUtils.getRootTagSafely(newModel.getFile());
       roots = buildTree(newModel.getComponents().stream().map(NlComponent::getTag).toArray(XmlTag[]::new));
     }
-    model.syncWithPsi(newRoot, roots);
+    if (newRoot != null) {
+      // TODO error handling (if newRoot is null)
+      model.syncWithPsi(newRoot, roots);
+    }
     // TODO: should this be here?
     model.notifyModified(NlModel.ChangeType.EDIT);
   }
