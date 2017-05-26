@@ -48,7 +48,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +60,10 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
@@ -110,23 +112,6 @@ public final class GradleUtil {
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
 
   private GradleUtil() {
-  }
-
-  @Deprecated
-  @NotNull
-  // TODO replace with IdeBaseArtifact#getGeneratedSourceFolders
-  public static Collection<File> getGeneratedSourceFolders(@NotNull BaseArtifact artifact) {
-    try {
-      Collection<File> folders = artifact.getGeneratedSourceFolders();
-      // JavaArtifactImpl#getGeneratedSourceFolders returns null even though BaseArtifact#getGeneratedSourceFolders is marked as @NonNull.
-      // See https://code.google.com/p/android/issues/detail?id=216236
-      //noinspection ConstantConditions
-      return folders != null ? folders : Collections.emptyList();
-    }
-    catch (UnsupportedMethodException e) {
-      // Model older than 1.2.
-    }
-    return Collections.emptyList();
   }
 
   @NotNull
@@ -454,7 +439,7 @@ public final class GradleUtil {
   /**
    * Checks if the project already has a module with given Gradle path.
    */
-  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath, boolean checkProjectFolder) {
+  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath) {
     if (project == null) {
       return false;
     }
@@ -463,22 +448,15 @@ public final class GradleUtil {
         return true;
       }
     }
-    if (checkProjectFolder) {
-      File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
-      if (location.isFile()) {
-        return true;
-      }
-      else if (location.isDirectory()) {
-        File[] children = location.listFiles();
-        return children == null || children.length > 0;
-      }
-      else {
-        return false;
-      }
+    File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
+    if (location.isFile()) {
+      return true;
     }
-    else {
-      return false;
+    if (location.isDirectory()) {
+      File[] children = location.listFiles();
+      return children == null || children.length > 0;
     }
+    return false;
   }
 
   /**
