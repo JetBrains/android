@@ -36,6 +36,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.templates.GoogleMavenVersionLookup;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
@@ -80,9 +81,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.uast.UElement;
-import org.jetbrains.uast.UFile;
-import org.jetbrains.uast.UastUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -92,6 +90,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 
+import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOGLE_CACHE_DIR_KEY;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
@@ -501,12 +500,22 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable private static volatile String ourSystemPath;
 
-  @Override
   @Nullable
-  public File getCacheDir(boolean create) {
+  @Override
+  public File getCacheDir(@Nullable String name, boolean create) {
+    if (MAVEN_GOOGLE_CACHE_DIR_KEY.equals(name)) {
+      // Share network cache with existing implementation
+      return GoogleMavenVersionLookup.INSTANCE.getCacheDir();
+    }
+
     final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
-    File lint = new File(path, "lint");
+    String relative = "lint";
+    if (name != null) {
+      relative += File.separator + name;
+    }
+    File lint = new File(path, relative);
     if (create && !lint.exists()) {
+      //noinspection ResultOfMethodCallIgnored
       lint.mkdirs();
     }
     return lint;
@@ -906,6 +915,17 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public URLConnection openConnection(@NonNull URL url) throws IOException {
     return HttpConfigurable.getInstance().openConnection(url.toExternalForm());
+  }
+
+  @Override
+  @Nullable
+  public URLConnection openConnection(@NonNull URL url, int timeout) throws IOException {
+    URLConnection connection = HttpConfigurable.getInstance().openConnection(url.toExternalForm());
+    if (timeout > 0) {
+      connection.setConnectTimeout(timeout);
+      connection.setReadTimeout(timeout);
+    }
+    return connection;
   }
 
   @Override
