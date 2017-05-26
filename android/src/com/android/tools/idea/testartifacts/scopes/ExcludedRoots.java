@@ -42,7 +42,6 @@ import java.util.function.Consumer;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -191,16 +190,16 @@ class ExcludedRoots {
       IdeBaseArtifact exclude = myAndroidTest ? variant.getUnitTestArtifact() : variant.getAndroidTestArtifact();
       IdeBaseArtifact include = myAndroidTest ? variant.getAndroidTestArtifact() : variant.getUnitTestArtifact();
       if (exclude != null) {
-        addLibraryPaths(exclude, model);
+        addLibraryPaths(exclude);
       }
       if (include != null) {
-        removeLibraryPaths(include, model);
+        removeLibraryPaths(include);
       }
     }
   }
 
-  private void addLibraryPaths(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {
-    Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
+  private void addLibraryPaths(@NotNull IdeBaseArtifact artifact) {
+    Dependencies dependencies = artifact.getDependencies();
     for (AndroidLibrary library : dependencies.getLibraries()) {
       if (isEmpty(library.getProject())) {
         for (File file : library.getLocalJars()) {
@@ -227,8 +226,8 @@ class ExcludedRoots {
     return myIncludedRootNames.contains(file.getName());
   }
 
-  private void removeLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidModuleModel model) {
-    Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
+  private void removeLibraryPaths(@NotNull BaseArtifact artifact) {
+    Dependencies dependencies = artifact.getDependencies();
     for (AndroidLibrary library : dependencies.getLibraries()) {
       if (isEmpty(library.getProject())) {
         for (File file : library.getLocalJars()) {

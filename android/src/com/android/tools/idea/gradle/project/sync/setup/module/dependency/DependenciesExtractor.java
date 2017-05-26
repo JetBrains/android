@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -63,7 +62,7 @@ public class DependenciesExtractor {
   private static void populate(@NotNull DependencySet dependencies,
                                @NotNull BaseArtifact artifact,
                                @NotNull DependencyScope scope) {
-    Dependencies artifactDependencies = getDependencies(artifact, null);
+    Dependencies artifactDependencies = artifact.getDependencies();
     addJavaLibraries(dependencies, artifactDependencies.getJavaLibraries(), scope);
 
     Set<File> unique = Sets.newHashSet();

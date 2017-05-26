@@ -191,7 +191,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       Multimap<String, DependencyTreeElement> dependenciesByVariant = HashMultimap.create();
 
       androidModel.getAndroidProject().forEachVariant(variant -> {
-        for (AndroidLibrary library : getDirectLibraryDependencies(variant, androidModel)) {
+        for (AndroidLibrary library : getDirectLibraryDependencies(variant)) {
           String libraryPath = library.getProject();
           if (libraryPath == null) {
             continue;

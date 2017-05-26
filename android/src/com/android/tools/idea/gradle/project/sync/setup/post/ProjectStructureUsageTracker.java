@@ -45,7 +45,6 @@ import java.util.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
@@ -251,17 +250,17 @@ public class ProjectStructureUsageTracker {
     }
 
     if (chosen != null) {
-      return trackLibraryCount(chosen, model);
+      return trackLibraryCount(chosen);
     }
     return null;
   }
 
-  private static GradleLibrary trackLibraryCount(@NotNull Variant variant, @NotNull AndroidModuleModel model) {
+  private static GradleLibrary trackLibraryCount(@NotNull Variant variant) {
     DependencyFiles files = new DependencyFiles();
 
     AndroidArtifact artifact = variant.getMainArtifact();
 
-    Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
+    Dependencies dependencies = artifact.getDependencies();
     for (JavaLibrary javaLibrary : dependencies.getJavaLibraries()) {
       addJarLibraryAndDependencies(javaLibrary, files);
     }

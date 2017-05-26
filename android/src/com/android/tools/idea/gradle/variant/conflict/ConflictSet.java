@@ -119,7 +119,7 @@ public class ConflictSet {
 
   @Nullable
   private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
-    List<AndroidLibrary> dependencies = getDirectLibraryDependencies(dependentAndroidModel.getSelectedVariant(), dependentAndroidModel);
+    List<AndroidLibrary> dependencies = getDirectLibraryDependencies(dependentAndroidModel.getSelectedVariant());
     for (AndroidLibrary dependency : dependencies) {
       if (!dependencyGradlePath.equals(dependency.getProject())) {
         continue;

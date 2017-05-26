@@ -154,7 +154,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public Dependencies getSelectedMainCompileDependencies() {
     AndroidArtifact mainArtifact = getMainArtifact();
-    return getDependencies(mainArtifact, getModelVersion());
+    return mainArtifact.getDependencies();
   }
 
   @Nullable
@@ -164,7 +164,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       // Only variants in the debug build type have an androidTest artifact.
       return null;
     }
-    return getDependencies(androidTestArtifact, getModelVersion());
+    return androidTestArtifact.getDependencies();
   }
 
   @NotNull
