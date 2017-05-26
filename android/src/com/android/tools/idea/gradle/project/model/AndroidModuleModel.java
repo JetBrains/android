@@ -20,10 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProjectImpl;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
+import com.android.tools.idea.gradle.project.model.ide.android.*;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.google.common.collect.ImmutableList;
@@ -692,13 +689,13 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     if (containsSourceFile(defaultConfig, file)) {
       return new SourceFileContainerInfo();
     }
-    for (Variant variant : myAndroidProject.getVariants()) {
-      AndroidArtifact artifact = variant.getMainArtifact();
+    for (IdeVariant variant : myVariantsByName.values()) {
+      IdeAndroidArtifact artifact = variant.getMainArtifact();
       if (containsSourceFile(artifact, file)) {
         return new SourceFileContainerInfo(variant, artifact);
       }
       for (AndroidArtifact extraArtifact : variant.getExtraAndroidArtifacts()) {
-        if (containsSourceFile(extraArtifact, file)) {
+        if (containsSourceFile((IdeAndroidArtifact)extraArtifact, file)) {
           return new SourceFileContainerInfo(variant, extraArtifact);
         }
       }
@@ -738,10 +735,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return false;
   }
 
-  private static boolean containsSourceFile(@NotNull BaseArtifact artifact, @NotNull File file) {
+  private static boolean containsSourceFile(@NotNull IdeBaseArtifact artifact, @NotNull File file) {
     if (artifact instanceof AndroidArtifact) {
       AndroidArtifact androidArtifact = (AndroidArtifact)artifact;
-      if (containsFile(getGeneratedSourceFolders(androidArtifact), file) ||
+      if (containsFile(androidArtifact.getGeneratedSourceFolders(), file) ||
           containsFile(androidArtifact.getGeneratedResourceFolders(), file)) {
         return true;
       }

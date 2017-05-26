@@ -160,7 +160,7 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
                           AndroidBundle.message("android.wizard.module.import.library.bad.name", gradlePath.charAt(invalidCharIndex)));
       }
 
-      if (GradleUtil.hasModule(myProject, gradlePath, true)) {
+      if (GradleUtil.hasModule(myProject, gradlePath)) {
         return new Result(Severity.ERROR, AndroidBundle.message("android.wizard.module.import.library.taken.name", gradlePath));
       }
 
