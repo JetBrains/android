@@ -50,7 +50,7 @@ public class InstantRunNotificationProvider {
   private final DeployType myDeployType;
   private final String myVerifierStatus;
 
-  public InstantRunNotificationProvider(@NotNull BuildSelection buildSelection,
+  public InstantRunNotificationProvider(@Nullable BuildSelection buildSelection,
                                         @NotNull DeployType deployType,
                                         @NotNull String verifierStatus) {
     myBuildSelection = buildSelection;
@@ -60,6 +60,10 @@ public class InstantRunNotificationProvider {
 
   @Nullable
   public String getNotificationText() {
+    if (myBuildSelection == null) {
+      return null;
+    }
+
     BuildCause buildCause = myBuildSelection.why;
 
     if (ourCausesThatDontNeedNotifications.contains(buildCause)) {
