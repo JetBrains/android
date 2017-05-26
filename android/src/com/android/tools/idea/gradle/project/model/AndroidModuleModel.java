@@ -46,7 +46,6 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -597,15 +596,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     JavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
     String sourceCompatibility = compileOptions.getSourceCompatibility();
     return LanguageLevel.parse(sourceCompatibility);
-  }
-
-  public int getProjectType() {
-    try {
-      return getAndroidProject().getProjectType();
-    }
-    catch (UnsupportedMethodException e) {
-      return getAndroidProject().isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
-    }
   }
 
   /**

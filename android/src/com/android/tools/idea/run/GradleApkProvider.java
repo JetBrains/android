@@ -94,7 +94,7 @@ public class GradleApkProvider implements ApkProvider {
     List<ApkInfo> apkList = new ArrayList<>();
 
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
-    int projectType = androidModel.getProjectType();
+    int projectType = androidModel.getAndroidProject().getProjectType();
     if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
       // The APK file for instant apps is actually a zip file
       File apk = getApk(selectedVariant, device, androidModel);
@@ -230,7 +230,7 @@ public class GradleApkProvider implements ApkProvider {
   public List<ValidationError> validate() {
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
     assert androidModuleModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
-    if (androidModuleModel.getProjectType() == PROJECT_TYPE_INSTANTAPP || androidModuleModel.getMainArtifact().isSigned()) {
+    if (androidModuleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP || androidModuleModel.getMainArtifact().isSigned()) {
       return ImmutableList.of();
     }
 

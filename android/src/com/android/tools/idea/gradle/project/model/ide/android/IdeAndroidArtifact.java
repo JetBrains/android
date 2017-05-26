@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.BaseArtifact;
 
 import java.io.Serializable;
 
-public interface IdeAndroidArtifact extends Serializable, BaseArtifact, AndroidArtifact {
+public interface IdeAndroidArtifact extends Serializable, IdeBaseArtifact, AndroidArtifact {
 }

@@ -16,7 +16,6 @@
 package com.android.tools.idea.fd.gradle;
 
 import com.android.builder.model.InstantRun;
-import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.diagnostic.Logger;
@@ -73,7 +72,7 @@ public enum InstantRunGradleSupport {
       return GRADLE_PLUGIN_TOO_OLD;
     }
 
-    if (model.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (model.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       return INSTANT_APP;
     }
 

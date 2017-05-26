@@ -199,7 +199,7 @@ public final class GradleUtil {
   public static Icon getModuleIcon(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      int projectType = androidModel.getProjectType();
+      int projectType = androidModel.getAndroidProject().getProjectType();
       if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
         return AndroidIcons.AppModule;
       }
@@ -495,7 +495,7 @@ public final class GradleUtil {
       if (androidModel != null) {
         AndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
-        if (androidModel.getProjectType() == PROJECT_TYPE_APP) {
+        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
           foundInApps.add(modelVersion);
         }
         else {

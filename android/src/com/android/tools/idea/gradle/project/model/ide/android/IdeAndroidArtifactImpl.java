@@ -26,7 +26,7 @@ import java.util.*;
 /**
  * Creates a deep copy of {@link AndroidArtifact}.
  */
-public final class IdeAndroidArtifactImpl extends IdeBaseArtifact implements IdeAndroidArtifact {
+public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements IdeAndroidArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
   private final int myHashCode;

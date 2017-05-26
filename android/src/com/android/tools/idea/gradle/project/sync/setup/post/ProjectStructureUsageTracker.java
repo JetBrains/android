@@ -87,7 +87,7 @@ public class ProjectStructureUsageTracker {
     for (Module module : modules) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
-        if (androidModel.getProjectType() == PROJECT_TYPE_LIBRARY) {
+        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_LIBRARY) {
           libModel = androidModel;
           libCount++;
           continue;
@@ -127,7 +127,7 @@ public class ProjectStructureUsageTracker {
           gradleAndroidModules.add(GradleAndroidModule.newBuilder()
                                   .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8(module.getName()))
                                   .setSigningConfigCount(androidModel.getAndroidProject().getSigningConfigs().size())
-                                  .setIsLibrary(androidModel.getProjectType() == PROJECT_TYPE_LIBRARY)
+                                  .setIsLibrary(androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_LIBRARY)
                                   .setBuildTypeCount(androidModel.getBuildTypeNames().size())
                                   .setFlavorCount(androidModel.getProductFlavorNames().size())
                                   .setFlavorDimension(getFlavorDimensions(androidModel).size())
@@ -315,7 +315,7 @@ public class ProjectStructureUsageTracker {
     for (Module module : moduleManager.getModules()) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
-        if (androidModel.getProjectType() == PROJECT_TYPE_APP) {
+        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
           return androidModel.getApplicationId();
         }
       }

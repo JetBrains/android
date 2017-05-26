@@ -67,7 +67,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     JpsAndroidModuleProperties facetProperties = facet.getProperties();
     facetProperties.ALLOW_USER_CONFIGURATION = false;
 
-    facetProperties.PROJECT_TYPE = androidModel.getProjectType();
+    facetProperties.PROJECT_TYPE = androidModel.getAndroidProject().getProjectType();
 
     File modulePath = androidModel.getRootDirPath();
     SourceProvider sourceProvider = androidModel.getDefaultSourceProvider();
