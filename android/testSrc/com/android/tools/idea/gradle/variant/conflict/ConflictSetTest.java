@@ -38,13 +38,16 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 
 /**
- * Tests for {@link ConflictSet}
+ * Tests for {@link ConflictSet}.
  */
 public class ConflictSetTest extends IdeaTestCase {
+  private AndroidProjectStub myAppModel;
+  private VariantStub myAppDebugVariant;
+
   private Module myLibModule;
-  private AndroidModuleModel myApp;
-  private AndroidModuleModel myLib;
   private String myLibGradlePath;
+  private AndroidProjectStub myLibModel;
+  private VariantStub myLibDebugVariant;
 
   @Override
   protected void setUp() throws Exception {
@@ -52,10 +55,70 @@ public class ConflictSetTest extends IdeaTestCase {
 
     myLibModule = createModule("lib");
     myLibGradlePath = ":lib";
+  }
 
-    setUpApp();
-    setUpLib();
+  @Override
+  protected void tearDown() throws Exception {
+    myLibModule = null;
+    super.tearDown();
+  }
 
+  public void testFindSelectionConflictsWithoutConflict() {
+    setUpModels();
+    setUpDependencyOnLibrary("debug");
+    setUpModules();
+
+    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
+    assertTrue(conflicts.isEmpty());
+  }
+
+  public void testFindSelectionConflictsWithoutEmptyVariantDependency() {
+    setUpModels();
+    setUpDependencyOnLibrary("");
+    setUpModules();
+
+    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
+    assertTrue(conflicts.isEmpty());
+  }
+
+  public void testFindSelectionConflictsWithoutNullVariantDependency() {
+    setUpModels();
+    setUpDependencyOnLibrary(null);
+    setUpModules();
+
+    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
+    assertTrue(conflicts.isEmpty());
+  }
+
+  public void testFindSelectionConflictsWithConflict() {
+    setUpModels();
+    setUpDependencyOnLibrary("release");
+    setUpModules();
+
+    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
+    assertEquals(1, conflicts.size());
+
+    Conflict conflict = conflicts.get(0);
+    assertSame(myLibModule, conflict.getSource());
+    assertSame("debug", conflict.getSelectedVariant());
+
+    List<Conflict.AffectedModule> affectedModules = conflict.getAffectedModules();
+    assertEquals(1, affectedModules.size());
+
+    Conflict.AffectedModule affectedModule = affectedModules.get(0);
+    assertSame(myModule, affectedModule.getTarget());
+    assertSame("release", affectedModule.getExpectedVariant());
+  }
+
+  private void setUpModels() {
+    myAppModel = new AndroidProjectStub("app");
+    myAppDebugVariant = myAppModel.addVariant("debug");
+    myLibModel = new AndroidProjectStub("lib");
+    myLibModel.setProjectType(PROJECT_TYPE_LIBRARY);
+    myLibDebugVariant = myLibModel.addVariant("debug");
+  }
+
+  private void setUpModules() {
     ApplicationManager.getApplication().runWriteAction(() -> {
       setUpMainModuleAsApp();
       setUpLibModule();
@@ -63,39 +126,15 @@ public class ConflictSetTest extends IdeaTestCase {
     });
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    myLibModule = null;
-    myApp = null;
-    myLib = null;
-    super.tearDown();
-  }
-
-  private void setUpApp() {
-    File rootDirPath = getBaseDirPath(myProject);
-
-    AndroidProjectStub project = new AndroidProjectStub("app");
-    VariantStub variant = project.addVariant("debug");
-
-    myApp = new AndroidModuleModel(myModule.getName(), rootDirPath, project, variant.getName());
-  }
-
-  private void setUpLib() {
-    File moduleFilePath = new File(myLibModule.getModuleFilePath());
-
-    AndroidProjectStub project = new AndroidProjectStub("lib");
-    project.setProjectType(PROJECT_TYPE_LIBRARY);
-    VariantStub variant = project.addVariant("debug");
-
-    myLib = new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
-  }
-
   private void setUpMainModuleAsApp() {
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
       AndroidFacet facet = createFacet(facetManager, PROJECT_TYPE_APP);
-      facet.setAndroidModel(myApp);
+
+      File rootDirPath = getBaseDirPath(myProject);
+      AndroidModuleModel model = new AndroidModuleModel(myModule.getName(), rootDirPath, myAppModel, myAppDebugVariant.getName());
+      facet.setAndroidModel(model);
       facetModel.addFacet(facet);
     }
     finally {
@@ -108,7 +147,12 @@ public class ConflictSetTest extends IdeaTestCase {
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
       AndroidFacet androidFacet = createFacet(facetManager, PROJECT_TYPE_LIBRARY);
-      androidFacet.setAndroidModel(myLib);
+
+      File moduleFilePath = new File(myLibModule.getModuleFilePath());
+      AndroidModuleModel model = new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), myLibModel,
+                                                        myLibDebugVariant.getName());
+      androidFacet.setAndroidModel(model);
+
       facetModel.addFacet(androidFacet);
 
       GradleFacet gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
@@ -141,44 +185,8 @@ public class ConflictSetTest extends IdeaTestCase {
     }
   }
 
-  public void testFindSelectionConflictsWithoutConflict() {
-    setUpDependencyOnLibrary("debug");
-    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
-    assertTrue(conflicts.isEmpty());
-  }
-
-  public void testFindSelectionConflictsWithoutEmptyVariantDependency() {
-    setUpDependencyOnLibrary("");
-    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
-    assertTrue(conflicts.isEmpty());
-  }
-
-  public void testFindSelectionConflictsWithoutNullVariantDependency() {
-    setUpDependencyOnLibrary(null);
-    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
-    assertTrue(conflicts.isEmpty());
-  }
-
-  public void testFindSelectionConflictsWithConflict() {
-    setUpDependencyOnLibrary("release");
-    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
-    assertEquals(1, conflicts.size());
-
-    Conflict conflict = conflicts.get(0);
-    assertSame(myLibModule, conflict.getSource());
-    assertSame("debug", conflict.getSelectedVariant());
-
-    List<Conflict.AffectedModule> affectedModules = conflict.getAffectedModules();
-    assertEquals(1, affectedModules.size());
-
-    Conflict.AffectedModule affectedModule = affectedModules.get(0);
-    assertSame(myModule, affectedModule.getTarget());
-    assertSame("release", affectedModule.getExpectedVariant());
-  }
-
   private void setUpDependencyOnLibrary(@Nullable String projectVariant) {
-    VariantStub selectedVariant = (VariantStub)myApp.getSelectedVariant();
-    AndroidArtifactStub mainArtifact = selectedVariant.getMainArtifact();
+    AndroidArtifactStub mainArtifact = myAppDebugVariant.getMainArtifact();
     DependenciesStub dependencies = mainArtifact.getDependencies();
     File jarFile = new File(myProject.getBasePath(), "file.jar");
     AndroidLibraryStub lib = new AndroidLibraryStub(jarFile, jarFile, myLibGradlePath, projectVariant);

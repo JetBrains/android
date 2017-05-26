@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static org.mockito.Mockito.mock;
+
 public class AndroidProjectStub implements AndroidProject {
   private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
 
@@ -175,7 +177,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<ArtifactMetaData> getExtraArtifacts() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Nullable
@@ -186,25 +188,25 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getCompileTarget() {
-    throw new UnsupportedOperationException();
+    return "test";
   }
 
   @Override
   @NotNull
   public List<String> getBootClasspath() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Collection<File> getFrameworkSources() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Collection<NativeToolchain> getNativeToolchains() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
@@ -216,13 +218,13 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
-    throw new UnsupportedOperationException();
+    return mock(AaptOptions.class);
   }
 
   @Override
   @NotNull
   public LintOptions getLintOptions() {
-    throw new UnsupportedOperationException();
+    return mock(LintOptions.class);
   }
 
   @Override
@@ -258,7 +260,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getBuildToolsVersion() {
-    throw new UnsupportedOperationException();
+    return "25";
   }
 
   @Override
@@ -268,7 +270,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   public boolean isBaseSplit() {
-    throw new UnsupportedOperationException();
+    return false;
   }
 
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {

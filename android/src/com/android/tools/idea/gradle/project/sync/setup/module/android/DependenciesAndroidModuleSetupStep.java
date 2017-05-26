@@ -83,7 +83,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                                @Nullable ProgressIndicator indicator) {
     AndroidProject androidProject = androidModel.getAndroidProject();
 
-    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel);
+    DependencySet dependencies = myDependenciesExtractor.extractFrom(androidModel.getSelectedVariant());
     for (LibraryDependency dependency : dependencies.onLibraries()) {
       updateLibraryDependency(module, ideModelsProvider, dependency, androidProject);
     }
