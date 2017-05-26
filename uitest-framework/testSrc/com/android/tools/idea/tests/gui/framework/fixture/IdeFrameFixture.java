@@ -181,6 +181,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public GradleInvocationResult invokeProjectMake() {
+    return invokeProjectMake(null);
+  }
+
+  @NotNull
+  public GradleInvocationResult invokeProjectMake(@Nullable Wait wait) {
     myGradleProjectEventListener.reset();
 
     AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<>();
@@ -192,7 +197,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       });
     selectProjectMakeAction();
 
-    waitForBuildToFinish(COMPILE_JAVA);
+    waitForBuildToFinish(COMPILE_JAVA, wait);
 
     return resultRef.get();
   }
@@ -303,13 +308,22 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode) {
+    return waitForBuildToFinish(buildMode, null);
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForBuildToFinish(@NotNull BuildMode buildMode, @Nullable Wait wait) {
     Project project = getProject();
     if (buildMode == SOURCE_GEN && !GradleProjectBuilder.getInstance(project).isSourceGenerationEnabled()) {
       return this;
     }
 
-    // http://b.android.com/226797 - Most builds finish in 10 seconds, but GradleBuildTest.compileWithJack was failing.
-    Wait.seconds(20).expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
+    if (wait == null) {
+      // http://b.android.com/226797 - Most builds finish in 10 seconds, but GradleBuildTest.compileWithJack was failing.
+      wait = Wait.seconds(20);
+    }
+
+    wait.expecting("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'")
       .until(() -> {
         if (buildMode == SOURCE_GEN) {
           PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
