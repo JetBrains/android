@@ -215,6 +215,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     tooltip.registerListenersOn(overlayPanel);
     details.add(tooltip, new TabularLayout.Constraint(1, 0, 2, 1));
 
+    // Double-clicking the chart should remove a capture selection if one exists.
+    MouseAdapter doubleClick = new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2 && !e.isConsumed()) {
+          getStage().getStudioProfilers().getTimeline().getSelectionRange().clear();
+        }
+      }
+    };
+    overlay.addMouseListener(doubleClick);
+    overlayPanel.addMouseListener(doubleClick);
+
     layout.setRowSizing(1, "4*");
     details.add(monitorPanel, new TabularLayout.Constraint(1, 0));
 
@@ -272,6 +284,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void selectionChanged() {
     Range range = getStage().getStudioProfilers().getTimeline().getSelectionRange();
+
+    if (getStage() == getStage().getStudioProfilers().getStage() && !range.isEmpty()) {
+      // Stop timeline when selection is not empty.
+      getStage().getStudioProfilers().getTimeline().setStreaming(false);
+    }
+
     List<SeriesData<CpuCapture>> captures = getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
     for (SeriesData<CpuCapture> capture : captures) {
       Range c = new Range(capture.x, capture.x + capture.value.getDuration());
