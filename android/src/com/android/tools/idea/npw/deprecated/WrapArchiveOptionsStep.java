@@ -184,7 +184,7 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
     if (GradleUtil.isValidGradlePath(gradlePath) >= 0) {
       return ValidationStatus.INVALID_MODULE_PATH;
     }
-    if (GradleUtil.hasModule(myProject, gradlePath, true)) {
+    if (GradleUtil.hasModule(myProject, gradlePath)) {
       return ValidationStatus.MODULE_EXISTS;
     }
     VirtualFile vfile = VfsUtil.findFileByIoFile(archiveFile, false);

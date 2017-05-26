@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.builder.model.BaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.junit.After;
@@ -45,25 +46,6 @@ public class GradleUtilTest {
     if (myTempDir != null) {
       delete(myTempDir);
     }
-  }
-
-  @Test
-  public void getGeneratedSources() {
-    Collection<File> folders = Lists.newArrayList(new File(""));
-    BaseArtifact baseArtifact = mock(BaseArtifact.class);
-    when(baseArtifact.getGeneratedSourceFolders()).thenReturn(folders);
-
-    Collection<File> actual = GradleUtil.getGeneratedSourceFolders(baseArtifact);
-    assertThat(actual).isSameAs(folders);
-  }
-
-  @Test
-  public void getGeneratedSourcesWithOldModel() {
-    BaseArtifact baseArtifact = mock(BaseArtifact.class);
-    when(baseArtifact.getGeneratedSourceFolders()).thenThrow(new UnsupportedMethodException(""));
-
-    Collection<File> actual = GradleUtil.getGeneratedSourceFolders(baseArtifact);
-    assertThat(actual).isEmpty();
   }
 
   @Test
