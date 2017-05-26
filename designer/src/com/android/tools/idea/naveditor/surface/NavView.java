@@ -35,12 +35,6 @@ public class NavView extends SceneView {
 
   @NotNull
   @Override
-  public Dimension getSize(@Nullable Dimension dimension) {
-    return getPreferredSize(dimension);
-  }
-
-  @NotNull
-  @Override
   public Dimension getPreferredSize(@Nullable Dimension dimension) {
     return mySurface.getSize(dimension);
   }
