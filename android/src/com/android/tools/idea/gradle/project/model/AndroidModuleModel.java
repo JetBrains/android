@@ -20,12 +20,12 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProjectImpl;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -603,7 +603,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     try {
       return getAndroidProject().getProjectType();
     }
-    catch (UnsupportedMethodException e){
+    catch (UnsupportedMethodException e) {
       return getAndroidProject().isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
     }
   }
@@ -879,55 +879,23 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
-    Variant variant = getSelectedVariant();
+    IdeVariant variant = getSelectedVariant();
     JpsAndroidModuleProperties state = facet.getProperties();
     state.SELECTED_BUILD_VARIANT = variant.getName();
 
-    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
 
     // When multi test artifacts are enabled, test tasks are computed dynamically.
-    updateGradleTaskNames(state, mainArtifact, null);
+    updateGradleTaskNames(state, mainArtifact);
   }
 
-  @VisibleForTesting
-  static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
-                                    @NotNull AndroidArtifact mainArtifact,
-                                    @Nullable BaseArtifact testArtifact) {
+  private static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
-    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(getIdeSetupTasks(mainArtifact));
+    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(mainArtifact.getIdeSetupTaskNames());
 
-    if (testArtifact != null) {
-      state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
-      state.COMPILE_JAVA_TEST_TASK_NAME = testArtifact.getCompileTaskName();
-      state.AFTER_SYNC_TASK_NAMES.addAll(getIdeSetupTasks(testArtifact));
-    }
-    else {
-      state.ASSEMBLE_TEST_TASK_NAME = "";
-      state.COMPILE_JAVA_TEST_TASK_NAME = "";
-    }
-  }
-
-  @Deprecated
-  @NotNull
-  // TODO use IdeBaseArtifact#getIdeSetupTaskNames.
-  public static Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
-    try {
-      // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
-      return artifact.getIdeSetupTaskNames();
-    }
-    catch (NoSuchMethodError e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-    catch (UnsupportedMethodException e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-
-    return Collections.emptySet();
+    state.ASSEMBLE_TEST_TASK_NAME = "";
+    state.COMPILE_JAVA_TEST_TASK_NAME = "";
   }
 
   /**

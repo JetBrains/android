@@ -35,7 +35,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
 
   @NotNull private final String myName;
   @NotNull private final String myDisplayName;
-  @NotNull private final AndroidArtifact myMainArtifact;
+  @NotNull private final IdeAndroidArtifact myMainArtifact;
   @NotNull private final Collection<AndroidArtifact> myExtraAndroidArtifacts;
   @NotNull private final Collection<JavaArtifact> myExtraJavaArtifacts;
   @NotNull private final String myBuildType;
@@ -48,9 +48,9 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
     myName = variant.getName();
     myDisplayName = variant.getDisplayName();
     myMainArtifact = modelCache.computeIfAbsent(variant.getMainArtifact(),
-                                                artifact -> new IdeAndroidArtifact(artifact, modelCache, modelVersion));
+                                                artifact -> new IdeAndroidArtifactImpl(artifact, modelCache, modelVersion));
     myExtraAndroidArtifacts = copy(variant.getExtraAndroidArtifacts(), modelCache,
-                                   artifact -> new IdeAndroidArtifact(artifact, modelCache, modelVersion));
+                                   artifact -> new IdeAndroidArtifactImpl(artifact, modelCache, modelVersion));
     myExtraJavaArtifacts = copy(variant.getExtraJavaArtifacts(), modelCache,
                                 (Function<JavaArtifact, JavaArtifact>)artifact -> new IdeJavaArtifact(artifact, modelCache, modelVersion));
     myBuildType = variant.getBuildType();
@@ -86,7 +86,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
 
   @Override
   @NotNull
-  public AndroidArtifact getMainArtifact() {
+  public IdeAndroidArtifact getMainArtifact() {
     return myMainArtifact;
   }
 
@@ -150,7 +150,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
   @Nullable
   public IdeAndroidArtifact getAndroidTestArtifact() {
     for (AndroidArtifact artifact : myExtraAndroidArtifacts) {
-      IdeAndroidArtifact ideArtifact = (IdeAndroidArtifact)artifact;
+      IdeAndroidArtifactImpl ideArtifact = (IdeAndroidArtifactImpl)artifact;
       if (ideArtifact.isTestArtifact()) {
         return ideArtifact;
       }

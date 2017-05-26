@@ -23,6 +23,10 @@ import java.io.Serializable;
 import java.util.Collection;
 
 public interface IdeVariant extends Variant, Serializable {
+  @Override
+  @NotNull
+  IdeAndroidArtifact getMainArtifact();
+
   @Nullable
   IdeAndroidArtifact getAndroidTestArtifact();
 
