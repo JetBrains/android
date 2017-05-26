@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
 import com.google.common.collect.ImmutableList;
@@ -30,9 +31,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.fd.client.InstantRunArtifactType.*;
 
@@ -46,14 +45,24 @@ public class InstantRunBuildAnalyzer {
   private final ProcessHandler myCurrentSession;
   private final InstantRunBuildInfo myBuildInfo;
   private final boolean myIsRestartActivity;
+  private final Collection<ApkInfo> myApks;
 
   public InstantRunBuildAnalyzer(@NotNull Project project,
                                  @NotNull InstantRunContext context,
                                  @Nullable ProcessHandler currentSession,
                                  boolean isRestartActivity) {
+    this(project, context, currentSession, Collections.EMPTY_LIST, isRestartActivity);
+  }
+
+  public InstantRunBuildAnalyzer(@NotNull Project project,
+                                 @NotNull InstantRunContext context,
+                                 @Nullable ProcessHandler currentSession,
+                                 @NotNull Collection<ApkInfo> apks,
+                                 boolean isRestartActivity) {
     myProject = project;
     myContext = context;
     myCurrentSession = currentSession;
+    myApks = apks;
     myIsRestartActivity = isRestartActivity;
 
     myBuildInfo = myContext.getInstantRunBuildInfo();
@@ -87,7 +96,7 @@ public class InstantRunBuildAnalyzer {
    * Returns the list of deploy tasks that will update the instant run state on the device.
    */
   @NotNull
-  public List<LaunchTask> getDeployTasks(@Nullable LaunchOptions launchOptions) throws ExecutionException {
+  public List<LaunchTask> getDeployTasks(@NotNull LaunchOptions launchOptions) throws ExecutionException {
     LaunchTask updateStateTask = new UpdateInstantRunStateTask(myContext);
 
     DeployType deployType = getDeployType();
@@ -103,14 +112,15 @@ public class InstantRunBuildAnalyzer {
           .of(new HotSwapTask(myProject, myContext, deployType == DeployType.WARMSWAP), updateStateTask);
       case SPLITAPK:
         return ImmutableList.of(new SplitApkDeployTask(myProject, myContext), updateStateTask);
+      case FULLAPK:
+      case LEGACY:
+        return ImmutableList.of(new DeployApkTask(myProject, launchOptions, myApks, myContext));
       case DEX:
         if (!canReuseProcessHandler()) {
           throw new IllegalStateException(
             "Cannot hotswap changes - the process has died since the build was started. Please Run or Debug again to recover from this issue.");
         }
         // fall through
-      case FULLAPK:
-      case LEGACY:
       default:
         // https://code.google.com/p/android/issues/detail?id=232515
         // We don't know as yet how this happened, so we collect some information
