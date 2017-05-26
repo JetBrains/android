@@ -16,10 +16,10 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
@@ -38,7 +38,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
 
 public class LegacyAllocationCaptureObjectTest {
 
@@ -77,7 +76,7 @@ public class LegacyAllocationCaptureObjectTest {
     myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.NOT_READY, Collections.emptyList());
     new Thread(() -> {
       loadLatch.countDown();
-      capture.load();
+      capture.load(null, null);
       doneLatch.countDown();
     }).start();
 
@@ -140,53 +139,19 @@ public class LegacyAllocationCaptureObjectTest {
     assertFalse(capture.isError());
 
     myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN, Collections.emptyList());
-    capture.load();
+    capture.load(null, null);
 
     assertTrue(capture.isDoneLoading());
     assertTrue(capture.isError());
     capture.getHeapSets().forEach(heapSet -> assertEquals(0, heapSet.getInstancesCount()));
   }
 
-  @Test
-  public void testEquality() throws Exception {
-    long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
-    long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
-    long endTimeNs2 = TimeUnit.MILLISECONDS.toNanos(13);
-    MemoryProfiler.AllocationsInfo testInfo1 =
-      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
-    MemoryProfiler.AllocationsInfo testInfo2 =
-      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(endTimeNs).setEndTime(endTimeNs2).build();
-    LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, testInfo1,
-                                        myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
-
-    // Test inequality with different object type
-    assertNotEquals(mock(CaptureObject.class), capture);
-
-    LegacyAllocationCaptureObject captureWithDifferentAppId =
-      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -2, testInfo1,
-                                        myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
-    // Test inequality with different app id
-    assertNotEquals(captureWithDifferentAppId, capture);
-
-    LegacyAllocationCaptureObject captureWithDifferentTimes =
-      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, testInfo2,
-                                        myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
-    // Test inequality with different start/end times
-    assertNotEquals(captureWithDifferentTimes, capture);
-
-    LegacyAllocationCaptureObject captureWithDifferentStatus =
-      new LegacyAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, testInfo1,
-                                        myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
-    // Test equality as long as appId + times are equal
-    assertEquals(captureWithDifferentStatus, capture);
-
-    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN, startTimeNs, endTimeNs, true);
-    captureWithDifferentStatus.load();
-    assertEquals(captureWithDifferentStatus, capture);
-  }
-
-  private static void verifyInstance(InstanceObject instance, String className, int depth, int fieldSize, int referenceSize, int frameCount) {
+  private static void verifyInstance(InstanceObject instance,
+                                     String className,
+                                     int depth,
+                                     int fieldSize,
+                                     int referenceSize,
+                                     int frameCount) {
     assertEquals(className, instance.getClassEntry().getClassName());
     assertEquals(depth, instance.getDepth());
     assertEquals(fieldSize, instance.getFields().size());

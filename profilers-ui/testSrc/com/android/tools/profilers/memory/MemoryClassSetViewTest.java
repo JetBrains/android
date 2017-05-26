@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
@@ -83,8 +82,7 @@ public class MemoryClassSetViewTest {
     myCaptureObject.addInstanceObjects(new HashSet<>(myInstanceObjects));
 
     myStage.selectCaptureDuration(
-      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myCaptureObject)),
-      new Range(0, 1), null);
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myCaptureObject)), null);
     myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
 
     myClassifierSetTree = myStageView.getClassifierView().getTree();
@@ -216,7 +214,7 @@ public class MemoryClassSetViewTest {
     captureObject.addInstanceObjects(instanceObjects);
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
-                             new Range(0, 1), null);
+                             null);
 
     assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
     assertNotNull(myStage.getSelectedHeapSet());
@@ -292,7 +290,7 @@ public class MemoryClassSetViewTest {
     myCaptureObject.addInstanceObjects(new HashSet<>(fakeInstances));
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myCaptureObject)),
-      new Range(0, 1), null);
+      null);
     myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
 
     myClassifierSetTree = myStageView.getClassifierView().getTree();

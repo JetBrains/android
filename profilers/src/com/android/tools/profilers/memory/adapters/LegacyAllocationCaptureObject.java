@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,16 +78,6 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     myFeatureTracker = featureTracker;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof LegacyAllocationCaptureObject)) {
-      return false;
-    }
-
-    LegacyAllocationCaptureObject other = (LegacyAllocationCaptureObject)obj;
-    return other.myProcessId == myProcessId && other.myStartTimeNs == myStartTimeNs && other.myEndTimeNs == myEndTimeNs;
-  }
-
   @NotNull
   @Override
   public String getName() {
@@ -131,7 +123,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   }
 
   @Override
-  public boolean load() {
+  public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
     MemoryProfiler.LegacyAllocationEventsResponse response;
     while (true) {
       response = myClient.getLegacyAllocationEvents(MemoryProfiler.LegacyAllocationEventsRequest.newBuilder()

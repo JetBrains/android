@@ -68,6 +68,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
     super(profilersView, stage);
 
+    // Turns on the auto-capture selection functionality - this would select the latest user-triggered heap dump/allocation tracking
+    // capture object if an existing one has not been selected.
+    getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
+
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     myCapturePanel = buildCaptureUi();
     myInstanceDetailsSplitter.setOpaque(true);
@@ -82,7 +86,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.HEAP_DUMP));
     myHeapDumpButton.setToolTipText("Dump Java heap");
     myHeapDumpButton.addActionListener(e -> {
-      getStage().requestHeapDump(SwingUtilities::invokeLater);
+      getStage().requestHeapDump();
       getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
     });
 
@@ -92,7 +96,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         if (getStage().isTrackingAllocations()) {
           getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackRecordAllocations();
         }
-        getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater);
+        getStage().trackAllocations(!getStage().isTrackingAllocations());
       });
     myAllocationButton.setVisible(!getStage().useLiveAllocationTracking());
 
@@ -112,7 +116,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.FORCE_GARBAGE_COLLECTION));
     forceGarbageCollectionButton.setToolTipText("Force garbage collection");
     forceGarbageCollectionButton.addActionListener(e -> {
-      getStage().forceGarbageCollection(SwingUtilities::invokeLater);
+      getStage().forceGarbageCollection();
       getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackForceGc();
     });
     toolBar.add(forceGarbageCollectionButton);

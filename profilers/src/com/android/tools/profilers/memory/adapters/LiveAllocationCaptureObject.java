@@ -15,7 +15,8 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
@@ -23,6 +24,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingS
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener.ChangedNode;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -62,10 +64,13 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final long myCaptureTime;
   private final FeatureTracker myFeatureTracker;
   private final HeapSet myDefaultHeapSet;
+  private final AspectObserver myAspectObserver;
 
   private long myContextEndTimeNs;
   private long myPreviousQueryStartTimeNs;
   private long myPreviousQueryEndTimeNs;
+
+  private Range myQueryRange;
 
   public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                      @Nullable Common.Session session,
@@ -83,6 +88,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myCaptureTime = captureTime;
     myFeatureTracker = featureTracker;
     myDefaultHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
+    myAspectObserver = new AspectObserver();
 
     myContextEndTimeNs = Long.MIN_VALUE;
     myPreviousQueryStartTimeNs = Long.MAX_VALUE;
@@ -154,7 +160,16 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   }
 
   @Override
-  public boolean load() {
+  public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
+    assert queryRange != null;
+    assert queryJoiner != null;
+    myQueryRange = queryRange;
+    myQueryRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, () -> {
+      loadTimeRange(TimeUnit.MICROSECONDS.toNanos((long)myQueryRange.getMin()),
+                    TimeUnit.MICROSECONDS.toNanos((long)myQueryRange.getMax()),
+                    queryJoiner == null ? MoreExecutors.directExecutor() : queryJoiner);
+    });
+
     return true;
   }
 
@@ -170,6 +185,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @Override
   public void unload() {
+    myQueryRange.removeDependencies(myAspectObserver);
     myExecutorService.shutdownNow();
   }
 
@@ -178,7 +194,11 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myListeners.add(listener);
   }
 
-  public void loadTimeRange(long startTimeNs, long endTimeNs, @NotNull Executor joiner) {
+  /**
+   * Load allocation data corresponding to the input time range. Note that load operation is expensive and happens on a different thread
+   * (via myExecutorService). When loading is done, it informs the listener (e.g. UI) to update via the input joiner.
+   */
+  private void loadTimeRange(long startTimeNs, long endTimeNs, @NotNull Executor joiner) {
     if (startTimeNs == myPreviousQueryStartTimeNs && endTimeNs == myPreviousQueryEndTimeNs && endTimeNs != Long.MAX_VALUE) {
       return;
     }
@@ -215,7 +235,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
               ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, classData.getName(), classData.getTag());
               if (!myClassMap.containsKey(entry)) {
                 // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
-                LiveAllocationInstanceObject instance = new LiveAllocationInstanceObject(entry, null, event.getTimestamp(), MemoryObject.INVALID_VALUE);
+                LiveAllocationInstanceObject instance =
+                  new LiveAllocationInstanceObject(entry, null, event.getTimestamp(), MemoryObject.INVALID_VALUE);
                 myClassMap.put(entry, instance);
                 // TODO figure out what to do with java.lang.Class instance objects
                 //instancesAdded.add(instance);
@@ -241,7 +262,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             AllocationEvent.Allocation allocation = event.getAllocData();
             ClassDb.ClassEntry entry = myClassDb.getEntry(allocation.getClassTag());
             assert myClassMap.containsKey(entry);
-            LiveAllocationInstanceObject instance = new LiveAllocationInstanceObject(entry, myClassMap.get(entry), event.getTimestamp(), allocation.getSize());
+            LiveAllocationInstanceObject instance =
+              new LiveAllocationInstanceObject(entry, myClassMap.get(entry), event.getTimestamp(), allocation.getSize());
             assert !myInstanceMap.containsKey(allocation.getTag());
             myInstanceMap.put(allocation.getTag(), instance);
             instancesAdded.add(instance);

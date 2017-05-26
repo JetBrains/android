@@ -31,11 +31,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Supplier;
 
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
 
 public class HeapDumpCaptureObjectTest {
 
@@ -75,7 +73,7 @@ public class HeapDumpCaptureObjectTest {
     myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
     new Thread(() -> {
       loadLatch.countDown();
-      capture.load();
+      capture.load(null, null);
       doneLatch.countDown();
     }).start();
 
@@ -109,7 +107,7 @@ public class HeapDumpCaptureObjectTest {
 
     ClassifierSet.Classifier classClassifier = ClassSet.createDefaultClassifier();
     classClassifier.partition(
-      testHeap.getInstancesStream().collect((Supplier<ArrayList<InstanceObject>>)ArrayList::new, ArrayList::add, ArrayList::addAll));
+      testHeap.getInstancesStream().collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
     List<ClassifierSet> classSets = classClassifier.getClassifierSets();
     assertEquals(3, classSets.size());
     assertTrue(classSets.stream().allMatch(classifier -> classifier instanceof ClassSet));
@@ -139,50 +137,11 @@ public class HeapDumpCaptureObjectTest {
     assertFalse(capture.isError());
 
     myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
-    capture.load();
+    capture.load(null, null);
 
     assertTrue(capture.isDoneLoading());
     assertTrue(capture.isError());
     assertEquals(0, capture.getHeapSets().size());
-  }
-
-  @Test
-  public void testEquality() throws Exception {
-    MemoryProfiler.HeapDumpInfo dumpInfo1 = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
-    MemoryProfiler.HeapDumpInfo dumpInfo2 = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(9).setEndTime(13).build();
-
-    HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo1, null,
-                                myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
-    // Test inequality with different object type
-    assertNotEquals(mock(CaptureObject.class), capture);
-
-    HeapDumpCaptureObject captureWithDifferentAppId =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -2, dumpInfo1, null,
-                                myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
-    // Test inequality with different app id
-    assertNotEquals(captureWithDifferentAppId, capture);
-
-    HeapDumpCaptureObject captureWithDifferentDump =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo2, null,
-                                myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
-    // Test inequality with different HeapDumpInfo
-    assertNotEquals(captureWithDifferentDump, capture);
-
-    HeapDumpCaptureObject captureWithDifferentLoadStatus =
-      new HeapDumpCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, dumpInfo1, null,
-                                myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
-    // Test equality with same HeapDumpInfo and status
-    assertEquals(captureWithDifferentLoadStatus, capture);
-
-    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
-    captureWithDifferentLoadStatus.load();
-    // Test inequality with different status
-    assertNotEquals(captureWithDifferentLoadStatus, capture);
-
-    // Ensure equality again after statuses have re-aligned.
-    capture.load();
-    assertEquals(captureWithDifferentLoadStatus, capture);
   }
 
   @Test
@@ -201,7 +160,7 @@ public class HeapDumpCaptureObjectTest {
     myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
     new Thread(() -> {
       loadLatch.countDown();
-      capture.load();
+      capture.load(null, null);
       doneLatch.countDown();
     }).start();
 

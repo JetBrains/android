@@ -15,12 +15,14 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
 public final class FakeCaptureObject implements CaptureObject {
@@ -142,7 +144,7 @@ public final class FakeCaptureObject implements CaptureObject {
   }
 
   @Override
-  public boolean load() {
+  public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
     return myIsLoadSuccessful;
   }
 

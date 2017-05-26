@@ -20,9 +20,13 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,7 +47,8 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService);
+    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
+                        new FakeMemoryService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   private CpuProfilerStage myStage;
 
@@ -653,8 +658,21 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {
-    Profiler.Device device = Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).build();
+    Profiler.Device device =
+      Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Profiler.Device.State.ONLINE).build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
     myProfilerService.addDevice(device);
+    // Adds at least one ALIVE process as well. Otherwise, StudioProfilers would prefer selecting a device that has live processes.
+    myProfilerService.addProcess(session, process);
+
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new device to be picked up
     myStage.getStudioProfilers().setDevice(device);
     // Setting the device will change the stage. We need to go back to CpuProfilerStage

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
@@ -30,6 +31,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
 import static org.junit.Assert.assertEquals;
@@ -271,7 +273,7 @@ public class HeapDumpInstanceObjectTest {
     }
 
     @Override
-    public boolean load() {
+    public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
       return true;
     }
 

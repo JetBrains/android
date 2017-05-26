@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
@@ -69,8 +68,8 @@ public class MemoryNavigationTest {
         .setRetainedSize(6).build();
     instance.setFieldValue("DUMMY_FIELD", ValueObject.ValueType.OBJECT, fieldInstance);
     fakeCaptureObject.addInstanceObjects(ImmutableSet.of(instance, fieldInstance));
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCaptureObject)),
-                                  new Range(0, 1), null);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCaptureObject)), null);
 
     ClassSet instanceClassSet =
       findDescendantClassSetNodeWithInstance(getRootClassifierSet(myStageView.getClassifierView().getTree()).getAdapter(), instance);
@@ -116,8 +115,8 @@ public class MemoryNavigationTest {
         .setRetainedSize(3).build();
     fakeCaptureObject.addInstanceObjects(ImmutableSet.of(fakeInstance));
 
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCaptureObject)),
-                                  new Range(0, 1), null);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCaptureObject)), null);
     assertEquals(fakeCaptureObject.getHeapSet(DEFAULT_HEAP_ID), myStage.getSelectedHeapSet());
 
     ClassSet instanceClassSet =

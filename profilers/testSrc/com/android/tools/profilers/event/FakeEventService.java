@@ -63,4 +63,10 @@ public final class FakeEventService extends EventServiceGrpc.EventServiceImplBas
     responseObserver.onNext(EventProfiler.EventStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
+
+  @Override
+  public void stopMonitoringApp(EventProfiler.EventStopRequest request, StreamObserver<EventProfiler.EventStopResponse> responseObserver) {
+    responseObserver.onNext(EventProfiler.EventStopResponse.newBuilder().build());
+    responseObserver.onCompleted();
+  }
 }

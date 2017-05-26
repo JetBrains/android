@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
@@ -26,6 +27,9 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
@@ -45,6 +49,9 @@ public abstract class MemoryProfilerTestBase {
     myAspectObserver = new MemoryAspectObserver(myStage.getAspect());
     onProfilersCreated(myProfilers);
     myProfilers.setStage(myStage);
+
+    // Advance the clock to make sure StudioProfilers has a chance to select device + process.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 
   /**
@@ -62,13 +69,15 @@ public abstract class MemoryProfilerTestBase {
 
     @NotNull
     @Override
-    public ListenableFuture<CaptureObject> loadCapture(@NotNull CaptureObject captureObject) {
+    public ListenableFuture<CaptureObject> loadCapture(@NotNull CaptureObject captureObject,
+                                                       @Nullable Range queryRange,
+                                                       @Nullable Executor queryJoiner) {
       if (isReturnImmediateFuture) {
-        return Futures.immediateFuture(captureObject);
+        return Futures.immediateFuture(captureObject.load(queryRange, queryJoiner) ? captureObject : null);
       }
       else {
         cancelTask();
-        myTask = ListenableFutureTask.create(() -> captureObject.load() ? captureObject : null);
+        myTask = ListenableFutureTask.create(() -> captureObject.load(queryRange, queryJoiner) ? captureObject : null);
         return myTask;
       }
     }
