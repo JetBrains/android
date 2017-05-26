@@ -21,10 +21,11 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -35,6 +36,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -44,6 +46,7 @@ import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +56,7 @@ import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
 public class AndroidModularizeHandler implements RefactoringActionHandler {
 
+  private static final Logger LOGGER = Logger.getInstance(AndroidModularizeHandler.class);
   private static final int RESOURCE_SET_INITIAL_SIZE = 100;
 
   @Override
@@ -131,6 +135,10 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         }
       }
 
+      Set<AndroidFacet> facetSet = new HashSet<>();
+      Set<VirtualFile> fileScope = new HashSet<>();
+      Set<PsiElement> elementScope = new HashSet<>();
+
       ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
       int numVisited = 0;
 
@@ -142,6 +150,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         if (facet == null) {
           continue;
         }
+        facetSet.add(facet);
 
         if (indicator != null) {
           indicator.setText(String.format("Scanning definition %1$d of %2$d", numVisited, numVisited + myVisitQueue.size()));
@@ -167,9 +176,65 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
               myGraphBuilder.markReference(element, tag);
             }
           });
+
+          // Scope building: we try to be as precise as possible when computing the enclosing scope. For example we include the (selected)
+          // activity tags in a manifest file but not the entire file, which may contain references to resources we would otherwise move.
+          if (((PsiClass)element).getContainingClass() == null) {
+            fileScope.add(element.getContainingFile().getVirtualFile());
+          }
+          else {
+            elementScope.add(element);
+          }
         }
         else {
+          if (element instanceof PsiFile) {
+            fileScope.add(((PsiFile)element).getVirtualFile());
+          } else {
+            elementScope.add(element);
+          }
+
           element.accept(new XmlResourceReferenceVisitor(facet, element));
+        }
+      }
+
+      GlobalSearchScope globalSearchScope = GlobalSearchScope.EMPTY_SCOPE;
+      for (AndroidFacet facet : facetSet) {
+        globalSearchScope = globalSearchScope.union(facet.getModule().getModuleScope(false));
+      }
+
+      GlobalSearchScope visitedScope = GlobalSearchScope.filesScope(myProject, fileScope)
+        .union(new LocalSearchScope(elementScope.toArray(PsiElement.EMPTY_ARRAY)));
+      globalSearchScope = globalSearchScope.intersectWith(GlobalSearchScope.notScope(visitedScope));
+
+      for (PsiClass clazz : myClassRefSet) {
+        ReferencesSearch.search(clazz, globalSearchScope).forEach(reference -> {
+          myGraphBuilder.markReferencedOutsideScope(clazz);
+          LOGGER.debug(clazz + " referenced from " + reference.getElement().getContainingFile());
+        });
+      }
+
+      Set<ResourceUrl> seenResourceUrls = new HashSet<>(myResourceRefSet.size());
+      for (ResourceItem item : myResourceRefSet) {
+        ResourceUrl url = item.getResourceUrl(false);
+        if (seenResourceUrls.add(url)) {
+          PsiField[] fields;
+          PsiElement elm = getResourceDefinition(item);
+          if (elm instanceof PsiFile) {
+            fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)elm, true);
+          }
+          else if (elm instanceof XmlTag) {
+            fields = AndroidResourceUtil.findResourceFieldsForValueResource((XmlTag)elm, true);
+          }
+          else {
+            continue;
+          }
+
+          for (PsiField pf : fields) {
+            ReferencesSearch.search(pf, globalSearchScope).forEach(reference -> {
+              myGraphBuilder.markReferencedOutsideScope(elm);
+              LOGGER.debug(item + " referenced from " + reference.getElement().getContainingFile());
+            });
+          }
         }
       }
     }
@@ -211,12 +276,12 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
     private class XmlResourceReferenceVisitor extends XmlRecursiveElementWalkingVisitor {
       private final AndroidFacet myFacet;
       private final PsiElement mySource;
-      private final ProjectResourceRepository myResourceRepository;
+      private final LocalResourceRepository myResourceRepository;
 
       XmlResourceReferenceVisitor(@NotNull AndroidFacet facet, @NotNull PsiElement source) {
         myFacet = facet;
         mySource = source;
-        myResourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
+        myResourceRepository = ModuleResourceRepository.getOrCreateInstance(facet);
       }
 
       @Override
@@ -247,7 +312,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         } else {
           // Perhaps this is a reference to a Java class
           PsiClass target = JavaPsiFacade.getInstance(myProject).findClass(
-            text, GlobalSearchScope.moduleWithDependenciesScope(myFacet.getModule()));
+            text, myFacet.getModule().getModuleScope(false));
           if (target != null) {
             if (myClassRefSet.add(target)) {
               myVisitQueue.offer(target);
@@ -261,12 +326,12 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
     private class JavaReferenceVisitor extends JavaRecursiveElementWalkingVisitor {
       private final AndroidFacet myFacet;
       private final PsiElement mySource;
-      private final ProjectResourceRepository myResourceRepository;
+      private final LocalResourceRepository myResourceRepository;
 
       JavaReferenceVisitor(@NotNull AndroidFacet facet, @NotNull PsiElement source) {
         myFacet = facet;
         mySource = source;
-        myResourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
+        myResourceRepository = ModuleResourceRepository.getOrCreateInstance(facet);
       }
 
       @Override
