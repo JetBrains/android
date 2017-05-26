@@ -71,14 +71,8 @@ public class GuiTestRule implements TestRule {
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
-  private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
-    .around(new BlockReloading())
-    .around(myRobotTestRule)
-    .around(myLeakCheck)
-    .around(new IdeHandling())
-    .around(new TestPerformance())
-    .around(new ScreenshotOnFailure())
-    .around(new Timeout(5, TimeUnit.MINUTES));
+
+  private Timeout myTimeout = new Timeout(5, TimeUnit.MINUTES);
 
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
@@ -102,7 +96,15 @@ public class GuiTestRule implements TestRule {
   @NotNull
   @Override
   public Statement apply(final Statement base, final Description description) {
-    return myRuleChain.apply(base, description);
+    return RuleChain.emptyRuleChain()
+      .around(new BlockReloading())
+      .around(myRobotTestRule)
+      .around(myLeakCheck)
+      .around(new IdeHandling())
+      .around(new TestPerformance())
+      .around(new ScreenshotOnFailure())
+      .around(myTimeout)
+      .apply(base, description);
   }
 
   private class IdeHandling implements TestRule {
@@ -274,7 +276,7 @@ public class GuiTestRule implements TestRule {
    *                                   version of Gradle.
    * @throws IOException if an unexpected I/O error occurs.
    */
-  private void setUpProject(@NotNull String projectDirName,
+  protected void setUpProject(@NotNull String projectDirName,
                             @Nullable String gradleVersion) throws IOException {
     copyProjectBeforeOpening(projectDirName);
 
@@ -400,5 +402,10 @@ public class GuiTestRule implements TestRule {
       myIdeFrameFixture.requestFocusIfLost();
     }
     return myIdeFrameFixture;
+  }
+
+  public GuiTestRule withTimeout(long timeout, @NotNull TimeUnit timeUnits) {
+    myTimeout = new Timeout(timeout, timeUnits);
+    return this;
   }
 }
