@@ -16,11 +16,11 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -30,6 +30,7 @@ import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
@@ -169,7 +170,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
     if (androidModel != null) {
       // Only suggest the android test run configuration if it makes sense for the selected test artifact.
-      if (androidModel.getAndroidTestArtifactInSelectedVariant() == null) {
+      if (androidModel.getSelectedVariant().getAndroidTestArtifact() == null) {
         return false;
       }
 
@@ -262,7 +263,10 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
   @Override
   public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
-    if (!Projects.isBuildWithGradle(self.getConfiguration().getProject())) return false;
+    Project project = self.getConfiguration().getProject();
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      return false;
+    }
     // If we decided the context is for an instrumentation test (see {@link #setupConfigurationFromContext}), it should replace
     // other test configurations, as they won't work anyway.
     return other.isProducedBy(JUnitConfigurationProducer.class);

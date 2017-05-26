@@ -57,7 +57,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
 
     // Modify the class path only if we're dealing with the unit test artifact.
-    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
+    JavaArtifact testArtifact = androidModel.getSelectedVariant().getUnitTestArtifact();
     if (testArtifact == null) {
       return;
     }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
@@ -28,7 +29,7 @@ import java.util.*;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static org.mockito.Mockito.mock;
 
-public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
+public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
@@ -129,5 +130,10 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   public void addGeneratedResourceFolder(@NotNull String path) {
     File directory = myFileStructure.createProjectDir(path);
     myGeneratedResourceFolders.add(directory);
+  }
+
+  @Override
+  public boolean isTestArtifact() {
+    return true;
   }
 }

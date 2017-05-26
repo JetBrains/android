@@ -63,7 +63,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   public boolean isLibrary() {
-    return myGradleModel.getProjectType() != PROJECT_TYPE_APP;
+    return myGradleModel.getAndroidProject().getProjectType() != PROJECT_TYPE_APP;
   }
 
   @Nullable
@@ -143,7 +143,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Override
   public Icon getIcon() {
-    return myGradleModel.getProjectType() == PROJECT_TYPE_APP ?  AndroidIcons.AppModule : AndroidIcons.LibraryModule;
+    return myGradleModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP ?  AndroidIcons.AppModule : AndroidIcons.LibraryModule;
   }
 
   @Override

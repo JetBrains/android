@@ -17,7 +17,9 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
 import com.android.builder.model.*;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -26,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static org.mockito.Mockito.mock;
 
@@ -75,6 +78,16 @@ public class AndroidProjectStub implements IdeAndroidProject {
 
   public void setModelVersion(@NotNull String modelVersion) {
     myModelVersion = modelVersion;
+  }
+
+  @Nullable
+  @Override
+  public GradleVersion getParsedModelVersion() {
+    return null;
+  }
+
+  @Override
+  public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
   }
 
   @Override

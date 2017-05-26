@@ -177,7 +177,7 @@ public class InstantApps {
 
   public static boolean isInstantAppApplicationModule(@NotNull Module module) {
     AndroidModuleModel model = AndroidModuleModel.get(module);
-    return model != null && model.getProjectType() == PROJECT_TYPE_INSTANTAPP;
+    return model != null && model.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP;
   }
 
   public static boolean isPostO(IDevice device) {

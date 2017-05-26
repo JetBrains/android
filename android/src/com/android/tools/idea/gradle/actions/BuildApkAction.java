@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -61,7 +60,7 @@ public class BuildApkAction extends DumbAwareAction {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
           AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-          if (androidModel != null && androidModel.getProjectType() == PROJECT_TYPE_APP) {
+          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
             String assembleTaskName = facet.getProperties().ASSEMBLE_TASK_NAME;
             if (isNotEmpty(assembleTaskName)) {
               appModules.add(module);
