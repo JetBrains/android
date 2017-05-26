@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProjectImpl;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.google.common.annotations.VisibleForTesting;
@@ -124,7 +125,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    myAndroidProject = new IdeAndroidProject(androidProject);
+    myAndroidProject = new IdeAndroidProjectImpl(androidProject);
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
 
@@ -554,7 +555,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return the imported Android-Gradle project.
    */
   @NotNull
-  public AndroidProject getAndroidProject() {
+  public IdeAndroidProject getAndroidProject() {
     return myAndroidProject;
   }
 
