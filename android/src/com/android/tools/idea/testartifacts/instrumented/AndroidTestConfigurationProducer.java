@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
@@ -73,7 +74,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
                                           PsiElement element,
                                           ConfigurationContext context,
                                           Ref<PsiElement> sourceElement) {
-    PsiClass elementClass = getParentOfType(element, PsiClass.class, false);
+    PsiClass elementClass = AndroidPsiUtils.getPsiParentOfType(element, PsiClass.class, false);
 
     while (elementClass != null) {
       if (JUnitUtil.isTestClass(elementClass)) {
@@ -92,7 +93,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
                                                   PsiElement element,
                                                   ConfigurationContext context,
                                                   Ref<PsiElement> sourceElement) {
-    PsiMethod elementMethod = getParentOfType(element, PsiMethod.class, false);
+    PsiMethod elementMethod = AndroidPsiUtils.getPsiParentOfType(element, PsiMethod.class, false);
 
     while (elementMethod != null) {
       if (isTestMethod(elementMethod)) {
@@ -110,14 +111,14 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     return false;
   }
 
-  private boolean setupConfiguration(AndroidTestRunConfiguration configuration,
-                                     PsiElement element,
-                                     ConfigurationContext context,
-                                     Ref<PsiElement> sourceElement) {
+  private void setupConfiguration(AndroidTestRunConfiguration configuration,
+                                  PsiElement element,
+                                  ConfigurationContext context,
+                                  Ref<PsiElement> sourceElement) {
     final Module module = AndroidUtils.getAndroidModule(context);
 
     if (module == null) {
-      return false;
+      return;
     }
     sourceElement.set(element);
     setupConfigurationModule(context, configuration);
@@ -128,7 +129,6 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     if (targetSelectionMode != null) {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
-    return true;
   }
 
   private static boolean isTestMethod(PsiMethod method) {
@@ -234,10 +234,10 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     PsiPackage psiPackage = JavaRuntimeConfigurationProducerBase.checkPackage(element);
     String packageName = psiPackage == null ? null : psiPackage.getQualifiedName();
 
-    PsiClass elementClass = getParentOfType(element, PsiClass.class, false);
+    PsiClass elementClass = AndroidPsiUtils.getPsiParentOfType(element, PsiClass.class, false);
     String className = elementClass == null ? null : elementClass.getQualifiedName();
 
-    PsiMethod elementMethod = getParentOfType(element, PsiMethod.class, false);
+    PsiMethod elementMethod = AndroidPsiUtils.getPsiParentOfType(element, PsiMethod.class, false);
     String methodName = elementMethod == null ? null : elementMethod.getName();
     Module moduleInConfig = configuration.getConfigurationModule().getModule();
 
@@ -262,7 +262,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   }
 
   @Override
-  public boolean shouldReplace(ConfigurationFromContext self, ConfigurationFromContext other) {
+  public boolean shouldReplace(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
     Project project = self.getConfiguration().getProject();
     if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return false;
