@@ -33,7 +33,7 @@ public final class IdeJavaArtifact extends IdeBaseArtifactImpl implements JavaAr
 
   @Nullable private final File myMockablePlatformJar;
 
-  public IdeJavaArtifact(@NotNull JavaArtifact artifact, @NotNull ModelCache seen, @NotNull GradleVersion gradleVersion) {
+  public IdeJavaArtifact(@NotNull JavaArtifact artifact, @NotNull ModelCache seen, @Nullable GradleVersion gradleVersion) {
     super(artifact, seen, gradleVersion);
     myMockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar, null);
 

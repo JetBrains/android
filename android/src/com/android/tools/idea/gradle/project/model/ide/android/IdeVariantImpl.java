@@ -43,7 +43,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
   @NotNull private final ProductFlavor myMergedFlavor;
   @NotNull private final Collection<TestedTargetVariant> myTestedTargetVariants;
 
-  public IdeVariantImpl(@NotNull Variant variant, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
+  public IdeVariantImpl(@NotNull Variant variant, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
     super(variant, modelCache);
     myName = variant.getName();
     myDisplayName = variant.getDisplayName();
