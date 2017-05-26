@@ -209,8 +209,14 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
         getLogger().info("Terminating perfd thread");
       }
-      catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException | InterruptedException e) {
+      catch (TimeoutException | ShellCommandUnresponsiveException | InterruptedException e) {
         throw new RuntimeException(e);
+      }
+      catch (AdbCommandRejectedException | IOException e) {
+        // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
+        // We don't want to crash in this case.
+        getLogger().warn("Error when trying to spawn perfd:");
+        getLogger().warn(e);
       }
     }
 
@@ -218,7 +224,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      * Copies a file from host (where Studio is running) to the device.
      * If executable, then the abi is taken into account.
      */
-    private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, String deviceDir, boolean executable) {
+    private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, String deviceDir, boolean executable)
+      throws AdbCommandRejectedException, IOException {
       try {
         File dir = new File(PathManager.getHomePath(), hostReleaseDir);
         if (!dir.exists()) {
@@ -267,7 +274,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           }
         }
       }
-      catch (TimeoutException | AdbCommandRejectedException | SyncException | ShellCommandUnresponsiveException | IOException e) {
+      catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
         throw new RuntimeException(e);
       }
     }
@@ -275,7 +282,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     /**
      * Pushes simpleperf binary to device if it is supported (i.e. it's running O or newer APIs and has a supported architecture).
      */
-    private void pushSimpleperfIfSupported(String devicePath) {
+    private void pushSimpleperfIfSupported(String devicePath) throws AdbCommandRejectedException, IOException {
       // Simpleperf tracing is not supported in devices older than O.
       if (!(isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_SIMPLEPERF.get())) {
         return;
