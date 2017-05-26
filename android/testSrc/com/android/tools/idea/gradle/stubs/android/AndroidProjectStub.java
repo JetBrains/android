@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
 import com.android.builder.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -28,7 +29,7 @@ import java.util.*;
 
 import static org.mockito.Mockito.mock;
 
-public class AndroidProjectStub implements AndroidProject {
+public class AndroidProjectStub implements IdeAndroidProject {
   private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
 
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
