@@ -32,7 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeDependencies}.
+ * Tests for {@link IdeDependenciesImpl}.
  */
 public class IdeDependenciesTest {
   private ModelCache myModelCache;
@@ -46,12 +46,12 @@ public class IdeDependenciesTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeDependencies.class).isAssignableTo(Serializable.class);
+    assertThat(IdeDependenciesImpl.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeDependencies dependencies = new IdeDependencies(new DependenciesStub(), myModelCache, myModelVersion);
+    IdeDependencies dependencies = new IdeDependenciesImpl(new DependenciesStub(), myModelCache, myModelVersion);
     byte[] bytes = serialize(dependencies);
     Object o = deserialize(bytes);
     assertEquals(dependencies, o);
@@ -60,13 +60,13 @@ public class IdeDependenciesTest {
   @Test
   public void constructor() throws Throwable {
     Dependencies original = new DependenciesStub();
-    IdeDependencies copy = new IdeDependencies(original, myModelCache, myModelVersion);
+    IdeDependencies copy = new IdeDependenciesImpl(original, myModelCache, myModelVersion);
     assertEqualsOrSimilar(original, copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeDependencies.class)
+    EqualsVerifier.forClass(IdeDependenciesImpl.class)
       .withCachedHashCode("myHashCode", "calculateHashCode", null)
       .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
       .verify();

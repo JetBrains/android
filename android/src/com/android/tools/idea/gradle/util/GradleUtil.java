@@ -114,11 +114,6 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
-  @NotNull
-  public static Dependencies getDependencies(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
-    return artifact.getDependencies();
-  }
-
   public static void clearStoredGradleJvmArgs(@NotNull Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
     String existingJvmArgs = settings.getGradleVmOptions();
@@ -238,17 +233,15 @@ public final class GradleUtil {
    * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
    */
   @NotNull
-  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull IdeVariant variant, @NotNull AndroidModuleModel androidModel) {
+  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull IdeVariant variant) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
 
-    GradleVersion modelVersion = androidModel.getModelVersion();
-
     AndroidArtifact mainArtifact = variant.getMainArtifact();
-    Dependencies dependencies = getDependencies(mainArtifact, modelVersion);
+    Dependencies dependencies = mainArtifact.getDependencies();
     libraries.addAll(dependencies.getLibraries());
 
     for (BaseArtifact testArtifact : variant.getTestArtifacts()) {
-      dependencies = getDependencies(testArtifact, modelVersion);
+      dependencies = testArtifact.getDependencies();
       libraries.addAll(dependencies.getLibraries());
     }
     return libraries;
@@ -693,9 +686,9 @@ public final class GradleUtil {
   }
 
   @Nullable
-  public static AndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull Variant variant, @Nullable GradleVersion modelVersion) {
+  public static AndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull Variant variant) {
     AndroidArtifact artifact = variant.getMainArtifact();
-    Dependencies dependencies = getDependencies(artifact, modelVersion);
+    Dependencies dependencies = artifact.getDependencies();
     for (AndroidLibrary library : dependencies.getLibraries()) {
       AndroidLibrary result = findLibrary(library, bundleDir);
       if (result != null) {

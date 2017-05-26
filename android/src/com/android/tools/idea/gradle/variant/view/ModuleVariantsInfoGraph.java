@@ -135,7 +135,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
         mxCell moduleVertex = createVertex(module);
         moduleVertex.setConnectable(false);
 
-        for (AndroidLibrary library : getDirectLibraryDependencies(variant, androidModel)) {
+        for (AndroidLibrary library : getDirectLibraryDependencies(variant)) {
           String gradlePath = library.getProject();
           if (gradlePath == null) {
             continue;
