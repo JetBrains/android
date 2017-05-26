@@ -19,32 +19,40 @@ import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.*;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.tools.idea.fd.InstantRunSettings.isInstantRunEnabled;
+import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.modelSupportsInstantRun;
+import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.variantSupportsInstantRun;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
+import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.GRADLE_EXPERIMENTAL;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
@@ -107,35 +115,39 @@ public class ProjectStructureUsageTracker {
       List<GradleAndroidModule> gradleAndroidModules = new ArrayList<>();
       List<GradleNativeAndroidModule> gradleNativeAndroidModules = new ArrayList<>();
 
-      String appId = AndroidStudioUsageTracker.anonymizeUtf8(model.getApplicationId());
+      String appId = anonymizeUtf8(model.getApplicationId());
       AndroidProject androidProject = model.getAndroidProject();
       GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
       if (gradleVersion == null) {
         gradleVersion = new GradleVersion(0, 0, 0);
       }
 
-      GradleModule gradleModule = GradleModule.newBuilder()
-        .setTotalModuleCount(modules.length)
-        .setAppModuleCount(appCount)
-        .setLibModuleCount(libCount)
-        .build();
+      // @formatter:off
+      GradleModule gradleModule = GradleModule.newBuilder().setTotalModuleCount(modules.length)
+                                                           .setAppModuleCount(appCount)
+                                                           .setLibModuleCount(libCount)
+                                                           .build();
+      // @formatter:on
 
       for (Module module : modules) {
         AndroidModuleModel androidModel = AndroidModuleModel.get(module);
         if (androidModel != null) {
-          gradleAndroidModules.add(GradleAndroidModule.newBuilder()
-                                  .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8(module.getName()))
-                                  .setSigningConfigCount(androidModel.getAndroidProject().getSigningConfigs().size())
-                                  .setIsLibrary(androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_LIBRARY)
-                                  .setBuildTypeCount(androidModel.getBuildTypeNames().size())
-                                  .setFlavorCount(androidModel.getProductFlavorNames().size())
-                                  .setFlavorDimension(getFlavorDimensions(androidModel).size())
-                                  .build());
+          IdeAndroidProject moduleAndroidProject = androidModel.getAndroidProject();
+          GradleAndroidModule.Builder androidModule = GradleAndroidModule.newBuilder();
+          // @formatter:off
+          androidModule.setModuleName(anonymizeUtf8(module.getName()))
+                       .setSigningConfigCount(moduleAndroidProject.getSigningConfigs().size())
+                       .setIsLibrary(moduleAndroidProject.getProjectType() == PROJECT_TYPE_LIBRARY)
+                       .setBuildTypeCount(androidModel.getBuildTypeNames().size())
+                       .setFlavorCount(androidModel.getProductFlavorNames().size())
+                       .setFlavorDimension(moduleAndroidProject.getFlavorDimensions().size());
+          // @formatter:on
+          gradleAndroidModules.add(androidModule.build());
         }
 
         boolean shouldReportNative = false;
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-        NativeBuildSystemType buildSystemType = NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
+        NativeBuildSystemType buildSystemType = UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
         String moduleName = "";
 
         if (ndkModuleModel != null) {
@@ -146,57 +158,57 @@ public class ProjectStructureUsageTracker {
             }
           }
           else {
-            buildSystemType = NativeBuildSystemType.GRADLE_EXPERIMENTAL;
+            buildSystemType = GRADLE_EXPERIMENTAL;
           }
-          moduleName = AndroidStudioUsageTracker.anonymizeUtf8(ndkModuleModel.getModuleName());
+          moduleName = anonymizeUtf8(ndkModuleModel.getModuleName());
         }
         else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
           shouldReportNative = true;
 
           if (AndroidPluginGeneration.find(module) == COMPONENT) {
-            buildSystemType = NativeBuildSystemType.GRADLE_EXPERIMENTAL;
+            buildSystemType = GRADLE_EXPERIMENTAL;
           }
           else {
-            buildSystemType = NativeBuildSystemType.NDK_COMPILE;
+            buildSystemType = NDK_COMPILE;
           }
         }
         if (shouldReportNative) {
-          gradleNativeAndroidModules.add(GradleNativeAndroidModule.newBuilder()
-                                           .setModuleName(moduleName)
-                                           .setBuildSystemType(buildSystemType)
-                                           .build());
+          GradleNativeAndroidModule.Builder nativeModule = GradleNativeAndroidModule.newBuilder();
+          nativeModule.setModuleName(moduleName).setBuildSystemType(buildSystemType);
+          gradleNativeAndroidModules.add(nativeModule.build());
         }
       }
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                       .setCategory(EventCategory.GRADLE)
-                                       .setKind(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS)
-                                       .setGradleBuildDetails(GradleBuildDetails.newBuilder()
-                                                                .setAppId(appId)
-                                                                .setAndroidPluginVersion(androidProject.getModelVersion())
-                                                                .setGradleVersion(gradleVersion.toString())
-                                                                .setUserEnabledIr(InstantRunSettings.isInstantRunEnabled())
-                                                                .setModelSupportsIr(InstantRunGradleUtils.modelSupportsInstantRun(model))
-                                                                .setVariantSupportsIr(
-                                                                  InstantRunGradleUtils.variantSupportsInstantRun(model))
-                                                                .addAllLibraries(gradleLibraries)
-                                                                .addModules(gradleModule)
-                                                                .addAllAndroidModules(gradleAndroidModules)
-                                                                .addAllNativeAndroidModules(gradleNativeAndroidModules)));
+      GradleBuildDetails.Builder gradleBuild = GradleBuildDetails.newBuilder();
+      // @formatter:off
+      gradleBuild.setAppId(appId).setAndroidPluginVersion(androidProject.getModelVersion())
+                                 .setGradleVersion(gradleVersion.toString())
+                                 .setUserEnabledIr(isInstantRunEnabled())
+                                 .setModelSupportsIr(modelSupportsInstantRun(model))
+                                 .setVariantSupportsIr(variantSupportsInstantRun(model))
+                                 .addAllLibraries(gradleLibraries)
+                                 .addModules(gradleModule)
+                                 .addAllAndroidModules(gradleAndroidModules)
+                                 .addAllNativeAndroidModules(gradleNativeAndroidModules);
+      // @formatter:on
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
+      event.setCategory(GRADLE).setKind(GRADLE_BUILD_DETAILS).setGradleBuildDetails(gradleBuild);
+      UsageTracker.getInstance().log(event);
     }
   }
 
-  @VisibleForTesting static NativeBuildSystemType stringToBuildSystemType(@NotNull String buildSystem) {
+  @VisibleForTesting
+  static NativeBuildSystemType stringToBuildSystemType(@NotNull String buildSystem) {
     switch (buildSystem) {
       case "ndkBuild":
         return NativeBuildSystemType.NDK_BUILD;
       case "cmake":
         return NativeBuildSystemType.CMAKE;
       case "ndkCompile":
-        return NativeBuildSystemType.NDK_COMPILE;
+        return NDK_COMPILE;
       case "gradle":
-        return NativeBuildSystemType.GRADLE_EXPERIMENTAL;
+        return GRADLE_EXPERIMENTAL;
       default:
-        return NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
+        return UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
     }
   }
 
@@ -213,20 +225,6 @@ public class ProjectStructureUsageTracker {
       }
     }
     return false;
-  }
-
-  @NotNull
-  @Deprecated
-  // TODO use IdeAndroidProject#getFlavorDimensions.
-  private static Collection<String> getFlavorDimensions(@NotNull AndroidModuleModel androidModel) {
-    AndroidProject androidProject = androidModel.getAndroidProject();
-    try {
-      return androidProject.getFlavorDimensions();
-    }
-    catch (UnsupportedMethodException e) {
-      LOG.warn("Invoking 'getFlavorDimensions' on old Gradle model", e);
-    }
-    return Collections.emptyList();
   }
 
   private static GradleLibrary trackExternalDependenciesInAndroidApp(@NotNull AndroidModuleModel model) {
@@ -255,6 +253,7 @@ public class ProjectStructureUsageTracker {
     return null;
   }
 
+  @NotNull
   private static GradleLibrary trackLibraryCount(@NotNull Variant variant) {
     DependencyFiles files = new DependencyFiles();
 
@@ -269,10 +268,11 @@ public class ProjectStructureUsageTracker {
       addAarLibraryAndDependencies(androidLibrary, files);
     }
 
-    return GradleLibrary.newBuilder()
-      .setAarDependencyCount(files.aars.size())
-      .setJarDependencyCount(files.jars.size())
-      .build();
+    // @formatter:off
+    return GradleLibrary.newBuilder().setAarDependencyCount(files.aars.size())
+                                     .setJarDependencyCount(files.jars.size())
+                                     .build();
+    // @formatter:on
   }
 
   private static void addJarLibraryAndDependencies(@NotNull JavaLibrary javaLibrary, @NotNull DependencyFiles files) {
