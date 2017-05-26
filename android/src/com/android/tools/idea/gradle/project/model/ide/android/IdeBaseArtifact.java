@@ -16,9 +16,14 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseArtifact;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
 public interface IdeBaseArtifact extends Serializable, BaseArtifact {
   boolean isTestArtifact();
+
+  @Override
+  @NotNull
+  IdeDependencies getDependencies();
 }
