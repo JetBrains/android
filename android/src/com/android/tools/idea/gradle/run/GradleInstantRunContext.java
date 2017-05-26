@@ -113,21 +113,14 @@ public class GradleInstantRunContext implements InstantRunContext {
     AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
 
     // read action needed when reading the values for app resources
-    ApplicationManager.getApplication().runReadAction(() -> {
-      hashResources(appResourceReferences, appResources, hasher);
-    });
+    ApplicationManager.getApplication().runReadAction(() -> hashResources(appResourceReferences, appResources, hasher));
 
     return hasher.hash();
   }
 
   @VisibleForTesting
   static SortedSet<ResourceUrl> getAppResourceReferences(@NotNull Element element) {
-    SortedSet<ResourceUrl> refs = new TreeSet<>(new Comparator<ResourceUrl>() {
-      @Override
-      public int compare(ResourceUrl o1, ResourceUrl o2) {
-        return o1.toString().compareTo(o2.toString());
-      }
-    });
+    SortedSet<ResourceUrl> refs = new TreeSet<>(Comparator.comparing(ResourceUrl::toString));
     addAppResourceReferences(element, refs);
     return refs;
   }
@@ -203,7 +196,7 @@ public class GradleInstantRunContext implements InstantRunContext {
   @NotNull
   @Override
   public List<String> getCustomBuildArguments() {
-    if (myModel.getProjectType() != PROJECT_TYPE_APP) {
+    if (myModel.getAndroidProject().getProjectType() != PROJECT_TYPE_APP) {
       return Collections.emptyList();
     }
 

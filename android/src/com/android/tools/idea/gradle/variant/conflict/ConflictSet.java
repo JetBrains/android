@@ -68,7 +68,7 @@ public class ConflictSet {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       AndroidModuleModel currentAndroidModel = AndroidModuleModel.get(module);
-      if (currentAndroidModel == null || currentAndroidModel.getProjectType() == PROJECT_TYPE_APP ) {
+      if (currentAndroidModel == null || currentAndroidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP ) {
         continue;
       }
       String gradlePath = getGradlePath(module);

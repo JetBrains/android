@@ -131,4 +131,9 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     File directory = myFileStructure.createProjectDir(path);
     myGeneratedResourceFolders.add(directory);
   }
+
+  @Override
+  public boolean isTestArtifact() {
+    return true;
+  }
 }
