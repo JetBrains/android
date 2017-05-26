@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -39,17 +40,22 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
 import static com.android.testutils.TestUtils.getLatestAndroidPlatform;
 import static com.android.testutils.TestUtils.getPlatformFile;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.normalize;
+import static com.intellij.util.ArrayUtil.contains;
 import static com.intellij.util.containers.ContainerUtil.map;
 
 /**
  * Tests for {@link AndroidJunitPatcher}.
  */
 public class AndroidJunitPatcherTest extends AndroidTestCase {
+  private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
+
   private Set<String> myExampleClassPathSet;
   private String myRealAndroidJar;
   private String myMockableAndroidJar;
@@ -199,11 +205,20 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   public JavaArtifactStub getUnitTestArtifact() {
     for (JavaArtifact artifact : mySelectedVariant.getExtraJavaArtifacts()) {
       JavaArtifactStub stub = (JavaArtifactStub)artifact;
-      if (AndroidModuleModel.isTestArtifact(stub)) {
+      if (isTestArtifact(stub)) {
         return stub;
       }
     }
     return null;
+  }
+
+  private static boolean isTestArtifact(@NotNull BaseArtifact artifact) {
+    String artifactName = artifact.getName();
+    return isTestArtifact(artifactName);
+  }
+
+  private static boolean isTestArtifact(@Nullable String artifactName) {
+    return contains(artifactName, TEST_ARTIFACT_NAMES);
   }
 
   private void createAndSetAndroidModel() {

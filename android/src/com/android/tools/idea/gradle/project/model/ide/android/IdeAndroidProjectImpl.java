@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Creates a deep copy of an {@link AndroidProject}.
@@ -56,6 +57,8 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   private final int myPluginGeneration;
   private final boolean myBaseSplit;
 
+  @Nullable private final transient GradleVersion myParsedModelVersion;
+
   public IdeAndroidProjectImpl(@NotNull AndroidProject project) {
     this(project, new ModelCache());
   }
@@ -73,7 +76,7 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
     myProductFlavors = copy(project.getProductFlavors(), modelCache, container -> new IdeProductFlavorContainer(container, modelCache));
     myBuildToolsVersion = project.getBuildToolsVersion();
     mySyncIssues = copy(project.getSyncIssues(), modelCache, issue -> new IdeSyncIssue(issue, modelCache));
-    myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariant(variant, modelCache, modelVersion));
+    myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariantImpl(variant, modelCache, modelVersion));
     myFlavorDimensions = copyNewProperty(() -> new ArrayList<>(project.getFlavorDimensions()), Collections.emptyList());
     myCompileTarget = project.getCompileTarget();
     myBootClassPath = new ArrayList<>(project.getBootClasspath());
@@ -91,6 +94,9 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
     myPluginGeneration = project.getPluginGeneration();
     myBaseSplit = copyNewProperty(project::isBaseSplit, false);
 
+    // Old plugin versions do not return model version.
+    myParsedModelVersion = GradleVersion.tryParse(myModelVersion);
+
     myHashCode = calculateHashCode();
   }
 
@@ -99,6 +105,12 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
       return project.getProjectType();
     }
     return project.isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
+  }
+
+  @Override
+  @Nullable
+  public GradleVersion getParsedModelVersion() {
+    return myParsedModelVersion;
   }
 
   @Override
@@ -252,6 +264,13 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   @Override
   public boolean isBaseSplit() {
     return myBaseSplit;
+  }
+
+  @Override
+  public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
+    for (Variant variant : myVariants) {
+      action.accept((IdeVariant)variant);
+    }
   }
 
   @Override

@@ -102,7 +102,7 @@ public class GradleApkProvider implements ApkProvider {
     }
 
     if (myTest) {
-      AndroidArtifact testArtifactInfo = androidModel.getAndroidTestArtifactInSelectedVariant();
+      AndroidArtifact testArtifactInfo = androidModel.getSelectedVariant().getAndroidTestArtifact();
       if (testArtifactInfo != null) {
         AndroidArtifactOutput output = getOutput(testArtifactInfo);
         File testApk = output.getMainOutputFile().getOutputFile();

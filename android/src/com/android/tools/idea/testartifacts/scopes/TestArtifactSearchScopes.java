@@ -275,7 +275,7 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   @NotNull
   private DependencySet extractUnitTestDependencies(@NotNull AndroidModuleModel androidModel) {
-    BaseArtifact artifact = androidModel.getUnitTestArtifactInSelectedVariant();
+    BaseArtifact artifact = androidModel.getSelectedVariant().getUnitTestArtifact();
     if (unitTestDependencies == null) {
       unitTestDependencies = extractTestDependencies(artifact);
     }
@@ -284,7 +284,7 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   @NotNull
   private DependencySet extractAndroidTestDependencies(@NotNull AndroidModuleModel androidModel) {
-    BaseArtifact artifact = androidModel.getAndroidTestArtifactInSelectedVariant();
+    BaseArtifact artifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
     if (androidTestDependencies == null) {
       androidTestDependencies = extractTestDependencies(artifact);
     }

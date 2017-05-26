@@ -16,8 +16,16 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.repository.GradleVersion;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
 
 public interface IdeAndroidProject extends Serializable, AndroidProject {
+  @Nullable
+  GradleVersion getParsedModelVersion();
+
+  void forEachVariant(@NotNull Consumer<IdeVariant> action);
 }

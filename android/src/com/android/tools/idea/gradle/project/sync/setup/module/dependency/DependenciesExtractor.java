@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.roots.DependencyScope;
@@ -40,10 +40,10 @@ public class DependenciesExtractor {
   }
 
   @NotNull
-  public DependencySet extractFrom(@NotNull Variant variant) {
+  public DependencySet extractFrom(@NotNull IdeVariant variant) {
     DependencySet dependencies = new DependencySet();
 
-    for (BaseArtifact testArtifact : AndroidModuleModel.getTestArtifacts(variant)) {
+    for (BaseArtifact testArtifact : variant.getTestArtifacts()) {
       populate(dependencies, testArtifact, TEST);
     }
 
