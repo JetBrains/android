@@ -82,7 +82,7 @@ public class AndroidModularizePreviewPanel {
       UsageInfoTreeNode rootNode = new UsageInfoTreeNode(myLookupMap.get(root), 0);
       myRootNode.add(rootNode);
       parentElements.add(root);
-      buildTree(rootNode, root, parentElements);
+      buildTree(rootNode, root, parentElements, myGraph.getReferencedOutsideScope());
       parentElements.remove(root);
     }
 
@@ -150,7 +150,7 @@ public class AndroidModularizePreviewPanel {
     mySizeEstimate.setText("~" + Long.toString(size / 1024) + " KB");
   }
 
-  private void buildTree(CheckedTreeNode parentNode, PsiElement psiElement, Set<PsiElement> parentElements) {
+  private void buildTree(CheckedTreeNode parentNode, PsiElement psiElement, Set<PsiElement> parentElements, Set<PsiElement> outsiders) {
     Set<PsiElement> references = myGraph.getTargets(psiElement);
     List<CheckedTreeNode> childrenNodes = new ArrayList<>(references.size());
 
@@ -165,20 +165,17 @@ public class AndroidModularizePreviewPanel {
       if (myLookupMap.get(reference) instanceof AndroidModularizeProcessor.ResourceXmlUsageInfo) {
         ResourceItem resourceItem = ((AndroidModularizeProcessor.ResourceXmlUsageInfo)myLookupMap.get(reference)).getResourceItem();
         ResourceUrl resourceUrl = resourceItem.getResourceUrl(false);
-        Set<PsiElement> otherItems = resourceGroups.get(resourceUrl);
-        if (otherItems == null) {
-          otherItems = new HashSet<>();
-          resourceGroups.put(resourceUrl, otherItems);
-        }
+        Set<PsiElement> otherItems = resourceGroups.computeIfAbsent(resourceUrl, k -> new HashSet<>());
         otherItems.add(reference);
         continue; // Postpone node creation until we have all resources mapped out.
       }
 
       UsageInfoTreeNode childNode = new UsageInfoTreeNode(myLookupMap.get(reference), myGraph.getFrequency(psiElement, reference));
       childrenNodes.add(childNode);
+      childNode.setChecked(!outsiders.contains(reference));
 
       parentElements.add(reference);
-      buildTree(childNode, reference, parentElements);
+      buildTree(childNode, reference, parentElements, outsiders);
       parentElements.remove(reference);
     }
 
@@ -186,15 +183,21 @@ public class AndroidModularizePreviewPanel {
       ResourceUrlTreeNode urlTreeNode = new ResourceUrlTreeNode(resourceUrl);
       childrenNodes.add(urlTreeNode);
 
+      boolean checked = true;
       for (PsiElement reference : resourceGroups.get(resourceUrl)) {
         UsageInfoTreeNode childNode = new UsageInfoTreeNode(myLookupMap.get(reference), myGraph.getFrequency(psiElement, reference));
         childNode.setEnabled(false); // We don't allow selecting only a subset of resource items, either they all move or none of them move.
         urlTreeNode.add(childNode);
+        if (outsiders.contains(reference)) {
+          childNode.setChecked(false);
+          checked = false;
+        }
 
         parentElements.add(reference);
-        buildTree(childNode, reference, parentElements);
+        buildTree(childNode, reference, parentElements, outsiders);
         parentElements.remove(reference);
       }
+      urlTreeNode.setChecked(checked);
     }
 
     for (CheckedTreeNode node : childrenNodes) {
