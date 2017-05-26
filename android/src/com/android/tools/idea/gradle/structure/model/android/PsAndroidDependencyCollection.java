@@ -20,12 +20,10 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsParsedDependencies;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -64,8 +62,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     if (resolvedArtifact == null) {
       return;
     }
-    AndroidModuleModel gradleModel = artifact.getGradleModel();
-    Dependencies dependencies = GradleUtil.getDependencies(resolvedArtifact, gradleModel.getModelVersion());
+    Dependencies dependencies = resolvedArtifact.getDependencies();
 
     for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
       String gradlePath = androidLibrary.getProject();
@@ -107,6 +104,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     PsParsedDependencies parsedDependencies = myParent.getParsedDependencies();
 
     MavenCoordinates coordinates = library.getResolvedCoordinates();
+    //noinspection ConstantConditions
     if (coordinates != null) {
       PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(coordinates);
 

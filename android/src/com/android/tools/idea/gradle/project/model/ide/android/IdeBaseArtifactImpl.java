@@ -46,7 +46,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   @NotNull private final String myCompileTaskName;
   @NotNull private final String myAssembleTaskName;
   @NotNull private final File myClassesFolder;
-  @NotNull private final Dependencies myDependencies;
+  @NotNull private final IdeDependencies myDependencies;
   @NotNull private final Dependencies myCompileDependencies;
   @NotNull private final Set<String> myIdeSetupTaskNames;
   @NotNull private final Collection<File> myGeneratedSourceFolders;
@@ -86,7 +86,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
 
   @NotNull
   private static IdeDependencies copy(@NotNull Dependencies original, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
-    return modelCache.computeIfAbsent(original, dependencies -> new IdeDependencies(dependencies, modelCache, modelVersion));
+    return modelCache.computeIfAbsent(original, dependencies -> new IdeDependenciesImpl(dependencies, modelCache, modelVersion));
   }
 
   @NotNull
@@ -158,7 +158,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
 
   @Override
   @NotNull
-  public Dependencies getDependencies() {
+  public IdeDependencies getDependencies() {
     return myDependencies;
   }
 
