@@ -87,6 +87,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     if (myNotification != null && !myNotification.isExpired()) {
       myNotification.expire();
     }
+    myAlarm.cancel();
   }
 
   private void addProjectPropertiesUpdatingListener() {
