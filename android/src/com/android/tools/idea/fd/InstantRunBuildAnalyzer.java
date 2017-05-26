@@ -96,7 +96,7 @@ public class InstantRunBuildAnalyzer {
    * Returns the list of deploy tasks that will update the instant run state on the device.
    */
   @NotNull
-  public List<LaunchTask> getDeployTasks(@NotNull LaunchOptions launchOptions) throws ExecutionException {
+  public List<LaunchTask> getDeployTasks(@NotNull LaunchOptions launchOptions) {
     LaunchTask updateStateTask = new UpdateInstantRunStateTask(myContext);
 
     DeployType deployType = getDeployType();
@@ -115,12 +115,6 @@ public class InstantRunBuildAnalyzer {
       case FULLAPK:
       case LEGACY:
         return ImmutableList.of(new DeployApkTask(myProject, launchOptions, myApks, myContext));
-      case DEX:
-        if (!canReuseProcessHandler()) {
-          throw new IllegalStateException(
-            "Cannot hotswap changes - the process has died since the build was started. Please Run or Debug again to recover from this issue.");
-        }
-        // fall through
       default:
         // https://code.google.com/p/android/issues/detail?id=232515
         // We don't know as yet how this happened, so we collect some information
@@ -201,10 +195,6 @@ public class InstantRunBuildAnalyzer {
 
     if (myBuildInfo.hasOneOf(SPLIT) || myBuildInfo.hasOneOf(SPLIT_MAIN)) {
       return DeployType.SPLITAPK;
-    }
-
-    if (myBuildInfo.hasOneOf(RESOURCES)) {
-      return DeployType.DEX;
     }
 
     return DeployType.FULLAPK;

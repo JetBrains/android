@@ -167,8 +167,6 @@ public class InstantRunStatsService {
         return InstantRunDeploymentKind.HOT_SWAP;
       case SPLITAPK:
         return InstantRunDeploymentKind.SPLIT_APK;
-      case DEX:
-        return InstantRunDeploymentKind.DEX;
       case WARMSWAP:
         return InstantRunDeploymentKind.WARM_SWAP;
       case NO_CHANGES:
