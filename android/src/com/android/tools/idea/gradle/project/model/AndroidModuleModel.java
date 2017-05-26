@@ -20,11 +20,12 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProjectImpl;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -45,7 +46,6 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +75,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public static final String EXPLODED_AAR = "exploded-aar";
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
 
@@ -95,7 +95,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = Maps.newHashMap();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
-  @NotNull private Map<String, Variant> myVariantsByName = Maps.newHashMap();
+  @NotNull private Map<String, IdeVariant> myVariantsByName = Maps.newHashMap();
 
   @NotNull private Set<File> myExtraGeneratedSourceFolders = Sets.newHashSet();
 
@@ -151,9 +151,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   private void populateVariantsByName() {
-    for (Variant variant : myAndroidProject.getVariants()) {
-      myVariantsByName.put(variant.getName(), variant);
-    }
+    myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
   }
 
   @NotNull
@@ -164,7 +162,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public Dependencies getSelectedAndroidTestCompileDependencies() {
-    AndroidArtifact androidTestArtifact = getAndroidTestArtifactInSelectedVariant();
+    AndroidArtifact androidTestArtifact = getSelectedVariant().getAndroidTestArtifact();
     if (androidTestArtifact == null) {
       // Only variants in the debug build type have an androidTest artifact.
       return null;
@@ -289,52 +287,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
         throw new IllegalArgumentException(msg);
       }
     }
-  }
-
-  @NotNull
-  public Collection<BaseArtifact> getTestArtifactsInSelectedVariant() {
-    return getTestArtifacts(getSelectedVariant());
-  }
-
-  @NotNull
-  public static Collection<BaseArtifact> getTestArtifacts(@NotNull Variant variant) {
-    Set<BaseArtifact> testArtifacts = Sets.newHashSet();
-    for (BaseArtifact artifact : variant.getExtraAndroidArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        testArtifacts.add(artifact);
-      }
-    }
-    for (BaseArtifact artifact : variant.getExtraJavaArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        testArtifacts.add(artifact);
-      }
-    }
-    return testArtifacts;
-  }
-
-  @Nullable
-  public AndroidArtifact getAndroidTestArtifactInSelectedVariant() {
-    for (AndroidArtifact artifact : getSelectedVariant().getExtraAndroidArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        return artifact;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public JavaArtifact getUnitTestArtifactInSelectedVariant() {
-    for (JavaArtifact artifact : getSelectedVariant().getExtraJavaArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        return artifact;
-      }
-    }
-    return null;
-  }
-
-  public static boolean isTestArtifact(@NotNull BaseArtifact artifact) {
-    String artifactName = artifact.getName();
-    return isTestArtifact(artifactName);
   }
 
   private static boolean isTestArtifact(@Nullable String artifactName) {
@@ -568,8 +520,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return the selected build variant.
    */
   @NotNull
-  public Variant getSelectedVariant() {
-    Variant selected = myVariantsByName.get(mySelectedVariantName);
+  public IdeVariant getSelectedVariant() {
+    IdeVariant selected = myVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
   }
@@ -644,15 +596,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     JavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
     String sourceCompatibility = compileOptions.getSourceCompatibility();
     return LanguageLevel.parse(sourceCompatibility);
-  }
-
-  public int getProjectType() {
-    try {
-      return getAndroidProject().getProjectType();
-    }
-    catch (UnsupportedMethodException e){
-      return getAndroidProject().isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
-    }
   }
 
   /**
@@ -926,55 +869,23 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   public void syncSelectedVariantAndTestArtifact(@NotNull AndroidFacet facet) {
-    Variant variant = getSelectedVariant();
+    IdeVariant variant = getSelectedVariant();
     JpsAndroidModuleProperties state = facet.getProperties();
     state.SELECTED_BUILD_VARIANT = variant.getName();
 
-    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
 
     // When multi test artifacts are enabled, test tasks are computed dynamically.
-    updateGradleTaskNames(state, mainArtifact, null);
+    updateGradleTaskNames(state, mainArtifact);
   }
 
-  @VisibleForTesting
-  static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
-                                    @NotNull AndroidArtifact mainArtifact,
-                                    @Nullable BaseArtifact testArtifact) {
+  private static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state, @NotNull IdeAndroidArtifact mainArtifact) {
     state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
     state.COMPILE_JAVA_TASK_NAME = mainArtifact.getCompileTaskName();
-    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(getIdeSetupTasks(mainArtifact));
+    state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet(mainArtifact.getIdeSetupTaskNames());
 
-    if (testArtifact != null) {
-      state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
-      state.COMPILE_JAVA_TEST_TASK_NAME = testArtifact.getCompileTaskName();
-      state.AFTER_SYNC_TASK_NAMES.addAll(getIdeSetupTasks(testArtifact));
-    }
-    else {
-      state.ASSEMBLE_TEST_TASK_NAME = "";
-      state.COMPILE_JAVA_TEST_TASK_NAME = "";
-    }
-  }
-
-  @Deprecated
-  @NotNull
-  // TODO use IdeBaseArtifact#getIdeSetupTaskNames.
-  public static Set<String> getIdeSetupTasks(@NotNull BaseArtifact artifact) {
-    try {
-      // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
-      return artifact.getIdeSetupTaskNames();
-    }
-    catch (NoSuchMethodError e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-    catch (UnsupportedMethodException e) {
-      if (artifact instanceof AndroidArtifact) {
-        return Sets.newHashSet(((AndroidArtifact)artifact).getSourceGenTaskName());
-      }
-    }
-
-    return Collections.emptySet();
+    state.ASSEMBLE_TEST_TASK_NAME = "";
+    state.COMPILE_JAVA_TEST_TASK_NAME = "";
   }
 
   /**

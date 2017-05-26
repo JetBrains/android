@@ -22,10 +22,12 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -64,7 +66,6 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -133,10 +134,6 @@ public final class GradleUtil {
     return artifact.getDependencies();
   }
 
-  public static boolean androidModelSupportsInstantApps(@NotNull GradleVersion modelVersion) {
-    return modelVersion.compareIgnoringQualifiers("2.3.0") >= 0;
-  }
-
   public static void clearStoredGradleJvmArgs(@NotNull Project project) {
     GradleSettings settings = GradleSettings.getInstance(project);
     String existingJvmArgs = settings.getGradleVmOptions();
@@ -202,7 +199,7 @@ public final class GradleUtil {
   public static Icon getModuleIcon(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      int projectType = androidModel.getProjectType();
+      int projectType = androidModel.getAndroidProject().getProjectType();
       if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
         return AndroidIcons.AppModule;
       }
@@ -212,7 +209,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  public static AndroidProject getAndroidProject(@NotNull Module module) {
+  public static IdeAndroidProject getAndroidProject(@NotNull Module module) {
     AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
     return gradleModel != null ? gradleModel.getAndroidProject() : null;
   }
@@ -256,7 +253,7 @@ public final class GradleUtil {
    * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
    */
   @NotNull
-  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant, @NotNull AndroidModuleModel androidModel) {
+  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull IdeVariant variant, @NotNull AndroidModuleModel androidModel) {
     List<AndroidLibrary> libraries = Lists.newArrayList();
 
     GradleVersion modelVersion = androidModel.getModelVersion();
@@ -265,7 +262,7 @@ public final class GradleUtil {
     Dependencies dependencies = getDependencies(mainArtifact, modelVersion);
     libraries.addAll(dependencies.getLibraries());
 
-    for (BaseArtifact testArtifact : getTestArtifacts(variant)) {
+    for (BaseArtifact testArtifact : variant.getTestArtifacts()) {
       dependencies = getDependencies(testArtifact, modelVersion);
       libraries.addAll(dependencies.getLibraries());
     }
@@ -498,7 +495,7 @@ public final class GradleUtil {
       if (androidModel != null) {
         AndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
-        if (androidModel.getProjectType() == PROJECT_TYPE_APP) {
+        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
           foundInApps.add(modelVersion);
         }
         else {

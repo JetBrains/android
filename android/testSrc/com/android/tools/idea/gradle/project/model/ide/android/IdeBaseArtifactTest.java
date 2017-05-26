@@ -25,22 +25,22 @@ import org.junit.Test;
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
 
 /**
- * Tests for {@link IdeBaseArtifact}.
+ * Tests for {@link IdeBaseArtifactImpl}.
  */
 public class IdeBaseArtifactTest {
   @Test
   public void constructor() throws Throwable {
     BaseArtifact original = new BaseArtifactStub();
-    assertEqualsOrSimilar(original, new IdeBaseArtifact(original, new ModelCache(), GradleVersion.parse("2.3.0")) {});
+    assertEqualsOrSimilar(original, new IdeBaseArtifactImpl(original, new ModelCache(), GradleVersion.parse("2.3.0")) {});
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeBaseArtifact.class).withRedefinedSubclass(IdeAndroidArtifact.class)
+    EqualsVerifier.forClass(IdeBaseArtifactImpl.class).withRedefinedSubclass(IdeAndroidArtifactImpl.class)
       .withCachedHashCode("myHashCode", "calculateHashCode", null)
       .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
       .verify();
-    EqualsVerifier.forClass(IdeBaseArtifact.class).withRedefinedSubclass(IdeJavaArtifact.class)
+    EqualsVerifier.forClass(IdeBaseArtifactImpl.class).withRedefinedSubclass(IdeJavaArtifact.class)
       .withCachedHashCode("myHashCode", "calculateHashCode", null)
       .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
       .verify();

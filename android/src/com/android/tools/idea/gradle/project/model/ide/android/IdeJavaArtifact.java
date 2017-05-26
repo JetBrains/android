@@ -26,7 +26,7 @@ import java.util.Objects;
 /**
  * Creates a deep copy of a {@link JavaArtifact}.
  */
-public final class IdeJavaArtifact extends IdeBaseArtifact implements JavaArtifact {
+public final class IdeJavaArtifact extends IdeBaseArtifactImpl implements JavaArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
   private final int myHashCode;

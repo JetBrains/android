@@ -78,7 +78,7 @@ public class AIAProjectStructureAssertions {
                                                 boolean isBaseFeature) throws InterruptedException {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     assertNotNull(model);
-    int projectType = model.getProjectType();
+    int projectType = model.getAndroidProject().getProjectType();
     assertEquals(moduleType, projectType);
 
     Dependencies dependencies = model.getMainArtifact().getDependencies();

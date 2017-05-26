@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
@@ -124,8 +125,9 @@ class ExcludedRoots {
   private void addModuleIfNecessary(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      BaseArtifact unitTestArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
-      BaseArtifact androidTestArtifact = androidModel.getAndroidTestArtifactInSelectedVariant();
+      IdeVariant variant = androidModel.getSelectedVariant();
+      BaseArtifact unitTestArtifact = variant.getUnitTestArtifact();
+      BaseArtifact androidTestArtifact = variant.getAndroidTestArtifact();
 
       BaseArtifact excludeArtifact = myAndroidTest ? unitTestArtifact : androidTestArtifact;
       BaseArtifact includeArtifact = myAndroidTest ? androidTestArtifact : unitTestArtifact;
@@ -185,8 +187,9 @@ class ExcludedRoots {
   private void addLibraryPaths(@NotNull Module module) {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     if (model != null) {
-      BaseArtifact exclude = myAndroidTest ? model.getUnitTestArtifactInSelectedVariant() : model.getAndroidTestArtifactInSelectedVariant();
-      BaseArtifact include = myAndroidTest ? model.getAndroidTestArtifactInSelectedVariant() : model.getUnitTestArtifactInSelectedVariant();
+      IdeVariant variant = model.getSelectedVariant();
+      BaseArtifact exclude = myAndroidTest ? variant.getUnitTestArtifact() : variant.getAndroidTestArtifact();
+      BaseArtifact include = myAndroidTest ? variant.getAndroidTestArtifact() : variant.getUnitTestArtifact();
       if (exclude != null) {
         addLibraryPaths(exclude, model);
       }
