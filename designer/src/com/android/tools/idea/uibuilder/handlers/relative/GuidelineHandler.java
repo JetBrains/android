@@ -569,7 +569,7 @@ public class GuidelineHandler {
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_CENTER_HORIZONTAL);
       clearAttribute(n, ANDROID_URI, myTextDirection.getAttrLeft());
-      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrLeftOf());
+      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrRightOf());
     }
 
     if (myMoveRight) {
@@ -581,7 +581,7 @@ public class GuidelineHandler {
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_TO_LEFT_OF);
       clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_CENTER_HORIZONTAL);
       clearAttribute(n, ANDROID_URI, myTextDirection.getAttrRight());
-      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrRightOf());
+      clearAttribute(n, ANDROID_URI, myTextDirection.getAttrLeftOf());
     }
 
     if (myMoveTop && myCurrentTopMatch != null) {
