@@ -56,7 +56,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
   @NotNull private final Set<File> myAdditionalClassFolders;
 
-  protected IdeBaseArtifactImpl(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
+  protected IdeBaseArtifactImpl(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
     super(artifact, modelCache);
     myName = artifact.getName();
     myCompileTaskName = artifact.getCompileTaskName();
@@ -67,7 +67,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
     //noinspection deprecation
     myCompileDependencies = copy(artifact.getCompileDependencies(), modelCache, modelVersion);
 
-    if (modelVersion.isAtLeast(2, 3, 0)) {
+    if (modelVersion != null && modelVersion.isAtLeast(2, 3, 0)) {
       myDependencyGraphs = modelCache.computeIfAbsent(artifact.getDependencyGraphs(),
                                                       graphs -> new IdeDependencyGraphs(graphs, modelCache));
     }
@@ -85,7 +85,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   }
 
   @NotNull
-  private static IdeDependencies copy(@NotNull Dependencies original, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
+  private static IdeDependencies copy(@NotNull Dependencies original, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
     return modelCache.computeIfAbsent(original, dependencies -> new IdeDependenciesImpl(dependencies, modelCache, modelVersion));
   }
 
