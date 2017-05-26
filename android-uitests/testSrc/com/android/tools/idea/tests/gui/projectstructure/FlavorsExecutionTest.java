@@ -53,7 +53,7 @@ public class FlavorsExecutionTest {
   /***
    * To verify that the selected app flavor activity can be launched using build variants
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14578811
+   * <p>TT ID: 5bf8bdbc-2ef1-4cd7-aa13-cbc91323cac9
    * <pre>
    *   Test Steps:
    *   1. Create a new project
