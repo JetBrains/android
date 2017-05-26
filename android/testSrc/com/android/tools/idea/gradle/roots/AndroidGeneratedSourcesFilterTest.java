@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.roots;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -130,7 +130,7 @@ public class AndroidGeneratedSourcesFilterTest extends IdeaTestCase {
 
   @NotNull
   private static AndroidModuleModel createAndroidModel(@NotNull VirtualFile buildFolder) {
-    AndroidProject androidProject = mock(AndroidProject.class);
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(androidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);

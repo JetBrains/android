@@ -29,7 +29,7 @@ import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVers
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link IdeAndroidProject}.
+ * Tests for {@link IdeAndroidProjectImpl}.
  */
 public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
   public void testSyncFromCachedModel() throws Exception {
@@ -37,14 +37,14 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
 
     AndroidProject androidProject = getAndroidProjectInApp();
     // Verify AndroidProject was copied.
-    assertThat(androidProject).isInstanceOf(IdeAndroidProject.class);
+    assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
 
     SyncListener syncListener = requestSync(new GradleSyncInvoker.Request().setUseCachedGradleModels(true));
     assertTrue(syncListener.isSyncSkipped());
 
     AndroidProject cached = getAndroidProjectInApp();
     // Verify AndroidProject was deserialized.
-    assertThat(cached).isInstanceOf(IdeAndroidProject.class);
+    assertThat(cached).isInstanceOf(IdeAndroidProjectImpl.class);
 
     assertEquals(androidProject, cached);
   }
@@ -62,7 +62,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
 
     AndroidProject androidProject = getAndroidProjectInApp();
     // Verify AndroidProject was copied.
-    assertThat(androidProject).isInstanceOf(IdeAndroidProject.class);
+    assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
   }
 
   @Nullable
