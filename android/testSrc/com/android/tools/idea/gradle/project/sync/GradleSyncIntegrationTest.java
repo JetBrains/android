@@ -206,6 +206,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
 
     verify(listener, times(1)).setupStarted(project);
+    reset(listener);
 
     // Verify ProjectSetUpTask
     listener = mock(GradleSyncListener.class);
@@ -213,6 +214,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
 
     verify(listener, times(1)).setupStarted(project);
+    reset(listener);
   }
 
   // https://code.google.com/p/android/issues/detail?id=227931
