@@ -453,41 +453,6 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testLiveAllocationTrackingOnEnterExit() {
-    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").setFeatureLevel(AndroidVersion.VersionCodes.O)
-      .setState(Profiler.Device.State.ONLINE).build();
-    Profiler.Process process = Profiler.Process.newBuilder()
-      .setPid(20)
-      .setState(Profiler.Process.State.ALIVE)
-      .setName("FakeProcess")
-      .build();
-    myProfilerService.addDevice(device);
-    Common.Session session = Common.Session.newBuilder()
-      .setBootId(device.getBootId())
-      .setDeviceSerial(device.getSerial())
-      .build();
-    myProfilerService.addProcess(session, process);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-
-    // Test that if the the live allocation tracking feature is on and the device is O+, allocation tracking is started on enter stage.
-    myIdeProfilerServices.enableLiveAllocationTracking(true);
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myProfilers.setStage(myStage);
-    assertTrue(myStage.isTrackingAllocations());
-
-    // Test that stage exit would disable the tracking session
-    myProfilers.setStage(new NullMonitorStage(myProfilers));
-    assertFalse(myStage.isTrackingAllocations());
-
-    // Test that if the device is < O, allocation tracking would not start.
-    device = device.toBuilder().setFeatureLevel(AndroidVersion.VersionCodes.N).build();
-    myProfilerService.addDevice(device);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilers.setStage(myStage);
-    assertFalse(myStage.isTrackingAllocations());
-  }
-
-  @Test
   public void testSelectLatestCaptureDisabled() throws Exception {
     myStage.enableSelectLatestCapture(false, null);
     myMockLoader.setReturnImmediateFuture(true);

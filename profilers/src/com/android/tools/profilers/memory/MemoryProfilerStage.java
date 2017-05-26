@@ -166,20 +166,12 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
-    if (useLiveAllocationTracking()) {
-      trackAllocations(true);
-    }
-    else {
-      myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
-    }
+    myTrackingAllocations = false; // TODO sync with current legacy allocation tracker status
   }
 
   @Override
   public void exit() {
     enableSelectLatestCapture(false, null);
-    if (useLiveAllocationTracking()) {
-      trackAllocations(false);
-    }
 
     myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myDetailedMemoryUsage);
@@ -271,8 +263,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    */
   private void queryAndSelectCaptureObject(@NotNull Executor loadJoiner) {
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
-    Range selectRange = getStudioProfilers().getTimeline().getSelectionRange();
-
     // Only tries to select a capture object if one is not already selected
     if (mySelection.getCaptureObject() == null && myPendingCaptureStartTime != INVALID_START_TIME) {
       List<SeriesData<CaptureDurationData<CaptureObject>>> series =
