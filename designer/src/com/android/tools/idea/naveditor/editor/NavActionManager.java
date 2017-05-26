@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
-import com.android.tools.idea.uibuilder.editor.ActionManager;
-import com.android.tools.idea.uibuilder.editor.ActionsToolbar;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.naveditor.actions.CreateFragmentAction;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.uibuilder.editor.ActionManager;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +54,6 @@ public class NavActionManager extends ActionManager {
                          @Nullable NlComponent parent,
                          @NotNull List<NlComponent> newSelection,
                          boolean toolbar) {
-    // TODO
+    group.add(new CreateFragmentAction((NavDesignSurface)mySurface));
   }
 }
