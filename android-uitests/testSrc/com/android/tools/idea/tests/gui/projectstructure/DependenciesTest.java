@@ -161,4 +161,58 @@ public class DependenciesTest {
 
     return guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
+
+  /***
+   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>TR ID: C14606136
+   * <pre>
+   *   Verifies transitive dependencies with Android Library and third party library are resolved in a gradle file.
+   *   Test Steps
+   *   1. Create a new Android Studio project.
+   *   2. Go to File Menu > New Module > Java Library.
+   *   3. Create new Java library module.
+   *   4. Add "compile 'com.google.code.gson.gson:2.6.2" to library module's build.gradle file in dependencies section.
+   *   5. Right click on the app module > Module settings under dependencies, add module dependency to library create in step 2.
+   *   6. Add in the line "Gson gson = new Gson();" in class files of app module and library module.
+   *   Verification
+   *   The line "Gson gsn = new Gson();" should get resolved in both the app and library modules without any errors.
+   * </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void transitiveJavaDependenciesResolve() throws Exception {
+    IdeFrameFixture ideFrame = createNewProject(APP_NAME, MIN_SDK);
+
+    ideFrame.openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Java Library")
+      .clickNextToStep("Java Library")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+
+    EditorFixture editor = ideFrame.getEditor()
+      .open("/lib/build.gradle")
+      .select("dependencies \\{()")
+      .enterText("\ncompile 'com.google.code.gson:gson:2.6.2'\n");
+
+
+    ideFrame.getProjectView()
+      .selectProjectPane()
+      .clickPath(RIGHT_BUTTON, APP_NAME, "app");
+
+    ideFrame.invokeMenuPath("Open Module Settings");
+
+    ProjectStructureDialogFixture.find(ideFrame)
+      .selectDependenciesTab()
+      .addModuleDependency(":lib")
+      .clickOk();
+
+    editor.open("/app/src/main/java/android/com/app/MainActivity.java")
+      .select("()public class MainActivity")
+      .enterText("import com.google.gson.Gson;\n\n")
+      .select("public class MainActivity extends AppCompatActivity \\{()")
+      .enterText("\nGson gson = new Gson();\n");
+
+    GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
+    assertTrue(result.isBuildSuccessful());
+  }
 }
