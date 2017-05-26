@@ -74,8 +74,7 @@
     <orderEntry type="module" module-name="assetstudio" scope="TEST" />
     <orderEntry type="module" module-name="instant-run-client" scope="TEST" />
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="dexlib2-2.2b4" level="project" />
-    <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="compiler-impl" scope="TEST" />
     <orderEntry type="module" module-name="junit" scope="TEST" />
     <orderEntry type="module" module-name="execution-impl" scope="TEST" />
@@ -95,5 +94,6 @@
     <orderEntry type="module" module-name="analyzer" scope="TEST" />
     <orderEntry type="module" module-name="sdk-common" scope="TEST" />
     <orderEntry type="module" module-name="flags" scope="TEST" />
+    <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
   </component>
 </module>
