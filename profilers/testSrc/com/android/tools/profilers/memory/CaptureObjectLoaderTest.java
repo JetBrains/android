@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
 import static junit.framework.TestCase.assertNull;
@@ -49,7 +51,7 @@ public class CaptureObjectLoaderTest {
   @Test(expected = AssertionError.class)
   public void loadCaptureBeforeStart() throws Exception {
     TestCaptureObject capture = new TestCaptureObject(new CountDownLatch(1), true, false);
-    myLoader.loadCapture(capture);
+    myLoader.loadCapture(capture, null, null);
   }
 
   @Test
@@ -59,7 +61,7 @@ public class CaptureObjectLoaderTest {
     CountDownLatch loadLatch = new CountDownLatch(1);
     CountDownLatch doneLatch = new CountDownLatch(1);
     TestCaptureObject capture = new TestCaptureObject(loadLatch, true, false);
-    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture);
+    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture, null, null);
 
     future.addListener(() -> {
       try {
@@ -85,7 +87,7 @@ public class CaptureObjectLoaderTest {
     CountDownLatch loadLatch = new CountDownLatch(1);
     CountDownLatch doneLatch = new CountDownLatch(1);
     TestCaptureObject capture = new TestCaptureObject(loadLatch, false, false);
-    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture);
+    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture, null, null);
 
     future.addListener(() -> {
       try {
@@ -110,7 +112,7 @@ public class CaptureObjectLoaderTest {
     CountDownLatch loadLatch = new CountDownLatch(1);
     CountDownLatch doneLatch = new CountDownLatch(1);
     TestCaptureObject capture = new TestCaptureObject(loadLatch, true, false);
-    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture);
+    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture, null, null);
 
     future.addListener(() -> {
       try {
@@ -139,7 +141,7 @@ public class CaptureObjectLoaderTest {
     CountDownLatch loadLatch = new CountDownLatch(1);
     CountDownLatch doneLatch = new CountDownLatch(1);
     TestCaptureObject capture = new TestCaptureObject(loadLatch, true, false);
-    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture);
+    ListenableFuture<CaptureObject> future = myLoader.loadCapture(capture, null, null);
 
     future.addListener(() -> {
       try {
@@ -235,7 +237,7 @@ public class CaptureObjectLoaderTest {
     }
 
     @Override
-    public boolean load() {
+    public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
       try {
         myLoadLatch.await();
       }

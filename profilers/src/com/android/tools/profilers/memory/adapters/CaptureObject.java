@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +23,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
 import static javax.swing.SortOrder.ASCENDING;
@@ -160,7 +162,14 @@ public interface CaptureObject extends MemoryObject {
 
   long getEndTimeNs();
 
-  boolean load();
+  /**
+   * Entry point for the {@link CaptureObject} to load its data. Note that it is up to the implementation to listen to changes
+   * in the queryRange and make data changes accordingly. The optional queryJoiner allows the implementation to perform
+   * operation back on the caller's thread (e.g. notifying UI updates) if bulk loading is done on a separate thread.
+   * These parameters are only used by {@link LiveAllocationCaptureObject} instances at the moment, since partial selection/queries are
+   * not supported otherwise.
+   */
+  boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner);
 
   boolean isDoneLoading();
 
@@ -168,5 +177,6 @@ public interface CaptureObject extends MemoryObject {
 
   void unload();
 
-  default void addCaptureChangedListener(@NotNull CaptureChangedListener listener) {}
+  default void addCaptureChangedListener(@NotNull CaptureChangedListener listener) {
+  }
 }

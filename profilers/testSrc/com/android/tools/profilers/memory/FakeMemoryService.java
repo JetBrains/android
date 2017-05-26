@@ -33,7 +33,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private HeapDumpInfo myExplicitHeapDumpInfo = null;
   private DumpDataResponse.Status myExplicitDumpDataStatus = null;
   private byte[] myExplicitSnapshotBuffer = null;
-  private long myCurrentTime = 0;
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
   private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
@@ -129,12 +128,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     }
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
-  }
-
-  @NotNull
-  public FakeMemoryService advanceTime(long newTime) {
-    myCurrentTime = newTime;
-    return this;
   }
 
   @NotNull

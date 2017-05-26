@@ -52,7 +52,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myProcesses = MultiMap.create();
     myCache = new HashMap<>();
     if (connected) {
-      Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+      Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").setState(Profiler.Device.State.ONLINE).build();
       Profiler.Process process = Profiler.Process.newBuilder()
         .setPid(20)
         .setState(Profiler.Process.State.ALIVE)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -99,16 +101,6 @@ public class HeapDumpCaptureObject implements CaptureObject {
         .getFixedPointFormattedString(TimeUnit.MILLISECONDS.toMicros(1),
                                       TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myHeapDumpInfo.getStartTime())));
     myFeatureTracker = featureTracker;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof HeapDumpCaptureObject)) {
-      return false;
-    }
-
-    HeapDumpCaptureObject other = (HeapDumpCaptureObject)obj;
-    return other.myProcessId == myProcessId && other.myIsLoadingError == myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
   }
 
   @NotNull
@@ -193,7 +185,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
   }
 
   @Override
-  public boolean load() {
+  public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
     DumpDataResponse response;
     while (true) {
       // TODO move this to another thread and complete before we notify

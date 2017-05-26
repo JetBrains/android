@@ -15,27 +15,31 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.google.common.util.concurrent.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CaptureObjectLoader {
   @Nullable private ExecutorService myExecutorService = null;
 
-  // @GuardedBy("myTaskLock")
   @Nullable
   private ListenableFutureTask<CaptureObject> myOutstandingLoadingTask = null;
 
   @NotNull
-  public ListenableFuture<CaptureObject> loadCapture(@NotNull CaptureObject captureObject) {
+  public ListenableFuture<CaptureObject> loadCapture(@NotNull CaptureObject captureObject,
+                                                     @Nullable Range queryRange,
+                                                     @Nullable Executor queryJoiner) {
     assert myExecutorService != null;
     cancelTask();
 
-    ListenableFutureTask<CaptureObject> task = ListenableFutureTask.create(() -> captureObject.load() ? captureObject : null);
+    ListenableFutureTask<CaptureObject> task =
+      ListenableFutureTask.create(() -> captureObject.load(queryRange, queryJoiner) ? captureObject : null);
     myOutstandingLoadingTask = task;
 
     Futures.addCallback(task, new FutureCallback<CaptureObject>() {

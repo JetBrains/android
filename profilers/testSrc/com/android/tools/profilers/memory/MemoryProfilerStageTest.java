@@ -28,15 +28,18 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +52,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @NotNull private final FakeProfilerService myProfilerService = new FakeProfilerService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myProfilerService);
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myProfilerService,
+                        new FakeCpuService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
@@ -57,34 +62,36 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testToggleLegacyCapture() throws Exception {
+  public void testToggleAllocationTrackingFailedStatuses() throws Exception {
+    myStage.trackAllocations(false);
     assertEquals(false, myStage.isTrackingAllocations());
-    assertNull(myStage.getSelectedCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
-    // Test the no-action cases
-    myStage.trackAllocations(false, null);
-    assertEquals(false, myStage.isTrackingAllocations());
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
-    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.NOT_ENABLED);
-    myStage.trackAllocations(false, null);
+    myStage.trackAllocations(false);
     assertEquals(false, myStage.isTrackingAllocations());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
+
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
-    myStage.trackAllocations(false, null);
+    myStage.trackAllocations(false);
     assertEquals(false, myStage.isTrackingAllocations());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
+  }
+
+  @Test
+  public void testToggleAllocationTracking() throws Exception {
+    // Enable the auto capture selection mechanism.
+    myStage.enableSelectLatestCapture(true, MoreExecutors.directExecutor());
 
     // Starting a tracking session
-    int infoStart = 5;
-    int infoEnd = 10;
-    myService.advanceTime(1);
+    long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
+    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
     myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
-    myStage.trackAllocations(true, null);
+    myStage.trackAllocations(true);
     assertEquals(true, myStage.isTrackingAllocations());
     assertEquals(null, myStage.getSelectedCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
@@ -92,44 +99,40 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Attempting to start a in-progress session
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.IN_PROGRESS);
-    myStage.trackAllocations(true, null);
+    myStage.trackAllocations(true);
     assertEquals(true, myStage.isTrackingAllocations());
+    assertEquals(null, myStage.getSelectedCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
-    // Spawn a different thread to stop a tracking session
-    // This will start loading the CaptureObject but it will loop until the AllocationEventsResponse returns a SUCCESS status.
-    final CountDownLatch waitLatch = new CountDownLatch(1);
-    new Thread(() -> {
-      myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-      myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
-                                           infoStart, infoEnd, true);
-      myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.NOT_READY, Collections.emptyList());
-      myStage.trackAllocations(false, null);
-      assertEquals(false, myStage.isTrackingAllocations());
-      assertTrue(myStage.getSelectedCapture() instanceof LegacyAllocationCaptureObject);
-      LegacyAllocationCaptureObject capture = (LegacyAllocationCaptureObject)myStage.getSelectedCapture();
-      assertEquals(infoStart, capture.getStartTimeNs());
-      assertEquals(infoEnd, capture.getEndTimeNs());
-      assertFalse(capture.isDoneLoading());
-      assertFalse(capture.isError());
-      assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
-      myAspectObserver.assertAndResetCounts(1, 1, 0, 0, 0, 0, 0, 0);
-      waitLatch.countDown();
-    }).start();
+    // Stops the tracking session.
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
+                                         infoStart, infoEnd, true);
+    myStage.trackAllocations(false);
+    assertEquals(false, myStage.isTrackingAllocations());
+    assertEquals(null, myStage.getSelectedCapture());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    myAspectObserver.assertAndResetCounts(1, 0, 0, 0, 0, 0, 0, 0);
 
-    try {
-      waitLatch.await();
-    }
-    catch (InterruptedException ignored) {
-    }
+    // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
+    myService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
+      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
+        MemoryProfiler.AllocationsInfo.Status.COMPLETED).build()).build());
+    myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
 
-    // Manually mark the current allocation session as complete, which will trigger the CaptureObject to finish loading
+    // Advancing time (data range) should trigger MemoryProfilerStage to select the capture.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertTrue(myStage.getSelectedCapture() instanceof LegacyAllocationCaptureObject);
     LegacyAllocationCaptureObject capture = (LegacyAllocationCaptureObject)myStage.getSelectedCapture();
-    myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
-    // Run the CaptureObject.load task
+    assertFalse(capture.isDoneLoading());
+    assertFalse(capture.isError());
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+
+    // Finish the load task.
     myMockLoader.runTask();
+    assertEquals(capture, myStage.getSelectedCapture());
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
@@ -143,21 +146,22 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Test the no-action cases
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.FAILURE_UNKNOWN);
-    myStage.requestHeapDump(null);
+    myStage.requestHeapDump();
     assertNull(myStage.getSelectedCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.IN_PROGRESS);
-    myStage.requestHeapDump(null);
+    myStage.requestHeapDump();
     assertNull(myStage.getSelectedCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.UNSPECIFIED);
-    myStage.requestHeapDump(null);
+    myStage.requestHeapDump();
     assertNull(myStage.getSelectedCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
     myService.setExplicitHeapDumpStatus(MemoryProfiler.TriggerHeapDumpResponse.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(5, 10);
-    myStage.requestHeapDump(null);
+    myStage.requestHeapDump();
+
     // TODO need to add a mock heap dump here to test the success path
   }
 
@@ -170,7 +174,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     capture0.addInstanceObjects(ImmutableSet.of(instanceObject));
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture0)),
-                                  new Range(0, 1), null);
+                                  null);
     assertEquals(capture0, myStage.getSelectedCapture());
     assertNotNull(myStage.getSelectedHeapSet());
     assertEquals("default", myStage.getSelectedHeapSet().getName());
@@ -180,7 +184,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     capture1.addInstanceObjects(ImmutableSet.of(instanceObject));
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture1)),
-                                  new Range(0, 1), null);
+                                  null);
     assertEquals(capture1, myStage.getSelectedCapture());
     assertNotNull(myStage.getSelectedHeapSet());
     assertEquals("app", myStage.getSelectedHeapSet().getName());
@@ -191,10 +195,27 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     capture2.addInstanceObjects(ImmutableSet.of(instanceObject, otherInstanceObject));
 
     myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture2)),
-                                  new Range(0, 1), null);
+                                  null);
     assertEquals(capture2, myStage.getSelectedCapture());
     assertNotNull(myStage.getSelectedHeapSet());
     assertEquals("app", myStage.getSelectedHeapSet().getName());
+  }
+
+  @Test
+  public void testSelectionRangeUpdateOnCaptureSelection() throws Exception {
+    long startTimeUs = 5;
+    long endTimeUs = 10;
+    FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs))
+      .setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs)).build();
+
+    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    Object captureKey = new Object();
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
+                             null);
+    assertEquals(captureObject, myStage.getSelectedCapture());
+    assertEquals(startTimeUs, selectionRange.getMin(), 0);
+    assertEquals(endTimeUs, selectionRange.getMax(), 0);
   }
 
   @Test
@@ -207,8 +228,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     captureObject.addInstanceObjects(Collections.singleton(mockInstance));
 
     Object captureKey = new Object();
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
-                                  new Range(0, 1), null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
+                             null);
     assertEquals(captureObject, myStage.getSelectedCapture());
     assertNull(myStage.getSelectedHeapSet());
     assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
@@ -221,8 +243,9 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
 
     // Make sure the same capture selected shouldn't result in aspects getting raised again.
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
-                                  new Range(0, 1), null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(captureKey, () -> captureObject)),
+                             null);
     myMockLoader.runTask();
     assertEquals(captureObject, myStage.getSelectedCapture());
     assertNotNull(myStage.getSelectedHeapSet());
@@ -317,15 +340,17 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     CaptureObject mockCapture1 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(5).setEndTime(10).build();
     CaptureObject mockCapture2 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setStartTime(10).setEndTime(15).build();
 
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
-                                  new Range(0, 1), null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
+                             null);
     assertEquals(mockCapture1, myStage.getSelectedCapture());
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     // Make sure selecting a new capture while the first one is loading will select the new one
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture2)),
-                                  new Range(0, 1), null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture2)),
+                             null);
     assertEquals(mockCapture2, myStage.getSelectedCapture());
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
@@ -338,17 +363,26 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testCaptureLoadingFailure() throws ExecutionException, InterruptedException {
+    long startTimeUs = 5;
+    long endTimeUs = 10;
     CaptureObject mockCapture1 =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(5).setEndTime(10).setError(true).build();
+      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1")
+        .setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs)).setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs)).setError(true)
+        .build();
+    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
 
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
-                                  new Range(0, 1), null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> mockCapture1)),
+                             null);
     assertEquals(mockCapture1, myStage.getSelectedCapture());
+    assertEquals(startTimeUs, selectionRange.getMin(), 0);
+    assertEquals(endTimeUs, selectionRange.getMax(), 0);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     myMockLoader.runTask();
     assertEquals(null, myStage.getSelectedCapture());
+    assertTrue(selectionRange.isEmpty());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 0, 0, 0, 0);
   }
@@ -451,5 +485,80 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.setStage(myStage);
     assertFalse(myStage.isTrackingAllocations());
+  }
+
+  @Test
+  public void testSelectLatestCaptureDisabled() throws Exception {
+    myStage.enableSelectLatestCapture(false, null);
+    myMockLoader.setReturnImmediateFuture(true);
+    assertNull(myStage.getSelectedCapture());
+
+    // Start+Stop a capture session (allocation tracking)
+    long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
+    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myStage.trackAllocations(true);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
+                                         infoStart, infoEnd, true);
+    myStage.trackAllocations(false);
+    assertEquals(false, myStage.isTrackingAllocations());
+    assertEquals(null, myStage.getSelectedCapture());
+    myAspectObserver.assertAndResetCounts(2, 0, 0, 0, 0, 0, 0, 0);
+
+    // Prepares the AllocationsInfo with the correct start time in the FakeMemoryService.
+    myService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
+      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
+        MemoryProfiler.AllocationsInfo.Status.COMPLETED).build()).build());
+    myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
+
+    // Advancing time (data range) - MemoryProfilerStage should not select the capture since the feature is disabled.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertNull(myStage.getSelectedCapture());
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+  }
+
+  @Test
+  public void testSelectLatestCaptureEnabled() throws Exception {
+    myStage.enableSelectLatestCapture(true, MoreExecutors.directExecutor());
+    myMockLoader.setReturnImmediateFuture(true);
+    assertNull(myStage.getSelectedCapture());
+
+    // Start+Stop a capture session (allocation tracking)
+    long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
+    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS, infoStart, Long.MAX_VALUE, true);
+    myStage.trackAllocations(true);
+    myService.setExplicitAllocationsInfo(MemoryProfiler.AllocationsInfo.Status.COMPLETED,
+                                         infoStart, infoEnd, true);
+    myStage.trackAllocations(false);
+    assertEquals(false, myStage.isTrackingAllocations());
+    assertEquals(null, myStage.getSelectedCapture());
+    myAspectObserver.assertAndResetCounts(2, 0, 0, 0, 0, 0, 0, 0);
+
+    // Prepares an unfinished AllocationsInfo with the correct start time in the FakeMemoryService.
+    myService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
+      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(Long.MAX_VALUE).setLegacy(true).setStatus(
+        MemoryProfiler.AllocationsInfo.Status.COMPLETED).build()).build());
+    myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.SUCCESS, Collections.emptyList());
+
+    // Advancing time (data range) - stage should not select it yet since the tracking session has not finished
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertNull(myStage.getSelectedCapture());
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+
+    // Prepares a finished AllocationsInfo with the correct start time in the FakeMemoryService.
+    myService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
+      MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).setStatus(
+        MemoryProfiler.AllocationsInfo.Status.COMPLETED).build()).build());
+
+    // Advancing time (data range) - stage should select it since the tracking session is now done.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertTrue(myStage.getSelectedCapture() instanceof LegacyAllocationCaptureObject);
+    myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 1, 0, 0, 0);
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
   }
 }
