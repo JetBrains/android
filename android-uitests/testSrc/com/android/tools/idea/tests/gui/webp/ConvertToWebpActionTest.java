@@ -109,7 +109,7 @@ public class ConvertToWebpActionTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14603481
+   * TT ID: 716115fc-fb6e-43ec-abd4-4cc46b46a2f8
    * <p>
    *   <pre>
    *   Test Steps:
@@ -148,7 +148,7 @@ public class ConvertToWebpActionTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14603482
+   * TT ID: f1cbf728-3640-407b-a686-57c43e413e95
    * <p>
    *   <pre>
    *   Test Steps:
