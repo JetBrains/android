@@ -36,8 +36,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public class SplitApkDeployTask implements LaunchTask {
+
+  private static final Pattern DEVICE_NOT_FOUND_ERROR = Pattern.compile("device '.*' not found");
 
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
@@ -119,7 +122,12 @@ public class SplitApkDeployTask implements LaunchTask {
         return new InstallResult(InstallResult.FailureCode.NO_ERROR, null, null);
       }
       catch (InstallException e) {
-        return new InstallResult(InstallResult.FailureCode.UNTYPED_ERROR, e.getMessage(), null);
+        InstallResult.FailureCode failureCode = InstallResult.FailureCode.UNTYPED_ERROR;
+        // This can happen if the device gets disconnected during installation
+        if (e.getMessage() != null && DEVICE_NOT_FOUND_ERROR.matcher(e.getMessage()).matches()) {
+          failureCode = InstallResult.FailureCode.DEVICE_NOT_FOUND;
+        }
+        return new InstallResult(failureCode, e.getMessage(), null);
       }
     }
 
