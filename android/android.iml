@@ -39,7 +39,7 @@
     <orderEntry type="module" module-name="platform-api" />
     <orderEntry type="module" module-name="eclipse" />
     <orderEntry type="module" module-name="external-system-api" />
-    <orderEntry type="module" module-name="external-system-impl" />
+    <orderEntry type="module" module-name="sherpa-ui" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="jetgroovy" />
     <orderEntry type="module" module-name="perflib" />
@@ -77,14 +77,13 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="lang-api" />
+    <orderEntry type="module" module-name="external-system-impl" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="layoutlib" />
     <orderEntry type="module" module-name="sherpa-solver" />
-    <orderEntry type="module" module-name="sherpa-ui" />
     <orderEntry type="library" name="baksmali" level="project" />
-    <orderEntry type="library" name="dexlib2-2.2b4" level="project" />
+    <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="binary-resources" />
     <orderEntry type="module" module-name="analyzer" />
     <orderEntry type="module" module-name="pixelprobe" />
@@ -103,5 +102,6 @@
     <orderEntry type="module" module-name="instantapp-deploy" />
     <orderEntry type="module" module-name="sdk-common" />
     <orderEntry type="module" module-name="flags" />
+    <orderEntry type="module" module-name="lang-api" />
   </component>
 </module>
