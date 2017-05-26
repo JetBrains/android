@@ -32,7 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link IdeAndroidArtifact}.
+ * Tests for {@link IdeAndroidArtifactImpl}.
  */
 public class IdeAndroidArtifactTest {
   private ModelCache myModelCache;
@@ -46,12 +46,12 @@ public class IdeAndroidArtifactTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeAndroidArtifact.class).isAssignableTo(Serializable.class);
+    assertThat(IdeAndroidArtifactImpl.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeAndroidArtifact artifact = new IdeAndroidArtifact(new AndroidArtifactStub(), myModelCache, myGradleVersion);
+    IdeAndroidArtifact artifact = new IdeAndroidArtifactImpl(new AndroidArtifactStub(), myModelCache, myGradleVersion);
     byte[] bytes = serialize(artifact);
     Object o = deserialize(bytes);
     assertEquals(artifact, o);
@@ -60,12 +60,12 @@ public class IdeAndroidArtifactTest {
   @Test
   public void constructor() throws Throwable {
     AndroidArtifact original = new AndroidArtifactStub();
-    assertEqualsOrSimilar(original, new IdeAndroidArtifact(original, myModelCache, myGradleVersion));
+    assertEqualsOrSimilar(original, new IdeAndroidArtifactImpl(original, myModelCache, myGradleVersion));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeAndroidArtifact.class).withRedefinedSuperclass()
+    EqualsVerifier.forClass(IdeAndroidArtifactImpl.class).withRedefinedSuperclass()
       .withCachedHashCode("myHashCode", "calculateHashCode", null)
       .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
       .suppress(Warning.ALL_FIELDS_SHOULD_BE_USED)

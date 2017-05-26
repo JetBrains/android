@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getIdeSetupTasks;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.gradle.util.GradleBuilds.*;
@@ -407,8 +406,8 @@ public class GradleBuildInvoker {
                                                         @NotNull AndroidModuleModel androidModel) {
     IdeVariant variant = androidModel.getSelectedVariant();
     Collection<IdeBaseArtifact> testArtifacts = getArtifactsForTestCompileType(testCompileType, variant);
-    for (BaseArtifact artifact : testArtifacts) {
-      for (String taskName : getIdeSetupTasks(artifact)) {
+    for (IdeBaseArtifact artifact : testArtifacts) {
+      for (String taskName : artifact.getIdeSetupTaskNames()) {
         addTaskIfSpecified(tasks, gradlePath, taskName);
       }
     }

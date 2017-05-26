@@ -36,7 +36,7 @@ public class IdeBaseArtifactTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeBaseArtifact.class).withRedefinedSubclass(IdeAndroidArtifact.class)
+    EqualsVerifier.forClass(IdeBaseArtifact.class).withRedefinedSubclass(IdeAndroidArtifactImpl.class)
       .withCachedHashCode("myHashCode", "calculateHashCode", null)
       .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
       .verify();
