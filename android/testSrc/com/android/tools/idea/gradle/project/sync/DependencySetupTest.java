@@ -65,6 +65,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
   @Override
   protected void tearDown() throws Exception {
+    myModules = null;
     //noinspection SuperTearDownInFinally
     super.tearDown();
     LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidModuleModel.class, null);
