@@ -34,6 +34,7 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Platform;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
+import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -233,34 +234,18 @@ public final class Haxm extends InstallableComponent {
 
   @Override
   public void configure(@NotNull InstallContext installContext, @NotNull AndroidSdkHandler sdkHandler) {
-    AccelerationErrorCode accelerationErrorCode = checkHaxmInstallation();
-
-    if (myInstallationIntention == HaxmInstallationIntention.UNINSTALL) {
-      if (accelerationErrorCode == ALREADY_INSTALLED) {
-        try {
-          GeneralCommandLine commandLine = getUninstallCommandLine(sdkHandler.getLocation());
-          runInstaller(installContext, commandLine);
-        }
-        catch (WizardException|IOException e) {
-          LOG.warn(String.format("Tried to uninstall HAXM on %s OS", Platform.current().name()), e);
-          installContext.print("Unable to uninstall Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
-          String message = e.getMessage();
-          if (!StringUtil.endsWithLineBreak(message)) {
-            message += "\n";
-          }
-          installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
-        }
-      }
-      else {
-        // HAXM is not installed and the intention is to uninstall, so nothing to do here
-        // This should not normally be the case unless some of the previous HAXM installation/uninstallation
-        // operations failed or were executed outside of Studio
-        LOG.info("Acceleration check signified that HAXM is not installed, so not proceeding with its uninstallation. " +
-                 "The acceleration check result was: " + accelerationErrorCode.getProblem());
-        myHaxmInstallerSuccessfullyCompleted = true;
-      }
+    File sdkRoot = sdkHandler.getLocation();
+    if (sdkRoot == null) {
+      installContext.print("HAXM installer could not be run because SDK root isn't specified", ConsoleViewContentType.ERROR_OUTPUT);
       return;
     }
+
+    if (myInstallationIntention == HaxmInstallationIntention.UNINSTALL) {
+      configureForUninstall(installContext, sdkRoot);
+      return;
+    }
+
+    AccelerationErrorCode accelerationErrorCode = checkHaxmInstallation();
 
     AccelerationErrorSolution.SolutionCode solution = accelerationErrorCode.getSolution();
     if (accelerationErrorCode == ALREADY_INSTALLED) {
@@ -275,7 +260,7 @@ public final class Haxm extends InstallableComponent {
       case INSTALL_HAXM:
       case REINSTALL_HAXM:
         try {
-          GeneralCommandLine commandLine = getInstallCommandLine(sdkHandler.getLocation());
+          GeneralCommandLine commandLine = getInstallCommandLine(sdkRoot);
           runInstaller(installContext, commandLine);
         }
         catch (WizardException|IOException e) {
@@ -298,6 +283,47 @@ public final class Haxm extends InstallableComponent {
       default:
         // Different error that is unrelated to the installation of Haxm
         break;
+    }
+  }
+
+  private void configureForUninstall(@NotNull InstallContext installContext, @NotNull File sdkRoot) {
+    if (isInstalled(installContext, sdkRoot)) {
+      try {
+        GeneralCommandLine commandLine = getUninstallCommandLine(sdkRoot);
+        runInstaller(installContext, commandLine);
+      }
+      catch (WizardException |IOException e) {
+        LOG.warn(String.format("Tried to uninstall HAXM on %s OS", Platform.current().name()), e);
+        installContext.print("Unable to uninstall Intel HAXM\n", ConsoleViewContentType.ERROR_OUTPUT);
+        String message = e.getMessage();
+        if (!StringUtil.endsWithLineBreak(message)) {
+          message += "\n";
+        }
+        installContext.print(message, ConsoleViewContentType.ERROR_OUTPUT);
+      }
+    }
+    else {
+      // HAXM is not installed and the intention is to uninstall, so nothing to do here
+      // This should not normally be the case unless some of the previous HAXM installation/uninstallation
+      // operations failed or were executed outside of Studio
+      installContext.print("HAXM is not installed, so not proceeding with its uninstallation.", ConsoleViewContentType.NORMAL_OUTPUT);
+      myHaxmInstallerSuccessfullyCompleted = true;
+    }
+  }
+
+  private static boolean isInstalled(@NotNull InstallContext context, @NotNull File sdkRoot) {
+    try {
+      GeneralCommandLine command = getInstallerCommandLine(sdkRoot);
+      command.addParameter("-v");
+      OSProcessHandler processHandler = new OSProcessHandler(command);
+      processHandler.startNotify();
+      processHandler.waitFor();
+      Integer exitCode = processHandler.getExitCode();
+      return exitCode != null && exitCode == 0;
+    }
+    catch (ExecutionException | WizardException | IOException exception) {
+      context.print("Failed to determine whether HAXM is installed: " + exception.getMessage(), ConsoleViewContentType.ERROR_OUTPUT);
+      return false;
     }
   }
 
@@ -381,13 +407,18 @@ public final class Haxm extends InstallableComponent {
    * @throws IllegalStateException if called on an unsupported OS
    */
   @NotNull
-  private GeneralCommandLine getInstallCommandLine(File sdk) throws WizardException, IOException {
+  private GeneralCommandLine getInstallCommandLine(@NotNull File sdk) throws WizardException, IOException {
     int memorySize = myStateStore.getNotNull(KEY_EMULATOR_MEMORY_MB, getRecommendedMemoryAllocation());
+    return addInstallParameters(getInstallerCommandLine(sdk), memorySize);
+  }
+
+  @NotNull
+  private static GeneralCommandLine getInstallerCommandLine(@NotNull File sdk) throws WizardException, IOException {
     if (SystemInfo.isMac) {
-      return addInstallParameters(getMacHaxmCommandLine(getSourceLocation(sdk)), memorySize);
+      return getMacHaxmCommandLine(getSourceLocation(sdk));
     }
     else if (SystemInfo.isWindows) {
-      return addInstallParameters(getWindowsHaxmCommandLine(getSourceLocation(sdk)), memorySize);
+      return getWindowsHaxmCommandLine(getSourceLocation(sdk));
     }
     else {
       assert !canRun();
