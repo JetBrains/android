@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
@@ -42,7 +43,6 @@ import java.util.function.Consumer;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
 import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -126,11 +126,11 @@ class ExcludedRoots {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
       IdeVariant variant = androidModel.getSelectedVariant();
-      BaseArtifact unitTestArtifact = variant.getUnitTestArtifact();
-      BaseArtifact androidTestArtifact = variant.getAndroidTestArtifact();
+      IdeBaseArtifact unitTestArtifact = variant.getUnitTestArtifact();
+      IdeBaseArtifact androidTestArtifact = variant.getAndroidTestArtifact();
 
-      BaseArtifact excludeArtifact = myAndroidTest ? unitTestArtifact : androidTestArtifact;
-      BaseArtifact includeArtifact = myAndroidTest ? androidTestArtifact : unitTestArtifact;
+      IdeBaseArtifact excludeArtifact = myAndroidTest ? unitTestArtifact : androidTestArtifact;
+      IdeBaseArtifact includeArtifact = myAndroidTest ? androidTestArtifact : unitTestArtifact;
 
       if (excludeArtifact != null) {
         processFolders(excludeArtifact, androidModel, myExcludedRoots::add);
@@ -142,11 +142,11 @@ class ExcludedRoots {
     }
   }
 
-  private static void processFolders(@NotNull BaseArtifact artifact,
+  private static void processFolders(@NotNull IdeBaseArtifact artifact,
                                      @NotNull AndroidModuleModel androidModel,
                                      @NotNull Consumer<File> action) {
     action.accept(artifact.getClassesFolder());
-    for (File file : getGeneratedSourceFolders(artifact)) {
+    for (File file : artifact.getGeneratedSourceFolders()) {
       action.accept(file);
     }
 
@@ -188,8 +188,8 @@ class ExcludedRoots {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     if (model != null) {
       IdeVariant variant = model.getSelectedVariant();
-      BaseArtifact exclude = myAndroidTest ? variant.getUnitTestArtifact() : variant.getAndroidTestArtifact();
-      BaseArtifact include = myAndroidTest ? variant.getAndroidTestArtifact() : variant.getUnitTestArtifact();
+      IdeBaseArtifact exclude = myAndroidTest ? variant.getUnitTestArtifact() : variant.getAndroidTestArtifact();
+      IdeBaseArtifact include = myAndroidTest ? variant.getAndroidTestArtifact() : variant.getUnitTestArtifact();
       if (exclude != null) {
         addLibraryPaths(exclude, model);
       }
@@ -199,7 +199,7 @@ class ExcludedRoots {
     }
   }
 
-  private void addLibraryPaths(@NotNull BaseArtifact artifact, @NotNull AndroidModuleModel model) {
+  private void addLibraryPaths(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {
     Dependencies dependencies = getDependencies(artifact, model.getModelVersion());
     for (AndroidLibrary library : dependencies.getLibraries()) {
       if (isEmpty(library.getProject())) {

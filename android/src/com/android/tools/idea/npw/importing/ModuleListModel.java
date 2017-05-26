@@ -149,7 +149,7 @@ public final class ModuleListModel {
     if (!isValidModuleName(moduleName)) {
       return ModuleValidationState.INVALID_NAME;
     }
-    else if (GradleUtil.hasModule(myProject, moduleName, true)) {
+    else if (GradleUtil.hasModule(myProject, moduleName)) {
       return ModuleValidationState.ALREADY_EXISTS;
     }
     else {
