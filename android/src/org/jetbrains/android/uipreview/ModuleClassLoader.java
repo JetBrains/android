@@ -80,7 +80,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     myLibrary = library;
     myModuleReference = new WeakReference<>(module);
 
-    getLibraryJarFiles(getExternalLibraries())
+    getLibraryJarFiles(getExternalLibraries(module))
       .forEach(jarFile -> registerLibraryResourceFiles(module, jarFile));
   }
 
@@ -344,8 +344,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * Returns a {@link Stream<File>} of the referenced libraries for the {@link Module} of this class loader.
    */
   @NotNull
-  private Stream<File> getExternalLibraries() {
-    final Module module = myModuleReference.get();
+  private static Stream<File> getExternalLibraries(Module module) {
     if (module == null) {
       return Stream.empty();
     }
@@ -432,7 +431,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
       }
     }
 
-    getLibraryJarFiles(getExternalLibraries())
+    getLibraryJarFiles(getExternalLibraries(module))
       .peek(jarFile -> {
         try {
           result.add(SdkUtils.fileToUrl(jarFile));
