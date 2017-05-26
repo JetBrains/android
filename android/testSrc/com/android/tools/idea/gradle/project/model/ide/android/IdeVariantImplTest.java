@@ -32,9 +32,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link IdeVariant}.
+ * Tests for {@link IdeVariantImpl}.
  */
-public class IdeVariantTest {
+public class IdeVariantImplTest {
   private ModelCache myModelCache;
   private GradleVersion myGradleVersion;
 
@@ -46,12 +46,12 @@ public class IdeVariantTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeVariant.class).isAssignableTo(Serializable.class);
+    assertThat(IdeVariantImpl.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeVariant apiVersion = new IdeVariant(new VariantStub(), myModelCache, myGradleVersion);
+    IdeVariant apiVersion = new IdeVariantImpl(new VariantStub(), myModelCache, myGradleVersion);
     byte[] bytes = serialize(apiVersion);
     Object o = deserialize(bytes);
     assertEquals(apiVersion, o);
@@ -60,12 +60,12 @@ public class IdeVariantTest {
   @Test
   public void constructor() throws Throwable {
     Variant original = new VariantStub();
-    assertEqualsOrSimilar(original, new IdeVariant(original, myModelCache, myGradleVersion));
+    assertEqualsOrSimilar(original, new IdeVariantImpl(original, myModelCache, myGradleVersion));
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeVariant.class)
+    EqualsVerifier.forClass(IdeVariantImpl.class)
       .withCachedHashCode("myHashCode", "calculateHashCode", null)
       .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
       .verify();

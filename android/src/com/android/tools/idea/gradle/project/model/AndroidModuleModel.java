@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProjectImpl;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.google.common.annotations.VisibleForTesting;
@@ -75,7 +76,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   public static final String EXPLODED_AAR = "exploded-aar";
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
 
@@ -95,7 +96,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = Maps.newHashMap();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
-  @NotNull private Map<String, Variant> myVariantsByName = Maps.newHashMap();
+  @NotNull private Map<String, IdeVariant> myVariantsByName = Maps.newHashMap();
 
   @NotNull private Set<File> myExtraGeneratedSourceFolders = Sets.newHashSet();
 
@@ -151,9 +152,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   private void populateVariantsByName() {
-    for (Variant variant : myAndroidProject.getVariants()) {
-      myVariantsByName.put(variant.getName(), variant);
-    }
+    myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
   }
 
   @NotNull
@@ -164,7 +163,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public Dependencies getSelectedAndroidTestCompileDependencies() {
-    AndroidArtifact androidTestArtifact = getAndroidTestArtifactInSelectedVariant();
+    AndroidArtifact androidTestArtifact = getSelectedVariant().getAndroidTestArtifact();
     if (androidTestArtifact == null) {
       // Only variants in the debug build type have an androidTest artifact.
       return null;
@@ -289,52 +288,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
         throw new IllegalArgumentException(msg);
       }
     }
-  }
-
-  @NotNull
-  public Collection<BaseArtifact> getTestArtifactsInSelectedVariant() {
-    return getTestArtifacts(getSelectedVariant());
-  }
-
-  @NotNull
-  public static Collection<BaseArtifact> getTestArtifacts(@NotNull Variant variant) {
-    Set<BaseArtifact> testArtifacts = Sets.newHashSet();
-    for (BaseArtifact artifact : variant.getExtraAndroidArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        testArtifacts.add(artifact);
-      }
-    }
-    for (BaseArtifact artifact : variant.getExtraJavaArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        testArtifacts.add(artifact);
-      }
-    }
-    return testArtifacts;
-  }
-
-  @Nullable
-  public AndroidArtifact getAndroidTestArtifactInSelectedVariant() {
-    for (AndroidArtifact artifact : getSelectedVariant().getExtraAndroidArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        return artifact;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public JavaArtifact getUnitTestArtifactInSelectedVariant() {
-    for (JavaArtifact artifact : getSelectedVariant().getExtraJavaArtifacts()) {
-      if (isTestArtifact(artifact)) {
-        return artifact;
-      }
-    }
-    return null;
-  }
-
-  public static boolean isTestArtifact(@NotNull BaseArtifact artifact) {
-    String artifactName = artifact.getName();
-    return isTestArtifact(artifactName);
   }
 
   private static boolean isTestArtifact(@Nullable String artifactName) {
@@ -568,8 +521,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return the selected build variant.
    */
   @NotNull
-  public Variant getSelectedVariant() {
-    Variant selected = myVariantsByName.get(mySelectedVariantName);
+  public IdeVariant getSelectedVariant() {
+    IdeVariant selected = myVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
   }

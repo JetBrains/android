@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -29,7 +30,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getTestArtifacts;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGeneratedSourceFolders;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
@@ -64,12 +64,12 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
 
   @Override
   public void execute(@NotNull List<ContentEntry> contentEntries) {
-    Variant selectedVariant = myAndroidModel.getSelectedVariant();
+    IdeVariant selectedVariant = myAndroidModel.getSelectedVariant();
 
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     addSourceFolders(mainArtifact, contentEntries, false);
 
-    for (BaseArtifact artifact : getTestArtifacts(selectedVariant)) {
+    for (BaseArtifact artifact : selectedVariant.getTestArtifacts()) {
       addSourceFolders(artifact, contentEntries, true);
     }
 

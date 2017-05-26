@@ -28,10 +28,16 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.intellij.util.ArrayUtil.contains;
+
 /**
  * Creates a deep copy of a {@link BaseArtifact}.
  */
 public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
+  private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
+
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
   private final int myHashCode;
@@ -235,6 +241,10 @@ public abstract class IdeBaseArtifact extends IdeModel implements BaseArtifact {
   @Override
   public int hashCode() {
     return myHashCode;
+  }
+
+  public boolean isTestArtifact() {
+    return contains(myName, TEST_ARTIFACT_NAMES);
   }
 
   protected int calculateHashCode() {

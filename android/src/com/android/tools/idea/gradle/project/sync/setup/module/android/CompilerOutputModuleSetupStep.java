@@ -49,7 +49,7 @@ public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
     Variant selectedVariant = androidModel.getSelectedVariant();
     File mainClassesFolder = selectedVariant.getMainArtifact().getClassesFolder();
 
-    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
+    JavaArtifact testArtifact = androidModel.getSelectedVariant().getUnitTestArtifact();
     File testClassesFolder = testArtifact == null ? null : testArtifact.getClassesFolder();
 
     ModifiableRootModel rootModel = ideModelsProvider.getModifiableRootModel(module);
