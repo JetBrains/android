@@ -36,6 +36,12 @@ public class SourceToGradleModuleStepTest extends AndroidGradleImportTestCase {
     myPage = new SourceToGradleModuleStep(new SourceToGradleModuleModel(getProject()));
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    myPage = null;
+    super.tearDown();
+  }
+
   public void testValidation() {
     String modulePath = virtualToIoFile(myModule).getAbsolutePath();
     assertThat(myPage.checkPath(modulePath).myStatus).isEqualTo(OK);
