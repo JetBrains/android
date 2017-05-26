@@ -439,7 +439,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Capture main thread should be selected
     assertEquals(capture.getMainThreadId(), myStage.getSelectedThread());
 
-    myStage.setAndSelectCapture(null);
+    myStage.setCapture(null);
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     // Thread selection is reset when going to NORMAL mode
     assertEquals(CaptureModel.INVALID_THREAD, myStage.getSelectedThread());
@@ -655,6 +655,19 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Stop profiler should be the same as the one passed in the start request
     assertEquals(CpuProfiler.CpuProfilerType.SIMPLE_PERF, myCpuService.getProfilerType());
+  }
+
+  @Test
+  public void setAndSelectCaptureShouldNotChangeStreamingMode() throws Exception {
+    // Capture has changed, keeps the same type of details
+    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace());
+    myStage.getStudioProfilers().getTimeline().setIsPaused(false);
+    myStage.getStudioProfilers().getTimeline().setStreaming(true);
+    myStage.setAndSelectCapture(capture);
+    assertTrue(myStage.getStudioProfilers().getTimeline().isStreaming());
+    myStage.getStudioProfilers().getTimeline().setStreaming(false);
+    myStage.setAndSelectCapture(capture);
+    assertFalse(myStage.getStudioProfilers().getTimeline().isStreaming());
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {
