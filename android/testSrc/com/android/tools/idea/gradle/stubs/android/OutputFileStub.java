@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
-import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 
 public class OutputFileStub implements OutputFile {
 
@@ -31,34 +31,34 @@ public class OutputFileStub implements OutputFile {
     myOutputFile = outputFile;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public String getOutputType() {
-    throw new UnsupportedOperationException();
+    return "test";
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<String> getFilterTypes() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<FilterData> getFilters() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public OutputFile getMainOutputFile() {
-    throw new UnsupportedOperationException();
+    return this;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public Collection<? extends OutputFile> getOutputs() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
@@ -66,8 +66,8 @@ public class OutputFileStub implements OutputFile {
     return 0;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File getOutputFile() {
     return myOutputFile;
   }

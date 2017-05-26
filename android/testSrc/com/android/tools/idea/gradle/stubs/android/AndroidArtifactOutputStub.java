@@ -39,13 +39,13 @@ public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
   @Override
   @NotNull
   public String getAssembleTaskName() {
-    throw new UnsupportedOperationException();
+    return "assemble";
   }
 
   @Override
   @NotNull
   public File getGeneratedManifest() {
-    throw new UnsupportedOperationException();
+    return new File("test");
   }
 
   @Override

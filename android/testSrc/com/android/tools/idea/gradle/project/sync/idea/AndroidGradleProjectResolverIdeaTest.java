@@ -68,13 +68,11 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   @Mock private ProjectFinder myProjectFinder;
   @Mock private VariantSelector myVariantSelector;
 
-  private IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   private IdeaProjectStub myProjectModel;
   private IdeaModuleStub myAndroidModuleModel;
   private IdeaModuleStub myNativeAndroidModuleModel;
   private IdeaModuleStub myJavaModuleModel;
 
-  private AndroidProjectStub myAndroidProject;
   private NativeAndroidProjectStub myNativeAndroidProject;
 
   private ProjectResolverContext myResolverCtx;
@@ -87,16 +85,16 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory = new IdeaJavaModuleModelFactory();
     myProjectModel = new IdeaProjectStub("multiProject");
-    myAndroidProject = TestProjects.createBasicProject(myProjectModel.getRootDir());
+    AndroidProjectStub androidProject = TestProjects.createBasicProject(myProjectModel.getRootDir());
     myNativeAndroidProject = TestProjects.createNativeProject(myProjectModel.getRootDir());
 
-    myAndroidModuleModel = myProjectModel.addModule(myAndroidProject.getName(), "androidTask");
+    myAndroidModuleModel = myProjectModel.addModule(androidProject.getName(), "androidTask");
     myNativeAndroidModuleModel = myProjectModel.addModule(myNativeAndroidProject.getName(), "nativeAndroidTask");
     myJavaModuleModel = myProjectModel.addModule("util", "compileJava", "jar", "classes");
     myProjectModel.addModule("notReallyAGradleProject");
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addExtraProject(myAndroidProject, AndroidProject.class, myAndroidModuleModel);
+    allModels.addExtraProject(androidProject, AndroidProject.class, myAndroidModuleModel);
     allModels.addExtraProject(myNativeAndroidProject, NativeAndroidProject.class, myNativeAndroidModuleModel);
 
     ExternalSystemTaskId id = ExternalSystemTaskId.create(SYSTEM_ID, RESOLVE_PROJECT, myProjectModel.getName());
@@ -144,31 +142,6 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     catch (IllegalStateException e) {
       assertThat(e.getMessage()).startsWith("The project is using an unsupported version of the Android Gradle plug-in (0.0.1)");
     }
-  }
-
-  public void testPopulateModuleContentRootsWithAndroidProject() {
-    when(myVariantSelector.findVariantToSelect(myAndroidProject)).thenReturn(myAndroidProject.getFirstVariant());
-
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
-    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
-    myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);
-
-    // Verify module has AndroidGradleModel.
-    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
-    assertThat(androidModelNodes).hasSize(1);
-
-    DataNode<AndroidModuleModel> androidModelNode = getFirstItem(androidModelNodes);
-    assertNotNull(androidModelNode);
-    assertSame(myAndroidProject, androidModelNode.getData().getAndroidProject());
-
-    // Verify module has IdeaGradleProject.
-    Collection<DataNode<GradleModuleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODULE_MODEL);
-    assertThat(gradleModelNodes).hasSize(1);
-
-    DataNode<GradleModuleModel> gradleModelNode = getFirstItem(gradleModelNodes);
-    assertNotNull(gradleModelNode);
-    assertEquals(myAndroidModuleModel.getGradleProject().getPath(), gradleModelNode.getData().getGradlePath());
   }
 
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {

@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static org.mockito.Mockito.mock;
 
 public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
@@ -53,13 +54,13 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
 
   @Override
   public boolean isSigned() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
   @Override
   @Nullable
   public String getSigningConfigName() {
-    throw new UnsupportedOperationException();
+    return "test";
   }
 
   @Override
@@ -100,19 +101,19 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
   @NotNull
   public Map<String, ClassField> getResValues() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
   @NotNull
   public InstantRun getInstantRun() {
-    return myInstantRun;
+    return myInstantRun != null ? myInstantRun : mock(InstantRun.class);
   }
 
   public AndroidArtifactStub setInstantRun(InstantRun instantRun) {

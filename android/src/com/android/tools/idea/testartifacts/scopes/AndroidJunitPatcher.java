@@ -17,7 +17,6 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.JavaArtifact;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.execution.JUnitPatcher;
@@ -26,15 +25,16 @@ import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.PathsList;
-import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.DOT_JAR;
+import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
 import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 
@@ -86,19 +86,21 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     String originalClassPath = classPath.getPathsString();
     try {
-      handlePlatformJar(classPath, platform, testArtifact);
-      handleAdditionalFolders(module, androidModel, classPath);
+      replaceAndroidJarWithMockableJar(classPath, platform, testArtifact);
+      addResourceFoldersToClasspath(module, testArtifact, classPath);
     }
     catch (RuntimeException e) {
       throw new RuntimeException(String.format("Error patching the JUnit class path. Original class path:%n%s", originalClassPath), e);
     }
   }
 
-  /** Removes real android.jar from the classpath and puts the mockable one at the end. */
-  private static void handlePlatformJar(@NotNull PathsList classPath,
-                                        @NotNull AndroidPlatform platform,
-                                        @NotNull JavaArtifact artifact) {
-    String androidJarPath = platform.getTarget().getPath(IAndroidTarget.ANDROID_JAR);
+  /**
+   * Removes real android.jar from the classpath and puts the mockable one at the end.
+   */
+  private static void replaceAndroidJarWithMockableJar(@NotNull PathsList classPath,
+                                                       @NotNull AndroidPlatform platform,
+                                                       @NotNull JavaArtifact artifact) {
+    String androidJarPath = platform.getTarget().getPath(ANDROID_JAR);
     for (String entry : classPath.getPathList()) {
       if (pathsEqual(androidJarPath, entry)) {
         classPath.remove(entry);
@@ -107,9 +109,9 @@ public class AndroidJunitPatcher extends JUnitPatcher {
 
     // Move the mockable android jar to the end. This is to make sure "empty" classes from android.jar don't end up shadowing real
     // classes needed by the testing code (e.g. XML/JSON related). Since mockable jars were introduced in 1.1, they were put in the model
-    // as dependencies, which means a module which depends on Android libraries with different  will end up with more than one mockable jar in the
-    // classpath.
-    List<String> mockableJars = ContainerUtil.newSmartList();
+    // as dependencies, which means a module which depends on Android libraries with different  will end up with more than one mockable jar
+    // in the classpath.
+    List<String> mockableJars = new ArrayList<>();
     for (String path : classPath.getPathList()) {
       if (toSystemDependentPath(path).getName().startsWith("mockable-")) {
         // PathsList stores strings - use the one that's actually stored there.
@@ -131,7 +133,7 @@ public class AndroidJunitPatcher extends JUnitPatcher {
       // We're dealing with an old plugin, that puts the mockable jar in the dependencies. Just put the matching android.jar at the end of
       // the classpath.
       for (String mockableJarPath : mockableJars) {
-        if (mockableJarPath.endsWith("-" + platform.getApiLevel() + ".jar")) {
+        if (mockableJarPath.endsWith("-" + platform.getApiLevel() + DOT_JAR)) {
           classPath.addTail(mockableJarPath);
           return;
         }
@@ -150,20 +152,15 @@ public class AndroidJunitPatcher extends JUnitPatcher {
    *
    * @see <a href="http://b.android.com/172409">Bug 172409</a>
    */
-  private static void handleAdditionalFolders(@NotNull Module module,
-                                              @NotNull AndroidModuleModel androidModel,
-                                              @NotNull PathsList classPath) {
+  private static void addResourceFoldersToClasspath(@NotNull Module module,
+                                                    @NotNull JavaArtifact testArtifact,
+                                                    @NotNull PathsList classPath) {
     CompilerManager compilerManager = CompilerManager.getInstance(module.getProject());
     CompileScope scope = compilerManager.createModulesCompileScope(new Module[]{module}, true, true);
 
-    // The only test resources we want to use, are the ones from the module where the test is. They should go first, before main resources.
-    JavaArtifact testArtifact = androidModel.getUnitTestArtifactInSelectedVariant();
-
-    if (testArtifact != null) {
-      classPath.add(testArtifact.getJavaResourcesFolder());
-      for (File additionalTestClasses : testArtifact.getAdditionalClassesFolders()) {
-        classPath.add(additionalTestClasses);
-      }
+    classPath.add(testArtifact.getJavaResourcesFolder());
+    for (File additionalTestClasses : testArtifact.getAdditionalClassesFolders()) {
+      classPath.add(additionalTestClasses);
     }
 
     FileRootSearchScope excludeScope = null;
@@ -173,21 +170,20 @@ public class AndroidJunitPatcher extends JUnitPatcher {
     }
 
     for (Module affectedModule : scope.getAffectedModules()) {
-      AndroidFacet facet = AndroidFacet.getInstance(affectedModule);
-      if (facet != null) {
-        AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(facet);
-        if (affectedAndroidModel != null) {
-          AndroidArtifact mainArtifact = affectedAndroidModel.getMainArtifact();
-          addToClasspath(mainArtifact.getJavaResourcesFolder(), classPath, excludeScope);
-          for (File additionalClassesFolder : mainArtifact.getAdditionalClassesFolders()) {
-            addToClasspath(additionalClassesFolder, classPath, excludeScope);
-          }
+      AndroidModuleModel affectedAndroidModel = AndroidModuleModel.get(affectedModule);
+      if (affectedAndroidModel != null) {
+        AndroidArtifact mainArtifact = affectedAndroidModel.getMainArtifact();
+        addToClasspath(mainArtifact.getJavaResourcesFolder(), classPath, excludeScope);
+        for (File additionalClassesFolder : mainArtifact.getAdditionalClassesFolders()) {
+          addToClasspath(additionalClassesFolder, classPath, excludeScope);
         }
       }
     }
   }
 
-  private static void addToClasspath(File resourceFolder, @NotNull PathsList classPath, FileRootSearchScope excludeScope) {
+  private static void addToClasspath(@NotNull File resourceFolder,
+                                     @NotNull PathsList classPath,
+                                     @Nullable FileRootSearchScope excludeScope) {
     if (excludeScope != null && excludeScope.accept(resourceFolder)) {
       return;
     }
