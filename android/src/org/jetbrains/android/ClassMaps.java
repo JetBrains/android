@@ -28,7 +28,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
@@ -66,6 +65,9 @@ public class ClassMaps extends AndroidFacetScopedService {
     super(facet);
   }
 
+  /**
+   * Returns all the classes inheriting from {@code className} that can be accessed from the current module.
+   */
   // TODO: correctly support classes from external non-platform jars
   @NotNull
   public Map<String, PsiClass> getClassMap(@NotNull String className) {
@@ -115,7 +117,7 @@ public class ClassMaps extends AndroidFacetScopedService {
         }
       }
     }
-    fillMap(className, ProjectScope.getProjectScope(getProject()), result, false);
+    fillMap(className, getModule().getModuleWithDependenciesAndLibrariesScope(true), result, false);
     return result;
   }
 
