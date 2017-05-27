@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyMo
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.RecipeMergeUtils;
@@ -187,6 +188,9 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
    */
   @Override
   public void addDependency(@NotNull String configuration, @NotNull String mavenUrl) {
+    // Translate from "configuration" to "implementation" based on the parameter map context
+    configuration = FmGetConfigurationNameMethod.convertConfiguration(getParamMap(), configuration);
+
     myReferences.addDependency(configuration, mavenUrl);
     //noinspection unchecked
     SetMultimap<String, String> dependencyList =
