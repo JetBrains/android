@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dependencies;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
@@ -43,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
@@ -85,35 +87,66 @@ public class GradleDependencyManager {
       return Collections.emptyList();
     }
 
+    List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts(COMPILE) : null;
+
+    // Record current version of support library; if used, prefer that for other dependencies
+    // (e.g. if you're using appcompat-v7 version 25.3.1, and you drag in a recyclerview-v7
+    // library, we should also use 25.3.1, not whatever happens to be latest
+    GradleVersion appCompatVersion = null;
+    if (compileDependencies != null) {
+      for (ArtifactDependencyModel dependency : compileDependencies) {
+        if (Objects.equal(SUPPORT_LIB_GROUP_ID, dependency.group().value()) &&
+            Objects.equal("appcompat-v7", dependency.name().value())) {
+          String s = dependency.version().value();
+          if (s != null) {
+            appCompatVersion = GradleVersion.tryParse(s);
+          }
+          break;
+        }
+      }
+    }
+
+    Project project = module.getProject();
     RepositoryUrlManager manager = RepositoryUrlManager.get();
     List<GradleCoordinate> missingLibraries = Lists.newArrayList();
     for (GradleCoordinate coordinate : dependencies) {
-      GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, null);
-      if (resolvedCoordinate == null) {
-        // We don't have anything installed, but we can keep trying with the unresolved coordinate if we have enough info
-        if (coordinate.getArtifactId() == null || coordinate.getGroupId() == null) {
-          // We don't have enough info to continue. Skip.
-          // TODO Should this be an error ?
-          continue;
-        }
+      String groupId = coordinate.getGroupId();
+      String artifactId = coordinate.getArtifactId();
+      if (artifactId == null || groupId == null) {
+        // We don't have enough info to continue. Skip.
+        continue;
       }
-      else {
+
+      GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, project);
+
+      // If we're adding a support library with a dynamic version (+), and we already have a resolved
+      // support library version, use that specific version for the new support library too to keep them
+      // all consistent.
+      if (appCompatVersion != null
+          && coordinate.acceptsGreaterRevisions() && SUPPORT_LIB_GROUP_ID.equals(groupId)
+          && !artifactId.equals("appcompat-v7")
+          // The only library in groupId=SUPPORT_LIB_GROUP_ID which doesn't follow the normal version numbering scheme
+          && !artifactId.equals("multidex")) {
+        resolvedCoordinate = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + appCompatVersion.toString());
+      }
+
+      if (resolvedCoordinate != null) {
         coordinate = resolvedCoordinate;
       }
 
       boolean dependencyFound = false;
       // First look in the model returned by Gradle.
       if (gradleModel != null &&
-          GradleUtil.dependsOn(gradleModel, String.format("%s:%s", coordinate.getGroupId(), coordinate.getArtifactId()))) {
+          GradleUtil.dependsOn(gradleModel, String.format("%s:%s", groupId, artifactId))) {
         // GradleUtil.dependsOn method only checks the android library dependencies.
         // TODO: Consider updating it to also check for java library dependencies.
         dependencyFound = true;
       }
-      else if (buildModel != null) {
+      else if (compileDependencies != null) {
         // Now, check in the model obtained from the gradle files.
-        for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts(COMPILE)) {
-          if (Objects.equal(coordinate.getGroupId(), dependency.group().value()) &&
-              Objects.equal(coordinate.getArtifactId(), dependency.name().value())) {
+        for (ArtifactDependencyModel dependency : compileDependencies) {
+          if (Objects.equal(groupId, dependency.group().value()) &&
+              Objects.equal(artifactId, dependency.name().value())) {
             dependencyFound = true;
             break;
           }
