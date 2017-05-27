@@ -67,7 +67,8 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   IdeAndroidProjectImpl(@NotNull AndroidProject project, @NotNull ModelCache modelCache) {
     super(project, modelCache);
     myModelVersion = project.getModelVersion();
-    GradleVersion modelVersion = GradleVersion.parse(myModelVersion);
+    // Old plugin versions do not return model version.
+    myParsedModelVersion = GradleVersion.tryParse(myModelVersion);
 
     myName = project.getName();
     myDefaultConfig = modelCache.computeIfAbsent(project.getDefaultConfig(),
@@ -76,13 +77,14 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
     myProductFlavors = copy(project.getProductFlavors(), modelCache, container -> new IdeProductFlavorContainer(container, modelCache));
     myBuildToolsVersion = project.getBuildToolsVersion();
     mySyncIssues = copy(project.getSyncIssues(), modelCache, issue -> new IdeSyncIssue(issue, modelCache));
-    myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariantImpl(variant, modelCache, modelVersion));
+    myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariantImpl(variant, modelCache, myParsedModelVersion));
     myFlavorDimensions = copyNewProperty(() -> new ArrayList<>(project.getFlavorDimensions()), Collections.emptyList());
     myCompileTarget = project.getCompileTarget();
     myBootClassPath = new ArrayList<>(project.getBootClasspath());
     myNativeToolchains = copy(project.getNativeToolchains(), modelCache, toolchain -> new IdeNativeToolchain(toolchain, modelCache));
     mySigningConfigs = copy(project.getSigningConfigs(), modelCache, config -> new IdeSigningConfig(config, modelCache));
-    myLintOptions = modelCache.computeIfAbsent(project.getLintOptions(), options -> new IdeLintOptions(options, modelCache, modelVersion));
+    myLintOptions =
+      modelCache.computeIfAbsent(project.getLintOptions(), options -> new IdeLintOptions(options, modelCache, myParsedModelVersion));
     myUnresolvedDependencies = new HashSet<>(project.getUnresolvedDependencies());
     myJavaCompileOptions = modelCache.computeIfAbsent(project.getJavaCompileOptions(),
                                                       options -> new IdeJavaCompileOptions(options, modelCache));
@@ -90,18 +92,15 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
     myResourcePrefix = project.getResourcePrefix();
     myApiVersion = project.getApiVersion();
     myLibrary = project.isLibrary();
-    myProjectType = getProjectType(project, modelVersion);
+    myProjectType = getProjectType(project, myParsedModelVersion);
     myPluginGeneration = project.getPluginGeneration();
     myBaseSplit = copyNewProperty(project::isBaseSplit, false);
-
-    // Old plugin versions do not return model version.
-    myParsedModelVersion = GradleVersion.tryParse(myModelVersion);
 
     myHashCode = calculateHashCode();
   }
 
-  private static int getProjectType(@NotNull AndroidProject project, @NotNull GradleVersion modelVersion) {
-    if (modelVersion.isAtLeast(2, 3, 0)) {
+  private static int getProjectType(@NotNull AndroidProject project, @Nullable GradleVersion modelVersion) {
+    if (modelVersion != null && modelVersion.isAtLeast(2, 3, 0)) {
       return project.getProjectType();
     }
     return project.isLibrary() ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;

@@ -35,11 +35,11 @@ public final class IdeLintOptions extends IdeModel implements LintOptions {
   @Nullable private final Map<String, Integer> mySeverityOverrides;
   private final boolean myCheckTestSources;
 
-  public IdeLintOptions(@NotNull LintOptions options, @NotNull ModelCache modelCache, @NotNull GradleVersion modelVersion) {
+  public IdeLintOptions(@NotNull LintOptions options, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
     super(options, modelCache);
-    myBaselineFile = modelVersion.isAtLeast(2, 3, 0, "beta", 2, true) ? options.getBaselineFile() : null;
+    myBaselineFile = modelVersion != null && modelVersion.isAtLeast(2, 3, 0, "beta", 2, true) ? options.getBaselineFile() : null;
     mySeverityOverrides = copy(options.getSeverityOverrides());
-    myCheckTestSources = modelVersion.isAtLeast(2, 4, 0) && options.isCheckTestSources();
+    myCheckTestSources = modelVersion != null && modelVersion.isAtLeast(2, 4, 0) && options.isCheckTestSources();
 
     myHashCode = calculateHashCode();
   }
@@ -197,7 +197,7 @@ public final class IdeLintOptions extends IdeModel implements LintOptions {
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myBaselineFile, mySeverityOverrides, myCheckTestSources);
   }
 
