@@ -20,6 +20,7 @@ import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
@@ -32,9 +33,7 @@ import java.awt.event.MouseEvent;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link NavDesignSurface}
@@ -59,6 +58,24 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
     editorManager.closeFile(editorManager.getOpenFiles()[0]);
     surface.notifyComponentActivate(model.find("fragment2"));
     assertEquals("activity_main2.xml", editorManager.getOpenFiles()[0].getName());
+  }
+
+  public void testSubflowActivated() throws Exception {
+    NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
+    SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
+      .unboundedChildren(
+        component(NavigationSchema.TAG_FRAGMENT)
+          .id("@+id/fragment1"),
+        component(NavigationSchema.TAG_NAVIGATION)
+          .id("@+id/subnav")
+          .unboundedChildren(component(NavigationSchema.TAG_FRAGMENT)
+                               .id("@+id/fragment2")))
+      ).build();
+    surface.setModel(model);
+    assertEquals(model.getComponents().get(0), surface.getCurrentNavigation());
+    NlComponent subnav = model.find("subnav");
+    surface.notifyComponentActivate(subnav);
+    assertEquals(subnav, surface.getCurrentNavigation());
   }
 
   public void testDoubleClickFragment() throws Exception {

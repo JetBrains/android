@@ -136,13 +136,19 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
+  @NotNull
+  protected NlComponent getRoot() {
+    return getDesignSurface().getCurrentNavigation();
+  }
+
+  @Override
   @Nullable
   protected SceneComponent createHierarchy(@NotNull NlComponent component) {
     NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(component.getTagName());
     if (type != null) {
       switch (type) {
         case NAVIGATION:
-          if (component.getParent() != null) {
+          if (component != getRoot()) {
             SceneComponent sceneComponent = getScene().getSceneComponent(component);
             if (sceneComponent == null) {
               sceneComponent = new SceneComponent(getScene(), component);
@@ -179,6 +185,7 @@ public class NavSceneManager extends SceneManager {
   private void layoutAll() {
     SceneComponent root = getScene().getRoot();
     if (root != null) {
+      root.flatten().forEach(component -> component.setPosition(0, 0));
       root.flatten().forEach(myLayoutAlgorithm::layout);
     }
   }

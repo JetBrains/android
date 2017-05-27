@@ -20,9 +20,13 @@ import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.workbench.*;
+import com.android.tools.idea.naveditor.NavComponentHelperKt;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
@@ -34,6 +38,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -57,12 +64,17 @@ public class DestinationList implements ToolContent<DesignSurface> {
   @VisibleForTesting
   SelectionModel mySelectionModel;
 
-  private final JBList<NlComponent> myList;
+  @VisibleForTesting
+  final JBList<NlComponent> myList;
   private boolean mySelectionUpdating;
   private SelectionListener mySelectionModelListener;
   private ModelListener myModelListener;
   private NlModel myModel;
   private ListSelectionListener myListSelectionListener;
+  private MouseListener myMouseListener;
+  private JLabel myBackLabel;
+  private JPanel myBackPanel;
+  private NavDesignSurface myDesignSurface;
 
   private DestinationList() {
     myPanel = new JPanel(new BorderLayout());
@@ -102,10 +114,12 @@ public class DestinationList implements ToolContent<DesignSurface> {
     mySelectionModel.removeListener(mySelectionModelListener);
     myModel.removeListener(myModelListener);
     myList.removeListSelectionListener(myListSelectionListener);
+    myList.removeMouseListener(myMouseListener);
   }
 
   @Override
   public void setToolContext(@Nullable DesignSurface toolContext) {
+    myDesignSurface = (NavDesignSurface)toolContext;
     if (mySelectionModel != null && mySelectionModelListener != null) {
       mySelectionModel.removeListener(mySelectionModelListener);
     }
@@ -117,8 +131,8 @@ public class DestinationList implements ToolContent<DesignSurface> {
     }
 
     if (toolContext != null) {
+      myPanel.add(createBackPanel(toolContext), BorderLayout.NORTH);
       myModel = toolContext.getModel();
-      mySchema = NavigationSchema.getOrCreateSchema(myModel.getFacet());
       mySelectionModel = toolContext.getSelectionModel();
       mySelectionModelListener = (model, selection) -> {
         if (mySelectionUpdating) {
@@ -136,6 +150,8 @@ public class DestinationList implements ToolContent<DesignSurface> {
             i++;
           }
           myList.setSelectedIndices(ArrayUtil.toIntArray(selectedIndices));
+
+          updateBackLabel();
         }
         finally {
           mySelectionUpdating = false;
@@ -174,19 +190,67 @@ public class DestinationList implements ToolContent<DesignSurface> {
         public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
         }
       };
+      myMouseListener = new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          if (e.getClickCount() == 2) {
+            myDesignSurface.notifyComponentActivate(myList.getSelectedValue());
+          }
+        }
+      };
+      myList.addMouseListener(myMouseListener);
       myModel.addListener(myModelListener);
       myResourceResolver = toolContext.getConfiguration().getResourceResolver();
     }
     updateComponentList(toolContext);
   }
 
+  private NavigationSchema getSchema() {
+    if (mySchema == null) {
+      assert myModel != null;
+      mySchema = NavigationSchema.getOrCreateSchema(myModel.getFacet());
+    }
+    return mySchema;
+  }
+
+  private void updateBackLabel() {
+    if (myModel.getComponents().contains(myDesignSurface.getCurrentNavigation())) {
+      myBackPanel.setVisible(false);
+    }
+    else {
+      myBackPanel.setVisible(true);
+      myBackLabel.setText(NavComponentHelperKt.getUiName(myDesignSurface.getCurrentNavigation()));
+    }
+  }
+
+  @NotNull
+  private JComponent createBackPanel(@NotNull DesignSurface context) {
+    myBackPanel = new JPanel(new BorderLayout());
+    myBackLabel = new JLabel("", AndroidIcons.NeleIcons.BackArrow, SwingConstants.LEFT);
+    ColorSet colorSet = SceneContext.get(context.getCurrentSceneView()).getColorSet();
+    myBackPanel.setBackground(colorSet.getSubduedBackground());
+    myBackPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, colorSet.getFrames()),
+                                                             BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+    myBackPanel.setVisible(false);
+    myBackPanel.add(myBackLabel, BorderLayout.WEST);
+    myBackLabel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        //noinspection ConstantConditions This is only shown in the case where the current navigation has a parent.
+        myDesignSurface.setCurrentNavigation(myDesignSurface.getCurrentNavigation().getParent());
+        updateComponentList(myDesignSurface);
+        updateBackLabel();
+      }
+    });
+    return myBackPanel;
+  }
+
   private void updateComponentList(@Nullable DesignSurface toolContext) {
     myComponentList.clear();
     if (toolContext != null) {
-      NlModel model = toolContext.getModel();
-      NlComponent root = model.getComponents().get(0);
+      NlComponent root = myDesignSurface.getCurrentNavigation();
       for (NlComponent child : root.getChildren()) {
-        if (mySchema.getDestinationType(child.getTagName()) != null) {
+        if (getSchema().getDestinationType(child.getTagName()) != null) {
           myComponentList.add(child);
         }
       }
