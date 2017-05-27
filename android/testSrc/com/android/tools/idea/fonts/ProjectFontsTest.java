@@ -97,10 +97,10 @@ public class ProjectFontsTest extends FontTestCase {
     List<String> fonts = project.getFonts().stream().map(FontFamily::getName).collect(Collectors.toList());
     assertThat(fonts).containsExactly("roboto");
 
-    FontFamily family = assertFontFamily(project.getFont("@font/roboto"), "roboto", "roboto", "v15", "W5F8_SL0XFawnjxHGsZjJA.ttf");
+    FontFamily family = assertFontFamily(project.getFont("@font/roboto"), "roboto", "roboto", "v16", "W5F8_SL0XFawnjxHGsZjJA.ttf");
     assertThat(family.getFonts().size()).isEqualTo(1);
 
-    assertFontDetail(family.getFonts().get(0), "Roboto", "Regular", 400, 100, false, "roboto", "v15", "W5F8_SL0XFawnjxHGsZjJA.ttf");
+    assertFontDetail(family.getFonts().get(0), "Roboto", "Regular", 400, 100, false, "roboto", "v16", "W5F8_SL0XFawnjxHGsZjJA.ttf");
   }
 
   public void testDownloadableFamilyFileWithParameters() {
@@ -110,11 +110,11 @@ public class ProjectFontsTest extends FontTestCase {
     List<String> fonts = project.getFonts().stream().map(FontFamily::getName).collect(Collectors.toList());
     assertThat(fonts).containsExactly("roboto_bold");
     FontFamily family = assertFontFamily(project.getFont("@font/roboto_bold"), "roboto_bold",
-                                         "robotocondensed", "v15", "mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf");
+                                         "robotocondensed", "v14", "mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf");
     assertThat(family.getFonts().size()).isEqualTo(1);
 
     assertFontDetail(family.getFonts().get(0), "Roboto", "Condensed Bold Italic", 700, 75, true,
-                     "robotocondensed", "v15", "mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf");
+                     "robotocondensed", "v14", "mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf");
   }
 
   public void testDownloadableFamilyFileWithMultipleFonts() {
