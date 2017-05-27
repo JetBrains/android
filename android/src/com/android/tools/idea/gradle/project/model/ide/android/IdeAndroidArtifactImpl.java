@@ -43,7 +43,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
   private final boolean mySigned;
 
-  public IdeAndroidArtifactImpl(@NotNull AndroidArtifact artifact, @NotNull ModelCache modelCache, @NotNull GradleVersion gradleVersion) {
+  public IdeAndroidArtifactImpl(@NotNull AndroidArtifact artifact, @NotNull ModelCache modelCache, @Nullable GradleVersion gradleVersion) {
     super(artifact, modelCache, gradleVersion);
     myOutputs = copy(artifact.getOutputs(), modelCache, output -> new IdeAndroidArtifactOutput(output, modelCache));
     myApplicationId = artifact.getApplicationId();
