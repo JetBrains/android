@@ -22,6 +22,7 @@ import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.ScreenRecorderAction;
 import com.android.tools.idea.ddms.actions.ScreenshotAction;
+import com.android.tools.idea.ddms.actions.TerminateVMAction;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFormatter;
 import com.intellij.execution.impl.ConsoleViewImpl;
@@ -69,7 +70,7 @@ public class AndroidLogcatView implements Disposable {
   private final Project myProject;
   private final DeviceContext myDeviceContext;
   private final String myToolWindowId;
-  private final boolean myScreenCaptureActions;
+  private final boolean myHideMonitors;
 
   private JPanel myPanel;
   private DefaultComboBoxModel myFilterComboBoxModel;
@@ -124,11 +125,11 @@ public class AndroidLogcatView implements Disposable {
   public AndroidLogcatView(@NotNull final Project project,
                            @NotNull DeviceContext deviceContext,
                            @NotNull String toolWindowId,
-                           boolean screenCaptureActions) {
+                           boolean hideMonitors) {
     myDeviceContext = deviceContext;
     myProject = project;
     myToolWindowId = toolWindowId;
-    myScreenCaptureActions = screenCaptureActions;
+    myHideMonitors = hideMonitors;
 
     Disposer.register(myProject, this);
 
@@ -470,11 +471,13 @@ public class AndroidLogcatView implements Disposable {
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new MyRestartAction());
         c.addCustomConsoleAction(new MyConfigureLogcatHeaderAction());
-        if (myScreenCaptureActions) {
+        if (myHideMonitors) {
           // TODO: Decide if these should be part of the profiler window
           c.addCustomConsoleAction(new Separator());
           c.addCustomConsoleAction(new ScreenshotAction(project, myDeviceContext));
           c.addCustomConsoleAction(new ScreenRecorderAction(project, myDeviceContext));
+          c.addCustomConsoleAction(new Separator());
+          c.addCustomConsoleAction(new TerminateVMAction(myDeviceContext));
         }
         c.addCustomConsoleAction(new Separator());
         c.addCustomConsoleAction(new BrowserHelpAction("logcat", "http://developer.android.com/r/studio-ui/am-logcat.html"));
