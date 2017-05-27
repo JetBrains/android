@@ -21,6 +21,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -31,11 +32,16 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.uast.UElement;
+import org.jetbrains.uast.UastContext;
+import org.jetbrains.uast.UastUtils;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.res.ResourceHelper.getFolderType;
+import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 
 public class AndroidPsiUtils {
   /**
@@ -166,6 +172,58 @@ public class AndroidPsiUtils {
   @Nullable
   public static PsiElement getPsiParentSafely(@NotNull PsiElement element) {
     return ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)element::getParent);
+  }
+
+  /**
+   * This is similar to {@link com.intellij.psi.util.PsiTreeUtil#getParentOfType(PsiElement, Class, boolean)} with the addition
+   * that the method uses the UAST tree (if available) as a fallback mechanism. This is useful if {@code element} originates
+   * from a Kotlin {@link PsiFile}.
+   */
+  @Nullable
+  @Contract("null, _, _ -> null")
+  public static <T extends PsiElement> T getPsiParentOfType(@Nullable PsiElement element,
+                                                            @NotNull Class<T> parentClass,
+                                                            @SuppressWarnings("SameParameterValue") boolean strict) {
+    if (element == null) {
+      return null;
+    }
+
+    T parentElement = getParentOfType(element, parentClass, strict);
+    if (parentElement != null) {
+      return parentElement;
+    }
+    UElement uElement =
+      ServiceManager.getService(element.getProject(), UastContext.class).convertElementWithParent(element, UElement.class);
+    if (uElement != null) {
+      return getPsiParentOfType(uElement, parentClass, strict);
+    }
+    return null;
+  }
+
+  /**
+   * This is similar to {@link UastUtils#getParentOfType(UElement, Class, boolean)}, except {@code parentClass}
+   * is of type {@link PsiElement} instead of {@link UElement}.
+   */
+  @Nullable
+  @Contract("null, _, _ -> null")
+  public static <T extends PsiElement> T getPsiParentOfType(@Nullable UElement element,
+                                                            @NotNull Class<T> parentClass,
+                                                            boolean strict) {
+    if (element == null) {
+      return null;
+    }
+    if (strict) {
+      element = element.getUastParent();
+    }
+
+    while (element != null) {
+      if (parentClass.isInstance(element)) {
+        //noinspection unchecked
+        return (T)element;
+      }
+      element = element.getUastParent();
+    }
+    return null;
   }
 
   /** Type of resource reference: R.type.name or android.R.type.name or neither */
