@@ -51,7 +51,7 @@ public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
       return;
     }
 
-    if (version.equals(android.buildToolsVersion())) {
+    if (version.equals(android.buildToolsVersion().value())) {
       return;
     }
 
