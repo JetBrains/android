@@ -44,7 +44,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.testFramework.BinaryLightVirtualFile;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.messages.MessageBusConnection;
@@ -329,13 +328,13 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       byte[] content = Files.readAllBytes(p);
       if (archive.isBinaryXml(p, content)) {
         content = BinaryXmlParser.decodeXml(name.toString(), content);
-        return new BinaryLightVirtualFile(name.toString(), content);
+        return ApkVirtualFile.create(p, content);
       } else {
         VirtualFile file = JarFileSystem.getInstance().findLocalVirtualFileByPath(archive.getPath().toString());
         if (file != null) {
           return file.findFileByRelativePath(p.toString());
         } else {
-          return new BinaryLightVirtualFile(name.toString(), content);
+          return ApkVirtualFile.create(p, content);
         }
       }
     }
