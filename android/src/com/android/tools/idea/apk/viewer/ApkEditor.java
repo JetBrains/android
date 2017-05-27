@@ -132,6 +132,8 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   public void selectionChanged(@Nullable ArchiveTreeNode[] entries) {
     if (myCurrentEditor != null) {
       Disposer.dispose(myCurrentEditor);
+      // Null out the field immediately after disposal, in case an exception is thrown later in the method
+      myCurrentEditor = null;
     }
 
     myCurrentEditor = getEditor(entries);
