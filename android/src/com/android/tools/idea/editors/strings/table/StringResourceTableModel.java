@@ -181,8 +181,13 @@ public class StringResourceTableModel extends AbstractTableModel {
       case RESOURCE_FOLDER_COLUMN:
       case UNTRANSLATABLE_COLUMN:
         return null;
+      case DEFAULT_VALUE_COLUMN:
+        return getStringResourceAt(row).validateDefaultValue();
       default:
-        return myData.validateTranslation(getKey(row), getLocale(column));
+        Locale locale = getLocale(column);
+        assert locale != null;
+
+        return getStringResourceAt(row).validateTranslation(locale);
     }
   }
 }
