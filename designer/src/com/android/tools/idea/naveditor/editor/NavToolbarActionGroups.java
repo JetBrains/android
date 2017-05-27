@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
-import com.android.tools.idea.naveditor.actions.CreateFragmentAction;
-import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.uibuilder.actions.SetZoomAction;
+import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
@@ -33,14 +34,13 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   @Override
-  protected ActionGroup getNorthGroup() {
-    return new DefaultActionGroup(new CreateFragmentAction((NavDesignSurface)mySurface));
-  }
-
-  @NotNull
-  @Override
   protected ActionGroup getEastGroup() {
-    // TODO
-    return new DefaultActionGroup();
+    DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new SetZoomAction(mySurface, ZoomType.OUT));
+    group.add(new ZoomLabelAction(mySurface));
+    group.add(new SetZoomAction(mySurface, ZoomType.IN));
+    group.add(new SetZoomAction(mySurface, ZoomType.FIT));
+    // TODO group.add(new TogglePanningDialogAction(mySurface));
+    return group;
   }
 }
