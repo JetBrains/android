@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
@@ -400,7 +401,8 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       ModuleRootModificationUtil.updateModel(module, model -> {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
-          buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
+          String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+          buildModel.dependencies().addArtifact(name, libraryCoordinate);
           buildModel.applyChanges();
         }
       });

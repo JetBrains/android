@@ -241,7 +241,8 @@ public class GradleDependencyManager {
     ModuleRootModificationUtil.updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (GradleCoordinate coordinate : coordinates) {
-        dependenciesModel.addArtifact(COMPILE, coordinate.toString());
+        String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+        dependenciesModel.addArtifact(name, coordinate.toString());
       }
       buildModel.applyChanges();
     });

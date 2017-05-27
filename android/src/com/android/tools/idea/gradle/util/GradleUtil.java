@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
@@ -488,6 +489,17 @@ public final class GradleUtil {
     return found != null ? GradleVersion.tryParse(found) : null;
   }
 
+  @Nullable
+  public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    if (androidModel != null) {
+      AndroidProject androidProject = androidModel.getAndroidProject();
+      return GradleVersion.tryParse(androidProject.getModelVersion());
+    }
+
+    return null;
+  }
+
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
     if (IdeInfo.getInstance().isAndroidStudio()) {
       GradleWrapper gradleWrapper = GradleWrapper.find(project);
@@ -713,5 +725,69 @@ public final class GradleUtil {
     }
 
     return null;
+  }
+
+  /**
+   * This method converts a configuration name from (for example) "compile" to "implementation" if the
+   * Gradle plugin version is 3.0 or higher.
+   *
+   * @param configuration The original configuration name, such as "androidTestCompile"
+   * @param pluginVersion The plugin version number, such as 3.0.0-alpha1. If null, assumed to be current.
+   * @param preferApi     If true, will use "api" instead of "implementation" for new configurations
+   * @return the right configuration name to use
+   */
+  @NotNull
+  public static String mapConfigurationName(@NotNull String configuration,
+                                            @Nullable GradleVersion pluginVersion,
+                                            boolean preferApi) {
+    return mapConfigurationName(configuration, pluginVersion != null ? pluginVersion.toString() : null, preferApi);
+  }
+
+  /**
+   * This method converts a configuration name from (for example) "compile" to "implementation" if the
+   * Gradle plugin version is 3.0 or higher.
+   *
+   * @param configuration The original configuration name, such as "androidTestCompile"
+   * @param pluginVersion The plugin version number, such as 3.0.0-alpha1. If null, assumed to be current.
+   * @param preferApi     If true, will use "api" instead of "implementation" for new configurations
+   * @return the right configuration name to use
+   */
+  @NotNull
+  public static String mapConfigurationName(@NotNull String configuration,
+                                            @Nullable String pluginVersion,
+                                            boolean preferApi) {
+
+    if (pluginVersion != null && pluginVersion.matches("[012]\\..*")) {
+      return configuration;
+    }
+
+    configuration = replaceSuffixWithCase(configuration, "compile", preferApi ? "api" : "implementation");
+    configuration = replaceSuffixWithCase(configuration, "provided", "compileOnly");
+    configuration = replaceSuffixWithCase(configuration, "apk", "runtimeOnly");
+
+    return configuration;
+  }
+
+  /**
+   * Replaces the given suffix in the string, preserving the case in the string, e.g.
+   * replacing "foo" with "bar" will result in "bar", and replacing "myFoo" with "bar"
+   * will result in "myBar". (This is not a general purpose method; it assumes that
+   * the only non-lowercase letter is the first letter of the suffix.)
+   */
+  private static String replaceSuffixWithCase(String s, String suffix, String newSuffix) {
+    if (SdkUtils.endsWithIgnoreCase(s, suffix)) {
+      int suffixBegin = s.length() - suffix.length();
+      if (Character.isUpperCase(s.charAt(suffixBegin))) {
+        return s.substring(0, suffixBegin) + Character.toUpperCase(newSuffix.charAt(0)) + newSuffix.substring(1);
+      } else {
+        if (suffixBegin == 0) {
+          return newSuffix;
+        } else {
+          return s.substring(0, suffixBegin) + suffix;
+        }
+      }
+    }
+
+    return s;
   }
 }

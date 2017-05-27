@@ -133,4 +133,25 @@ public class GradleUtilTest {
     version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertNull(version);
   }
+
+  @Test
+  public void mapConfigurationName() {
+    assertEquals("compile", GradleUtil.mapConfigurationName("compile", "2.3.2", false));
+    assertEquals("testCompile", GradleUtil.mapConfigurationName("testCompile", "2.3.2", false));
+    assertEquals("androidTestCompile", GradleUtil.mapConfigurationName("androidTestCompile", "2.3.2", false));
+    assertEquals("provided", GradleUtil.mapConfigurationName("provided", "2.3.2", false));
+    assertEquals("testProvided", GradleUtil.mapConfigurationName("testProvided", "2.3.2", false));
+
+    assertEquals("implementation", GradleUtil.mapConfigurationName("compile", "3.0.0-alpha1", false));
+    assertEquals("testImplementation", GradleUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", false));
+    assertEquals("androidTestImplementation", GradleUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", false));
+    assertEquals("compileOnly", GradleUtil.mapConfigurationName("provided", "3.0.0-alpha1, false", false));
+    assertEquals("testCompileOnly", GradleUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", false));
+
+    assertEquals("api", GradleUtil.mapConfigurationName("compile", "3.0.0-alpha1", true));
+    assertEquals("testApi", GradleUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", true));
+    assertEquals("androidTestApi", GradleUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", true));
+    assertEquals("compileOnly", GradleUtil.mapConfigurationName("provided", "3.0.0-alpha1", true));
+    assertEquals("testCompileOnly", GradleUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", true));
+  }
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.lint.checks.ExifInterfaceDetector;
@@ -90,7 +91,8 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
                   ModuleRootModificationUtil.updateModel(module, model -> {
                     GradleBuildModel buildModel = GradleBuildModel.get(module);
                     if (buildModel != null) {
-                      buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
+                      String name = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+                      buildModel.dependencies().addArtifact(name, libraryCoordinate);
                       buildModel.applyChanges();
                     }
                   });
