@@ -63,7 +63,17 @@ public abstract class SceneView {
    */
   @NotNull
   @SwingCoordinate
-  public abstract Dimension getSize(@Nullable Dimension dimension);
+  public Dimension getSize(@Nullable Dimension dimension) {
+    if (dimension == null) {
+      dimension = new Dimension();
+    }
+
+    Dimension preferred = getPreferredSize(dimension);
+    double scale = mySurface.getScale();
+
+    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
+    return dimension;
+  }
 
   @NotNull
   public Dimension getPreferredSize() {
