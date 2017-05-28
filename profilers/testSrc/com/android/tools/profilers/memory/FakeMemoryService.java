@@ -37,6 +37,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
   private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
   private LegacyAllocationContextsResponse.Builder myAllocationContextBuilder = LegacyAllocationContextsResponse.newBuilder();
+  private int myTrackAllocationCount;
 
   private int myAppId;
 
@@ -64,6 +65,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void trackAllocations(MemoryProfiler.TrackAllocationsRequest request,
                                StreamObserver<MemoryProfiler.TrackAllocationsResponse> response) {
+    myTrackAllocationCount++;
     TrackAllocationsResponse.Builder builder = TrackAllocationsResponse.newBuilder();
     if (myExplicitAllocationsStatus != null) {
       builder.setStatus(myExplicitAllocationsStatus);
@@ -192,5 +194,9 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public FakeMemoryService setExplicitDumpDataStatus(DumpDataResponse.Status status) {
     myExplicitDumpDataStatus = status;
     return this;
+  }
+
+  public int getTrackAllocationCount() {
+    return myTrackAllocationCount;
   }
 }

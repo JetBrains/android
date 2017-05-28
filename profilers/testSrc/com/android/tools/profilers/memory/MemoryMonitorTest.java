@@ -15,22 +15,27 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.NullMonitorStage;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.network.FakeNetworkService;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class MemoryMonitorTest {
 
+  private final FakeProfilerService myProfilerService = new FakeProfilerService(true);
+  private final FakeMemoryService myMemoryService = new FakeMemoryService();
+
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryMonitorTestChannel", new FakeMemoryService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryMonitorTestChannel", myMemoryService, myProfilerService,
+                                                             new FakeEventService(), new FakeCpuService(),
+                                                             FakeNetworkService.newBuilder().build());
 
   @Test
   public void testName() {
@@ -45,5 +50,24 @@ public class MemoryMonitorTest {
     assertEquals(profilers.getStage().getClass(), NullMonitorStage.class);
     monitor.expand();
     assertThat(profilers.getStage(), instanceOf(MemoryProfilerStage.class));
+  }
+
+  @Test
+  public void testLiveAllocationTrackingOnAgentAttach() {
+    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
+    FakeTimer timer = new FakeTimer();
+
+    // Note that MemoryMonitor is created by StudioMonitorStage when the process gets selected after the fake timer tick.
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, timer);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    assertTrue(profilers.getStage() instanceof StudioMonitorStage);
+    assertFalse(profilers.isAgentAttached());
+    assertEquals(0, myMemoryService.getTrackAllocationCount());
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertTrue(profilers.isAgentAttached());
+    assertEquals(0, myMemoryService.getTrackAllocationCount());
   }
 }
