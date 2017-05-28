@@ -263,21 +263,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
           data -> String.format("Dump (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .build();
-    DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
-      new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
-        .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-        .setStroke(new BasicStroke(2))
-        .setLabelProvider(
-          data -> String.format("Allocation record (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
-                                                          TimeAxisFormatter.DEFAULT
-                                                            .getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-        .build();
     DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
       .setIcon(ProfilerIcons.GARBAGE_EVENT)
       .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
-    lineChart.addCustomRenderer(allocationRenderer);
     lineChart.addCustomRenderer(gcRenderer);
 
     SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
@@ -286,9 +276,23 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final OverlayComponent overlay = new OverlayComponent(selection);
     overlay.addDurationDataRenderer(heapDumpRenderer);
-    overlay.addDurationDataRenderer(allocationRenderer);
     overlay.addDurationDataRenderer(gcRenderer);
     overlayPanel.add(overlay, BorderLayout.CENTER);
+
+    // Only shows allocation tracking visuals in pre-O, since we are always tracking in O+.
+    if (!getStage().useLiveAllocationTracking()) {
+      DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
+        new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
+          .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
+          .setStroke(new BasicStroke(2))
+          .setLabelProvider(
+            data -> String.format("Allocation record (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
+                                                            TimeAxisFormatter.DEFAULT
+                                                              .getFormattedString(viewRange.getLength(), data.getDuration(), true)))
+          .build();
+      lineChart.addCustomRenderer(allocationRenderer);
+      overlay.addDurationDataRenderer(allocationRenderer);
+    }
 
     myTooltipView = new MemoryStageTooltipView(getStage());
     RangeTooltipComponent tooltip =

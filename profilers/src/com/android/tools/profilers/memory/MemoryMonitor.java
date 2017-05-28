@@ -15,17 +15,29 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.*;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
+import com.intellij.openapi.diagnostic.Logger;
+import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryMonitor extends ProfilerMonitor {
+
+  private static Logger getLogger() {
+    return Logger.getInstance(MemoryMonitor.class);
+  }
 
   @NotNull
   private final AxisComponentModel myMemoryAxis;
@@ -44,6 +56,9 @@ public class MemoryMonitor extends ProfilerMonitor {
 
     myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
     myTooltipLegend = new MemoryLegend(myMemoryUsage, getTimeline().getTooltipRange(), 0);
+
+    myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
+    agentStatusChanged();
   }
 
   @Override
@@ -65,6 +80,53 @@ public class MemoryMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().unregister(myMemoryAxis);
     myProfilers.getUpdater().unregister(myMemoryLegend);
     myProfilers.getUpdater().unregister(myTooltipLegend);
+    myProfilers.removeDependencies(this);
+  }
+
+  private void agentStatusChanged() {
+    if (!myProfilers.isAgentAttached()) {
+      return;
+    }
+
+    startLiveAllocationTracking();
+  }
+
+  /**
+   * Attempts to start live allocation tracking.
+   * TODO: currently this repeated tries to start live tracking whenever users returns to the L1 view. While restarting tracking is a
+   * no-op in perfd+agent, we should have a way to get the current tracking status first.
+   */
+  private void startLiveAllocationTracking() {
+    if (!(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() &&
+          myProfilers.getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O)) {
+      // no-op for pre-O device or if live allocation tracking flag is not on.
+      return;
+    }
+
+    Common.Session session = myProfilers.getSession();
+    Profiler.Process process = myProfilers.getProcess();
+    assert session != null;
+    assert process != null;
+    Profiler.TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
+      .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build());
+    long timeNs = timeResponse.getTimestampNs();
+
+    try {
+      com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse response = myProfilers.getClient().getMemoryClient()
+        .trackAllocations(MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
+                            .setSession(session).setProcessId(process.getPid())
+                            .setEnabled(true).build());
+      switch (response.getStatus()) {
+        case IN_PROGRESS:
+          getLogger().info("Allocation tracking is already enabled.");
+          break;
+        default:
+          break;
+      }
+    }
+    catch (StatusRuntimeException e) {
+      getLogger().info(e);
+    }
   }
 
   @Override
