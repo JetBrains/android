@@ -143,7 +143,7 @@ public class ProjectSubset {
 
           int doneCount = 0;
           for (DataNode<ModuleData> moduleNode : moduleInfos) {
-            indicator.setFraction(++doneCount / moduleInfos.size());
+            indicator.setFraction(++doneCount / (double)moduleInfos.size());
             ModuleData module = moduleNode.getData();
 
             String name = module.getExternalName();
@@ -337,7 +337,7 @@ public class ProjectSubset {
 
           int doneCount = 0;
           for (DataNode<ModuleData> moduleInfo : moduleInfos) {
-            indicator.setFraction(++doneCount / moduleInfos.size());
+            indicator.setFraction(++doneCount / (double)moduleInfos.size());
 
             String name = getNameOf(moduleInfo);
             if (selection.contains(name)) {
