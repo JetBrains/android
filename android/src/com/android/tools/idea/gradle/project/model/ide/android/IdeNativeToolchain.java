@@ -80,7 +80,7 @@ public final class IdeNativeToolchain extends IdeModel implements NativeToolchai
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myName, myCCompilerExecutable, myCppCompilerExecutable);
   }
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.NativeLibrary;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -163,7 +162,7 @@ public final class IdeNativeLibrary extends IdeModel implements NativeLibrary {
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myName, myAbi, myToolchainName, myCIncludeDirs, myCppIncludeDirs, myCSystemIncludeDirs,
                         myCppSystemIncludeDirs, myCDefines, myCppDefines, myCCompilerFlags, myCppCompilerFlags,
                         myDebuggableLibraryFolders);

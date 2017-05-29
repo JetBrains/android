@@ -20,7 +20,6 @@ import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -84,7 +83,7 @@ public final class IdeProductFlavorContainer extends IdeModel implements Product
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myProductFlavor, mySourceProvider, myExtraSourceProviders);
   }
 

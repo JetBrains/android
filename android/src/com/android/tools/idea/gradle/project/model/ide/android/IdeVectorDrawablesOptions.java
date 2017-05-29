@@ -71,7 +71,7 @@ public final class IdeVectorDrawablesOptions extends IdeModel implements VectorD
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myGeneratedDensities, myUseSupportLibrary);
   }
 
