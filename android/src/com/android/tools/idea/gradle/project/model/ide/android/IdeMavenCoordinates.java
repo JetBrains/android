@@ -97,7 +97,7 @@ public final class IdeMavenCoordinates extends IdeModel implements MavenCoordina
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myGroupId, myArtifactId, myVersion);
   }
 

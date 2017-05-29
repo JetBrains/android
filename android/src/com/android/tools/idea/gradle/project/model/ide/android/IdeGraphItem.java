@@ -80,7 +80,7 @@ public final class IdeGraphItem extends IdeModel implements GraphItem {
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myArtifactAddress, myDependencies, myRequestedCoordinates);
   }
 

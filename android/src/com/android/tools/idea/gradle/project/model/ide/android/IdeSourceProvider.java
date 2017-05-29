@@ -163,7 +163,7 @@ public final class IdeSourceProvider extends IdeModel implements SourceProvider 
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myName, myManifestFile, myJavaDirectories, myResourcesDirectories, myAidlDirectories,
                         myRenderscriptDirectories, myCDirectories, myCppDirectories, myResDirectories, myAssetsDirectories,
                         myJniLibsDirectories, myShadersDirectories);

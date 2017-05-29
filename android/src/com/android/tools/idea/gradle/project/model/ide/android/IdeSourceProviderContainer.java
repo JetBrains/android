@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -70,7 +69,7 @@ public final class IdeSourceProviderContainer extends IdeModel implements Source
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myArtifactName, mySourceProvider);
   }
 

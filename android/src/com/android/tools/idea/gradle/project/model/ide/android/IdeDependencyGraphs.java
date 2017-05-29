@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.builder.model.level2.GraphItem;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +90,7 @@ public final class IdeDependencyGraphs extends IdeModel implements DependencyGra
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myCompileDependencies, myPackageDependencies, myProvidedLibraries, mySkippedLibraries);
   }
 

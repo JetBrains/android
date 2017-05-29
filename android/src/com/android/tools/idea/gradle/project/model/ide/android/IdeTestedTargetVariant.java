@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.TestedTargetVariant;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -70,8 +69,7 @@ public final class IdeTestedTargetVariant extends IdeModel implements TestedTarg
     return myHashCode;
   }
 
-  protected int calculateHashCode()
-  {
+  private int calculateHashCode() {
     return Objects.hash(myTargetProjectPath, myTargetVariant);
   }
 
