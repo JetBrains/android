@@ -31,7 +31,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeNativeAndroidProject}.
+ * Tests for {@link IdeNativeAndroidProjectImpl}.
  */
 public class IdeNativeAndroidProjectTest {
   private ModelCache myModelCache;
@@ -43,12 +43,12 @@ public class IdeNativeAndroidProjectTest {
 
   @Test
   public void serializable() {
-    assertThat(IdeNativeAndroidProject.class).isAssignableTo(Serializable.class);
+    assertThat(IdeNativeAndroidProjectImpl.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeNativeAndroidProject nativeAndroidProject = new IdeNativeAndroidProject(new NativeAndroidProjectStub(), myModelCache);
+    IdeNativeAndroidProject nativeAndroidProject = new IdeNativeAndroidProjectImpl(new NativeAndroidProjectStub(), myModelCache);
     byte[] bytes = serialize(nativeAndroidProject);
     Object o = deserialize(bytes);
     assertEquals(nativeAndroidProject, o);
@@ -57,13 +57,13 @@ public class IdeNativeAndroidProjectTest {
   @Test
   public void constructor() throws Throwable {
     NativeAndroidProject original = new NativeAndroidProjectStub();
-    assertEqualsOrSimilar(original, new IdeNativeAndroidProject(original, myModelCache));
+    assertEqualsOrSimilar(original, new IdeNativeAndroidProjectImpl(original, myModelCache));
   }
 
   @Test
   public void equalsAndHashCode() {
     // @formatter:off
-    EqualsVerifier.forClass(IdeNativeAndroidProject.class).withCachedHashCode("myHashCode", "calculateHashCode", null)
+    EqualsVerifier.forClass(IdeNativeAndroidProjectImpl.class).withCachedHashCode("myHashCode", "calculateHashCode", null)
                                                           .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
                                                           .verify();
     // @formatter:on
