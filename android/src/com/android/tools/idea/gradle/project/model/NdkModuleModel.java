@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,10 +39,9 @@ public class NdkModuleModel implements ModuleModel {
 
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
-  @NotNull private NativeAndroidProject myAndroidProject;
+  @NotNull private IdeNativeAndroidProject myAndroidProject;
 
   @Nullable private transient GradleVersion myModelVersion;
-  @Nullable private NativeAndroidProject myCopyNativeAndroidProject;
 
   @NotNull private Map<String, NdkVariant> myVariantsByName = new HashMap<>();
   @NotNull private Map<String, NativeToolchain> myToolchainsByName = new HashMap<>();
@@ -69,20 +67,12 @@ public class NdkModuleModel implements ModuleModel {
 
   public NdkModuleModel(@NotNull String moduleName,
                         @NotNull File rootDirPath,
-                        @NotNull NativeAndroidProject androidProject) {
+                        @NotNull IdeNativeAndroidProject androidProject) {
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
     myAndroidProject = androidProject;
 
     parseAndSetModelVersion();
-
-    try {
-      myCopyNativeAndroidProject = new IdeNativeAndroidProject(androidProject);
-    }
-    catch (Throwable e) {
-      Logger.getInstance(getClass()).warn("Failed to create copy of NativeAndroidProject", e);
-      myCopyNativeAndroidProject = androidProject;
-    }
 
     populateVariantsByName();
     populateToolchainsByName();
@@ -205,19 +195,17 @@ public class NdkModuleModel implements ModuleModel {
   private void writeObject(ObjectOutputStream out) throws IOException {
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
-    out.writeObject(myCopyNativeAndroidProject);
+    out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
-    myAndroidProject = (NativeAndroidProject)in.readObject();
+    myAndroidProject = (IdeNativeAndroidProject)in.readObject();
     mySelectedVariantName = (String)in.readObject();
 
     parseAndSetModelVersion();
-
-    myCopyNativeAndroidProject = myAndroidProject;
 
     myVariantsByName = new HashMap<>();
     myToolchainsByName = new HashMap<>();
