@@ -165,10 +165,11 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     assert queryJoiner != null;
     myQueryRange = queryRange;
     myQueryRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, () -> {
-      loadTimeRange(TimeUnit.MICROSECONDS.toNanos((long)myQueryRange.getMin()),
-                    TimeUnit.MICROSECONDS.toNanos((long)myQueryRange.getMax()),
-                    queryJoiner == null ? MoreExecutors.directExecutor() : queryJoiner);
+      loadTimeRange(myQueryRange, queryJoiner == null ? MoreExecutors.directExecutor() : queryJoiner);
     });
+
+    // Load the initial data within queryRange.
+    loadTimeRange(myQueryRange, queryJoiner == null ? MoreExecutors.directExecutor() : queryJoiner);
 
     return true;
   }
@@ -198,7 +199,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
    * Load allocation data corresponding to the input time range. Note that load operation is expensive and happens on a different thread
    * (via myExecutorService). When loading is done, it informs the listener (e.g. UI) to update via the input joiner.
    */
-  private void loadTimeRange(long startTimeNs, long endTimeNs, @NotNull Executor joiner) {
+  private void loadTimeRange(@NotNull Range queryRange, @NotNull Executor joiner) {
+    long startTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMin());
+    long endTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMax());
+    // Special case for max-value endTimeNs, as that indicates querying the latest events.
     if (startTimeNs == myPreviousQueryStartTimeNs && endTimeNs == myPreviousQueryEndTimeNs && endTimeNs != Long.MAX_VALUE) {
       return;
     }
