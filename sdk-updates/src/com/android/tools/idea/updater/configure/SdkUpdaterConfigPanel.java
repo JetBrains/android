@@ -271,11 +271,9 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
   @NotNull
   private static Collection<File> getSdkLocations() {
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
-      if (androidHome != null) {
-        return ImmutableList.of(androidHome);
-      }
+    File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
+    if (androidHome != null) {
+      return ImmutableList.of(androidHome);
     }
 
     Set<File> locations = new HashSet<>();
@@ -296,7 +294,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
       }
 
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-      assert !facets.isEmpty();
 
       for (AndroidFacet facet : facets) {
         AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
