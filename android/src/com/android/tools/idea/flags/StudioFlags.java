@@ -103,7 +103,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
-    false);
+    true);
 
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
