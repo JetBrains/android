@@ -49,6 +49,7 @@ public class HeapSet extends ClassifierSet {
 
   public void clearClassifierSets() {
     resetDescendants();
+    ensurePartition();
   }
 
   public int getId() {

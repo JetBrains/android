@@ -200,7 +200,7 @@ public abstract class ClassifierSet implements MemoryObject {
   /**
    * Force the instances of this node to be partitioned.
    */
-  private void ensurePartition() {
+  protected void ensurePartition() {
     if (myClassifier == null) {
       myClassifier = createSubClassifier();
       myClassifier.partition(myInstances);
