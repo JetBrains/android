@@ -83,7 +83,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_SHOW_THREADS_VIEW = Flag.create(
     PROFILER, "threads.view", "Show network threads view",
     "Show a view in the network profiler that groups connections by their creation thread.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_CPU_CAPTURE_FILTER = Flag.create(
     PROFILER, "cpu.capture.filter", "Enable CPU Capture Filter",
