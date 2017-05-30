@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -492,6 +493,19 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals("com.google.guava:guava:12.0", dependency.getValueAsString());
   }
 
+  public void testGetNewDependencyInAlternativeFormat() throws IOException {
+    GradleBuildFile file = getTestFile(
+      "    dependencies {\n" +
+      "        implementation group: 'com.google.guava', name: 'guava', version: '12.0'\n" +
+      "    }\n"
+    );
+    List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency dependency = (Dependency)dependencies.get(0);
+    assertNotNull(dependency);
+    assertEquals("com.google.guava:guava:12.0", dependency.getValueAsString());
+  }
+
   public void testGetDependencyInAlternativeFormatWithArtifactType() throws IOException {
     GradleBuildFile file = getTestFile(
       "    dependencies {\n" +
@@ -568,6 +582,22 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals(expected, file.getValue(BuildFileKey.DEPENDENCIES));
   }
 
+  public void testNewGetsFiletreeDependencies() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "dependencies {\n" +
+      "    api fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
+      "}"
+    );
+    ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
+    Map<String, Object> nvMap = ImmutableMap.of(
+      "dir", "libs",
+      "includes", (Object)fileList
+    );
+    Dependency dep = new Dependency(Dependency.Scope.API, Dependency.Type.FILETREE, nvMap);
+    List<Dependency> expected = ImmutableList.of(dep);
+    assertEquals(expected, file.getValue(BuildFileKey.DEPENDENCIES));
+  }
+
   public void testSetsFiletreeDependencies() throws Exception {
     final GradleBuildFile file = getTestFile("");
     ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
@@ -594,6 +624,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "dependencies {\n" +
       "    // Comment 1\n" +
       "    compile 'foo.com:1.0.0'\n" +
+      "    androidTestImplementation 'foo.com:1.0.0'\n" +
+      "    api 'foo.com:1.0.0'\n" +
+      "    implementation 'foo.com:1.0.0'\n" +
       "    compile random.expression\n" +
       "    functionCall()\n" +
       "    random.expression\n" +
@@ -602,6 +635,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     List<BuildFileStatement> expected = ImmutableList.of(
       new UnparseableStatement("// Comment 1", getProject()),
       new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "foo.com:1.0.0"),
+      new Dependency(Dependency.Scope.ANDROID_TEST_IMPLEMENTATION, Dependency.Type.EXTERNAL, "foo.com:1.0.0"),
+      new Dependency(Dependency.Scope.API, Dependency.Type.EXTERNAL, "foo.com:1.0.0"),
+      new Dependency(Dependency.Scope.IMPLEMENTATION, Dependency.Type.EXTERNAL, "foo.com:1.0.0"),
       new UnparseableStatement("compile random.expression", getProject()),
       new UnparseableStatement("functionCall()", getProject()), new UnparseableStatement("random.expression", getProject())
     );

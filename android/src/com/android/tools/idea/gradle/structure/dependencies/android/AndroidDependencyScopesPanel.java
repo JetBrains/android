@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsCheckBoxList;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType;
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor;
 import com.android.tools.idea.gradle.structure.model.android.dependency.PsNewDependencyScopes;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -62,12 +64,14 @@ public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel 
   @NotNull private final List<String> mySelectedScopeNames = Lists.newArrayList();
 
   @NotNull private final List<ToolWindowPanel> myToolWindowPanels = Lists.newArrayList();
+  private final GradleVersion myModelVersion;
 
   private JPanel myMainPanel;
   private JPanel myContentsPanel;
   private JXLabel myScopesLabel;
 
   public AndroidDependencyScopesPanel(@NotNull PsAndroidModule module) {
+    myModelVersion = module.getGradleModel().getModelVersion();
     myScopesLabel.setBorder(BorderFactory.createCompoundBorder(getTextFieldBorder(), IdeBorderFactory.createEmptyBorder(2)));
     myScopesLabel.setBackground(getTextFieldBackground());
     myScopesLabel.setText(" ");
@@ -110,7 +114,14 @@ public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel 
     boolean allProductFlavorsSelected = productFlavors.size() == myAllProductFlavors.size();
 
     mySelectedScopeNames.clear();
-    mySelectedScopeNames.addAll(deduceScopes(configurations, buildTypes, productFlavors, allBuildTypesSelected, allProductFlavorsSelected));
+    List<String> scopes = deduceScopes(configurations, buildTypes, productFlavors, allBuildTypesSelected, allProductFlavorsSelected);
+    List<String> mapped = Lists.newArrayListWithCapacity(scopes.size());
+    for (String scope : scopes) {
+      String configurationName = GradleUtil.mapConfigurationName(scope, myModelVersion, false);
+      mapped.add(configurationName);
+    }
+
+    mySelectedScopeNames.addAll(mapped);
 
     String text = "";
     int count = mySelectedScopeNames.size();
