@@ -39,14 +39,18 @@ import java.nio.file.Paths;
   DesignerTestSuite.class,
   NlDesignSurfaceTest.class, // flaky in bazel
 })
+// TODO: Unify with IdeaTestSuite
 public class DesignerTestSuite {
 
   private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
   private static final String HOST_DIR = OsType.getHostOs().getFolderName();
 
   static {
-    System.setProperty("idea.home", createTmpDir("tools/idea").toString());
-    System.setProperty("layoutlib.thread.timeout", "60000");
+    setProperties();
+
+    setUpOfflineMavenRepos();
+
+    // Bazel tests are sandboxed so we disable VfsRoot checks.
     VfsRootAccess.allowRootAccess("/");
     symbolicLinkInTmpDir("prebuilts/studio/layoutlib");
     symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
@@ -58,7 +62,6 @@ public class DesignerTestSuite {
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
 
     provideRealJdkPathForGradle("prebuilts/studio/jdk");
-    setUpOfflineMavenRepos();
   }
 
   /**
@@ -78,18 +81,6 @@ public class DesignerTestSuite {
     }
   }
 
-  @NotNull
-  private static Path createTmpDir(@NotNull String p) {
-    Path path = Paths.get(TMP_DIR, p);
-    try {
-      Files.createDirectories(path);
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return path;
-  }
-
   private static void symbolicLinkInTmpDir(@NotNull String target) {
     Path targetPath = TestUtils.getWorkspaceFile(target).toPath();
     Path linkName = Paths.get(TMP_DIR, target);
@@ -100,6 +91,25 @@ public class DesignerTestSuite {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private static void setProperties() {
+    System.setProperty("idea.home", createTmpDir("tools/idea").toString());
+    System.setProperty("gradle.user.home", createTmpDir("home").toString());
+    // See AndroidLocation.java for more information on this system property.
+    System.setProperty("ANDROID_SDK_HOME", createTmpDir(".android").toString());
+    System.setProperty("layoutlib.thread.timeout", "60000");
+  }
+
+  private static Path createTmpDir(String p) {
+    Path path = Paths.get(TMP_DIR, p);
+    try {
+      Files.createDirectories(path);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return path;
   }
 
   private static void setUpOfflineMavenRepos() {
