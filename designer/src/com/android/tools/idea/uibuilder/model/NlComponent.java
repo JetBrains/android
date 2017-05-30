@@ -316,8 +316,7 @@ public class NlComponent implements NlAttributesHolder {
       prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), namespace, null);
     }
     String previous = getAttribute(namespace, attribute);
-    if ((previous != null && previous.equalsIgnoreCase(value))
-        || (previous == null && value == null)) {
+    if (Objects.equals(previous, value)) {
       return;
     }
     // Handle validity
