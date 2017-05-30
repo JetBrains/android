@@ -16,11 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.google.protobuf3jarjar.ByteString;
 import org.junit.Test;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +31,7 @@ public class LegacyAllocationConverterTest {
   private static final int LINE_NUMBER = 100;
   private static final int THREAD_ID = 10;
   private static final int SIZE = 101;
-  private static final byte[] STACK_ID = ByteString.copyFrom("STACK_ID", Charset.defaultCharset()).toByteArray();
+  private static final int STACK_ID = 1001;
 
   @Test
   public void testCallStackFramesDuplicatedInsert() {
@@ -69,12 +66,12 @@ public class LegacyAllocationConverterTest {
   }
 
   @Test
-  public void testCallstackHashcodeId() {
+  public void testCallstackHashcode() {
     LegacyAllocationConverter converter = new LegacyAllocationConverter();
     List<StackTraceElement> stackTraceElementList = new ArrayList<>();
     stackTraceElementList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER));
     LegacyAllocationConverter.CallStack callStack = converter.addCallStack(stackTraceElementList);
-    assertEquals(ByteBuffer.wrap(callStack.getId()).getInt(), callStack.hashCode());
+    assertEquals(stackTraceElementList.hashCode(), callStack.hashCode());
   }
 
   @Test
@@ -96,10 +93,10 @@ public class LegacyAllocationConverterTest {
     converter.addAllocation(new LegacyAllocationConverter.Allocation(id, SIZE, THREAD_ID, STACK_ID));
     List<MemoryProfiler.LegacyAllocationEvent> allocations = converter.getAllocationEvents(System.nanoTime(), System.nanoTime());
     assertEquals(1, allocations.size());
-    assertEquals(id, allocations.get(0).getAllocatedClassId());
+    assertEquals(id, allocations.get(0).getClassId());
     assertEquals(SIZE, allocations.get(0).getSize());
     assertEquals(THREAD_ID, allocations.get(0).getThreadId());
-    assertEquals(ByteString.copyFrom(STACK_ID), allocations.get(0).getAllocationStackId());
+    assertEquals(STACK_ID, allocations.get(0).getStackId());
     converter.prepare();
     assertEquals(0, converter.getAllocationEvents(System.nanoTime(), System.nanoTime()).size());
   }

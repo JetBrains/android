@@ -598,9 +598,9 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     }
 
     @Override
-    public void listLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                             StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
-      responseObserver.onNext(LegacyAllocationContextsResponse.getDefaultInstance());
+    public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
+                                            StreamObserver<AllocationContextsResponse> responseObserver) {
+      responseObserver.onNext(AllocationContextsResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
 

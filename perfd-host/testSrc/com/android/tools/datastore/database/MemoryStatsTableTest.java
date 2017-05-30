@@ -217,10 +217,10 @@ public class MemoryStatsTableTest {
     assertNull(myStatsTable.getLegacyAllocationData(VALID_PID, VALID_SESSION, sample.getStartTime()));
     assertNull(myStatsTable.getLegacyAllocationDumpData(VALID_PID, VALID_SESSION, sample.getStartTime()));
 
-    byte[] stackBytes = new byte[]{'a', 'b', 'c'};
+    int stackId = 1;
     LegacyAllocationEventsResponse events = LegacyAllocationEventsResponse.newBuilder()
-      .addEvents(LegacyAllocationEvent.newBuilder().setAllocatedClassId(1).setAllocationStackId(ByteString.copyFrom(stackBytes)))
-      .addEvents(LegacyAllocationEvent.newBuilder().setAllocatedClassId(2).setAllocationStackId(ByteString.copyFrom(stackBytes))).build();
+      .addEvents(LegacyAllocationEvent.newBuilder().setClassId(1).setStackId(stackId))
+      .addEvents(LegacyAllocationEvent.newBuilder().setClassId(2).setStackId(stackId)).build();
     myStatsTable.updateLegacyAllocationEvents(VALID_PID, VALID_SESSION, sample.getStartTime(), events);
     assertEquals(events, myStatsTable.getLegacyAllocationData(VALID_PID, VALID_SESSION, sample.getStartTime()));
 
@@ -243,25 +243,27 @@ public class MemoryStatsTableTest {
   public void testLegacyAllocationContextQueriesAfterInsertion() throws Exception {
     int classId1 = 1;
     int classId2 = 2;
-    byte[] stackBytes1 = new byte[]{'a', 'b', 'c'};
-    byte[] stackBytes2 = new byte[]{'d', 'e', 'f'};
+    int stackId3 = 3;
+    int stackId4 = 4;
 
     AllocatedClass class1 = AllocatedClass.newBuilder().setClassId(classId1).setClassName("Class1").build();
     AllocatedClass class2 = AllocatedClass.newBuilder().setClassId(classId2).setClassName("Class2").build();
-    AllocationStack stack1 = AllocationStack.newBuilder().setStackId(ByteString.copyFrom(new byte[]{'a', 'b', 'c'})).build();
-    AllocationStack stack2 = AllocationStack.newBuilder().setStackId(ByteString.copyFrom(new byte[]{'d', 'e', 'f'})).build();
-    myStatsTable.insertLegacyAllocationContext(Arrays.asList(class1, class2), Arrays.asList(stack1, stack2));
+    AllocationStack stack1 = AllocationStack.newBuilder().setStackId(stackId3).build();
+    AllocationStack stack2 = AllocationStack.newBuilder().setStackId(stackId4).build();
+    myStatsTable.insertLegacyAllocationContext(VALID_PID, VALID_SESSION, Arrays.asList(class1, class2), Arrays.asList(stack1, stack2));
 
     LegacyAllocationContextsRequest request =
-      LegacyAllocationContextsRequest.newBuilder().addClassIds(classId1).addStackIds(ByteString.copyFrom(stackBytes2)).build();
-    LegacyAllocationContextsResponse response = myStatsTable.listAllocationContexts(request);
+      LegacyAllocationContextsRequest.newBuilder().setProcessId(VALID_PID).setSession(VALID_SESSION).addClassIds(classId1)
+        .addStackIds(stackId4).build();
+    AllocationContextsResponse response = myStatsTable.getLegacyAllocationContexts(request);
     assertEquals(1, response.getAllocatedClassesCount());
     assertEquals(1, response.getAllocationStacksCount());
     assertEquals(class1, response.getAllocatedClasses(0));
     assertEquals(stack2, response.getAllocationStacks(0));
 
-    request = LegacyAllocationContextsRequest.newBuilder().addClassIds(classId2).addStackIds(ByteString.copyFrom(stackBytes1)).build();
-    response = myStatsTable.listAllocationContexts(request);
+    request = LegacyAllocationContextsRequest.newBuilder().setProcessId(VALID_PID).setSession(VALID_SESSION).addClassIds(classId2)
+      .addStackIds(stackId3).build();
+    response = myStatsTable.getLegacyAllocationContexts(request);
     assertEquals(1, response.getAllocatedClassesCount());
     assertEquals(1, response.getAllocationStacksCount());
     assertEquals(class2, response.getAllocatedClasses(0));
@@ -270,10 +272,9 @@ public class MemoryStatsTableTest {
 
   @Test
   public void testAllocationContextNotFound() throws Exception {
-    LegacyAllocationContextsRequest request = LegacyAllocationContextsRequest.newBuilder()
-      .addClassIds(1).addClassIds(2)
-      .addStackIds(ByteString.copyFrom(new byte[]{'a', 'b', 'c'})).addStackIds(ByteString.copyFrom(new byte[]{'d', 'e', 'f'})).build();
-    LegacyAllocationContextsResponse response = myStatsTable.listAllocationContexts(request);
+    LegacyAllocationContextsRequest request = LegacyAllocationContextsRequest.newBuilder().setProcessId(VALID_PID).setSession(VALID_SESSION)
+      .addClassIds(1).addClassIds(2).addStackIds(1).addStackIds(2).build();
+    AllocationContextsResponse response = myStatsTable.getLegacyAllocationContexts(request);
 
     assertEquals(0, response.getAllocatedClassesCount());
     assertEquals(0, response.getAllocationStacksCount());

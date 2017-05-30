@@ -63,8 +63,8 @@ public class MemoryServiceProxy extends PerfdProxyService {
   @Nullable private TIntObjectHashMap<LegacyAllocationTracker> myLegacyTrackers;
   @Nullable private TIntObjectHashMap<TLongObjectHashMap<AllocationTrackingData>> myTrackingData;
   @Nullable private TIntObjectHashMap<AllocationsInfo> myInProgressTrackingInfo;
-  @Nullable private TIntObjectHashMap<AllocatedClass> myAllocatedClasses;
-  @Nullable private Map<ByteString, AllocationStack> myAllocationStacks;
+  @Nullable private TIntObjectHashMap<TLongObjectHashMap<AllocatedClass>> myAllocatedClasses;
+  @Nullable private TIntObjectHashMap<TIntObjectHashMap<AllocationStack>> myAllocationStacks;
 
   public MemoryServiceProxy(@NotNull IDevice device,
                             @NotNull ManagedChannel channel,
@@ -85,7 +85,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
       myTrackingData = new TIntObjectHashMap<>();
       myInProgressTrackingInfo = new TIntObjectHashMap<>();
       myAllocatedClasses = new TIntObjectHashMap<>();
-      myAllocationStacks = new HashMap<>();
+      myAllocationStacks = new TIntObjectHashMap<>();
     }
   }
 
@@ -94,6 +94,8 @@ public class MemoryServiceProxy extends PerfdProxyService {
     if (myUseLegacyTracking && !myLegacyTrackers.contains(request.getProcessId())) {
       myLegacyTrackers.put(request.getProcessId(), myTrackerSupplier.apply(myDevice, request.getProcessId()));
       myTrackingData.put(request.getProcessId(), new TLongObjectHashMap<>());
+      myAllocatedClasses.put(request.getProcessId(), new TLongObjectHashMap<>());
+      myAllocationStacks.put(request.getProcessId(), new TIntObjectHashMap<>());
     }
 
     responseObserver.onNext(myServiceStub.startMonitoringApp(request));
@@ -107,6 +109,8 @@ public class MemoryServiceProxy extends PerfdProxyService {
       myLegacyTrackers.remove(request.getProcessId());
       myTrackingData.remove(request.getProcessId());
       myInProgressTrackingInfo.remove(request.getProcessId());
+      myAllocatedClasses.remove(request.getProcessId());
+      myAllocationStacks.remove(request.getProcessId());
     }
 
     responseObserver.onNext(myServiceStub.stopMonitoringApp(request));
@@ -229,30 +233,37 @@ public class MemoryServiceProxy extends PerfdProxyService {
     responseObserver.onCompleted();
   }
 
-  public void listLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                           StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
+  public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
+                                          StreamObserver<AllocationContextsResponse> responseObserver) {
     assert myUseLegacyTracking;
 
-    LegacyAllocationContextsResponse.Builder builder = LegacyAllocationContextsResponse.newBuilder();
-    request.getClassIdsList().forEach(id -> {
-      if (myAllocatedClasses.contains(id)) {
-        builder.addAllocatedClasses(myAllocatedClasses.get(id));
-      }
-      else {
-        getLogger().debug("Class data cannot be found for id: " + id);
-      }
-    });
-    request.getStackIdsList().forEach(id -> {
-      if (myAllocationStacks.containsKey(id)) {
-        builder.addAllocationStacks(myAllocationStacks.get(id));
-      }
-      else {
-        getLogger().debug("Stack data cannot be found for id: " + id);
-      }
-    });
+
+    AllocationContextsResponse.Builder builder = AllocationContextsResponse.newBuilder();
+    if (myAllocatedClasses.containsKey(request.getProcessId())) {
+      TLongObjectHashMap<AllocatedClass> klasses = myAllocatedClasses.get(request.getProcessId());
+      request.getClassIdsList().forEach(id -> {
+        if (klasses.contains(id)) {
+          builder.addAllocatedClasses(klasses.get(id));
+        }
+        else {
+          getLogger().debug("Class data cannot be found for id: " + id);
+        }
+      });
+    }
+
+    if (myAllocationStacks.containsKey(request.getProcessId())) {
+      TIntObjectHashMap<AllocationStack> stacks = myAllocationStacks.get(request.getProcessId());
+      request.getStackIdsList().forEach(id -> {
+        if (stacks.contains(id)) {
+          builder.addAllocationStacks(stacks.get(id));
+        }
+        else {
+          getLogger().debug("Stack data cannot be found for id: " + id);
+        }
+      });
+    }
+
     responseObserver.onNext(builder.build());
-
-
     responseObserver.onCompleted();
   }
 
@@ -333,6 +344,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
     synchronized (myUpdatingDataLock) {
       TLongObjectHashMap<AllocationTrackingData> datas = myTrackingData.get(processId);
       assert datas.contains(infoId);
+      AllocationTrackingData trackingData = datas.get(infoId);
       LegacyAllocationEventsResponse.Builder eventResponseBuilder = LegacyAllocationEventsResponse.newBuilder();
       DumpDataResponse.Builder dumpResponseBuilder = DumpDataResponse.newBuilder();
       try {
@@ -345,11 +357,11 @@ public class MemoryServiceProxy extends PerfdProxyService {
           dumpResponseBuilder.setData(ByteString.copyFrom(rawBytes)).setStatus(DumpDataResponse.Status.SUCCESS);
         }
 
-        datas.get(infoId).myEventsResponse = eventResponseBuilder.build();
-        datas.get(infoId).myDumpDataResponse = dumpResponseBuilder.build();
+        trackingData.myEventsResponse = eventResponseBuilder.build();
+        trackingData.myDumpDataResponse = dumpResponseBuilder.build();
 
-        classes.forEach(klass -> myAllocatedClasses.put(klass.getClassId(), klass));
-        stacks.forEach(stack -> myAllocationStacks.put(stack.getStackId(), stack));
+        classes.forEach(klass -> myAllocatedClasses.get(processId).put(klass.getClassId(), klass));
+        stacks.forEach(stack -> myAllocationStacks.get(processId).put(stack.getStackId(), stack));
       }
       finally {
         datas.get(infoId).myDataParsingLatch.countDown();
@@ -395,9 +407,9 @@ public class MemoryServiceProxy extends PerfdProxyService {
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getLegacyAllocationEvents((LegacyAllocationEventsRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_LIST_LEGACY_ALLOCATION_CONTEXTS,
+    overrides.put(MemoryServiceGrpc.METHOD_GET_LEGACY_ALLOCATION_CONTEXTS,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
-                    listLegacyAllocationContexts((LegacyAllocationContextsRequest)request, (StreamObserver)observer);
+                    getLegacyAllocationContexts((LegacyAllocationContextsRequest)request, (StreamObserver)observer);
                   }));
     overrides.put(MemoryServiceGrpc.METHOD_GET_LEGACY_ALLOCATION_DUMP,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
