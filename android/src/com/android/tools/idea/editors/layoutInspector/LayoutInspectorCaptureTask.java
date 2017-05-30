@@ -20,8 +20,13 @@ import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.LayoutInspectorBridge;
 import com.android.layoutinspector.LayoutInspectorCaptureOptions;
 import com.android.layoutinspector.LayoutInspectorResult;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -62,11 +67,20 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
     indicator.setText("Capturing View Hierarchy");
     indicator.setIndeterminate(false);
 
+    long startTimeMs = System.currentTimeMillis();
     LayoutInspectorResult result = LayoutInspectorBridge.captureView(myWindow, options);
     if (!result.getError().isEmpty()) {
       myError = result.getError();
       return;
     }
+
+    long captureDurationMs = System.currentTimeMillis() - startTimeMs;
+    UsageTracker.getInstance()
+      .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+             .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myClient.getDevice()))
+             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.CAPTURE)
+                                        .setDurationInMs(captureDurationMs)));
 
     myData = result.getData();
   }

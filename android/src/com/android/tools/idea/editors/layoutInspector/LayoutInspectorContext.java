@@ -27,11 +27,14 @@ import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITableGroupItem;
 import com.android.tools.idea.editors.layoutInspector.ptable.LITableRendererProvider;
 import com.android.tools.idea.editors.layoutInspector.ui.RollOverTree;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeActiveDisplay;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeTreeRenderer;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -57,7 +60,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class LayoutInspectorContext implements Disposable, DataProvider, ViewNodeActiveDisplay.ViewNodeActiveDisplayListener,
                                                TreeSelectionListener, RollOverTree.TreeHoverListener,
@@ -335,6 +341,12 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
       // TODO figure out better way to output, for now it outputs to logcat
       createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.success"),
                          NotificationType.INFORMATION);
+
+      UsageTracker.getInstance()
+        .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+               .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                          .setType(LayoutInspectorEvent.LayoutInspectorEventType.DUMP_DISPLAYLIST)
+               ));
     }
   }
 
