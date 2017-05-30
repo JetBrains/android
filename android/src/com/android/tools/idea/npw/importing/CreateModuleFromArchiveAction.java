@@ -94,7 +94,8 @@ public class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
         newDeps.add(newDep);
       }
     }
-    newDeps.add(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, gradlePath));
+    Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
+    newDeps.add(new Dependency(scope, Dependency.Type.MODULE, gradlePath));
     buildFile.setValue(BuildFileKey.DEPENDENCIES, newDeps);
   }
 
