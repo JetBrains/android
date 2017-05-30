@@ -119,7 +119,7 @@ public final class IdeSigningConfig extends IdeModel implements SigningConfig {
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myName, myStoreFile, myStorePassword, myKeyAlias, myV1SigningEnabled);
   }
 

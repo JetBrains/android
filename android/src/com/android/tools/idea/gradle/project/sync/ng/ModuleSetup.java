@@ -22,6 +22,8 @@ import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProjectImpl;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
@@ -60,8 +62,8 @@ abstract class ModuleSetup {
                                  new GradleModuleSetup(), new NewAndroidModuleSetup(), new AndroidModuleProcessor(project, modelsProvider),
                                  new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()),
                                  new VariantSelector(), new ProjectCleanup(), new ObsoleteModuleDisposer(project, modelsProvider),
-                                 new NewJavaModuleSetup(), new NewJavaModuleModelFactory(), new ArtifactModuleModelFactory(),
-                                 new ExtraSyncModelExtensionManager());
+                                 new NewJavaModuleSetup(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new NewJavaModuleModelFactory(),
+                                 new ArtifactModuleModelFactory(), new ExtraSyncModelExtensionManager());
     }
   }
 
@@ -79,6 +81,7 @@ abstract class ModuleSetup {
     @NotNull private final ProjectCleanup myProjectCleanup;
     @NotNull private final ObsoleteModuleDisposer myModuleDisposer;
     @NotNull private final JavaModuleSetup myJavaModuleSetup;
+    @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
     @NotNull private final NewJavaModuleModelFactory myNewJavaModuleModelFactory;
     @NotNull private final ArtifactModuleModelFactory myArtifactModuleModelFactory;
     @NotNull private final ExtraSyncModelExtensionManager myExtraSyncModelExtensionManager;
@@ -97,6 +100,7 @@ abstract class ModuleSetup {
                     @NotNull ProjectCleanup projectCleanup,
                     @NotNull ObsoleteModuleDisposer moduleDisposer,
                     @NotNull JavaModuleSetup javaModuleSetup,
+                    @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                     @NotNull NewJavaModuleModelFactory javaModuleModelFactory,
                     @NotNull ArtifactModuleModelFactory artifactModuleModelFactory,
                     @NotNull ExtraSyncModelExtensionManager extraSyncModelExtensionManager) {
@@ -112,6 +116,7 @@ abstract class ModuleSetup {
       myProjectCleanup = projectCleanup;
       myModuleDisposer = moduleDisposer;
       myJavaModuleSetup = javaModuleSetup;
+      myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
       myNewJavaModuleModelFactory = javaModuleModelFactory;
       myArtifactModuleModelFactory = artifactModuleModelFactory;
       myExtraSyncModelExtensionManager = extraSyncModelExtensionManager;
@@ -171,7 +176,8 @@ abstract class ModuleSetup {
 
       NativeAndroidProject nativeAndroidProject = moduleModels.findModel(NativeAndroidProject.class);
       if (nativeAndroidProject != null) {
-        NdkModuleModel ndkModuleModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, nativeAndroidProject);
+        IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
+        NdkModuleModel ndkModuleModel = new NdkModuleModel(module.getName(), moduleRootFolderPath, copy);
         myNdkModuleSetup.setUpModule(module, myModelsProvider, ndkModuleModel, moduleModels, indicator, syncSkipped);
         return;
       }

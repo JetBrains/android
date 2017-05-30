@@ -78,7 +78,7 @@ public final class IdeApiVersion extends IdeModel implements ApiVersion {
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myApiString, myCodename, myApiLevel);
   }
 

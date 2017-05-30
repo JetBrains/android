@@ -82,7 +82,7 @@ public final class IdeBuildTypeContainer extends IdeModel implements BuildTypeCo
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myBuildType, mySourceProvider, myExtraSourceProviders);
   }
 

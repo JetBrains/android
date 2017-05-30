@@ -86,7 +86,7 @@ public final class IdeSyncIssue extends IdeModel implements SyncIssue {
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myMessage, myData, mySeverity, myType);
   }
 
