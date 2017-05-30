@@ -147,7 +147,7 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     int result = myOutputType.hashCode();
     result = 31 * result + myFilterTypes.hashCode();
     result = 31 * result + myFilters.hashCode();

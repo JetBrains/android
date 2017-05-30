@@ -23,6 +23,8 @@ import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProjectImpl;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
@@ -94,13 +96,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final VariantSelector myVariantSelector;
+  @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs(false /* do not generate classpath init script */), new ProjectImportErrorHandler(), new ProjectFinder(),
-         new VariantSelector(), new IdeaJavaModuleModelFactory());
+         new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory());
   }
 
   @VisibleForTesting
@@ -108,11 +111,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                @NotNull ProjectImportErrorHandler errorHandler,
                                @NotNull ProjectFinder projectFinder,
                                @NotNull VariantSelector variantSelector,
+                               @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                                @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory) {
     myCommandLineArgs = commandLineArgs;
     myErrorHandler = errorHandler;
     myProjectFinder = projectFinder;
     myVariantSelector = variantSelector;
+    myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
   }
 
@@ -206,7 +211,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
-      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, nativeAndroidProject);
+      IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
+      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy);
       ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 

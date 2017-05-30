@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.InstantRun;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Objects;
@@ -78,7 +77,7 @@ public final class IdeInstantRun extends IdeModel implements InstantRun {
     return myHashCode;
   }
 
-  protected int calculateHashCode() {
+  private int calculateHashCode() {
     return Objects.hash(myInfoFile, mySupportedByArtifact, mySupportStatus);
   }
 
