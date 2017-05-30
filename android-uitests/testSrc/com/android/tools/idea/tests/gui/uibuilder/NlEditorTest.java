@@ -169,7 +169,7 @@ public class NlEditorTest {
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("app/build.gradle")
-      .moveBetween("compile 'com.android.support:design", "")
+      .moveBetween("implementation 'com.android.support:design", "")
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
       .invokeAction(EditorFixture.EditorAction.SAVE)
       .awaitNotification(
