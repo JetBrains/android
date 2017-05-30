@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public class ToggleXmlPropertyEditor extends AnAction {
   static final String NL_XML_PROPERTY_EDITOR = "NlXmlPropertyEditor";
 
-  private NlPropertiesManager myPropertiesManager;
+  private final NlPropertiesManager myPropertiesManager;
 
   public ToggleXmlPropertyEditor(@NotNull NlPropertiesManager propertiesManager) {
     myPropertiesManager = propertiesManager;
@@ -33,7 +33,7 @@ public class ToggleXmlPropertyEditor extends AnAction {
   public void update(AnActionEvent event) {
     PropertiesComponent properties = PropertiesComponent.getInstance();
     boolean visible = properties.getBoolean(NL_XML_PROPERTY_EDITOR);
-    event.getPresentation().setText(!visible ? "XML property editor" : "All properties table");
+    event.getPresentation().setText(!visible ? "XML attribute editor" : "All attributes table");
   }
 
   @Override

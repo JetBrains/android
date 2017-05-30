@@ -304,7 +304,8 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   @NotNull
   private JComponent createViewAllPropertiesLinkPanel(boolean viewAllProperties) {
     HyperlinkLabel textLink = new HyperlinkLabel();
-    textLink.setHyperlinkText(viewAllProperties ? ViewAllPropertiesAction.VIEW_ALL_PROPERTIES : ViewAllPropertiesAction.VIEW_FEWER_PROPERTIES);
+    textLink.setHyperlinkText(
+      viewAllProperties ? ViewAllPropertiesAction.VIEW_ALL_ATTRIBUTES : ViewAllPropertiesAction.VIEW_FEWER_ATTRIBUTES);
     textLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
     HyperlinkLabel iconLink = new HyperlinkLabel();
     iconLink.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
