@@ -84,6 +84,24 @@ public class NlReferenceEditorTest extends PropertyTestCase {
       .expectValue("Hello");
   }
 
+  public void testReplaceCaseOfText() {
+    myFixture
+      .setProperty(getProperty(myTextView, ATTR_TEXT))
+      .expectText("SomeText")
+      .expectSelectedText(null)
+      .gainFocus()
+      .expectSelectedText("SomeText")
+      .type("someText")
+      .expectText("someText")
+      .expectValue("SomeText")
+      .expectSelectedText(null)
+      .loseFocus()
+      .verifyStopEditingCalled()
+      .expectSelectedText(null)
+      .expectText("someText")
+      .expectValue("someText");
+  }
+
   public void testReplaceAddedValue() {
     myFixture
       .setProperty(getProperty(myTextView, ATTR_ELEVATION))
