@@ -16,9 +16,12 @@
 package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.tools.adtui.workbench.*;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.layoutInspector.ui.LayoutInspectorPanel;
 import com.android.tools.idea.editors.layoutInspector.ui.LayoutTreeDefinition;
 import com.android.tools.idea.editors.layoutInspector.ui.PropertiesDefinition;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LayoutInspectorEditorPanel extends WorkBench<LayoutInspectorContext> {
-  public LayoutInspectorEditorPanel(@NotNull LayoutInspectorEditor editor, @NotNull Project project, @NotNull LayoutInspectorContext context) {
+  public LayoutInspectorEditorPanel(@NotNull LayoutInspectorEditor editor,
+                                    @NotNull Project project,
+                                    @NotNull LayoutInspectorContext context) {
     super(project, "Layout Inspector", editor);
     Disposer.register(editor, this);
 
@@ -36,5 +41,11 @@ public class LayoutInspectorEditorPanel extends WorkBench<LayoutInspectorContext
     tools.add(new PropertiesDefinition(Side.RIGHT, Split.TOP, AutoHide.DOCKED));
 
     init(new LayoutInspectorPanel(context), context, tools);
+
+    UsageTracker.getInstance()
+      .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.LAYOUT_INSPECTOR_EVENT)
+             .setLayoutInspectorEvent(LayoutInspectorEvent.newBuilder()
+                                        .setType(LayoutInspectorEvent.LayoutInspectorEventType.OPEN)
+             ));
   }
 }
