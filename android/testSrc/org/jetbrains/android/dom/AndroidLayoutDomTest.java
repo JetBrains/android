@@ -643,6 +643,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
                                      "@android:id/selectTextMode", "@android:id/startSelectingText", "@android:id/stopSelectingText");
   }
 
+  public void testNestedScrollView() throws Throwable {
+    toTestCompletion("nestedScrollView.xml", "nestedScrollView_after.xml");
+  }
+
   public void testNewIdCompletion1() throws Throwable {
     toTestCompletion("newIdCompl1.xml", "newIdCompl1_after.xml");
   }
