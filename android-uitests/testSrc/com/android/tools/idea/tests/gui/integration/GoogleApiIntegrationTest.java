@@ -35,9 +35,9 @@ public class GoogleApiIntegrationTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String REG_EXP =
-      "(.*compile 'com.google.android.gms:play-services-ads:.*'.*\n" +
-      ".*compile 'com.google.android.gms:play-services-auth:.*'.*\n" +
-      ".*compile 'com.google.firebase:firebase-messaging:.*'.*)";
+      "(.*'com.google.android.gms:play-services-ads:.*'.*\n" +
+      ".*'com.google.android.gms:play-services-auth:.*'.*\n" +
+      ".*'com.google.firebase:firebase-messaging:.*'.*)";
 
   /**
    * To verify that Developer Services dependencies can be added to a module.
