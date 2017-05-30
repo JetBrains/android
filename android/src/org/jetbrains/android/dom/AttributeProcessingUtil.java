@@ -463,6 +463,10 @@ public class AttributeProcessingUtil {
         }
         break;
 
+      case NESTED_SCROLL_VIEW:
+        registerAttributesForClassAndSuperclasses(facet, element, map.get(SCROLL_VIEW), callback, skipAttrNames);
+        break;
+
       default:
         PsiClass c = map.get(tagName);
         registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames);
