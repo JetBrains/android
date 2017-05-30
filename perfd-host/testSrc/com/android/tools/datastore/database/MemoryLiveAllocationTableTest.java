@@ -18,9 +18,7 @@ package com.android.tools.datastore.database;
 import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
-import com.android.tools.profiler.proto.MemoryProfiler.DecodedStack;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.intellij.openapi.util.io.FileUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -118,23 +116,21 @@ public class MemoryLiveAllocationTableTest {
       .setTimestamp(7).build();
     // Ongoing allocation events would have their FreeTime set to Long.MAX_VALUE.
     AllocationEvent expectedAlloc2 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG).addMethodIds(NO_STACK_ID))
+      .setAllocData(
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG).addMethodIds(NO_STACK_ID))
       .setTimestamp(6).build();
-    AllocationEvent expectedKlass1 = AllocationEvent.newBuilder()
-      .setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS1_NAME).setTag(KLASS1_TAG)).setTimestamp(0).build();
+    AllocatedClass expectedKlass1 = AllocatedClass.newBuilder().setClassName(JAVA_KLASS1_NAME).setClassId(KLASS1_TAG).build();
     // A class that is loaded at t=5 (tag = 2)
-    AllocationEvent expectedKlass2 = AllocationEvent.newBuilder()
-      .setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS2_NAME).setTag(KLASS2_TAG)).setTimestamp(5).build();
+    AllocatedClass expectedKlass2 = AllocatedClass.newBuilder().setClassName(JAVA_KLASS2_NAME).setClassId(KLASS2_TAG).build();
 
-    BatchAllocationSample querySample =
-      myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(2, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
-    assertEquals(expectedKlass2.getTimestamp(), querySample.getTimestamp());
+    AllocationContextsResponse contexts = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(2, contexts.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contexts.getAllocatedClasses(0));
+    assertEquals(expectedKlass2, contexts.getAllocatedClasses(1));
+    assertEquals(5, contexts.getTimestamp());
 
     // A query that asks for live objects.
-    querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    BatchAllocationSample querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(3, querySample.getEventsCount());
     assertEquals(expectedAlloc1, querySample.getEvents(0));
     assertEquals(expectedAlloc2, querySample.getEvents(1));
@@ -253,33 +249,31 @@ public class MemoryLiveAllocationTableTest {
 
     myAllocationTable.setAllocationCountLimit(2);
 
-    BatchAllocationSample querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(0, querySample.getEventsCount());
+    AllocationContextsResponse contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(0, contextSample.getAllocatedClassesCount());
 
-    AllocationEvent expectedKlass1 = AllocationEvent.newBuilder()
-      .setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS1_NAME).setTag(KLASS1_TAG)).setTimestamp(0).build();
-    // A class that is loaded at t=5 (tag = 2)
-    AllocationEvent expectedKlass2 = AllocationEvent.newBuilder()
-      .setClassData(AllocationEvent.Klass.newBuilder().setName(JAVA_KLASS2_NAME).setTag(KLASS2_TAG)).setTimestamp(1).build();
+    AllocatedClass expectedKlass1 = AllocatedClass.newBuilder().setClassName(JAVA_KLASS1_NAME).setClassId(KLASS1_TAG).build();
+    AllocatedClass expectedKlass2 = AllocatedClass.newBuilder().setClassName(JAVA_KLASS2_NAME).setClassId(KLASS2_TAG).build();
 
     // A class that is loaded since the beginning (t = 0, tag = 1)
     AllocationEvent klass1 = AllocationEvent.newBuilder()
       .setClassData(AllocationEvent.Klass.newBuilder().setName(JNI_KLASS1_NAME).setTag(KLASS1_TAG)).setTimestamp(0).build();
     BatchAllocationSample insertSample = BatchAllocationSample.newBuilder().addEvents(klass1).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
-    querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(1, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
+    contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(1, contextSample.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contextSample.getAllocatedClasses(0));
 
     // A klass1 instance allocation event (t = 0, tag = 100)
     AllocationEvent alloc1 = AllocationEvent.newBuilder()
       .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG)).setTimestamp(0).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc1).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
-    querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(1, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(1, contextSample.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contextSample.getAllocatedClasses(0));
+
+    BatchAllocationSample querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(1, querySample.getEventsCount());
     AllocationEvent expectedAlloc1 = alloc1.toBuilder().setAllocData(alloc1.getAllocData().toBuilder().addMethodIds(-1)).build();
     assertEquals(expectedAlloc1, querySample.getEvents(0));
@@ -289,10 +283,10 @@ public class MemoryLiveAllocationTableTest {
       .setClassData(AllocationEvent.Klass.newBuilder().setName(JNI_KLASS2_NAME).setTag(KLASS2_TAG)).setTimestamp(1).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(klass2).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
-    querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(2, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
+    contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(2, contextSample.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contextSample.getAllocatedClasses(0));
+    assertEquals(expectedKlass2, contextSample.getAllocatedClasses(1));
     querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(1, querySample.getEventsCount());
     assertEquals(expectedAlloc1, querySample.getEvents(0));
@@ -302,10 +296,10 @@ public class MemoryLiveAllocationTableTest {
       .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG)).setTimestamp(2).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc2).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
-    querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(2, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
+    contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(2, contextSample.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contextSample.getAllocatedClasses(0));
+    assertEquals(expectedKlass2, contextSample.getAllocatedClasses(1));
     querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(2, querySample.getEventsCount());
     assertEquals(expectedAlloc1, querySample.getEvents(0));
@@ -317,10 +311,10 @@ public class MemoryLiveAllocationTableTest {
       .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE2_TAG).setClassTag(KLASS1_TAG)).setTimestamp(3).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc3).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
-    querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(2, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
+    contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(2, contextSample.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contextSample.getAllocatedClasses(0));
+    assertEquals(expectedKlass2, contextSample.getAllocatedClasses(1));
     querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(3, querySample.getEventsCount());
     assertEquals(expectedAlloc1, querySample.getEvents(0));
@@ -333,10 +327,10 @@ public class MemoryLiveAllocationTableTest {
       .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG)).setTimestamp(5).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(dealloc1).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
-    querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(2, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
+    contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(2, contextSample.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contextSample.getAllocatedClasses(0));
+    assertEquals(expectedKlass2, contextSample.getAllocatedClasses(1));
     querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(2, querySample.getEventsCount());
     assertEquals(expectedAlloc2, querySample.getEvents(0));
@@ -347,10 +341,10 @@ public class MemoryLiveAllocationTableTest {
       .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG)).setTimestamp(6).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(dealloc2).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
-    querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(2, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
+    contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(2, contextSample.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contextSample.getAllocatedClasses(0));
+    assertEquals(expectedKlass2, contextSample.getAllocatedClasses(1));
     querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(3, querySample.getEventsCount());
     assertEquals(expectedAlloc2, querySample.getEvents(0));
@@ -363,10 +357,10 @@ public class MemoryLiveAllocationTableTest {
       .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE2_TAG).setClassTag(KLASS2_TAG)).setTimestamp(7).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc4).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
-    querySample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
-    assertEquals(2, querySample.getEventsCount());
-    assertEquals(expectedKlass1, querySample.getEvents(0));
-    assertEquals(expectedKlass2, querySample.getEvents(1));
+    contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
+    assertEquals(2, contextSample.getAllocatedClassesCount());
+    assertEquals(expectedKlass1, contextSample.getAllocatedClasses(0));
+    assertEquals(expectedKlass2, contextSample.getAllocatedClasses(1));
     querySample = myAllocationTable.getAllocations(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(2, querySample.getEventsCount());
     assertEquals(expectedAlloc3, querySample.getEvents(0));

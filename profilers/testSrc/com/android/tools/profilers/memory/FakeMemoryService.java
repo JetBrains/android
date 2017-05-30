@@ -36,7 +36,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
   private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
-  private LegacyAllocationContextsResponse.Builder myAllocationContextBuilder = LegacyAllocationContextsResponse.newBuilder();
+  private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
   private int myTrackAllocationCount;
 
   private int myAppId;
@@ -99,14 +99,14 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   @Override
   public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
-                                  StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
+                                        StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
     responseObserver.onNext(myAllocationEventsBuilder.build());
     responseObserver.onCompleted();
   }
 
   @Override
-  public void listLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                     StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
+  public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
+                                          StreamObserver<AllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myAllocationContextBuilder.build());
     responseObserver.onCompleted();
   }
@@ -174,12 +174,12 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
-  public FakeMemoryService addExplicitAllocationClass(int id, String name) {
+  public FakeMemoryService addExplicitAllocationClass(long id, String name) {
     myAllocationContextBuilder.addAllocatedClasses(AllocatedClass.newBuilder().setClassId(id).setClassName(name).build());
     return this;
   }
 
-  public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, ByteString stackId) {
+  public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, int stackId) {
     myAllocationContextBuilder.addAllocationStacks(AllocationStack.newBuilder().setStackId(stackId).addStackFrames(
       AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
     ));
