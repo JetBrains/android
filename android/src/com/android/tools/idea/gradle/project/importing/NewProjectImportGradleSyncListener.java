@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -40,7 +41,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.android.tools.idea.project.NewProjects.activateProjectView;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -72,7 +72,7 @@ public abstract class NewProjectImportGradleSyncListener extends GradleSyncListe
       Module module = moduleManager.newModule(moduleFile.getPath(), JAVA.getId());
 
       // This prevents the balloon "Unsupported Modules detected".
-      module.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId());
+      ExternalSystemModulePropertyManager.getInstance(module).setExternalId(GRADLE_SYSTEM_ID);
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
       model.addContentEntry(contentRoot);
