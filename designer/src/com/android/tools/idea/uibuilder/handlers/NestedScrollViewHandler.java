@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ScrollViewScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -38,7 +39,23 @@ public class NestedScrollViewHandler extends ScrollViewHandler {
     return ImmutableList.of(
       ATTR_CONTEXT,
       ATTR_SHOW_IN,
+      ATTR_FILL_VIEWPORT,
       ATTR_CLIP_TO_PADDING);
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
+                          @Nullable NlComponent parent,
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType type) {
+    if (!super.onCreate(editor, parent, newChild, type)) {
+      return false;
+    }
+
+    if (type.isCreate()) {
+      newChild.setAndroidAttribute(ATTR_FILL_VIEWPORT, "true");
+    }
+    return true;
   }
 
   @Nullable
