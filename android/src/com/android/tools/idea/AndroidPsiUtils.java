@@ -352,7 +352,7 @@ public class AndroidPsiUtils {
         String pkg = MergedManifest.get(module).getPackage();
         return startsWithDot ? pkg + context : pkg + '.' + context;
       }
-
+      return context;
     }
     return null;
   }
