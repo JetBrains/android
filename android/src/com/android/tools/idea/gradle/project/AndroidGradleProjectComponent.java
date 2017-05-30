@@ -38,6 +38,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.JavaModuleType;
@@ -65,7 +66,6 @@ import static com.android.tools.idea.apk.ApkProjects.isApkProject;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
@@ -265,9 +265,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       ModuleType moduleType = ModuleType.get(module);
 
       if (moduleType instanceof JavaModuleType) {
-        String externalSystemId = module.getOptionValue(EXTERNAL_SYSTEM_ID_KEY);
-
-        if (!GRADLE_SYSTEM_ID.getId().equals(externalSystemId)) {
+        if (!GRADLE_SYSTEM_ID.getId().equals(ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId())) {
           unsupportedModules.add(module);
         }
       }
