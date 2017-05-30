@@ -23,8 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import java.awt.*;
 
 
 public abstract class ProfilerTooltipView extends AspectObserver {
@@ -37,6 +36,8 @@ public abstract class ProfilerTooltipView extends AspectObserver {
   @NotNull
   protected final JLabel myLabel;
 
+  private int myMaximumLabelWidth;
+
   protected ProfilerTooltipView(@NotNull ProfilerTimeline timeline, @NotNull String title) {
     myTimeline = timeline;
     myTitle = title;
@@ -45,6 +46,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
     myLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    myMaximumLabelWidth = 0;
   }
 
   protected void timeChanged() {
@@ -53,6 +55,8 @@ public abstract class ProfilerTooltipView extends AspectObserver {
       String time = TimeAxisFormatter.DEFAULT
         .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
       myLabel.setText(String.format("%s at %s", myTitle, time));
+      myMaximumLabelWidth = Math.max(myMaximumLabelWidth, myLabel.getWidth());
+      myLabel.setMinimumSize(new Dimension(myMaximumLabelWidth, 0));
     } else {
       myLabel.setText("");
     }
@@ -69,7 +73,6 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     panel.add(tooltip, BorderLayout.CENTER);
     panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-
     timeChanged();
     return panel;
   }
