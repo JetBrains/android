@@ -128,12 +128,13 @@ public class NlComponentFixture {
   }
 
   public NlComponentFixture createBaselineConstraintWith(@NotNull NlComponentFixture destination) {
+    String expectedTooltipText = "Edit Baseline";
     SceneView sceneView = mySurface.getCurrentSceneView();
 
     // Find the position of the baseline target icon and click on it
     SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
     Target target = GuiQuery.getNonNull(() -> sceneComponent.getTargets().stream()
-      .filter(t -> "Edit Baselines".equals(t.getToolTipText()))
+      .filter(t -> expectedTooltipText.equals(t.getToolTipText()))
       .findFirst().get());
     SceneContext context = SceneContext.get(sceneView);
     Point p = new Point(context.getSwingX(target.getCenterX()), context.getSwingY(target.getCenterY()));

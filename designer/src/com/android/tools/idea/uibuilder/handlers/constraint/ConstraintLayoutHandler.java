@@ -90,8 +90,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
   private static final NlIcon BASELINE_ICON =
     new NlIcon(AndroidIcons.SherpaIcons.BaselineColor, AndroidIcons.SherpaIcons.BaselineBlue);
-
   private boolean myShowAllConstraints = true;
+
   private static boolean ourAutoConnect;
   private final static String ADD_VERTICAL_BARRIER = "Add Vertical barrier";
   private final static String ADD_HORIZONTAL_BARRIER = "Add Horizontal Barrier";
@@ -99,6 +99,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private final static String ADD_LAYER = "Add Layer";
   private final static String ADD_GROUP = "Add Group";
   private final static String ADD_CONSTRAINTS_SET = "Add set of Constraints";
+  public static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
 
   private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<String, Boolean>();
 
@@ -561,7 +562,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             @Override
             @Nullable
             public String getToolTipText() {
-              return "Edit Baseline";
+              return EDIT_BASELINE_ACTION_TOOLTIP;
             }
           };
         result.add(baselineActionTarget);
