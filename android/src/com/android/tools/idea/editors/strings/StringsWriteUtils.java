@@ -219,7 +219,7 @@ public class StringsWriteUtils {
   }
 
   @Nullable
-  private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
+  static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
     LocalResourceRepository repository = ModuleResourceRepository.getOrCreateInstance(facet);
     // Ensure that items *just* created are processed by the resource repository
     repository.sync();

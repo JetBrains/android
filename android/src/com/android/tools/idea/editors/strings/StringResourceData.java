@@ -25,7 +25,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
@@ -80,108 +79,6 @@ public class StringResourceData {
                                                     Collections.singletonList(item));
     }
     return false;
-  }
-
-  public boolean setDefaultValue(@NotNull StringResourceKey key, @NotNull String value) {
-    StringResource resource = getStringResource(key);
-
-    if (resource.getDefaultValueAsResourceItem() == null) {
-      ResourceItem item = createItem(key, null, value);
-
-      if (item == null) {
-        return false;
-      }
-
-      resource.setDefaultValue(item, value);
-      return true;
-    }
-
-    return setDefaultValueItemText(key, value);
-  }
-
-  private boolean setDefaultValueItemText(@NotNull StringResourceKey key, @NotNull String value) {
-    StringResource resource = getStringResource(key);
-
-    if (resource.getDefaultValueAsString().equals(value)) {
-      return false;
-    }
-
-    ResourceItem item = resource.getDefaultValueAsResourceItem();
-    assert item != null;
-
-    boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), item, value);
-
-    if (!changed) {
-      return false;
-    }
-
-    if (value.isEmpty()) {
-      resource.removeDefaultValue();
-    }
-    else {
-      resource.setDefaultValue(item, value);
-    }
-
-    return true;
-  }
-
-  public boolean setTranslation(@NotNull StringResourceKey key, @NotNull Locale locale, @NotNull String value) {
-    StringResource resource = getStringResource(key);
-
-    if (resource.getTranslationAsResourceItem(locale) == null) {
-      ResourceItem item = createItem(key, locale, value);
-
-      if (item == null) {
-        return false;
-      }
-
-      resource.putTranslation(locale, item, value);
-      return true;
-    }
-
-    return setTranslationItemText(key, locale, value);
-  }
-
-  private boolean setTranslationItemText(@NotNull StringResourceKey key, @NotNull Locale locale, @NotNull String value) {
-    StringResource resource = getStringResource(key);
-
-    if (resource.getTranslationAsString(locale).equals(value)) {
-      return false;
-    }
-
-    ResourceItem item = resource.getTranslationAsResourceItem(locale);
-    assert item != null;
-
-    boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), item, value);
-
-    if (!changed) {
-      return false;
-    }
-
-    if (value.isEmpty()) {
-      resource.removeTranslation(locale);
-    }
-    else {
-      resource.putTranslation(locale, item, value);
-    }
-
-    return true;
-  }
-
-  @Nullable
-  @VisibleForTesting
-  ResourceItem createItem(@NotNull StringResourceKey key, @Nullable Locale locale, @NotNull String value) {
-    VirtualFile directory = key.getDirectory();
-
-    if (directory == null) {
-      return null;
-    }
-
-    if (value.isEmpty()) {
-      return null;
-    }
-
-    return StringsWriteUtils.createItem(myFacet, directory, locale, key.getName(), value, getStringResource(key).isTranslatable());
   }
 
   @Nullable

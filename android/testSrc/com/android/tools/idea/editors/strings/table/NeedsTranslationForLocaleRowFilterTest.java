@@ -18,20 +18,21 @@ package com.android.tools.idea.editors.strings.table;
 import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceKey;
 import com.android.tools.idea.rendering.Locale;
-import com.intellij.openapi.project.Project;
-import org.junit.Test;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
-import javax.swing.*;
 import javax.swing.RowFilter.Entry;
 import java.util.Collections;
 
-import static org.junit.Assert.assertFalse;
+public final class NeedsTranslationForLocaleRowFilterTest extends AndroidTestCase {
+  public void testInclude() {
+    assertFalse(new NeedsTranslationForLocaleRowFilter(Locale.create("ar")).include(mockEntry()));
+  }
 
-public final class NeedsTranslationForLocaleRowFilterTest {
-  @Test
-  public void include() {
-    StringResource resource = new StringResource(new StringResourceKey("key", null), Collections.emptyList(), Mockito.mock(Project.class));
+  @NotNull
+  private Entry<StringResourceTableModel, Integer> mockEntry() {
+    StringResource resource = new StringResource(new StringResourceKey("key", null), Collections.emptyList(), myFacet);
     resource.setTranslatable(false);
 
     StringResourceTableModel model = Mockito.mock(StringResourceTableModel.class);
@@ -43,7 +44,6 @@ public final class NeedsTranslationForLocaleRowFilterTest {
     Mockito.when(entry.getModel()).thenReturn(model);
     Mockito.when(entry.getIdentifier()).thenReturn(0);
 
-    RowFilter<StringResourceTableModel, Integer> filter = new NeedsTranslationForLocaleRowFilter(Locale.create("ar"));
-    assertFalse(filter.include(entry));
+    return entry;
   }
 }

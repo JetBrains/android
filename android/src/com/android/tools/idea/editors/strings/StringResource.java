@@ -25,6 +25,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,11 @@ public final class StringResource {
   @NotNull
   private final Map<Locale, ResourceItemEntry> myLocaleToTranslationMap;
 
-  public StringResource(@NotNull StringResourceKey key, @NotNull Iterable<ResourceItem> items, @NotNull Project project) {
+  @NotNull
+  private final AndroidFacet myFacet;
+
+  public StringResource(@NotNull StringResourceKey key, @NotNull Iterable<ResourceItem> items, @NotNull AndroidFacet facet) {
+    Project project = facet.getModule().getProject();
     boolean translatable = true;
     ResourceItemEntry defaultValue = new ResourceItemEntry();
     Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
@@ -64,12 +69,11 @@ public final class StringResource {
 
       LocaleQualifier qualifier = item.getConfiguration().getLocaleQualifier();
 
-      String value = toString(item);
       if (qualifier == null) {
-        defaultValue = new ResourceItemEntry(item, value);
+        defaultValue = new ResourceItemEntry(item);
       }
       else {
-        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, value));
+        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item));
       }
     }
 
@@ -81,15 +85,7 @@ public final class StringResource {
     myTranslatable = translatable;
     myDefaultValue = defaultValue;
     myLocaleToTranslationMap = localeToTranslationMap;
-  }
-
-  @NotNull
-  private static String toString(@NotNull ResourceItem item) {
-    // THIS GETTER WITH SIDE EFFECTS that registers we have taken an interest in this value
-    // so that if the value changes we will get a resource changed event fire.
-    ResourceValue value = item.getResourceValue(false);
-
-    return value == null ? "" : ValueXmlHelper.unescapeResourceStringAsXml(value.getRawXmlValue());
+    myFacet = facet;
   }
 
   @NotNull
@@ -112,12 +108,38 @@ public final class StringResource {
     return myDefaultValue.myString;
   }
 
-  void setDefaultValue(@NotNull ResourceItem resourceItem, @NotNull String string) {
-    myDefaultValue = new ResourceItemEntry(resourceItem, string);
-  }
+  public boolean setDefaultValue(@NotNull String defaultValue) {
+    if (myDefaultValue.myResourceItem == null) {
+      ResourceItem item = createItem(null, defaultValue);
 
-  void removeDefaultValue() {
-    myDefaultValue = new ResourceItemEntry();
+      if (item == null) {
+        return false;
+      }
+
+      myDefaultValue = new ResourceItemEntry(item);
+      return true;
+    }
+
+    if (myDefaultValue.myString.equals(defaultValue)) {
+      return false;
+    }
+
+    boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), myDefaultValue.myResourceItem, defaultValue);
+
+    if (!changed) {
+      return false;
+    }
+
+    if (defaultValue.isEmpty()) {
+      myDefaultValue = new ResourceItemEntry();
+      return true;
+    }
+
+    ResourceItem item = StringsWriteUtils.getStringResourceItem(myFacet, myKey.getName(), null);
+    assert item != null;
+
+    myDefaultValue = new ResourceItemEntry(item);
+    return true;
   }
 
   public boolean isTranslatable() {
@@ -140,12 +162,56 @@ public final class StringResource {
     return resourceItemEntry == null ? "" : resourceItemEntry.myString;
   }
 
-  void putTranslation(@NotNull Locale locale, @NotNull ResourceItem resourceItem, @NotNull String string) {
-    myLocaleToTranslationMap.put(locale, new ResourceItemEntry(resourceItem, string));
+  public boolean putTranslation(@NotNull Locale locale, @NotNull String translation) {
+    if (getTranslationAsResourceItem(locale) == null) {
+      ResourceItem item = createItem(locale, translation);
+
+      if (item == null) {
+        return false;
+      }
+
+      myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item));
+      return true;
+    }
+
+    if (getTranslationAsString(locale).equals(translation)) {
+      return false;
+    }
+
+    ResourceItem item = getTranslationAsResourceItem(locale);
+    assert item != null;
+
+    boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), item, translation);
+
+    if (!changed) {
+      return false;
+    }
+
+    if (translation.isEmpty()) {
+      myLocaleToTranslationMap.remove(locale);
+      return true;
+    }
+
+    item = StringsWriteUtils.getStringResourceItem(myFacet, myKey.getName(), locale);
+    assert item != null;
+
+    myLocaleToTranslationMap.put(locale, new ResourceItemEntry(item));
+    return true;
   }
 
-  void removeTranslation(@NotNull Locale locale) {
-    myLocaleToTranslationMap.remove(locale);
+  @Nullable
+  private ResourceItem createItem(@Nullable Locale locale, @NotNull String value) {
+    VirtualFile directory = myKey.getDirectory();
+
+    if (directory == null) {
+      return null;
+    }
+
+    if (value.isEmpty()) {
+      return null;
+    }
+
+    return StringsWriteUtils.createItem(myFacet, directory, locale, myKey.getName(), value, myTranslatable);
   }
 
   @NotNull
@@ -179,9 +245,11 @@ public final class StringResource {
       myString = "";
     }
 
-    private ResourceItemEntry(@NotNull ResourceItem resourceItem, @NotNull String string) {
+    private ResourceItemEntry(@NotNull ResourceItem resourceItem) {
       myResourceItem = resourceItem;
-      myString = string;
+
+      ResourceValue value = resourceItem.getResourceValue(false);
+      myString = value == null ? "" : ValueXmlHelper.unescapeResourceStringAsXml(value.getRawXmlValue());
     }
   }
 }
