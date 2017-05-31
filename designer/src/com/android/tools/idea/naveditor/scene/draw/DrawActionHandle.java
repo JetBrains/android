@@ -18,11 +18,10 @@ package com.android.tools.idea.naveditor.scene.draw;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-
-import java.awt.Color;
-import java.awt.Graphics2D;
-
+import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 /**
  * {@linkplain DrawActionHandle} is responsible for rendering the action handle
@@ -31,32 +30,33 @@ import org.jetbrains.annotations.NotNull;
  * and final sizes and the duration of the size change.
  */
 public class DrawActionHandle implements DrawCommand {
-  public static final int BORDER_THICKNESS = 2;
+  public static final int BACKGROUND_RADIUS = 6;
+  public static final int SMALL_RADIUS = 8;
+  public static final int LARGE_RADIUS = 12;
+  public static final int BORDER_THICKNESS = 3;
+  public static final int MAX_DURATION = 200;
 
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
   @SwingCoordinate private final int myInitialRadius;
   @SwingCoordinate private final int myFinalRadius;
-  private final Color myBackground;
-  private final Color myCenter;
-  private final int myDuration;
+  private final Color myBorderColor;
+  private final Color myFillColor;
 
-  private long myStartTime = 0;
+  private long myStartTime = -1;
 
   public DrawActionHandle(@SwingCoordinate int x,
                           @SwingCoordinate int y,
                           @SwingCoordinate int initialRadius,
                           @SwingCoordinate int finalRadius,
-                          @NotNull Color background,
-                          @NotNull Color center,
-                          int duration) {
+                          @NotNull Color borderColor,
+                          @NotNull Color fillColor) {
     myX = x;
     myY = y;
     myInitialRadius = initialRadius;
     myFinalRadius = finalRadius;
-    myBackground = background;
-    myCenter = center;
-    myDuration = duration;
+    myBorderColor = borderColor;
+    myFillColor = fillColor;
   }
 
   @Override
@@ -68,25 +68,31 @@ public class DrawActionHandle implements DrawCommand {
   public
   @NotNull
   String serialize() {
-    return this.getClass().getSimpleName() + "," + myX + "," + myY + "," + myInitialRadius + "," + myFinalRadius + "," + myDuration;
+    return Joiner.on(',').join(this.getClass().getSimpleName(),
+                               myX, myY, myInitialRadius, myFinalRadius, String.format("%x", myBorderColor.getRGB()),
+                               String.format("%x", myFillColor.getRGB()));
   }
 
   @Override
   public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     long currentTime = sceneContext.getTime();
 
-    if (myStartTime == 0) {
+    if (myStartTime == -1) {
       myStartTime = currentTime;
     }
 
-    @SwingCoordinate int r = myFinalRadius;
+    int delta = myFinalRadius - myInitialRadius;
+    int duration = Math.abs(delta) * MAX_DURATION / LARGE_RADIUS;
+    int elapsed = (int)(currentTime - myStartTime);
 
-    if (currentTime < myStartTime + myDuration) {
-      r = myInitialRadius + (int)(currentTime - myStartTime) * (myFinalRadius - myInitialRadius) / myDuration;
+    int r = myFinalRadius;
+
+    if (elapsed < duration) {
+      r = myInitialRadius + delta * elapsed / duration;
     }
 
-    fillCircle(g, myX, myY, r, myBackground);
-    fillCircle(g, myX, myY, r - BORDER_THICKNESS, myCenter);
+    fillCircle(g, myX, myY, Math.max(r, BACKGROUND_RADIUS), myBorderColor);
+    fillCircle(g, myX, myY, r - BORDER_THICKNESS, myFillColor);
 
     if (r != myFinalRadius) {
       sceneContext.repaint();
