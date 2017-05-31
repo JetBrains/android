@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.google.protobuf3jarjar.ByteString;
@@ -48,7 +48,7 @@ public class CpuCaptureTest {
 
     int main = capture.getMainThreadId();
     assertTrue(capture.containsThread(main));
-    HNode<MethodModel> mainNode = capture.getCaptureNode(main);
+    CaptureNode mainNode = capture.getCaptureNode(main);
     assertNotNull(mainNode);
     assertNotNull(mainNode.getData());
     assertEquals("main", mainNode.getData().getClassName());

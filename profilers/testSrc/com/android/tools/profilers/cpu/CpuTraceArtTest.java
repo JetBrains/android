@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
@@ -53,10 +52,10 @@ public class CpuTraceArtTest {
                         "com/test/android/traceview/Basic.foo()V",
                         "android/os/Debug.stopMethodTracing()V");
 
-    expectedChildrenIds(node.getFirstChild(), "android/os/Debug.startMethodTracing(Ljava/lang/String;II)V");
+    expectedChildrenIds(node.getChildren().get(0), "android/os/Debug.startMethodTracing(Ljava/lang/String;II)V");
     expectedChildrenIds(node.getChildren().get(1), "com/test/android/traceview/Basic.bar()I");
     expectedChildrenIds(node.getChildren().get(2), "dalvik/system/VMDebug.stopMethodTracing()V");
-    expectedChildrenIds(node.getFirstChild().getChildren().get(0),
+    expectedChildrenIds(node.getChildren().get(0).getChildren().get(0),
                         "dalvik/system/VMDebug.startMethodTracing(Ljava/lang/String;II)V");
   }
 
@@ -79,9 +78,8 @@ public class CpuTraceArtTest {
     // Thread clock is based on the topLevel call start time.
     // Therefore all nodes should have their thread start time >= top level's global start time.
     assertTrue(root.getStart() >= topLevelStart);
-    for(HNode<MethodModel> child : root.getChildren()) {
-      assertTrue(child instanceof CaptureNode);
-      CaptureNode node = (CaptureNode)child;
+    for(CaptureNode child : root.getChildren()) {
+      CaptureNode node = child;
       node.setClockType(ClockType.THREAD);
       assertTrue(node.getStart() >= topLevelStart);
     }
@@ -94,7 +92,7 @@ public class CpuTraceArtTest {
     return parser.getTraceData();
   }
 
-  private static void expectedChildrenIds(HNode<MethodModel> node, String... ids) {
+  private static void expectedChildrenIds(CaptureNode node, String... ids) {
     assertEquals(ids.length, node.getChildren().size());
     for (int i = 0; i < ids.length; ++i) {
       assertEquals(ids[i], node.getChildren().get(i).getData().getId());

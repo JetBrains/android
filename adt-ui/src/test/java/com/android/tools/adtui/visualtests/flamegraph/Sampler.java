@@ -16,8 +16,9 @@
 
 package com.android.tools.adtui.visualtests.flamegraph;
 
-import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
+import com.android.tools.adtui.model.HNode;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -28,7 +29,7 @@ public class Sampler implements Runnable {
 
   volatile boolean running;
 
-  HashMap<String, HNode<SampledMethodUsage>> furnace;
+  HashMap<String, DefaultHNode<SampledMethodUsage>> furnace;
 
   private final static long SAMPLING_RESOLUTION = TimeUnit.MILLISECONDS.toMillis(1);
 
@@ -77,9 +78,9 @@ public class Sampler implements Runnable {
       }
 
       // Retrieve the ongoing flame associate with this thread.
-      HNode<SampledMethodUsage> flame = furnace.get(sampledThread.getName());
+      DefaultHNode<SampledMethodUsage> flame = furnace.get(sampledThread.getName());
       if (flame == null) {
-        flame = new HNode();
+        flame = new DefaultHNode();
         SampledMethodUsage m = new SampledMethodUsage();
         flame.setData(m);
         furnace.put(sampledThread.getName(), flame);
@@ -103,9 +104,9 @@ public class Sampler implements Runnable {
            currentNode.getData().getNameSpace().equals(element.getClassName());
   }
 
-  private void ensureNodesExist(StackTraceElement[] trace, HNode<SampledMethodUsage> root) {
-    HNode<SampledMethodUsage> previous;
-    HNode<SampledMethodUsage> current = root;
+  private void ensureNodesExist(StackTraceElement[] trace, DefaultHNode<SampledMethodUsage> root) {
+    DefaultHNode<SampledMethodUsage> previous;
+    DefaultHNode<SampledMethodUsage> current = root;
 
     int depth = trace.length - 1;
     while (depth >= 0) {
@@ -114,7 +115,7 @@ public class Sampler implements Runnable {
       current = findChildWithMethod(currentMethod, previous);
       if (current == null) {
         // Create a new node.
-        current = new HNode<>();
+        current = new DefaultHNode<>();
         current.setDepth(trace.length - depth);
         SampledMethodUsage m = new SampledMethodUsage();
         m.setInvocationCount(0);
@@ -122,15 +123,15 @@ public class Sampler implements Runnable {
         m.setName(currentMethod.getMethodName());
         current.setData(m);
         // Add new node to parent
-        previous.addHNode(current);
+        previous.addChild(current);
       }
       depth--;
     }
   }
 
-  private HNode<SampledMethodUsage> findChildWithMethod(StackTraceElement stackTraceElement,
-                                                        HNode<SampledMethodUsage> node) {
-    for (HNode<SampledMethodUsage> n : node.getChildren()) {
+  private DefaultHNode<SampledMethodUsage> findChildWithMethod(StackTraceElement stackTraceElement,
+                                                               DefaultHNode<SampledMethodUsage> node) {
+    for (DefaultHNode<SampledMethodUsage> n : node.getChildren()) {
       if (isSameMethod(n, stackTraceElement)) {
         return n;
       }
@@ -140,7 +141,7 @@ public class Sampler implements Runnable {
 
   private void generateStartsAndEnds() {
     for (String threadName : furnace.keySet()) {
-      HNode<SampledMethodUsage> root = furnace.get(threadName);
+      DefaultHNode<SampledMethodUsage> root = furnace.get(threadName);
       // HChart nodes are integers. We represent percentage with two decimals * 100.
       root.setStart(0);
       root.setEnd(MAX_VALUE);
@@ -150,7 +151,7 @@ public class Sampler implements Runnable {
     }
   }
 
-  private void generateChildsStartsAndEnds(HNode<SampledMethodUsage> node) {
+  private void generateChildsStartsAndEnds(DefaultHNode<SampledMethodUsage> node) {
     // Get total invocation count for this depth level.
     long childInvocationTotal = 0;
     for (HNode<SampledMethodUsage> n : node.getChildren()) {
@@ -161,7 +162,7 @@ public class Sampler implements Runnable {
 
     // For each child, generate: start, end and the absolute percentage.
     long base = node.getStart();
-    for (HNode<SampledMethodUsage> child : node.getChildren()) {
+    for (DefaultHNode<SampledMethodUsage> child : node.getChildren()) {
       child.setStart(base);
       child.setEnd(base +
                    (long)(childWidth * (child.getData().getInvocationCount()
@@ -171,24 +172,24 @@ public class Sampler implements Runnable {
     }
 
     // Recurse for each child
-    for (HNode<SampledMethodUsage> child : node.getChildren()) {
+    for (DefaultHNode<SampledMethodUsage> child : node.getChildren()) {
       generateChildsStartsAndEnds(child);
     }
   }
 
-  private long sumInvocationCountForTree(HNode<SampledMethodUsage> root) {
+  private long sumInvocationCountForTree(DefaultHNode<SampledMethodUsage> root) {
     long invocationCount = 0;
-    Stack<HNode<SampledMethodUsage>> stack = new Stack<>();
+    Stack<DefaultHNode<SampledMethodUsage>> stack = new Stack<>();
     stack.addAll(root.getChildren());
     while (!stack.isEmpty()) {
-      HNode<SampledMethodUsage> n = stack.pop();
+      DefaultHNode<SampledMethodUsage> n = stack.pop();
       invocationCount += n.getData().getInvocationCount();
       stack.addAll(n.getChildren());
     }
     return invocationCount;
   }
 
-  public HashMap<String, HNode<SampledMethodUsage>> getData() {
+  public HashMap<String, DefaultHNode<SampledMethodUsage>> getData() {
     return furnace;
   }
 }
