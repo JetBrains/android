@@ -69,22 +69,22 @@ java_import(
 )
 
 java_import(
-    name = "baksmali-2.2.0",
-    jars = ["baksmali-2.2.0.jar"],
+    name = "baksmali-2.2.1",
+    jars = ["baksmali-2.2.1.jar"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
-    name = "dexlib2-2.2.0",
-    jars = ["dexlib2-2.2.0.jar"],
+    name = "dexlib2-2.2.1",
+    jars = ["dexlib2-2.2.1.jar"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
 
 java_import(
-    name = "dexlib2-util-2.2.0",
-    jars = ["util-2.2.0.jar"],
+    name = "dexlib2-util-2.2.1",
+    jars = ["util-2.2.1.jar"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
