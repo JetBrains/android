@@ -24,6 +24,6 @@ public interface IdeNativeAndroidProject extends Serializable, NativeAndroidProj
 
   interface Factory {
     @NotNull
-    public IdeNativeAndroidProject create(@NotNull NativeAndroidProject project);
+    IdeNativeAndroidProject create(@NotNull NativeAndroidProject project);
   }
 }
