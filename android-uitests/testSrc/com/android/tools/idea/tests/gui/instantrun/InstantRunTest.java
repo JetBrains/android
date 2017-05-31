@@ -495,7 +495,7 @@ public class InstantRunTest {
     Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
-    ideFrameFixture.findApplyChangesButton().requireEnabled();
+    Wait.seconds(5).expecting("Apply changes button to be enabled").until(() -> ideFrameFixture.findApplyChangesButton().isEnabled());
   }
 
   @NotNull
