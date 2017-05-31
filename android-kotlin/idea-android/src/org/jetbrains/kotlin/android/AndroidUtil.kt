@@ -140,7 +140,7 @@ internal fun getReferredResourceOrManifestField(facet: AndroidFacet, expression:
     )
 }
 
-private fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
+internal fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
     val receiverExpression = getQualifiedExpressionForSelector()?.receiverExpression
     return (receiverExpression as? KtQualifiedExpression)?.selectorExpression ?: receiverExpression
 }

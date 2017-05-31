@@ -65,4 +65,47 @@ class AndroidKotlinCompletionContributorTest : AndroidGradleTestCase() {
     myFixture.complete(CompletionType.BASIC)
     assertThat(myFixture.lookupElementStrings).doesNotContain("ExampleInstrumentedTest")
   }
+
+  fun testFilteredPrivateResources() {
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
+    val activityPath = "app/src/main/java/com/example/android/kotlin/MainActivity.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(activityPath)
+    myFixture.openFileInEditor(file!!)
+
+    myFixture.moveCaret("setContentView(R.layout.|activity_main)")
+
+    myFixture.complete(CompletionType.BASIC)
+    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
+    assertThat(myFixture.lookupElementStrings).contains("activity_main")
+  }
+
+  fun testFilteredPrivateResourcesInTests() {
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
+    val activityPath = "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(activityPath)
+    myFixture.openFileInEditor(file!!)
+
+    myFixture.moveCaret("assertEquals(\"com.example.android.kotlin\", appContext.packageName)|")
+    myFixture.type("\nR.layout.")
+
+    myFixture.complete(CompletionType.BASIC)
+    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
+    assertThat(myFixture.lookupElementStrings).contains("activity_main")
+  }
+
+  fun testFilteredPrivateResourcesAliasedR() {
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
+    val activityPath = "app/src/main/java/com/example/android/kotlin/MainActivity.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(activityPath)
+    myFixture.openFileInEditor(file!!)
+
+    myFixture.moveCaret("import android.os.Bundle|")
+    myFixture.type("\nimport com.example.android.kotlin.R as Q")
+    myFixture.moveCaret("setContentView(R.layout.activity_main)|")
+    myFixture.type("\nsetContentView(Q.layout.")
+
+    myFixture.complete(CompletionType.BASIC)
+    assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
+    assertThat(myFixture.lookupElementStrings).contains("activity_main")
+  }
 }
