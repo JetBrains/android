@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder;
 
 import android.view.View;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
@@ -26,7 +27,6 @@ import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -39,8 +39,6 @@ import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -60,7 +58,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class LayoutTestUtilities {
-  public static void moveMouse(InteractionManager manager, int x1, int y1, int x2, int y2, int modifiers) {
+  public static void dragMouse(InteractionManager manager, int x1, int y1, int x2, int y2, int modifiers) {
     Object listener = manager.getListener();
     assertTrue(listener instanceof MouseMotionListener);
     MouseMotionListener mouseListener = (MouseMotionListener)listener;
@@ -72,9 +70,12 @@ public class LayoutTestUtilities {
 
     JComponent layeredPane = manager.getSurface().getLayeredPane();
     for (int i = 0; i < frames + 1; i++) {
-      MouseEvent event = new MouseEventBuilder((int)x, (int)y).withSource(layeredPane).withMask(modifiers).build();
-      mouseListener.mouseMoved(
-        event);
+      MouseEvent event = new MouseEventBuilder((int)x, (int)y)
+        .withSource(layeredPane)
+        .withMask(modifiers)
+        .withId(MouseEvent.MOUSE_DRAGGED)
+        .build();
+      mouseListener.mouseDragged(event);
       x += xSlope;
       y += ySlope;
     }
@@ -85,7 +86,12 @@ public class LayoutTestUtilities {
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
     JComponent layeredPane = manager.getSurface().getLayeredPane();
-    mouseListener.mousePressed(new MouseEventBuilder(x, y).withSource(layeredPane).withMask(modifiers).build());
+    mouseListener.mousePressed(new MouseEventBuilder(x, y)
+                                 .withSource(layeredPane)
+                                 .withMask(modifiers)
+                                 .withButton(button)
+                                 .withId(MouseEvent.MOUSE_PRESSED)
+                                 .build());
   }
 
   public static void releaseMouse(InteractionManager manager, int button, int x, int y, int modifiers) {
@@ -93,7 +99,11 @@ public class LayoutTestUtilities {
     assertTrue(listener instanceof MouseListener);
     MouseListener mouseListener = (MouseListener)listener;
     JComponent layeredPane = manager.getSurface().getLayeredPane();
-    mouseListener.mousePressed(new MouseEventBuilder(x, y).withSource(layeredPane).withMask(modifiers).build());
+    mouseListener.mouseReleased(new MouseEventBuilder(x, y)
+                                  .withSource(layeredPane)
+                                  .withMask(modifiers)
+                                  .withButton(button)
+                                  .withId(MouseEvent.MOUSE_RELEASED).build());
   }
 
   public static void clickMouse(InteractionManager manager, int button, int count, int x, int y, int modifiers) {
@@ -106,7 +116,13 @@ public class LayoutTestUtilities {
       assertTrue(listener instanceof MouseListener);
       MouseListener mouseListener = (MouseListener)listener;
       MouseEvent event =
-        new MouseEventBuilder(x, y).withSource(layeredPane).withButton(button).withMask(modifiers).withClickCount(i + 1).build();
+        new MouseEventBuilder(x, y)
+          .withSource(layeredPane)
+          .withButton(button)
+          .withMask(modifiers)
+          .withClickCount(i + 1)
+          .withId(MouseEvent.MOUSE_CLICKED)
+          .build();
       mouseListener.mouseClicked(event);
     }
   }
@@ -189,7 +205,7 @@ public class LayoutTestUtilities {
   public static Transferable createTransferable(DataFlavor flavor, Object data) throws IOException, UnsupportedFlavorException {
     Transferable transferable = mock(Transferable.class);
 
-    when(transferable.getTransferDataFlavors()).thenReturn(new DataFlavor[] { flavor });
+    when(transferable.getTransferDataFlavors()).thenReturn(new DataFlavor[]{flavor});
     when(transferable.getTransferData(eq(flavor))).thenReturn(data);
     when(transferable.isDataFlavorSupported(eq(flavor))).thenReturn(true);
 

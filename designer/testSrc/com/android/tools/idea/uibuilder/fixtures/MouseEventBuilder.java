@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.adtui.common.SwingCoordinate;
 
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 
 import static org.mockito.Mockito.mock;
@@ -31,6 +32,7 @@ public class MouseEventBuilder {
   private int myButton = 1;
   private int myMask = 0;
   private int myClickCount = 1;
+  private int myId = 0;
 
   public MouseEventBuilder(@SwingCoordinate int x, @SwingCoordinate int y) {
     myX = x;
@@ -49,11 +51,17 @@ public class MouseEventBuilder {
 
   public MouseEventBuilder withButton(int button) {
     myButton = button;
+    myMask |= InputEvent.getMaskForButton(button);
     return this;
   }
 
   public MouseEventBuilder withClickCount(int clickCount) {
     myClickCount = clickCount;
+    return this;
+  }
+
+  public MouseEventBuilder withId(int id) {
+    myId = id;
     return this;
   }
 
@@ -68,6 +76,7 @@ public class MouseEventBuilder {
     when(event.getClickCount()).thenReturn(myClickCount);
     when(event.getPoint()).thenReturn(new Point(myX, myY));
     when(event.getWhen()).thenReturn(System.currentTimeMillis());
+    when(event.getID()).thenReturn(myId);
     return event;
   }
 }

@@ -19,12 +19,8 @@ import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +50,11 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   @Override
   protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
     // Nothing
+  }
+
+  @Override
+  public void mouseDown(int x, int y) {
+    super.mouseDown(x, y);
   }
 
   @Override

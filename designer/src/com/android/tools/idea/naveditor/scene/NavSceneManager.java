@@ -24,7 +24,6 @@ import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.TagSnapshot;
-import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -33,7 +32,6 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
-import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -48,18 +46,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.NAVIGATION;
+
 /**
  * {@link SceneManager} for the navigation editor.
  */
 public class NavSceneManager extends SceneManager {
-  public final NavScreenTargetProvider myScreenTargetProvider;
+  private static final int SUBNAV_WIDTH = 100;
+  private static final int SUBNAV_HEIGHT = 25;
+  private final NavScreenTargetProvider myScreenTargetProvider;
+  
   // TODO: enable layout algorithm switching
-  //noinspection CanBeFinal
-  private NavSceneLayoutAlgorithm myLayoutAlgorithm;
+  @SuppressWarnings("CanBeFinal") private NavSceneLayoutAlgorithm myLayoutAlgorithm;
 
   private SceneDecoratorFactory myDecoratorFactory;
   private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
-  private static final int SCREEN_WIDTH = 100;
 
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
     super(model, surface);
@@ -99,17 +100,12 @@ public class NavSceneManager extends SceneManager {
       switch (type) {
         case NAVIGATION:
           if (sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()) {
-            SceneView view = getDesignSurface().getCurrentSceneView();
-            if (view != null) {
-              Dimension viewDimension = view.getPreferredSize();
-              sceneComponent.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.width),
-                                     Coordinates.getAndroidDimensionDip(getDesignSurface(), viewDimension.height), true);
-            }
+            // done in post
+            sceneComponent.setSize(-1, -1, false);
           }
           else {
-            // TODO: take label size into account
-            sceneComponent.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), 140),
-                                   Coordinates.getAndroidDimensionDip(getDesignSurface(), 34), false);
+            // TODO: take label size into account.
+            sceneComponent.setSize(SUBNAV_WIDTH, SUBNAV_HEIGHT, false);
           }
           break;
         case FRAGMENT:
@@ -117,9 +113,7 @@ public class NavSceneManager extends SceneManager {
           State state = getModel().getConfiguration().getDeviceState();
           assert state != null;
           Screen screen = state.getHardware().getScreen();
-          // TODO: is this conversion correct?
-          double scale = (double)Coordinates.getAndroidDimension(getDesignSurface(), SCREEN_WIDTH)/screen.getXDimension();
-          sceneComponent.setSize((int)(scale * screen.getXDimension()), (int)(scale * screen.getYDimension()), true);
+          sceneComponent.setSize(screen.getXDimension() / 4, screen.getYDimension() / 4, true);
           break;
         default:
           // nothing
@@ -127,12 +121,24 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
-  public void getContentSize(@NotNull Dimension toFill) {
-    SceneComponent root = getScene().getRoot();
-    if (root == null) {
-      return;
+  @Override
+  protected void postUpdateFromComponent(@NotNull SceneComponent sceneComponent) {
+    NavigationSchema.DestinationType type = getDesignSurface().getSchema().getDestinationType(sceneComponent.getNlComponent().getTagName());
+    if (type == NAVIGATION && sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()) {
+      layoutAll(sceneComponent);
+      updateRootBounds(sceneComponent);
     }
-    toFill.setSize(root.getDrawWidth(), root.getDrawWidth());
+  }
+
+  private static void updateRootBounds(@NotNull SceneComponent root) {
+    Rectangle bounds = new Rectangle(0, 0, -1, -1);
+    Rectangle temp = new Rectangle();
+    root.flatten().filter(c -> c != root).forEach(component -> bounds.add(component.fillDrawRect(0, temp)));
+    if (bounds.width > 0) {
+      bounds.add(0, 0);
+    }
+    root.setPosition(0, 0);
+    root.setSize(bounds.width + 20, bounds.height + 20, false);
   }
 
   @Override
@@ -178,21 +184,22 @@ public class NavSceneManager extends SceneManager {
     SceneComponent root = getScene().getRoot();
     if (root != null) {
       root.updateTargets(true);
-      layoutAll();
+      layoutAll(root);
     }
   }
 
-  private void layoutAll() {
-    SceneComponent root = getScene().getRoot();
-    if (root != null) {
-      root.flatten().forEach(component -> component.setPosition(0, 0));
-      root.flatten().forEach(myLayoutAlgorithm::layout);
-    }
+  private void layoutAll(@NotNull SceneComponent root) {
+    root.flatten().forEach(component -> component.setPosition(0, 0));
+    root.flatten().forEach(myLayoutAlgorithm::layout);
   }
 
   @Override
   public void layout(boolean animate) {
-    layoutAll();
+    SceneComponent root = getScene().getRoot();
+    if (root != null) {
+      updateRootBounds(root);
+    }
+    getDesignSurface().updateScrolledAreaSize();
     getScene().needsRebuildList();
   }
 

@@ -204,6 +204,7 @@ public class InteractionManager {
       myDropTarget.removeDropTargetListener(myListener);
     }
     myHoverTimer.removeActionListener(myListener);
+    myHoverTimer.stop();
     myIsListening = false;
   }
 
