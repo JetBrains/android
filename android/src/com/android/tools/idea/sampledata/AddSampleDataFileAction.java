@@ -37,18 +37,22 @@ public class AddSampleDataFileAction extends AnAction {
     super.update(e);
 
     Project project = e.getProject();
-    if (!StudioFlags.NELE_SAMPLE_DATA.get() || project == null) {
-      e.getPresentation().setVisible(false);
+     if (!StudioFlags.NELE_SAMPLE_DATA.get() || project == null) {
+      e.getPresentation().setEnabledAndVisible(false);
       return;
     }
     Module[] modules = Projects.getModulesToBuildFromSelection(project, e.getDataContext());
-    e.getPresentation().setVisible(modules.length == 1 && AndroidFacet.getInstance(modules[0]) != null);
+    e.getPresentation().setEnabledAndVisible(modules.length == 1 && AndroidFacet.getInstance(modules[0]) != null);
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
-    assert project != null; // update would disable the action if project == null
+
+    if (!StudioFlags.NELE_SAMPLE_DATA.get() || project == null) {
+      return;
+    }
+
     Module[] modules = Projects.getModulesToBuildFromSelection(project, e.getDataContext());
     AndroidFacet facet = AndroidFacet.getInstance(modules[0]);
     if (facet == null) {

@@ -52,7 +52,7 @@ public class CreateSampleDataDirectory extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
-      e.getPresentation().setVisible(false);
+      e.getPresentation().setEnabledAndVisible(false);
       return;
     }
 
@@ -65,11 +65,15 @@ public class CreateSampleDataDirectory extends AnAction {
     catch (IOException ex) {
       visible = false;
     }
-    e.getPresentation().setVisible(visible);
+    e.getPresentation().setEnabledAndVisible(visible);
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
+      return;
+    }
+
     AndroidFacet facet = getFacet(e);
     assert facet != null; // Needs to exist or the action wouldn't be visible
     try {
