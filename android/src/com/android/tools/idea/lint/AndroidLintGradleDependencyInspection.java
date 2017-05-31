@@ -25,6 +25,8 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class AndroidLintGradleDependencyInspection extends AndroidLintInspectionBase {
   public AndroidLintGradleDependencyInspection() {
     super(AndroidBundle.message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY);
@@ -36,8 +38,9 @@ public class AndroidLintGradleDependencyInspection extends AndroidLintInspection
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
                                              @Nullable LintFix fixData) {
-    // Is this an upgrade message from the ConstraintLayoutDetector instead?
-    if (LintFix.getData(fixData, ConstraintLayoutDetector.class) != null) {
+    Class detector = LintFix.getData(fixData, Class.class);
+    if (Objects.equals(detector, ConstraintLayoutDetector.class)) {
+      // Is this an upgrade message from the ConstraintLayoutDetector instead?
       return new AndroidLintQuickFix[]{new UpgradeConstraintLayoutFix()};
     }
 
