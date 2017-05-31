@@ -151,7 +151,7 @@ public class NdkModuleModel implements ModuleModel {
   }
 
   @NotNull
-  public NativeAndroidProject getAndroidProject() {
+  public IdeNativeAndroidProject getAndroidProject() {
     return myAndroidProject;
   }
 
