@@ -224,7 +224,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertTrue(myCaptureDetailsCalled);
     assertNull(myStage.getCaptureDetails());
 
-    // HNode is null, as a result the model is null as well
+    // CaptureNode is null, as a result the model is null as well
     myStage.setSelectedThread(-1);
     myCaptureDetailsCalled = false;
     myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);

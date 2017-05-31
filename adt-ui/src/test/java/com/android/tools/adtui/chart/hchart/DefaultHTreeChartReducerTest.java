@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.chart.hchart;
 
+import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import org.junit.Test;
 
@@ -79,7 +80,7 @@ public class DefaultHTreeChartReducerTest {
 
     // node.getStart() and node.getEnd() needs to be proportional to X coordinates of the corresponding rectangle.
     // So as a factor of it taken 1000 to get rid of the fractional part of a number.
-    HNode<String> node = new HNode<>(id, (long)(1000 * minX), (long)(1000 * maxX));
+    DefaultHNode<String> node = new DefaultHNode<>(id, (long)(1000 * minX), (long)(1000 * maxX));
     node.setDepth(depth);
 
     nodes.add(node);

@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
+
 import com.android.tools.adtui.model.ConfigurableDurationData;
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
@@ -155,10 +155,9 @@ public class CpuCapture implements ConfigurableDurationData {
       return;
     }
     node.setClockType(clockType);
-    for (HNode<MethodModel> child : node.getChildren()) {
+    for (CaptureNode child : node.getChildren()) {
       // CpuTraceArt should parse the capture into CaptureNode objects
-      assert child instanceof CaptureNode;
-      updateClockType((CaptureNode)child, clockType);
+      updateClockType(child, clockType);
     }
   }
 }

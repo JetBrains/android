@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -27,12 +26,12 @@ import java.util.*;
 class TopDownNode extends CpuTreeNode<TopDownNode> {
   private static final String INVALID_ID = "";
 
-  public TopDownNode(@NotNull HNode<MethodModel> node) {
+  public TopDownNode(@NotNull CaptureNode node) {
     super(node.getData() == null ? INVALID_ID : node.getData().getId());
     addNode(node);
 
     Map<String, TopDownNode> children = new TreeMap<>();
-    for (HNode<MethodModel> child : node.getChildren()) {
+    for (CaptureNode child : node.getChildren()) {
       assert child.getData() != null;
       TopDownNode prev = children.get(child.getData().getId());
       TopDownNode other = new TopDownNode(child);

@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,9 +56,9 @@ public class CpuTreeSorterTest {
 
   @Test
   public void sortedTree() {
-    HNode<MethodModel> root = new HNode<>(new MethodModel("A"), 0, 0);
-    root.addHNode(new HNode<>(new MethodModel("B"), 0, 0));
-    root.addHNode(new HNode<>(new MethodModel("C"), 0, 0));
+    CaptureNode root = newNode("A", 0, 0);
+    root.addChild(newNode("B", 0, 0));
+    root.addChild(newNode("C", 0, 0));
 
     CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
@@ -70,9 +70,9 @@ public class CpuTreeSorterTest {
 
   @Test
   public void unsortedTree() {
-    HNode<MethodModel> root = new HNode<>(new MethodModel("A"), 0, 0);
-    root.addHNode(new HNode<>(new MethodModel("C"), 0, 0));
-    root.addHNode(new HNode<>(new MethodModel("B"), 0, 0));
+    CaptureNode root = newNode("A", 0, 0);
+    root.addChild(newNode("C", 0, 0));
+    root.addChild(newNode("B", 0, 0));
 
     CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
@@ -85,9 +85,9 @@ public class CpuTreeSorterTest {
   @Test
   public void sortModifiedModel() {
     // Create a tree model, with method names sorted lexicographically
-    HNode<MethodModel> root = new HNode<>(new MethodModel("A"), 0, 0);
-    root.addHNode(new HNode<>(new MethodModel("B"), 0, 0));
-    root.addHNode(new HNode<>(new MethodModel("D"), 0, 0));
+    CaptureNode root = newNode("A", 0, 0);
+    root.addChild(newNode("B", 0, 0));
+    root.addChild(newNode("D", 0, 0));
 
     CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
@@ -95,7 +95,7 @@ public class CpuTreeSorterTest {
 
     // Add a new child to the end of root's children list
     DefaultMutableTreeNode treeNodeRoot = (DefaultMutableTreeNode) model.getRoot();
-    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new TopDownNode(new HNode<>(new MethodModel("C"), 0, 0)));
+    DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new TopDownNode(newNode("C", 0, 0)));
     model.insertNodeInto(newNode, treeNodeRoot, treeNodeRoot.getChildCount());
 
     // The order of the model is not right after the insertion, as "C" was inserted after "D"
@@ -110,9 +110,9 @@ public class CpuTreeSorterTest {
   @Test
   public void parentIsNotOrdered() {
     // Create a tree model, with method names sorted lexicographically
-    HNode<MethodModel> root = new HNode<>(new MethodModel("Z"), 0, 0);
-    root.addHNode(new HNode<>(new MethodModel("B"), 0, 0));
-    root.addHNode(new HNode<>(new MethodModel("C"), 0, 0));
+    CaptureNode root = newNode("Z", 0, 0);
+    root.addChild(newNode("B", 0, 0));
+    root.addChild(newNode("C", 0, 0));
 
     CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
@@ -124,7 +124,7 @@ public class CpuTreeSorterTest {
     compareTreeModel(model, "Z", "B", "C");
   }
 
-  private static CpuTreeModel createTreeModel(HNode<MethodModel> tree) {
+  private static CpuTreeModel createTreeModel(CaptureNode tree) {
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     return new TopDownTreeModel(range, new TopDownNode(tree));
   }
@@ -148,5 +148,17 @@ public class CpuTreeSorterTest {
     for (int i = 0; i < node.getChildCount(); i++) {
       preOrderTraversal(node.getChildAt(i), nodes);
     }
+  }
+
+  @NotNull
+  private static CaptureNode newNode(String method, long start, long end) {
+    CaptureNode node = new CaptureNode();
+    node.setMethodModel(new MethodModel(method));
+    node.setStartGlobal(start);
+    node.setEndGlobal(start);
+
+    node.setStartThread(start);
+    node.setEndThread(end);
+    return node;
   }
 }

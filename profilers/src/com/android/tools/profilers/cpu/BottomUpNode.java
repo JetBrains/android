@@ -33,18 +33,18 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     myChildrenBuilt = false;
   }
 
-  public BottomUpNode(@NotNull HNode<MethodModel> node) {
+  public BottomUpNode(@NotNull CaptureNode node) {
     super("Root");
     myIsRoot = true;
     myChildrenBuilt = true;
 
-    List<HNode<MethodModel>> allNodes = new ArrayList<>();
+    List<CaptureNode> allNodes = new ArrayList<>();
     // Pre-order traversal with Stack.
-    // The traversal will sort nodes by HNode#getStart(), if they'll be equal then ancestor will come first.
-    Stack<HNode<MethodModel>> stack = new Stack<>();
+    // The traversal will sort nodes by CaptureNode#getStart(), if they'll be equal then ancestor will come first.
+    Stack<CaptureNode> stack = new Stack<>();
     stack.add(node);
     while (!stack.isEmpty()) {
-      HNode<MethodModel> curNode = stack.pop();
+      CaptureNode curNode = stack.pop();
       allNodes.add(curNode);
       // Adding in reverse order so that the first child is processed first
       for (int i = curNode.getChildren().size() - 1; i >= 0; --i) {
@@ -53,7 +53,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     }
 
     Map<String, BottomUpNode> children = new HashMap<>();
-    for (HNode<MethodModel> curNode : allNodes) {
+    for (CaptureNode curNode : allNodes) {
       assert curNode.getData() != null;
       String curId = curNode.getData().getId();
       BottomUpNode child = children.get(curId);
@@ -118,9 +118,9 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     // call stack from the total time calculation.
     HNode<MethodModel> outerSoFar = null;
 
-    // myNodes is sorted by HNode#getStart() in increasing order,
+    // myNodes is sorted by CaptureNode#getStart() in increasing order,
     // if they are equal then ancestor comes first
-    for (HNode<MethodModel> node: myNodes) {
+    for (CaptureNode node: myNodes) {
       if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
         if (outerSoFar != null) {
           // |outerSoFar| is at the top of the call stack
@@ -130,7 +130,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       }
 
       self += getIntersection(range, node);
-      for (HNode<MethodModel> child : node.getChildren()) {
+      for (CaptureNode child : node.getChildren()) {
         self -= getIntersection(range, child);
       }
     }
