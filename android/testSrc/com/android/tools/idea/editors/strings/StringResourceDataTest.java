@@ -18,7 +18,11 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.builder.model.ClassField;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.DynamicResourceValueRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.MultiResourceRepository;
+import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
@@ -191,98 +195,103 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testEditingCdata() {
-    final Locale locale = Locale.create("en-rIN");
-    final String key = "key1";
+    String expected = "<![CDATA[\n" +
+                      "        <b>Google I/O 2014</b><br>\n" +
+                      "        Version %s<br><br>\n" +
+                      "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
+                      "  ]]>";
 
-    String currentData = data.getStringResource(newStringResourceKey(key)).getTranslationAsString(locale);
-    assertEquals("<![CDATA[\n" +
-                 "        <b>Google I/O 2014</b><br>\n" +
-                 "        Version %s<br><br>\n" +
-                 "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
-                 "  ]]>", currentData);
-    assertTrue(data.setTranslation(newStringResourceKey(key), locale, currentData.replace("%s", "%1$s")));
+    StringResource resource = data.getStringResource(newStringResourceKey("key1"));
+    Locale locale = Locale.create("en-rIN");
 
-    final String expected = "<![CDATA[\n" +
-                            "        <b>Google I/O 2014</b><br>\n" +
-                            "        Version %1$s<br><br>\n" +
-                            "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
-                            "  ]]>";
+    assertEquals(expected, resource.getTranslationAsString(locale));
 
-    assertEquals(expected, data.getStringResource(newStringResourceKey(key)).getTranslationAsString(locale));
+    expected = "<![CDATA[\n" +
+               "        <b>Google I/O 2014</b><br>\n" +
+               "        Version %1$s<br><br>\n" +
+               "        <a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>\n" +
+               "  ]]>";
+
+    assertTrue(resource.putTranslation(locale, expected));
+    assertEquals(expected, resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
 
     XmlTag tag = getNthXmlTag(file, 0);
+
     assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals(expected, tag.getValue().getText());
   }
 
   public void testEditingXliff() {
-    String key = "key3";
+    StringResource resource = data.getStringResource(newStringResourceKey("key3"));
     Locale locale = Locale.create("en-rIN");
-    String currentData = data.getStringResource(newStringResourceKey(key)).getTranslationAsString(locale);
 
-    assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", currentData);
-    assertTrue(data.setTranslation(newStringResourceKey(key), locale, currentData.replace("%s", "%1$s")));
+    assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", resource.getTranslationAsString(locale));
 
     String expected = "start <xliff:g>middle1</xliff:g>%1$s<xliff:g>middle3</xliff:g> end";
-    assertEquals(expected, data.getStringResource(newStringResourceKey(key)).getTranslationAsString(locale));
+
+    assertTrue(resource.putTranslation(locale, expected));
+    assertEquals(expected, resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml");
     assert file != null;
 
     XmlTag tag = getNthXmlTag(file, 2);
+
     assertEquals("key3", tag.getAttributeValue(SdkConstants.ATTR_NAME));
-    assertEquals(expected, tag.getValue().getText().trim());
+    assertEquals(expected, tag.getValue().getText());
   }
 
   public void testAddingTranslation() {
-    final Locale locale = Locale.create("en");
-    final String key = "key4";
-    assertNull(data.getStringResource(newStringResourceKey(key)).getTranslationAsResourceItem(locale));
+    StringResource resource = data.getStringResource(newStringResourceKey("key4"));
+    Locale locale = Locale.create("en");
 
-    assertTrue(data.setTranslation(newStringResourceKey(key), locale, "Hello"));
+    assertNull(resource.getTranslationAsResourceItem(locale));
+    assertTrue(resource.putTranslation(locale, "Hello"));
+    assertEquals("Hello", resource.getTranslationAsString(locale));
 
     VirtualFile file = resourceDirectory.findFileByRelativePath("values-en/strings.xml");
     assert file != null;
 
     XmlTag tag = getNthXmlTag(file, 4);
+
     assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
     assertEquals("Hello", tag.getValue().getText());
-
-    assertEquals("Hello", data.getStringResource(newStringResourceKey(key)).getTranslationAsString(locale));
-  }
-
-  public void testCreateItem() {
-    assertNull(data.createItem(newStringResourceKey("key4"), null, ""));
   }
 
   public void testResourceChange() {
     // the resource change notification system is fundamentally broken as it only sends a notification
     // of a change if we have called PsiResourceItem.getResourceValue for that resource first
     // the very first time it will send the notification because the initialisation makes it think there is a change
-    StringResourceKey key = newStringResourceKey("key1");
-    assertEquals("Key 1 default", data.getStringResource(key).getDefaultValueAsString());
+    StringResource resource = data.getStringResource(newStringResourceKey("key1"));
+    assertEquals("Key 1 default", resource.getDefaultValueAsString());
+
     Ref<Boolean> changeEventHappened = new Ref<>(false);
-    ResourceNotificationManager.ResourceChangeListener listener = reason -> {
+
+    ResourceChangeListener listener = reason -> {
       changeEventHappened.set(true);
       // simulate reloading the data on resource changed event
       data = new StringResourceRepository(myParent).getData(myFacet);
     };
+
     ResourceNotificationManager.getInstance(myFacet.getModule().getProject()).addListener(listener, myFacet, null, null);
+
     try {
       // the first time we test this it always works because the initialisation has caused the generation of the
       // resource to change from the initial value, to the value after we have added the listener.
       changeEventHappened.set(false);
-      data.setDefaultValue(key, "new text");
+      resource.setDefaultValue("new text");
       UIUtil.dispatchAllInvocationEvents();
+
       assertTrue(changeEventHappened.get());
 
       // and now we test that subsequent changes are also correctly causing a change event
       changeEventHappened.set(false);
-      data.setDefaultValue(key, "new text again");
+      resource.setDefaultValue("new text again");
       UIUtil.dispatchAllInvocationEvents();
+
       assertTrue(changeEventHappened.get());
     }
     finally {
