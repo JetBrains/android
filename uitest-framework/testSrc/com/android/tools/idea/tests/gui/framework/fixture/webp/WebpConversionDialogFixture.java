@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.webp;
 import com.android.tools.idea.rendering.webp.WebpConversionDialog;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeaDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.ui.components.JBCheckBox;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
@@ -67,5 +68,13 @@ public class WebpConversionDialogFixture extends IdeaDialogFixture<WebpConversio
     if (!checkbox.isSelected()) {
       robot.click(checkbox);
     }
+  }
+
+  @NotNull
+  public JCheckBox getCheckBox(@NotNull String text) {
+    JCheckBox checkbox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, text));
+    Wait.seconds(1).expecting("checkbox " + text + " to be enabled")
+      .until(() -> checkbox.isVisible() && checkbox.isShowing());
+    return checkbox;
   }
 }
