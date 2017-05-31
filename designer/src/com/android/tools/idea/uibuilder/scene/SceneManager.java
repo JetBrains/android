@@ -66,7 +66,8 @@ abstract public class SceneManager implements Disposable {
 
   /**
    * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
-   * {@link #build()} must have been invoked already.
+   * <p/>
+   * {@link #build()} must have been invoked already.<br/>
    * This includes marking the display list as dirty.
    */
   public void update() {

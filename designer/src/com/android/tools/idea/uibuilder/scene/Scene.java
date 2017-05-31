@@ -638,11 +638,10 @@ public class Scene implements SelectionListener {
 
       for (int i = count - 2; i >= 0; i--) {
         SceneComponent target = myHitComponents.get(i);
-        if (!selection.contains(target.getNlComponent())) {
-          continue;
+        if (selection.contains(target.getNlComponent())) {
+          candidate = target;
+          break;
         }
-        candidate = target;
-        break;
       }
       // We now have the first element in the selection. Let's try again this time...
       for (int i = count - 1; i >= 0; i--) {

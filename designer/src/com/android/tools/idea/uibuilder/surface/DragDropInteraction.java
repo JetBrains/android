@@ -43,19 +43,19 @@ import java.util.function.Predicate;
  * <p>
  * There are multiple types of insert modes:
  * <ul>
- *   <li>Copy. This is typically the interaction used when dragging from the palette;
- *       a new copy of the components are created. This can also be achieved when
- *       dragging with a modifier key.</li>
- *   <li>Move. This is typically done by dragging one or more widgets around in
- *       the canvas; when moving the widget within a single parent, it may only
- *       translate into some updated layout parameters or widget reordering, whereas
- *       when moving from one parent to another widgets are moved in the hierarchy
- *       as well.</li>
- *   <li>A paste is similar to a copy. It typically tries to preserve internal
- *   relationships and id's when possible. If you for example select 3 widgets and
- *   cut them, if you paste them the widgets will come back in the exact same place
- *   with the same id's. If you paste a second time, the widgets will now all have
- *   new unique id's (and any internal references to each other are also updated.)</li>
+ * <li>Copy. This is typically the interaction used when dragging from the palette;
+ * a new copy of the components are created. This can also be achieved when
+ * dragging with a modifier key.</li>
+ * <li>Move. This is typically done by dragging one or more widgets around in
+ * the canvas; when moving the widget within a single parent, it may only
+ * translate into some updated layout parameters or widget reordering, whereas
+ * when moving from one parent to another widgets are moved in the hierarchy
+ * as well.</li>
+ * <li>A paste is similar to a copy. It typically tries to preserve internal
+ * relationships and id's when possible. If you for example select 3 widgets and
+ * cut them, if you paste them the widgets will come back in the exact same place
+ * with the same id's. If you paste a second time, the widgets will now all have
+ * new unique id's (and any internal references to each other are also updated.)</li>
  * </ul>
  */
 public class DragDropInteraction extends Interaction {
@@ -179,8 +179,8 @@ public class DragDropInteraction extends Interaction {
     ViewGroupHandler handler = findViewGroupHandlerAt(x, y);
     SceneComponent viewgroup =
       mySceneView.getScene().findComponent(SceneContext.get(mySceneView),
-                                         Coordinates.getAndroidXDip(mySceneView, x),
-                                         Coordinates.getAndroidYDip(mySceneView, y));
+                                           Coordinates.getAndroidXDip(mySceneView, x),
+                                           Coordinates.getAndroidYDip(mySceneView, y));
 
     while (viewgroup != null && !NlComponentHelperKt.isOrHasSuperclass(viewgroup.getNlComponent(), SdkConstants.CLASS_VIEWGROUP)) {
       viewgroup = viewgroup.getParent();

@@ -54,7 +54,9 @@ public class NlComponentFixture {
     myComponentDriver = new ComponentDriver<>(myRobot);
   }
 
-  /** Returns the center point in panel coordinates */
+  /**
+   * Returns the center point in panel coordinates
+   */
   @NotNull
   private Point getMidPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
@@ -63,7 +65,9 @@ public class NlComponentFixture {
     return new Point(midX, midY);
   }
 
-  /** Returns the bottom center point in panel coordinates */
+  /**
+   * Returns the bottom center point in panel coordinates
+   */
   @NotNull
   private Point getBottomCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
@@ -72,7 +76,9 @@ public class NlComponentFixture {
     return new Point(midX, bottomY);
   }
 
-  /** Returns the top center point in panel coordinates */
+  /**
+   * Returns the top center point in panel coordinates
+   */
   @NotNull
   private Point getTopCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
@@ -81,7 +87,9 @@ public class NlComponentFixture {
     return new Point(midX, topY);
   }
 
-  /** Returns the left center point in panel coordinates */
+  /**
+   * Returns the left center point in panel coordinates
+   */
   @NotNull
   private Point getLeftCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
@@ -90,7 +98,9 @@ public class NlComponentFixture {
     return new Point(leftX, midY);
   }
 
-  /** Returns the right center point in panel coordinates */
+  /**
+   * Returns the right center point in panel coordinates
+   */
   @NotNull
   private Point getRightCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
@@ -161,12 +171,15 @@ public class NlComponentFixture {
   public String getText() {
     try {
       return (String)getViewObject().getClass().getMethod("getText").invoke(getViewObject());
-    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+    }
+    catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
       throw new RuntimeException(e);
     }
   }
 
-  /** Click in the middle of the view (typically selects it) */
+  /**
+   * Click in the middle of the view (typically selects it)
+   */
   public NlComponentFixture click() {
     myComponentDriver.click(mySurface, getMidPoint());
     return this;
