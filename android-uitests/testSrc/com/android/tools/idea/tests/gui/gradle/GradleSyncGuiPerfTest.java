@@ -38,6 +38,8 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,15 +66,24 @@ public class GradleSyncGuiPerfTest {
   @Rule public final GuiTestRule guiTest = new GradleSyncGuiPerfTestRule().withTimeout(20, TimeUnit.MINUTES);
 
   private VirtualTimeScheduler myScheduler = new VirtualTimeScheduler();
+  private UsageTracker myUsageTracker;
 
   @Before
-  public void skipSourceGenerationOnSync() {
+  public void setUp() {
+    Assume.assumeNotNull(System.getenv("ANDROID_SPOOL_HOME"));
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    myScheduler.advanceBy(0);
+    myUsageTracker.close();
+    UsageTracker.cleanAfterTesting();
   }
   
   @Test
   @RunIn(TestGroup.SYNC_PERFORMANCE)
-  public void syncPerfTest() throws IOException {
+  public void syncPerfTest() throws IOException, NullPointerException {
     UsageTracker.setInstanceForTest(new NullUsageTracker(new AnalyticsSettings(), myScheduler));
     guiTest.importProjectAndWaitForProjectSyncToFinish("android-studio-gradle-test");
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(5 * 60));
@@ -80,10 +91,8 @@ public class GradleSyncGuiPerfTest {
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(5 * 60));
 
     // Trigger a sync while recording the performance results
-    String spoolLocation = System.getenv("ANDROID_SPOOL_HOME") != null
-                           ? System.getenv("ANDROID_SPOOL_HOME")
-                           : guiTest.ideFrame().getProject().getBasePath();
-    UsageTracker.setInstanceForTest(new JournalingUsageTracker(new AnalyticsSettings(), myScheduler, Paths.get(spoolLocation)));
+    myUsageTracker = new JournalingUsageTracker(new AnalyticsSettings(), myScheduler, Paths.get(System.getenv("ANDROID_SPOOL_HOME")));
+    UsageTracker.setInstanceForTest(myUsageTracker);
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(60));
   }
 }
