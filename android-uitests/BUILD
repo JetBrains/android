@@ -49,7 +49,7 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:layoutlib[test]",
         "//tools/adt/idea/android[module, test]",
-        "//tools/adt/idea/wizard[module, test]",
+        "//tools/adt/idea/wizard-model[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
         "//tools/idea:community-main[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",

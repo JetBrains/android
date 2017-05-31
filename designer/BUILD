@@ -40,6 +40,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/adt/idea/wizard[module]",
+        "//tools/adt/idea/wizard-model[module]",
         "//tools/base/flags:studio.flags[module]",
         "//tools/adt/idea/artwork[module]",
         "//tools/adt/idea/android-common[module]",

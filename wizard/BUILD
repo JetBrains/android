@@ -17,8 +17,6 @@ iml_module(
     test_tags = ["manual"],  # no tests
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    exports = ["//tools/adt/idea/wizard-model"],
-    # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/RegExpSupport",
         "//tools/idea/xml/xml-analysis-impl",

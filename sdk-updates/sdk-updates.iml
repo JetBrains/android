@@ -15,6 +15,7 @@
     <orderEntry type="module" module-name="observable" />
     <orderEntry type="module" module-name="adt-ui" />
     <orderEntry type="module" module-name="wizard" />
+    <orderEntry type="module" module-name="wizard-model" />
     <orderEntry type="module" module-name="observable-ui" />
   </component>
 </module>
