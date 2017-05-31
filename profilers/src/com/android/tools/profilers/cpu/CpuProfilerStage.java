@@ -121,12 +121,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private List<ProfilingConfiguration> myProfilingConfigurations;
 
   /**
-   * Stores the {@link CpuProfiler.CpuProfilingAppStopRequest.Profiler} that should be passed to the next stopProfiling call.
+   * Stores the {@link CpuProfiler.CpuProfilerType} that should be passed to the next stopProfiling call.
    * This field is required because we need to pass the same profiler to stopProfiling as the one passed to startProfiling.
    * We can't use {@link #myProfilingConfiguration} to get this information because it would be lost when we exit the Stage.
    * Using a separate field, we can retrieve the Profiler information from device in {@link #updateProfilingState()}.
    */
-  private CpuProfiler.CpuProfilingAppStopRequest.Profiler myStopRequestProfiler;
+  private CpuProfiler.CpuProfilerType myProfilerType;
 
   @NotNull
   private final UpdatableManager myUpdatableManager;
@@ -283,7 +283,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setSession(getStudioProfilers().getSession())
       .setMode(myProfilingConfiguration.getMode())
-      .setProfiler(myProfilingConfiguration.getProfiler())
+      .setProfilerType(myProfilingConfiguration.getProfilerType())
       .setBufferSizeInMb(myProfilingConfiguration.getProfilingBufferSizeInMb())
       .setSamplingIntervalUs(myProfilingConfiguration.getProfilingSamplingIntervalUs())
       .build();
@@ -291,14 +291,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     setCaptureState(CaptureState.STARTING);
     CompletableFuture.supplyAsync(
       () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
-      .thenAcceptAsync(response -> this.startCapturingCallback(response, request.getProfiler()),
+      .thenAcceptAsync(response -> this.startCapturingCallback(response, request.getProfilerType()),
                        getStudioProfilers().getIdeServices().getMainExecutor());
   }
 
   private void startCapturingCallback(CpuProfiler.CpuProfilingAppStartResponse response,
-                                      CpuProfiler.CpuProfilingAppStartRequest.Profiler profiler) {
+                                      CpuProfiler.CpuProfilerType profilerType) {
     if (response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
-      setStopProfilingRequestProfiler(profiler);
+      myProfilerType = profilerType;
       setCaptureState(CaptureState.CAPTURING);
       myCaptureStartTimeNs = currentTimeNs();
     }
@@ -313,7 +313,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStopRequest request = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
-      .setProfiler(myStopRequestProfiler)
+      .setProfilerType(myProfilerType)
       .setSession(getStudioProfilers().getSession())
       .build();
 
@@ -377,25 +377,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       long elapsedTime = response.getCheckTimestamp() - response.getStartTimestamp();
       myCaptureStartTimeNs = currentTimeNs() - elapsedTime;
       myCaptureState = CaptureState.CAPTURING;
-      setStopProfilingRequestProfiler(response.getStartRequest().getProfiler());
+      myProfilerType = response.getStartRequest().getProfilerType();
     }
     else {
       // otherwise, invalidate capture start time
       myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
       myCaptureState = CaptureState.IDLE;
-    }
-  }
-
-  private void setStopProfilingRequestProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler startProfilingRequestProfiler) {
-    switch (startProfilingRequestProfiler) {
-      case ART:
-        myStopRequestProfiler = CpuProfiler.CpuProfilingAppStopRequest.Profiler.ART;
-        break;
-      case SIMPLE_PERF:
-        myStopRequestProfiler = CpuProfiler.CpuProfilingAppStopRequest.Profiler.SIMPLE_PERF;
-        break;
-      default:
-        getLogger().warn("Found unexpected profiler: " + startProfilingRequestProfiler.name());
     }
   }
 
@@ -510,8 +497,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       myProfilingConfigurations.addAll(defaultConfigs);
     }
     else {
-      Predicate<ProfilingConfiguration> simpleperfFilter =
-        pref -> pref.getProfiler() != CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF;
+      Predicate<ProfilingConfiguration> simpleperfFilter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLE_PERF;
       myProfilingConfigurations.addAll(savedConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList()));
       myProfilingConfigurations.addAll(defaultConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList()));
     }
