@@ -16,16 +16,16 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
-import com.android.tools.profiler.proto.Profiler;
-import com.intellij.openapi.diagnostic.Logger;
+import com.android.tools.profiler.proto.Common;
+import org.jetbrains.annotations.NotNull;
 import org.junit.*;
-import org.junit.rules.ExpectedException;
-import sun.nio.ch.ThreadPool;
 
 import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
@@ -46,9 +46,9 @@ public class DatabaseTableTest {
   @Before
   public void setUp() throws Exception {
     myDbFile = File.createTempFile("DatabaseTableTest", "sql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
-    myTable = new ThreadTestTable();
-    myDatabase.registerTable(myTable);
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myTable = new ThreadTestTable(new HashMap<>());
+    myTable.initialize(myDatabase.getConnection());
   }
 
   @After
@@ -139,8 +139,12 @@ public class DatabaseTableTest {
    * Setup a simple Datastore table to validate operations on.
    */
   private class ThreadTestTable extends DatastoreTable<ThreadTableStatement> {
+    public ThreadTestTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
+      super(sesstionIdLookup);
+    }
+
     @Override
-    public void initialize(Connection connection) {
+    public void initialize(@NotNull Connection connection) {
       super.initialize(connection);
       try {
         createTable("Thread_Table", "DataColumn INTEGER");
@@ -150,7 +154,7 @@ public class DatabaseTableTest {
     }
 
     @Override
-    public void prepareStatements(Connection connection) {
+    public void prepareStatements() {
       try {
         createStatement(ThreadTableStatement.INSERT_DATA, "INSERT INTO Thread_Table (DataColumn) VALUES (?)");
         createStatement(ThreadTableStatement.READ_DATA, "SELECT DataColumn FROM Thread_Table");

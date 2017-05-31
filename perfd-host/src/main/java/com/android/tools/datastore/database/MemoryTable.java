@@ -31,15 +31,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.datastore.database.MemoryTable.MemoryStatements.*;
 
 public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
-
-  private static Logger getLogger() {
-    return Logger.getInstance(MemoryTable.class);
-  }
-
   static final int NO_STACK_ID = -1;
 
   public enum MemoryStatements {
@@ -124,8 +120,16 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     GC_STATS
   }
 
+  private static Logger getLogger() {
+    return Logger.getInstance(MemoryTable.class);
+  }
+
+  public MemoryTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
+    super(sesstionIdLookup);
+  }
+
   @Override
-  public void initialize(Connection connection) {
+  public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
     try {
       createTable("Memory_Samples", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Timestamp INTEGER", "Type INTEGER",
@@ -157,11 +161,11 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   }
 
   @Override
-  public void prepareStatements(Connection connection) {
+  public void prepareStatements() {
     try {
       MemoryStatements[] statements = values();
-      for (int i = 0; i < statements.length; i++) {
-        createStatement(statements[i], statements[i].getStatement());
+      for (MemoryStatements statement : statements) {
+        createStatement(statement, statement.getStatement());
       }
     }
     catch (SQLException ex) {

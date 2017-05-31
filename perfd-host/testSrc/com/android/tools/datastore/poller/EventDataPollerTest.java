@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
@@ -83,7 +84,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
-  private EventService myEventDataPoller = new EventService(myDataStoreService, getPollTicker()::run);
+  private EventService myEventDataPoller = new EventService(myDataStoreService, getPollTicker()::run, new HashMap<>());
 
   private TestName myTestName = new TestName();
   private TestGrpcService<EventServiceMock> myService =
