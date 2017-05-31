@@ -526,5 +526,10 @@ public class NlComponent implements NlAttributesHolder {
     protected NlComponent getComponent() {
       return myComponent;
     }
+
+    @Override
+    public String toString() {
+      return String.format("<%s>", myComponent.getTagName());
+    }
   }
 }
