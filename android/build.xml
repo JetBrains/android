@@ -19,7 +19,7 @@
     <condition property="gradle.wrapper.executable" value="${android.basedir}/../../../gradlew.bat" else="${android.basedir}/../../../gradlew">
         <os family="windows" />
     </condition>
-    <condition property="profiler.gradle.wrapper.executable" value="${android.basedir}/../../../base/profiler/gradlew.bat" else="${android.basedir}/../../../gradlew">
+    <condition property="profiler.gradle.wrapper.executable" value="${android.basedir}/../../../base/profiler/gradlew.bat" else="${android.basedir}/../../../base/profiler/gradlew">
         <os family="windows" />
     </condition>
 
