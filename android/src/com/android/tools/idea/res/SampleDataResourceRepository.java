@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.*;
 import com.intellij.psi.*;
@@ -123,6 +124,8 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
 
   protected SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
     super("SampleData");
+
+    Disposer.register(androidFacet, this);
 
     myFullTable = new ResourceTable();
     myAndroidFacet = androidFacet;
