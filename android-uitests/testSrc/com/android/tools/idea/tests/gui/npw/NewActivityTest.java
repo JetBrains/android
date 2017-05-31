@@ -86,7 +86,7 @@ public class NewActivityTest {
     setSavedRenderSourceLanguage(Language.JAVA);
   }
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void createDefaultActivity() {
     myDialog.clickFinish();
