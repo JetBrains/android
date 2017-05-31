@@ -85,6 +85,7 @@
     <orderEntry type="module" module-name="observable" />
     <orderEntry type="module" module-name="gradle-tooling-extension-impl" />
     <orderEntry type="module" module-name="wizard" />
+    <orderEntry type="module" module-name="wizard-model" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module" module-name="smali" />
     <orderEntry type="module" module-name="java-lib-model" />

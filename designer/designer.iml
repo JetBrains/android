@@ -29,6 +29,7 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="wizard" />
+    <orderEntry type="module" module-name="wizard-model" />
     <orderEntry type="module" module-name="flags" />
     <orderEntry type="module" module-name="artwork" />
     <orderEntry type="module" module-name="android-common" />
