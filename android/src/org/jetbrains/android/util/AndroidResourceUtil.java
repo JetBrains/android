@@ -465,10 +465,11 @@ public class AndroidResourceUtil {
 
   @NotNull
   public static PsiField[] findIdFields(@NotNull XmlAttribute attribute) {
-    final XmlAttributeValue value = attribute.getValueElement();
+    XmlAttributeValue valueElement = attribute.getValueElement();
+    String value = attribute.getValue();
 
-    if (value != null && isIdDeclaration(value)) {
-      final String id = getResourceNameByReferenceText(attribute.getValue());
+    if (valueElement != null && value != null && isIdDeclaration(valueElement)) {
+      final String id = getResourceNameByReferenceText(value);
 
       if (id != null) {
         final AndroidFacet facet = AndroidFacet.getInstance(attribute);
@@ -629,6 +630,8 @@ public class AndroidResourceUtil {
         break;
       case BOOL:
         result.addAll(resources.getBools());
+        break;
+      default:
         break;
     }
 
@@ -1269,11 +1272,11 @@ public class AndroidResourceUtil {
     return (XmlFile)createdElement;
   }
 
-  private static String getTemplateName(String resourceType, boolean valuesResourceFile, String rootTagName) {
+  private static String getTemplateName(@NotNull String resourceType, boolean valuesResourceFile, @NotNull String rootTagName) {
     if (valuesResourceFile) {
       return AndroidFileTemplateProvider.VALUE_RESOURCE_FILE_TEMPLATE;
     }
-    if (ResourceType.LAYOUT.getName().equals(resourceType)) {
+    if (ResourceType.LAYOUT.getName().equals(resourceType) && !TAG_LAYOUT.equals(rootTagName)) {
       return AndroidUtils.TAG_LINEAR_LAYOUT.equals(rootTagName)
              ? AndroidFileTemplateProvider.LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE
              : AndroidFileTemplateProvider.LAYOUT_RESOURCE_FILE_TEMPLATE;
