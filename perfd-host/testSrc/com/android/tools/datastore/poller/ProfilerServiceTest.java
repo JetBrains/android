@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Matchers.any;
@@ -58,7 +59,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run);
+  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run, new HashMap<>());
 
   private static final String BYTES_ID_1 = "0123456789";
   private static final String BYTES_ID_2 = "9876543210";

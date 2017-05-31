@@ -15,10 +15,8 @@
  */
 package com.android.tools.datastore.service;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
-import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.MemoryTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
@@ -27,24 +25,28 @@ import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough {
+  private final Map<Integer, PollRunner> myRunners = new HashMap<>();
+  private final MemoryTable myMemoryTable;
+  private final Consumer<Runnable> myFetchExecutor;
+  private final DataStoreService myService;
 
-  private Map<Integer, PollRunner> myRunners = new HashMap<>();
-  private MemoryTable myMemoryTable = new MemoryTable();
-  private Consumer<Runnable> myFetchExecutor;
-  private DataStoreService myService;
-
-  @VisibleForTesting
   // TODO Revisit fetch mechanism
-  public MemoryService(DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
+  public MemoryService(@NotNull DataStoreService dataStoreService,
+                       Consumer<Runnable> fetchExecutor,
+                       @NotNull Map<Common.Session, Long> sessionIdLookup) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
+    myMemoryTable = new MemoryTable(sessionIdLookup);
   }
 
   @Override
@@ -55,12 +57,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       observer.onCompleted();
       int processId = request.getProcessId();
       Common.Session session = request.getSession();
-      myRunners.put(processId,
-                    new MemoryDataPoller(processId,
-                                         session,
-                                         myMemoryTable,
-                                         client,
-                                         myFetchExecutor));
+      myRunners.put(processId, new MemoryDataPoller(processId, session, myMemoryTable, client, myFetchExecutor));
       myFetchExecutor.accept(myRunners.get(processId));
     }
     else {
@@ -251,11 +248,6 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public DatastoreTable getDatastoreTable() {
-    return myMemoryTable;
-  }
-
-  @Override
   public void forceGarbageCollection(ForceGarbageCollectionRequest request, StreamObserver<ForceGarbageCollectionResponse> observer) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(request.getSession());
     if (client != null) {
@@ -265,5 +257,17 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       observer.onNext(ForceGarbageCollectionResponse.getDefaultInstance());
     }
     observer.onCompleted();
+  }
+
+  @NotNull
+  @Override
+  public List<DataStoreService.BackingNamespace> getBackingNamespaces() {
+    return Collections.singletonList(DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE);
+  }
+
+  @Override
+  public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
+    assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
+    myMemoryTable.initialize(connection);
   }
 }

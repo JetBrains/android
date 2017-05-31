@@ -54,10 +54,9 @@ public class MemoryTableTest {
     HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
     sessionLookup.put(VALID_SESSION, 1L);
     myDbFile = FileUtil.createTempFile("MemoryTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
-    myTable = new MemoryTable();
-    myDatabase.registerTable(myTable);
-    myTable.setSessionLookup(sessionLookup);
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myTable = new MemoryTable(sessionLookup);
+    myTable.initialize(myDatabase.getConnection());
   }
 
   @After
