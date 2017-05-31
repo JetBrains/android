@@ -26,7 +26,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -78,8 +77,6 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertEquals(2, onlyProjectSources(repo).size());
     assertEquals(1, onlyProjectSources(repo, "strings").size());
     assertEquals(1, onlyProjectSources(repo, "images").size());
-
-    Disposer.dispose(repo);
   }
 
   public void testResolver() {
@@ -193,7 +190,6 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(onlyProjectSources(repo).isEmpty());
-    Disposer.dispose(repo);
   }
 
   public void testJsonSampleData() {
@@ -227,7 +223,6 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, onlyProjectSources(repo).size());
     assertEquals(1, onlyProjectSources(repo,"users.json/users/name").size());
-    Disposer.dispose(repo);
   }
 
   public void testResolverCacheInvalidation() {
@@ -236,12 +231,6 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                         "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                         "    android:layout_width=\"match_parent\"\n" +
                         "    android:layout_height=\"match_parent\" />";
-    @Language("XML")
-    String stringsText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                         "<resources>\n" +
-                         "  <string name=\"test1\">Hello 1</string>\n" +
-                         "  <string name=\"test2\">Hello 2</string>\n" +
-                         "</resources>";
 
     PsiFile sampleDataFile = myFixture.addFileToProject("sampledata/strings",
                                "string1\n" +
@@ -271,7 +260,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
   }
 
   // Temporarily disabled to debug the failed leak test
-  public void ignoredPredefinedSources() {
+  public void ignorePredefinedSources() {
     // No project sources defined so only predefined sources should be available
     SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
@@ -280,6 +269,5 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     // Check that none of the items are empty or fail
     assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).values().stream()
       .anyMatch(item -> item.getValueText().isEmpty()));
-    Disposer.dispose(repo);
   }
 }
