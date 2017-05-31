@@ -51,7 +51,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     assertFalse(UnresolvedDependenciesReporter.canGetConstraintLayoutFromSdkManager(getModule()));
   }
 
-  private void verifyRetrieveDependency(String dependency) {
+  private void verifyRetrieveDependency(@NotNull String dependency) {
     assertEquals(dependency,
                  retrieveDependency("any matches for " + dependency +
                                     " as no versions of com.android.support.constraint:constraint-layout are available"));
@@ -66,7 +66,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
                                     " as no versions of com.android.support.constraint:constraint-layout are available.\n" +
                                     "Searched in the following locations:\n"));
     assertEquals(dependency,
-                 retrieveDependency("Could not find "+ dependency + ".\n" +
+                 retrieveDependency("Could not find " + dependency + ".\n" +
                                     "     Searched in the following locations:\n"));
   }
 
