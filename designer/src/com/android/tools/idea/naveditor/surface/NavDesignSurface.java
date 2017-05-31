@@ -112,7 +112,7 @@ public class NavDesignSurface extends DesignSurface {
     getSelectionModel().clear();
     getSceneManager().layout(false);
     currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
-    getScene().repaint();
+    repaint();
   }
 
   @Override
@@ -149,16 +149,13 @@ public class NavDesignSurface extends DesignSurface {
   @NotNull
   @Override
   public Dimension getContentSize(@Nullable Dimension dimension) {
-    if (dimension == null) {
-      dimension = new Dimension();
+    SceneView view = getCurrentSceneView();
+    if (view == null) {
+      Dimension dim = dimension == null ? new Dimension() : dimension;
+      dim.setSize(0, 0);
+      return dim;
     }
-    if (getSceneManager() == null) {
-      dimension.setSize(0, 0);
-    }
-    else {
-      getSceneManager().getContentSize(dimension);
-    }
-    return dimension;
+    return view.getSize(dimension);
   }
 
   @Override
@@ -167,8 +164,12 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
+  @NotNull
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
-    return getContentSize(new Dimension());
+    if (getCurrentSceneView() == null) {
+      return new Dimension(availableWidth, availableHeight);
+    }
+    return getCurrentSceneView().getPreferredSize();
   }
 
   @Override

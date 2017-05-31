@@ -572,6 +572,7 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @SwingCoordinate
+  @NotNull
   @Override
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
     assert myScreenView != null;
