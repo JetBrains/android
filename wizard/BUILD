@@ -13,7 +13,6 @@ iml_module(
         "//tools/idea/java/execution/impl:execution-impl",
         "//tools/idea/platform/external-system-impl",
     ],
-    test_srcs = ["testSrc"],
     test_tags = ["manual"],  # no tests
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -37,9 +36,6 @@ iml_module(
         "//tools/adt/idea/wizard-model[module]",
         "//tools/adt/idea/observable[module]",
         "//tools/idea/platform/platform-api[module]",
-        "//tools/idea/.idea/libraries:Guava[test]",
-        "//tools/adt/idea/adt-ui[module, test]",
-        "//tools/idea/platform/platform-impl[module, test]",
         "//tools/adt/idea/observable-ui[module]",
     ],
 )
