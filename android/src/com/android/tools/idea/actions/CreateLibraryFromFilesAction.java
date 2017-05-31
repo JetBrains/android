@@ -196,7 +196,8 @@ public class CreateLibraryFromFilesAction extends AnAction {
             if (path == null) {
               path = local.getPath();
             }
-            Dependency newDependency = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, path);
+            Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
+            Dependency newDependency = new Dependency(scope, Dependency.Type.FILES, path);
             if (!dependencies.contains(newDependency)) {
               dependencies.add((newDependency));
               added = true;

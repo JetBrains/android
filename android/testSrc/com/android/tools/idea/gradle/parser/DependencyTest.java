@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.parser;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.util.Map;

@@ -757,7 +757,25 @@ public final class GradleUtil {
                                             @Nullable String pluginVersion,
                                             boolean preferApi) {
 
-    if (pluginVersion != null && pluginVersion.matches("[012]\\..*")) {
+    boolean compatibilityNames = pluginVersion != null && pluginVersion.matches("[012]\\..*");
+    return mapConfigurationName(configuration, compatibilityNames, preferApi);
+  }
+
+  /**
+   * This method converts a configuration name from (for example) "compile" to "implementation" if the
+   * Gradle plugin version is 3.0 or higher.
+   *
+   * @param configuration         The original configuration name, such as "androidTestCompile"
+   * @param useCompatibilityNames Whether we should use compatibility names
+   * @param preferApi             If true, will use "api" instead of "implementation" for new configurations
+   * @return the right configuration name to use
+   */
+  @NotNull
+  public static String mapConfigurationName(@NotNull String configuration,
+                                            boolean useCompatibilityNames,
+                                            boolean preferApi) {
+
+    if (useCompatibilityNames) {
       return configuration;
     }
 
@@ -767,6 +785,29 @@ public final class GradleUtil {
 
     return configuration;
   }
+
+  /**
+   * Returns true if we should use compatibility configuration names (such as "compile") instead
+   * of the modern configuration names (such as "api" or "implementation") for the given project
+   *
+   * @param project the project to consult
+   * @return true if we should use compatibility configuration names
+   */
+  public static boolean useCompatibilityConfigurationNames(@NotNull Project project) {
+    return useCompatibilityConfigurationNames(getAndroidGradleModelVersionInUse(project));
+  }
+
+  /**
+   * Returns true if we should use compatibility configuration names (such as "compile") instead
+   * of the modern configuration names (such as "api" or "implementation") for the given Gradle version
+   *
+   * @param gradleVersion the Gradle plugin version to check
+   * @return true if we should use compatibility configuration names
+   */
+  public static boolean useCompatibilityConfigurationNames(@Nullable GradleVersion gradleVersion) {
+    return gradleVersion != null && gradleVersion.getMajor() < 3;
+  }
+
 
   /**
    * Replaces the given suffix in the string, preserving the case in the string, e.g.

@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -55,27 +58,42 @@ public class Dependency extends BuildFileStatement {
   @NonNls private static final String FILE_TREE_INCLUDE_PATTERN_PROPERTY = "include";
 
   public enum Scope {
-    COMPILE("Compile", "compile", true, true),
-    PROVIDED("Provided", "provided", true, false),
-    APK("APK", "apk", true, false),
-    ANDROID_TEST_COMPILE("Test compile", "androidTestCompile", true, false),
-    DEBUG_COMPILE("Debug compile", "debugCompile", true, false),
-    RELEASE_COMPILE("Release compile", "releaseCompile", true, false),
-    RUNTIME("Runtime", "runtime", false, true),
-    TEST_COMPILE("Test compile", "testCompile", false, true),
-    TEST_RUNTIME("Test runtime", "testRuntime", false, true);
+    // Compatibility scopes (Gradle < 4)
+    COMPILE("Compile", "compile", true, true, true),
+    PROVIDED("Provided", "provided", true, false, true),
+    APK("APK", "apk", true, false, true),
+    ANDROID_TEST_COMPILE("Test compile", "androidTestCompile", true, false, true),
+    DEBUG_COMPILE("Debug compile", "debugCompile", true, false, true),
+    RELEASE_COMPILE("Release compile", "releaseCompile", true, false, true),
+    RUNTIME("Runtime", "runtime", false, true, true),
+    TEST_COMPILE("Test compile", "testCompile", false, true, true),
+    TEST_RUNTIME("Test runtime", "testRuntime", false, true, true),
+
+    // New scopes (Gradle >= 4)
+    IMPLEMENTATION("Implementation", "implementation", true, true, false),
+    API("API", "api", true, true, false),
+    COMPILE_ONLY("Compile only", "compileOnly", true, false, false),
+    RUNTIME_ONLY("Runtime only", "runtimeOnly", true, false, false),
+    UNIT_TEST_IMPLEMENTATION("Unit Test implementation", "testImplementation", true, false, false),
+    ANDROID_TEST_IMPLEMENTATION("Test implementation", "androidTestImplementation", true, false, false),
+    DEBUG_IMPLEMENTATION("Debug implementation", "debugImplementation", true, false, false),
+    RELEASE_IMPLEMENTATION("Release implementation", "releaseImplementation", true, false, false),
+    TEST_COMPILE_ONLY("Test compile only", "testCompileOnly", false, true, false),
+    TEST_RUNTIME_ONLY("Test runtime only", "testRuntimeOnly", false, true, false);
 
     private final String myGroovyMethodCall;
     private final String myDisplayName;
 
     private final boolean myAndroidScope; // True if this is used in Android modules
     private final boolean myJavaScope; // True if this is used in plain Java modules
+    private final boolean myCompat; // True if this is used in compat mode (Gradle version < 4)
 
-    Scope(@NotNull String displayName, @NotNull String groovyMethodCall, boolean androidScope, boolean javaScope) {
+    Scope(@NotNull String displayName, @NotNull String groovyMethodCall, boolean androidScope, boolean javaScope, boolean compat) {
       myDisplayName = displayName;
       myGroovyMethodCall = groovyMethodCall;
       myAndroidScope = androidScope;
       myJavaScope = javaScope;
+      myCompat = compat;
     }
 
     public String getGroovyMethodCall() {
@@ -105,10 +123,19 @@ public class Dependency extends BuildFileStatement {
       return myJavaScope;
     }
 
+    public boolean isCompat() {
+      return myCompat;
+    }
+
     @Override
     @NotNull
     public String toString() {
       return myDisplayName;
+    }
+
+    @NotNull
+    public static Scope getDefaultScope(@NotNull Project project) {
+      return GradleUtil.useCompatibilityConfigurationNames(project) ? COMPILE : IMPLEMENTATION;
     }
   }
 
@@ -149,6 +176,7 @@ public class Dependency extends BuildFileStatement {
         break;
       case MODULE:
         if (data instanceof Map) {
+          //noinspection unchecked
           extraGroovyCode = " project(" + GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)data) + ")";
         } else {
           extraGroovyCode = " project(" + escapeAndQuote(data) + ")";
@@ -164,6 +192,7 @@ public class Dependency extends BuildFileStatement {
         extraGroovyCode = " files(" + escapeAndQuote(data) + ")";
         break;
       case FILETREE:
+        //noinspection unchecked
         extraGroovyCode = " fileTree(" + GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)data) + ")";
         break;
       default:
@@ -174,7 +203,7 @@ public class Dependency extends BuildFileStatement {
     if (statement instanceof GrMethodCall && extraClosure != null) {
       statement.add(factory.createClosureFromText(extraClosure));
     }
-    return ImmutableList.of((PsiElement)statement);
+    return ImmutableList.of(statement);
   }
 
   /**
@@ -183,9 +212,6 @@ public class Dependency extends BuildFileStatement {
    * in runtime).
    * <p/>
    * This method escapes given string content and surrounds it by correct quotes (trying to guess if it's a pain string or gstring).
-   *
-   * @param stringContent
-   * @return
    */
   @NotNull
   private static String escapeAndQuote(@Nullable Object data) {
@@ -238,18 +264,16 @@ public class Dependency extends BuildFileStatement {
         }
 
         if (data instanceof Map) {
+          //noinspection unchecked
           s1 = GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)data).replaceAll("path: ':", "path: '");
         }
         if (dependency.data instanceof Map) {
+          //noinspection unchecked
           s2 = GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)dependency.data).replaceAll("path: ':", "path: '");
         }
 
-        if (s1.startsWith(":")) {
-          s1 = s1.substring(1);
-        }
-        if (s2.startsWith(":")) {
-          s2 = s2.substring(1);
-        }
+        s1 = StringUtil.trimStart(s1, ":");
+        s2 = StringUtil.trimStart(s2, ":");
         return (s1.equals(s2));
       case EXTERNAL:
         if (dependency.type != Type.EXTERNAL) {
@@ -278,6 +302,7 @@ public class Dependency extends BuildFileStatement {
         if (dependency.type != Type.FILES) {
           return false;
         }
+        //noinspection unchecked
         Map<String, Object> values = (Map<String, Object>)data;
         String dir = (String)values.get(FILE_TREE_BASE_DIR_PROPERTY);
         Object value = values.get(FILE_TREE_INCLUDE_PATTERN_PROPERTY);
@@ -285,6 +310,7 @@ public class Dependency extends BuildFileStatement {
         if (value == null) {
           return false;
         }
+        //noinspection unchecked
         List<String> includes = (value instanceof List) ? (List<String>)value : ImmutableList.of(value.toString());
         if (dir == null || includes == null) {
           return false;
