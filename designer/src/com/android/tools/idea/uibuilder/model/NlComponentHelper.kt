@@ -467,6 +467,10 @@ internal data class NlComponentData(
 class NlComponentMixin(component: NlComponent)
   : NlComponent.XmlModelComponentMixin(component) {
   internal val data: NlComponentData = NlComponentData()
+
+  override fun toString(): String {
+    return String.format("%s (%s, %s) %s × %s", super.toString(), data.x, data.y, data.w, data.h)
+  }
 }
 
 object NlComponentHelper {
