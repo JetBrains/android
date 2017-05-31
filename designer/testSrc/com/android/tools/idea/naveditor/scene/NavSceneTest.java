@@ -67,11 +67,14 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentFrame,50,50,200,333,1,false\n" +
                  "DrawAction,NORMAL,50x50x200x333,50x440x140x34,NORMAL\n" +
                  "DrawAction,NORMAL,50x50x200x333,50x440x200x333,NORMAL\n" +
+                 "DrawActionHandle,250,216,0,0,ffc0c0c0,fafafa\n" +
                  "DrawAction,NORMAL,-170x50x200x333,50x50x200x333,NORMAL\n" +
                  "DrawTextRegion,50,440,140,34,0,20,true,false,4,4,14,1.0,\"navigation\"\n" +
                  "DrawComponentFrame,50,440,140,34,1,true\n" +
                  "DrawAction,NORMAL,50x440x140x34,50x440x200x333,NORMAL\n" +
+                 "DrawActionHandle,190,457,0,0,ffc0c0c0,fafafa\n" +
                  "DrawComponentFrame,50,440,200,333,1,false\n" +
+                 "DrawActionHandle,250,606,0,0,ffc0c0c0,fafafa\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -104,10 +107,13 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawNavScreen,51,441,199,332\n" +
                  "DrawComponentFrame,50,440,200,333,1,false\n" +
                  "DrawAction,NORMAL,50x440x200x333,50x830x200x333,NORMAL\n" +
+                 "DrawActionHandle,250,606,0,0,ffc0c0c0,fafafa\n" +
                  "DrawNavScreen,51,831,199,332\n" +
                  "DrawComponentFrame,50,830,200,333,1,false\n" +
+                 "DrawActionHandle,250,996,0,0,ffc0c0c0,fafafa\n" +
                  "DrawAction,NORMAL,-170x830x200x333,50x830x200x333,NORMAL\n" +
                  "DrawComponentFrame,50,50,200,333,1,false\n" +
+                 "DrawActionHandle,250,216,0,0,ffc0c0c0,fafafa\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -139,6 +145,7 @@ public class NavSceneTest extends NavigationTestCase {
     assertEquals("Clip,0,0,0,0\n" +
                  "DrawNavScreen,51,51,199,332\n" +
                  "DrawComponentFrame,50,50,200,333,1,false\n" +
+                 "DrawActionHandle,250,216,0,0,ffc0c0c0,fafafa\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -188,12 +195,15 @@ public class NavSceneTest extends NavigationTestCase {
     assertEquals("Clip,0,0,1000,1000\n" +
                  "DrawComponentFrame,200,0,200,333,1,false\n" +
                  "DrawAction,NORMAL,200x0x200x333,0x0x200x333,NORMAL\n" +
+                 "DrawActionHandle,400,166,0,0,ffc0c0c0,fafafa\n" +
                  "DrawNavScreen,1,1,199,332\n" +
                  "DrawComponentFrame,0,0,200,333,1,false\n" +
+                 "DrawActionHandle,200,166,0,0,ffc0c0c0,fafafa\n" +
                  "DrawAction,NORMAL,-220x0x200x333,0x0x200x333,NORMAL\n" +
                  "DrawTextRegion,400,0,140,34,0,20,true,false,4,4,14,1.0,\"navigation\"\n" +
                  "DrawComponentFrame,400,0,140,34,1,true\n" +
                  "DrawAction,NORMAL,400x0x140x34,200x0x200x333,NORMAL\n" +
+                 "DrawActionHandle,540,17,0,0,ffc0c0c0,fafafa\n" +
                  "UNClip\n", list.serialize());
     list.clear();
     surface.setCurrentNavigation(model.find("subnav"));
@@ -202,7 +212,9 @@ public class NavSceneTest extends NavigationTestCase {
     assertEquals("Clip,0,0,1000,1000\n" +
                  "DrawComponentFrame,200,0,200,333,1,false\n" +
                  "DrawAction,NORMAL,200x0x200x333,0x0x200x333,NORMAL\n" +
+                 "DrawActionHandle,400,166,0,0,ffc0c0c0,fafafa\n" +
                  "DrawComponentFrame,0,0,200,333,1,false\n" +
+                 "DrawActionHandle,200,166,0,0,ffc0c0c0,fafafa\n" +
                  "UNClip\n", list.serialize());
   }
 
