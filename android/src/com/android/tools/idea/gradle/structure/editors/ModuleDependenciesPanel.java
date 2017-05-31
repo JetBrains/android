@@ -117,8 +117,10 @@ public class ModuleDependenciesPanel extends EditorPanel {
       return;
     }
     final boolean isAndroid = myGradleBuildFile.hasAndroidPlugin();
+    boolean compat = GradleUtil.useCompatibilityConfigurationNames(project);
     List<Dependency.Scope> scopes = Lists.newArrayList(
-      Sets.filter(EnumSet.allOf(Dependency.Scope.class), input -> isAndroid ? input.isAndroidScope() : input.isJavaScope()));
+      Sets.filter(EnumSet.allOf(Dependency.Scope.class),
+                  input ->  input != null && compat == input.isCompat() && (isAndroid ? input.isAndroidScope() : input.isJavaScope())));
     ComboBoxModel<Dependency.Scope> boxModel = new CollectionComboBoxModel<>(scopes, null);
     JComboBox<Dependency.Scope> scopeEditor = new ComboBox<>(boxModel);
     myEntryTable.setDefaultEditor(Dependency.Scope.class, new DefaultCellEditor(scopeEditor));
@@ -260,8 +262,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
       String coordinateText = dialog.getSearchText();
       coordinateText = installRepositoryIfNeeded(coordinateText);
       if (coordinateText != null) {
+        Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
         myModel.addItem(new ModuleDependenciesTableItem(
-            new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, coordinateText)));
+            new Dependency(scope, Dependency.Type.EXTERNAL, coordinateText)));
       }
     }
     myModel.fireTableDataChanged();
@@ -318,7 +321,8 @@ public class ModuleDependenciesPanel extends EditorPanel {
       if (path == null) {
         path = virtualFile.getPath();
       }
-      myModel.addItem(new ModuleDependenciesTableItem(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, path)));
+      Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
+      myModel.addItem(new ModuleDependenciesTableItem(new Dependency(scope, Dependency.Type.FILES, path)));
     }
     myModel.fireTableDataChanged();
   }
@@ -353,9 +357,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
       }
     };
     dialog.show();
+    Dependency.Scope scope = Dependency.Scope.getDefaultScope(myProject);
     for (String module : dialog.getChosenElements()) {
-      myModel.addItem(new ModuleDependenciesTableItem(
-          new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, module)));
+      myModel.addItem(new ModuleDependenciesTableItem(new Dependency(scope, Dependency.Type.MODULE, module)));
     }
     myModel.fireTableDataChanged();
   }

@@ -15,25 +15,18 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.builder.model.BaseArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.Lists;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.google.common.io.Files.createTempDir;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -153,5 +146,14 @@ public class GradleUtilTest {
     assertEquals("androidTestApi", GradleUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", true));
     assertEquals("compileOnly", GradleUtil.mapConfigurationName("provided", "3.0.0-alpha1", true));
     assertEquals("testCompileOnly", GradleUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", true));
+  }
+
+  @Test
+  public void useCompatibilityConfigurationNames() {
+    assertTrue(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("2.3.2")));
+    assertFalse(GradleUtil.useCompatibilityConfigurationNames((GradleVersion)null));
+    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0-alpha1")));
+    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("3.0.0")));
+    assertFalse(GradleUtil.useCompatibilityConfigurationNames(GradleVersion.parse("4.0.0")));
   }
 }
