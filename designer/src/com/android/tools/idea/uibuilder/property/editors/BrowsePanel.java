@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
@@ -34,6 +35,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Set;
 
 public class BrowsePanel extends JPanel {
@@ -161,12 +163,13 @@ public class BrowsePanel extends JPanel {
     Module module = property.getModel().getModule();
     AttributeDefinition definition = property.getDefinition();
     EnumSet<ResourceType> types = getResourceTypes(property.getName(), definition);
-    //return new ChooseResourceDialog(module, types, property.getValue(), property.getTag());
+    ResourceType defaultResourceType = getDefaultResourceType(property.getName());
     return ChooseResourceDialog.builder()
       .setModule(module)
       .setTypes(types)
       .setCurrentValue(property.getValue())
       .setTag(property.getTag())
+      .setDefaultType(defaultResourceType)
       .build();
   }
 
@@ -180,6 +183,30 @@ public class BrowsePanel extends JPanel {
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
     Collection<ResourceType> types = AndroidDomUtil.getSpecialResourceTypes(propertyName);
     return types.isEmpty() ? AttributeFormat.convertTypes(formats) : EnumSet.copyOf(types);
+  }
+
+  /**
+   * For some attributes, it make more sense the display a specific type by default.
+   * <p>
+   * For example <code>textColor</code> has more chance to have a color value than a drawable value,
+   * so in the {@link ChooseResourceDialog}, we need to select the Color tab by default.
+   *
+   * @param propertyName The property name to get the associated default type from.
+   * @return The {@link ResourceType} that should be selected by default for the provided property name.
+   */
+  @Nullable
+  public static ResourceType getDefaultResourceType(@NotNull String propertyName) {
+    String lowerCaseProperty = propertyName.toLowerCase(Locale.ENGLISH);
+    if (lowerCaseProperty.contains("color")
+        || lowerCaseProperty.contains("tint")) {
+      return ResourceType.COLOR;
+    }
+    else if (lowerCaseProperty.contains("drawable")
+      || propertyName.equals(SdkConstants.ATTR_SRC)
+      || propertyName.equals(SdkConstants.ATTR_SRC_COMPAT)) {
+      return ResourceType.DRAWABLE;
+    }
+    return null;
   }
 
   private AnAction createDesignAction() {

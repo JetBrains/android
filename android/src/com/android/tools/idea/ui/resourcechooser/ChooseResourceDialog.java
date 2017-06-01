@@ -190,6 +190,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     private ResourceNameVisibility myResourceNameVisibility = ResourceNameVisibility.SHOW;
     private String myResourceNameSuggestion;
     private boolean myHideLeftSideActions;
+    @Nullable private ResourceType myDefaultType;
 
     public Builder() {
     }
@@ -270,8 +271,14 @@ public class ChooseResourceDialog extends DialogWrapper {
         }
       }
 
-      return new ChooseResourceDialog(facet, configuration, myTag, myTypes, myCurrentValue, myIsFrameworkValue,
+      return new ChooseResourceDialog(facet, configuration, myTag, myTypes, myDefaultType, myCurrentValue, myIsFrameworkValue,
                                       myResourceNameVisibility, myResourceNameSuggestion, myHideLeftSideActions);
+    }
+
+    @NotNull
+    public Builder setDefaultType(@Nullable ResourceType defaultType) {
+      myDefaultType = defaultType;
+      return this;
     }
   }
 
@@ -283,6 +290,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                @NotNull Configuration configuration,
                                @Nullable XmlTag tag,
                                @NotNull EnumSet<ResourceType> types,
+                               @Nullable ResourceType defaultType,
                                @Nullable String value,
                                boolean isFrameworkValue,
                                @NotNull ResourceNameVisibility resourceNameVisibility,
@@ -325,7 +333,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     myViewOption = createViewOptions();
-    myTabbedPane = initializeTabbedPane();
+    myTabbedPane = initializeTabbedPane(defaultType);
     if (myTabbedPane == null) {
       myAltPane = new JPanel(new BorderLayout());
       myAltPane.setPreferredSize(PANEL_PREFERRED_SIZE);
@@ -450,8 +458,11 @@ public class ChooseResourceDialog extends DialogWrapper {
     return component;
   }
 
+  /**
+   * @param defaultType The type corresponding to the tab to select by default
+   */
   @Nullable
-  private JTabbedPane initializeTabbedPane() {
+  private JTabbedPane initializeTabbedPane(@Nullable ResourceType defaultType) {
     if (myTypes.size() <= 1) {
       return null;
     }
@@ -465,15 +476,23 @@ public class ChooseResourceDialog extends DialogWrapper {
     // Sort drawables above colors
     Collections.sort(sorted, Comparator.comparingInt(ChooseResourceDialog::typeRank));
 
+    int defaultTypesIndex = 0;
+    int currentTypeIndex = 0;
     for (ResourceType type : sorted) {
       // only show color state lists if we are not showing drawables
       JPanel container = new JPanel(new BorderLayout());
       container.setPreferredSize(PANEL_PREFERRED_SIZE);
       container.putClientProperty(ResourceType.class, type);
       pane.addTab(type.getDisplayName(), container);
+      if (type.equals(defaultType)) {
+        defaultTypesIndex = currentTypeIndex;
+      }
+      currentTypeIndex++;
     }
 
+    pane.setSelectedIndex(defaultTypesIndex);
     pane.addChangeListener(e -> handleTabChange());
+
     return pane;
   }
 
