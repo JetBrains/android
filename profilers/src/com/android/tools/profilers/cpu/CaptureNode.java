@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.perflib.vmtrace.ClockType;
 import org.jetbrains.annotations.NotNull;
@@ -70,6 +69,7 @@ public class CaptureNode implements HNode<MethodModel> {
   public CaptureNode() {
     myChildren = new ArrayList<>();
     myClockType = ClockType.GLOBAL;
+    myDepth = 0;
   }
 
   public void addChild(CaptureNode node) {
@@ -95,8 +95,20 @@ public class CaptureNode implements HNode<MethodModel> {
 
   @Nullable
   @Override
-  public HNode<MethodModel> getParent() {
+  public CaptureNode getParent() {
     return myParent;
+  }
+
+  @Nullable
+  @Override
+  public CaptureNode getFirstChild() {
+    return getChildCount() == 0 ? null : getChildAt(0);
+  }
+
+  @Nullable
+  @Override
+  public CaptureNode getLastChild() {
+    return getChildCount() == 0 ? null : getChildAt(getChildCount() - 1);
   }
 
   @Override
@@ -168,6 +180,11 @@ public class CaptureNode implements HNode<MethodModel> {
   @NotNull
   public ClockType getClockType() {
     return myClockType;
+  }
+
+  @Nullable
+  public MethodModel getMethodModel() {
+    return myMethodModel;
   }
 
   public void setMethodModel(MethodModel methodModel) {

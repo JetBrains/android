@@ -55,7 +55,8 @@ public class VmTraceEditor implements FileEditor {
         indicator.setIndeterminate(true);
 
         File traceFile = VfsUtilCore.virtualToIoFile(file);
-        VmTraceParser parser = new VmTraceParser(traceFile);
+        VmTraceData.Builder dataBuilder = new VmTraceData.Builder();
+        VmTraceParser parser = new VmTraceParser(traceFile, dataBuilder);
         try {
           parser.parse();
         }
@@ -71,7 +72,7 @@ public class VmTraceEditor implements FileEditor {
           return;
         }
 
-        final VmTraceData vmTraceData = parser.getTraceData();
+        final VmTraceData vmTraceData = dataBuilder.build();
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {

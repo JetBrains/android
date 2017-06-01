@@ -22,13 +22,16 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
-import com.android.tools.profilers.cpu.*;
+import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.MethodModel;
+import com.android.tools.profilers.cpu.SampledMethodUsageHRenderer;
+import com.android.tools.profilers.cpu.CpuThreadInfo;
+import com.android.tools.profilers.cpu.art.ArtTraceHandler;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -60,7 +63,8 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
     myChart.setHRenderer(new SampledMethodUsageHRenderer());
     myChart.setHTree(node);
 
-    myNotOptimizedChart = new HTreeChart<>(myRange, HTreeChart.Orientation.TOP_DOWN, (rectangles, nodes) -> {});
+    myNotOptimizedChart = new HTreeChart<>(myRange, HTreeChart.Orientation.TOP_DOWN, (rectangles, nodes) -> {
+    });
     myNotOptimizedChart.setHRenderer(new SampledMethodUsageHRenderer());
     myNotOptimizedChart.setHTree(node);
 
@@ -71,16 +75,15 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
 
   private static CaptureNode parseAndGetHNode() {
     File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + "cpu_trace.trace");
-    VmTraceParser parser = new VmTraceParser(file);
-    CpuTraceArt art = new CpuTraceArt();
+    ArtTraceHandler traceHandler = new ArtTraceHandler();
+    VmTraceParser parser = new VmTraceParser(file, traceHandler);
     try {
       parser.parse();
-      art.parse(parser.getTraceData());
     }
     catch (IOException e) {
       e.printStackTrace();
     }
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry: art.getThreadsGraph().entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : traceHandler.getThreadsGraph().entrySet()) {
       if (entry.getKey().getName().equals("main")) {
         return entry.getValue();
       }
