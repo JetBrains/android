@@ -128,6 +128,7 @@ public class ConstraintLayoutTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor
+      .waitForRenderToFinish()
       .showOnlyDesignView()
       .dragComponentToSurface("Widgets", "Button")
       .findView("Button", 0)
