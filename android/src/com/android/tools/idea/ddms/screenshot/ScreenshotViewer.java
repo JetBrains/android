@@ -16,9 +16,12 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.RawImage;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.pixelprobe.color.Colors;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
@@ -52,10 +55,16 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Node;
 
-import javax.imageio.ImageIO;
+import javax.imageio.*;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.color.ICC_ColorSpace;
+import java.awt.color.ICC_Profile;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -63,17 +72,22 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.zip.Deflater;
 
 public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_VIEWER_DIMENSIONS_KEY = "ScreenshotViewer.Dimensions";
   @NonNls private static final String SCREENSHOT_SAVE_PATH_KEY = "ScreenshotViewer.SavePath";
 
-  private final int ROTATE_AMOUNT = 90;
+  private static final int ROTATE_AMOUNT = 90;
 
   private final Project myProject;
   private final IDevice myDevice;
@@ -365,7 +379,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       if (myDestinationFile != null) {
         File file = VfsUtilCore.virtualToIoFile(myDestinationFile);
         try {
-          ImageIO.write(myProcessedImage, SdkConstants.EXT_PNG, file);
+          writePng(myProcessedImage, file);
         }
         catch (IOException e) {
           Logger.getInstance(ImageProcessorTask.class).error("Unexpected error while writing to backing file", e);
@@ -461,7 +475,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     myScreenshotFile = fileWrapper.getFile();
     try {
-      ImageIO.write(myDisplayedImageRef.get(), SdkConstants.EXT_PNG, myScreenshotFile);
+      writePng(myDisplayedImageRef.get(), myScreenshotFile);
     }
     catch (IOException e) {
       Messages.showErrorDialog(myProject,
@@ -477,6 +491,71 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
 
     super.doOKAction();
+  }
+
+  private static void writePng(BufferedImage image, File outFile) throws IOException {
+    ImageWriter pngWriter = getWriter(image, SdkConstants.EXT_PNG);
+    if (pngWriter == null) {
+      throw new IOException("Failed to find png writer");
+    }
+
+    //noinspection ResultOfMethodCallIgnored
+    outFile.delete();
+
+    ImageOutputStream outputStream = ImageIO.createImageOutputStream(outFile);
+    pngWriter.setOutput(outputStream);
+
+    if (image.getColorModel().getColorSpace() instanceof ICC_ColorSpace) {
+      ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(image);
+      ImageWriteParam writeParams = pngWriter.getDefaultWriteParam();
+      IIOMetadata metadata = pngWriter.getDefaultImageMetadata(type, writeParams);
+
+      ICC_ColorSpace colorSpace = (ICC_ColorSpace)image.getColorModel().getColorSpace();
+      byte[] data = deflate(colorSpace.getProfile().getData());
+
+      Node node = metadata.getAsTree("javax_imageio_png_1.0");
+      IIOMetadataNode iccp = new IIOMetadataNode("iCCP");
+      iccp.setUserObject(data);
+      iccp.setAttribute("profileName", Colors.getIccProfileDescription(colorSpace.getProfile()));
+      iccp.setAttribute("compressionMethod", "deflate");
+      node.appendChild(iccp);
+
+      metadata.setFromTree("javax_imageio_png_1.0", node);
+
+      pngWriter.write(new IIOImage(image, null, metadata));
+    } else {
+      pngWriter.write(image);
+    }
+    pngWriter.dispose();
+
+    outputStream.flush();
+    outputStream.close();
+  }
+
+  private static byte[] deflate(byte[] data) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
+
+    Deflater deflater = new Deflater();
+    deflater.setInput(data);
+    deflater.finish();
+
+    byte[] buffer = new byte[1024];
+    while (!deflater.finished()) {
+      int count = deflater.deflate(buffer);
+      out.write(buffer, 0, count);
+    }
+    data = out.toByteArray();
+    return data;
+  }
+
+  private static ImageWriter getWriter(RenderedImage image, String format) {
+    ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(image);
+    Iterator<ImageWriter> iterator = ImageIO.getImageWriters(type, format);
+    if (iterator.hasNext()) {
+      return iterator.next();
+    } else {
+      return null;
+    }
   }
 
   private String getDefaultFileName() {
