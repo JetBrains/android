@@ -361,4 +361,38 @@ public class ChooseResourceDialogTest {
 
     dialog.clickCancel();
   }
+
+  @Test
+  public void testSearchExactMatch() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish(Wait.seconds(10));
+
+    // Find and click the first text view
+    NlComponentFixture imageView = layout.findView("ImageView", 0);
+    imageView.click();
+    assertThat(layout.getSelection()).containsExactly(imageView.getComponent());
+
+    // Get property sheet, find srcCompat property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+    NlPropertyFixture property = fixture.findProperty("srcCompat");
+    property.clickCustomizer();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    JTabbedPaneFixture tabs = dialog.getTabs();
+    tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
+
+    dialog.getSearchField().enterText("ic_launcher ");
+    JListFixture projectList = dialog.getList("Project");
+
+    assertEquals("ic_launcher                             \n",
+                 listToString(projectList));
+
+    dialog.clickCancel();
+  }
 }
