@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.res2.SourcelessResourceItem;
 import com.android.ide.common.resources.sampledata.SampleDataHolder;
 import com.android.ide.common.resources.sampledata.SampleDataJsonParser;
@@ -214,10 +215,8 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
     throw new UnsupportedOperationException("SampleDataResourceItem does not support getValue");
   }
 
-
   @Nullable
-  @Override
-  public String getValueText() {
+  private byte[] getContent() {
     SampleDataHolder value = sSampleDataCache.getIfPresent(getName());
     if (value == null
         || value.getLastModification() == 0
@@ -233,11 +232,17 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         }
       } catch (Exception e) {
         LOG.warn(e);
-        return null;
       }
     }
 
-    return value != null ? new String(value.getContents(), Charsets.UTF_8) : null;
+    return value != null ? value.getContents() : null;
+  }
+
+  @Nullable
+  @Override
+  public String getValueText() {
+    byte[] content = getContent();
+    return content != null ? new String(content, Charsets.UTF_8) : null;
   }
 
   @NonNull
@@ -249,7 +254,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   @Nullable
   @Override
   public ResourceValue getResourceValue(boolean isFrameworks) {
-    return new ResourceValue(getResourceUrl(isFrameworks), getValueText());
+    return new SampleDataResourceValue(getResourceUrl(isFrameworks), getContent());
   }
 
   @Nullable
