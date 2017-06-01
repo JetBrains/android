@@ -27,7 +27,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
+import java.awt.image.WritableRaster;
 
 import static java.awt.RenderingHints.*;
 
@@ -64,7 +66,11 @@ public class ImageUtils {
         w1 = w;
         h1 = h;
     }
-    BufferedImage rotated = new BufferedImage(w1, h1, source.getType());
+
+    // Preserve the color model and color space
+    ColorModel model = source.getColorModel();
+    WritableRaster raster = model.createCompatibleWritableRaster(w1, h1);
+    BufferedImage rotated = new BufferedImage(model, raster, source.isAlphaPremultiplied(), null);
 
     for (int x = 0; x < w; x++) {
       for (int y = 0; y < h; y++) {
