@@ -67,7 +67,7 @@ public class DependenciesTest {
       .open("/app/build.gradle")
       .getCurrentFileContents();
 
-    assertThat(gradleFileContents).contains("compile files('libs/local.jar')");
+    assertThat(gradleFileContents).contains("implementation files('libs/local.jar')");
   }
 
   /***
