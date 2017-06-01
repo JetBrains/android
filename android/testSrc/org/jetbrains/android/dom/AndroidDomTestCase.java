@@ -272,6 +272,17 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     assertTrue("Can't find " + expectedPart + " in " + doc, doc.contains(expectedPart));
   }
 
+  protected final void doTestDoc(String expectedPart) {
+    PsiElement originalElement = myFixture.getFile().findElementAt(
+      myFixture.getEditor().getCaretModel().getOffset());
+    PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).
+      findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+    DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
+    String doc = provider.generateDoc(docTargetElement, originalElement);
+    assertNotNull(doc);
+    assertTrue("Can't find " + expectedPart + " in " + doc, doc.contains(expectedPart));
+  }
+
   protected final List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
     List<HighlightInfo> infos = myFixture.doHighlighting();
     List<IntentionAction> actions = new ArrayList<>();

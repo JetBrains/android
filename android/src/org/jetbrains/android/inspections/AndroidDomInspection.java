@@ -25,6 +25,7 @@ import com.intellij.util.xml.reflect.AbstractDomChildrenDescription;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.AndroidXmlExtension;
 import org.jetbrains.android.dom.converters.AndroidPackageConverter;
+import org.jetbrains.android.dom.converters.AndroidPermissionConverter;
 import org.jetbrains.android.dom.converters.ConstantFieldConverter;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.dom.resources.DeclareStyleableNameConverter;
@@ -70,7 +71,8 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
     return !(realConverter instanceof AndroidPackageConverter) &&
            !(realConverter instanceof DeclareStyleableNameConverter) &&
            !(realConverter instanceof OnClickConverter) &&
-           !(realConverter instanceof ConstantFieldConverter);
+           !(realConverter instanceof ConstantFieldConverter) &&
+           !(realConverter instanceof AndroidPermissionConverter);
   }
 
   @Override

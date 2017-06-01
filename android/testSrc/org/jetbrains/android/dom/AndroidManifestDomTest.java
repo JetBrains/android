@@ -6,10 +6,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.AndroidLintTest;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +19,8 @@ import java.util.List;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 
 public class AndroidManifestDomTest extends AndroidDomTestCase {
+  private static final String API_LEVELS_URL = "https://developer.android.com/guide/topics/manifest/uses-sdk-element.html#ApiLevels";
+
   public AndroidManifestDomTest() {
     super("dom/manifest");
   }
@@ -226,6 +228,13 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
+  public void testUsesPermissionCompletion6() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(
+      copyFileToProject(getTestName(false) + ".xml"));
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
+  }
+
   public void testUsesPermissionDoc() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
@@ -237,6 +246,12 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   public void testUsesPermissionDoc1() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
     doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
+  }
+
+  public void testUsesPermissionDoc2() throws Throwable {
+    myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
+    PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+    doTestDoc("Removed in <a href=\"" + API_LEVELS_URL + "\">API level 24</a>");
   }
 
   public void testIntentActionDoc() throws Throwable {
