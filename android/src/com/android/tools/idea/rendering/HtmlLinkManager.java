@@ -393,10 +393,6 @@ public class HtmlLinkManager {
     }
   }
 
-  public String createShowXmlUrl() {
-    return URL_SHOW_XML;
-  }
-
   private static void handleShowXmlUrl(@NotNull String url, @NotNull Module module, @NotNull PsiFile file) {
     assert url.equals(URL_SHOW_XML) : url;
     openEditor(module.getProject(), file, 0, -1);
@@ -410,19 +406,15 @@ public class HtmlLinkManager {
     assert url.startsWith(URL_SHOW_TAG) : url;
     final String tagName = url.substring(URL_SHOW_TAG.length());
 
-    XmlTag first = ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
-      @Override
-      @Nullable
-      public XmlTag compute() {
-        Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
-        for (XmlTag tag : xmlTags) {
-          if (tagName.equals(tag.getName())) {
-            return tag;
-          }
+    XmlTag first = ApplicationManager.getApplication().runReadAction((Computable<XmlTag>)() -> {
+      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+      for (XmlTag tag : xmlTags) {
+        if (tagName.equals(tag.getName())) {
+          return tag;
         }
-
-        return null;
       }
+
+      return null;
     });
 
     if (first != null) {
@@ -652,26 +644,22 @@ public class HtmlLinkManager {
    */
   @NotNull
   private static String getFragmentClass(@NotNull final Module module, @NotNull final String fqcn) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      @NotNull
-      public String compute() {
-        Project project = module.getProject();
-        JavaPsiFacade finder = JavaPsiFacade.getInstance(project);
-        PsiClass psiClass = finder.findClass(fqcn, module.getModuleScope());
-        if (psiClass == null) {
-          psiClass = finder.findClass(fqcn, GlobalSearchScope.allScope(project));
-        }
-
-        if (psiClass != null) {
-          String jvmClassName = ClassUtil.getJVMClassName(psiClass);
-          if (jvmClassName != null) {
-            return jvmClassName.replace('/', '.');
-          }
-        }
-
-        return fqcn;
+    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+      Project project = module.getProject();
+      JavaPsiFacade finder = JavaPsiFacade.getInstance(project);
+      PsiClass psiClass = finder.findClass(fqcn, module.getModuleScope());
+      if (psiClass == null) {
+        psiClass = finder.findClass(fqcn, GlobalSearchScope.allScope(project));
       }
+
+      if (psiClass != null) {
+        String jvmClassName = ClassUtil.getJVMClassName(psiClass);
+        if (jvmClassName != null) {
+          return jvmClassName.replace('/', '.');
+        }
+      }
+
+      return fqcn;
     });
   }
 
@@ -768,7 +756,7 @@ public class HtmlLinkManager {
       .setModule(module)
       .setTypes(EnumSet.of(ResourceType.LAYOUT))
       .setFile(file)
-      .setHideLeftSideActions(true)
+      .setHideLeftSideActions()
       .build();
 
     if (dialog.showAndGet()) {
@@ -827,19 +815,15 @@ public class HtmlLinkManager {
     final String attributeName = url.substring(attributeStart, valueStart);
     final String value = url.substring(valueStart + 1);
 
-    XmlAttribute first = ApplicationManager.getApplication().runReadAction(new Computable<XmlAttribute>() {
-      @Override
-      @Nullable
-      public XmlAttribute compute() {
-        Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
-        for (XmlAttribute attribute : attributes) {
-          if (attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue())) {
-            return attribute;
-          }
+    XmlAttribute first = ApplicationManager.getApplication().runReadAction((Computable<XmlAttribute>)() -> {
+      Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
+      for (XmlAttribute attribute : attributes) {
+        if (attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue())) {
+          return attribute;
         }
-
-        return null;
       }
+
+      return null;
     });
 
     if (first != null) {

@@ -61,6 +61,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -402,6 +403,7 @@ public class ThemeEditorUtils {
       return null;
     }
     Project project = module.getProject();
+    @SuppressWarnings("deprecation")
     VirtualFile resourceDir = facet.getPrimaryResourceDir();
     if (resourceDir == null) {
       AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
@@ -678,14 +680,15 @@ public class ThemeEditorUtils {
     boolean isFrameworkValue = itemSelectedValue.isFramework();
 
     String nameSuggestion = value;
-    ResourceUrl url = ResourceUrl.parse(value, isFrameworkValue);
+
+    ResourceUrl url = value != null ? ResourceUrl.parse(value, isFrameworkValue) : null;
     if (url != null) {
       nameSuggestion = url.name;
     }
-    nameSuggestion = getDefaultResourceName(context, nameSuggestion);
+    nameSuggestion = nameSuggestion != null ? getDefaultResourceName(context, nameSuggestion) : null;
 
     ChooseResourceDialog.ResourceNameVisibility resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.FORCE;
-    if (nameSuggestion.startsWith("#")) {
+    if (StringUtil.startsWithChar(nameSuggestion, '#')) {
       nameSuggestion = null;
       resourceNameVisibility = ChooseResourceDialog.ResourceNameVisibility.SHOW;
     }
@@ -699,7 +702,7 @@ public class ThemeEditorUtils {
       .setResourceNameSuggestion(nameSuggestion)
       .build();
 
-    dialog.setUseGlobalUndo(true);
+    dialog.setUseGlobalUndo();
     dialog.setTitle("Select Resource for " + item.getQualifiedName());
 
     return dialog;
@@ -827,7 +830,7 @@ public class ThemeEditorUtils {
 
   /**
    * @param line Line number starting from 0!
-   * @param col Column number starting from 0!
+   * @param col  Column number starting from 0!
    */
   @Nullable/*could not find tag at that location*/
   public static XmlTag getXmlTag(@NotNull XmlFile file, int line, int col) {
@@ -837,7 +840,7 @@ public class ThemeEditorUtils {
 
   /**
    * @param line Line number starting from 0!
-   * @param col Column number starting from 0!
+   * @param col  Column number starting from 0!
    */
   @Nullable/*could not find xml element at that location*/
   public static XmlElement getXmlElement(@NotNull XmlFile file, int line, int col) {
