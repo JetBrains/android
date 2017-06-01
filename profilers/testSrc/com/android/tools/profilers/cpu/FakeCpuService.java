@@ -76,7 +76,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private int myTraceId = FAKE_TRACE_ID;
 
-  private CpuProfiler.CpuProfilingAppStopRequest.Profiler myStopProfiler;
+  private CpuProfiler.CpuProfilerType myProfilerType;
 
   private CpuProfiler.CpuProfilingAppStartRequest myLastSuccessfulStartRequest;
 
@@ -99,7 +99,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request, StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStopResponse.Builder response = CpuProfiler.CpuProfilingAppStopResponse.newBuilder();
     response.setStatus(myStopProfilingStatus);
-    myStopProfiler = request.getProfiler();
+    myProfilerType = request.getProfilerType();
     if (!myStopProfilingStatus.equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       response.setErrorMessage("StopProfilingApp error");
     } else {
@@ -114,8 +114,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     responseObserver.onCompleted();
   }
 
-  public CpuProfiler.CpuProfilingAppStopRequest.Profiler getStopProfiler() {
-    return myStopProfiler;
+  public CpuProfiler.CpuProfilerType getProfilerType() {
+    return myProfilerType;
   }
 
   public void setTraceId(int id) {
