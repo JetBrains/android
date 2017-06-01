@@ -244,24 +244,6 @@ public class NewProjectTest {
   }
 
   @Test
-  public void testRenderResourceInitialization() throws IOException {
-    // Regression test for https://code.google.com/p/android/issues/detail?id=76966
-    newProject("Test Application").withBriefNames().withMinSdk("9").create();
-
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    assertThat(editor.getCurrentFileName()).isEqualTo("A.java");
-    editor.close();
-    assertThat(editor.getCurrentFileName()).isEqualTo("activity_a.xml");
-
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    layoutEditor.waitForRenderToFinish(Wait.seconds(10));
-    guiTest.ideFrame().invokeProjectMake();
-    layoutEditor.waitForRenderToFinish();
-    assertFalse(layoutEditor.hasRenderErrors());
-    guiTest.waitForBackgroundTasks();
-  }
-
-  @Test
   public void testLanguageLevelForApi21() {
     newProject("Test Application").withBriefNames().withMinSdk("21").create();
 
