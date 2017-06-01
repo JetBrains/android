@@ -709,6 +709,11 @@ public class ChooseResourceDialog extends DialogWrapper {
           return true;
         }
       }
+
+      // If the search ends with a space, use the exact text value
+      if(text.endsWith(" ")) {
+        return StringUtil.equalsIgnoreCase(item.getName(), text.trim()); // Text needs to be trimmed to match the item name
+      }
       return StringUtil.containsIgnoreCase(item.getName(), text);
     };
 
