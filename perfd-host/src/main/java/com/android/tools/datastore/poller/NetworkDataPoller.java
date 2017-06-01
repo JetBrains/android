@@ -54,9 +54,6 @@ public class NetworkDataPoller extends PollRunner {
       .setStartTimestamp(myDataRequestStartTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE)
       .setType(NetworkProfiler.NetworkDataRequest.Type.ALL);
-    // TODO currently the buffer used in the Network data collector returns start time inclusive, end time exclusive data
-    // This would cause this request to return a sample that is duplicated from the last request. Consider changing
-    // the buffer to be start time exclusive and end time inclusive.
     NetworkProfiler.NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
