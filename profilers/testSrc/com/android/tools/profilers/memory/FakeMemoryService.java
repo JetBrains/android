@@ -37,6 +37,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
   private LegacyAllocationEventsResponse.Builder myAllocationEventsBuilder = LegacyAllocationEventsResponse.newBuilder();
   private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
+  private BatchAllocationSample myExplicitBatchAllocationSample = null;
   private int myTrackAllocationCount;
 
   private int myAppId;
@@ -107,6 +108,20 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
                                           StreamObserver<AllocationContextsResponse> responseObserver) {
+    responseObserver.onNext(myAllocationContextBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getAllocations(AllocationSnapshotRequest request,
+                             StreamObserver<BatchAllocationSample> responseObserver) {
+    responseObserver.onNext(myExplicitBatchAllocationSample);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getAllocationContexts(AllocationContextsRequest request,
+                                    StreamObserver<AllocationContextsResponse> responseObserver) {
     responseObserver.onNext(myAllocationContextBuilder.build());
     responseObserver.onCompleted();
   }
@@ -183,6 +198,11 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     myAllocationContextBuilder.addAllocationStacks(AllocationStack.newBuilder().setStackId(stackId).addStackFrames(
       AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
     ));
+    return this;
+  }
+
+  public FakeMemoryService setExplicitBatchAllocationSample(@NotNull BatchAllocationSample sample) {
+    myExplicitBatchAllocationSample = sample;
     return this;
   }
 

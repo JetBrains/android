@@ -103,14 +103,13 @@ public abstract class ClassifierSet implements MemoryObject {
 
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
       // TODO: ADD TO myInstances, and figure out how to not add duplicates
+      // TODO2: In cases where we are adding to myInstances, it should also update myInstancesWithStackInfoCount
       myClassifier.getOrCreateClassifierSet(instanceObject).freeInstanceObject(instanceObject, pathResult);
     }
 
     myDeallocatedCount++;
     myTotalShallowSize -= instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
     myTotalRetainedSize -= instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
-    myInstancesWithStackInfoCount -=
-      (instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) ? 1 : 0;
   }
 
   public int getInstancesCount() {

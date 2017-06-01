@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.profiler.proto.MemoryProfiler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,12 +26,18 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   private final long myAllocTime;
   private long myDeallocTime = Long.MAX_VALUE;
   private final long mySize;
+  @Nullable private MemoryProfiler.AllocationStack myCallstack;
 
-  public LiveAllocationInstanceObject(@NotNull ClassDb.ClassEntry classEntry, @Nullable LiveAllocationInstanceObject classObject, long allocTime, long size) {
+  public LiveAllocationInstanceObject(@NotNull ClassDb.ClassEntry classEntry,
+                                      @Nullable LiveAllocationInstanceObject classObject,
+                                      long allocTime,
+                                      long size,
+                                      @Nullable MemoryProfiler.AllocationStack callstack) {
     myClassEntry = classEntry;
     myClassObject = classObject;
     myAllocTime = allocTime;
     mySize = size;
+    myCallstack = callstack;
     if ("java.lang.String".equals(classEntry.getClassName())) {
       myValueType = ValueType.STRING;
     }
@@ -71,6 +78,12 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   public int getShallowSize() {
     // TODO upgrade to long
     return (int)mySize;
+  }
+
+  @Nullable
+  @Override
+  public MemoryProfiler.AllocationStack getCallStack() {
+    return myCallstack;
   }
 
   @NotNull
