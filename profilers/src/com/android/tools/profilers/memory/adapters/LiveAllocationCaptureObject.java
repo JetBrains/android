@@ -24,7 +24,6 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingS
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener.ChangedNode;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +60,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final MemoryServiceBlockingStub myClient;
   private final Common.Session mySession;
   private final int myProcessId;
-  private final long myCaptureTime;
+  private final long myCaptureStartTime;
   private final FeatureTracker myFeatureTracker;
   private final HeapSet myDefaultHeapSet;
   private final AspectObserver myAspectObserver;
@@ -75,7 +74,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                      @Nullable Common.Session session,
                                      int processId,
-                                     long captureTime,
+                                     long captureStartTime,
                                      @NotNull FeatureTracker featureTracker) {
     myExecutorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("profiler-live-allocation").build());
     myClassDb = new ClassDb();
@@ -85,7 +84,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myClient = client;
     mySession = session;
     myProcessId = processId;
-    myCaptureTime = captureTime;
+    myCaptureStartTime = captureStartTime;
     myFeatureTracker = featureTracker;
     myDefaultHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
     myAspectObserver = new AspectObserver();
@@ -151,7 +150,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @Override
   public long getStartTimeNs() {
-    return myCaptureTime;
+    return myCaptureStartTime;
   }
 
   @Override
@@ -164,12 +163,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     assert queryRange != null;
     assert queryJoiner != null;
     myQueryRange = queryRange;
-    myQueryRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, () -> {
-      loadTimeRange(myQueryRange, queryJoiner == null ? MoreExecutors.directExecutor() : queryJoiner);
-    });
+    myQueryRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, () -> loadTimeRange(myQueryRange, queryJoiner));
 
     // Load the initial data within queryRange.
-    loadTimeRange(myQueryRange, queryJoiner == null ? MoreExecutors.directExecutor() : queryJoiner);
+    loadTimeRange(myQueryRange, queryJoiner);
 
     return true;
   }
@@ -258,7 +255,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
         MemoryProfiler.BatchAllocationSample sampleResponse = myClient.getAllocations(
           MemoryProfiler.AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-            .setCaptureTime(myCaptureTime).setStartTime(queryTimeStartNs).setEndTime(endTimeNs).build());
+            .setStartTime(queryTimeStartNs).setEndTime(endTimeNs).build());
 
         myPreviousQueryEndTimeNs = Math.max(myPreviousQueryEndTimeNs, sampleResponse.getTimestamp());
         for (AllocationEvent event : sampleResponse.getEventsList()) {

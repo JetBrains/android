@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.database;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
@@ -37,21 +38,30 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     // O+ Allocation Tracking
     INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?)"),
     INSERT_ALLOC(
-      "INSERT INTO Memory_AllocationEvents (Pid, Session, CaptureTime, Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId) " +
-      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+      "INSERT INTO Memory_AllocationEvents (Pid, Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"),
     INSERT_METHOD("INSERT INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
     INSERT_ENCODED_STACK("INSERT INTO Memory_StackInfos (Pid, Session, StackId, MethodIdData) VALUES (?, ?, ?, ?)"),
     UPDATE_ALLOC(
-      "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND Tag = ?"),
+      "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND Tag = ?"),
     QUERY_CLASS(
       "SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
     QUERY_ALLOC_BY_ALLOC_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
-                              "WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND AllocTime >= ? AND AllocTime < ?"),
+                              "WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
     QUERY_ALLOC_BY_FREE_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
-                             "WHERE Pid = ? AND Session = ? AND CaptureTime = ? AND FreeTime >= ? AND FreeTime < ?"),
+                             "WHERE Pid = ? AND Session = ? AND FreeTime >= ? AND FreeTime < ?"),
     QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Pid = ? AND Session = ? AND MethodId = ?"),
+    QUERY_ENCODED_STACK_INFO("Select MethodIdData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND StackId = ?"),
 
-    QUERY_ENCODED_STACK_INFO("Select MethodIdData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND StackId = ?");
+    COUNT_ALLOC("SELECT count(*) FROM Memory_AllocationEvents"),
+    PRUNE_ALLOC("DELETE FROM Memory_AllocationEvents WHERE Pid = ? AND Session = ? AND FreeTime <= (" +
+                " SELECT MAX(FreeTime)" +
+                " FROM Memory_AllocationEvents" +
+                " WHERE Pid = ? AND Session = ? AND FreeTime < " + Long.MAX_VALUE +
+                " ORDER BY FreeTime" +
+                " LIMIT ?" +
+                ")"),
+    ;
 
     @NotNull private final String mySqlStatement;
 
@@ -65,6 +75,12 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     }
   }
 
+  private int myAllocationCountLimit = 500000; // 500k ought to be enough for anybody (~30MB of data)
+
+  private static Logger getLogger() {
+    return Logger.getInstance(MemoryLiveAllocationTable.class);
+  }
+
   public MemoryLiveAllocationTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
     super(sesstionIdLookup);
   }
@@ -76,23 +92,24 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
       // O+ Allocation Tracking
       createTable("Memory_AllocatedClass", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Tag INTEGER",
                   "AllocTime INTEGER", "Name TEXT", "PRIMARY KEY(Pid, Session, Tag)");
-      createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "CaptureTime INTEGER",
-                  "Tag INTEGER", "ClassTag INTEGER", "AllocTime INTEGER", "FreeTime INTERGER", "Size INTEGER", "Length INTEGER",
-                  "StackId INTEGER", "PRIMARY KEY(Pid, Session, CaptureTime, Tag)");
+      createTable("Memory_AllocationEvents", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Tag INTEGER",
+                  "ClassTag INTEGER", "AllocTime INTEGER", "FreeTime INTEGER", "Size INTEGER", "Length INTEGER", "StackId INTEGER",
+                  "PRIMARY KEY(Pid, Session, Tag)");
       createTable("Memory_MethodInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "MethodId INTEGER",
                   "MethodName TEXT", "ClassName TEXT", "PRIMARY KEY(Pid, Session, MethodId)");
       createTable("Memory_StackInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StackId INTEGER", "MethodIdData BLOB",
                   "PRIMARY KEY(Pid, Session, StackId)");
-      createIndex("Memory_AllocationEvents", 0, "Pid", "Session", "CaptureTime", "AllocTime");
-      createIndex("Memory_AllocationEvents", 1, "Pid", "Session", "CaptureTime", "FreeTime");
+      createIndex("Memory_AllocationEvents", 0, "Pid", "Session", "AllocTime");
+      createIndex("Memory_AllocationEvents", 1, "Pid", "Session", "FreeTime");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
     }
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(MemoryLiveAllocationTable.class);
+  @VisibleForTesting
+  void setAllocationCountLimit(int allocationCountLimit) {
+    myAllocationCountLimit = allocationCountLimit;
   }
 
   @Override
@@ -107,11 +124,11 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     }
   }
 
-  public MemoryProfiler.BatchAllocationSample getAllocations(int pid, Common.Session session, long captureTime, long startTime, long endTime) {
+  public MemoryProfiler.BatchAllocationSample getAllocations(int pid, Common.Session session, long startTime, long endTime) {
     MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
     try {
       // Then get all allocation events that are valid for requestTime.
-      ResultSet allocResult = executeQuery(QUERY_ALLOC_BY_ALLOC_TIME, pid, session, captureTime, startTime, endTime);
+      ResultSet allocResult = executeQuery(QUERY_ALLOC_BY_ALLOC_TIME, pid, session, startTime, endTime);
       long timestamp = Long.MIN_VALUE;
 
       while (allocResult.next()) {
@@ -127,7 +144,7 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
         }
       }
 
-      ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, pid, session, captureTime, startTime, endTime);
+      ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, pid, session, startTime, endTime);
       while (freeResult.next()) {
         long freeTime = freeResult.getLong(4);
         if (freeTime < endTime) {
@@ -179,6 +196,7 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
   public void insertAllocationData(int pid, Common.Session session, MemoryProfiler.BatchAllocationSample sample) {
     MemoryProfiler.AllocationEvent.EventCase currentCase = null;
     PreparedStatement currentStatement = null;
+    int allocAndFreeCount = 0;
     try {
       for (MemoryProfiler.AllocationEvent event : sample.getEventsList()) {
         if (currentCase != event.getEventCase()) {
@@ -209,6 +227,7 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
             applyParams(currentStatement, pid, session, klass.getTag(), event.getTimestamp(), jniToJavaName(klass.getName()));
             break;
           case ALLOC_DATA:
+            allocAndFreeCount++;
             MemoryProfiler.AllocationEvent.Allocation allocation = event.getAllocData();
             long stackId = NO_STACK_ID;
             if (allocation.getMethodIdsCount() > 0) {
@@ -216,12 +235,13 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
               stackId = allocation.getMethodIds(0);
             }
 
-            applyParams(currentStatement, pid, session, event.getCaptureTime(), allocation.getTag(), allocation.getClassTag(),
+            applyParams(currentStatement, pid, session, allocation.getTag(), allocation.getClassTag(),
                         event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength(), stackId);
             break;
           case FREE_DATA:
+            allocAndFreeCount++;
             MemoryProfiler.AllocationEvent.Deallocation free = event.getFreeData();
-            applyParams(currentStatement, event.getTimestamp(), pid, session, event.getCaptureTime(), free.getTag());
+            applyParams(currentStatement, event.getTimestamp(), pid, session, free.getTag());
             break;
           default:
             assert false;
@@ -231,6 +251,10 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
 
       // Handles last batch after exiting from for-loop.
       currentStatement.executeBatch();
+
+      if (allocAndFreeCount > 0) {
+        pruneAllocations(pid, session);
+      }
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -309,6 +333,24 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     }
 
     return stackBuilder.build();
+  }
+
+  /**
+   * Removes entries from the allocations table so the process (in-memory DB) doesn't run out of memory.
+   */
+  private void pruneAllocations(int pid, @NotNull Common.Session session) {
+    try {
+      // TODO save data to disk
+      ResultSet result = executeQuery(COUNT_ALLOC);
+      result.next();
+      int rowCount = result.getInt(1);
+      if (rowCount > myAllocationCountLimit) {
+        execute(PRUNE_ALLOC, pid, session, pid, session, rowCount - myAllocationCountLimit);
+      }
+    }
+    catch (SQLException e) {
+      getLogger().error(e);
+    }
   }
 
   /**
