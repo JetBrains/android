@@ -589,8 +589,13 @@ public final class Parameter {
     }
     if (sourceProvider != null) {
       for (File javaDir : sourceProvider.getJavaDirectories()) {
-        File classFile = new File(javaDir, fullyQualifiedClassName.replace('.', File.separatorChar) + SdkConstants.DOT_JAVA);
-        if (classFile.exists()) {
+        String base = fullyQualifiedClassName.replace('.', File.separatorChar);
+        File javaFile = new File(javaDir, base + SdkConstants.DOT_JAVA);
+        if (javaFile.exists()) {
+          return true;
+        }
+        File ktFile = new File(javaDir, base + SdkConstants.DOT_KT);
+        if (ktFile.exists()) {
           return true;
         }
       }
