@@ -19,9 +19,13 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Action that displays the "Add Sample Data" dialog
@@ -32,29 +36,38 @@ public class AddSampleDataFileAction extends AnAction {
     super("Add sample data file");
   }
 
+  @Nullable
+  private static AndroidFacet getFacetFromAction(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
+    if (project == null) {
+      return null;
+    }
+
+    return Arrays.stream(Projects.getModulesToBuildFromSelection(project, e.getDataContext()))
+      .map(AndroidFacet::getInstance)
+      .filter(Objects::nonNull)
+      .findFirst()
+      .orElse(null);
+  }
+
   @Override
   public void update(AnActionEvent e) {
     super.update(e);
 
-    Project project = e.getProject();
-     if (!StudioFlags.NELE_SAMPLE_DATA.get() || project == null) {
+    if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
       e.getPresentation().setEnabledAndVisible(false);
       return;
     }
-    Module[] modules = Projects.getModulesToBuildFromSelection(project, e.getDataContext());
-    e.getPresentation().setEnabledAndVisible(modules.length == 1 && AndroidFacet.getInstance(modules[0]) != null);
+    e.getPresentation().setEnabledAndVisible(getFacetFromAction(e) != null);
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = e.getProject();
-
-    if (!StudioFlags.NELE_SAMPLE_DATA.get() || project == null) {
+    if (!StudioFlags.NELE_SAMPLE_DATA.get()) {
       return;
     }
 
-    Module[] modules = Projects.getModulesToBuildFromSelection(project, e.getDataContext());
-    AndroidFacet facet = AndroidFacet.getInstance(modules[0]);
+    AndroidFacet facet = getFacetFromAction(e);
     if (facet == null) {
       return;
     }
