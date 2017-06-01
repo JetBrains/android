@@ -576,10 +576,10 @@ public class ResourceHelper {
   }
 
   private static final class UnitEntry {
-    String name;
-    int type;
-    int unit;
-    float scale;
+    private final String name;
+    private final int type;
+    private final int unit;
+    private final float scale;
 
     UnitEntry(String name, int type, int unit, float scale) {
       this.name = name;
@@ -1189,6 +1189,27 @@ public class ResourceHelper {
     }
 
     return resources;
+  }
+
+  /**
+   * Return all the IDs in a XML file.
+   */
+  public static Set<String> findIdsInFile(@NotNull PsiFile file) {
+    Set<String> ids = new HashSet<>();
+    file.accept(new PsiRecursiveElementVisitor() {
+      @Override
+      public void visitElement(@NotNull PsiElement element) {
+        super.visitElement(element);
+        if (element instanceof XmlTag) {
+          XmlTag tag = (XmlTag)element;
+          String id = LintUtils.stripIdPrefix(tag.getAttributeValue(ATTR_ID, ANDROID_URI));
+          if (!id.isEmpty()) {
+            ids.add(id);
+          }
+        }
+      }
+    });
+    return ids;
   }
 
   /**
