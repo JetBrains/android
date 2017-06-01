@@ -163,6 +163,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     assert queryRange != null;
     assert queryJoiner != null;
     myQueryRange = queryRange;
+    // TODO There's a problem with this, as the datastore is effectively a real-time system.
+    // TODO In other words, when we query for some range, we may not get back entries that are still being inserted, and we don't re-query.
     myQueryRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, () -> loadTimeRange(myQueryRange, queryJoiner));
 
     // Load the initial data within queryRange.
@@ -220,7 +222,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     boolean clear = refresh;
     try {
       myExecutorService.submit(() -> {
-        int totalChanged = 0; // TODO remove this, as this is a hack (because we get CLASS_DATA back multiple times)
+        int totalChanged = 0;
         List<InstanceObject> instancesAdded = new ArrayList<>();
         List<InstanceObject> instancesFreed = new ArrayList<>();
 
@@ -287,7 +289,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         }
 
         if (!myListeners.isEmpty() && (totalChanged > 0 || clear)) {
-          myListeners.forEach(listener -> joiner.execute(() -> {
+          joiner.execute(() -> {
             if (clear) {
               myDefaultHeapSet.clearClassifierSets();
             }
@@ -304,9 +306,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
               myDefaultHeapSet.freeInstanceObject(instance, path);
               changedNode.addPath(path);
             });
-
-            listener.heapChanged(changedNode, clear);
-          }));
+            myListeners.forEach(listener -> listener.heapChanged(changedNode, clear));
+          });
         }
         return null;
       });
