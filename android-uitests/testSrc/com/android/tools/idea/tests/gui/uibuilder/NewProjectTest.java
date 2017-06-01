@@ -132,7 +132,7 @@ public class NewProjectTest {
    *   1. Module setting is updated.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void changeLibraryModuleSettings() throws  Exception {
     String gradleFileContents = newProject("MyTestApp").withMinSdk("24").create()
