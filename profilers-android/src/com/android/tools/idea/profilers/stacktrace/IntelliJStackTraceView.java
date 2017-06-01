@@ -17,7 +17,10 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.stacktrace.*;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceView;
+import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -183,10 +186,15 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       setIcon(PlatformIcons.METHOD_ICON);
       SimpleTextAttributes textAttribute = selected || codeElement.isInUserCode() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
       CodeLocation location = codeElement.getCodeLocation();
-      append(codeElement.getMethodName(), textAttribute, codeElement.getMethodName());
-      String lineNumberText = ":" + Integer.toString(location.getLineNumber() + 1) + ", ";
-      append(lineNumberText, textAttribute, lineNumberText);
-      append(codeElement.getSimpleClassName(), textAttribute, codeElement.getSimpleClassName());
+      StringBuilder methodBuilder = new StringBuilder(codeElement.getMethodName());
+      if (location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
+        methodBuilder.append(":");
+        methodBuilder.append(location.getLineNumber() + 1);
+      }
+      methodBuilder.append(", ");
+      methodBuilder.append(codeElement.getSimpleClassName());
+      String methodName = methodBuilder.toString();
+      append(methodName, textAttribute, methodName);
       String packageName = " (" + codeElement.getPackageName() + ")";
       append(packageName, selected ? REGULAR_ITALIC_ATTRIBUTES : GRAYED_ITALIC_ATTRIBUTES, packageName);
     }

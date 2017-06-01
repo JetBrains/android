@@ -15,11 +15,11 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener.ChangedNode;
@@ -52,10 +52,12 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   private final List<CaptureChangedListener> myListeners = new ArrayList<>(1);
 
-  private final ExecutorService myExecutorService;
+  @VisibleForTesting
+  final ExecutorService myExecutorService;
   private final ClassDb myClassDb;
   private final Map<ClassDb.ClassEntry, LiveAllocationInstanceObject> myClassMap;
   private final Map<Long, LiveAllocationInstanceObject> myInstanceMap;
+  private final Map<Integer, AllocationStack> myCallstackMap;
 
   private final MemoryServiceBlockingStub myClient;
   private final Common.Session mySession;
@@ -80,6 +82,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myClassDb = new ClassDb();
     myClassMap = new HashMap<>();
     myInstanceMap = new HashMap<>();
+    myCallstackMap = new HashMap<>();
 
     myClient = client;
     mySession = session;
@@ -229,22 +232,25 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         long newContextEndTime = Math.max(myContextEndTimeNs, endTimeNs);
         if (newContextEndTime > myContextEndTimeNs) {
           // If we clear, we need to grab all the classes again because we may be in a future range.
-          MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(
-            MemoryProfiler.AllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
+          AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(
+            AllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
               .setStartTime(myContextEndTimeNs).setEndTime(newContextEndTime).build());
-          for (MemoryProfiler.AllocatedClass klass : contextsResponse.getAllocatedClassesList()) {
+          for (AllocatedClass klass : contextsResponse.getAllocatedClassesList()) {
             ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
             if (!myClassMap.containsKey(entry)) {
               // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
               // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
               LiveAllocationInstanceObject instance =
-                new LiveAllocationInstanceObject(entry, null, myCaptureStartTime, MemoryObject.INVALID_VALUE);
+                new LiveAllocationInstanceObject(entry, null, myCaptureStartTime, MemoryObject.INVALID_VALUE, null);
               myClassMap.put(entry, instance);
               // TODO figure out what to do with java.lang.Class instance objects
               //instancesAdded.add(instance);
               totalChanged++;
             }
           }
+
+          contextsResponse.getAllocationStacksList().forEach(callStack -> myCallstackMap.putIfAbsent(callStack.getStackId(), callStack));
+
           myContextEndTimeNs = Math.max(myContextEndTimeNs, contextsResponse.getTimestamp());
         }
 
@@ -253,9 +259,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           myInstanceMap.clear();
         }
 
-        MemoryProfiler.BatchAllocationSample sampleResponse = myClient.getAllocations(
-          MemoryProfiler.AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-            .setStartTime(queryTimeStartNs).setEndTime(endTimeNs).build());
+        BatchAllocationSample sampleResponse =
+          myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
+                                    .setStartTime(queryTimeStartNs).setEndTime(endTimeNs).build());
 
         myPreviousQueryEndTimeNs = Math.max(myPreviousQueryEndTimeNs, sampleResponse.getTimestamp());
         for (AllocationEvent event : sampleResponse.getEventsList()) {
@@ -263,8 +269,15 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             AllocationEvent.Allocation allocation = event.getAllocData();
             ClassDb.ClassEntry entry = myClassDb.getEntry(allocation.getClassTag());
             assert myClassMap.containsKey(entry);
+
+            AllocationStack callstack = null;
+            if (allocation.getStackId() != 0) {
+              assert myCallstackMap.containsKey(allocation.getStackId());
+              callstack = myCallstackMap.get(allocation.getStackId());
+            }
+
             LiveAllocationInstanceObject instance =
-              new LiveAllocationInstanceObject(entry, myClassMap.get(entry), event.getTimestamp(), allocation.getSize());
+              new LiveAllocationInstanceObject(entry, myClassMap.get(entry), event.getTimestamp(), allocation.getSize(), callstack);
             assert !myInstanceMap.containsKey(allocation.getTag());
             myInstanceMap.put(allocation.getTag(), instance);
             instancesAdded.add(instance);
@@ -275,7 +288,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(deallocation.getTag(), tag -> {
               ClassDb.ClassEntry entry = myClassDb.getEntry(deallocation.getClassTag());
               assert myClassMap.containsKey(entry);
-              return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), deallocation.getAllocTime(), deallocation.getSize());
+              return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), deallocation.getAllocTime(), deallocation.getSize(),
+                                                      null);
             });
             instance.setDeallocTime(event.getTimestamp());
             instancesFreed.add(instance);

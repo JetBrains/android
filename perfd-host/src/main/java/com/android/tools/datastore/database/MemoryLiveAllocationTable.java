@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.*;
-import static com.android.tools.datastore.database.MemoryStatsTable.NO_STACK_ID;
 
 public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocationTable.MemoryStatements> {
   public enum MemoryStatements {
@@ -41,17 +40,18 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
       "INSERT INTO Memory_AllocationEvents (Pid, Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"),
     INSERT_METHOD("INSERT INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
-    INSERT_ENCODED_STACK("INSERT INTO Memory_StackInfos (Pid, Session, StackId, MethodIdData) VALUES (?, ?, ?, ?)"),
+    INSERT_ENCODED_STACK("INSERT INTO Memory_StackInfos (Pid, Session, StackId, AllocTime, MethodIdData) VALUES (?, ?, ?, ?, ?)"),
     UPDATE_ALLOC(
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND Tag = ?"),
     QUERY_CLASS(
       "SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
     QUERY_ALLOC_BY_ALLOC_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
                               "WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
-    QUERY_ALLOC_BY_FREE_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
+    QUERY_ALLOC_BY_FREE_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length FROM Memory_AllocationEvents " +
                              "WHERE Pid = ? AND Session = ? AND FreeTime >= ? AND FreeTime < ?"),
     QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Pid = ? AND Session = ? AND MethodId = ?"),
-    QUERY_ENCODED_STACK_INFO("Select MethodIdData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND StackId = ?"),
+    QUERY_ENCODED_STACK_INFO_BY_TIME(
+      "Select MethodIdData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
 
     COUNT_ALLOC("SELECT count(*) FROM Memory_AllocationEvents"),
     PRUNE_ALLOC("DELETE FROM Memory_AllocationEvents WHERE Pid = ? AND Session = ? AND FreeTime <= (" +
@@ -60,8 +60,7 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
                 " WHERE Pid = ? AND Session = ? AND FreeTime < " + Long.MAX_VALUE +
                 " ORDER BY FreeTime" +
                 " LIMIT ?" +
-                ")"),
-    ;
+                ")"),;
 
     @NotNull private final String mySqlStatement;
 
@@ -97,10 +96,12 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
                   "PRIMARY KEY(Pid, Session, Tag)");
       createTable("Memory_MethodInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "MethodId INTEGER",
                   "MethodName TEXT", "ClassName TEXT", "PRIMARY KEY(Pid, Session, MethodId)");
-      createTable("Memory_StackInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StackId INTEGER", "MethodIdData BLOB",
-                  "PRIMARY KEY(Pid, Session, StackId)");
+      createTable("Memory_StackInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StackId INTEGER", "AllocTime INTEGER",
+                  "MethodIdData BLOB", "PRIMARY KEY(Pid, Session, StackId)");
       createIndex("Memory_AllocationEvents", 0, "Pid", "Session", "AllocTime");
       createIndex("Memory_AllocationEvents", 1, "Pid", "Session", "FreeTime");
+      createIndex("Memory_AllocatedClass", 0, "Pid", "Session", "AllocTime");
+      createIndex("Memory_StackInfos", 0, "Pid", "Session", "AllocTime");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -137,7 +138,7 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
           MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
             .setAllocData(
               MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getLong(1)).setClassTag(allocResult.getLong(2))
-                .setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).addMethodIds(allocResult.getLong(7)).build())
+                .setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).setStackId(allocResult.getInt(7)).build())
             .setTimestamp(allocTime).build();
           sampleBuilder.addEvents(event);
           timestamp = Math.max(timestamp, allocTime);
@@ -183,9 +184,31 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
         resultBuilder.addAllocatedClasses(klass);
         timestamp = Math.max(timestamp, allocTime);
       }
+
+      ResultSet stackResult = executeQuery(QUERY_ENCODED_STACK_INFO_BY_TIME, pid, session, startTime, endTime);
+      while (stackResult.next()) {
+        AllocationStack.Builder stackBuilder = AllocationStack.newBuilder();
+
+        // First retrieve the encoded allocation stack proto.
+        // Note that we are not accounting for the timestamp recorded in the stack, as stack entries from each batched allocation sample
+        // are inserted first into the database. So class data with an earlier timestamp can be inserted later.
+        EncodedAllocationStack encodedStack = EncodedAllocationStack.parseFrom(stackResult.getBytes(1));
+
+        // Then retrieve the full method info for each method id in the encoded stack.
+        // TODO: The current SQLite JDBC driver in IJ does not support the createArrayOf operation which prevents this to do a bulk
+        // select and only hit the database once. Alternative is ugly (e.g. manually formatting a string and pass to the IN clause).
+        // We can revisit at a later time.
+        stackBuilder.setStackId(encodedStack.getStackId());
+        for (long methodId : encodedStack.getMethodIdsList()) {
+          stackBuilder.addStackFrames(queryMethodInfo(pid, session, methodId));
+        }
+
+        resultBuilder.addAllocationStacks(stackBuilder);
+      }
+
       resultBuilder.setTimestamp(timestamp);
     }
-    catch (SQLException ex) {
+    catch (SQLException | InvalidProtocolBufferException ex) {
       getLogger().error(ex);
     }
 
@@ -222,24 +245,18 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
 
         switch (currentCase) {
           case CLASS_DATA:
-            MemoryProfiler.AllocationEvent.Klass klass = event.getClassData();
-            applyParams(currentStatement, pid, session, klass.getTag(), event.getTimestamp(), jniToJavaName(klass.getName()));
+            AllocatedClass klass = event.getClassData();
+            applyParams(currentStatement, pid, session, klass.getClassId(), event.getTimestamp(), jniToJavaName(klass.getClassName()));
             break;
           case ALLOC_DATA:
             allocAndFreeCount++;
-            MemoryProfiler.AllocationEvent.Allocation allocation = event.getAllocData();
-            long stackId = NO_STACK_ID;
-            if (allocation.getMethodIdsCount() > 0) {
-              assert allocation.getMethodIdsCount() == 1;
-              stackId = allocation.getMethodIds(0);
-            }
-
+            AllocationEvent.Allocation allocation = event.getAllocData();
             applyParams(currentStatement, pid, session, allocation.getTag(), allocation.getClassTag(),
-                        event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength(), stackId);
+                        event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength(), allocation.getStackId());
             break;
           case FREE_DATA:
             allocAndFreeCount++;
-            MemoryProfiler.AllocationEvent.Deallocation free = event.getFreeData();
+            AllocationEvent.Deallocation free = event.getFreeData();
             applyParams(currentStatement, event.getTimestamp(), pid, session, free.getTag());
             break;
           default:
@@ -260,12 +277,12 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     }
   }
 
-  public void insertMethodInfo(int pid, Common.Session session, List<MemoryProfiler.StackMethod> methods) {
+  public void insertMethodInfo(int pid, Common.Session session, List<AllocationStack.StackFrame> methods) {
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_METHOD);
       assert statement != null;
-      for (MemoryProfiler.StackMethod method : methods) {
-        applyParams(statement, pid, session, method.getMethodId(), method.getMethodName(), method.getClassName());
+      for (AllocationStack.StackFrame method : methods) {
+        applyParams(statement, pid, session, method.getMethodId(), method.getMethodName(), jniToJavaName(method.getClassName()));
         statement.addBatch();
       }
       statement.executeBatch();
@@ -276,8 +293,8 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
   }
 
   @NotNull
-  public MemoryProfiler.StackMethod queryMethodInfo(int pid, Common.Session session, long methodId) {
-    MemoryProfiler.StackMethod.Builder methodBuilder = MemoryProfiler.StackMethod.newBuilder();
+  AllocationStack.StackFrame queryMethodInfo(int pid, Common.Session session, long methodId) {
+    AllocationStack.StackFrame.Builder methodBuilder = AllocationStack.StackFrame.newBuilder();
     try {
       ResultSet result = executeQuery(QUERY_METHOD_INFO, pid, session, methodId);
       if (result.next()) {
@@ -291,12 +308,12 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     return methodBuilder.build();
   }
 
-  public void insertStackInfo(int pid, Common.Session session, List<MemoryProfiler.EncodedStack> stacks) {
+  public void insertStackInfo(int pid, Common.Session session, List<EncodedAllocationStack> stacks) {
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_ENCODED_STACK);
       assert statement != null;
-      for (MemoryProfiler.EncodedStack stack : stacks) {
-        applyParams(statement, pid, session, stack.getStackId(), stack.toByteArray());
+      for (EncodedAllocationStack stack : stacks) {
+        applyParams(statement, pid, session, stack.getStackId(), stack.getTimestamp(), stack.toByteArray());
         statement.addBatch();
       }
       statement.executeBatch();
@@ -304,34 +321,6 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     catch (SQLException ex) {
       getLogger().error(ex);
     }
-  }
-
-  @NotNull
-  public MemoryProfiler.DecodedStack queryStackInfo(int pid, Common.Session session, int stackId) {
-
-    MemoryProfiler.DecodedStack.Builder stackBuilder = MemoryProfiler.DecodedStack.newBuilder();
-    stackBuilder.setStackId(stackId);
-    try {
-      // first retrieve the EncodedStack proto stored in the database.
-      MemoryProfiler.EncodedStack.Builder encodedStackBuilder = MemoryProfiler.EncodedStack.newBuilder();
-      ResultSet encodedStackResult = executeQuery(QUERY_ENCODED_STACK_INFO, pid, session, stackId);
-      if (encodedStackResult.next()) {
-        encodedStackBuilder.mergeFrom(encodedStackResult.getBytes(1));
-      }
-
-      // then retrieve the full method info for each method id in the encoded stack.
-      // TODO: The current SQLite JDBC driver in IJ does not support the createArrayOf operation which prevents this to do a bulk
-      // select and only hit the database once. Alternative is ugly (e.g. manually formatting a string and pass to the IN clause).
-      // We can revisit at a later time.
-      for (long methodId : encodedStackBuilder.getMethodIdsList()) {
-        stackBuilder.addMethods(queryMethodInfo(pid, session, methodId));
-      }
-    }
-    catch (InvalidProtocolBufferException | SQLException ex) {
-      getLogger().error(ex);
-    }
-
-    return stackBuilder.build();
   }
 
   /**
