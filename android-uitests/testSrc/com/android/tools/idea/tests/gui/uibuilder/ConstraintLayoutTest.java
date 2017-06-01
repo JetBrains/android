@@ -119,7 +119,7 @@ public class ConstraintLayoutTest {
    *      for "layout_constraintBaseline_toBaselineOf"
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void testBaselineConstraintHandling() throws Exception {
     EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
