@@ -173,7 +173,7 @@ public class CpuProfilingConfigPanel {
     myArtInstrumentedButton.setEnabled(true);
     // There is a flag check before adding this button to the UI, so we can safely set it to enabled here.
     mySimpleperfButton.setEnabled(true);
-    if (configuration.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) {
+    if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
       if (configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
         myArtSampledButton.setSelected(true);
         setEnabledSamplingIntervalPanel(true);
@@ -186,7 +186,7 @@ public class CpuProfilingConfigPanel {
         getLogger().warn("Invalid trace technology detected.");
       }
     }
-    else if (configuration.getProfiler() == CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF) {
+    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
       assert configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
       mySimpleperfButton.setSelected(true);
       setEnabledSamplingIntervalPanel(true);
@@ -292,17 +292,17 @@ public class CpuProfilingConfigPanel {
   private void updateConfigurationProfilerAndMode(TraceTechnology technology) {
     switch (technology) {
       case ART_SAMPLED:
-        myConfiguration.setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART);
+        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
         myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
         break;
       case ART_INSTRUMENTED:
-        myConfiguration.setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART);
+        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
         myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
         setEnabledSamplingIntervalPanel(false);
         break;
       case SIMPLEPERF:
-        myConfiguration.setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.SIMPLE_PERF);
+        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
         myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
     }
