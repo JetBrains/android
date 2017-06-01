@@ -131,7 +131,7 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
-        "exclusive",
+        "block-network",
     ],
     test_timeout = "eternal",
     # do not sort: must match IML order
