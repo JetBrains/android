@@ -58,7 +58,7 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   private final int myPluginGeneration;
   private final boolean myBaseSplit;
 
-  @Nullable private final transient GradleVersion myParsedModelVersion;
+  @Nullable private final GradleVersion myParsedModelVersion;
 
   public IdeAndroidProjectImpl(@NotNull AndroidProject project) {
     this(project, new ModelCache());
@@ -288,6 +288,7 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
            myPluginGeneration == project.myPluginGeneration &&
            myBaseSplit == project.myBaseSplit &&
            Objects.equals(myModelVersion, project.myModelVersion) &&
+           Objects.equals(myParsedModelVersion, project.myParsedModelVersion) &&
            Objects.equals(myName, project.myName) &&
            Objects.equals(myDefaultConfig, project.myDefaultConfig) &&
            Objects.equals(myBuildTypes, project.myBuildTypes) &&
@@ -313,10 +314,10 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   }
 
   private int calculateHashCode() {
-    return Objects.hash(myModelVersion, myName, myDefaultConfig, myBuildTypes, myProductFlavors, myBuildToolsVersion, mySyncIssues,
-                        myVariants, myFlavorDimensions, myCompileTarget, myBootClassPath, myNativeToolchains, mySigningConfigs,
-                        myLintOptions, myUnresolvedDependencies, myJavaCompileOptions, myBuildFolder, myResourcePrefix, myApiVersion,
-                        myLibrary, myProjectType, myPluginGeneration, myBaseSplit);
+    return Objects.hash(myModelVersion, myParsedModelVersion, myName, myDefaultConfig, myBuildTypes, myProductFlavors, myBuildToolsVersion,
+                        mySyncIssues, myVariants, myFlavorDimensions, myCompileTarget, myBootClassPath, myNativeToolchains,
+                        mySigningConfigs, myLintOptions, myUnresolvedDependencies, myJavaCompileOptions, myBuildFolder, myResourcePrefix,
+                        myApiVersion, myLibrary, myProjectType, myPluginGeneration, myBaseSplit);
   }
 
   @Override
