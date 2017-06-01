@@ -19,6 +19,7 @@ import com.android.java.model.JavaProject;
 import com.android.java.model.builder.JavaLibraryPlugin;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -120,7 +121,8 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_ADVANCED, true));
     args.add(createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true));
     // Sent to plugin starting with Studio 3.0
-    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
+    args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED,
+                                   NewGradleSync.isEnabled() ? MODEL_LEVEL_4_NEW_DEP_MODEL : MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
     if (myIdeInfo.isAndroidStudio()) {
       // Example of version to pass: 2.4.0.6
       args.add(createProjectProperty(PROPERTY_STUDIO_VERSION, myApplicationInfo.getStrictVersion()));
