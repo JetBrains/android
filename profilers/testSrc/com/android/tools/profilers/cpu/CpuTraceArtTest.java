@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import org.junit.Test;
@@ -37,11 +36,11 @@ public class CpuTraceArtTest {
     VmTraceData data = getTraceData();
     CpuTraceArt traceArt = new CpuTraceArt();
     traceArt.parse(data);
-    Map<ThreadInfo, CaptureNode> graphs = traceArt.getThreadsGraph();
+    Map<CpuThreadInfo, CaptureNode> graphs = traceArt.getThreadsGraph();
     assertEquals(1, graphs.size());
-    ThreadInfo info = graphs.keySet().iterator().next();
-    assertEquals("AsyncTask #1", info.getName());
-    assertEquals(11, info.getId());
+    CpuThreadInfo thread = graphs.keySet().iterator().next();
+    assertEquals("AsyncTask #1", thread.getName());
+    assertEquals(11, thread.getId());
 
     CaptureNode node = graphs.values().iterator().next();
     assertTrue(node.getClockType() == ClockType.GLOBAL);
@@ -64,7 +63,7 @@ public class CpuTraceArtTest {
     VmTraceData data = getTraceData();
     CpuTraceArt traceArt = new CpuTraceArt();
     traceArt.parse(data);
-    Map<ThreadInfo, CaptureNode> graphs = traceArt.getThreadsGraph();
+    Map<CpuThreadInfo, CaptureNode> graphs = traceArt.getThreadsGraph();
     assertEquals(1, graphs.size());
 
     CaptureNode root = graphs.values().iterator().next();
