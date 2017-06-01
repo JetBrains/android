@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
 /**
  * Tests for {@link IdeAndroidProjectImpl}.
  */
-public class IdeAndroidProjectTest {
+public class IdeAndroidProjectImplTest {
   private ModelCache myModelCache;
 
   @Before
@@ -49,9 +49,11 @@ public class IdeAndroidProjectTest {
   @Test
   public void serialization() throws Exception {
     IdeAndroidProject androidProject = new IdeAndroidProjectImpl(new AndroidProjectStub("2.4.0"), myModelCache);
+    assertEquals("2.4.0", androidProject.getParsedModelVersion().toString());
     byte[] bytes = serialize(androidProject);
     Object o = deserialize(bytes);
     assertEquals(androidProject, o);
+    assertEquals("2.4.0", ((IdeAndroidProject)o).getParsedModelVersion().toString());
   }
 
   @Test
