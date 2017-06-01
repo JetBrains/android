@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
@@ -458,7 +457,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     int otherThread = mainThread;
     // Select a thread other than main
-    for (ThreadInfo thread : capture1.getThreads()) {
+    for (CpuThreadInfo thread : capture1.getThreads()) {
       if (thread.getId() != mainThread) {
         otherThread = thread.getId();
         break;

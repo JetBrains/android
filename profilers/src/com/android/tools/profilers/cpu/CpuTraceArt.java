@@ -31,7 +31,7 @@ public class CpuTraceArt {
    * Tree representation of ART trace (generated from perflib tree).
    * Keys are thread ids and values are their respective {@link CaptureNode}
    */
-  Map<ThreadInfo, CaptureNode> myNodes;
+  Map<CpuThreadInfo, CaptureNode> myNodes;
 
   public void parse(VmTraceData data) throws IOException {
     myNodes = new HashMap<>();
@@ -44,7 +44,8 @@ public class CpuTraceArt {
       Call topLevelCall = threadInfo.getTopLevelCall();
 
       long topLevelGlobalStart = topLevelCall.getEntryTime(ClockType.GLOBAL, TimeUnit.MICROSECONDS) + data.getStartTimeUs();
-      myNodes.put(threadInfo, convertCallsToNode(data, topLevelCall, 0, topLevelGlobalStart));
+      myNodes.put(new CpuThreadInfo(threadInfo.getId(),
+                                        threadInfo.getName()), convertCallsToNode(data, topLevelCall, 0, topLevelGlobalStart));
     }
   }
 
@@ -78,7 +79,7 @@ public class CpuTraceArt {
     return node;
   }
 
-  public Map<ThreadInfo, CaptureNode> getThreadsGraph() {
+  public Map<CpuThreadInfo, CaptureNode> getThreadsGraph() {
     return myNodes;
   }
 }

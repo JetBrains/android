@@ -19,7 +19,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.google.protobuf3jarjar.ByteString;
@@ -41,7 +40,7 @@ public class CpuCapture implements ConfigurableDurationData {
   private final int myMainThreadId;
 
   @NotNull
-  private final Map<ThreadInfo, CaptureNode> myCaptureTrees;
+  private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
 
   @NotNull
   private Range myRange;
@@ -72,9 +71,9 @@ public class CpuCapture implements ConfigurableDurationData {
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
-    Map.Entry<ThreadInfo, CaptureNode> main = null;
+    Map.Entry<CpuThreadInfo, CaptureNode> main = null;
     boolean foundMainThread = false;
-    for (Map.Entry<ThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
         main = entry;
         foundMainThread = true;
@@ -106,7 +105,7 @@ public class CpuCapture implements ConfigurableDurationData {
 
   @Nullable
   public CaptureNode getCaptureNode(int threadId) {
-    for (Map.Entry<ThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().getId() == threadId) {
         return entry.getValue();
       }
@@ -115,7 +114,7 @@ public class CpuCapture implements ConfigurableDurationData {
   }
 
   @NotNull
-  public Set<ThreadInfo> getThreads() {
+  public Set<CpuThreadInfo> getThreads() {
     return myCaptureTrees.keySet();
   }
 

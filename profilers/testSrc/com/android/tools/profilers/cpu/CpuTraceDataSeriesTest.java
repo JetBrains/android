@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -92,7 +91,7 @@ public class CpuTraceDataSeriesTest {
     // Check that capture has the same threads of expected capture
     assertFalse(capture.getThreads().isEmpty());
     assertEquals(expectedCapture.getThreads().size(), capture.getThreads().size());
-    for (ThreadInfo thread : expectedCapture.getThreads()) {
+    for (CpuThreadInfo thread : expectedCapture.getThreads()) {
       assertTrue(capture.containsThread(thread.getId()));
     }
     // Verify duration is also equal
