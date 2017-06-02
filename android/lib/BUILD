@@ -83,13 +83,6 @@ java_import(
 )
 
 java_import(
-    name = "dexlib2-util-2.2.1",
-    jars = ["util-2.2.1.jar"],
-    tags = ["managed"],
-    visibility = ["//visibility:public"],
-)
-
-java_import(
     name = "guava-testlib-21.0",
     jars = ["guava-testlib-21.0.jar"],
     tags = ["managed"],
@@ -99,5 +92,12 @@ java_import(
 filegroup(
     name = "androidWidgets",
     srcs = glob(["androidWidgets/**"]),
+    visibility = ["//visibility:public"],
+)
+
+java_import(
+    name = "util-2.2.1",
+    jars = ["util-2.2.1.jar"],
+    tags = ["managed"],
     visibility = ["//visibility:public"],
 )
