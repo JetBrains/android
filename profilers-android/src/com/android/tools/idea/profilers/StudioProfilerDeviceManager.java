@@ -25,12 +25,14 @@ import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.profiler.proto.Agent;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
@@ -39,7 +41,9 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -176,15 +180,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         copyFileToDevice("perfa.jar", "plugins/android/resources", "../../out/studio/perfa/libs", deviceDir, false);
         // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
         pushSimpleperfIfSupported(deviceDir);
+        pushAgentConfig("agent.config", deviceDir);
 
-        // Perfd's command line argument is a temporary workaround to tell perfd whether jvmti is used.
-        // TODO: remove perfdArguments after agent uses only JVMTI to instrument bytecode on O+ devices.
-        String perfdArguments = "";
-        if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
-          perfdArguments = " -use_jvmti";
-        }
-
-        myDevice.executeShellCommand(deviceDir + "perfd" + perfdArguments, new IShellOutputReceiver() {
+        myDevice.executeShellCommand(deviceDir + "perfd", new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
@@ -209,7 +207,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
         getLogger().info("Terminating perfd thread");
       }
-      catch (TimeoutException | ShellCommandUnresponsiveException | InterruptedException e) {
+      catch (TimeoutException | ShellCommandUnresponsiveException | InterruptedException | SyncException e) {
         throw new RuntimeException(e);
       }
       catch (AdbCommandRejectedException | IOException e) {
@@ -288,6 +286,22 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         return;
       }
       copyFileToDevice("simpleperf", "plugins/android/resources/simpleperf", "../../prebuilts/tools/common/simpleperf", devicePath, true);
+    }
+
+    /**
+     * Creates and pushes a config file that lives in perfd but is shared bewteen both perfd + perfa
+     */
+    private void pushAgentConfig(@NotNull String fileName, @NotNull String devicePath)
+      throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
+      // TODO: remove profiler.jvmti after agent uses only JVMTI to instrument bytecode on O+ devices.
+      Agent.AgentConfig agentConfig = Agent.AgentConfig.newBuilder().setUseJvmti(StudioFlags.PROFILER_USE_JVMTI.get())
+        .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get()).build();
+
+      File configFile = FileUtil.createTempFile(fileName, null, true);
+      OutputStream oStream = new FileOutputStream(configFile);
+      agentConfig.writeTo(oStream);
+      myDevice.executeShellCommand("rm -f " + devicePath + fileName, new NullOutputReceiver());
+      myDevice.pushFile(configFile.getAbsolutePath(), devicePath + fileName);
     }
 
     private void createPerfdProxy() {
