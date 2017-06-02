@@ -21,11 +21,14 @@ import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.NetworkTable;
 import com.android.tools.datastore.poller.NetworkDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,15 +36,16 @@ import java.util.function.Consumer;
 
 // TODO: Implement a storage container that can read/write data to disk
 public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase implements ServicePassThrough {
+  private final NetworkTable myNetworkTable;
+  private final Consumer<Runnable> myFetchExecutor;
+  private final Map<Integer, PollRunner> myRunners = new HashMap<>();
+  private final DataStoreService myService;
 
-  private NetworkTable myNetworkTable = new NetworkTable();
-  private Consumer<Runnable> myFetchExecutor;
-  private Map<Integer, PollRunner> myRunners = new HashMap<>();
-  private DataStoreService myService;
-
-  public NetworkService(DataStoreService service, Consumer<Runnable> fetchExecutor) {
+  public NetworkService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor,
+                        @NotNull Map<Common.Session, Long> sessionIdLookup) {
     myFetchExecutor = fetchExecutor;
     myService = service;
+    myNetworkTable = new NetworkTable(sessionIdLookup);
   }
 
   @Override
@@ -125,8 +129,15 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
     responseObserver.onCompleted();
   }
 
+  @NotNull
   @Override
-  public DatastoreTable getDatastoreTable() {
-    return myNetworkTable;
+  public List<DataStoreService.BackingNamespace> getBackingNamespaces() {
+    return Collections.singletonList(DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE);
+  }
+
+  @Override
+  public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
+    assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
+    myNetworkTable.initialize(connection);
   }
 }

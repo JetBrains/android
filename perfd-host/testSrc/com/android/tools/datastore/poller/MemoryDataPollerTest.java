@@ -30,6 +30,7 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
@@ -90,7 +91,7 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
-  private MemoryService myMemoryService = new MemoryService(myDataStore, getPollTicker()::run);
+  private MemoryService myMemoryService = new MemoryService(myDataStore, getPollTicker()::run, new HashMap<>());
   private FakeMemoryService myFakeMemoryService = new FakeMemoryService();
 
   private TestName myTestName = new TestName();

@@ -95,7 +95,7 @@ public class TestGrpcFile {
     }
     else {
       try {
-        file = TestResources.getFile(TestGrpcService.class, fileName + TEST_FILE_EXT);
+        file = TestResources.getFile(TestGrpcService.class, fileName.replace('\\', '/') + TEST_FILE_EXT);
       }
       catch (IllegalArgumentException ex) {
         throw new IllegalArgumentException(

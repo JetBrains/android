@@ -18,7 +18,6 @@ package com.android.tools.datastore.service;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
-import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
@@ -29,6 +28,8 @@ import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +40,12 @@ import java.util.function.Consumer;
  * The get data command will pull data locally cached from the connected service.
  */
 public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements ServicePassThrough {
-
-  private Map<Integer, PollRunner> myRunners = new HashMap<>();
-  private Consumer<Runnable> myFetchExecutor;
+  private final Map<Integer, PollRunner> myRunners = new HashMap<>();
+  private final Consumer<Runnable> myFetchExecutor;
   private long myStartTraceTimestamp = -1;
 
   @NotNull
-  private final CpuTable myCpuTable = new CpuTable();
+  private final CpuTable myCpuTable;
   @NotNull
   private final DataStoreService myService;
 
@@ -56,9 +56,12 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @SuppressWarnings("unchecked")
   private ResponseData<CpuProfiler.GetTraceInfoResponse> myLastTraceInfoResponse = ResponseData.createEmpty();
 
-  public CpuService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
+  public CpuService(@NotNull DataStoreService dataStoreService,
+                    Consumer<Runnable> fetchExecutor,
+                    @NotNull Map<Common.Session, Long> sessionIdLookup) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
+    myCpuTable = new CpuTable(sessionIdLookup);
   }
 
   @Override
@@ -127,7 +130,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       myRunners
         .put(processId, new CpuDataPoller(processId, request.getSession(), myCpuTable, myService.getCpuClient(request.getSession())));
       myFetchExecutor.accept(myRunners.get(processId));
-    } else {
+    }
+    else {
       observer.onNext(CpuProfiler.CpuStartResponse.getDefaultInstance());
       observer.onCompleted();
     }
@@ -161,7 +165,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     if (client != null) {
       myStartTraceTimestamp = getCurrentDeviceTimeNs(request.getSession());
       observer.onNext(client.startProfilingApp(request));
-    } else {
+    }
+    else {
       observer.onNext(CpuProfiler.CpuProfilingAppStartResponse.getDefaultInstance());
     }
     observer.onCompleted();
@@ -192,7 +197,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
     if (client != null) {
       observer.onNext(client.checkAppProfilingState(request));
-    } else {
+    }
+    else {
       observer.onNext(CpuProfiler.ProfilingStateResponse.getDefaultInstance());
     }
     observer.onCompleted();
@@ -218,9 +224,16 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       .getTimestampNs();
   }
 
+  @NotNull
   @Override
-  public DatastoreTable getDatastoreTable() {
-    return myCpuTable;
+  public List<DataStoreService.BackingNamespace> getBackingNamespaces() {
+    return Collections.singletonList(DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE);
+  }
+
+  @Override
+  public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
+    assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
+    myCpuTable.initialize(connection);
   }
 
   /**

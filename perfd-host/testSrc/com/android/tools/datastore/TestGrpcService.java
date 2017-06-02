@@ -50,7 +50,11 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     this(testClazz, methodName, dataStoreService, service, null);
   }
 
-  public TestGrpcService(Class testClazz, TestName methodName, ServicePassThrough dataStoreService, S service, BindableService secondaryService) {
+  public TestGrpcService(Class testClazz,
+                         TestName methodName,
+                         ServicePassThrough dataStoreService,
+                         S service,
+                         BindableService secondaryService) {
     myService = service;
     myMethodName = methodName;
     myTestClassName = testClazz.getSimpleName();
@@ -71,8 +75,9 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     myServer.start();
     // TODO: Update to work on windows. PathUtil.getTempPath() fails with bazel
     myTestFile = new File("/tmp/datastoredb");
-    myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath());
-    myDatabase.registerTable(myDataStoreService.getDatastoreTable());
+    myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myDataStoreService.getBackingNamespaces()
+      .forEach(namespace -> myDataStoreService.setBackingStore(namespace, myDatabase.getConnection()));
   }
 
   @Override
@@ -83,7 +88,8 @@ public final class TestGrpcService<S extends BindableService> extends ExternalRe
     try {
       // Validate the gRPC call execution order in its entirety makes it easier to view diffs.
       myRpcFile.closeAndValidate();
-    } catch (IOException ex) {
+    }
+    catch (IOException ex) {
       // Failed to close file handle.
       Assert.fail("Failed to validate test: " + ex);
     }

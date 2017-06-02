@@ -59,10 +59,9 @@ public class CpuTableTest {
     sessionLookup.put(SESSION_HUNDREDS, 1L);
     sessionLookup.put(SESSION_THOUSANDS, 2L);
     myDbFile = FileUtil.createTempFile("CpuTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
-    myTable = new CpuTable();
-    myDatabase.registerTable(myTable);
-    myTable.setSessionLookup(sessionLookup);
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myTable = new CpuTable(sessionLookup);
+    myTable.initialize(myDatabase.getConnection());
     populateDatabase();
   }
 

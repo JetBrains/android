@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -97,7 +98,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
-  private NetworkService myNetworkService = new NetworkService(myDataStoreService, getPollTicker()::run);
+  private NetworkService myNetworkService = new NetworkService(myDataStoreService, getPollTicker()::run, new HashMap<>());
 
 
   private final FakeNetworkService myFakeNetworkService = new FakeNetworkService();

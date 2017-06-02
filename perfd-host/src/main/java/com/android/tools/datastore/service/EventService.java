@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.service;
 
-import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
@@ -25,10 +24,11 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,14 +39,17 @@ import java.util.function.Consumer;
  * passed into the connectService function.
  */
 public class EventService extends EventServiceGrpc.EventServiceImplBase implements ServicePassThrough {
+  private final EventsTable myEventsTable;
+  private final Map<Integer, PollRunner> myRunners = new HashMap<>();
+  private final Consumer<Runnable> myFetchExecutor;
+  private final DataStoreService myService;
 
-  private EventsTable myEventsTable = new EventsTable();
-  private Map<Integer, PollRunner> myRunners = new HashMap<>();
-  private Consumer<Runnable> myFetchExecutor;
-  private DataStoreService myService;
-  public EventService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
+  public EventService(@NotNull DataStoreService dataStoreService,
+                      Consumer<Runnable> fetchExecutor,
+                      @NotNull Map<Common.Session, Long> sessionIdLookup) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
+    myEventsTable = new EventsTable(sessionIdLookup);
   }
 
   @Override
@@ -137,8 +140,15 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
     observer.onCompleted();
   }
 
+  @NotNull
   @Override
-  public DatastoreTable getDatastoreTable() {
-    return myEventsTable;
+  public List<DataStoreService.BackingNamespace> getBackingNamespaces() {
+    return Collections.singletonList(DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE);
+  }
+
+  @Override
+  public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
+    assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
+    myEventsTable.initialize(connection);
   }
 }

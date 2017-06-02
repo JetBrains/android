@@ -23,9 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Map;
 
 /**
  * Class that wraps database access for profiler level services. The primary information
@@ -49,14 +50,18 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   // Need to have a lock due to processes being updated and queried at the same time.
   // If a process is being queried, while one is being updated it will not get
   // returned in the query results, this results in the UI flickering.
-  private Object myLock = new Object();
+  private final Object myLock = new Object();
 
   private static Logger getLogger() {
     return Logger.getInstance(ProfilerTable.class);
   }
 
+  public ProfilerTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
+    super(sesstionIdLookup);
+  }
+
   @Override
-  public void initialize(Connection connection) {
+  public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
     try {
       createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session INTEGER NOT NULL", "Data BLOB");
@@ -73,10 +78,10 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   }
 
   @Override
-  public void prepareStatements(Connection connection) {
+  public void prepareStatements() {
     try {
       createStatement(ProfilerStatements.INSERT_DEVICE,
-                      "INSERT INTO Profiler_Devices (Session, Data) values (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+                      "INSERT INTO Profiler_Devices (Session, Data) values (?, ?)", Statement.RETURN_GENERATED_KEYS);
       createStatement(ProfilerStatements.UPDATE_DEVICE,
                       "UPDATE Profiler_Devices SET Data = ? WHERE Session = ?");
       createStatement(ProfilerStatements.INSERT_PROCESS,
@@ -146,7 +151,8 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
         .build();
       if (mySessionIdLookup.containsKey(session)) {
         execute(ProfilerStatements.UPDATE_DEVICE, device.toByteArray(), session.toString());
-      } else {
+      }
+      else {
         long id = executeWithGeneratedKeys(ProfilerStatements.INSERT_DEVICE, session.toString(), device.toByteArray());
         mySessionIdLookup.put(session, id);
       }

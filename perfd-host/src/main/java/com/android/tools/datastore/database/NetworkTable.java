@@ -19,18 +19,14 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements> {
-
   public enum NetworkStatements {
     INSERT_NETWORK_DATA,
     QUERY_NETWORK_DATA_BY_TYPE,
@@ -59,14 +55,20 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
     return Logger.getInstance(NetworkTable.class);
   }
 
+  public NetworkTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
+    super(sesstionIdLookup);
+  }
+
   @Override
-  public void initialize(Connection connection) {
+  public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
     try {
       createTable("Network_Data", "Id INTEGER NOT NULL", "Type INTEGER NOT NULL", "EndTime INTEGER", "Data BLOB");
-      createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Id INTEGER NOT NULL", "StartTime INTEGER",
+      createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Id INTEGER NOT NULL",
+                  "StartTime INTEGER",
                   "EndTime INTEGER",
-                  "ConnectionData BLOB", "BodyData BLOB", "RequestData BLOB", "ResponseData BLOB", "ThreadsData BLOB", "PRIMARY KEY(ProcessId, Id)");
+                  "ConnectionData BLOB", "BodyData BLOB", "RequestData BLOB", "ResponseData BLOB", "ThreadsData BLOB",
+                  "PRIMARY KEY(ProcessId, Id)");
       createUniqueIndex("Network_Data", "Id", "Type", "EndTime");
       createUniqueIndex("Network_Connection", "ProcessId", "Session", "Id");
     }
@@ -76,7 +78,7 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
   }
 
   @Override
-  public void prepareStatements(Connection connection) {
+  public void prepareStatements() {
     try {
       createStatement(NetworkStatements.INSERT_NETWORK_DATA,
                       "INSERT OR IGNORE INTO Network_Data (Id, Type, EndTime, Data) VALUES (?, ?, ?, ?)");

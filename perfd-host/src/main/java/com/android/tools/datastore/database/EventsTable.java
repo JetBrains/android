@@ -19,15 +19,16 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
-
   public enum EventStatements {
     FIND_ACTIVITY,
     INSERT_ACTIVITY,
@@ -40,8 +41,12 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
     return Logger.getInstance(EventsTable.class);
   }
 
+  public EventsTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
+    super(sesstionIdLookup);
+  }
+
   @Override
-  public void initialize(Connection connection) {
+  public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
     try {
       createTable("Events_Activity", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Data BLOB");
@@ -55,7 +60,7 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
   }
 
   @Override
-  public void prepareStatements(Connection connection) {
+  public void prepareStatements() {
     try {
       createStatement(EventStatements.FIND_ACTIVITY, "SELECT Data from Events_Activity WHERE Id = ? AND AppId = ? AND Session = ?");
       createStatement(EventStatements.INSERT_ACTIVITY, "INSERT OR REPLACE INTO Events_Activity (Id, AppId, Session, Data) values (?, ?, ?, ?)");

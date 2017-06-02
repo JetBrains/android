@@ -17,6 +17,8 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,85 +28,77 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Interface a {@link ServicePassThrough} object returns to indicate this object is
+ * Interface a {@link com.android.tools.datastore.ServicePassThrough} object returns to indicate this object is
  * storing results in a database.
  */
 public abstract class DatastoreTable<T extends Enum> {
-
   private static final Logger LOG = Logger.getInstance(DatastoreTable.class.getCanonicalName());
   private static final long KEYS_ERROR = -1;
 
-  private ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
   private Connection myConnection;
-  protected HashMap<Common.Session, Long> mySessionIdLookup;
+  private ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
+  protected final Map<Common.Session, Long> mySessionIdLookup;
+
+  public DatastoreTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
+    mySessionIdLookup = sesstionIdLookup;
+  }
 
   /**
    * Initialization function to create tables for the Database.
    *
    * @param connection an open connection to the database.
    */
-  public void initialize(Connection connection) {
+  public void initialize(@NotNull Connection connection) {
     myConnection = connection;
-  }
-
-  protected Map<T, PreparedStatement> getStatementMap() {
-    if (myStatementMap.get() == null) {
-      myStatementMap.set(new HashMap());
-      prepareStatements(myConnection);
-    }
-    return myStatementMap.get();
-  }
-
-  public void setSessionLookup(HashMap<Common.Session, Long> sessionId) {
-    mySessionIdLookup = sessionId;
   }
 
   /**
    * Helper function called after initialize to create {@link PreparedStatement} the implementor should cache
    * the statements for later use.
-   *
-   * @param connection an open connection to the database that should be used in creating the statements
    */
-  public abstract void prepareStatements(Connection connection);
+  public abstract void prepareStatements();
 
-  protected void createTable(String table, String... columns) throws SQLException {
+  @NotNull
+  protected Map<T, PreparedStatement> getStatementMap() {
+    if (myStatementMap.get() == null) {
+      myStatementMap.set(new HashMap<>());
+      prepareStatements();
+    }
+    return myStatementMap.get();
+  }
+
+  protected void createTable(@NotNull String table, String... columns) throws SQLException {
     myConnection.createStatement().execute(String.format("DROP TABLE IF EXISTS %s ", table));
     StringBuilder statement = new StringBuilder();
     statement.append(String.format("CREATE TABLE %s", table));
     executeUniqueStatement(statement, columns);
   }
 
-  protected void createUniqueIndex(String table, String... indexList) throws SQLException {
+  protected void createUniqueIndex(@NotNull String table, String... indexList) throws SQLException {
     StringBuilder statement = new StringBuilder();
     statement.append(String.format("CREATE UNIQUE INDEX IF NOT EXISTS idx_%s_pk ON %s", table, table));
     executeUniqueStatement(statement, indexList);
   }
 
-  protected void createIndex(String table, String... indexList) throws SQLException {
-    StringBuilder statement = new StringBuilder();
-    statement.append(String.format("CREATE INDEX IF NOT EXISTS idx_%s_pk ON %s", table, table));
-    executeUniqueStatement(statement, indexList);
-  }
-
-  protected void createIndex(String table, int indexId, String... indexList) throws SQLException {
+  protected void createIndex(@NotNull String table, int indexId, String... indexList) throws SQLException {
     StringBuilder statement = new StringBuilder();
     statement.append(String.format("CREATE INDEX IF NOT EXISTS idx_%s_%d_pk ON %s", table, indexId, table));
     executeUniqueStatement(statement, indexList);
   }
 
-  private void executeUniqueStatement(StringBuilder statement, String[] params) throws SQLException {
+  private void executeUniqueStatement(@NotNull StringBuilder statement, @NotNull String[] params) throws SQLException {
     myConnection.createStatement().execute(String.format("%s ( %s )", statement, String.join(",", params)));
   }
 
-  protected void createStatement(T statement, String stmt) throws SQLException {
+  protected void createStatement(@NotNull T statement, @NotNull String stmt) throws SQLException {
     getStatementMap().put(statement, myConnection.prepareStatement(stmt));
   }
 
-  protected void createStatement(T statement, String stmt, int statementFlags) throws SQLException {
+  protected void createStatement(@NotNull T statement, @NotNull String stmt, int statementFlags) throws SQLException {
     getStatementMap().put(statement, myConnection.prepareStatement(stmt, statementFlags));
   }
 
-  protected void execute(T statement, Object... params) {
+  protected void execute(@NotNull T statement, Object... params) {
     try {
       PreparedStatement stmt = getStatementMap().get(statement);
       applyParams(stmt, params);
@@ -115,7 +109,7 @@ public abstract class DatastoreTable<T extends Enum> {
     }
   }
 
-  protected long executeWithGeneratedKeys(T statement, Object... params) {
+  protected long executeWithGeneratedKeys(@NotNull T statement, Object... params) {
     try {
       PreparedStatement stmt = getStatementMap().get(statement);
       applyParams(stmt, params);
@@ -128,13 +122,13 @@ public abstract class DatastoreTable<T extends Enum> {
     return KEYS_ERROR;
   }
 
-  protected ResultSet executeQuery(T statement, Object... params) throws SQLException {
+  protected ResultSet executeQuery(@NotNull T statement, Object... params) throws SQLException {
     PreparedStatement stmt = getStatementMap().get(statement);
     applyParams(stmt, params);
     return stmt.executeQuery();
   }
 
-  protected void applyParams(PreparedStatement statement, Object... params) throws SQLException {
+  protected void applyParams(@NotNull PreparedStatement statement, Object... params) throws SQLException {
     for (int i = 0; params != null && i < params.length; i++) {
       if (params[i] == null) {
         continue;
@@ -152,9 +146,11 @@ public abstract class DatastoreTable<T extends Enum> {
         statement.setBytes(i + 1, (byte[])params[i]);
       }
       else if (params[i] instanceof Common.Session) {
-        if (mySessionIdLookup.containsKey(params[i])) {
-          statement.setLong(i + 1, mySessionIdLookup.get(params[i]));
-        } else {
+        Common.Session session = (Common.Session)params[i];
+        if (mySessionIdLookup.containsKey(session)) {
+          statement.setLong(i + 1, mySessionIdLookup.get(session));
+        }
+        else {
           // TODO: Throw exception if a user attempts to insert / update a session id that is invalid
           LOG.warn("Session not found: " + params[i]);
           statement.setLong(i + 1, KEYS_ERROR);

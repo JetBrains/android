@@ -15,25 +15,32 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.datastore.database.DatastoreTable;
-import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.RunnableFuture;
+import java.sql.Connection;
+import java.util.List;
 
 /**
  * Interface for a class that wraps a grpc service. Once connected to the service, you will need to
  * trigger its runner (probably on a background thread) to begin polling it.
  */
 public interface ServicePassThrough {
-
   /**
    * @return bound service object for setting up an RPC client.
    */
+  @NotNull
   ServerServiceDefinition bindService();
 
   /**
-   * @return a DatastoreTable for the Datastore to register a connection with, or null.
+   * @return a list of namespaces to store the data
    */
-  DatastoreTable getDatastoreTable();
+  @NotNull
+  List<DataStoreService.BackingNamespace> getBackingNamespaces();
+
+  /**
+   * @param namespace a namespace corresponding to an entry in the list returned from {@link #getBackingNamespaces()}
+   * @param connection {@link Connection} to the backing store
+   */
+  void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection);
 }
