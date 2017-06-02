@@ -15,47 +15,61 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.datastore.database.DatastoreTable;
-import com.android.tools.profiler.proto.Common;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 public class DataStoreDatabase {
+  public enum Characteristic {
+    // TODO handle potential db file name clashes
+    DURABLE,
+    PERFORMANT
+  }
 
   private static Logger getLogger() {
     return Logger.getInstance(DataStoreDatabase.class);
   }
 
   private final Connection myConnection;
-  private HashMap<Common.Session, Long> mySessionIdLookup;
 
-  public DataStoreDatabase(String database) {
-    myConnection = initConnection(new File(database));
-    mySessionIdLookup = new HashMap<>();
-  }
-
-  private Connection initConnection(File dbFile) {
+  /**
+   * @param dbPath the path to the backing DB file, if {@link Characteristic#DURABLE}.
+   */
+  public DataStoreDatabase(@NotNull String dbPath, @NotNull Characteristic characteristic) {
+    Connection connection = null;
     try {
-
       // For older versions of the JDBC we need to force load the sqlite.JDBC driver to trigger static initializer's and register
       // the JDBC driver with the java DriverMangaer.
       Class.forName("org.sqlite.JDBC");
-      final Connection connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", dbFile.getPath()));
+
+      switch (characteristic) {
+        case PERFORMANT:
+          connection = DriverManager.getConnection("jdbc:sqlite::memory:");
+          break;
+        case DURABLE:
+          File dbFile = new File(dbPath);
+          File parent = dbFile.getParentFile();
+          if (parent != null) {
+            parent.mkdirs();
+          }
+          connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", dbFile.getPath()));
+          break;
+        default:
+          throw new RuntimeException("Characteristic not hadled!");
+      }
 
       // Performance optimization.
       // TODO: Create a timer and commit the database transaction every X seconds.
       connection.setAutoCommit(false);
-      return connection;
     }
     catch (ClassNotFoundException | SQLException e) {
       getLogger().error(e);
     }
-    return null;
+    myConnection = connection;
   }
 
   public void disconnect() {
@@ -75,11 +89,7 @@ public class DataStoreDatabase {
     }
   }
 
-  public void registerTable(DatastoreTable table) {
-    if (table != null) {
-      table.initialize(myConnection);
-      table.prepareStatements(myConnection);
-      table.setSessionLookup(mySessionIdLookup);
-    }
+  public Connection getConnection() {
+    return myConnection;
   }
 }

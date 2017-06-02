@@ -43,10 +43,9 @@ public class ProfilerService implements Disposable {
   private final ProfilerClient myClient;
 
   private ProfilerService() {
-    String directory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
-    DataStoreService dataStoreService = new DataStoreService(DATASTORE_NAME,
-                                                             directory + DATASTORE_NAME,
-                                                             ApplicationManager.getApplication()::executeOnPooledThread);
+    String datastoreDirectory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
+    DataStoreService dataStoreService =
+      new DataStoreService(DATASTORE_NAME, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread);
     myManager = new StudioProfilerDeviceManager(dataStoreService);
     myClient = new ProfilerClient(DATASTORE_NAME);
     IdeSdks.subscribe(myManager, this);

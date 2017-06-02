@@ -20,14 +20,17 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.poller.ProfilerDevicePoller;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
 import io.grpc.Channel;
-import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -36,14 +39,17 @@ import java.util.function.Consumer;
  * The data is populated from polling the service passed into the connectService function.
  */
 public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
-  private Map<Channel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
-  private Consumer<Runnable> myFetchExecutor;
-  private ProfilerTable myTable = new ProfilerTable();
-  private DataStoreService myService;
+  private final Map<Channel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
+  private final Consumer<Runnable> myFetchExecutor;
+  private final ProfilerTable myTable;
+  private final DataStoreService myService;
 
-  public ProfilerService(@NotNull DataStoreService service, Consumer<Runnable> fetchExecutor) {
+  public ProfilerService(@NotNull DataStoreService service,
+                         Consumer<Runnable> fetchExecutor,
+                         @NotNull Map<Common.Session, Long> sessionIdLookup) {
     myService = service;
     myFetchExecutor = fetchExecutor;
+    myTable = new ProfilerTable(sessionIdLookup);
   }
 
   @Override
@@ -129,8 +135,15 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     responseObserver.onCompleted();
   }
 
+  @NotNull
   @Override
-  public DatastoreTable getDatastoreTable() {
-    return myTable;
+  public List<DataStoreService.BackingNamespace> getBackingNamespaces() {
+    return Collections.singletonList(DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE);
+  }
+
+  @Override
+  public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
+    assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
+    myTable.initialize(connection);
   }
 }

@@ -22,46 +22,76 @@ import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
+
+import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
 
 /**
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
 public class DataStoreService {
+  public static class BackingNamespace {
+    public static final BackingNamespace DEFAULT_SHARED_NAMESPACE = new BackingNamespace("default.sql", DURABLE);
+
+    @NotNull public final String myNamespace;
+    @NotNull public final DataStoreDatabase.Characteristic myCharacteristic;
+
+    public BackingNamespace(@NotNull String namespace, @NotNull DataStoreDatabase.Characteristic characteristic) {
+      myNamespace = namespace;
+      myCharacteristic = characteristic;
+    }
+
+    @Override
+    public int hashCode() {
+      return Arrays.hashCode(new Object[]{myNamespace, myCharacteristic});
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof BackingNamespace)) {
+        return false;
+      }
+
+      BackingNamespace other = (BackingNamespace)obj;
+      return myNamespace.equals(other.myNamespace) && myCharacteristic == other.myCharacteristic;
+    }
+  }
+
   private static final Logger LOG = Logger.getInstance(DataStoreService.class.getCanonicalName());
-  private DataStoreDatabase myDatabase;
-  private ServerBuilder myServerBuilder;
-  private Server myServer;
-  private List<ServicePassThrough> myServices = new ArrayList<>();
-  private Consumer<Runnable> myFetchExecutor;
+  private final String myDatastoreDirectory;
+  private final Map<BackingNamespace, DataStoreDatabase> myDatabases = new HashMap<>();
+  private final HashMap<Common.Session, Long> mySessionIdLookup = new HashMap<>();
+  private final ServerBuilder myServerBuilder;
+  private final Server myServer;
+  private final List<ServicePassThrough> myServices = new ArrayList<>();
+  private final Consumer<Runnable> myFetchExecutor;
   private ProfilerService myProfilerService;
-  private ServerInterceptor myInterceptor;
-  private Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
+  private final ServerInterceptor myInterceptor;
+  private final Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
 
   /**
    * @param fetchExecutor A callback which is given a {@link Runnable} for each datastore service.
    *                      The runnable, when run, begins polling the target service. You probably
    *                      want to run it on a background thread.
    */
-  public DataStoreService(String serviceName, String dbPath, Consumer<Runnable> fetchExecutor) {
-    this(serviceName, dbPath, fetchExecutor, null);
+  public DataStoreService(@NotNull String serviceName, @NotNull String datastoreDirectory, Consumer<Runnable> fetchExecutor) {
+    this(serviceName, datastoreDirectory, fetchExecutor, null);
   }
 
-  public DataStoreService(String serviceName, String dbPath, Consumer<Runnable> fetchExecutor, ServerInterceptor interceptor) {
+  public DataStoreService(@NotNull String serviceName,
+                          @NotNull String datastoreDirectory,
+                          @NotNull Consumer<Runnable> fetchExecutor,
+                          ServerInterceptor interceptor) {
+    myFetchExecutor = fetchExecutor;
+    myInterceptor = interceptor;
+    myDatastoreDirectory = datastoreDirectory;
+    myServerBuilder = InProcessServerBuilder.forName(serviceName).directExecutor();
+    createPollers();
+    myServer = myServerBuilder.build();
     try {
-      myFetchExecutor = fetchExecutor;
-      myInterceptor = interceptor;
-      myDatabase = new DataStoreDatabase(dbPath);
-      myServerBuilder = InProcessServerBuilder.forName(serviceName).directExecutor();
-      createPollers();
-      myServer = myServerBuilder.build();
       myServer.start();
     }
     catch (IOException ex) {
@@ -74,12 +104,18 @@ public class DataStoreService {
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myProfilerService = new ProfilerService(this, myFetchExecutor);
+    myProfilerService = new ProfilerService(this, myFetchExecutor, mySessionIdLookup);
     registerService(myProfilerService);
-    registerService(new EventService(this, myFetchExecutor));
-    registerService(new CpuService(this, myFetchExecutor));
-    registerService(new MemoryService(this, myFetchExecutor));
-    registerService(new NetworkService(this, myFetchExecutor));
+    registerService(new EventService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new CpuService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new MemoryService(this, myFetchExecutor, mySessionIdLookup));
+    registerService(new NetworkService(this, myFetchExecutor, mySessionIdLookup));
+  }
+
+  @VisibleForTesting
+  @NotNull
+  DataStoreDatabase createDatabase(@NotNull String dbPath, @NotNull DataStoreDatabase.Characteristic characteristic) {
+    return new DataStoreDatabase(dbPath, characteristic);
   }
 
   /**
@@ -87,14 +123,22 @@ public class DataStoreService {
    *
    * @param service The service to register with the datastore. This service will be setup as a listener for studio to talk to.
    */
-  private void registerService(ServicePassThrough service) {
+  @VisibleForTesting
+  void registerService(@NotNull ServicePassThrough service) {
     myServices.add(service);
-    myDatabase.registerTable(service.getDatastoreTable());
-    // Build server and start listening for RPC calls for the registered service
+    List<BackingNamespace> namespaces = service.getBackingNamespaces();
+    namespaces.forEach(namespace -> {
+      assert !namespace.myNamespace.isEmpty();
+      DataStoreDatabase db = myDatabases.computeIfAbsent(namespace, backingNamespace -> createDatabase(
+        myDatastoreDirectory + backingNamespace.myNamespace, backingNamespace.myCharacteristic));
+      service.setBackingStore(namespace, db.getConnection());
+    });
 
+    // Build server and start listening for RPC calls for the registered service
     if (myInterceptor != null) {
       myServerBuilder.addService(ServerInterceptors.intercept(service.bindService(), myInterceptor));
-    } else {
+    }
+    else {
       myServerBuilder.addService(service.bindService());
     }
   }
@@ -102,7 +146,7 @@ public class DataStoreService {
   /**
    * When a new device is connected this function tells the DataStore how to connect to that device and creates a channel for the device.
    *
-   * @param devicePort forwarded port for the datastore to connect to perfd on.
+   * @param channel communication channel for the datastore to connect to perfd on.
    */
   public void connect(@NotNull ManagedChannel channel) {
     myProfilerService.startMonitoring(channel);
@@ -112,7 +156,7 @@ public class DataStoreService {
    * Disconnect from the specified channel.
    */
   public void disconnect(@NotNull Common.Session session) {
-    if(myConnectedClients.containsKey(session)) {
+    if (myConnectedClients.containsKey(session)) {
       DataStoreClient client = myConnectedClients.remove(session);
       client.shutdownNow();
       myProfilerService.stopMonitoring(client.getChannel());
@@ -121,11 +165,11 @@ public class DataStoreService {
 
   public void shutdown() {
     myServer.shutdownNow();
-    for(DataStoreClient client : myConnectedClients.values()) {
+    for (DataStoreClient client : myConnectedClients.values()) {
       client.shutdownNow();
     }
     myConnectedClients.clear();
-    myDatabase.disconnect();
+    myDatabases.forEach((name, db) -> db.disconnect());
   }
 
   @VisibleForTesting
@@ -164,7 +208,6 @@ public class DataStoreService {
    * This class is used to manage the stub to each service per device.
    */
   private static class DataStoreClient {
-
     @NotNull private final Channel myChannel;
     @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
     @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
@@ -180,6 +223,8 @@ public class DataStoreService {
       myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
       myEventClient = EventServiceGrpc.newBlockingStub(channel);
     }
+
+    @NotNull
     public Channel getChannel() {
       return myChannel;
     }
@@ -211,7 +256,7 @@ public class DataStoreService {
 
     public void shutdownNow() {
       // The check is needed because the test replace the channel with a PassthroughChannel instead of a managed channel.
-      if( myChannel instanceof ManagedChannel ) {
+      if (myChannel instanceof ManagedChannel) {
         ((ManagedChannel)myChannel).shutdownNow();
       }
     }

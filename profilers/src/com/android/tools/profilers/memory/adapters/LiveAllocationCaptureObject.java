@@ -24,7 +24,6 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingS
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener.ChangedNode;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +60,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final MemoryServiceBlockingStub myClient;
   private final Common.Session mySession;
   private final int myProcessId;
-  private final long myCaptureTime;
+  private final long myCaptureStartTime;
   private final FeatureTracker myFeatureTracker;
   private final HeapSet myDefaultHeapSet;
   private final AspectObserver myAspectObserver;
@@ -75,7 +74,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                      @Nullable Common.Session session,
                                      int processId,
-                                     long captureTime,
+                                     long captureStartTime,
                                      @NotNull FeatureTracker featureTracker) {
     myExecutorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("profiler-live-allocation").build());
     myClassDb = new ClassDb();
@@ -85,7 +84,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myClient = client;
     mySession = session;
     myProcessId = processId;
-    myCaptureTime = captureTime;
+    myCaptureStartTime = captureStartTime;
     myFeatureTracker = featureTracker;
     myDefaultHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
     myAspectObserver = new AspectObserver();
@@ -151,7 +150,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @Override
   public long getStartTimeNs() {
-    return myCaptureTime;
+    return myCaptureStartTime;
   }
 
   @Override
@@ -164,12 +163,12 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     assert queryRange != null;
     assert queryJoiner != null;
     myQueryRange = queryRange;
-    myQueryRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, () -> {
-      loadTimeRange(myQueryRange, queryJoiner == null ? MoreExecutors.directExecutor() : queryJoiner);
-    });
+    // TODO There's a problem with this, as the datastore is effectively a real-time system.
+    // TODO In other words, when we query for some range, we may not get back entries that are still being inserted, and we don't re-query.
+    myQueryRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, () -> loadTimeRange(myQueryRange, queryJoiner));
 
     // Load the initial data within queryRange.
-    loadTimeRange(myQueryRange, queryJoiner == null ? MoreExecutors.directExecutor() : queryJoiner);
+    loadTimeRange(myQueryRange, queryJoiner);
 
     return true;
   }
@@ -223,7 +222,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     boolean clear = refresh;
     try {
       myExecutorService.submit(() -> {
-        int totalChanged = 0; // TODO remove this, as this is a hack (because we get CLASS_DATA back multiple times)
+        int totalChanged = 0;
         List<InstanceObject> instancesAdded = new ArrayList<>();
         List<InstanceObject> instancesFreed = new ArrayList<>();
 
@@ -258,7 +257,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
         MemoryProfiler.BatchAllocationSample sampleResponse = myClient.getAllocations(
           MemoryProfiler.AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-            .setCaptureTime(myCaptureTime).setStartTime(queryTimeStartNs).setEndTime(endTimeNs).build());
+            .setStartTime(queryTimeStartNs).setEndTime(endTimeNs).build());
 
         myPreviousQueryEndTimeNs = Math.max(myPreviousQueryEndTimeNs, sampleResponse.getTimestamp());
         for (AllocationEvent event : sampleResponse.getEventsList()) {
@@ -290,7 +289,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         }
 
         if (!myListeners.isEmpty() && (totalChanged > 0 || clear)) {
-          myListeners.forEach(listener -> joiner.execute(() -> {
+          joiner.execute(() -> {
             if (clear) {
               myDefaultHeapSet.clearClassifierSets();
             }
@@ -307,9 +306,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
               myDefaultHeapSet.freeInstanceObject(instance, path);
               changedNode.addPath(path);
             });
-
-            listener.heapChanged(changedNode, clear);
-          }));
+            myListeners.forEach(listener -> listener.heapChanged(changedNode, clear));
+          });
         }
         return null;
       });

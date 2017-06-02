@@ -55,10 +55,9 @@ public class NetworkTableTest {
     HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
     sessionLookup.put(VALID_SESSION, 1L);
     myDbFile = File.createTempFile("NetworkTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
-    myTable = new NetworkTable();
-    myDatabase.registerTable(myTable);
-    myTable.setSessionLookup(sessionLookup);
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myTable = new NetworkTable(sessionLookup);
+    myTable.initialize(myDatabase.getConnection());
     populateDatabase();
   }
 

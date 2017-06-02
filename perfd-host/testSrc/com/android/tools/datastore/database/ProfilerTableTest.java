@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 
@@ -36,9 +37,9 @@ public class ProfilerTableTest {
   @Before
   public void setUp() throws Exception {
     myDbFile = FileUtil.createTempFile("ProfileTable", "mysql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
-    myTable = new ProfilerTable();
-    myDatabase.registerTable(myTable);
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myTable = new ProfilerTable(new HashMap<>());
+    myTable.initialize(myDatabase.getConnection());
   }
 
   @After

@@ -30,6 +30,7 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertFalse;
@@ -90,7 +91,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
-  private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run);
+  private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run, new HashMap<>());
 
   public TestName myTestName = new TestName();
   public TestGrpcService<FakeCpuService> myService =

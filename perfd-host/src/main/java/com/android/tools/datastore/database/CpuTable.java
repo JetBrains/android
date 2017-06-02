@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.google.protobuf3jarjar.ByteString;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -30,7 +31,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
-
   private static final int DATA_COLUMN = 1;
   private static final int TRACE_ID_COLUMN = 1;
   private static final int FROM_TIMESTAMP_COLUMN = 2;
@@ -50,8 +50,12 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
     return Logger.getInstance(CpuTable.class);
   }
 
+  public CpuTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
+    super(sesstionIdLookup);
+  }
+
   @Override
-  public void initialize(Connection connection) {
+  public void initialize(@NotNull Connection connection) {
     super.initialize(connection);
     try {
       createTable("Cpu_Data",
@@ -78,7 +82,7 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
   }
 
   @Override
-  public void prepareStatements(Connection connection) {
+  public void prepareStatements() {
     try {
       createStatement(CpuTable.CpuStatements.INSERT_CPU_DATA,
                       "INSERT OR REPLACE INTO Cpu_Data (AppId, Timestamp, Session, Data) values (?, ?, ?, ?)");
