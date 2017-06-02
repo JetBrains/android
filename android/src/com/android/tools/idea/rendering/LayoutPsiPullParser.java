@@ -91,7 +91,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
   /** Mapping from URI to namespace prefix for android, app and tools URIs */
   @NotNull
-  protected ImmutableMap<String, String> myNamespacePrefixes;
+  protected final ImmutableMap<String, String> myNamespacePrefixes;
 
   protected boolean myProvideViewCookies = true;
 
@@ -175,10 +175,24 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag);
   }
 
-  private static ImmutableMap<String, String> buildNamespacesMap(@NotNull XmlTag root) {
+  /**
+   * Returns the declared namespaces in the passed {@link TagSnapshot}. If the passed root is null, an empty map is returned.
+   * This method will run in a read action if needed.
+   */
+  @NotNull
+  private static ImmutableMap<String, String> buildNamespacesMap(@Nullable TagSnapshot root) {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction((Computable<ImmutableMap<String, String>>)() -> buildNamespacesMap(root));
+    }
+
+    XmlTag rootTag = root != null ? root.tag : null;
+    if (rootTag == null || !rootTag.isValid()) {
+      return ImmutableMap.of();
+    }
+
     ImmutableMap.Builder<String, String> prefixesBuilder = ImmutableMap.builder();
     for (String uri : new String[]{ANDROID_URI, TOOLS_URI, AUTO_URI}) {
-      String prefix = root.getPrefixByNamespace(uri);
+      String prefix = rootTag.getPrefixByNamespace(uri);
       if (prefix != null) {
         prefixesBuilder.put(uri, prefix);
       }
@@ -195,51 +209,35 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     myLogger = logger;
 
     if (root != null) {
-      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
         if (root.isValid()) {
-          myNamespacePrefixes = buildNamespacesMap(root);
-          myRoot = createSnapshot(root, honorMergeParentTag);
+          return createSnapshot(root, honorMergeParentTag);
         } else {
-          myRoot = EMPTY_LAYOUT;
+          return EMPTY_LAYOUT;
         }
-      } else {
-        myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-          if (root.isValid()) {
-            myNamespacePrefixes = buildNamespacesMap(root);
-            return createSnapshot(root, honorMergeParentTag);
-          } else {
-            return EMPTY_LAYOUT;
-          }
-        });
-      }
+      });
     } else {
       myRoot = EMPTY_LAYOUT;
     }
 
+    myNamespacePrefixes = buildNamespacesMap(myRoot);
     // Obtain a list of all the aapt declared attributes
-    myDeclaredAaptAttrs = myRoot != null ? findDeclaredAaptAttrs(myRoot) : Collections.emptyMap();
+    myDeclaredAaptAttrs = findDeclaredAaptAttrs(myRoot);
   }
 
-  protected LayoutPsiPullParser(@Nullable TagSnapshot root, @NotNull ILayoutLog log) {
+  protected LayoutPsiPullParser(@NotNull TagSnapshot root, @NotNull ILayoutLog log) {
     myLogger = log;
     myDeclaredAaptAttrs = Collections.emptyMap();
-    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+
+    myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
       if (root.tag != null && root.tag.isValid()) {
-        myNamespacePrefixes = buildNamespacesMap(root.tag);
-        myRoot = root;
+        return root;
       } else {
-        myRoot = null;
+        return null;
       }
-    } else {
-      myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-        if (root.tag != null && root.tag.isValid()) {
-          myNamespacePrefixes = buildNamespacesMap(root.tag);
-          return root;
-        } else {
-          return null;
-        }
-      });
-    }
+    });
+
+    myNamespacePrefixes = buildNamespacesMap(myRoot);
   }
 
   /**
@@ -255,8 +253,8 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * Method that walks the snapshot and finds all the aapt:attr elements declared.
    */
   @NotNull
-  private static Map<String, TagSnapshot> findDeclaredAaptAttrs(@NotNull TagSnapshot tag) {
-    if (!tag.hasDeclaredAaptAttrs) {
+  private static Map<String, TagSnapshot> findDeclaredAaptAttrs(@Nullable TagSnapshot tag) {
+    if (tag == null || !tag.hasDeclaredAaptAttrs) {
       // Nor tag or any of the children has any aapt:attr declarations, we can stop here.
       return Collections.emptyMap();
     }
