@@ -138,7 +138,7 @@ public class HprofView implements Disposable {
 
     myContainer = new JPanel(new LightFillLayout());
 
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidHprofView", group, true);
     toolbar.getComponent().setName(TOOLBAR_NAME);
     myContainer.add(toolbar.getComponent(), BorderLayout.NORTH);
     myContainer.add(mainSplitter);

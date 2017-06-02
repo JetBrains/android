@@ -105,7 +105,7 @@ public class ExtractBackgroundForm {
    * Create an {@link ActionToolbar} with the undo and redo actions
    */
   private JComponent createUndoRedoButtons() {
-    return ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, new DefaultActionGroup(
+    return ActionManager.getInstance().createActionToolbar("AndroidExtractBackgroundUndoRedo", new DefaultActionGroup(
       new AnAction("Undo", "Undo", AllIcons.Actions.Undo) {
 
         @Override
