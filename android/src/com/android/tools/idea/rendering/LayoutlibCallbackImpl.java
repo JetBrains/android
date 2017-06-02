@@ -369,12 +369,16 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       parser = getParser(layoutResource.getName(), layoutResource.isFramework(), new File(layoutResource.getValue()));
     }
 
-    if (parser instanceof LayoutPsiPullParser) {
-      // For parser of elements included in this parser, publish any aapt declared values
-      myAaptDeclaredResources = ImmutableMap.<String, TagSnapshot>builder()
-        .putAll(((LayoutPsiPullParser)parser).getAaptDeclaredAttrs())
-        .putAll(myAaptDeclaredResources)
-        .build();
+    if (parser instanceof AaptAttrParser) {
+      ImmutableMap<String, TagSnapshot> declared = ((AaptAttrParser)parser).getAaptDeclaredAttrs();
+
+      if (!declared.isEmpty()) {
+        // For parser of elements included in this parser, publish any aapt declared values
+        myAaptDeclaredResources = ImmutableMap.<String, TagSnapshot>builder()
+          .putAll(((AaptAttrParser)parser).getAaptDeclaredAttrs())
+          .putAll(myAaptDeclaredResources)
+          .build();
+      }
     }
 
     return parser;
