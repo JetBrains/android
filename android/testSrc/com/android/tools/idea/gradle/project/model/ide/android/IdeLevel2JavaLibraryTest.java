@@ -46,7 +46,7 @@ public class IdeLevel2JavaLibraryTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeLevel2JavaLibrary javaLibrary = new IdeLevel2JavaLibrary(new Level2JavaLibraryStub(), myModelCache);
+    Library javaLibrary = IdeLevel2LibraryFactory.create(new Level2JavaLibraryStub(), myModelCache);
     byte[] bytes = serialize(javaLibrary);
     Object o = deserialize(bytes);
     assertEquals(javaLibrary, o);
@@ -55,7 +55,7 @@ public class IdeLevel2JavaLibraryTest {
   @Test
   public void constructor() throws Throwable {
     Library original = new Level2JavaLibraryStub();
-    IdeLevel2JavaLibrary copy = new IdeLevel2JavaLibrary(original, myModelCache);
+    Library copy = IdeLevel2LibraryFactory.create(new Level2JavaLibraryStub(), myModelCache);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
   }

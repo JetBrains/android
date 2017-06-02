@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link Library} if getType() returns LIBRARY_JAVA
+ * Creates a deep copy of {@link Library} of type LIBRARY_JAVA.
  */
 public final class IdeLevel2JavaLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -36,11 +36,14 @@ public final class IdeLevel2JavaLibrary extends IdeModel implements Library {
   private final int myType;
   private final int myHashCode;
 
-  public IdeLevel2JavaLibrary(@NotNull Library library, @NotNull ModelCache modelCache) {
-    super(library, modelCache);
-    myType = library.getType();
-    myArtifactAddress = library.getArtifactAddress();
-    myArtifactFile = library.getArtifact();
+  IdeLevel2JavaLibrary(@NotNull String artifactAddress,
+                       @NotNull File artifactFile,
+                       @NotNull ModelCache modelCache,
+                       @NotNull Object sourceObject) {
+    super(sourceObject, modelCache);
+    myType = LIBRARY_JAVA;
+    myArtifactAddress = artifactAddress;
+    myArtifactFile = artifactFile;
     myHashCode = calculateHashCode();
   }
 
