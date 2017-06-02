@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
-import com.android.tools.adtui.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.renderer.NlXmlValueRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
@@ -63,7 +63,7 @@ public class NlResourceValueEditor extends PTableCellEditor {
       @Override
       public void focusGained(@NotNull FocusEvent event) {
         if (!myCompletionsUpdated) {
-          myTextEditorWithAutoCompletion.updateCompletionsFromTypes(myItem.getFacet(), getResourceTypes());
+          myTextEditorWithAutoCompletion.updateCompletionsFromTypes(myItem.getFacet(), getResourceTypes(), null);
           myCompletionsUpdated = true;
         }
         myTextEditorWithAutoCompletion.selectAll();
