@@ -187,7 +187,7 @@ public class InstantRunTest {
    */
   @Test
   @Ignore("b/37506663: Please ask QA team for enabling this test.")
-  public void ActivityRunningOnSeparateProcess() throws Exception {
+  public void activityRunningOnSeparateProcess() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
