@@ -20,7 +20,6 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -49,11 +48,9 @@ public final class StringResourceRepository {
 
   @NotNull
   public StringResourceData getData(@NotNull AndroidFacet facet) {
-    Project project = facet.getModule().getProject();
-
     Map<StringResourceKey, StringResource> map = myKeyToRepositoryMap.keySet().stream()
       .collect(Collectors.toMap(Function.identity(),
-                                key -> new StringResource(key, getItems(key), project),
+                                key -> new StringResource(key, getItems(key), facet),
                                 (resource1, resource2) -> {
                                   throw new IllegalStateException("Duplicate key " + resource1);
                                 },
