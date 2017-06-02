@@ -168,4 +168,9 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
     return sb.toString();
   }
+
+  public String getSelectedTabTitle() {
+    JTabbedPane type = robot().finder().findByType(JTabbedPane.class);
+    return type.getTitleAt(type.getSelectedIndex());
+  }
 }
