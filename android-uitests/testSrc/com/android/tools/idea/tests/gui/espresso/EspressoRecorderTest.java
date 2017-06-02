@@ -47,7 +47,7 @@ public class EspressoRecorderTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14581575
+   * TT ID: 908a36f6-4e89-4031-8b3d-c2a75ddc7f08
    * <p>
    *   <pre>
    *   Test Steps:
