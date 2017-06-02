@@ -214,7 +214,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   private ActionToolbar createToolbar() {
     DefaultActionGroup group = new DefaultActionGroup();
-    final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+    final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidStringResourceView", group, true);
 
     final AnAction addKeyAction = new AnAction("Add Key", "", AllIcons.ToolbarDecorator.Add) {
       @Override

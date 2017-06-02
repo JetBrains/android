@@ -268,7 +268,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     group.add(new MyAddFilterAction());
     group.add(new MyRemoveFilterAction());
     final JComponent component =
-      ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
+      ActionManager.getInstance().createActionToolbar("AndroidEditLogFilter", group, true).getComponent();
     myFiltersToolbarPanel.add(component, BorderLayout.CENTER);
   }
 
