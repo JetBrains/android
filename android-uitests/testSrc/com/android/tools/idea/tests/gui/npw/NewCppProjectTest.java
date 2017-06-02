@@ -55,7 +55,7 @@ public class NewCppProjectTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14603474
+   * TT ID: ede43cef-f4a1-484b-9b1b-58000c4ba17c
    * <p>
    *   <pre>
    *   Steps:
@@ -100,7 +100,7 @@ public class NewCppProjectTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14603475
+   * TT ID: 45d4c00b-a6a8-4e48-b9af-d55094ae17a3
    * <p>
    *   <pre>
    *   Steps:
