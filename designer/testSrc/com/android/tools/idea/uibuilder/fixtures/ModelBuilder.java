@@ -47,7 +47,6 @@ import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /** Fixture for building up models for tests */
@@ -165,7 +164,7 @@ public class ModelBuilder {
     });
   }
 
-  /** Update the given model to reflect the NlComponentHelperKt.getH(component)ierarchy in the given builder */
+  /** Update the given model to reflect the componentHierarchy in the given builder */
   public void updateModel(NlModel model) {
     assertThat(model).isNotNull();
     NlModel newModel = build();

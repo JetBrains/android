@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
@@ -141,6 +142,7 @@ public class DestinationListTest extends NavigationTestCase {
 
     root.addChild(component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3"), null);
     modelBuilder.updateModel(model);
+    model.notifyModified(NlModel.ChangeType.EDIT);
 
     assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2"), model.find("fragment3")), list.myComponentList);
   }
