@@ -46,11 +46,13 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Ignore // Fails with the sandbox enabled
 public class AndroidValueResourcesTest extends AndroidDomTestCase {
   public AndroidValueResourcesTest() {
     super("dom/resources");

@@ -19,6 +19,7 @@ import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -26,6 +27,7 @@ import java.io.File;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+@Ignore // Fails with sandbox enabled
 public final class ModuleValidatorTest {
   private ModuleValidator myModuleValidator;
   private File myTmpDir;
