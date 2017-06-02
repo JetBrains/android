@@ -46,6 +46,8 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
     myProject = project;
     myArchive.addConstraint(String::trim);
     myGradlePath.addConstraint(String::trim);
+    //noinspection ConstantConditions
+    myArchive.set(project.getBasePath());
   }
 
   @NotNull
