@@ -7,9 +7,7 @@ iml_module(
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    exports = [
-        "//tools/adt/idea/wizard-model",
-    ],
+    exports = ["//tools/adt/idea/wizard-model"],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/wizard-model[module]",
@@ -18,7 +16,7 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/adt/idea/adt-ui[module, test]",
-        "//tools/idea:platform-impl_and_others[module, test]",
+        "//tools/idea:platform-impl_and_others[module]",
         "//tools/base/testutils:studio.testutils[module, test]",
     ],
 )
