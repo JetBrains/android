@@ -646,6 +646,7 @@ public class EditorFixture {
     DELETE_LINE("EditorDeleteLine"),
     DOWN("EditorDown"),
     ESCAPE("EditorEscape"),
+    FORMAT("ReformatCode"),
     GOTO_DECLARATION("GotoDeclaration"),
     GOTO_IMPLEMENTATION("GotoImplementation"),
     SAVE("SaveAll"),
