@@ -123,7 +123,7 @@ final class IdeaWizardAdapter implements ModelWizard.WizardListener, WizardDeleg
     return new ModuleWizardStep() {
       @Override
       public JComponent getComponent() {
-        return myCustomLayout.decorate(myGuestWizard.title(), myGuestWizard.getContentPanel());
+        return myCustomLayout.decorate(myGuestWizard.getTitleHeader(), myGuestWizard.getContentPanel());
       }
 
       @Override

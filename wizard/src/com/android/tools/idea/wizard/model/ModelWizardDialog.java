@@ -19,10 +19,7 @@ import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.properties.core.ObservableOptional;
-import com.android.tools.idea.ui.properties.core.ObservableString;
+import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.ui.properties.swing.EnabledProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
@@ -130,7 +127,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   @Override
   protected JComponent createCenterPanel() {
     JPanel wizardContent = myWizard.getContentPanel();
-    return myCustomLayout == null ? wizardContent : myCustomLayout.decorate(myWizard.title(), wizardContent);
+    return myCustomLayout == null ? wizardContent : myCustomLayout.decorate(myWizard.getTitleHeader(), wizardContent);
   }
 
   @Override
@@ -224,7 +221,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
    */
   public interface CustomLayout extends Disposable {
     @NotNull
-    JPanel decorate(@NotNull ObservableString title, @NotNull JPanel innerPanel);
+    JPanel decorate(@NotNull ModelWizard.TitleHeader titleHeader, @NotNull JPanel innerPanel);
   }
 
   /**

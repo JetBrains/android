@@ -84,7 +84,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
   public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel,
                                     boolean isLibrary, boolean isInstantApp, @NotNull String title) {
-    super(model, title);
+    super(model, title, formFactor.getIcon());
 
     myFormFactor = formFactor;
     myMinSdkLevel = minSdkLevel;

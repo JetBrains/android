@@ -33,27 +33,40 @@ import java.util.Collection;
 public abstract class ModelWizardStep<M extends WizardModel> implements Disposable {
 
   @NotNull private final M myModel;
-  @NotNull private String myTitle;
+  @NotNull private final String myTitle;
+  @Nullable private Icon myIcon;
 
   protected ModelWizardStep(@NotNull M model, @NotNull String title) {
     myModel = model;
     myTitle = title;
   }
 
-  /**
-   * Returns the title of this step.
-   */
+  protected ModelWizardStep(@NotNull M model, @NotNull String title, @NotNull Icon icon) {
+    myModel = model;
+    myTitle = title;
+    myIcon = icon;
+  }
+
   @NotNull
   public final String getTitle() {
     return myTitle;
   }
 
+  @Nullable
+  public Icon getIcon() {
+    return myIcon;
+  }
+
+
   /**
-   * Sets title of this step. Used if the title depends on some data in the model that can change.
-   * This method is usually called from {@link #onEntering()}
+   * The step icon (likely shown somewhere in the step's header area). Ideally this should be
+   * specified in the constructor, but this method is provided in case an implementing class
+   * needs to change the icon on the fly.
+   *
+   * @param icon If null, no icon is displayed.
    */
-  protected final void setTitle(@NotNull String title) {
-    myTitle = title;
+  protected final void setIcon(@Nullable Icon icon) {
+    myIcon = icon;
   }
 
   /**
@@ -149,7 +162,7 @@ public abstract class ModelWizardStep<M extends WizardModel> implements Disposab
 
   /**
    * An extra action that should be shown along with the standard wizard navigation actions
-   * (forward, back, finish, etc.). For example, in {@link ModelWizardDialog} this action is shown
+   * (forward, back, finish, etc.). For example, in {@code ModelWizardDialog} this action is shown
    * as a button on the left side.
    *
    * @return The action to show. If {@code null} no extra action will be shown.

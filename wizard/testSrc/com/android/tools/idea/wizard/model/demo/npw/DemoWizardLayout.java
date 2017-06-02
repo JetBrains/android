@@ -16,8 +16,8 @@
 package com.android.tools.idea.wizard.model.demo.npw;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
+import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,8 +31,8 @@ public final class DemoWizardLayout implements ModelWizardDialog.CustomLayout {
 
   @NotNull
   @Override
-  public JPanel decorate(@NotNull ObservableString title, @NotNull JPanel innerPanel) {
-    myBindings.bind(new TextProperty(myTitle), title);
+  public JPanel decorate(@NotNull ModelWizard.TitleHeader titleHeader, @NotNull JPanel innerPanel) {
+    myBindings.bind(new TextProperty(myTitle), titleHeader.title());
     myInnerContainer.add(innerPanel);
     return myRootPanel;
   }

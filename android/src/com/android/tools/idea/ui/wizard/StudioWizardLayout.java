@@ -17,17 +17,14 @@ package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.core.ObservableString;
+import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,6 +45,7 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
   private ImageComponent myIcon;
   private JPanel myCenterPanel;
   private JPanel myTitlePanel;
+  private JLabel myStepIcon;
 
   public StudioWizardLayout() {
     Icon icon = AndroidIcons.Wizards.StudioProductIcon;
@@ -59,8 +57,10 @@ public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout 
 
   @NotNull
   @Override
-  public JPanel decorate(@NotNull ObservableString title, @NotNull JPanel innerPanel) {
-    myBindings.bind(new TextProperty(myTitleLabel), title);
+  public JPanel decorate(@NotNull ModelWizard.TitleHeader titleHeader, @NotNull JPanel innerPanel) {
+    myBindings.bind(new TextProperty(myTitleLabel), titleHeader.title());
+    myBindings.bind(new IconProperty(myStepIcon), titleHeader.stepIcon());
+
     myCenterPanel.add(innerPanel);
     return myRootPanel;
   }

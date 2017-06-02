@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Base class for fixtures which control wizards that extend {@link DynamicWizard}
@@ -68,6 +69,11 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   @NotNull
   public S clickPrevious() {
     findAndClickButtonWhenEnabled(this, "Previous");
+    return myself();
+  }
+
+  public S assertStepIcon(Icon expectedIcon) {
+    assertThat(robot().finder().findByName("right_icon", JLabel.class).getIcon()).isEqualTo(expectedIcon);
     return myself();
   }
 
