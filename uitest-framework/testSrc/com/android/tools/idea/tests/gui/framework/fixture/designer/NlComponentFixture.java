@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -29,8 +31,10 @@ import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.JMenuItemFixture;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 
@@ -187,6 +191,17 @@ public class NlComponentFixture {
 
   public void doubleClick() {
     myRobot.click(mySurface, getMidPoint(), MouseButton.LEFT_BUTTON, 2);
+  }
+
+  /** Right clicks s in the middle of the view */
+  public void rightClick() {
+    // Can't use ComponentDriver -- need to both set button and where
+    myRobot.click(mySurface, getMidPoint(), MouseButton.RIGHT_BUTTON, 1);
+  }
+
+  public void invokeContextMenuAction(@NotNull String actionLabel) {
+    rightClick();
+    new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(JMenuItem.class, actionLabel))).click();
   }
 
   public NlComponent getComponent() {
