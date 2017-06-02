@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link Library} if getType() returns LIBRARY_ANDROID
+ * Creates a deep copy of {@link Library} of type LIBRARY_ANDROID.
  */
 public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -49,33 +49,41 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   private final int myType;
   private final int myHashCode;
 
-  public IdeLevel2AndroidLibrary(@NotNull Library library, @NotNull ModelCache modelCache) {
-    super(library, modelCache);
-
-    myType = library.getType();
-    myArtifactAddress = library.getArtifactAddress();
-    myFolder = library.getFolder();
-    myManifest = library.getManifest();
-    myJarFile = library.getJarFile();
-    myResFolder = library.getResFolder();
-    myAssetsFolder = library.getAssetsFolder();
-    myLocalJars = library.getLocalJars();
-    myJniFolder = library.getJniFolder();
-    myAidlFolder = library.getAidlFolder();
-    myRenderscriptFolder = library.getRenderscriptFolder();
-    myProguardRules = library.getProguardRules();
-    myLintJar = library.getLintJar();
-    myExternalAnnotations = library.getExternalAnnotations();
-    myPublicResources = library.getPublicResources();
-    mySymbolFile = library.getSymbolFile();
-    File artifactFile;
-    try {
-      // getArtifact throws exception if the value is null.
-      artifactFile = library.getArtifact();
-    }
-    catch (UnsupportedOperationException e) {
-      artifactFile = null;
-    }
+  IdeLevel2AndroidLibrary(@NotNull String artifactAddress,
+                          @NotNull File folder,
+                          @NotNull String manifest,
+                          @NotNull String jarFile,
+                          @NotNull String resFolder,
+                          @NotNull String assetsFolder,
+                          @NotNull Collection<String> localJars,
+                          @NotNull String jniFolder,
+                          @NotNull String aidlFolder,
+                          @NotNull String renderscriptFolder,
+                          @NotNull String proguardRules,
+                          @NotNull String lintJar,
+                          @NotNull String externalAnnotations,
+                          @NotNull String publicResources,
+                          @NotNull String symbolFile,
+                          @NotNull ModelCache modelCache,
+                          @NotNull Object sourceObject,
+                          @Nullable File artifactFile) {
+    super(sourceObject, modelCache);
+    myType = LIBRARY_ANDROID;
+    myArtifactAddress = artifactAddress;
+    myFolder = folder;
+    myManifest = manifest;
+    myJarFile = jarFile;
+    myResFolder = resFolder;
+    myAssetsFolder = assetsFolder;
+    myLocalJars = localJars;
+    myJniFolder = jniFolder;
+    myAidlFolder = aidlFolder;
+    myRenderscriptFolder = renderscriptFolder;
+    myProguardRules = proguardRules;
+    myLintJar = lintJar;
+    myExternalAnnotations = externalAnnotations;
+    myPublicResources = publicResources;
+    mySymbolFile = symbolFile;
     myArtifactFile = artifactFile;
     myHashCode = calculateHashCode();
   }

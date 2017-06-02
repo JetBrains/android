@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
+import com.android.builder.model.JavaLibrary;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaLibraryStub;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2AndroidLibraryStub;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2JavaLibraryStub;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2ModuleLibraryStub;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,9 +38,30 @@ public class IdeLevel2LibraryFactoryTest {
   }
 
   @Test
-  public void create() {
+  public void createFromL2Library() {
     assertThat(IdeLevel2LibraryFactory.create(new Level2AndroidLibraryStub(), myModelCache)).isInstanceOf(IdeLevel2AndroidLibrary.class);
     assertThat(IdeLevel2LibraryFactory.create(new Level2JavaLibraryStub(), myModelCache)).isInstanceOf(IdeLevel2JavaLibrary.class);
     assertThat(IdeLevel2LibraryFactory.create(new Level2ModuleLibraryStub(), myModelCache)).isInstanceOf(IdeLevel2ModuleLibrary.class);
+  }
+
+  @Test
+  public void createFromJavaLibrary() {
+    // Verify JavaLibrary of module dependency returns instance of IdeLevel2ModuleLibrary.
+    assertThat(IdeLevel2LibraryFactory.create(new JavaLibraryStub(), myModelCache)).isInstanceOf(IdeLevel2ModuleLibrary.class);
+
+    // Verify JavaLibrary of jar dependency returns instance of IdeLevel2JavaLibrary.
+    JavaLibrary javaLibrary = new JavaLibraryStub() {
+      @Override
+      @Nullable
+      public String getProject() {
+        return null;
+      }
+    };
+    assertThat(IdeLevel2LibraryFactory.create(javaLibrary, myModelCache)).isInstanceOf(IdeLevel2JavaLibrary.class);
+  }
+
+  @Test
+  public void createFromString() {
+    assertThat(IdeLevel2LibraryFactory.create("lib", myModelCache)).isInstanceOf(IdeLevel2ModuleLibrary.class);
   }
 }

@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
-public final class JavaLibraryStub extends LibraryStub implements JavaLibrary {
+public class JavaLibraryStub extends LibraryStub implements JavaLibrary {
   @NotNull private final File myJarFile;
   @NotNull private final List<JavaLibrary> myDependencies;
 
