@@ -217,6 +217,7 @@ public class NavSceneManager extends SceneManager {
     return ImmutableMap.of();
   }
 
+  // TODO: this should be moved somewhere model-specific, since it is relevant even absent a Scene
   public static void updateHierarchy(@NotNull NlModel model, @Nullable NlModel newModel) {
     List<NlModel.TagSnapshotTreeNode> roots = ImmutableList.of();
     XmlTag newRoot = AndroidPsiUtils.getRootTagSafely(model.getFile());
@@ -228,8 +229,6 @@ public class NavSceneManager extends SceneManager {
       // TODO error handling (if newRoot is null)
       model.syncWithPsi(newRoot, roots);
     }
-    // TODO: should this be here?
-    model.notifyModified(NlModel.ChangeType.EDIT);
   }
 
   private class ModelChangeListener implements ModelListener {
@@ -240,6 +239,7 @@ public class NavSceneManager extends SceneManager {
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
+      updateHierarchy(model, model);
       requestRender();
     }
 
