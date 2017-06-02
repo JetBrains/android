@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -50,7 +48,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -143,6 +140,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     boolean flatten = dialog.getFlattenHierarchy();
     boolean includeIds = dialog.getFlattenReferenced();
+    boolean includeCustomViews = dialog.getIncludeCustomViews();
 
 
     // Step #2: Ensure ConstraintLayout is available in the project
@@ -154,15 +152,14 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     // Step #3: Migrate
 
-    NlModel model = screenView.getModel();
-
     @SuppressWarnings("ConstantConditions")
-    ConstraintLayoutConverter converter = new ConstraintLayoutConverter(screenView, target, flatten, includeIds);
+    ConstraintLayoutConverter converter = new ConstraintLayoutConverter(screenView, target, flatten, includeIds, includeCustomViews);
     converter.execute();
   }
 
   private static void inferConstraints(@NotNull NlComponent target) {
     try {
+
       Scout.inferConstraints(target);
       ArrayList<NlComponent> list = new ArrayList<>(target.getChildren());
       list.add(0, target);
@@ -194,16 +191,22 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     private final ScreenView myScreenView;
     private final boolean myFlatten;
     private final boolean myIncludeIds;
+    private final boolean myIncludeCustomViews;
     private ViewEditorImpl myEditor;
     private List<NlComponent> myToBeFlattened;
     private final NlComponent myRoot;
     private final NlComponent myLayout;
 
-    public ConstraintLayoutConverter(@NotNull ScreenView screenView, @NotNull NlComponent target, boolean flatten, boolean includeIds) {
+    public ConstraintLayoutConverter(@NotNull ScreenView screenView,
+                                     @NotNull NlComponent target,
+                                     boolean flatten,
+                                     boolean includeIds,
+                                     boolean includeCustomViews) {
       super(screenView.getSurface().getProject(), TITLE, screenView.getModel().getFile());
       myScreenView = screenView;
       myFlatten = flatten;
       myIncludeIds = includeIds;
+      myIncludeCustomViews = includeCustomViews;
       myLayout = target;
       myRoot = myScreenView.getModel().getComponents().get(0);
       myEditor = new ViewEditorImpl(myScreenView);
@@ -233,7 +236,11 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
       flatten();
       PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
-      CodeStyleManager.getInstance(getProject()).reformat(tag);
+      tag = CodeStyleManager.getInstance(getProject()).reformat(tag);
+      //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
+      ViewInfo info = NlComponentHelperKt.getViewInfo(myLayout);
+      List<ViewInfo> ts = Collections.singletonList(info);
+      myLayout.getModel().syncWithPsi((XmlTag)tag, Collections.emptyList());
       inferConstraints(myLayout);
     }
 
@@ -261,6 +268,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
               name.equals(ATTR_LAYOUT_HEIGHT)) {
             continue;
           }
+          if (name.equals(ATTR_ID)) {
+            System.out.println("here");
+          }
           if (toDelete == null) {
             toDelete = Lists.newArrayList();
           }
@@ -268,6 +278,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         }
         if (toDelete != null) {
           for (String name : toDelete) {
+            if (name.equals(ATTR_ID)) {
+              System.out.println("here");
+            }
             child.setAttribute(ANDROID_URI, name, null);
           }
         }
@@ -337,12 +350,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         }
       }
 
-      ranges.sort(new Comparator<TextRange>() {
-        @Override
-        public int compare(TextRange o1, TextRange o2) {
-          // There should be no overlaps
-          return o2.getStartOffset() - o1.getStartOffset();
-        }
+      ranges.sort((o1, o2) -> {
+        // There should be no overlaps
+        return o2.getStartOffset() - o1.getStartOffset();
       });
 
       for (TextRange range : ranges) {
@@ -352,7 +362,11 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       documentManager.commitDocument(document);
     }
 
-    private static boolean isLayout(@NotNull NlComponent component) {
+    private boolean isLayout(@NotNull NlComponent component) {
+      if (!myIncludeCustomViews && isCustomView(component)) {
+        return false;
+      }
+
       List<NlComponent> children = component.getChildren();
       if (children.size() > 1) {
         return true;
@@ -365,8 +379,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         // If the child is a <requestFocus> we don't know
       }
 
-      if (NlComponentHelperKt.getViewInfo(component) != null) {
-        Object viewObject = NlComponentHelperKt.getViewInfo(component).getViewObject();
+      ViewInfo info = NlComponentHelperKt.getViewInfo(component);
+      if (info != null) {
+        Object viewObject = info.getViewObject();
         if (viewObject != null) {
           Class<?> cls = viewObject.getClass();
           while (cls != null) {
@@ -390,7 +405,16 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       return false;
     }
 
+    private static boolean isCustomView(NlComponent component) {
+      String tag = component.getTagName();
+      return tag.indexOf('.') != -1;
+    }
+
     private boolean shouldFlatten(@NotNull NlComponent component) {
+      if (!myIncludeCustomViews && isCustomView((component))) {
+        return false;
+      }
+
       // See if the component seems to have a visual purpose - e.g. sets background or other styles
       if (component.getAttribute(ANDROID_URI, ATTR_BACKGROUND) != null
           || component.getAttribute(ANDROID_URI, ATTR_FOREGROUND) != null // such as ?android:selectableItemBackground
