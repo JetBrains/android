@@ -182,7 +182,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (event.getOppositeComponent() != mySlider) {
       if (!myCompletionsUpdated && myProperty != EmptyProperty.INSTANCE) {
         AndroidFacet facet = myProperty.getModel().getFacet();
-        myTextEditorWithAutoCompletion.updateCompletionsFromTypes(facet, getResourceTypes(myProperty));
+        myTextEditorWithAutoCompletion.updateCompletionsFromTypes(facet, getResourceTypes(myProperty), myProperty);
         myCompletionsUpdated = true;
       }
     }
