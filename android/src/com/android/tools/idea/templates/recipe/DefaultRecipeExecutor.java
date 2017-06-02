@@ -448,8 +448,19 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       writeDependencies(myContext.getModuleRoot(), x -> true);
     }
     else {
-      writeDependencies(new File(baseFeatureRoot), x -> x.equals("compile"));
-      writeDependencies(myContext.getModuleRoot(), x -> !x.equals("compile"));
+      // The new gradle API deprecates the "compile" keyword by two new keywords: "implementation" and "api"
+      String configName = FmGetConfigurationNameMethod.convertConfiguration(getParamMap(), "compile");
+      if ("implementation".equals(configName)) {
+        // For the base module, we want to use "api" instead of "implementation"
+        for (String apiDependency : myContext.getDependencies().removeAll("implementation")) {
+          myContext.getDependencies().put("api", apiDependency);
+        }
+        configName = "api";
+      }
+
+      String configuration = configName;
+      writeDependencies(new File(baseFeatureRoot), x -> x.equals(configuration));
+      writeDependencies(myContext.getModuleRoot(), x -> !x.equals(configuration));
     }
     myNeedsSync = true;
   }
