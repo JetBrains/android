@@ -65,7 +65,7 @@ public class NlEditorTest {
   /**
    * Verifies addition of components to designer screen
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14578816
+   * <p>TT ID: 78baed4b-32be-4d72-b558-ba9f6c727334
    * <pre>
    *   1. Create a new project
    *   2. Open the layout xml file

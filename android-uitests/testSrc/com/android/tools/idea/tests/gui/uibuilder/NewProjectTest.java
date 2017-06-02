@@ -60,7 +60,7 @@ public class NewProjectTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14579001
+   * TT ID: beb45d64-d93d-4e04-a7b3-6d21f130949f
    * <p>
    *   <pre>
    *   Steps:
@@ -88,7 +88,7 @@ public class NewProjectTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14578805
+   * TT ID: 5f6e38f4-718f-435b-85fe-8d739cb42271
    * <p>
    *   <pre>
    *   Steps:
@@ -119,7 +119,7 @@ public class NewProjectTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: 14606134
+   * TT ID: 42c3202c-f2aa-4080-b94a-1a17d56d8fe2
    * <p>
    *   <pre>
    *   Steps:

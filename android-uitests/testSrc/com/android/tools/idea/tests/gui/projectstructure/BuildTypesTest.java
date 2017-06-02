@@ -35,7 +35,7 @@ public class BuildTypesTest {
   /**
    * Verifies addition of new build types
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14581580
+   * <p>TT ID: 532c9d6c-18eb-49ea-99b0-be64dbecd5e1
    * <pre>
    *   Test Steps:
    *   1. Open the project structure dialog
@@ -72,7 +72,7 @@ public class BuildTypesTest {
   /**
    * Verifies that an existing build type can be updated.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14606143
+   * <p>TT ID: 50840081-9584-4e66-9333-6a50902b5853
    * <pre>
    *   Test Steps:
    *   1. Open the project structure dialog
