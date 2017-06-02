@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.tools.idea.XmlBuilder;
+import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
-import com.android.tools.idea.XmlBuilder;
+import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.XmlBuilder;
+import com.android.xml.XmlBuilder;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.model.MergedManifest;
