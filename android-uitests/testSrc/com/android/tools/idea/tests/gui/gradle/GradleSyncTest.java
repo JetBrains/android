@@ -573,7 +573,6 @@ public class GradleSyncTest {
     assertTrue("Module app should depend on library '" + library.getName() + "'", dependencyFound.get());
   }
 
-  @RunIn(TestGroup.UNRELIABLE) // b/37560852
   @Test
   public void aarSourceAttachments() throws IOException {
     guiTest.importSimpleApplication();
