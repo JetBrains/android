@@ -329,4 +329,36 @@ public class ChooseResourceDialogTest {
 
     Wait.seconds(2).expecting("property to have the new value").until(() -> property.getValue().equals("@drawable/ic_launcher"));
   }
+
+  /**
+   * Test if the color tab is selected by default when selecting a resource for backgroundTint
+   */
+  @Test
+  public void testDefaultProperty() throws IOException {
+    guiTest.importSimpleApplication();
+
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture layout = editor.getLayoutEditor(false);
+    layout.waitForRenderToFinish(Wait.seconds(10));
+
+    // Find and click the first text view
+    NlComponentFixture textView = layout.findView("Button", 0);
+    textView.click();
+    assertThat(layout.getSelection()).containsExactly(textView.getComponent());
+
+    // Get property sheet, find srcCompat property, open customizer
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+    NlPropertyFixture property = fixture.findProperty("backgroundTint");
+    property.clickCustomizer();
+
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    JTabbedPaneFixture tabs = dialog.getTabs();
+    tabs.requireTabTitles("Drawable", "Color");
+    assertThat(dialog.getSelectedTabTitle()).isEqualTo("Color");
+
+    dialog.clickCancel();
+  }
 }
