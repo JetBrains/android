@@ -67,7 +67,7 @@ public class GradleBuildTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14581579
+   * TT ID: d6dc23f3-33ff-4ffc-af80-6ab822388274
    * <p>
    *   <pre>
    *   Test Steps:
