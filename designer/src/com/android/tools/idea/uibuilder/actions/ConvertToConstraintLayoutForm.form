@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutForm">
-  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="6" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="612" height="300"/>
@@ -26,7 +26,7 @@
       </component>
       <vspacer id="72927">
         <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <component id="ad7c9" class="com.intellij.ui.components.JBCheckBox" binding="myFlattenCheckBox">
@@ -40,19 +40,28 @@
       </component>
       <component id="58f99" class="com.intellij.ui.components.JBCheckBox" binding="myFlattenReferencedCheckBox">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <selected value="true"/>
-          <text value="Don't flatten layouts referenced from other files"/>
+          <text value="Don't flatten layouts referenced by id from other files"/>
         </properties>
       </component>
       <component id="76baa" class="com.intellij.openapi.ui.ex.MultiLineLabel">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="3" use-parent-layout="false"/>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="3" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="If a layout defines an android:id attribute which is looked up from Java code, flattening &#10;out this layout may result in code that no longer compiles. Normally this action won't &#10;include these layouts, but if you want to get to a completely flat hierarchy, you may &#10;want to enable removing these and then updating the code references as necessary &#10;afterwards."/>
+        </properties>
+      </component>
+      <component id="e4014" class="com.intellij.ui.components.JBCheckBox" binding="myIncludeCustomViewCheckBox">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="3" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <hideActionText value="false"/>
+          <text value="Include custom views"/>
         </properties>
       </component>
     </children>
