@@ -487,7 +487,6 @@ public class GradleSyncTest {
     assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));
   }
 
-  @RunIn(TestGroup.UNRELIABLE) // b/37560852
   @Test
   public void syncDuringOfflineMode() throws IOException {
     String hyperlinkText = "Disable offline mode and sync project";
@@ -631,7 +630,6 @@ public class GradleSyncTest {
     assertThat(buildTarget.getAdditionalLibraries()).hasSize(0);
   }
 
-  @RunIn(TestGroup.UNRELIABLE) // b/37560852
   @Test
   public void gradleModelCache() throws IOException {
     guiTest.importSimpleApplication();
