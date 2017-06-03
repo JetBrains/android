@@ -46,7 +46,7 @@ public class ApkViewerTest {
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14581576
+   * <p>TT ID: be75b1ab-005d-43f8-97c2-b84efded54ac
    * <pre>
    *   Verifies APK Viewer gets launched when analyzing apk
    *   Test Steps
@@ -76,7 +76,7 @@ public class ApkViewerTest {
    * To verify that the file handle to apk is released by the APK analyzer after analyzing and
    * closing the apk.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14606160
+   * <p>TT ID: 3a70500c-038c-4211-99c1-0d9579574cd1
    * <pre>
    *   Test Steps
    *   1. Import a project.
