@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,6 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   @NotNull private final ProductFlavorContainer myDefaultConfig;
   @NotNull private final Collection<BuildTypeContainer> myBuildTypes;
   @NotNull private final Collection<ProductFlavorContainer> myProductFlavors;
-  @NotNull private final String myBuildToolsVersion;
   @NotNull private final Collection<SyncIssue> mySyncIssues;
   @NotNull private final Collection<Variant> myVariants;
   @NotNull private final Collection<String> myFlavorDimensions;
@@ -51,11 +51,12 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   @NotNull private final Collection<String> myUnresolvedDependencies;
   @NotNull private final JavaCompileOptions myJavaCompileOptions;
   @NotNull private final File myBuildFolder;
+  @Nullable private final String myBuildToolsVersion;
   @Nullable private final String myResourcePrefix;
+  @Nullable private final Integer myPluginGeneration;
   private final int myApiVersion;
   private final boolean myLibrary;
   private final int myProjectType;
-  private final int myPluginGeneration;
   private final boolean myBaseSplit;
 
   @Nullable private final GradleVersion myParsedModelVersion;
@@ -76,7 +77,7 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
                                                  container -> new IdeProductFlavorContainer(container, modelCache));
     myBuildTypes = copy(project.getBuildTypes(), modelCache, container -> new IdeBuildTypeContainer(container, modelCache));
     myProductFlavors = copy(project.getProductFlavors(), modelCache, container -> new IdeProductFlavorContainer(container, modelCache));
-    myBuildToolsVersion = project.getBuildToolsVersion();
+    myBuildToolsVersion = copyNewProperty(project::getBuildToolsVersion, null);
     mySyncIssues = copy(project.getSyncIssues(), modelCache, issue -> new IdeSyncIssue(issue, modelCache));
     myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariantImpl(variant, modelCache, myParsedModelVersion));
     myFlavorDimensions = copyNewProperty(() -> new ArrayList<>(project.getFlavorDimensions()), Collections.emptyList());
@@ -94,7 +95,7 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
     myApiVersion = project.getApiVersion();
     myLibrary = project.isLibrary();
     myProjectType = getProjectType(project, myParsedModelVersion);
-    myPluginGeneration = project.getPluginGeneration();
+    myPluginGeneration = copyNewProperty(project::getPluginGeneration, null);
     myBaseSplit = copyNewProperty(project::isBaseSplit, false);
 
     myHashCode = calculateHashCode();
@@ -146,7 +147,10 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   @Override
   @NotNull
   public String getBuildToolsVersion() {
-    return myBuildToolsVersion;
+    if (myBuildToolsVersion != null) {
+      return myBuildToolsVersion;
+    }
+    throw new UnsupportedMethodException("Unsupported method: AndroidProject.getBuildToolsVersion()");
   }
 
   @Override
@@ -258,7 +262,10 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
 
   @Override
   public int getPluginGeneration() {
-    return myPluginGeneration;
+    if (myPluginGeneration != null) {
+      return myPluginGeneration;
+    }
+    throw new UnsupportedMethodException("Unsupported method: AndroidProject.getPluginGeneration()");
   }
 
   @Override
@@ -285,8 +292,8 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
     return myApiVersion == project.myApiVersion &&
            myLibrary == project.myLibrary &&
            myProjectType == project.myProjectType &&
-           myPluginGeneration == project.myPluginGeneration &&
            myBaseSplit == project.myBaseSplit &&
+           Objects.equals(myPluginGeneration, project.myPluginGeneration) &&
            Objects.equals(myModelVersion, project.myModelVersion) &&
            Objects.equals(myParsedModelVersion, project.myParsedModelVersion) &&
            Objects.equals(myName, project.myName) &&

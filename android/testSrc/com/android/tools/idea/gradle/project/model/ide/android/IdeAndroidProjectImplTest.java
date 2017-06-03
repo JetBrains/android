@@ -19,12 +19,16 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidProjectStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.expectUnsupportedMethodException;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
@@ -54,6 +58,34 @@ public class IdeAndroidProjectImplTest {
     Object o = deserialize(bytes);
     assertEquals(androidProject, o);
     assertEquals("2.4.0", ((IdeAndroidProject)o).getParsedModelVersion().toString());
+  }
+
+  @Test
+  public void model1_dot_5() {
+    AndroidProjectStub original = new AndroidProjectStub("1.5.0") {
+      @Override
+      @NotNull
+      public String getBuildToolsVersion() {
+        throw new UnsupportedMethodException("Unsupported method: AndroidProject.getBuildToolsVersion()");
+      }
+
+      @Override
+      public int getPluginGeneration() {
+        throw new UnsupportedMethodException("Unsupported method: AndroidProject.getPluginGeneration()");
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getModelVersion(), getName(), getDefaultConfig(), getBuildTypes(), getProductFlavors(),
+                            getSyncIssues(), getVariants(), getFlavorDimensions(), getCompileTarget(), getBootClasspath(),
+                            getNativeToolchains(), getSigningConfigs(), getLintOptions(), getUnresolvedDependencies(),
+                            getJavaCompileOptions(), getBuildFolder(), getResourcePrefix(), getApiVersion(), isLibrary(), getProjectType(),
+                            isBaseSplit());
+      }
+    };
+    IdeAndroidProject androidProject = new IdeAndroidProjectImpl(original, myModelCache);
+    expectUnsupportedMethodException(androidProject::getBuildToolsVersion);
+    expectUnsupportedMethodException(androidProject::getPluginGeneration);
   }
 
   @Test

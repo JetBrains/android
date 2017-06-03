@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.SourceProvider;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -29,8 +29,7 @@ import java.util.Objects;
  */
 public final class IdeSourceProvider extends IdeModel implements SourceProvider {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-  private final int myHashCode;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final String myName;
   @NotNull private final File myManifestFile;
@@ -44,6 +43,7 @@ public final class IdeSourceProvider extends IdeModel implements SourceProvider 
   @NotNull private final Collection<File> myAssetsDirectories;
   @NotNull private final Collection<File> myJniLibsDirectories;
   @NotNull private final Collection<File> myShadersDirectories;
+  private final int myHashCode;
 
   public IdeSourceProvider(@NotNull SourceProvider provider, @NotNull ModelCache modelCache) {
     super(provider, modelCache);
@@ -58,8 +58,7 @@ public final class IdeSourceProvider extends IdeModel implements SourceProvider 
     myResDirectories = new ArrayList<>(provider.getResDirectories());
     myAssetsDirectories = new ArrayList<>(provider.getAssetsDirectories());
     myJniLibsDirectories = new ArrayList<>(provider.getJniLibsDirectories());
-    myShadersDirectories = new ArrayList<>(provider.getShadersDirectories());
-
+    myShadersDirectories = copyNewProperty(() -> new ArrayList<>(provider.getShadersDirectories()), Collections.emptyList());
     myHashCode = calculateHashCode();
   }
 

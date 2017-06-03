@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.AndroidBundle;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,7 +33,7 @@ import java.util.Objects;
  */
 public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBundle {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
   private final int myHashCode;
 
   @NotNull private final File myBundle;
@@ -50,7 +52,7 @@ public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBund
     myFolder = bundle.getFolder();
 
     myLibraryDependencies = copy(bundle.getLibraryDependencies(), modelCache, library -> new IdeAndroidLibrary(library, modelCache));
-    myJavaDependencies = copy(bundle.getJavaDependencies(), modelCache, library -> new IdeJavaLibrary(library, modelCache));
+    myJavaDependencies = copyJavaDependencies(bundle, modelCache);
 
     myManifest = bundle.getManifest();
     myJarFile = bundle.getJarFile();
@@ -59,6 +61,19 @@ public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBund
     myProjectVariant = bundle.getProjectVariant();
 
     myHashCode = calculateHashCode();
+  }
+
+
+  @NotNull
+  private static Collection<? extends JavaLibrary> copyJavaDependencies(@NotNull AndroidBundle bundle, @NotNull ModelCache modelCache) {
+    Collection<? extends JavaLibrary> javaDependencies;
+    try {
+      javaDependencies = bundle.getJavaDependencies();
+    }
+    catch (UnsupportedMethodException ignored) {
+      return Collections.emptyList();
+    }
+    return copy(javaDependencies, modelCache, library -> new IdeJavaLibrary(library, modelCache));
   }
 
   @Override

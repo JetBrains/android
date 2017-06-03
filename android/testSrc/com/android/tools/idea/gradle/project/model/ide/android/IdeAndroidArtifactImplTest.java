@@ -16,25 +16,30 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.InstantRun;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidArtifactStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.expectUnsupportedMethodException;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link IdeAndroidArtifactImpl}.
  */
-public class IdeAndroidArtifactTest {
+public class IdeAndroidArtifactImplTest {
   private ModelCache myModelCache;
   private GradleVersion myGradleVersion;
 
@@ -55,6 +60,29 @@ public class IdeAndroidArtifactTest {
     byte[] bytes = serialize(artifact);
     Object o = deserialize(bytes);
     assertEquals(artifact, o);
+  }
+
+  @Test
+  public void model1_dot_5() {
+    AndroidArtifactStub original = new AndroidArtifactStub() {
+      @Override
+      @NotNull
+      public InstantRun getInstantRun() {
+        throw new UnsupportedMethodException("Unsupported method: AndroidArtifact.getInstantRun()");
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getName(), getCompileTaskName(), getAssembleTaskName(), getClassesFolder(), getJavaResourcesFolder(),
+                            getDependencies(), getCompileDependencies(), getDependencyGraphs(), getIdeSetupTaskNames(),
+                            getGeneratedSourceFolders(), getVariantSourceProvider(), getMultiFlavorSourceProvider(), getOutputs(),
+                            getApplicationId(), getSourceGenTaskName(), getGeneratedResourceFolders(), getBuildConfigFields(),
+                            getResValues(), getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned());
+      }
+    };
+    IdeAndroidArtifact artifact = new IdeAndroidArtifactImpl(original, myModelCache, myGradleVersion);
+    expectUnsupportedMethodException(artifact::getInstantRun);
+
   }
 
   @Test
