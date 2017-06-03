@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.io.FileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.util.FileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
@@ -102,7 +102,9 @@ public final class LinearLayoutTest {
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
   }
 
-  /** Tries the case where style is referenced indirectly, e.g. through a reference in the theme. */
+  /**
+   * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
+   */
   @Test
   public void resolveAttributeStyleReference() throws IOException {
     // @formatter:off

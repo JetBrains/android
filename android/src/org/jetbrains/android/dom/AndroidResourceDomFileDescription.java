@@ -18,20 +18,16 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileDescription;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.EnumSet;
 
 public abstract class AndroidResourceDomFileDescription<T extends DomElement> extends DomFileDescription<T> {
@@ -61,33 +57,8 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
     return false;
   }
 
-  public static boolean doIsMyFile(final XmlFile file, final ResourceFolderType resourceType, @Nullable String[] possibleRoots) {
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      if (file.getProject().isDisposed() ||
-          !AndroidResourceUtil.isInResourceSubdirectory(file, resourceType.getName()) ||
-          AndroidFacet.getInstance(file) == null) {
-        return false;
-      }
-
-      if (possibleRoots == null) {
-        return true;
-      }
-
-      XmlTag tag = file.getRootTag();
-      String rootTagName = tag != null ? tag.getName() : null;
-
-      for (String root : possibleRoots) {
-        if (root.equals(rootTagName)) {
-          return true;
-        }
-      }
-
-      return false;
-    });
-  }
-  
-  public static boolean doIsMyFile(final XmlFile file, final ResourceFolderType resourceType) {
-    return doIsMyFile(file, resourceType, null);
+  public static boolean doIsMyFile(@NotNull XmlFile file, @NotNull ResourceFolderType folderType) {
+    return FileDescriptionUtils.isResourceOfType(file, folderType, Collections.emptySet());
   }
 
   @Override
