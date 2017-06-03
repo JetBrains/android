@@ -44,8 +44,6 @@ public class AndroidDrawableDomUtil {
       VectorDomFileDescription.TAG,
       AnimatedVectorDomFileDescription.TAG_NAME,
     };
-  private static final String[] ADAPTIVE_ICON_ROOTS_V26 =
-    AdaptiveIconDomFileDescription.TAGS;
 
   private AndroidDrawableDomUtil() {
   }
@@ -58,7 +56,7 @@ public class AndroidDrawableDomUtil {
   public static List<String> getPossibleRoots(@NotNull AndroidFacet facet, @NotNull ResourceFolderType folderType) {
     AndroidVersion sdkVersion = AndroidModuleInfo.getInstance(facet).getBuildSdkVersion();
     List<String> result = new ArrayList<>(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V16.length
-                                          + DRAWABLE_ROOTS_V21.length + ADAPTIVE_ICON_ROOTS_V26.length);
+                                          + DRAWABLE_ROOTS_V21.length + AdaptiveIconDomFileDescription.TAGS.size());
 
     // In MIPMAP folders, we only support adaptive-icon
     if (folderType != ResourceFolderType.MIPMAP) {
@@ -74,7 +72,7 @@ public class AndroidDrawableDomUtil {
     }
 
     if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 26 || ApplicationManager.getApplication().isUnitTestMode()) {
-      Collections.addAll(result, ADAPTIVE_ICON_ROOTS_V26);
+      result.addAll(AdaptiveIconDomFileDescription.TAGS);
     }
 
     return result;
