@@ -77,10 +77,10 @@ public class MemoryStatsTable extends DatastoreTable<MemoryStatsTable.MemoryStat
       "SELECT LegacyEventsData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),
     QUERY_LEGACY_ALLOCATION_DUMP_BY_ID("SELECT LegacyDumpData from Memory_AllocationInfo WHERE Pid = ? AND Session = ? AND StartTime = ?"),
 
-    INSERT_LEGACY_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_LegacyAllocationStack (Id, Data) VALUES (?, ?)"),
-    INSERT_LEGACY_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_LegacyAllocatedClass (Id, Data) VALUES (?, ?)"),
-    QUERY_LEGACY_ALLOCATION_STACK("Select Data FROM Memory_LegacyAllocationStack WHERE Id = ?"),
-    QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Id = ?");
+    INSERT_LEGACY_ALLOCATION_STACK("INSERT OR IGNORE INTO Memory_LegacyAllocationStack (Pid, Session, Id, Data) VALUES (?, ?, ?, ?)"),
+    INSERT_LEGACY_ALLOCATED_CLASS("INSERT OR IGNORE INTO Memory_LegacyAllocatedClass (Pid, Session, Id, Data) VALUES (?, ?, ?, ?)"),
+    QUERY_LEGACY_ALLOCATION_STACK("Select Data FROM Memory_LegacyAllocationStack WHERE Pid = ? AND Session = ? AND Id = ?"),
+    QUERY_LEGACY_ALLOCATED_CLASS("Select Data FROM Memory_LegacyAllocatedClass WHERE Pid = ? AND Session = ? AND Id = ?");
 
     @NotNull private final String mySqlStatement;
 
@@ -117,8 +117,10 @@ public class MemoryStatsTable extends DatastoreTable<MemoryStatsTable.MemoryStat
       createTable("Memory_AllocationInfo", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER", "InfoData BLOB", "LegacyEventsData BLOB", "LegacyDumpData BLOB",
                   "PRIMARY KEY(Pid, Session, StartTime)");
-      createTable("Memory_LegacyAllocationStack", "Id BLOB", "Data BLOB", "PRIMARY KEY(Id)");
-      createTable("Memory_LegacyAllocatedClass", "Id INTEGER", "Data BLOB", "PRIMARY KEY(Id)");
+      createTable("Memory_LegacyAllocationStack", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Id INTEGER", "Data BLOB",
+                  "PRIMARY KEY(Pid, Session, Id)");
+      createTable("Memory_LegacyAllocatedClass", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Id INTEGER", "Data BLOB",
+                  "PRIMARY KEY(Pid, Session, Id)");
       createTable("Memory_HeapDump", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER", "Status INTEGER", "InfoData BLOB", "DumpData BLOB", "PRIMARY KEY(Pid, Session, StartTime)");
     }
@@ -325,22 +327,25 @@ public class MemoryStatsTable extends DatastoreTable<MemoryStatsTable.MemoryStat
     return null;
   }
 
-  public void insertLegacyAllocationContext(@NotNull List<AllocatedClass> classes, @NotNull List<AllocationStack> stacks) {
-
+  public void insertLegacyAllocationContext(int pid,
+                                            Common.Session session,
+                                            @NotNull List<AllocatedClass> classes,
+                                            @NotNull List<AllocationStack> stacks) {
     // TODO: batch insert
-    classes.forEach(klass -> execute(INSERT_LEGACY_ALLOCATED_CLASS, klass.getClassId(), klass.toByteArray()));
+    classes.forEach(klass -> execute(INSERT_LEGACY_ALLOCATED_CLASS, pid, session, klass.getClassId(), klass.toByteArray()));
     stacks
-      .forEach(stack -> execute(INSERT_LEGACY_ALLOCATION_STACK, stack.getStackId().toByteArray(), stack.toByteArray()));
+      .forEach(stack -> execute(INSERT_LEGACY_ALLOCATION_STACK, pid, session, stack.getStackId(), stack.toByteArray()));
   }
 
+  @NotNull
+  public AllocationContextsResponse getLegacyAllocationContexts(@NotNull LegacyAllocationContextsRequest request) {
 
-  public LegacyAllocationContextsResponse listAllocationContexts(@NotNull LegacyAllocationContextsRequest request) {
-
-    LegacyAllocationContextsResponse.Builder builder = LegacyAllocationContextsResponse.newBuilder();
+    AllocationContextsResponse.Builder builder = AllocationContextsResponse.newBuilder();
     // TODO optimize queries
     try {
       for (int i = 0; i < request.getClassIdsCount(); i++) {
-        ResultSet classResultSet = executeQuery(QUERY_LEGACY_ALLOCATED_CLASS, request.getClassIds(i));
+        ResultSet classResultSet =
+          executeQuery(QUERY_LEGACY_ALLOCATED_CLASS, request.getProcessId(), request.getSession(), request.getClassIds(i));
         if (classResultSet.next()) {
           AllocatedClass data = AllocatedClass.newBuilder().mergeFrom(classResultSet.getBytes(1)).build();
           builder.addAllocatedClasses(data);
@@ -348,7 +353,8 @@ public class MemoryStatsTable extends DatastoreTable<MemoryStatsTable.MemoryStat
       }
 
       for (int i = 0; i < request.getStackIdsCount(); i++) {
-        ResultSet stackResultSet = executeQuery(QUERY_LEGACY_ALLOCATION_STACK, request.getStackIds(i).toByteArray());
+        ResultSet stackResultSet =
+          executeQuery(QUERY_LEGACY_ALLOCATION_STACK, request.getProcessId(), request.getSession(), request.getStackIds(i));
         if (stackResultSet.next()) {
           AllocationStack data = AllocationStack.newBuilder().mergeFrom(stackResultSet.getBytes(1)).build();
           builder.addAllocationStacks(data);

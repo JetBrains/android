@@ -117,7 +117,8 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
       List<StackTraceElement> stackTraceElements = Arrays.asList(info.getStackTrace());
       LegacyAllocationConverter.CallStack callStack = myConverter.addCallStack(stackTraceElements);
       int classId = myConverter.addClassName(info.getAllocatedClass());
-      myConverter.addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), callStack.getId()));
+      myConverter
+        .addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), callStack.hashCode()));
     }
     return myConverter;
   }

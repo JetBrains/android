@@ -18,10 +18,10 @@ package com.android.tools.datastore.database;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -167,9 +167,9 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     return sampleBuilder.build();
   }
 
-  public MemoryProfiler.BatchAllocationSample getAllocationContexts(int pid, Common.Session session, long startTime, long endTime) {
-    // TODO merge with listAllocationContexts
-    MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
+  @NotNull
+  public AllocationContextsResponse getAllocationContexts(int pid, Common.Session session, long startTime, long endTime) {
+    AllocationContextsResponse.Builder resultBuilder = AllocationContextsResponse.newBuilder();
     try {
       // Query all the classes
       // TODO: only return classes that are valid for current snapshot?
@@ -178,19 +178,18 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
 
       while (klassResult.next()) {
         long allocTime = klassResult.getLong(2);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
-          .setClassData(MemoryProfiler.AllocationEvent.Klass.newBuilder().setTag(klassResult.getLong(1)).setName(klassResult.getString(3)))
-          .setTimestamp(allocTime).build();
-        sampleBuilder.addEvents(event);
+        AllocatedClass klass =
+          AllocatedClass.newBuilder().setClassId(klassResult.getLong(1)).setClassName(klassResult.getString(3)).build();
+        resultBuilder.addAllocatedClasses(klass);
         timestamp = Math.max(timestamp, allocTime);
       }
-      sampleBuilder.setTimestamp(timestamp);
+      resultBuilder.setTimestamp(timestamp);
     }
     catch (SQLException ex) {
       getLogger().error(ex);
     }
 
-    return sampleBuilder.build();
+    return resultBuilder.build();
   }
 
   public void insertAllocationData(int pid, Common.Session session, MemoryProfiler.BatchAllocationSample sample) {

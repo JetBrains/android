@@ -229,25 +229,23 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         long newContextEndTime = Math.max(myContextEndTimeNs, endTimeNs);
         if (newContextEndTime > myContextEndTimeNs) {
           // If we clear, we need to grab all the classes again because we may be in a future range.
-          MemoryProfiler.BatchAllocationSample sampleResponse = myClient.getAllocationContexts(
-            MemoryProfiler.AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
+          MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(
+            MemoryProfiler.AllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
               .setStartTime(myContextEndTimeNs).setEndTime(newContextEndTime).build());
-          for (AllocationEvent event : sampleResponse.getEventsList()) {
-            if (event.getEventCase() == AllocationEvent.EventCase.CLASS_DATA) {
-              AllocationEvent.Klass classData = event.getClassData();
-              ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, classData.getName(), classData.getTag());
-              if (!myClassMap.containsKey(entry)) {
-                // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
-                LiveAllocationInstanceObject instance =
-                  new LiveAllocationInstanceObject(entry, null, event.getTimestamp(), MemoryObject.INVALID_VALUE);
-                myClassMap.put(entry, instance);
-                // TODO figure out what to do with java.lang.Class instance objects
-                //instancesAdded.add(instance);
-                totalChanged++;
-              }
+          for (MemoryProfiler.AllocatedClass klass : contextsResponse.getAllocatedClassesList()) {
+            ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
+            if (!myClassMap.containsKey(entry)) {
+              // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
+              // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
+              LiveAllocationInstanceObject instance =
+                new LiveAllocationInstanceObject(entry, null, myCaptureStartTime, MemoryObject.INVALID_VALUE);
+              myClassMap.put(entry, instance);
+              // TODO figure out what to do with java.lang.Class instance objects
+              //instancesAdded.add(instance);
+              totalChanged++;
             }
           }
-          myContextEndTimeNs = Math.max(myContextEndTimeNs, sampleResponse.getTimestamp());
+          myContextEndTimeNs = Math.max(myContextEndTimeNs, contextsResponse.getTimestamp());
         }
 
         if (clear) {

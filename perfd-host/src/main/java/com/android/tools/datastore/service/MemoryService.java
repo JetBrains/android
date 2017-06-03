@@ -164,9 +164,9 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void listLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                           StreamObserver<LegacyAllocationContextsResponse> responseObserver) {
-    responseObserver.onNext(myStatsTable.listAllocationContexts((request)));
+  public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
+                                          StreamObserver<AllocationContextsResponse> responseObserver) {
+    responseObserver.onNext(myStatsTable.getLegacyAllocationContexts(request));
     responseObserver.onCompleted();
   }
 
@@ -249,9 +249,9 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void getAllocationContexts(AllocationSnapshotRequest request, StreamObserver<BatchAllocationSample> responseObserver) {
-    BatchAllocationSample response = myAllocationsTable.getAllocationContexts(
-      request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
+  public void getAllocationContexts(AllocationContextsRequest request, StreamObserver<AllocationContextsResponse> responseObserver) {
+    AllocationContextsResponse response =
+      myAllocationsTable.getAllocationContexts(request.getProcessId(), request.getSession(), request.getStartTime(), request.getEndTime());
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }

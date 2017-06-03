@@ -171,8 +171,8 @@ public class MemoryDataPoller extends PollRunner {
     }
 
     Runnable query = () -> {
-      HashSet<Integer> classesToFetch = new HashSet<>();
-      HashSet<ByteString> stacksToFetch = new HashSet<>();
+      HashSet<Long> classesToFetch = new HashSet<>();
+      HashSet<Integer> stacksToFetch = new HashSet<>();
       HashMap<Long, LegacyAllocationEventsResponse> eventsToSave = new HashMap<>();
       for (AllocationsInfo sample : dumpsToFetch) {
         LegacyAllocationEventsResponse allocEventsResponse = myPollingService.getLegacyAllocationEvents(
@@ -182,8 +182,8 @@ public class MemoryDataPoller extends PollRunner {
         eventsToSave.put(sample.getStartTime(), allocEventsResponse);
 
         allocEventsResponse.getEventsList().forEach(event -> {
-          classesToFetch.add(event.getAllocatedClassId());
-          stacksToFetch.add(event.getAllocationStackId());
+          classesToFetch.add(event.getClassId());
+          stacksToFetch.add(event.getStackId());
         });
 
         // Also save out raw dump
@@ -194,10 +194,12 @@ public class MemoryDataPoller extends PollRunner {
 
       // Note: the class/stack information are saved first to the table to avoid the events referencing yet-to-exist data
       // in the tables.
-      LegacyAllocationContextsRequest contextRequest = LegacyAllocationContextsRequest.newBuilder()
-        .addAllClassIds(classesToFetch).addAllStackIds(stacksToFetch).build();
-      LegacyAllocationContextsResponse contextsResponse = myPollingService.listLegacyAllocationContexts(contextRequest);
-      myMemoryStatsTable.insertLegacyAllocationContext(contextsResponse.getAllocatedClassesList(), contextsResponse.getAllocationStacksList());
+      LegacyAllocationContextsRequest contextRequest =
+        LegacyAllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).addAllClassIds(classesToFetch)
+          .addAllStackIds(stacksToFetch).build();
+      AllocationContextsResponse contextsResponse = myPollingService.getLegacyAllocationContexts(contextRequest);
+      myMemoryStatsTable.insertLegacyAllocationContext(myProcessId, mySession, contextsResponse.getAllocatedClassesList(),
+                                                  contextsResponse.getAllocationStacksList());
       eventsToSave
         .forEach((startTime, response) -> myMemoryStatsTable.updateLegacyAllocationEvents(myProcessId, mySession, startTime, response));
     };
