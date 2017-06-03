@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-public final class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
+public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArtifact {
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final String myApplicationId;
   @NotNull private final String mySourceGenTaskName;
@@ -160,7 +160,7 @@ public final class AndroidArtifactStub extends BaseArtifactStub implements Andro
            Objects.equals(getGeneratedResourceFolders(), artifact.getGeneratedResourceFolders()) &&
            Objects.equals(getBuildConfigFields(), artifact.getBuildConfigFields()) &&
            Objects.equals(getResValues(), artifact.getResValues()) &&
-           Objects.equals(getInstantRun(), artifact.getInstantRun()) &&
+           equals(artifact, AndroidArtifact::getInstantRun) &&
            Objects.equals(getSigningConfigName(), artifact.getSigningConfigName()) &&
            Objects.equals(getAbiFilters(), artifact.getAbiFilters()) &&
            Objects.equals(getNativeLibraries(), artifact.getNativeLibraries());

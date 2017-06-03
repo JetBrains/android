@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +29,7 @@ import java.util.*;
  */
 public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements IdeAndroidArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
   private final int myHashCode;
 
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
@@ -37,7 +38,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
   @NotNull private final Collection<File> myGeneratedResourceFolders = new ArrayList<>();
   @NotNull private final Map<String, ClassField> myBuildConfigFields;
   @NotNull private final Map<String, ClassField> myResValues;
-  @NotNull private final InstantRun myInstantRun;
+  @Nullable private final IdeInstantRun myInstantRun;
   @Nullable private final String mySigningConfigName;
   @Nullable private final Set<String> myAbiFilters;
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
@@ -51,7 +52,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
     myGeneratedResourceFolders.addAll(artifact.getGeneratedResourceFolders());
     myBuildConfigFields = copy(artifact.getBuildConfigFields(), modelCache, classField -> new IdeClassField(classField, modelCache));
     myResValues = copy(artifact.getResValues(), modelCache, classField -> new IdeClassField(classField, modelCache));
-    myInstantRun = modelCache.computeIfAbsent(artifact.getInstantRun(), instantRun -> new IdeInstantRun(instantRun, modelCache));
+    myInstantRun = copyNewProperty(modelCache, artifact::getInstantRun, instantRun -> new IdeInstantRun(instantRun, modelCache), null);
     mySigningConfigName = artifact.getSigningConfigName();
     myAbiFilters = copy(artifact.getAbiFilters());
     myNativeLibraries = copy(modelCache, artifact.getNativeLibraries());
@@ -104,7 +105,10 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
   @Override
   @NotNull
   public InstantRun getInstantRun() {
-    return myInstantRun;
+    if (myInstantRun != null) {
+      return myInstantRun;
+    }
+    throw new UnsupportedMethodException("Unsupported method: AndroidArtifact.getInstantRun()");
   }
 
   @Override

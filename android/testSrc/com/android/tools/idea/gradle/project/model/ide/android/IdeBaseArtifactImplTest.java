@@ -16,22 +16,57 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.Dependencies;
+import com.android.builder.model.level2.DependencyGraphs;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseArtifactStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import java.io.File;
+
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.expectUnsupportedMethodException;
 
 /**
  * Tests for {@link IdeBaseArtifactImpl}.
  */
-public class IdeBaseArtifactTest {
+public class IdeBaseArtifactImplTest {
   @Test
   public void constructor() throws Throwable {
     BaseArtifact original = new BaseArtifactStub();
     assertEqualsOrSimilar(original, new IdeBaseArtifactImpl(original, new ModelCache(), GradleVersion.parse("2.3.0")) {});
+  }
+
+  @Test
+  public void model1_dot_5() {
+    BaseArtifact original = new BaseArtifactStub() {
+      @Override
+      @NotNull
+      public Dependencies getCompileDependencies() {
+        throw new UnsupportedMethodException("Unsupported method: BaseArtifact.getCompileDependencies()");
+      }
+
+      @Override
+      @NotNull
+      public DependencyGraphs getDependencyGraphs() {
+        throw new UnsupportedMethodException("Unsupported method: BaseArtifact.getDependencyGraphs");
+      }
+
+      @Override
+      @NotNull
+      public File getJavaResourcesFolder() {
+        throw new UnsupportedMethodException("Unsupported method: BaseArtifact.getJavaResourcesFolder");
+      }
+    };
+
+    IdeBaseArtifactImpl artifact = new IdeBaseArtifactImpl(original, new ModelCache(), GradleVersion.parse("1.5.0")) {};
+    expectUnsupportedMethodException(artifact::getCompileDependencies);
+    expectUnsupportedMethodException(artifact::getDependencyGraphs);
+    expectUnsupportedMethodException(artifact::getJavaResourcesFolder);
   }
 
   @Test

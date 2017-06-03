@@ -29,12 +29,10 @@ import java.util.*;
  */
 public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlavor {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-  private final int myHashCode;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final Map<String, String> myTestInstrumentationRunnerArguments;
   @NotNull private final Collection<String> myResourceConfigurations;
-  @NotNull private final VectorDrawablesOptions myVectorDrawables;
   @Nullable private final String myDimension;
   @Nullable private final String myApplicationId;
   @Nullable private final Integer myVersionCode;
@@ -45,15 +43,13 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
   @Nullable private final String myTestApplicationId;
   @Nullable private final String myTestInstrumentationRunner;
   @Nullable private final SigningConfig mySigningConfig;
-  @Nullable private final Boolean myWearAppUnbundled;
+  private final int myHashCode;
 
   public IdeProductFlavor(@NotNull ProductFlavor flavor, @NotNull ModelCache modelCache) {
     super(flavor, modelCache);
 
     myTestInstrumentationRunnerArguments = new HashMap<>(flavor.getTestInstrumentationRunnerArguments());
     myResourceConfigurations = new ArrayList<>(flavor.getResourceConfigurations());
-    myVectorDrawables = modelCache.computeIfAbsent(flavor.getVectorDrawables(),
-                                                   options -> new IdeVectorDrawablesOptions(options, modelCache));
     myDimension = flavor.getDimension();
     myApplicationId = flavor.getApplicationId();
     myVersionCode = flavor.getVersionCode();
@@ -64,7 +60,6 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
     myTestApplicationId = flavor.getTestApplicationId();
     myTestInstrumentationRunner = flavor.getTestInstrumentationRunner();
     mySigningConfig = copy(modelCache, flavor.getSigningConfig());
-    myWearAppUnbundled = flavor.getWearAppUnbundled();
 
     myHashCode = calculateHashCode();
   }
@@ -100,7 +95,7 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
   @Override
   @NotNull
   public VectorDrawablesOptions getVectorDrawables() {
-    return myVectorDrawables;
+    throw new UnusedModelMethodException("getVectorDrawables");
   }
 
   @Override
@@ -202,7 +197,7 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
   @Override
   @Nullable
   public Boolean getWearAppUnbundled() {
-    return myWearAppUnbundled;
+    throw new UnusedModelMethodException("getWearAppUnbundled");
   }
 
   @Override
@@ -220,7 +215,6 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
     return flavor.canEqual(this) &&
            Objects.equals(myTestInstrumentationRunnerArguments, flavor.myTestInstrumentationRunnerArguments) &&
            Objects.equals(myResourceConfigurations, flavor.myResourceConfigurations) &&
-           Objects.equals(myVectorDrawables, flavor.myVectorDrawables) &&
            Objects.equals(myDimension, flavor.myDimension) &&
            Objects.equals(myApplicationId, flavor.myApplicationId) &&
            Objects.equals(myVersionCode, flavor.myVersionCode) &&
@@ -230,8 +224,7 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
            Objects.equals(myMaxSdkVersion, flavor.myMaxSdkVersion) &&
            Objects.equals(myTestApplicationId, flavor.myTestApplicationId) &&
            Objects.equals(myTestInstrumentationRunner, flavor.myTestInstrumentationRunner) &&
-           Objects.equals(mySigningConfig, flavor.mySigningConfig) &&
-           Objects.equals(myWearAppUnbundled, flavor.myWearAppUnbundled);
+           Objects.equals(mySigningConfig, flavor.mySigningConfig);
   }
 
   @Override
@@ -246,8 +239,27 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
 
   @Override
   protected int calculateHashCode() {
-    return Objects.hash(super.calculateHashCode(), myTestInstrumentationRunnerArguments, myResourceConfigurations, myVectorDrawables,
-                        myDimension, myApplicationId, myVersionCode, myVersionName, myMinSdkVersion, myTargetSdkVersion,
-                        myMaxSdkVersion, myTestApplicationId, myTestInstrumentationRunner, mySigningConfig, myWearAppUnbundled);
+    return Objects.hash(super.calculateHashCode(), myTestInstrumentationRunnerArguments, myResourceConfigurations, myDimension,
+                        myApplicationId, myVersionCode, myVersionName, myMinSdkVersion, myTargetSdkVersion, myMaxSdkVersion,
+                        myTestApplicationId, myTestInstrumentationRunner, mySigningConfig);
+  }
+
+  @Override
+  public String toString() {
+    return "IdeProductFlavor{" +
+           super.toString() +
+           ", myTestInstrumentationRunnerArguments=" + myTestInstrumentationRunnerArguments +
+           ", myResourceConfigurations=" + myResourceConfigurations +
+           ", myDimension='" + myDimension + '\'' +
+           ", myApplicationId='" + myApplicationId + '\'' +
+           ", myVersionCode=" + myVersionCode +
+           ", myVersionName='" + myVersionName + '\'' +
+           ", myMinSdkVersion=" + myMinSdkVersion +
+           ", myTargetSdkVersion=" + myTargetSdkVersion +
+           ", myMaxSdkVersion=" + myMaxSdkVersion +
+           ", myTestApplicationId='" + myTestApplicationId + '\'' +
+           ", myTestInstrumentationRunner='" + myTestInstrumentationRunner + '\'' +
+           ", mySigningConfig=" + mySigningConfig +
+           "}";
   }
 }

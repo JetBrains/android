@@ -19,10 +19,15 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.SourceProviderStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Objects;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
@@ -48,10 +53,29 @@ public class IdeSourceProviderTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeSourceProvider classField = new IdeSourceProvider(new SourceProviderStub(), myModelCache);
-    byte[] bytes = serialize(classField);
+    IdeSourceProvider sourceProvider = new IdeSourceProvider(new SourceProviderStub(), myModelCache);
+    byte[] bytes = serialize(sourceProvider);
     Object o = deserialize(bytes);
-    assertEquals(classField, o);
+    assertEquals(sourceProvider, o);
+  }
+  @Test
+  public void model1_dot_5() {
+    SourceProvider original = new SourceProviderStub() {
+      @Override
+      @NotNull
+      public Collection<File> getShadersDirectories() {
+        throw new UnsupportedMethodException("getShadersDirectories()");
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getName(), getManifestFile(), getJavaDirectories(), getResourcesDirectories(), getAidlDirectories(),
+                            getRenderscriptDirectories(), getCDirectories(), getCppDirectories(), getResDirectories(),
+                            getAssetsDirectories(), getJniLibsDirectories());
+      }
+    };
+    IdeSourceProvider sourceProvider = new IdeSourceProvider(original, myModelCache);
+    assertThat(sourceProvider.getShadersDirectories()).isEmpty();
   }
 
   @Test
