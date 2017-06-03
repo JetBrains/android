@@ -99,7 +99,7 @@ public class NewModuleTest {
   /**
    * Verifies addition of new application module to application.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14578813
+   * <p>TT ID: fd583b0a-bedd-4ec8-9207-70e4994ed761
    * <pre>
    *   Test Steps
    *   1. File -> new module
@@ -128,7 +128,7 @@ public class NewModuleTest {
   /**
    * Verifies addition of new library module to application.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14578813
+   * <p>TT ID: c35b2089-a5e5-408a-a448-5d94f71fda94
    * <pre>
    *   Test Steps
    *   Create a new project

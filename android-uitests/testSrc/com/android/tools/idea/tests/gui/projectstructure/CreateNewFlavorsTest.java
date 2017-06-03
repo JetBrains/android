@@ -35,7 +35,7 @@ public class CreateNewFlavorsTest {
   /**
    * Verifies addition of new flavors from project structure dialog.
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14578810
+   * <p>TT ID: 8eab6486-073b-4b60-b979-470fb3163920
    * <pre>
    *   Test Steps:
    *   1. Open the project structure dialog

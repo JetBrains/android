@@ -72,7 +72,7 @@ public class DependenciesTest {
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14606135
+   * <p>TT ID: eb05dfdd-f751-47f1-820c-e9f71896dab4
    * <pre>
    *   Verifies transitive dependencies with Android Library and third party library are resolved in a gradle file.
    *   Test Steps
@@ -164,7 +164,7 @@ public class DependenciesTest {
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14606136
+   * <p>TT ID: 92ad6e70-ad2a-432a-a447-630ccb9a0327
    * <pre>
    *   Verifies transitive dependencies with Android Library and third party library are resolved in a gradle file.
    *   Test Steps
