@@ -18,14 +18,12 @@ package com.android.tools.idea.profilers;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
-import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -36,42 +34,13 @@ public class LegacyAllocationConverter {
     @NotNull
     private final List<StackTraceElement> myCallStackFrames;
 
-    @NotNull
-    private final byte[] myId;
-
-    private final int myHash;
-
     public CallStack(@NotNull List<StackTraceElement> frames) {
       myCallStackFrames = frames;
-      try {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        myId = digest.digest(toString().getBytes(StandardCharsets.UTF_8));
-        assert myId.length >= 4;
-        myHash = ByteBuffer.wrap(myId).getInt();
-      }
-      catch (NoSuchAlgorithmException e) {
-        throw new RuntimeException("SHA-256 not defined on this system.");
-      }
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder builder = new StringBuilder();
-      for (StackTraceElement frame : myCallStackFrames) {
-        builder.append(frame.toString());
-        builder.append("\n");
-      }
-      return builder.toString();
-    }
-
-    @NotNull
-    public byte[] getId() {
-      return myId;
     }
 
     @Override
     public int hashCode() {
-      return myHash;
+      return myCallStackFrames.hashCode();
     }
 
     @Override
@@ -79,12 +48,13 @@ public class LegacyAllocationConverter {
       if (!(obj instanceof CallStack)) {
         return false;
       }
-      return Arrays.equals(myId, ((CallStack)obj).myId);
+
+      return myCallStackFrames.equals(((CallStack)obj).myCallStackFrames);
     }
 
     @NotNull
     public AllocationStack getAllocationStack() {
-      AllocationStack.Builder builder = AllocationStack.newBuilder().setStackId(ByteString.copyFrom(myId));
+      AllocationStack.Builder builder = AllocationStack.newBuilder().setStackId(hashCode());
       for (StackTraceElement frame : myCallStackFrames) {
         builder.addStackFrames(
           AllocationStack.StackFrame.newBuilder().setClassName(frame.getClassName()).setMethodName(frame.getMethodName())
@@ -117,10 +87,9 @@ public class LegacyAllocationConverter {
 
     private final int myThreadId;
 
-    @NotNull
-    private final byte[] myCallStackId;
+    private final int myCallStackId;
 
-    public Allocation(int classId, int size, int threadId, @NotNull byte[] callStackId) {
+    public Allocation(int classId, int size, int threadId, @NotNull int callStackId) {
       myClassId = classId;
       mySize = size;
       myThreadId = threadId;
@@ -129,9 +98,8 @@ public class LegacyAllocationConverter {
 
     @NotNull
     public LegacyAllocationEvent bindAllocationEventInfos(long startTime, long endTime) {
-      return LegacyAllocationEvent.newBuilder().setAllocatedClassId(myClassId).setSize(mySize).setThreadId(myThreadId)
-        .setTrackingStartTime(startTime).setTimestamp(endTime).setAllocationStackId(ByteString.copyFrom(myCallStackId))
-        .build();
+      return LegacyAllocationEvent.newBuilder().setClassId(myClassId).setSize(mySize).setThreadId(myThreadId)
+        .setCaptureTime(startTime).setTimestamp(endTime).setStackId(myCallStackId).build();
     }
   }
 
@@ -184,10 +152,18 @@ public class LegacyAllocationConverter {
     return myAllocations.stream().map(allocation -> allocation.bindAllocationEventInfos(startTime, endTime)).collect(Collectors.toList());
   }
 
+  /**
+   * Note that this returns all stacks gathered from all seen allocation tracking sessions. We can refactor this to not share the data
+   * across sessions, but it's probably not worth it given it is legacy.
+   */
   public List<AllocationStack> getAllocationStacks() {
     return myAllocationStacks.values().stream().map(CallStack::getAllocationStack).collect(Collectors.toList());
   }
 
+  /**
+   * Note that this returns all classes gathered from all seen allocation tracking sessions. We can refactor this to not share the data
+   * across sessions, but it's probably not worth it given it is legacy.
+   */
   public List<AllocatedClass> getClassNames() {
     return myAllocatedClasses.values().stream().map(ClassName::getAllocatedClass).collect(Collectors.toList());
   }

@@ -150,26 +150,26 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     }
 
     MemoryProfiler.LegacyAllocationContextsRequest contextRequest = MemoryProfiler.LegacyAllocationContextsRequest.newBuilder()
+      .setProcessId(myProcessId)
       .setSession(mySession)
-      .addAllStackIds(response.getEventsList().stream().map(LegacyAllocationEvent::getAllocationStackId).collect(Collectors.toSet()))
-      .addAllClassIds(response.getEventsList().stream().map(LegacyAllocationEvent::getAllocatedClassId).collect(Collectors.toSet()))
+      .addAllStackIds(response.getEventsList().stream().map(LegacyAllocationEvent::getStackId).collect(Collectors.toSet()))
+      .addAllClassIds(response.getEventsList().stream().map(LegacyAllocationEvent::getClassId).collect(Collectors.toSet()))
       .build();
-    MemoryProfiler.LegacyAllocationContextsResponse contextsResponse = myClient.listLegacyAllocationContexts(contextRequest);
+    MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.getLegacyAllocationContexts(contextRequest);
 
     // TODO remove this map, since we have built-in functionality in ClassDb now.
-    Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
-    Map<ByteString, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
+    Map<Long, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
+    Map<Integer, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
     contextsResponse.getAllocatedClassesList().forEach(
       className -> classEntryMap.put(className.getClassId(), myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, className.getClassName())));
     contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
     // TODO make sure class IDs fall into a global pool
     for (LegacyAllocationEvent event : response.getEventsList()) {
-      assert classEntryMap.containsKey(event.getAllocatedClassId());
-      assert callStacks.containsKey(event.getAllocationStackId());
+      assert classEntryMap.containsKey(event.getClassId());
+      assert callStacks.containsKey(event.getStackId());
       myFakeHeapSet.addInstanceObject(
-        new LegacyAllocationsInstanceObject(event, classEntryMap.get(event.getAllocatedClassId()),
-                                            callStacks.get(event.getAllocationStackId())));
+        new LegacyAllocationsInstanceObject(event, classEntryMap.get(event.getClassId()), callStacks.get(event.getStackId())));
     }
     myIsDoneLoading = true;
 

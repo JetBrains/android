@@ -169,16 +169,22 @@ data: "Test Data"
 data: "Test Data"
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/ListLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsRequest">
-        <Message></Message>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsRequest">
+        <Message>process_id: 1234
+session {
+}
+</Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsRequest</clazz>
-        <functionCalled>profiler.proto.MemoryService/ListLegacyAllocationContexts</functionCalled>
-        <message></message>
+        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationContexts</functionCalled>
+        <message>process_id: 1234
+session {
+}
+</message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.MemoryService/ListLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsResponse">
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetLegacyAllocationContexts" Class="class com.android.tools.profiler.proto.MemoryProfiler$AllocationContextsResponse">
         <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$LegacyAllocationContextsResponse</clazz>
-        <functionCalled>profiler.proto.MemoryService/ListLegacyAllocationContexts</functionCalled>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$AllocationContextsResponse</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetLegacyAllocationContexts</functionCalled>
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$DumpDataRequest">

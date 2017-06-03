@@ -224,15 +224,27 @@ public class MemoryServiceProxyTest {
     verify(observer3, times(1)).onCompleted();
 
     // Verify that ListAllocationContexts contains the stack/class info
-    LegacyAllocationContextsResponse expected4 = LegacyAllocationContextsResponse.newBuilder()
+    AllocationContextsResponse expected4 = AllocationContextsResponse.newBuilder()
       .addAllAllocatedClasses(myAllocationConverter.getClassNames())
       .addAllAllocationStacks(myAllocationConverter.getAllocationStacks()).build();
-    StreamObserver<LegacyAllocationContextsResponse> observer4 = mock(StreamObserver.class);
-    myProxy.listLegacyAllocationContexts(LegacyAllocationContextsRequest.newBuilder()
-                                           .addClassIds(expectedEvents.get(0).getAllocatedClassId())
-                                           .addStackIds(expectedEvents.get(0).getAllocationStackId()).build(), observer4);
+    StreamObserver<AllocationContextsResponse> observer4 = mock(StreamObserver.class);
+    myProxy.getLegacyAllocationContexts(
+      LegacyAllocationContextsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).addClassIds(expectedEvents.get(0).getClassId())
+        .addStackIds(expectedEvents.get(0).getStackId()).build(), observer4);
     verify(observer4, times(1)).onNext(expected4);
     verify(observer4, times(1)).onCompleted();
+
+    // Verify that ListAllocationContexts for the wrong pid/capture time returns empty result.
+    StreamObserver<AllocationContextsResponse> observer5 = mock(StreamObserver.class);
+    myProxy.getLegacyAllocationContexts(
+      LegacyAllocationContextsRequest.newBuilder().setProcessId(MONITOR_PROCESS_2).build(), observer5);
+    verify(observer5, times(1)).onNext(AllocationContextsResponse.getDefaultInstance());
+    verify(observer5, times(1)).onCompleted();
+    StreamObserver<AllocationContextsResponse> observer6 = mock(StreamObserver.class);
+    myProxy.getLegacyAllocationContexts(
+      LegacyAllocationContextsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).build(), observer6);
+    verify(observer6, times(1)).onNext(AllocationContextsResponse.getDefaultInstance());
+    verify(observer6, times(1)).onCompleted();
   }
 
   @Test
@@ -321,7 +333,7 @@ public class MemoryServiceProxyTest {
           List<StackTraceElement> stackTraceList = new ArrayList<>();
           stackTraceList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER));
           LegacyAllocationConverter.CallStack stack = myAllocationConverter.addCallStack(stackTraceList);
-          myAllocationConverter.addAllocation(new LegacyAllocationConverter.Allocation(CLASS_ID, SIZE, THREAD_ID, stack.getId()));
+          myAllocationConverter.addAllocation(new LegacyAllocationConverter.Allocation(CLASS_ID, SIZE, THREAD_ID, stack.hashCode()));
 
           new Thread(() -> {
             try {

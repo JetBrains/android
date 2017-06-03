@@ -26,7 +26,6 @@ import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
-import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,16 +81,16 @@ public class LegacyAllocationCaptureObjectTest {
 
     loadLatch.await();
 
-    ByteString stackId1 = ByteString.copyFrom(new byte[]{'a'});
-    ByteString stackId2 = ByteString.copyFrom(new byte[]{'b'});
+    int stackId1 = 1;
+    int stackId2 = 2;
     myService.addExplicitAllocationClass(0, "test.klass0");
     myService.addExplicitAllocationClass(1, "test.klass1");
     myService.addExplicitAllocationStack("test.klass0", "testMethod0", 3, stackId1);
     myService.addExplicitAllocationStack("test.klass1", "testMethod1", 7, stackId2);
     LegacyAllocationEvent event1 =
-      LegacyAllocationEvent.newBuilder().setTrackingStartTime(startTimeNs).setAllocatedClassId(0).setAllocationStackId(stackId2).build();
+      LegacyAllocationEvent.newBuilder().setCaptureTime(startTimeNs).setClassId(0L).setStackId(stackId2).build();
     LegacyAllocationEvent event2 =
-      LegacyAllocationEvent.newBuilder().setTrackingStartTime(startTimeNs).setAllocatedClassId(1).setAllocationStackId(stackId1).build();
+      LegacyAllocationEvent.newBuilder().setCaptureTime(startTimeNs).setClassId(1L).setStackId(stackId1).build();
     myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Arrays.asList(event1, event2));
     doneLatch.await();
 
