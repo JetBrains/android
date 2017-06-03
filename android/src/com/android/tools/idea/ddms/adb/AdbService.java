@@ -17,6 +17,8 @@ package com.android.tools.idea.ddms.adb;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
@@ -189,12 +191,21 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
       boolean clientSupport = AndroidEnableAdbServiceAction.isAdbServiceEnabled();
       LOG.info("Initializing adb using: " + myAdb.getAbsolutePath() + ", client support = " + clientSupport);
 
+      ImmutableMap<String, String> env;
+      if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
+        // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
+        env = ImmutableMap.of("HOME", Files.createTempDir().getAbsolutePath());
+      }
+      else {
+        env = ImmutableMap.of();
+      }
+
       AndroidDebugBridge bridge;
       AdbLogOutput.ToStringLogger toStringLogger = new AdbLogOutput.ToStringLogger();
       Log.addLogger(toStringLogger);
       try {
         synchronized (ADB_INIT_LOCK) {
-          AndroidDebugBridge.init(clientSupport, AdbOptionsService.getInstance().shouldUseLibusb());
+          AndroidDebugBridge.init(clientSupport, AdbOptionsService.getInstance().shouldUseLibusb(), env);
           bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false);
         }
 
