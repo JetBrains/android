@@ -142,10 +142,7 @@ public class AndroidSdkData {
     String locationPath = location.getPath();
     Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
     myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
-    myDeviceManager = DeviceManager.createInstance(location,
-                                                   mySdkHandler.getAndroidFolder(),
-                                                   new MessageBuildingSdkLog(),
-                                                   FileOpUtils.create());
+    myDeviceManager = DeviceManager.createInstance(mySdkHandler, new MessageBuildingSdkLog());
   }
 
   @NotNull
