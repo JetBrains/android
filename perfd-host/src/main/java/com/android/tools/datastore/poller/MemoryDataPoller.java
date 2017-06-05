@@ -34,16 +34,15 @@ public class MemoryDataPoller extends PollRunner {
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
 
-  private MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
   private AllocationsInfo myPendingAllocationSample = null;
   private HeapDumpInfo myPendingHeapDumpSample = null;
-  private MemoryStatsTable myMemoryStatsTable;
-  private MemoryLiveAllocationTable myLiveAllocationTable;
+  private final MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
+  private final MemoryStatsTable myMemoryStatsTable;
+  private final MemoryLiveAllocationTable myLiveAllocationTable;
 
   private int myProcessId = -1;
-  // TODO: Key data off device session.
-  private Common.Session mySession;
-  private Consumer<Runnable> myFetchExecutor;
+  private final Common.Session mySession;
+  private final Consumer<Runnable> myFetchExecutor;
 
   public MemoryDataPoller(int processId,
                           Common.Session session,
@@ -81,6 +80,10 @@ public class MemoryDataPoller extends PollRunner {
 
   @Override
   public void poll() {
+    if (myProcessId == -1) {
+      return;
+    }
+
     MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
       .setProcessId(myProcessId)
       .setStartTime(myDataRequestStartTimestampNs)

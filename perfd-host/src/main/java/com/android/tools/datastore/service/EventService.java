@@ -17,7 +17,6 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
-import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.EventsTable;
 import com.android.tools.datastore.poller.EventDataPoller;
 import com.android.tools.datastore.poller.PollRunner;

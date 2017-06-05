@@ -34,8 +34,7 @@ import java.util.Map;
 
 import static com.android.tools.datastore.database.MemoryStatsTable.MemoryStatements.*;
 
-public class MemoryStatsTable extends DatastoreTable<MemoryStatsTable.MemoryStatements> {
-  static final int NO_STACK_ID = -1;
+public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStatements> {
 
   public enum MemoryStatements {
     // TODO: during process switch the initial start request time is reset in the poller, which would lead to duplicated data
@@ -384,7 +383,7 @@ public class MemoryStatsTable extends DatastoreTable<MemoryStatsTable.MemoryStat
         datas.add((T)data);
       }
     }
-    catch (InvalidProtocolBufferException | SQLException ex) {
+    catch (ClassCastException | InvalidProtocolBufferException | SQLException ex) {
       getLogger().error(ex);
     }
     return datas;

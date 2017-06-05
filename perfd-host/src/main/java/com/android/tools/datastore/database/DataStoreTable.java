@@ -18,28 +18,31 @@ package com.android.tools.datastore.database;
 import com.android.tools.profiler.proto.Common;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Interface a {@link com.android.tools.datastore.ServicePassThrough} object returns to indicate this object is
  * storing results in a database.
  */
-public abstract class DatastoreTable<T extends Enum> {
-  private static final Logger LOG = Logger.getInstance(DatastoreTable.class.getCanonicalName());
+public abstract class DataStoreTable<T extends Enum> {
+  private static final Logger LOG = Logger.getInstance(DataStoreTable.class.getCanonicalName());
   private static final long KEYS_ERROR = -1;
+  private static final Set<DataStoreTableErrorCallback> ERROR_CALLBACKS = new HashSet();
 
   private Connection myConnection;
-  private ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
+  private final ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
   protected final Map<Common.Session, Long> mySessionIdLookup;
 
-  public DatastoreTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
+  public interface DataStoreTableErrorCallback {
+    void onDataStoreError(Throwable t);
+  }
+
+  public DataStoreTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
     mySessionIdLookup = sesstionIdLookup;
   }
 
@@ -57,6 +60,33 @@ public abstract class DatastoreTable<T extends Enum> {
    * the statements for later use.
    */
   public abstract void prepareStatements();
+
+  public static void addDataStoreErrorCallback(@NotNull DataStoreTableErrorCallback callback) {
+    ERROR_CALLBACKS.add(callback);
+  }
+
+  public static void removeDataStoreErrorCallback(@NotNull DataStoreTableErrorCallback callback) {
+    ERROR_CALLBACKS.remove(callback);
+  }
+
+  /**
+   * @return true if the underlying connection is closed, false otherwise.
+   */
+  public boolean isClosed() {
+    try {
+      return myConnection.isClosed();
+    }
+    catch (SQLException ex) {
+      return true;
+    }
+  }
+
+  protected static void onError(Throwable t) {
+    LOG.error(t);
+    for (DataStoreTableErrorCallback callback : ERROR_CALLBACKS) {
+      callback.onDataStoreError(t);
+    }
+  }
 
   @NotNull
   protected Map<T, PreparedStatement> getStatementMap() {
@@ -100,29 +130,36 @@ public abstract class DatastoreTable<T extends Enum> {
 
   protected void execute(@NotNull T statement, Object... params) {
     try {
+      if (isClosed()) {
+        return;
+      }
       PreparedStatement stmt = getStatementMap().get(statement);
       applyParams(stmt, params);
       stmt.execute();
     }
     catch (SQLException ex) {
-      LOG.error(ex);
+      onError(ex);
     }
   }
 
   protected long executeWithGeneratedKeys(@NotNull T statement, Object... params) {
     try {
+      if (isClosed()) {
+        return -1;
+      }
       PreparedStatement stmt = getStatementMap().get(statement);
       applyParams(stmt, params);
       stmt.execute();
       return stmt.getGeneratedKeys().getLong(1);
     }
     catch (SQLException ex) {
-      LOG.error(ex);
+      onError(ex);
     }
     return KEYS_ERROR;
   }
 
   protected ResultSet executeQuery(@NotNull T statement, Object... params) throws SQLException {
+    // TODO: Handle when the database conneciton is closed and a query is made.
     PreparedStatement stmt = getStatementMap().get(statement);
     applyParams(stmt, params);
     return stmt.executeQuery();

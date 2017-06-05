@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
+public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
   public enum EventStatements {
     FIND_ACTIVITY,
     INSERT_ACTIVITY,
