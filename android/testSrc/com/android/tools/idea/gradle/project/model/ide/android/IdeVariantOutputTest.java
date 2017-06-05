@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.build.VariantOutput;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.VariantOutputStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.junit.Test;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 
 /**
  * Tests for {@link IdeVariantOutput}.
@@ -30,15 +28,14 @@ public class IdeVariantOutputTest {
   @Test
   public void constructor() throws Throwable {
     VariantOutput original = new VariantOutputStub();
-    assertEqualsOrSimilar(original, new IdeVariantOutput(original, new ModelCache()){});
+    IdeVariantOutput copy = new IdeVariantOutput(original, new ModelCache()) {};
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeVariantOutput.class).withRedefinedSubclass(IdeAndroidArtifactOutput.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeVariantOutput.class).withRedefinedSubclass(IdeAndroidArtifactOutput.class).verify();
   }
 
 }

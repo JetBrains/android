@@ -29,11 +29,11 @@ import java.util.Objects;
 public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements AndroidArtifactOutput {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final File myGeneratedManifest;
   @Nullable private final File myOutputFile;
   @Nullable private final String myAssembleTaskName;
+  private final int myHashCode;
 
   public IdeAndroidArtifactOutput(@NotNull AndroidArtifactOutput output, @NotNull ModelCache modelCache) {
     super(output, modelCache);

@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.NativeSettings;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,11 +32,8 @@ public final class IdeNativeSettings extends IdeModel implements NativeSettings 
     super(settings, modelCache);
     myName = settings.getName();
 
-    myCompilerFlags = new ArrayList<>();
     List<String> compilerFlags = settings.getCompilerFlags();
-    if (compilerFlags != null && !compilerFlags.isEmpty()) {
-      myCompilerFlags.addAll(compilerFlags);
-    }
+    myCompilerFlags = compilerFlags != null && !compilerFlags.isEmpty() ? ImmutableList.copyOf(compilerFlags) : Collections.emptyList();
 
     myHashCode = calculateHashCode();
   }
@@ -77,7 +75,6 @@ public final class IdeNativeSettings extends IdeModel implements NativeSettings 
     return "IdeNativeSettings{" +
            "myName='" + myName + '\'' +
            ", myCompilerFlags=" + myCompilerFlags +
-           ", myHashCode=" + myHashCode +
            "}";
   }
 }

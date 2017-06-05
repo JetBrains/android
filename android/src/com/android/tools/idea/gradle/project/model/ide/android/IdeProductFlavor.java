@@ -19,6 +19,8 @@ import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.SigningConfig;
 import com.android.builder.model.VectorDrawablesOptions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,8 +50,8 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
   public IdeProductFlavor(@NotNull ProductFlavor flavor, @NotNull ModelCache modelCache) {
     super(flavor, modelCache);
 
-    myTestInstrumentationRunnerArguments = new HashMap<>(flavor.getTestInstrumentationRunnerArguments());
-    myResourceConfigurations = new ArrayList<>(flavor.getResourceConfigurations());
+    myTestInstrumentationRunnerArguments = ImmutableMap.copyOf(flavor.getTestInstrumentationRunnerArguments());
+    myResourceConfigurations = ImmutableList.copyOf(flavor.getResourceConfigurations());
     myDimension = flavor.getDimension();
     myApplicationId = flavor.getApplicationId();
     myVersionCode = flavor.getVersionCode();

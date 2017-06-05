@@ -29,7 +29,6 @@ import java.util.Objects;
 public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAtom {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myAtomName;
   @NotNull private final List<? extends AndroidAtom> myAtomDependencies;
@@ -37,6 +36,7 @@ public final class IdeAndroidAtom extends IdeAndroidBundle implements AndroidAto
   @NotNull private final File myLibFolder;
   @NotNull private final File myJavaResFolder;
   @NotNull private final File myResourcePackage;
+  private final int myHashCode;
 
   public IdeAndroidAtom(@NotNull AndroidAtom atom, @NotNull ModelCache modelCache) {
     super(atom, modelCache);

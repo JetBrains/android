@@ -17,13 +17,10 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.Library;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.LibraryStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.junit.Test;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
-import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.expectUnsupportedMethodException;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 
 /**
  * Tests for {@link IdeLibrary}.
@@ -32,7 +29,9 @@ public class IdeLibraryTest {
   @Test
   public void constructor() throws Throwable {
     Library original = new LibraryStub();
-    assertEqualsOrSimilar(original, new IdeLibrary(original, new ModelCache()) {});
+    IdeLibrary copy = new IdeLibrary(original, new ModelCache()) {};
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
@@ -49,10 +48,7 @@ public class IdeLibraryTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeLibrary.class)
-      .withRedefinedSubclass(IdeJavaLibrary.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeLibrary.class).withRedefinedSubclass(IdeAndroidLibrary.class).verify();
+    createEqualsVerifier(IdeLibrary.class).withRedefinedSubclass(IdeJavaLibrary.class).verify();
   }
 }

@@ -34,7 +34,6 @@ import java.util.Objects;
 public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBundle {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 2L;
-  private final int myHashCode;
 
   @NotNull private final File myBundle;
   @NotNull private final File myFolder;
@@ -45,6 +44,7 @@ public abstract class IdeAndroidBundle extends IdeLibrary implements AndroidBund
   @NotNull private final File myResFolder;
   @NotNull private final File myAssetsFolder;
   @Nullable private final String myProjectVariant;
+  private final int myHashCode;
 
   protected IdeAndroidBundle(@NotNull AndroidBundle bundle, @NotNull ModelCache modelCache) {
     super(bundle, modelCache);

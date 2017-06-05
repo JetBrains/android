@@ -17,14 +17,12 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.SourceProviderContainerStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
@@ -57,14 +55,13 @@ public class IdeSourceProviderContainerTest {
   @Test
   public void constructor() throws Throwable {
     SourceProviderContainer original = new SourceProviderContainerStub();
-    assertEqualsOrSimilar(original, new IdeSourceProviderContainer(original, myModelCache));
+    IdeSourceProviderContainer copy = new IdeSourceProviderContainer(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeSourceProviderContainer.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeSourceProviderContainer.class).verify();
   }
 }

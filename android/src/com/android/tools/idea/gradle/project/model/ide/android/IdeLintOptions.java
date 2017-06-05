@@ -17,11 +17,14 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.LintOptions;
 import com.android.ide.common.repository.GradleVersion;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Creates a deep copy of a {@link LintOptions}.
@@ -29,11 +32,11 @@ import java.util.*;
 public final class IdeLintOptions extends IdeModel implements LintOptions {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @Nullable private final File myBaselineFile;
   @Nullable private final Map<String, Integer> mySeverityOverrides;
   private final boolean myCheckTestSources;
+  private final int myHashCode;
 
   public IdeLintOptions(@NotNull LintOptions options, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
     super(options, modelCache);
@@ -46,7 +49,7 @@ public final class IdeLintOptions extends IdeModel implements LintOptions {
 
   @Nullable
   private static Map<String, Integer> copy(@Nullable Map<String, Integer> original) {
-    return original != null ? new HashMap<>(original) : null;
+    return original != null ? ImmutableMap.copyOf(original) : null;
   }
 
   @Override

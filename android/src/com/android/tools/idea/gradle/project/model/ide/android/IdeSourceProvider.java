@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.SourceProvider;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -49,16 +49,16 @@ public final class IdeSourceProvider extends IdeModel implements SourceProvider 
     super(provider, modelCache);
     myName = provider.getName();
     myManifestFile = provider.getManifestFile();
-    myJavaDirectories = new ArrayList<>(provider.getJavaDirectories());
-    myResourcesDirectories = new ArrayList<>(provider.getResourcesDirectories());
-    myAidlDirectories = new ArrayList<>(provider.getAidlDirectories());
-    myRenderscriptDirectories = new ArrayList<>(provider.getRenderscriptDirectories());
-    myCDirectories = new ArrayList<>(provider.getCDirectories());
-    myCppDirectories = new ArrayList<>(provider.getCppDirectories());
-    myResDirectories = new ArrayList<>(provider.getResDirectories());
-    myAssetsDirectories = new ArrayList<>(provider.getAssetsDirectories());
-    myJniLibsDirectories = new ArrayList<>(provider.getJniLibsDirectories());
-    myShadersDirectories = copyNewProperty(() -> new ArrayList<>(provider.getShadersDirectories()), Collections.emptyList());
+    myJavaDirectories = ImmutableList.copyOf(provider.getJavaDirectories());
+    myResourcesDirectories = ImmutableList.copyOf(provider.getResourcesDirectories());
+    myAidlDirectories = ImmutableList.copyOf(provider.getAidlDirectories());
+    myRenderscriptDirectories = ImmutableList.copyOf(provider.getRenderscriptDirectories());
+    myCDirectories = ImmutableList.copyOf(provider.getCDirectories());
+    myCppDirectories = ImmutableList.copyOf(provider.getCppDirectories());
+    myResDirectories = ImmutableList.copyOf(provider.getResDirectories());
+    myAssetsDirectories = ImmutableList.copyOf(provider.getAssetsDirectories());
+    myJniLibsDirectories = ImmutableList.copyOf(provider.getJniLibsDirectories());
+    myShadersDirectories = copyNewProperty(() -> ImmutableList.copyOf(provider.getShadersDirectories()), Collections.emptyList());
     myHashCode = calculateHashCode();
   }
 

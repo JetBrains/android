@@ -17,15 +17,12 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2AndroidLibraryStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
@@ -49,7 +46,7 @@ public class IdeLevel2AndroidLibraryTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeLevel2AndroidLibrary androidLibrary = new IdeLevel2AndroidLibrary(createStub(), myModelCache);
+    IdeLevel2AndroidLibrary androidLibrary = new IdeLevel2AndroidLibrary(new Level2AndroidLibraryStub(), myModelCache);
     byte[] bytes = serialize(androidLibrary);
     Object o = deserialize(bytes);
     assertEquals(androidLibrary, o);
@@ -57,20 +54,14 @@ public class IdeLevel2AndroidLibraryTest {
 
   @Test
   public void constructor() throws Throwable {
-    Library original = createStub();
-    assertEqualsOrSimilar(original, new IdeLevel2AndroidLibrary(original, myModelCache));
-  }
-
-  @NotNull
-  private static Library createStub() {
-    return new Level2AndroidLibraryStub();
+    Library original = new Level2AndroidLibraryStub();
+    IdeLevel2AndroidLibrary copy = new IdeLevel2AndroidLibrary(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeLevel2AndroidLibrary.class).withRedefinedSuperclass()
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeLevel2AndroidLibrary.class).verify();
   }
 }
