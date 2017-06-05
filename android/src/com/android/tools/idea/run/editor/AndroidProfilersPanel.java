@@ -48,6 +48,7 @@ public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListe
   private JCheckBox myAdvancedProfilingCheckBox;
   private HyperlinkLabel myHyperlinkLabel;
   private JTextPane myAdvancedProfilingDescription;
+  private JLabel mySyncStatusMessage;
 
   public JComponent getComponent() {
     return myDescription;
@@ -87,13 +88,15 @@ public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListe
       AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model != null) {
         GradleVersion modelVersion = model.getModelVersion();
-        supported = modelVersion == null || modelVersion.compareIgnoringQualifiers(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
+        supported = modelVersion != null && modelVersion.compareIgnoringQualifiers(MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
         if (!supported) {
           break;
         }
       }
     }
-    myHyperlinkLabel.setHyperlinkText("This feature can only be enabled with a gradle plugin version of 2.4 or greater. ","Update project"," " + message);
+    myHyperlinkLabel.setHyperlinkText("This feature can only be enabled with a gradle plugin version of 2.4 or greater. ","Update project", "");
+    myHyperlinkLabel.setVisible(!supported);
+    mySyncStatusMessage.setText(message);
     myHyperlinkLabel.setVisible(!supported);
     myDescription.setEnabled(supported);
     myAdvancedProfilingCheckBox.setEnabled(supported);
@@ -103,6 +106,12 @@ public class AndroidProfilersPanel implements HyperlinkListener, GradleSyncListe
   public void hyperlinkUpdate(HyperlinkEvent e) {
     GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
     GradleVersion pluginVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
+
+    // Don't bother sync'ing if latest is less than our minimum requirement.
+    if (MINIMUM_GRADLE_PLUGIN_VERSION.compareIgnoringQualifiers(pluginVersion) > 0) {
+      updateHyperlink("(No matching gradle version found)");
+      return;
+    }
 
     // Update plugin version
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(myProject);
