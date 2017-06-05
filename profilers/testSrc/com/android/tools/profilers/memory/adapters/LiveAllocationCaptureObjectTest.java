@@ -46,6 +46,24 @@ public class LiveAllocationCaptureObjectTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest", myService);
 
+
+  static final int STACK1 = 1;
+  static final int STACK2 = 2;
+  static final long CLASS1 = 1000;
+  static final long CLASS2 = 1001;
+  static final long CLASS3 = 1002;
+  static final long CLASS1_INSTANCE1 = 10000;
+  static final long CLASS2_INSTANCE1 = 10001;
+  static final long CLASS3_INSTANCE1 = 10002;
+  static final String METHOD1_NAME = "Method1";
+  static final String METHOD2_NAME = "Method2";
+  static final String CLASS1_NAME = "java.lang.Klass1";
+  static final String CLASS2_NAME = "java.lang.Klass2[][]";
+  static final String CLASS3_NAME = "java.lang.Klass3[][][]";;
+  static final String CLASS1_NAME_SIMPLE = "Klass1";
+  static final String CLASS2_NAME_SIMPLE = "Klass2[][]";
+  static final String CLASS3_NAME_SIMPLE = "Klass3[][][]";
+
   // Simple test to check that we get the correct event+data on load and selection changes.
   // Note that the fake data does not include timestamps as we are hardcoding what the FakeMemoryService returns.
   @Test
@@ -61,22 +79,6 @@ public class LiveAllocationCaptureObjectTest {
                                                                           myIdeProfilerServices.getFeatureTracker());
 
     // Populate FakeMemoryService with fake allocation contexts and events
-    final int STACK1 = 1;
-    final int STACK2 = 2;
-    final long CLASS1 = 1000;
-    final long CLASS2 = 1001;
-    final long CLASS3 = 1002;
-    final long CLASS1_INSTANCE1 = 10000;
-    final long CLASS2_INSTANCE1 = 10001;
-    final long CLASS3_INSTANCE1 = 10002;
-    final String METHOD1_NAME = "Method1";
-    final String METHOD2_NAME = "Method2";
-    final String CLASS1_NAME = "java.lang.Klass1";
-    final String CLASS2_NAME = "java.lang.Klass2[][]";
-    final String CLASS3_NAME = "java.lang.Klass3[][][]";
-    final String CLASS1_NAME_SIMPLE = "Klass1";
-    final String CLASS2_NAME_SIMPLE = "Klass2[][]";
-    final String CLASS3_NAME_SIMPLE = "Klass3[][][]";
     myService.addExplicitAllocationClass(CLASS1, CLASS1_NAME);
     myService.addExplicitAllocationClass(CLASS2, CLASS2_NAME);
     myService.addExplicitAllocationStack(CLASS1_NAME, METHOD1_NAME, -1, STACK1);
@@ -145,6 +147,109 @@ public class LiveAllocationCaptureObjectTest {
 
     // Fake a selection range change that only changes the max value (e.g. the heap set should not clear)
     SELECTION_RANGE.set(SELECTION_START_US, SELECTION_END_US);
+    waitForLoadComplete(capture);
+    verifyClassifierSet(heapSet, DEFAULT_HEAP_NAME, 3, 2, 3, 3, true);
+    childrenClassifierSet = heapSet.getChildrenClassifierSets();
+    verifyClassifierSet(childrenClassifierSet.get(0), CLASS1_NAME_SIMPLE, 1, 1, 1, 0, true);
+    verifyClassifierSet(childrenClassifierSet.get(1), CLASS2_NAME_SIMPLE, 1, 1, 1, 0, true);
+    verifyClassifierSet(childrenClassifierSet.get(2), CLASS3_NAME_SIMPLE, 1, 0, 1, 0, false);
+  }
+
+  // This test checks that optimization by canceling outstanding queries works properly
+  // 1. Load Initial Range
+  // 2. Block myService
+  // 3. Fake 5 selection changes
+  // 4. Unblock myService
+  // 5. Only the last range change should have been running
+  @Test
+  public void testOptimizedLiveAllocationWorkflow() throws Exception {
+    final int APP_ID = 1;
+    final long SELECTION_START_US = TimeUnit.MILLISECONDS.toMicros(1);
+    final Range SELECTION_RANGE = new Range(SELECTION_START_US, SELECTION_START_US);
+
+    long selectionEndUs = SELECTION_START_US;
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                          ProfilersTestData.SESSION_DATA, APP_ID,
+                                                                          SELECTION_START_US,
+                                                                          myIdeProfilerServices.getFeatureTracker());
+
+    // Populate FakeMemoryService with fake allocation contexts and events
+    myService.addExplicitAllocationClass(CLASS1, CLASS1_NAME);
+    myService.addExplicitAllocationClass(CLASS2, CLASS2_NAME);
+    myService.addExplicitAllocationStack(CLASS1_NAME, METHOD1_NAME, -1, STACK1);
+    myService.addExplicitAllocationStack(CLASS2_NAME, METHOD2_NAME, -1, STACK2);
+
+    AllocationEvent alloc1 = AllocationEvent.newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(CLASS1_INSTANCE1).setClassTag(CLASS1).setStackId(STACK1)).build();
+    AllocationEvent dealloc1 = AllocationEvent.newBuilder()
+      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(CLASS1_INSTANCE1).setClassTag(CLASS1)).build();
+    AllocationEvent alloc2 = AllocationEvent.newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(CLASS2_INSTANCE1).setClassTag(CLASS2).setStackId(STACK2)).build();
+    MemoryProfiler.BatchAllocationSample.Builder allocDataBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
+    allocDataBuilder.addAllEvents(Arrays.asList(alloc1, dealloc1, alloc2));
+    myService.setExplicitBatchAllocationSample(allocDataBuilder.build());
+
+    // Heap set should start out empty.
+    HeapSet heapSet = capture.getHeapSet(LiveAllocationCaptureObject.DEFAULT_HEAP_ID);
+    assertEquals(0, heapSet.getChildrenClassifierSets().size());
+
+    // Listens to the event that gets fired when load is called, then check the content of the changedNode parameter
+    capture.addCaptureChangedListener(new CaptureObject.CaptureChangedListener() {
+      int eventCount = 0;
+
+      @Override
+      public void heapChanged(@NotNull ChangedNode changedNode, boolean clear) {
+        if (eventCount == 0) {
+          // The first event triggered by load.
+          assertTrue(clear);
+          assertEquals(heapSet, changedNode.getClassifierSet());
+          verifyClassifierSet(changedNode.getClassifierSet(), DEFAULT_HEAP_NAME, 2, 1, 2, 2, true);
+          List<ClassifierSet> childrenClassifierSet = new ArrayList<>(changedNode.getChildClassifierSets());
+          verifyClassifierSet(childrenClassifierSet.get(0), CLASS1_NAME_SIMPLE, 1, 1, 1, 0, true);
+          verifyClassifierSet(childrenClassifierSet.get(1), CLASS2_NAME_SIMPLE, 1, 0, 1, 0, true);
+        }
+        else if (eventCount == 1) {
+          // The second event triggered by selection range changes
+          assertFalse(clear);
+          assertEquals(heapSet, changedNode.getClassifierSet());
+          verifyClassifierSet(changedNode.getClassifierSet(), DEFAULT_HEAP_NAME, 3, 2, 3, 3, true);
+          List<ClassifierSet> childrenClassifierSet = new ArrayList<>(changedNode.getChildClassifierSets());
+          // Only CLASS2 and CLASS3 nodes have changed
+          verifyClassifierSet(childrenClassifierSet.get(0), CLASS2_NAME_SIMPLE, 1, 1, 1, 0, true);
+          verifyClassifierSet(childrenClassifierSet.get(1), CLASS3_NAME_SIMPLE, 1, 0, 1, 0, false);
+        }
+        else {
+          // Other event should be canceled
+          assertEquals(0, 1);
+        }
+        eventCount++;
+      }
+    });
+
+    capture.load(SELECTION_RANGE, MoreExecutors.directExecutor());
+    waitForLoadComplete(capture);
+    verifyClassifierSet(heapSet, DEFAULT_HEAP_NAME, 2, 1, 2, 2, true);
+    List<ClassifierSet> childrenClassifierSet = heapSet.getChildrenClassifierSets();
+    verifyClassifierSet(childrenClassifierSet.get(0), CLASS1_NAME_SIMPLE, 1, 1, 1, 0, true);
+    verifyClassifierSet(childrenClassifierSet.get(1), CLASS2_NAME_SIMPLE, 1, 0, 1, 0, true);
+
+
+    myService.blockGetAllocationContexts();
+    // Simulates a subsequent deallocation event for the previous alloc2 + a new allocation event (without callstack)
+    myService.addExplicitAllocationClass(CLASS3, CLASS3_NAME);
+    allocDataBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
+    AllocationEvent dealloc2 = AllocationEvent.newBuilder()
+      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(CLASS2_INSTANCE1).setClassTag(CLASS2)).build();
+    AllocationEvent alloc3 = AllocationEvent.newBuilder()
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(CLASS3_INSTANCE1).setClassTag(CLASS3)).build();
+    allocDataBuilder.addAllEvents(Arrays.asList(dealloc2, alloc3));
+    myService.setExplicitBatchAllocationSample(allocDataBuilder.build());
+
+    // Fake 5 selection range changes that would be canceled
+    for (int k = 0; k < 5; ++k) {
+      SELECTION_RANGE.set(SELECTION_START_US, ++selectionEndUs);
+    }
+    myService.unblockGetAllocatinoContexts();
     waitForLoadComplete(capture);
     verifyClassifierSet(heapSet, DEFAULT_HEAP_NAME, 3, 2, 3, 3, true);
     childrenClassifierSet = heapSet.getChildrenClassifierSets();
