@@ -15,26 +15,21 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.testutils.TestUtils;
-import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
-import java.nio.file.Files;
 import java.util.Set;
 
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.traceFileToByteString;
 import static org.junit.Assert.*;
 
 // TODO: Add more variation of trace files (e.g trace with no threads)
 public class CpuCaptureTest {
-
-  private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
 
   @Test
   public void validCapture() throws IOException {
@@ -101,10 +96,5 @@ public class CpuCaptureTest {
       // CpuCapture constructor catches the IOException and throw an IllegalStateException instead.
     }
     assertNull(capture);
-  }
-
-  private static ByteString traceFileToByteString(@NotNull String filename) throws IOException {
-    File traceFile = TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
-    return ByteString.copyFrom(Files.readAllBytes(traceFile.toPath()));
   }
 }
