@@ -19,9 +19,11 @@ import com.android.builder.model.Library;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.LibraryStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.junit.Test;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.expectUnsupportedMethodException;
 
 /**
  * Tests for {@link IdeLibrary}.
@@ -31,6 +33,18 @@ public class IdeLibraryTest {
   public void constructor() throws Throwable {
     Library original = new LibraryStub();
     assertEqualsOrSimilar(original, new IdeLibrary(original, new ModelCache()) {});
+  }
+
+  @Test
+  public void model1_dot_5() {
+    Library original = new LibraryStub() {
+      @Override
+      public boolean isProvided() {
+        throw new UnsupportedMethodException("Unsupported method: AndroidLibrary.isProvided()");
+      }
+    };
+    IdeLibrary library = new IdeLibrary(original, new ModelCache()) {};
+    expectUnsupportedMethodException(library::isProvided);
   }
 
   @Test

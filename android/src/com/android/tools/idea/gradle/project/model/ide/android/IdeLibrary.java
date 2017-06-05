@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.Library;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,13 +27,14 @@ import java.util.Objects;
  */
 public abstract class IdeLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-  private final int myHashCode;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final IdeMavenCoordinates myResolvedCoordinates;
   @Nullable private final String myProject;
   @Nullable private final String myName;
-  private final boolean myProvided;
+  @Nullable private final Boolean myProvided;
+
+  private final int myHashCode;
 
   protected IdeLibrary(@NotNull Library library, @NotNull ModelCache modelCache) {
     super(library, modelCache);
@@ -40,7 +42,7 @@ public abstract class IdeLibrary extends IdeModel implements Library {
                                                        coordinates -> new IdeMavenCoordinates(coordinates, modelCache));
     myProject = copyNewProperty(library::getProject, null);
     myName = copyNewProperty(library::getName, null); // Library.getName() was added in 2.2
-    myProvided = library.isProvided();
+    myProvided = copyNewProperty(library::isProvided, null);
 
     myHashCode = calculateHashCode();
   }
@@ -76,7 +78,10 @@ public abstract class IdeLibrary extends IdeModel implements Library {
 
   @Override
   public boolean isProvided() {
-    return myProvided;
+    if (myProvided != null) {
+      return myProvided;
+    }
+    throw new UnsupportedMethodException("Unsupported method: AndroidLibrary.isProvided()");
   }
 
   @Override
@@ -89,7 +94,7 @@ public abstract class IdeLibrary extends IdeModel implements Library {
     }
     IdeLibrary library = (IdeLibrary)o;
     return library.canEqual(this) &&
-           myProvided == library.myProvided &&
+           Objects.equals(myProvided, library.myProvided) &&
            Objects.equals(myResolvedCoordinates, library.myResolvedCoordinates) &&
            Objects.equals(myProject, library.myProject) &&
            Objects.equals(myName, library.myName);
