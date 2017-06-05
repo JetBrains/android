@@ -32,7 +32,7 @@ import java.util.Map;
 
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.*;
 
-public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocationTable.MemoryStatements> {
+public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocationTable.MemoryStatements> {
   public enum MemoryStatements {
     // O+ Allocation Tracking
     INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?)"),
@@ -223,7 +223,6 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
       for (MemoryProfiler.AllocationEvent event : sample.getEventsList()) {
         if (currentCase != event.getEventCase()) {
           if (currentCase != null) {
-            assert currentStatement != null;
             currentStatement.executeBatch();
           }
 
@@ -245,16 +244,19 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
 
         switch (currentCase) {
           case CLASS_DATA:
+            assert currentStatement != null;
             AllocatedClass klass = event.getClassData();
             applyParams(currentStatement, pid, session, klass.getClassId(), event.getTimestamp(), jniToJavaName(klass.getClassName()));
             break;
           case ALLOC_DATA:
+            assert currentStatement != null;
             allocAndFreeCount++;
             AllocationEvent.Allocation allocation = event.getAllocData();
             applyParams(currentStatement, pid, session, allocation.getTag(), allocation.getClassTag(),
                         event.getTimestamp(), Long.MAX_VALUE, allocation.getSize(), allocation.getLength(), allocation.getStackId());
             break;
           case FREE_DATA:
+            assert currentStatement != null;
             allocAndFreeCount++;
             AllocationEvent.Deallocation free = event.getFreeData();
             applyParams(currentStatement, event.getTimestamp(), pid, session, free.getTag());
