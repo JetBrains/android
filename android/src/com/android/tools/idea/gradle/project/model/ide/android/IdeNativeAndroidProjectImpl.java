@@ -20,6 +20,8 @@ import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeSettings;
 import com.android.builder.model.NativeToolchain;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -50,12 +52,12 @@ public final class IdeNativeAndroidProjectImpl extends IdeModel implements IdeNa
     myModelVersion = project.getModelVersion();
     myApiVersion = project.getApiVersion();
     myName = project.getName();
-    myBuildFiles = new ArrayList<>(project.getBuildFiles());
+    myBuildFiles = ImmutableList.copyOf(project.getBuildFiles());
     myArtifacts = copy(project.getArtifacts(), modelCache, artifact -> new IdeNativeArtifact(artifact, modelCache));
     myToolChains = copy(project.getToolChains(), modelCache, toolchain -> new IdeNativeToolchain(toolchain, modelCache));
     mySettings = copy(project.getSettings(), modelCache, settings -> new IdeNativeSettings(settings, modelCache));
-    myFileExtensions = new HashMap<>(project.getFileExtensions());
-    myBuildSystems = new ArrayList<>(project.getBuildSystems());
+    myFileExtensions = ImmutableMap.copyOf(project.getFileExtensions());
+    myBuildSystems = ImmutableList.copyOf(project.getBuildSystems());
     myHashCode = calculateHashCode();
   }
 

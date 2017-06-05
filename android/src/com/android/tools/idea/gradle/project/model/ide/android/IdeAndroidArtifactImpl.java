@@ -17,12 +17,16 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Creates a deep copy of {@link AndroidArtifact}.
@@ -30,12 +34,11 @@ import java.util.*;
 public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements IdeAndroidArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 2L;
-  private final int myHashCode;
 
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final String myApplicationId;
   @NotNull private final String mySourceGenTaskName;
-  @NotNull private final Collection<File> myGeneratedResourceFolders = new ArrayList<>();
+  @NotNull private final Collection<File> myGeneratedResourceFolders;
   @NotNull private final Map<String, ClassField> myBuildConfigFields;
   @NotNull private final Map<String, ClassField> myResValues;
   @Nullable private final IdeInstantRun myInstantRun;
@@ -43,13 +46,14 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
   @Nullable private final Set<String> myAbiFilters;
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
   private final boolean mySigned;
+  private final int myHashCode;
 
   public IdeAndroidArtifactImpl(@NotNull AndroidArtifact artifact, @NotNull ModelCache modelCache, @Nullable GradleVersion gradleVersion) {
     super(artifact, modelCache, gradleVersion);
     myOutputs = copy(artifact.getOutputs(), modelCache, output -> new IdeAndroidArtifactOutput(output, modelCache));
     myApplicationId = artifact.getApplicationId();
     mySourceGenTaskName = artifact.getSourceGenTaskName();
-    myGeneratedResourceFolders.addAll(artifact.getGeneratedResourceFolders());
+    myGeneratedResourceFolders = ImmutableList.copyOf(artifact.getGeneratedResourceFolders());
     myBuildConfigFields = copy(artifact.getBuildConfigFields(), modelCache, classField -> new IdeClassField(classField, modelCache));
     myResValues = copy(artifact.getResValues(), modelCache, classField -> new IdeClassField(classField, modelCache));
     myInstantRun = copyNewProperty(modelCache, artifact::getInstantRun, instantRun -> new IdeInstantRun(instantRun, modelCache), null);

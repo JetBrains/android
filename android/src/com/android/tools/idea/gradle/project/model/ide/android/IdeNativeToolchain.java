@@ -28,11 +28,11 @@ import java.util.Objects;
 public final class IdeNativeToolchain extends IdeModel implements NativeToolchain {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myName;
   @Nullable private final File myCCompilerExecutable;
   @Nullable private final File myCppCompilerExecutable;
+  private final int myHashCode;
 
   public IdeNativeToolchain(@NotNull NativeToolchain toolchain, @NotNull ModelCache modelCache) {
     super(toolchain, modelCache);

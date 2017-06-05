@@ -18,10 +18,10 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeFolder;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -47,11 +47,11 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
     myAssembleTaskName = artifact.getAssembleTaskName();
     mySourceFolders = copy(artifact.getSourceFolders(), modelCache, folder -> new IdeNativeFolder(folder, modelCache));
     mySourceFiles = copy(artifact.getSourceFiles(), modelCache, file -> new IdeNativeFile(file, modelCache));
-    myExportedHeaders = new ArrayList<>(artifact.getExportedHeaders());
+    myExportedHeaders = ImmutableList.copyOf(artifact.getExportedHeaders());
     myAbi = artifact.getAbi();
     myTargetName = artifact.getTargetName();
     myOutputFile = artifact.getOutputFile();
-    myRuntimeFiles = new ArrayList<>(artifact.getRuntimeFiles());
+    myRuntimeFiles = ImmutableList.copyOf(artifact.getRuntimeFiles());
     myHashCode = calculateHashCode();
   }
 

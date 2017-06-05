@@ -26,10 +26,10 @@ import java.util.Objects;
 public final class IdeTestedTargetVariant extends IdeModel implements TestedTargetVariant {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myTargetProjectPath;
   @NotNull private final String myTargetVariant;
+  private final int myHashCode;
 
   public IdeTestedTargetVariant(@NotNull TestedTargetVariant variant, @NotNull ModelCache modelCache) {
     super(variant, modelCache);

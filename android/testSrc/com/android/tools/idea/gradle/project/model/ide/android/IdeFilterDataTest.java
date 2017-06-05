@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.FilterDataStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
@@ -56,15 +54,13 @@ public class IdeFilterDataTest {
   @Test
   public void constructor() throws Throwable {
     FilterDataStub original = new FilterDataStub();
-    assertEqualsOrSimilar(original, new IdeFilterData(original, myModelCache));
+    IdeFilterData copy = new IdeFilterData(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeFilterData.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeFilterData.class).verify();
   }
-
 }

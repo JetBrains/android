@@ -29,9 +29,9 @@ import java.util.Objects;
 public final class IdeJavaArtifact extends IdeBaseArtifactImpl implements JavaArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @Nullable private final File myMockablePlatformJar;
+  private final int myHashCode;
 
   public IdeJavaArtifact(@NotNull JavaArtifact artifact, @NotNull ModelCache seen, @Nullable GradleVersion gradleVersion) {
     super(artifact, seen, gradleVersion);

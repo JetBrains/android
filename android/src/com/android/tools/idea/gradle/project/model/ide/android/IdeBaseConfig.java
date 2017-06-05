@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseConfig;
 import com.android.builder.model.ClassField;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +31,6 @@ import java.util.*;
 public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final Map<String, ClassField> myResValues;
@@ -39,14 +40,15 @@ public abstract class IdeBaseConfig extends IdeModel implements BaseConfig {
   @Nullable private final String myApplicationIdSuffix;
   @Nullable private final String myVersionNameSuffix;
   @Nullable private final Boolean myMultiDexEnabled;
+  private final int myHashCode;
 
   protected IdeBaseConfig(@NotNull BaseConfig config, @NotNull ModelCache modelCache) {
     super(config, modelCache);
     myName = config.getName();
     myResValues = copy(config.getResValues(), modelCache, classField -> new IdeClassField(classField, modelCache));
-    myProguardFiles = new ArrayList<>(config.getProguardFiles());
-    myConsumerProguardFiles = new ArrayList<>(config.getConsumerProguardFiles());
-    myManifestPlaceholders = new HashMap<>(config.getManifestPlaceholders());
+    myProguardFiles = ImmutableList.copyOf(config.getProguardFiles());
+    myConsumerProguardFiles = ImmutableList.copyOf(config.getConsumerProguardFiles());
+    myManifestPlaceholders = ImmutableMap.copyOf(config.getManifestPlaceholders());
     myApplicationIdSuffix = config.getApplicationIdSuffix();
     myVersionNameSuffix = copyNewProperty(config::getVersionNameSuffix, null);
     myMultiDexEnabled = copyNewProperty(config::getMultiDexEnabled, null);

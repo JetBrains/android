@@ -26,10 +26,10 @@ import java.util.Objects;
 public final class IdeFilterData extends IdeModel implements FilterData {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myIdentifier;
   @NotNull private final String myFilterType;
+  private final int myHashCode;
 
   public IdeFilterData(@NotNull FilterData data, @NotNull ModelCache modelCache) {
     super(data, modelCache);

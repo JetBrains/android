@@ -29,12 +29,13 @@ import java.util.Objects;
 public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
-  private final int myType;
+
   @NotNull private final String myArtifactAddress;
   @NotNull private final File myArtifactFile;
   @Nullable private final String myProjectPath;
   @Nullable private final String myVariant;
+  private final int myType;
+  private final int myHashCode;
 
   public IdeLevel2ModuleLibrary(@NotNull Library library, @NotNull ModelCache modelCache) {
     super(library, modelCache);
