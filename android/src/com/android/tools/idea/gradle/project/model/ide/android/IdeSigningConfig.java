@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.SigningConfig;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,14 +28,14 @@ import java.util.Objects;
  */
 public final class IdeSigningConfig extends IdeModel implements SigningConfig {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
   private final int myHashCode;
 
   @NotNull private final String myName;
   @Nullable private final File myStoreFile;
   @Nullable private final String myStorePassword;
   @Nullable private final String myKeyAlias;
-  private final boolean myV1SigningEnabled;
+  @Nullable private final Boolean myV1SigningEnabled;
 
   public IdeSigningConfig(@NotNull SigningConfig config, @NotNull ModelCache modelCache) {
     super(config, modelCache);
@@ -42,7 +43,7 @@ public final class IdeSigningConfig extends IdeModel implements SigningConfig {
     myStoreFile = config.getStoreFile();
     myStorePassword = config.getStorePassword();
     myKeyAlias = config.getKeyAlias();
-    myV1SigningEnabled = config.isV1SigningEnabled();
+    myV1SigningEnabled = copyNewProperty(config::isV1SigningEnabled, null);
 
     myHashCode = calculateHashCode();
   }
@@ -85,7 +86,10 @@ public final class IdeSigningConfig extends IdeModel implements SigningConfig {
 
   @Override
   public boolean isV1SigningEnabled() {
-    return myV1SigningEnabled;
+    if (myV1SigningEnabled != null) {
+      return myV1SigningEnabled;
+    }
+    throw new UnsupportedMethodException("Unsupported method: SigningConfig.isV1SigningEnabled()");
   }
 
   @Override
@@ -107,7 +111,7 @@ public final class IdeSigningConfig extends IdeModel implements SigningConfig {
       return false;
     }
     IdeSigningConfig config = (IdeSigningConfig)o;
-    return myV1SigningEnabled == config.myV1SigningEnabled &&
+    return Objects.equals(myV1SigningEnabled, config.myV1SigningEnabled) &&
            Objects.equals(myName, config.myName) &&
            Objects.equals(myStoreFile, config.myStoreFile) &&
            Objects.equals(myStorePassword, config.myStorePassword) &&

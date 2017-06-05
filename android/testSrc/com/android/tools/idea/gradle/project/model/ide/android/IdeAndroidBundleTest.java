@@ -16,12 +16,18 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidBundle;
+import com.android.builder.model.JavaLibrary;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidBundleStub;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import java.util.Collection;
+
 import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link IdeAndroidBundle}.
@@ -31,6 +37,19 @@ public class IdeAndroidBundleTest {
   public void constructor() throws Throwable {
     AndroidBundle original = new AndroidBundleStub();
     assertEqualsOrSimilar(original, new IdeAndroidBundle(original, new ModelCache()) {});
+  }
+
+  @Test
+  public void model1_dot_5() {
+    AndroidBundle original = new AndroidBundleStub() {
+      @Override
+      @NotNull
+      public Collection<? extends JavaLibrary> getJavaDependencies() {
+        throw new UnsupportedMethodException("Unsupported method");
+      }
+    };
+    IdeAndroidBundle bundle = new IdeAndroidBundle(original, new ModelCache()) {};
+    assertThat(bundle.getJavaDependencies()).isEmpty();
   }
 
   @Test

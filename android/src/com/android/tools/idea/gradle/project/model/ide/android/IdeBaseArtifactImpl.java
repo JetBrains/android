@@ -39,22 +39,23 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-  private final int myHashCode;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final String myName;
   @NotNull private final String myCompileTaskName;
   @NotNull private final String myAssembleTaskName;
   @NotNull private final File myClassesFolder;
   @NotNull private final IdeDependencies myDependencies;
-  @NotNull private final Dependencies myCompileDependencies;
   @NotNull private final Set<String> myIdeSetupTaskNames;
   @NotNull private final Collection<File> myGeneratedSourceFolders;
+  @NotNull private final Set<File> myAdditionalClassFolders;
+  @Nullable private final IdeDependencies myCompileDependencies;
   @Nullable private final File myJavaResourcesFolder;
   @Nullable private final DependencyGraphs myDependencyGraphs;
   @Nullable private final IdeSourceProvider myVariantSourceProvider;
   @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
-  @NotNull private final Set<File> myAdditionalClassFolders;
+
+  private final int myHashCode;
 
   protected IdeBaseArtifactImpl(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
     super(artifact, modelCache);
@@ -64,8 +65,8 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
     myClassesFolder = artifact.getClassesFolder();
     myJavaResourcesFolder = copyNewProperty(artifact::getJavaResourcesFolder, null);
     myDependencies = copy(artifact.getDependencies(), modelCache, modelVersion);
-    //noinspection deprecation
-    myCompileDependencies = copy(artifact.getCompileDependencies(), modelCache, modelVersion);
+    myCompileDependencies = copyNewProperty(modelCache, artifact::getCompileDependencies,
+                                            dependencies -> new IdeDependenciesImpl(dependencies, modelCache, modelVersion), null);
 
     if (modelVersion != null && modelVersion.isAtLeast(2, 3, 0)) {
       myDependencyGraphs = modelCache.computeIfAbsent(artifact.getDependencyGraphs(),
@@ -153,7 +154,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
     if (myJavaResourcesFolder != null) {
       return myJavaResourcesFolder;
     }
-    throw new UnsupportedMethodException("getJavaResourcesFolder");
+    throw new UnsupportedMethodException("Unsupported method: BaseArtifact.getJavaResourcesFolder");
   }
 
   @Override
@@ -165,7 +166,10 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   @Override
   @NotNull
   public Dependencies getCompileDependencies() {
-    return myCompileDependencies;
+    if (myCompileDependencies != null) {
+      return myCompileDependencies;
+    }
+    throw new UnsupportedMethodException("Unsupported method: BaseArtifact.getCompileDependencies()");
   }
 
   @Override
@@ -176,7 +180,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
     }
     // Since this method is marked as @NotNull, it is not defined what to do when invoked while using older models. For now, we
     // keep the default behavior and throw an exception.
-    throw new UnsupportedMethodException("getDependencyGraphs");
+    throw new UnsupportedMethodException("Unsupported method: BaseArtifact.getDependencyGraphs");
   }
 
   @Override

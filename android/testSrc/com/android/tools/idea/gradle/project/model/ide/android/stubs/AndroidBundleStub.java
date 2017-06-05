@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
   @NotNull private final File myBundle;
@@ -62,7 +61,6 @@ public class AndroidBundleStub extends LibraryStub implements AndroidBundle {
     myAssetsFolder = assetsFolder;
     myProjectVariant = variant;
   }
-
 
   @Override
   @NotNull

@@ -237,7 +237,7 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
            Objects.equals(getVersionNameSuffix(), that.getVersionNameSuffix()) &&
            Objects.equals(getTestInstrumentationRunnerArguments(), that.getTestInstrumentationRunnerArguments()) &&
            Objects.equals(getResourceConfigurations(), that.getResourceConfigurations()) &&
-           Objects.equals(getVectorDrawables(), that.getVectorDrawables()) &&
+           equals(that, ProductFlavor::getVectorDrawables) &&
            Objects.equals(getDimension(), that.getDimension()) &&
            Objects.equals(getApplicationId(), that.getApplicationId()) &&
            Objects.equals(getVersionCode(), that.getVersionCode()) &&
@@ -254,7 +254,7 @@ public class ProductFlavorStub extends BaseConfigStub implements ProductFlavor {
            equals(that, ProductFlavor::getTestHandleProfiling) &&
            equals(that, ProductFlavor::getTestFunctionalTest) &&
            Objects.equals(getSigningConfig(), that.getSigningConfig()) &&
-           Objects.equals(getWearAppUnbundled(), that.getWearAppUnbundled());
+           equals(that, ProductFlavor::getWearAppUnbundled);
   }
 
   @Override
