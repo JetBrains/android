@@ -28,10 +28,10 @@ import java.util.Objects;
 public final class IdeJavaLibrary extends IdeLibrary implements JavaLibrary {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final File myJarFile;
   @NotNull private final List<? extends JavaLibrary> myDependencies;
+  private final int myHashCode;
 
   public IdeJavaLibrary(@NotNull JavaLibrary library, @NotNull ModelCache modelCache) {
     super(library, modelCache);

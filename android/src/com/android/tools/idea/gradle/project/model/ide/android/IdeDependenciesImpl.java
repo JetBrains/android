@@ -20,10 +20,10 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
 import com.android.ide.common.repository.GradleVersion;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -35,13 +35,13 @@ import java.util.function.Consumer;
 public final class IdeDependenciesImpl extends IdeModel implements IdeDependencies {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final Collection<AndroidAtom> myAtoms;
   @NotNull private final Collection<AndroidLibrary> myLibraries;
   @NotNull private final Collection<JavaLibrary> myJavaLibraries;
   @NotNull private final Collection<String> myProjects;
   @Nullable private final IdeAndroidAtom myBaseAtom;
+  private final int myHashCode;
 
   public IdeDependenciesImpl(@NotNull Dependencies dependencies, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
     super(dependencies, modelCache);
@@ -56,7 +56,7 @@ public final class IdeDependenciesImpl extends IdeModel implements IdeDependenci
     myLibraries = copy(dependencies.getLibraries(), modelCache, library -> new IdeAndroidLibrary(library, modelCache));
     myJavaLibraries = copy(dependencies.getJavaLibraries(), modelCache, library -> new IdeJavaLibrary(library, modelCache));
 
-    myProjects = new ArrayList<>(dependencies.getProjects());
+    myProjects = ImmutableList.copyOf(dependencies.getProjects());
 
     AndroidAtom baseAtom = atLeastTwoDotThree ? dependencies.getBaseAtom() : null;
     myBaseAtom = copyAtom(modelCache, baseAtom);

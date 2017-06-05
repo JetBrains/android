@@ -18,12 +18,16 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -32,8 +36,6 @@ import java.util.function.Consumer;
 public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidProject {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 2L;
-
-  private final int myHashCode;
 
   @NotNull private final String myModelVersion;
   @NotNull private final String myName;
@@ -51,6 +53,7 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   @NotNull private final Collection<String> myUnresolvedDependencies;
   @NotNull private final JavaCompileOptions myJavaCompileOptions;
   @NotNull private final File myBuildFolder;
+  @Nullable private final GradleVersion myParsedModelVersion;
   @Nullable private final String myBuildToolsVersion;
   @Nullable private final String myResourcePrefix;
   @Nullable private final Integer myPluginGeneration;
@@ -58,8 +61,7 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   private final boolean myLibrary;
   private final int myProjectType;
   private final boolean myBaseSplit;
-
-  @Nullable private final GradleVersion myParsedModelVersion;
+  private final int myHashCode;
 
   public IdeAndroidProjectImpl(@NotNull AndroidProject project) {
     this(project, new ModelCache());
@@ -80,14 +82,14 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
     myBuildToolsVersion = copyNewProperty(project::getBuildToolsVersion, null);
     mySyncIssues = copy(project.getSyncIssues(), modelCache, issue -> new IdeSyncIssue(issue, modelCache));
     myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariantImpl(variant, modelCache, myParsedModelVersion));
-    myFlavorDimensions = copyNewProperty(() -> new ArrayList<>(project.getFlavorDimensions()), Collections.emptyList());
+    myFlavorDimensions = copyNewProperty(() -> ImmutableList.copyOf(project.getFlavorDimensions()), Collections.emptyList());
     myCompileTarget = project.getCompileTarget();
-    myBootClassPath = new ArrayList<>(project.getBootClasspath());
+    myBootClassPath = ImmutableList.copyOf(project.getBootClasspath());
     myNativeToolchains = copy(project.getNativeToolchains(), modelCache, toolchain -> new IdeNativeToolchain(toolchain, modelCache));
     mySigningConfigs = copy(project.getSigningConfigs(), modelCache, config -> new IdeSigningConfig(config, modelCache));
     myLintOptions =
       modelCache.computeIfAbsent(project.getLintOptions(), options -> new IdeLintOptions(options, modelCache, myParsedModelVersion));
-    myUnresolvedDependencies = new HashSet<>(project.getUnresolvedDependencies());
+    myUnresolvedDependencies = ImmutableSet.copyOf(project.getUnresolvedDependencies());
     myJavaCompileOptions = modelCache.computeIfAbsent(project.getJavaCompileOptions(),
                                                       options -> new IdeJavaCompileOptions(options, modelCache));
     myBuildFolder = project.getBuildFolder();

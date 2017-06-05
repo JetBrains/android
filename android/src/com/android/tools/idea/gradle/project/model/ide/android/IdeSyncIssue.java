@@ -27,12 +27,12 @@ import java.util.Objects;
 public final class IdeSyncIssue extends IdeModel implements SyncIssue {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myMessage;
   @Nullable private final String myData;
   private final int mySeverity;
   private final int myType;
+  private final int myHashCode;
 
   public IdeSyncIssue(@NotNull SyncIssue issue, @NotNull ModelCache modelCache) {
     super(issue, modelCache);

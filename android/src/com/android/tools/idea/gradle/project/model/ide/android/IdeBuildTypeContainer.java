@@ -29,11 +29,11 @@ import java.util.Objects;
 public final class IdeBuildTypeContainer extends IdeModel implements BuildTypeContainer {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final IdeBuildType myBuildType;
   @NotNull private final IdeSourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
+  private final int myHashCode;
 
   public IdeBuildTypeContainer(@NotNull BuildTypeContainer container, @NotNull ModelCache modelCache) {
     super(container, modelCache);

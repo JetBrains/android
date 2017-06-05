@@ -18,17 +18,13 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.build.OutputFile;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.OutputFileStub;
 import com.google.common.collect.Lists;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
@@ -61,7 +57,9 @@ public class IdeOutputFileTest {
   @Test
   public void constructor() throws Throwable {
     OutputFile original = createStub();
-    assertEqualsOrSimilar(original, new IdeOutputFile(original, myModelCache));
+    IdeOutputFile copy = new IdeOutputFile(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @NotNull
@@ -71,10 +69,7 @@ public class IdeOutputFileTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeOutputFile.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeOutputFile.class);
   }
 
   @Test

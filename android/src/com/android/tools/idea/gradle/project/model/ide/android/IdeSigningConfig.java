@@ -29,13 +29,13 @@ import java.util.Objects;
 public final class IdeSigningConfig extends IdeModel implements SigningConfig {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 2L;
-  private final int myHashCode;
 
   @NotNull private final String myName;
   @Nullable private final File myStoreFile;
   @Nullable private final String myStorePassword;
   @Nullable private final String myKeyAlias;
   @Nullable private final Boolean myV1SigningEnabled;
+  private final int myHashCode;
 
   public IdeSigningConfig(@NotNull SigningConfig config, @NotNull ModelCache modelCache) {
     super(config, modelCache);

@@ -17,18 +17,16 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.SyncIssueStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link IdeSyncIssue}.
@@ -57,14 +55,13 @@ public class IdeSyncIssueTest {
   @Test
   public void constructor() throws Throwable {
     SyncIssue original = new SyncIssueStub();
-    assertEqualsOrSimilar(original, new IdeSyncIssue(original, myModelCache));
+    IdeSyncIssue copy = new IdeSyncIssue(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeSyncIssue.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeSyncIssue.class).verify();
   }
 }

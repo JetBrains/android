@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidLibrary;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -29,16 +29,16 @@ import java.util.Objects;
 public final class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrary {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final Collection<File> myLocalJars;
   @NotNull private final File myProguardRules;
   @NotNull private final File myLintJar;
   @NotNull private final File myPublicResources;
+  private final int myHashCode;
 
   public IdeAndroidLibrary(@NotNull AndroidLibrary library, @NotNull ModelCache modelCache) {
     super(library, modelCache);
-    myLocalJars = new ArrayList<>(library.getLocalJars());
+    myLocalJars = ImmutableList.copyOf(library.getLocalJars());
     myProguardRules = library.getProguardRules();
     myLintJar = library.getLintJar();
     myPublicResources = library.getPublicResources();

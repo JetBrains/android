@@ -30,11 +30,11 @@ import java.util.Objects;
 public final class IdeProductFlavorContainer extends IdeModel implements ProductFlavorContainer {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final ProductFlavor myProductFlavor;
   @NotNull private final SourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
+  private final int myHashCode;
 
   public IdeProductFlavorContainer(@NotNull ProductFlavorContainer container, @NotNull ModelCache modelCache) {
     super(container, modelCache);

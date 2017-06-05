@@ -33,7 +33,6 @@ public abstract class IdeLibrary extends IdeModel implements Library {
   @Nullable private final String myProject;
   @Nullable private final String myName;
   @Nullable private final Boolean myProvided;
-
   private final int myHashCode;
 
   protected IdeLibrary(@NotNull Library library, @NotNull ModelCache modelCache) {

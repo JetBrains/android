@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.build.VariantOutput;
+import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -33,7 +33,6 @@ import java.util.Objects;
 public abstract class IdeVariantOutput extends IdeModel implements VariantOutput {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final Collection<? extends OutputFile> myOutputs;
   @NotNull private final Collection<String> myFilterTypes;
@@ -41,12 +40,13 @@ public abstract class IdeVariantOutput extends IdeModel implements VariantOutput
   @Nullable private final OutputFile myMainOutputFile;
   @Nullable private final String myOutputType;
   private final int myVersionCode;
+  private final int myHashCode;
 
   public IdeVariantOutput(@NotNull VariantOutput output, @NotNull ModelCache modelCache) {
     super(output, modelCache);
     //noinspection deprecation
     myOutputs = copy(output.getOutputs(), modelCache, outputFile -> new IdeOutputFile(outputFile, modelCache));
-    myFilterTypes = copyNewProperty(() -> new ArrayList<>(output.getFilterTypes()), Collections.emptyList());
+    myFilterTypes = copyNewProperty(() -> ImmutableList.copyOf(output.getFilterTypes()), Collections.emptyList());
     myFilters = copyFilters(output, modelCache);
     myMainOutputFile = copyNewProperty(modelCache, output::getMainOutputFile, file -> new IdeOutputFile(file, modelCache), null);
     myOutputType = copyNewProperty(output::getOutputType, null);

@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.NativeFolder;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
@@ -36,11 +37,8 @@ public final class IdeNativeFolder extends IdeModel implements NativeFolder {
     super(folder, modelCache);
     myFolderPath = folder.getFolderPath();
 
-    myPerLanguageSettings = new HashMap<>();
     Map<String, String> settings = folder.getPerLanguageSettings();
-    if (settings != null) {
-      myPerLanguageSettings.putAll(settings);
-    }
+    myPerLanguageSettings = settings != null ? ImmutableMap.copyOf(settings) : Collections.emptyMap();
 
     myWorkingDirectory = folder.getWorkingDirectory();
     myHashCode = calculateHashCode();

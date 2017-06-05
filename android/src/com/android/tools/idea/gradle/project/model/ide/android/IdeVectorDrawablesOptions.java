@@ -28,10 +28,10 @@ import java.util.Set;
 public final class IdeVectorDrawablesOptions extends IdeModel implements VectorDrawablesOptions {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @Nullable private final Set<String> myGeneratedDensities;
   @Nullable private final Boolean myUseSupportLibrary;
+  private final int myHashCode;
 
   public IdeVectorDrawablesOptions(@NotNull VectorDrawablesOptions options, @NotNull ModelCache modelCache) {
     super(options, modelCache);

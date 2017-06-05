@@ -17,21 +17,19 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidArtifactOutputStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link }.
+ * Tests for {@link IdeAndroidArtifactOutput}.
  */
 public class IdeAndroidArtifactOutputTest {
   private ModelCache myModelCache;
@@ -57,14 +55,13 @@ public class IdeAndroidArtifactOutputTest {
   @Test
   public void constructor() throws Throwable {
     AndroidArtifactOutput original = new AndroidArtifactOutputStub();
-    assertEqualsOrSimilar(original, new IdeAndroidArtifactOutput(original, myModelCache));
+    IdeAndroidArtifactOutput copy = new IdeAndroidArtifactOutput(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeAndroidArtifactOutput.class).withRedefinedSuperclass()
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeAndroidArtifactOutput.class).withRedefinedSuperclass().verify();
   }
 }

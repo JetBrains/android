@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.builder.model.level2.GraphItem;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,19 +29,19 @@ import java.util.Objects;
 public final class IdeDependencyGraphs extends IdeModel implements DependencyGraphs {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final List<GraphItem> myCompileDependencies;
   @NotNull private final List<GraphItem> myPackageDependencies;
   @NotNull private final List<String> myProvidedLibraries;
   @NotNull private final List<String> mySkippedLibraries;
+  private final int myHashCode;
 
   public IdeDependencyGraphs(@NotNull DependencyGraphs graphs, @NotNull ModelCache modelCache) {
     super(graphs, modelCache);
     myCompileDependencies = copy(graphs.getCompileDependencies(), modelCache, item -> new IdeGraphItem(item, modelCache));
     myPackageDependencies = copy(graphs.getPackageDependencies(), modelCache, item -> new IdeGraphItem(item, modelCache));
-    myProvidedLibraries = new ArrayList<>(graphs.getProvidedLibraries());
-    mySkippedLibraries = new ArrayList<>(graphs.getSkippedLibraries());
+    myProvidedLibraries = ImmutableList.copyOf(graphs.getProvidedLibraries());
+    mySkippedLibraries = ImmutableList.copyOf(graphs.getSkippedLibraries());
 
     myHashCode = calculateHashCode();
   }
