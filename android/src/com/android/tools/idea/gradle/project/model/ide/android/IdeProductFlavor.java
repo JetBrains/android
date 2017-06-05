@@ -21,6 +21,7 @@ import com.android.builder.model.SigningConfig;
 import com.android.builder.model.VectorDrawablesOptions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +36,7 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
 
   @NotNull private final Map<String, String> myTestInstrumentationRunnerArguments;
   @NotNull private final Collection<String> myResourceConfigurations;
+  @Nullable private final VectorDrawablesOptions myVectorDrawables;
   @Nullable private final String myDimension;
   @Nullable private final String myApplicationId;
   @Nullable private final Integer myVersionCode;
@@ -52,6 +54,7 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
 
     myTestInstrumentationRunnerArguments = ImmutableMap.copyOf(flavor.getTestInstrumentationRunnerArguments());
     myResourceConfigurations = ImmutableList.copyOf(flavor.getResourceConfigurations());
+    myVectorDrawables = copyVectorDrawables(flavor, modelCache);
     myDimension = flavor.getDimension();
     myApplicationId = flavor.getApplicationId();
     myVersionCode = flavor.getVersionCode();
@@ -64,6 +67,18 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
     mySigningConfig = copy(modelCache, flavor.getSigningConfig());
 
     myHashCode = calculateHashCode();
+  }
+
+  @Nullable
+  private static VectorDrawablesOptions copyVectorDrawables(@NotNull ProductFlavor flavor, @NotNull ModelCache modelCache) {
+    VectorDrawablesOptions vectorDrawables;
+    try {
+      vectorDrawables = flavor.getVectorDrawables();
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
+    }
+    return modelCache.computeIfAbsent(vectorDrawables, options -> new IdeVectorDrawablesOptions(options, modelCache));
   }
 
   @Nullable
@@ -97,7 +112,10 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
   @Override
   @NotNull
   public VectorDrawablesOptions getVectorDrawables() {
-    throw new UnusedModelMethodException("getVectorDrawables");
+    if (myVectorDrawables != null) {
+      return myVectorDrawables;
+    }
+    throw new UnsupportedMethodException("Unsupported method: ProductFlavor.getVectorDrawables");
   }
 
   @Override
@@ -217,6 +235,7 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
     return flavor.canEqual(this) &&
            Objects.equals(myTestInstrumentationRunnerArguments, flavor.myTestInstrumentationRunnerArguments) &&
            Objects.equals(myResourceConfigurations, flavor.myResourceConfigurations) &&
+           Objects.equals(myVectorDrawables, flavor.myVectorDrawables) &&
            Objects.equals(myDimension, flavor.myDimension) &&
            Objects.equals(myApplicationId, flavor.myApplicationId) &&
            Objects.equals(myVersionCode, flavor.myVersionCode) &&
@@ -241,8 +260,8 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
 
   @Override
   protected int calculateHashCode() {
-    return Objects.hash(super.calculateHashCode(), myTestInstrumentationRunnerArguments, myResourceConfigurations, myDimension,
-                        myApplicationId, myVersionCode, myVersionName, myMinSdkVersion, myTargetSdkVersion, myMaxSdkVersion,
+    return Objects.hash(super.calculateHashCode(), myTestInstrumentationRunnerArguments, myResourceConfigurations, myVectorDrawables,
+                        myDimension, myApplicationId, myVersionCode, myVersionName, myMinSdkVersion, myTargetSdkVersion, myMaxSdkVersion,
                         myTestApplicationId, myTestInstrumentationRunner, mySigningConfig);
   }
 
@@ -252,6 +271,7 @@ public final class IdeProductFlavor extends IdeBaseConfig implements ProductFlav
            super.toString() +
            ", myTestInstrumentationRunnerArguments=" + myTestInstrumentationRunnerArguments +
            ", myResourceConfigurations=" + myResourceConfigurations +
+           ", myVectorDrawables=" + myVectorDrawables +
            ", myDimension='" + myDimension + '\'' +
            ", myApplicationId='" + myApplicationId + '\'' +
            ", myVersionCode=" + myVersionCode +

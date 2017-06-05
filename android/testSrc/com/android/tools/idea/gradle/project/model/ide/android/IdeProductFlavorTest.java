@@ -16,11 +16,15 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.VectorDrawablesOptions;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.ProductFlavorStub;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
@@ -58,6 +62,30 @@ public class IdeProductFlavorTest {
     IdeProductFlavor copy = new IdeProductFlavor(original, myModelCache);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
+  }
+
+  @Test
+  public void model1_dot_5() {
+    ProductFlavor original = new ProductFlavorStub() {
+      @Override
+      @NotNull
+      public VectorDrawablesOptions getVectorDrawables() {
+        throw new UnsupportedMethodException("getVectorDrawables");
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getName(), getResValues(), getProguardFiles(), getConsumerProguardFiles(), getManifestPlaceholders(),
+                            getApplicationIdSuffix(), getVersionNameSuffix(), getTestInstrumentationRunnerArguments(),
+                            getResourceConfigurations(), getDimension(), getApplicationId(), getVersionCode(), getVersionName(),
+                            getMinSdkVersion(), getTargetSdkVersion(), getMaxSdkVersion(), getRenderscriptTargetApi(),
+                            getRenderscriptSupportModeEnabled(), getRenderscriptSupportModeBlasEnabled(), getRenderscriptNdkModeEnabled(),
+                            getTestApplicationId(), getTestInstrumentationRunner(), getTestHandleProfiling(), getTestFunctionalTest(),
+                            getSigningConfig(), getWearAppUnbundled());
+      }
+    };
+    IdeProductFlavor copy = new IdeProductFlavor(original, myModelCache);
+    expectUnsupportedMethodException(copy::getVectorDrawables);
   }
 
   @Test
