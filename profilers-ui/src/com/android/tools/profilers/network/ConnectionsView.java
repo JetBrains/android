@@ -132,6 +132,9 @@ final class ConnectionsView {
   @NotNull
   private final JTable myConnectionsTable;
 
+  @NotNull
+  private final AspectObserver myAspectObserver;
+
   public ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
     this(stageView.getStage(), stageView.getTimeline().getSelectionRange());
   }
@@ -144,7 +147,11 @@ final class ConnectionsView {
     mySelectionRange = selectionRange;
 
     myConnectionsTable = new HoverRowTable(myTableModel, NETWORK_TABLE_HOVER_COLOR);
+    myConnectionsTable.setFocusable(false);
     customizeConnectionsTable();
+
+    myAspectObserver = new AspectObserver();
+    myStage.getAspect().addDependency(myAspectObserver).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateActiveConnection);
   }
 
   @NotNull
@@ -208,6 +215,12 @@ final class ConnectionsView {
           break;
         }
       }
+    }
+  }
+
+  private void updateActiveConnection() {
+    if (myStage.getSelectedConnection() == null) {
+      myConnectionsTable.clearSelection();
     }
   }
 

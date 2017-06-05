@@ -132,7 +132,7 @@ public class ConnectionDetailsView extends JPanel {
 
     myTabsPanel.setOnSelectionChange(this::trackActiveTab);
 
-    CloseButton closeButton = new CloseButton(e -> setHttpData(null));
+    CloseButton closeButton = new CloseButton(e -> myStageView.getStage().setSelectedConnection(null));
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
     rootPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
 
