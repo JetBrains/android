@@ -26,11 +26,11 @@ import java.util.Objects;
 public final class IdeJavaCompileOptions extends IdeModel implements JavaCompileOptions {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myEncoding;
   @NotNull private final String mySourceCompatibility;
   @NotNull private final String myTargetCompatibility;
+  private final int myHashCode;
 
   public IdeJavaCompileOptions(@NotNull JavaCompileOptions options, @NotNull ModelCache modelCache) {
     super(options, modelCache);

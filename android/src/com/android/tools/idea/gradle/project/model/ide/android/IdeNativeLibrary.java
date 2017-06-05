@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.NativeLibrary;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,7 +29,6 @@ import java.util.Objects;
 public final class IdeNativeLibrary extends IdeModel implements NativeLibrary {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final String myAbi;
@@ -43,21 +42,22 @@ public final class IdeNativeLibrary extends IdeModel implements NativeLibrary {
   @NotNull private final List<String> myCCompilerFlags;
   @NotNull private final List<String> myCppCompilerFlags;
   @NotNull private final List<File> myDebuggableLibraryFolders;
+  private final int myHashCode;
 
   public IdeNativeLibrary(@NotNull NativeLibrary library, @NotNull ModelCache modelCache) {
     super(library, modelCache);
     myName = library.getName();
     myAbi = library.getAbi();
     myToolchainName = library.getToolchainName();
-    myCIncludeDirs = new ArrayList<>(library.getCIncludeDirs());
-    myCppIncludeDirs = new ArrayList<>(library.getCppIncludeDirs());
-    myCSystemIncludeDirs = new ArrayList<>(library.getCSystemIncludeDirs());
-    myCppSystemIncludeDirs = new ArrayList<>(library.getCppSystemIncludeDirs());
-    myCDefines = new ArrayList<>(library.getCDefines());
-    myCppDefines = new ArrayList<>(library.getCppDefines());
-    myCCompilerFlags = new ArrayList<>(library.getCCompilerFlags());
-    myCppCompilerFlags = new ArrayList<>(library.getCppCompilerFlags());
-    myDebuggableLibraryFolders = new ArrayList<>(library.getDebuggableLibraryFolders());
+    myCIncludeDirs = ImmutableList.copyOf(library.getCIncludeDirs());
+    myCppIncludeDirs = ImmutableList.copyOf(library.getCppIncludeDirs());
+    myCSystemIncludeDirs = ImmutableList.copyOf(library.getCSystemIncludeDirs());
+    myCppSystemIncludeDirs = ImmutableList.copyOf(library.getCppSystemIncludeDirs());
+    myCDefines = ImmutableList.copyOf(library.getCDefines());
+    myCppDefines = ImmutableList.copyOf(library.getCppDefines());
+    myCCompilerFlags = ImmutableList.copyOf(library.getCCompilerFlags());
+    myCppCompilerFlags = ImmutableList.copyOf(library.getCppCompilerFlags());
+    myDebuggableLibraryFolders = ImmutableList.copyOf(library.getDebuggableLibraryFolders());
 
     myHashCode = calculateHashCode();
   }

@@ -19,8 +19,6 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.InstantRun;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidArtifactStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -29,8 +27,7 @@ import org.junit.Test;
 import java.io.Serializable;
 import java.util.Objects;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
-import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.expectUnsupportedMethodException;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
@@ -82,21 +79,18 @@ public class IdeAndroidArtifactImplTest {
     };
     IdeAndroidArtifact artifact = new IdeAndroidArtifactImpl(original, myModelCache, myGradleVersion);
     expectUnsupportedMethodException(artifact::getInstantRun);
-
   }
 
   @Test
   public void constructor() throws Throwable {
     AndroidArtifact original = new AndroidArtifactStub();
-    assertEqualsOrSimilar(original, new IdeAndroidArtifactImpl(original, myModelCache, myGradleVersion));
+    IdeAndroidArtifactImpl copy = new IdeAndroidArtifactImpl(original, myModelCache, myGradleVersion);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeAndroidArtifactImpl.class).withRedefinedSuperclass()
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .suppress(Warning.ALL_FIELDS_SHOULD_BE_USED)
-      .verify();
+    createEqualsVerifier(IdeAndroidArtifactImpl.class).withRedefinedSuperclass().verify();
   }
 }

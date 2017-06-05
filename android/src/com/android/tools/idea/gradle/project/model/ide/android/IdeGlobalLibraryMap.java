@@ -28,9 +28,9 @@ import java.util.Objects;
 public final class IdeGlobalLibraryMap extends IdeModel implements GlobalLibraryMap {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final Map<String, Library> myMap;
+  private final int myHashCode;
 
   public IdeGlobalLibraryMap(@NotNull GlobalLibraryMap item, @NotNull ModelCache modelCache) {
     super(item, modelCache);

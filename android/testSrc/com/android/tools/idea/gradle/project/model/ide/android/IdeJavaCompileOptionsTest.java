@@ -17,14 +17,12 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.JavaCompileOptions;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaCompileOptionsStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
@@ -57,14 +55,13 @@ public class IdeJavaCompileOptionsTest {
   @Test
   public void constructor() throws Throwable {
     JavaCompileOptions original = new JavaCompileOptionsStub();
-    assertEqualsOrSimilar(original, new IdeJavaCompileOptions(original, myModelCache));
+    IdeJavaCompileOptions copy = new IdeJavaCompileOptions(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeJavaCompileOptions.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeJavaCompileOptions.class).verify();
   }
 }

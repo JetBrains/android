@@ -27,11 +27,11 @@ import java.util.Objects;
 public final class IdeMavenCoordinates extends IdeModel implements MavenCoordinates {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myGroupId;
   @NotNull private final String myArtifactId;
   @NotNull private final String myVersion;
+  private final int myHashCode;
 
   public IdeMavenCoordinates(@NotNull MavenCoordinates coordinates, @NotNull ModelCache modelCache) {
     super(coordinates, modelCache);

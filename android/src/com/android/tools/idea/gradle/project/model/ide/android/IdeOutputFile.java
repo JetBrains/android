@@ -17,12 +17,12 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
+import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -35,7 +35,6 @@ import static com.intellij.openapi.util.io.FileUtil.fileHashCode;
 public final class IdeOutputFile extends IdeModel implements OutputFile {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myOutputType;
   @NotNull private final Collection<String> myFilterTypes;
@@ -44,11 +43,12 @@ public final class IdeOutputFile extends IdeModel implements OutputFile {
   @NotNull private final Collection<? extends OutputFile> myOutputs;
   @Nullable private final OutputFile myMainOutputFile;
   @Nullable final Integer myVersionCode;
+  private final int myHashCode;
 
   public IdeOutputFile(@NotNull OutputFile file, @NotNull ModelCache modelCache) {
     super(file, modelCache);
     myOutputType = file.getOutputType();
-    myFilterTypes = new ArrayList<>(file.getFilterTypes());
+    myFilterTypes = ImmutableList.copyOf(file.getFilterTypes());
     myFilters = copy(file.getFilters(), modelCache, data -> new IdeFilterData(data, modelCache));
     myOutputFile = file.getOutputFile();
     myMainOutputFile = copyNewProperty(modelCache, file::getMainOutputFile, outputFile -> new IdeOutputFile(outputFile, modelCache), null);

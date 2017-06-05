@@ -27,11 +27,11 @@ import java.util.Objects;
 public final class IdeApiVersion extends IdeModel implements ApiVersion {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myApiString;
   @Nullable private final String myCodename;
   private final int myApiLevel;
+  private final int myHashCode;
 
   public IdeApiVersion(@NotNull ApiVersion version, @NotNull ModelCache modelCache) {
     super(version, modelCache);

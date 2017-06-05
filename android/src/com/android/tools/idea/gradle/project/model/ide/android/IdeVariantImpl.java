@@ -17,12 +17,17 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.util.Consumer;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -31,7 +36,6 @@ import java.util.function.Function;
 public final class IdeVariantImpl extends IdeModel implements IdeVariant {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final String myDisplayName;
@@ -42,6 +46,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
   @NotNull private final List<String> myProductFlavors;
   @NotNull private final ProductFlavor myMergedFlavor;
   @NotNull private final Collection<TestedTargetVariant> myTestedTargetVariants;
+  private final int myHashCode;
 
   public IdeVariantImpl(@NotNull Variant variant, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
     super(variant, modelCache);
@@ -54,7 +59,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
     myExtraJavaArtifacts = copy(variant.getExtraJavaArtifacts(), modelCache,
                                 (Function<JavaArtifact, JavaArtifact>)artifact -> new IdeJavaArtifact(artifact, modelCache, modelVersion));
     myBuildType = variant.getBuildType();
-    myProductFlavors = new ArrayList<>(variant.getProductFlavors());
+    myProductFlavors = ImmutableList.copyOf(variant.getProductFlavors());
     myMergedFlavor = modelCache.computeIfAbsent(variant.getMergedFlavor(), flavor -> new IdeProductFlavor(flavor, modelCache));
     myTestedTargetVariants = getTestedTargetVariants(variant, modelCache);
 
@@ -129,7 +134,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
   @Override
   @NotNull
   public Collection<IdeBaseArtifact> getTestArtifacts() {
-    Set<IdeBaseArtifact> testArtifacts = new HashSet<>();
+    ImmutableSet.Builder<IdeBaseArtifact> testArtifacts = ImmutableSet.builder();
     Consumer<IdeBaseArtifact> action = artifact -> {
       if (artifact.isTestArtifact()) {
         testArtifacts.add(artifact);
@@ -137,7 +142,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
     };
     forEachArtifact(myExtraAndroidArtifacts, action);
     forEachArtifact(myExtraJavaArtifacts, action);
-    return testArtifacts;
+    return testArtifacts.build();
   }
 
   private static void forEachArtifact(@NotNull Collection<? extends BaseArtifact> artifacts, @NotNull Consumer<IdeBaseArtifact> action) {

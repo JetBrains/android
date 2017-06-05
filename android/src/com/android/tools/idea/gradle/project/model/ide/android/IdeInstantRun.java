@@ -27,11 +27,11 @@ import java.util.Objects;
 public final class IdeInstantRun extends IdeModel implements InstantRun {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final File myInfoFile;
   private final boolean mySupportedByArtifact;
   private final int mySupportStatus;
+  private final int myHashCode;
 
   public IdeInstantRun(@NotNull InstantRun run, @NotNull ModelCache modelCache) {
     super(run, modelCache);

@@ -27,11 +27,11 @@ import java.util.Set;
 public final class IdeClassField extends IdeModel implements ClassField {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myName;
   @NotNull private final String myType;
   @NotNull private final String myValue;
+  private final int myHashCode;
 
   public IdeClassField(@NotNull ClassField classField, @NotNull ModelCache modelCache) {
     super(classField, modelCache);

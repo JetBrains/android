@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.Computable;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.Contract;
@@ -66,13 +69,13 @@ public abstract class IdeModel implements Serializable {
     if (original.isEmpty()) {
       return Collections.emptyList();
     }
-    List<K> copies = new ArrayList<>(original.size());
+    ImmutableList.Builder<K> copies = ImmutableList.builder();
     for (K item : original) {
       V copy = modelCache.computeIfAbsent(item, mapper);
       //noinspection unchecked
       copies.add((K)copy);
     }
-    return copies;
+    return copies.build();
   }
 
   @NotNull
@@ -80,17 +83,17 @@ public abstract class IdeModel implements Serializable {
     if (original.isEmpty()) {
       return Collections.emptyMap();
     }
-    Map<K, V> copies = new HashMap<>(original.size());
+    ImmutableMap.Builder<K, V> copies = ImmutableMap.builder();
     original.forEach((k, v) -> {
       V copy = modelCache.computeIfAbsent(v, mapper);
       copies.put(k, copy);
     });
-    return copies;
+    return copies.build();
   }
 
   @Contract("!null -> !null")
   @Nullable
   protected static Set<String> copy(@Nullable Set<String> original) {
-    return original != null ? new HashSet<>(original) : null;
+    return original != null ? ImmutableSet.copyOf(original) : null;
   }
 }

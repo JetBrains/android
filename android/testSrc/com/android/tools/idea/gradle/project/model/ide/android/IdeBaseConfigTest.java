@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseConfig;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseConfigStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.junit.Test;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.createEqualsVerifier;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.verifyUsageOfImmutableCollections;
 
 /**
  * Tests for {@link IdeBaseConfig}.
@@ -30,18 +30,14 @@ public class IdeBaseConfigTest {
   @Test
   public void constructor() throws Throwable {
     BaseConfig original = new BaseConfigStub();
-    assertEqualsOrSimilar(original, new IdeBaseConfig(original, new ModelCache()) {});
+    IdeBaseConfig copy = new IdeBaseConfig(original, new ModelCache()) {};
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeBaseConfig.class).withRedefinedSubclass(IdeBuildType.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
-    EqualsVerifier.forClass(IdeBaseConfig.class).withRedefinedSubclass(IdeProductFlavor.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeBaseConfig.class).withRedefinedSubclass(IdeBuildType.class).verify();
+    createEqualsVerifier(IdeBaseConfig.class).withRedefinedSubclass(IdeProductFlavor.class).verify();
   }
 }

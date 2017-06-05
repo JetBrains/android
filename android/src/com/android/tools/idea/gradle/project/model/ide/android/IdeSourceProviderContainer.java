@@ -26,10 +26,10 @@ import java.util.Objects;
 public final class IdeSourceProviderContainer extends IdeModel implements SourceProviderContainer {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myArtifactName;
   @NotNull private final IdeSourceProvider mySourceProvider;
+  private final int myHashCode;
 
   public IdeSourceProviderContainer(@NotNull SourceProviderContainer container, @NotNull ModelCache modelCache) {
     super(container, modelCache);

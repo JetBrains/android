@@ -21,12 +21,17 @@ import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.ide.common.repository.GradleVersion;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
@@ -54,7 +59,6 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   @Nullable private final DependencyGraphs myDependencyGraphs;
   @Nullable private final IdeSourceProvider myVariantSourceProvider;
   @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
-
   private final int myHashCode;
 
   protected IdeBaseArtifactImpl(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
@@ -76,8 +80,8 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
       myDependencyGraphs = null;
     }
 
-    myIdeSetupTaskNames = new HashSet<>(getIdeSetupTaskNames(artifact));
-    myGeneratedSourceFolders = new ArrayList<>(getGeneratedSourceFolders(artifact));
+    myIdeSetupTaskNames = ImmutableSet.copyOf(getIdeSetupTaskNames(artifact));
+    myGeneratedSourceFolders = ImmutableList.copyOf(getGeneratedSourceFolders(artifact));
     myVariantSourceProvider = createSourceProvider(modelCache, artifact.getVariantSourceProvider());
     myMultiFlavorSourceProvider = createSourceProvider(modelCache, artifact.getMultiFlavorSourceProvider());
     myAdditionalClassFolders = copyNewProperty(artifact::getAdditionalClassesFolders, Collections.emptySet());
@@ -94,7 +98,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   private static Set<String> getIdeSetupTaskNames(@NotNull BaseArtifact artifact) {
     try {
       // This method was added in 1.1 - we have to handle the case when it's missing on the Gradle side.
-      return new HashSet<>(artifact.getIdeSetupTaskNames());
+      return ImmutableSet.copyOf(artifact.getIdeSetupTaskNames());
     }
     catch (NoSuchMethodError | UnsupportedMethodException e) {
       if (artifact instanceof AndroidArtifact) {

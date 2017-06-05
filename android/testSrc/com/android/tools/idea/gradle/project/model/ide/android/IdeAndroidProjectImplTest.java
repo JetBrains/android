@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidProjectStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -27,12 +25,11 @@ import org.junit.Test;
 import java.io.Serializable;
 import java.util.Objects;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
-import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.expectUnsupportedMethodException;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link IdeAndroidProjectImpl}.
@@ -91,14 +88,13 @@ public class IdeAndroidProjectImplTest {
   @Test
   public void constructor() throws Throwable {
     AndroidProject original = new AndroidProjectStub("2.4.0");
-    assertEqualsOrSimilar(original, new IdeAndroidProjectImpl(original, myModelCache));
+    IdeAndroidProjectImpl copy = new IdeAndroidProjectImpl(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeAndroidProjectImpl.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeAndroidProjectImpl.class).verify();
   }
 }

@@ -18,8 +18,6 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.JavaLibrary;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaLibraryStub;
 import com.google.common.collect.Lists;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +25,9 @@ import org.junit.Test;
 import java.io.File;
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.createEqualsVerifier;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.verifyUsageOfImmutableCollections;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
@@ -60,7 +60,9 @@ public class IdeJavaLibraryTest {
   @Test
   public void constructor() throws Throwable {
     JavaLibrary original = createStub();
-    assertEqualsOrSimilar(original, new IdeJavaLibrary(original, myModelCache));
+    IdeJavaLibrary copy = new IdeJavaLibrary(original, myModelCache);
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @NotNull
@@ -70,9 +72,6 @@ public class IdeJavaLibraryTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeJavaLibrary.class).withRedefinedSuperclass()
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeJavaLibrary.class).withRedefinedSuperclass().verify();
   }
 }

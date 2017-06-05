@@ -20,16 +20,13 @@ import com.android.builder.model.Dependencies;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseArtifactStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
-import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.expectUnsupportedMethodException;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 
 /**
  * Tests for {@link IdeBaseArtifactImpl}.
@@ -38,7 +35,9 @@ public class IdeBaseArtifactImplTest {
   @Test
   public void constructor() throws Throwable {
     BaseArtifact original = new BaseArtifactStub();
-    assertEqualsOrSimilar(original, new IdeBaseArtifactImpl(original, new ModelCache(), GradleVersion.parse("2.3.0")) {});
+    IdeBaseArtifactImpl copy = new IdeBaseArtifactImpl(original, new ModelCache(), GradleVersion.parse("2.3.0")) {};
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
@@ -63,7 +62,8 @@ public class IdeBaseArtifactImplTest {
       }
     };
 
-    IdeBaseArtifactImpl artifact = new IdeBaseArtifactImpl(original, new ModelCache(), GradleVersion.parse("1.5.0")) {};
+    IdeBaseArtifactImpl artifact = new IdeBaseArtifactImpl(original, new ModelCache(), GradleVersion.parse("1.5.0")) {
+    };
     expectUnsupportedMethodException(artifact::getCompileDependencies);
     expectUnsupportedMethodException(artifact::getDependencyGraphs);
     expectUnsupportedMethodException(artifact::getJavaResourcesFolder);
@@ -71,13 +71,7 @@ public class IdeBaseArtifactImplTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeBaseArtifactImpl.class).withRedefinedSubclass(IdeAndroidArtifactImpl.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
-    EqualsVerifier.forClass(IdeBaseArtifactImpl.class).withRedefinedSubclass(IdeJavaArtifact.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeBaseArtifactImpl.class).withRedefinedSubclass(IdeAndroidArtifactImpl.class).verify();
+    createEqualsVerifier(IdeBaseArtifactImpl.class).withRedefinedSubclass(IdeJavaArtifact.class).verify();
   }
 }

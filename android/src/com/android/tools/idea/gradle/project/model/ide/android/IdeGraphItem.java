@@ -28,11 +28,11 @@ import java.util.Objects;
 public final class IdeGraphItem extends IdeModel implements GraphItem {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
-  private final int myHashCode;
 
   @NotNull private final String myArtifactAddress;
   @NotNull private final List<GraphItem> myDependencies;
   @Nullable private final String myRequestedCoordinates;
+  private final int myHashCode;
 
   public IdeGraphItem(@NotNull GraphItem item, @NotNull ModelCache modelCache) {
     super(item, modelCache);

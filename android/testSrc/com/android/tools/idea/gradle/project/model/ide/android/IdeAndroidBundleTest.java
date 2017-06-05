@@ -18,15 +18,15 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.AndroidBundle;
 import com.android.builder.model.JavaLibrary;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidBundleStub;
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.CopyVerification.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.assertEqualsOrSimilar;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.createEqualsVerifier;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.verifyUsageOfImmutableCollections;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -36,7 +36,9 @@ public class IdeAndroidBundleTest {
   @Test
   public void constructor() throws Throwable {
     AndroidBundle original = new AndroidBundleStub();
-    assertEqualsOrSimilar(original, new IdeAndroidBundle(original, new ModelCache()) {});
+    IdeAndroidBundle copy = new IdeAndroidBundle(original, new ModelCache()) {};
+    assertEqualsOrSimilar(original, copy);
+    verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
@@ -54,13 +56,7 @@ public class IdeAndroidBundleTest {
 
   @Test
   public void equalsAndHashCode() {
-    EqualsVerifier.forClass(IdeAndroidBundle.class).withRedefinedSuperclass().withRedefinedSubclass(IdeAndroidAtom.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
-    EqualsVerifier.forClass(IdeAndroidBundle.class).withRedefinedSuperclass().withRedefinedSubclass(IdeAndroidLibrary.class)
-      .withCachedHashCode("myHashCode", "calculateHashCode", null)
-      .suppress(Warning.NO_EXAMPLE_FOR_CACHED_HASHCODE)
-      .verify();
+    createEqualsVerifier(IdeAndroidBundle.class).withRedefinedSuperclass().withRedefinedSubclass(IdeAndroidAtom.class).verify();
+    createEqualsVerifier(IdeAndroidBundle.class).withRedefinedSuperclass().withRedefinedSubclass(IdeAndroidLibrary.class).verify();
   }
 }
