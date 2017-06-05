@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.utils.SdkUtils;
+import com.android.utils.StringHelper;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.w3c.dom.Element;
 
@@ -43,7 +43,7 @@ public class MenuPreviewRendererTest extends RenderTestBase {
                     "android:layout_width=\"match_parent\"\n" +
                     "android:layout_height=\"match_parent\" />\n";
 
-    newXml = newXml.replace("\n", SdkUtils.getLineSeparator());
+    newXml = StringHelper.toSystemLineSeparator(newXml);
 
     checkRendering(task, "menu/menu1.png");
     assertEquals(newXml, layout);
