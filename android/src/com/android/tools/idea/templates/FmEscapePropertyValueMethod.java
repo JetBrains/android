@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.utils.SdkUtils;
 import freemarker.template.*;
 
 import java.io.IOException;
@@ -43,7 +42,7 @@ public class FmEscapePropertyValueMethod implements TemplateMethodModelEx {
       int end = s.length();
 
       // Writer inserts trailing newline
-      String lineSeparator = SdkUtils.getLineSeparator();
+      String lineSeparator = System.lineSeparator();
       if (s.endsWith(lineSeparator)) {
         end -= lineSeparator.length();
       }
