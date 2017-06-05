@@ -94,6 +94,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
     return builder.setSerial(device.getSerialNumber())
       .setModel(getDeviceModel(device))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
+      .setCodename(StringUtil.notNullize(device.getVersion().getCodename()))
       .setApiLevel(device.getVersion().getApiLevel())
       .setFeatureLevel(device.getVersion().getFeatureLevel())
       .setManufacturer(DevicePropertyUtil.getManufacturer(device, device.isEmulator() ? EMULATOR : ""))
