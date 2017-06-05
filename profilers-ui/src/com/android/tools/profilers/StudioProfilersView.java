@@ -90,10 +90,9 @@ public class StudioProfilersView extends AspectObserver {
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
                                                 myProfiler::getDevice,
-                                                device -> {
-                                                  myProfiler.setDevice(device);
-                                                  myProfiler.getIdeServices().getFeatureTracker().trackChangeDevice();
-                                                });
+                                                myProfiler::setDevice);
+    myProfiler.addDependency(this)
+      .onChange(ProfilerAspect.DEVICES, () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeDevice(myProfiler.getDevice()));
     devices.bind();
     deviceCombo.setRenderer(new DeviceComboBoxRenderer());
 
@@ -101,10 +100,9 @@ public class StudioProfilersView extends AspectObserver {
     JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,
-                                                  process -> {
-                                                    myProfiler.setProcess(process);
-                                                    myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess();
-                                                  });
+                                                  myProfiler::setProcess);
+    myProfiler.addDependency(this)
+      .onChange(ProfilerAspect.PROCESSES, () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess(myProfiler.getProcess()));
     processes.bind();
     processCombo.setRenderer(new ProcessComboBoxRenderer());
 
