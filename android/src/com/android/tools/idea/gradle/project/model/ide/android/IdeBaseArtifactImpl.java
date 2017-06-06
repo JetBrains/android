@@ -44,7 +44,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final String myName;
   @NotNull private final String myCompileTaskName;
@@ -54,6 +54,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   @NotNull private final Set<String> myIdeSetupTaskNames;
   @NotNull private final Collection<File> myGeneratedSourceFolders;
   @NotNull private final Set<File> myAdditionalClassFolders;
+  @NotNull private final IdeLevel2Dependencies myLevel2Dependencies;
   @Nullable private final IdeDependencies myCompileDependencies;
   @Nullable private final File myJavaResourcesFolder;
   @Nullable private final DependencyGraphs myDependencyGraphs;
@@ -61,7 +62,10 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   @Nullable private final IdeSourceProvider myMultiFlavorSourceProvider;
   private final int myHashCode;
 
-  protected IdeBaseArtifactImpl(@NotNull BaseArtifact artifact, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
+  protected IdeBaseArtifactImpl(@NotNull BaseArtifact artifact,
+                                @NotNull ModelCache modelCache,
+                                @NotNull IdeLevel2DependenciesFactory dependenciesFactory,
+                                @Nullable GradleVersion modelVersion) {
     super(artifact, modelCache);
     myName = artifact.getName();
     myCompileTaskName = artifact.getCompileTaskName();
@@ -85,12 +89,14 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
     myVariantSourceProvider = createSourceProvider(modelCache, artifact.getVariantSourceProvider());
     myMultiFlavorSourceProvider = createSourceProvider(modelCache, artifact.getMultiFlavorSourceProvider());
     myAdditionalClassFolders = copyNewProperty(artifact::getAdditionalClassesFolders, Collections.emptySet());
-
+    myLevel2Dependencies = dependenciesFactory.create(artifact, modelVersion);
     myHashCode = calculateHashCode();
   }
 
   @NotNull
-  private static IdeDependencies copy(@NotNull Dependencies original, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
+  private static IdeDependencies copy(@NotNull Dependencies original,
+                                      @NotNull ModelCache modelCache,
+                                      @Nullable GradleVersion modelVersion) {
     return modelCache.computeIfAbsent(original, dependencies -> new IdeDependenciesImpl(dependencies, modelCache, modelVersion));
   }
 
@@ -195,6 +201,12 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
 
   @Override
   @NotNull
+  public IdeLevel2Dependencies getLevel2Dependencies() {
+    return myLevel2Dependencies;
+  }
+
+  @Override
+  @NotNull
   public Collection<File> getGeneratedSourceFolders() {
     return myGeneratedSourceFolders;
   }
@@ -238,6 +250,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
            Objects.equals(myAdditionalClassFolders, artifact.myAdditionalClassFolders) &&
            Objects.equals(myJavaResourcesFolder, artifact.myJavaResourcesFolder) &&
            Objects.equals(myDependencies, artifact.myDependencies) &&
+           Objects.equals(myLevel2Dependencies, artifact.myLevel2Dependencies) &&
            Objects.equals(myCompileDependencies, artifact.myCompileDependencies) &&
            Objects.equals(myDependencyGraphs, artifact.myDependencyGraphs) &&
            Objects.equals(myIdeSetupTaskNames, artifact.myIdeSetupTaskNames) &&
@@ -257,7 +270,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
 
   protected int calculateHashCode() {
     return Objects.hash(myName, myCompileTaskName, myAssembleTaskName, myClassesFolder, myJavaResourcesFolder, myDependencies,
-                        myCompileDependencies, myDependencyGraphs, myIdeSetupTaskNames, myGeneratedSourceFolders,
+                        myLevel2Dependencies, myCompileDependencies, myDependencyGraphs, myIdeSetupTaskNames, myGeneratedSourceFolders,
                         myVariantSourceProvider, myMultiFlavorSourceProvider, myAdditionalClassFolders);
   }
 
@@ -269,6 +282,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
            ", myClassesFolder=" + myClassesFolder +
            ", myJavaResourcesFolder=" + myJavaResourcesFolder +
            ", myDependencies=" + myDependencies +
+           ", myLevel2Dependencies" + myLevel2Dependencies +
            ", myCompileDependencies=" + myCompileDependencies +
            ", myDependencyGraphs=" + myDependencyGraphs +
            ", myIdeSetupTaskNames=" + myIdeSetupTaskNames +

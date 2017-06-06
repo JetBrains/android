@@ -36,10 +36,12 @@ import static org.junit.Assert.assertEquals;
  */
 public class IdeAndroidProjectImplTest {
   private ModelCache myModelCache;
+  private IdeLevel2DependenciesFactory myDependenciesFactory;
 
   @Before
   public void setUp() throws Exception {
     myModelCache = new ModelCache();
+    myDependenciesFactory = new IdeLevel2DependenciesFactory();
   }
 
   @Test
@@ -49,7 +51,7 @@ public class IdeAndroidProjectImplTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeAndroidProject androidProject = new IdeAndroidProjectImpl(new AndroidProjectStub("2.4.0"), myModelCache);
+    IdeAndroidProject androidProject = new IdeAndroidProjectImpl(new AndroidProjectStub("2.4.0"), myModelCache, myDependenciesFactory);
     assertEquals("2.4.0", androidProject.getParsedModelVersion().toString());
     byte[] bytes = serialize(androidProject);
     Object o = deserialize(bytes);
@@ -80,7 +82,7 @@ public class IdeAndroidProjectImplTest {
                             isBaseSplit());
       }
     };
-    IdeAndroidProject androidProject = new IdeAndroidProjectImpl(original, myModelCache);
+    IdeAndroidProject androidProject = new IdeAndroidProjectImpl(original, myModelCache, myDependenciesFactory);
     expectUnsupportedMethodException(androidProject::getBuildToolsVersion);
     expectUnsupportedMethodException(androidProject::getPluginGeneration);
   }
@@ -88,7 +90,7 @@ public class IdeAndroidProjectImplTest {
   @Test
   public void constructor() throws Throwable {
     AndroidProject original = new AndroidProjectStub("2.4.0");
-    IdeAndroidProjectImpl copy = new IdeAndroidProjectImpl(original, myModelCache);
+    IdeAndroidProjectImpl copy = new IdeAndroidProjectImpl(original, myModelCache, myDependenciesFactory);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
   }

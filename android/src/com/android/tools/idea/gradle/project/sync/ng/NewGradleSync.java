@@ -41,6 +41,10 @@ public class NewGradleSync implements GradleSync {
     return isOptionVisible() && GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC;
   }
 
+  public static boolean isLevel4Model() {
+    return isEnabled();
+  }
+
   public static boolean isOptionVisible() {
     return SystemProperties.getBooleanProperty("show.new.sync.preference", false);
   }

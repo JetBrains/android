@@ -111,18 +111,21 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   /**
    * Creates a new {@link AndroidModuleModel}.
    *
-   * @param moduleName     the name of the IDEA module, created from {@code delegate}.
-   * @param rootDirPath    the root directory of the imported Android-Gradle project.
-   * @param androidProject imported Android-Gradle project.
+   * @param moduleName          the name of the IDEA module, created from {@code delegate}.
+   * @param rootDirPath         the root directory of the imported Android-Gradle project.
+   * @param androidProject      imported Android-Gradle project.
+   * @param selectedVariantName the name of selected variant.
+   * @param dependenciesFactory the factory instance to create {@link IdeLevel2Dependencies}.
    */
   public AndroidModuleModel(@NotNull String moduleName,
                             @NotNull File rootDirPath,
                             @NotNull AndroidProject androidProject,
-                            @NotNull String selectedVariantName) {
+                            @NotNull String selectedVariantName,
+                            @NotNull IdeLevel2DependenciesFactory dependenciesFactory) {
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    myAndroidProject = new IdeAndroidProjectImpl(androidProject);
+    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory);
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
 

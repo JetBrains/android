@@ -35,11 +35,13 @@ import static org.junit.Assert.assertEquals;
 public class IdeJavaArtifactTest {
   private ModelCache myModelCache;
   private GradleVersion myGradleVersion;
+  private IdeLevel2DependenciesFactory myDependenciesFactory;
 
   @Before
   public void setUp() throws Exception {
     myModelCache = new ModelCache();
     myGradleVersion = GradleVersion.parse("3.2");
+    myDependenciesFactory = new IdeLevel2DependenciesFactory();
   }
 
   @Test
@@ -49,7 +51,7 @@ public class IdeJavaArtifactTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeJavaArtifact javaArtifact = new IdeJavaArtifact(new JavaArtifactStub(), myModelCache, myGradleVersion);
+    IdeJavaArtifact javaArtifact = new IdeJavaArtifact(new JavaArtifactStub(), myModelCache, myDependenciesFactory, myGradleVersion);
     byte[] bytes = serialize(javaArtifact);
     Object o = deserialize(bytes);
     assertEquals(javaArtifact, o);
@@ -58,7 +60,7 @@ public class IdeJavaArtifactTest {
   @Test
   public void constructor() throws Throwable {
     JavaArtifact original = new JavaArtifactStub();
-    IdeJavaArtifact copy = new IdeJavaArtifact(original, myModelCache, myGradleVersion);
+    IdeJavaArtifact copy = new IdeJavaArtifact(original, myModelCache, myDependenciesFactory, myGradleVersion);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
   }

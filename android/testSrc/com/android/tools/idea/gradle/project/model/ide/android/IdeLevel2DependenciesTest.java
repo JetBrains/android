@@ -15,59 +15,39 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
-import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.VariantStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseArtifactStub;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeVariantImpl}.
+ * Tests for {@link IdeLevel2Dependencies}.
  */
-public class IdeVariantImplTest {
-  private ModelCache myModelCache;
-  private GradleVersion myGradleVersion;
-  private IdeLevel2DependenciesFactory myDependenciesFactory;
-
+public class IdeLevel2DependenciesTest {
+  IdeLevel2DependenciesFactory myDependenciesFactory;
 
   @Before
-  public void setUp() throws Exception {
-    myModelCache = new ModelCache();
-    myGradleVersion = GradleVersion.parse("3.2");
+  public void setup() {
     myDependenciesFactory = new IdeLevel2DependenciesFactory();
   }
 
   @Test
   public void serializable() {
-    assertThat(IdeVariantImpl.class).isAssignableTo(Serializable.class);
+    assertThat(IdeLevel2DependenciesImpl.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeVariant apiVersion = new IdeVariantImpl(new VariantStub(), myModelCache, myDependenciesFactory, myGradleVersion);
-    byte[] bytes = serialize(apiVersion);
+    IdeLevel2Dependencies graphs = myDependenciesFactory.create(new BaseArtifactStub(), GradleVersion.parse("2.3.0"));
+    byte[] bytes = serialize(graphs);
     Object o = deserialize(bytes);
-    assertEquals(apiVersion, o);
-  }
-
-  @Test
-  public void constructor() throws Throwable {
-    Variant original = new VariantStub();
-    IdeVariantImpl copy = new IdeVariantImpl(original, myModelCache, myDependenciesFactory, myGradleVersion);
-    assertEqualsOrSimilar(original, copy);
-    verifyUsageOfImmutableCollections(copy);
-  }
-
-  @Test
-  public void equalsAndHashCode() {
-    createEqualsVerifier(IdeVariantImpl.class).verify();
+    assertEquals(graphs, o);
   }
 }

@@ -20,6 +20,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
@@ -239,7 +240,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     VariantStub variant = androidProject.getFirstVariant();
     assertNotNull(variant);
     File rootDir = androidProject.getRootDir();
-    AndroidModuleModel androidModel = new AndroidModuleModel(androidProject.getName(), rootDir, androidProject, variant.getName());
+    AndroidModuleModel androidModel =
+      new AndroidModuleModel(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeLevel2DependenciesFactory());
     myFacet.setAndroidModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
