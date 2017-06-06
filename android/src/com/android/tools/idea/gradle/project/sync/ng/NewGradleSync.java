@@ -98,6 +98,6 @@ public class NewGradleSync implements GradleSync {
     callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, indicator, syncListener, isNewProject))
             .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
     // @formatter:on
-    mySyncExecutor.syncProject(indicator, callback);
+    mySyncExecutor.syncProject(indicator, callback, isNewProject);
   }
 }

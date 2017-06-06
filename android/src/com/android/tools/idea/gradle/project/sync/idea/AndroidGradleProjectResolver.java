@@ -102,8 +102,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(false /* do not generate classpath init script */), new ProjectImportErrorHandler(), new ProjectFinder(),
-         new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory());
+    this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(), new VariantSelector(),
+         new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory());
   }
 
   @VisibleForTesting
@@ -338,7 +338,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   public List<String> getExtraCommandLineArgs() {
     Project project = myProjectFinder.findProject(resolverCtx);
-    return myCommandLineArgs.get(project  /* do not include classpath init script. It is already done. */);
+    CommandLineArgs.Options options = new CommandLineArgs.Options();
+    options.includeLocalMavenRepo();
+    return myCommandLineArgs.get(options, project);
   }
 
   @NotNull
@@ -348,7 +350,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                       @Nullable String buildFilePath) {
     String msg = error.getMessage();
     if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-      //noinspection ThrowableResultOfMethodCallIgnored
       Throwable rootCause = getRootCause(error);
       if (rootCause instanceof ClassNotFoundException) {
         msg = rootCause.getMessage();

@@ -84,7 +84,6 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-
     IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory = new IdeaJavaModuleModelFactory();
     myProjectModel = new IdeaProjectStub("multiProject");
     AndroidProjectStub androidProject = TestProjects.createBasicProject(myProjectModel.getRootDir());
@@ -200,12 +199,15 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     when(myProjectFinder.findProject(myResolverCtx)).thenReturn(project);
 
     List<String> commandLineArgs = Arrays.asList("arg1", "arg2");
-    when(myCommandLineArgs.get(project)).thenReturn(commandLineArgs);
+    when(myCommandLineArgs.get(any(), same(project))).thenReturn(commandLineArgs);
 
     List<String> actual = myProjectResolver.getExtraCommandLineArgs();
     assertSame(commandLineArgs, actual);
 
     verify(myProjectFinder).findProject(myResolverCtx);
-    verify(myCommandLineArgs).get(project);
+
+    CommandLineArgs.Options options = new CommandLineArgs.Options();
+    options.includeLocalMavenRepo();
+    verify(myCommandLineArgs).get(options, project);
   }
 }
