@@ -32,6 +32,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   @Mock private SyncExecutor mySyncExecutor;
   @Mock private SyncResultHandler myResultHandler;
   @Mock private GradleSyncListener mySyncListener;
+  @Mock private SyncExecutionCallback.Factory myCallbackFactory;
 
   private SyncExecutionCallback myCallback;
   private NewGradleSync myGradleSync;
@@ -42,7 +43,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     initMocks(this);
 
     myCallback = new SyncExecutionCallback();
-    myGradleSync = new NewGradleSync(getProject(), mySyncExecutor, myResultHandler);
+    myGradleSync = new NewGradleSync(getProject(), mySyncExecutor, myResultHandler, myCallbackFactory);
   }
 
   public void testSyncWithSuccessfulSync() {
@@ -50,7 +51,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
 
     myCallback.setDone(mock(SyncAction.ProjectModels.class));
-    when(mySyncExecutor.createCallBack()).thenReturn(myCallback);
+    when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback), eq(request.isNewProject()));
 
     myGradleSync.sync(request, mySyncListener);
@@ -64,7 +65,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
 
     myCallback.setRejected(new Throwable("Test error"));
-    when(mySyncExecutor.createCallBack()).thenReturn(myCallback);
+    when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback), eq(request.isNewProject()));
 
     myGradleSync.sync(request, mySyncListener);

@@ -35,6 +35,7 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final Project myProject;
   @NotNull private final SyncExecutor mySyncExecutor;
   @NotNull private final SyncResultHandler myResultHandler;
+  @NotNull private final SyncExecutionCallback.Factory myCallbackFactory;
 
   public static boolean isEnabled() {
     return isOptionVisible() && GradleExperimentalSettings.getInstance().USE_NEW_GRADLE_SYNC;
@@ -45,14 +46,18 @@ public class NewGradleSync implements GradleSync {
   }
 
   public NewGradleSync(@NotNull Project project) {
-    this(project, new SyncExecutor(project), new SyncResultHandler(project));
+    this(project, new SyncExecutor(project), new SyncResultHandler(project), new SyncExecutionCallback.Factory());
   }
 
   @VisibleForTesting
-  NewGradleSync(@NotNull Project project, @NotNull SyncExecutor syncExecutor, @NotNull SyncResultHandler resultHandler) {
+  NewGradleSync(@NotNull Project project,
+                @NotNull SyncExecutor syncExecutor,
+                @NotNull SyncResultHandler resultHandler,
+                @NotNull SyncExecutionCallback.Factory callbackFactory) {
     myProject = project;
     mySyncExecutor = syncExecutor;
     myResultHandler = resultHandler;
+    myCallbackFactory = callbackFactory;
   }
 
   @Override
@@ -93,8 +98,8 @@ public class NewGradleSync implements GradleSync {
   }
 
   private void sync(@Nullable GradleSyncListener syncListener, @NotNull ProgressIndicator indicator, boolean isNewProject) {
+    SyncExecutionCallback callback = myCallbackFactory.create();
     // @formatter:off
-    SyncExecutionCallback callback = mySyncExecutor.createCallBack();
     callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, indicator, syncListener, isNewProject))
             .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
     // @formatter:on
