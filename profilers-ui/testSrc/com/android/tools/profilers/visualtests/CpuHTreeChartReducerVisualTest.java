@@ -21,12 +21,8 @@ import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
-import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CpuTraceArt;
-import com.android.tools.profilers.cpu.MethodModel;
-import com.android.tools.profilers.cpu.SampledMethodUsageHRenderer;
+import com.android.tools.profilers.cpu.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -84,7 +80,7 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
     catch (IOException e) {
       e.printStackTrace();
     }
-    for (Map.Entry<ThreadInfo, CaptureNode> entry: art.getThreadsGraph().entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry: art.getThreadsGraph().entrySet()) {
       if (entry.getKey().getName().equals("main")) {
         return entry.getValue();
       }
