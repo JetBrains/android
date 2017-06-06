@@ -28,6 +28,7 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -36,6 +37,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.beans.PropertyChangeListener;
 
 public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
@@ -46,7 +53,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   private StringResourceViewPanel myPanel;
 
-  private PreviewFeature myPreviewFeature;
+  private final PreviewFeature myPreviewFeature;
 
   StringResourceEditor(@NotNull StringsVirtualFile file) {
     AndroidFacet facet = file.getFacet();
@@ -55,8 +62,25 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
     myPreviewFeature = new PreviewFeature(this, facet.getModule());
 
-    myPanel.addTextChangeListener(text -> {
-      myPreviewFeature.setText(text);
+    myPanel.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(@NotNull DocumentEvent event) {
+        Document document = event.getDocument();
+
+        try {
+          myPreviewFeature.setText(document.getText(0, document.getLength()));
+        }
+        catch (BadLocationException exception) {
+          myPreviewFeature.setText("");
+        }
+      }
+    });
+
+    myPanel.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(@NotNull FocusEvent event) {
+        myPreviewFeature.setText(((JTextComponent)event.getSource()).getText());
+      }
     });
   }
 
