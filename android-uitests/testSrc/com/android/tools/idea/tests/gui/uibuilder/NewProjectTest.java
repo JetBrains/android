@@ -207,7 +207,6 @@ public class NewProjectTest {
       "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // http://b/62308820
   @Test
   public void testInferNullity() throws IOException {
     // Creates a new default project, adds a nullable API and then invokes Infer Nullity and
