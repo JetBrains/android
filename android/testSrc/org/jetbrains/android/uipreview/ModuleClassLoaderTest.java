@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
@@ -77,7 +78,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     Module module = myFixture.getModule();
     File tmpDir = Files.createTempDir();
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + module.getName() + "/test");
-                              assertTrue(FileUtil.createDirectory(outputDir));
+    assertTrue(FileUtil.createDirectory(outputDir));
     CompilerProjectExtension.getInstance(getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
 
     generateRClass("test", new File(outputDir, "R.class"));
@@ -138,7 +139,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    myFacet.setAndroidModel(new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug"));
+    myFacet.setAndroidModel(
+      new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeLevel2DependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertThat(myFacet.requiresAndroidModel()).isTrue();
 

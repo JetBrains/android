@@ -63,12 +63,14 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   private final boolean myBaseSplit;
   private final int myHashCode;
 
-  public IdeAndroidProjectImpl(@NotNull AndroidProject project) {
-    this(project, new ModelCache());
+  public IdeAndroidProjectImpl(@NotNull AndroidProject project, @NotNull IdeLevel2DependenciesFactory dependenciesFactory) {
+    this(project, new ModelCache(), dependenciesFactory);
   }
 
   @VisibleForTesting
-  IdeAndroidProjectImpl(@NotNull AndroidProject project, @NotNull ModelCache modelCache) {
+  IdeAndroidProjectImpl(@NotNull AndroidProject project,
+                        @NotNull ModelCache modelCache,
+                        @NotNull IdeLevel2DependenciesFactory dependenciesFactory) {
     super(project, modelCache);
     myModelVersion = project.getModelVersion();
     // Old plugin versions do not return model version.
@@ -81,7 +83,8 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
     myProductFlavors = copy(project.getProductFlavors(), modelCache, container -> new IdeProductFlavorContainer(container, modelCache));
     myBuildToolsVersion = copyNewProperty(project::getBuildToolsVersion, null);
     mySyncIssues = copy(project.getSyncIssues(), modelCache, issue -> new IdeSyncIssue(issue, modelCache));
-    myVariants = copy(project.getVariants(), modelCache, variant -> new IdeVariantImpl(variant, modelCache, myParsedModelVersion));
+    myVariants = copy(project.getVariants(), modelCache,
+                      variant -> new IdeVariantImpl(variant, modelCache, dependenciesFactory, myParsedModelVersion));
     myFlavorDimensions = copyNewProperty(() -> ImmutableList.copyOf(project.getFlavorDimensions()), Collections.emptyList());
     myCompileTarget = project.getCompileTarget();
     myBootClassPath = ImmutableList.copyOf(project.getBootClasspath());
