@@ -162,7 +162,6 @@ public class NewActivityTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)
   public void createActivityWithKotlin() throws Exception {
     myConfigActivity.setSourceLanguage("Kotlin");
     myDialog.clickFinish();

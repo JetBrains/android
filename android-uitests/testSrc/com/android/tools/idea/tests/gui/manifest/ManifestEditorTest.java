@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.manifest;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
@@ -57,7 +55,6 @@ public class ManifestEditorTest {
     assertThat(editor.getCurrentLine().trim()).isEqualTo("android:allowBackup=\"true\"");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testEditManifest() throws IOException {
     guiTest.importMultiModule();

@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.instantapp;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidModuleStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
@@ -49,7 +47,6 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Test that newly created Instant App modules do not have errors in them
  */
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NewInstantAppModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
