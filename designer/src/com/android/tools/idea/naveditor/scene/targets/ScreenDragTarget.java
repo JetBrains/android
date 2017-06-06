@@ -53,11 +53,6 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   }
 
   @Override
-  public void mouseDown(int x, int y) {
-    super.mouseDown(x, y);
-  }
-
-  @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
     if (myComponent.getParent() == null) {
       return;
