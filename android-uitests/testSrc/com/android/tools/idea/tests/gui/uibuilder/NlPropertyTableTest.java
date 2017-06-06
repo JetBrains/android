@@ -96,15 +96,22 @@ public class NlPropertyTableTest {
       .tab() // textAlignment: Right
       .tab() // textAlignment: End
       .tab().assertFocusInProperty("visibility", null)
-      .tab() // View all properties link
       .assertPropertyNotShowing("text", null)
       .assertPropertyNotShowing("ID", null)
       .assertPropertyShowing("visibility", null)
+      .tab() // search button
+      .tab() // toggle button
+      .tab() // wheel button
+      .tab() // minimize button
       .tab().assertFocusInProperty("ID", null)
       .assertPropertyShowing("ID", null)
       .assertPropertyShowing("text", null)
       .assertPropertyNotShowing("visibility", null)
-      .tabBack()
+      .tabBack() // minimize button
+      .tabBack() // wheel button
+      .tabBack() // toggle button
+      .tabBack() // search button
+      .tabBack().assertFocusInProperty("visibility", null)
       .assertPropertyNotShowing("ID", null)
       .assertPropertyNotShowing("text", null)
       .assertPropertyShowing("visibility", null);

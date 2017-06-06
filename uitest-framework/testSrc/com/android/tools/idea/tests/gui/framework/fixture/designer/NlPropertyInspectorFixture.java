@@ -104,12 +104,14 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
 
   @NotNull
   public NlPropertyInspectorFixture tab() {
-    return pressKeyInUnknownProperty(KeyEvent.VK_TAB, 0);
+    robot().pressAndReleaseKey(KeyEvent.VK_TAB);
+    return this;
   }
 
   @NotNull
   public NlPropertyInspectorFixture tabBack() {
-    return pressKeyInUnknownProperty(KeyEvent.VK_TAB, InputEvent.SHIFT_MASK);
+    robot().pressAndReleaseKey(KeyEvent.VK_TAB, InputEvent.SHIFT_MASK);
+    return this;
   }
 
   @NotNull
