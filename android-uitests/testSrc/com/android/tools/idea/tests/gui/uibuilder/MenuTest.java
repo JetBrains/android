@@ -38,6 +38,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public final class MenuTest {
   @Rule
