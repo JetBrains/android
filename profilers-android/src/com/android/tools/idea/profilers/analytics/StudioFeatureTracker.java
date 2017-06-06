@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.profilers.analytics;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
@@ -26,9 +28,18 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class StudioFeatureTracker implements FeatureTracker {
+
+  @Nullable
+  private Profiler.Device myActiveDevice;
+
+  @Nullable
+  private Profiler.Process myActiveProcess;
+
   private final ImmutableMap<Class<? extends Stage>, AndroidProfilerEvent.Stage> STAGE_MAP =
     ImmutableMap.<Class<? extends Stage>, AndroidProfilerEvent.Stage>builder()
       .put(NullMonitorStage.class, AndroidProfilerEvent.Stage.NULL_STAGE)
@@ -58,13 +69,19 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackChangeDevice() {
-    track(AndroidProfilerEvent.Type.CHANGE_DEVICE);
+  public void trackChangeDevice(@Nullable Profiler.Device device) {
+    if (myActiveDevice != device) {
+      myActiveDevice = device;
+      track(AndroidProfilerEvent.Type.CHANGE_DEVICE);
+    }
   }
 
   @Override
-  public void trackChangeProcess() {
-    track(AndroidProfilerEvent.Type.CHANGE_PROCESS);
+  public void trackChangeProcess(@Nullable Profiler.Process process) {
+    if (myActiveProcess != process) {
+      myActiveProcess = process;
+      track(AndroidProfilerEvent.Type.CHANGE_PROCESS);
+    }
   }
 
   @Override
@@ -202,8 +219,19 @@ public final class StudioFeatureTracker implements FeatureTracker {
   private void track(AndroidProfilerEvent.Type eventType) {
     AndroidProfilerEvent profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(eventType).build();
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-      .setAndroidProfilerEvent(profilerEvent));
+      .setAndroidProfilerEvent(profilerEvent);
+
+    if (myActiveDevice != null) {
+      event.setDeviceInfo(
+        DeviceInfo.newBuilder()
+          .setBuildVersionRelease(myActiveDevice.getVersion())
+          .setBuildApiLevelFull(new AndroidVersion(myActiveDevice.getApiLevel(), myActiveDevice.getCodename()).getApiString())
+          .setDeviceType(myActiveDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+          .build());
+    }
+
+    UsageTracker.getInstance().log(event);
   }
 }
