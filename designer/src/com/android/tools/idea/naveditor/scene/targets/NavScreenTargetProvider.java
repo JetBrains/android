@@ -52,43 +52,34 @@ public class NavScreenTargetProvider implements TargetProvider {
   @Override
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     List<Target> result = new ArrayList<>();
-    if (mySchema.getDestinationType(sceneComponent.getNlComponent().getTagName()) != null) {
-      if (sceneComponent.getParent() != null) {
-        Map<String, SceneComponent> groupMap = new HashMap<>();
-        for (SceneComponent sibling : sceneComponent.getParent().getChildren()) {
-          if (sibling == sceneComponent) {
-            continue;
-          }
-          sibling.flatten().forEach(component -> groupMap.put(component.getId(), sibling));
-        }
-        sceneComponent.getNlComponent().flatten()
-          .filter(component -> component.getTagName().equals(NavigationSchema.TAG_ACTION))
-          .forEach(nlChild -> {
-            String destinationId = NlComponent.stripId(nlChild.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
-            SceneComponent destination = groupMap.get(destinationId);
-            if (destination != null) {
-              result.add(new ActionTarget(sceneComponent, destination, nlChild));
-            }
-          });
-      }
-      if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
-        result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
-      }
-
-      if (sceneComponent.getParent() != null) {
-        result.add(new ActionHandleTarget(sceneComponent));
-      }
-    }
     SceneComponent parent = sceneComponent.getParent();
-    NlComponent parentNlComponent = null;
-    if (parent != null) {
-      parentNlComponent = parent.getNlComponent();
+    if (mySchema.getDestinationType(sceneComponent.getNlComponent().getTagName()) == null || parent == null) {
+      return result;
     }
-    String startDestination = null;
-    if (parentNlComponent != null) {
-      startDestination = parentNlComponent.getAttribute(SdkConstants.AUTO_URI, ATTR_START_DESTINATION);
-      startDestination = NlComponent.stripId(startDestination);
+
+    Map<String, SceneComponent> groupMap = new HashMap<>();
+    for (SceneComponent sibling : parent.getChildren()) {
+      if (sibling == sceneComponent) {
+        continue;
+      }
+      sibling.flatten().forEach(component -> groupMap.put(component.getId(), sibling));
     }
+    sceneComponent.getNlComponent().flatten()
+      .filter(component -> component.getTagName().equals(NavigationSchema.TAG_ACTION))
+      .forEach(nlChild -> {
+        String destinationId = NlComponent.stripId(nlChild.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION));
+        SceneComponent destination = groupMap.get(destinationId);
+        if (destination != null) {
+          result.add(new ActionTarget(sceneComponent, destination, nlChild));
+        }
+      });
+    if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
+      result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
+    }
+    result.add(new ActionHandleTarget(sceneComponent));
+    NlComponent parentNlComponent = parent.getNlComponent();
+    String startDestination = parentNlComponent.getAttribute(SdkConstants.AUTO_URI, ATTR_START_DESTINATION);
+    startDestination = NlComponent.stripId(startDestination);
     if (startDestination != null && startDestination.equals(sceneComponent.getId())) {
       result.add(new StartDestinationTarget(sceneComponent));
     }
