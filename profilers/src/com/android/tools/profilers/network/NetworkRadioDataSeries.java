@@ -31,7 +31,7 @@ import static com.android.tools.profiler.proto.NetworkProfiler.*;
 
 public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries.RadioState>{
   public enum RadioState{
-    WIFI, IDLE, LOW, HIGH, NONE
+    WIFI, LOW, HIGH, NONE
   }
 
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
@@ -67,14 +67,11 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
           break;
         case MOBILE:
           switch (data.getConnectivityData().getRadioState()) {
-            case ACTIVE:
+            case HIGH:
               seriesData.add(new SeriesData<>(timestampUs, RadioState.HIGH));
               break;
-            case IDLE:
+            case LOW:
               seriesData.add(new SeriesData<>(timestampUs, RadioState.LOW));
-              break;
-            case SLEEPING:
-              seriesData.add(new SeriesData<>(timestampUs, RadioState.IDLE));
               break;
             default:
               seriesData.add(new SeriesData<>(timestampUs, RadioState.NONE));
