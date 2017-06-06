@@ -146,6 +146,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     }
     mySelectedConnection = data;
     getAspect().changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkRequest();
+
     return true;
   }
 

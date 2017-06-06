@@ -56,10 +56,6 @@ final class ConnectionsView {
 
   private Range mySelectionRange;
 
-  public interface DetailedViewListener {
-    boolean showDetailedConnection(HttpData data);
-  }
-
   /**
    * Columns for each connection information
    */
@@ -128,9 +124,6 @@ final class ConnectionsView {
   }
 
   @NotNull
-  private final DetailedViewListener myDetailedViewListener;
-
-  @NotNull
   private final NetworkProfilerStage myStage;
 
   @NotNull
@@ -139,17 +132,14 @@ final class ConnectionsView {
   @NotNull
   private final JTable myConnectionsTable;
 
-  public ConnectionsView(@NotNull NetworkProfilerStageView stageView,
-                         @NotNull DetailedViewListener detailedViewListener) {
-    this(stageView.getStage(), stageView.getTimeline().getSelectionRange(), detailedViewListener);
+  public ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
+    this(stageView.getStage(), stageView.getTimeline().getSelectionRange());
   }
 
   @VisibleForTesting
   public ConnectionsView(@NotNull NetworkProfilerStage stage,
-                         @NotNull Range selectionRange,
-                         @NotNull DetailedViewListener detailedViewListener) {
+                         @NotNull Range selectionRange) {
     myStage = stage;
-    myDetailedViewListener = detailedViewListener;
     myTableModel = new ConnectionsTableModel(selectionRange);
     mySelectionRange = selectionRange;
 
@@ -179,9 +169,7 @@ final class ConnectionsView {
       int selectedRow = myConnectionsTable.getSelectedRow();
       if (0 <= selectedRow && selectedRow < myTableModel.getRowCount()) {
         int modelRow = myConnectionsTable.convertRowIndexToModel(selectedRow);
-        if (myDetailedViewListener.showDetailedConnection(myTableModel.getHttpData(modelRow))) {
-          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkRequest();
-        }
+        myStage.setSelectedConnection(myTableModel.getHttpData(modelRow));
       }
     });
 

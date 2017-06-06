@@ -106,7 +106,7 @@ public final class FakeMouse {
 
   /**
    * Convenience method which calls {@link #press(int, int, Button)} and
-   * {@link #release()} in turn.
+   * {@link #release()} in turn and ensures that a clicked event is fired.
    */
   public void click(int x, int y, Button button) {
     if (myCursor != null) {
@@ -114,7 +114,10 @@ public final class FakeMouse {
     }
 
     press(x, y, button);
+    Cursor cursor = myCursor;
     release();
+    // PRESSED + RELEASED should additionally fire a CLICKED event
+    dispatchMouseEvent(MouseEvent.MOUSE_CLICKED, cursor.x, cursor.y, cursor.button);
   }
 
   /**
@@ -170,7 +173,11 @@ public final class FakeMouse {
 
   private void dispatchMouseEvent(int eventType, int x, int y, Button button) {
     FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
-    dispatchMouseEvent(point, eventType, button.mask, button.code);
+    if (point != null) {
+      // Rare, but can happen if, say, a release mouse event closes a component, and then we try to
+      // fire a followup clicked event on it.
+      dispatchMouseEvent(point, eventType, button.mask, button.code);
+    }
   }
 
   private void dispatchMouseEvent(FakeUi.RelativePoint point, int eventType, int modifiers, int button) {
