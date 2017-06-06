@@ -47,27 +47,29 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
   public void testSyncWithSuccessfulSync() {
     // Simulate successful sync.
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+
     myCallback.setDone(mock(SyncAction.ProjectModels.class));
     when(mySyncExecutor.createCallBack()).thenReturn(myCallback);
-    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback), eq(request.isNewProject()));
 
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler).onSyncFinished(same(myCallback), any(), same(mySyncListener), same(request.isNewProject()));
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewProject()));
     verify(myResultHandler, never()).onSyncFailed(myCallback, mySyncListener);
   }
 
   public void testSyncWithFailedSync() {
     // Simulate failed sync.
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+
     myCallback.setRejected(new Throwable("Test error"));
     when(mySyncExecutor.createCallBack()).thenReturn(myCallback);
-    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback), eq(request.isNewProject()));
 
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), same(mySyncListener), same(request.isNewProject()));
+    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewProject()));
     verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
   }
 
