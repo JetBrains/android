@@ -421,7 +421,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     }
     invalidateResourceDirs();
 
-    if (resources.equals(myChildren)) {
+    if (resources.equals(getChildren())) {
       // Nothing changed (including order); nothing to do
       return;
     }
