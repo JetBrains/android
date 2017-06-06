@@ -138,12 +138,6 @@ class SyncExecutor {
   }
 
   @VisibleForTesting
-  SyncExecutionCallback createCallBack() {
-    // This is used to be able to mock a sync without calling mySyncExecutor.syncProject
-    return new SyncExecutionCallback();
-  }
-
-  @VisibleForTesting
   static class GradleSyncNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
     @NotNull private final ProgressIndicator myIndicator;
 
