@@ -34,24 +34,22 @@ public class DummyAlgorithmTest extends NavigationTestCase {
                                    component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
                                    component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3")
                                      .unboundedChildren(component(NavigationSchema.TAG_ACTION)),
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment4"),
-                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment5"))).build();
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment4"))).build();
     Scene scene = model.getSurface().getScene();
     SceneComponent root = scene.getRoot();
     root.setSize(1000, 1000, false);
     DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myAndroidFacet));
+    root.flatten().forEach(c -> c.setPosition(0, 0));
     root.flatten().forEach(algorithm::layout);
 
     assertEquals(310, scene.getSceneComponent("fragment1").getDrawX());
     assertEquals(50, scene.getSceneComponent("fragment1").getDrawY());
     assertEquals(570, scene.getSceneComponent("fragment2").getDrawX());
     assertEquals(50, scene.getSceneComponent("fragment2").getDrawY());
-    assertEquals(830, scene.getSceneComponent("fragment3").getDrawX());
-    assertEquals(50, scene.getSceneComponent("fragment3").getDrawY());
+    assertEquals(50, scene.getSceneComponent("fragment3").getDrawX());
+    assertEquals(440, scene.getSceneComponent("fragment3").getDrawY());
     assertEquals(50, scene.getSceneComponent("fragment4").getDrawX());
-    assertEquals(440, scene.getSceneComponent("fragment4").getDrawY());
-    assertEquals(50, scene.getSceneComponent("fragment5").getDrawX());
-    assertEquals(50, scene.getSceneComponent("fragment5").getDrawY());
+    assertEquals(50, scene.getSceneComponent("fragment4").getDrawY());
   }
 
   public void testSkipOther() throws Exception {
@@ -70,6 +68,7 @@ public class DummyAlgorithmTest extends NavigationTestCase {
     root.setSize(1000, 1000, false);
     DummyAlgorithm algorithm = new DummyAlgorithm(NavigationSchema.getOrCreateSchema(myAndroidFacet));
     SceneComponent manual = scene.getSceneComponent("fragment1");
+    root.flatten().forEach(c -> c.setPosition(0, 0));
     manual.setPosition(400, 300);
     root.flatten().filter(c -> c != manual).forEach(algorithm::layout);
 

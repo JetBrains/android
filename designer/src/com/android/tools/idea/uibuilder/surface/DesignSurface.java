@@ -69,8 +69,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFACE_BG;
 
@@ -494,6 +492,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected abstract Dimension getDefaultOffset();
 
   @SwingCoordinate
+  @NotNull
   protected abstract Dimension getPreferredContentSize(int availableWidth, int availableHeight);
 
   public void zoomActual() {
@@ -750,8 +749,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Return the SceneView under the given position
    *
-   * @param x
-   * @param y
    * @return the SceneView, or null if we are not above one.
    */
   @Nullable
@@ -765,6 +762,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     repaint();
   }
 
+  @Nullable
   public Scene getScene() {
     return myScene;
   }
@@ -1130,8 +1128,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Sets the tooltip for the design surface
-   *
-   * @param text
    */
   public void setDesignToolTip(@Nullable String text) {
     myLayeredPane.setToolTipText(text);
@@ -1231,7 +1227,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @NotNull
   public NlComponent createComponent(@NotNull XmlTag tag) {
-    return createComponent(tag, getModel());
+    NlModel model = getModel();
+    assert model != null;
+    return createComponent(tag, model);
   }
 
   @VisibleForTesting

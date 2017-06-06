@@ -90,9 +90,9 @@ public class NavScreenDecorator extends SceneDecorator {
       return;
     }
     list.add(new DrawNavScreen(sceneContext.getSwingX(component.getDrawX()) + 1,
-                                 sceneContext.getSwingY(component.getDrawY()) + 1,
-                                 sceneContext.getSwingDimension(component.getDrawWidth()) - 1,
-                                 sceneContext.getSwingDimension(component.getDrawHeight()) - 1,
-                                 image, component.isSelected()));
+                               sceneContext.getSwingY(component.getDrawY()) + 1,
+                               sceneContext.getSwingDimension(component.getDrawWidth()) - 1,
+                               sceneContext.getSwingDimension(component.getDrawHeight()) - 1,
+                               image, component.isSelected()));
   }
 }
