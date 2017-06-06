@@ -239,7 +239,9 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       boolean dependencyFound = false;
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
-        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(COMPILE)) {
+        String configurationName =
+          GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+        for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(configurationName)) {
           String notation = dependency.compactNotation().value();
           if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
               notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
