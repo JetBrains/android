@@ -39,7 +39,6 @@ import java.util.function.Consumer;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * {@link ILayoutPullParser} implementation on top of the PSI {@link XmlTag}.
@@ -50,7 +49,7 @@ import static java.util.stream.Collectors.toMap;
  * This pull parser generates {@link com.android.ide.common.rendering.api.ViewInfo}s whose keys
  * are of type {@link XmlTag}.
  */
-public class LayoutPsiPullParser extends LayoutPullParser {
+public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrParser {
   /**
    * Set of views that support the use of the app:srcCompat attribute when the support library is being used. This list must contain
    * ImageView and all the framework views that inherit from ImageView and support srcCompat.
@@ -98,7 +97,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   /** If true, the parser will use app:srcCompat instead of android:src for the tags specified in {@link #TAGS_SUPPORTING_SRC_COMPAT} */
   private boolean myUseSrcCompat;
 
-  private final Map<String, TagSnapshot> myDeclaredAaptAttrs;
+  private final ImmutableMap<String, TagSnapshot> myDeclaredAaptAttrs;
 
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
@@ -227,8 +226,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
   protected LayoutPsiPullParser(@NotNull TagSnapshot root, @NotNull ILayoutLog log) {
     myLogger = log;
-    myDeclaredAaptAttrs = Collections.emptyMap();
-
+    myDeclaredAaptAttrs = ImmutableMap.of();
     myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
       if (root.tag != null && root.tag.isValid()) {
         return root;
@@ -244,8 +242,9 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * Returns a {@link Map} that contains all the aapt:attr elements declared in this or any children parsers. This list can be used
    * to resolve @aapt/_aapt references into this parser.
    */
+  @Override
   @NotNull
-  public Map<String, TagSnapshot> getAaptDeclaredAttrs() {
+  public ImmutableMap<String, TagSnapshot> getAaptDeclaredAttrs() {
     return myDeclaredAaptAttrs;
   }
 
@@ -253,21 +252,22 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    * Method that walks the snapshot and finds all the aapt:attr elements declared.
    */
   @NotNull
-  private static Map<String, TagSnapshot> findDeclaredAaptAttrs(@Nullable TagSnapshot tag) {
+  private static ImmutableMap<String, TagSnapshot> findDeclaredAaptAttrs(@Nullable TagSnapshot tag) {
     if (tag == null || !tag.hasDeclaredAaptAttrs) {
       // Nor tag or any of the children has any aapt:attr declarations, we can stop here.
-      return Collections.emptyMap();
+      return ImmutableMap.of();
     }
 
-    Map<String, TagSnapshot> values = tag.attributes.stream()
+    ImmutableMap.Builder<String, TagSnapshot> builder = ImmutableMap.builder();
+    tag.attributes.stream()
       .filter(attr -> attr instanceof AaptAttrAttributeSnapshot)
       .map(attr -> (AaptAttrAttributeSnapshot)attr)
-      .collect(toMap(AaptAttrAttributeSnapshot::getId, AaptAttrAttributeSnapshot::getBundledTag));
+      .forEach(attr -> builder.put(attr.getId(), attr.getBundledTag()));
     for (TagSnapshot child : tag.children) {
-      values.putAll(findDeclaredAaptAttrs(child));
+      builder.putAll(findDeclaredAaptAttrs(child));
     }
 
-    return values;
+    return builder.build();
   }
 
   @Nullable
