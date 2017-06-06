@@ -67,10 +67,8 @@ class SyncExecutor {
     myExtraSyncModelExtensionManager = extraSyncModelExtensionManager;
   }
 
-  @NotNull
-  SyncExecutionCallback syncProject(@NotNull ProgressIndicator indicator) {
+  public void syncProject(@NotNull ProgressIndicator indicator, SyncExecutionCallback callback) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeMessages((String)null));
-    SyncExecutionCallback callback = new SyncExecutionCallback();
 
     if (myProject.isDisposed()) {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
@@ -109,7 +107,6 @@ class SyncExecutor {
     };
 
     myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
-    return callback;
   }
 
   @NotNull
@@ -120,6 +117,12 @@ class SyncExecutor {
   private static boolean useEmbeddedGradle() {
     // Do not use the Gradle distribution embedded in Android Studio, but the one set in the project's preference ("local" or "wrapper.")
     return false;
+  }
+
+  @VisibleForTesting
+  SyncExecutionCallback createCallBack() {
+    // This is used to be able to mock a sync without calling mySyncExecutor.syncProject
+    return new SyncExecutionCallback();
   }
 
   @VisibleForTesting
