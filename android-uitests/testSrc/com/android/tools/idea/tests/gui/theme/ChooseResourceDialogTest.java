@@ -332,6 +332,7 @@ public class ChooseResourceDialogTest {
   /**
    * Test if the color tab is selected by default when selecting a resource for backgroundTint
    */
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testDefaultProperty() throws IOException {
     guiTest.importSimpleApplication();
