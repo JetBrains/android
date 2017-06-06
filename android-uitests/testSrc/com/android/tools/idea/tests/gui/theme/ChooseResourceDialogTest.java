@@ -270,7 +270,6 @@ public class ChooseResourceDialogTest {
   /**
    * Test looking at the attributes for a drawable
    */
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testDrawable() throws IOException {
     guiTest.importSimpleApplication();
