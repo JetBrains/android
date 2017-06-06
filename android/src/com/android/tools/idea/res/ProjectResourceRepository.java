@@ -107,7 +107,7 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
   private void updateRoots(List<LocalResourceRepository> resourceDirectories) {
     invalidateResourceDirs();
     // If nothing changed (including order), then nothing remaining to do.
-    if (!resourceDirectories.equals(myChildren)) {
+    if (!resourceDirectories.equals(getChildren())) {
       setChildren(resourceDirectories);
     }
   }
