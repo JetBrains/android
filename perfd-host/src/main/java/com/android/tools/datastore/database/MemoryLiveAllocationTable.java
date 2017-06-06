@@ -39,8 +39,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     INSERT_ALLOC(
       "INSERT OR IGNORE INTO Memory_AllocationEvents (Pid, Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"),
-    INSERT_METHOD("INSERT OR IGNORE  INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
-    INSERT_ENCODED_STACK("INSERT OR IGNORE  INTO Memory_StackInfos (Pid, Session, StackId, AllocTime, MethodIdData) VALUES (?, ?, ?, ?, ?)"),
+    INSERT_METHOD("INSERT OR IGNORE INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
+    INSERT_ENCODED_STACK("INSERT OR IGNORE INTO Memory_StackInfos (Pid, Session, StackId, AllocTime, StackData) VALUES (?, ?, ?, ?, ?)"),
     UPDATE_ALLOC(
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND Tag = ?"),
     QUERY_CLASS(
@@ -51,7 +51,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                              "WHERE Pid = ? AND Session = ? AND FreeTime >= ? AND FreeTime < ?"),
     QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Pid = ? AND Session = ? AND MethodId = ?"),
     QUERY_ENCODED_STACK_INFO_BY_TIME(
-      "Select MethodIdData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
+      "Select StackData FROM Memory_StackInfos WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
 
     COUNT_ALLOC("SELECT count(*) FROM Memory_AllocationEvents"),
     PRUNE_ALLOC("DELETE FROM Memory_AllocationEvents WHERE Pid = ? AND Session = ? AND FreeTime <= (" +
@@ -97,7 +97,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       createTable("Memory_MethodInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "MethodId INTEGER",
                   "MethodName TEXT", "ClassName TEXT", "PRIMARY KEY(Pid, Session, MethodId)");
       createTable("Memory_StackInfos", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StackId INTEGER", "AllocTime INTEGER",
-                  "MethodIdData BLOB", "PRIMARY KEY(Pid, Session, StackId)");
+                  "StackData BLOB", "PRIMARY KEY(Pid, Session, StackId)");
       createIndex("Memory_AllocationEvents", 0, "Pid", "Session", "AllocTime");
       createIndex("Memory_AllocationEvents", 1, "Pid", "Session", "FreeTime");
       createIndex("Memory_AllocatedClass", 0, "Pid", "Session", "AllocTime");
@@ -199,8 +199,11 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         // select and only hit the database once. Alternative is ugly (e.g. manually formatting a string and pass to the IN clause).
         // We can revisit at a later time.
         stackBuilder.setStackId(encodedStack.getStackId());
-        for (long methodId : encodedStack.getMethodIdsList()) {
-          stackBuilder.addStackFrames(queryMethodInfo(pid, session, methodId));
+        assert encodedStack.getMethodIdsCount() == encodedStack.getLineNumbersCount();
+        for (int i = 0; i < encodedStack.getMethodIdsCount(); i++) {
+          AllocationStack.StackFrame frame = queryMethodInfo(pid, session, encodedStack.getMethodIds(i));
+          // Fill in line number info which is stored with the EncodedAllocationStack.
+          stackBuilder.addStackFrames(frame.toBuilder().setLineNumber(encodedStack.getLineNumbers(i)));
         }
 
         resultBuilder.addAllocationStacks(stackBuilder);
