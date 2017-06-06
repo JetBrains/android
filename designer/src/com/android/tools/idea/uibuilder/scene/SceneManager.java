@@ -55,7 +55,6 @@ abstract public class SceneManager implements Disposable {
 
   /**
    * Constructs a {@link Scene} from our {@link NlModel}. Must only be called once. For updates use {@link #update()}.
-   * @return
    */
   @NotNull
   public Scene build() {
@@ -88,6 +87,7 @@ abstract public class SceneManager implements Disposable {
     }
 
     SceneComponent root = createHierarchy(rootComponent);
+    scene.setRoot(root);
     if (root != null) {
       updateFromComponent(root, usedComponents);
     }
@@ -96,7 +96,6 @@ abstract public class SceneManager implements Disposable {
     oldComponents.removeIf(component -> component instanceof TemporarySceneComponent);
     oldComponents.forEach(scene::removeComponent);
 
-    scene.setRoot(root);
     scene.needsRebuildList();
   }
 
@@ -154,7 +153,6 @@ abstract public class SceneManager implements Disposable {
    *
    * @param component      the root SceneComponent to update
    * @param seenComponents Collector of components that were seen during NlComponent tree traversal.
-   * @return the SceneComponent paired with the given NlComponent
    */
   protected final void updateFromComponent(@NotNull SceneComponent component, @NotNull Set<SceneComponent> seenComponents) {
     seenComponents.add(component);
@@ -164,6 +162,11 @@ abstract public class SceneManager implements Disposable {
     for (SceneComponent child : component.getChildren()) {
       updateFromComponent(child, seenComponents);
     }
+
+    postUpdateFromComponent(component);
+  }
+
+  protected void postUpdateFromComponent(@NotNull SceneComponent component) {
   }
 
   /**

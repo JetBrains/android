@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,8 @@ import java.util.stream.Collectors;
  * TODO: implement a better way
  */
 public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
+  private static final int WIDTH = 1000;
+
   private final NavigationSchema mySchema;
 
   public DummyAlgorithm(NavigationSchema schema) {
@@ -42,10 +45,12 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
       return;
     }
     SceneComponent root = component.getScene().getRoot();
-    Map<SceneComponent, Rectangle> bounds =
-      root.flatten()
-        .filter(c -> mySchema.getDestinationType(c.getNlComponent().getTagName()) == NavigationSchema.DestinationType.FRAGMENT)
-        .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(0, null)));
+
+    Map<SceneComponent, Rectangle> bounds = root == null
+                                            ? new HashMap<>()
+                                            : root.flatten()
+                                              .filter(c -> c.getParent() != null)
+                                              .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(0, null)));
 
     int xOffset = 50;
     int yOffset = 50;
@@ -54,7 +59,7 @@ public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
       Rectangle newBounds = component.fillDrawRect(0, null);
       bounds.put(component, newBounds);
       xOffset += 130;
-      if (xOffset + 100 > root.getDrawWidth()) {
+      if (xOffset + component.getDrawWidth() > WIDTH) {
         yOffset += 130;
         xOffset = 50;
       }
