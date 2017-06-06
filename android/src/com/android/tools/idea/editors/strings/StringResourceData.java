@@ -109,30 +109,6 @@ public class StringResourceData {
     return null;
   }
 
-  @Nullable
-  public String validateTranslation(@NotNull StringResourceKey key, @Nullable Locale locale) {
-    if (!myKeyToResourceMap.keySet().contains(key)) {
-      throw new IllegalArgumentException("Key " + key + " does not exist.");
-    }
-
-    StringResource stringResource = getStringResource(key);
-
-    if (locale == null) {
-      ResourceItem item = stringResource.getDefaultValueAsResourceItem();
-      return (item == null) ? String.format("Key '%1$s' is missing the default value", key.getName()) : null;
-    }
-
-    final boolean translationMissing = stringResource.isTranslationMissing(locale);
-    final boolean doNotTranslate = !stringResource.isTranslatable();
-    if (translationMissing && !doNotTranslate) {
-      return String.format("Key '%1$s' is missing %2$s translation", key.getName(), getLabel(locale));
-    }
-    else if (doNotTranslate && !translationMissing) {
-      return "Key '" + key.getName() + "' is marked as untranslatable and should not be translated to " + getLabel(locale);
-    }
-    return null;
-  }
-
   @NotNull
   @VisibleForTesting
   Collection<Locale> getMissingTranslations(@NotNull StringResourceKey key) {

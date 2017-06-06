@@ -19,6 +19,7 @@ import com.android.xml.XmlBuilder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.util.FileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
