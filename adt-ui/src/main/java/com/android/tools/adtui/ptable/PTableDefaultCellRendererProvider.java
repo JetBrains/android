@@ -15,15 +15,12 @@
  */
 package com.android.tools.adtui.ptable;
 
-import com.intellij.ui.ColoredTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 
 public class PTableDefaultCellRendererProvider implements PTableCellRendererProvider {
-  private PNameRenderer myRenderer;
+  private final PNameRenderer myRenderer;
 
   PTableDefaultCellRendererProvider() {
     myRenderer = new DefaultRenderer();
@@ -41,9 +38,10 @@ public class PTableDefaultCellRendererProvider implements PTableCellRendererProv
     return myRenderer;
   }
 
-  private static class DefaultRenderer extends ColoredTableCellRenderer implements PNameRenderer {
+  private static class DefaultRenderer extends PTableCellRenderer implements PNameRenderer {
     @Override
-    protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
+    protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                         boolean selected, boolean hasFocus, int row, int column) {
     }
   }
 }

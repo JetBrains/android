@@ -16,11 +16,7 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.adtui.ptable.PNameRenderer;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.adtui.ptable.StarState;
-import com.intellij.ui.ColoredTableCellRenderer;
+import com.android.tools.adtui.ptable.*;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
@@ -36,40 +32,26 @@ import java.awt.*;
 import static com.android.SdkConstants.TOOLS_URI;
 import static icons.AndroidIcons.NeleIcons.DesignProperty;
 
-public class NlTableNameRenderer implements PNameRenderer {
+public class NlTableNameRenderer extends PTableCellRenderer implements PNameRenderer {
   private static final int BEFORE_STAR_SPACING = 2;
   private static final int STAR_SIZE = 16;
   private final JPanel myPanel;
   private final JLabel myStarLabel;
-  private final ColoredTableCellRenderer myRenderer;
 
   public NlTableNameRenderer() {
     myPanel = new JPanel(new BorderLayout());
     myStarLabel = new JBLabel();
-    myRenderer = new Renderer();
     myStarLabel.setPreferredSize(new Dimension(BEFORE_STAR_SPACING + STAR_SIZE, STAR_SIZE));
     myStarLabel.setBorder(BorderFactory.createEmptyBorder(0, BEFORE_STAR_SPACING, 0, 0));
     myPanel.add(myStarLabel, BorderLayout.WEST);
-    myPanel.add(myRenderer, BorderLayout.CENTER);
+    myPanel.add(this, BorderLayout.CENTER);
   }
 
   @Override
-  public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, boolean cellHasFocus,
+  public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, boolean hasFocus,
                                                  int row, int column) {
-    myRenderer.clear();
-    PTable ptable = (PTable)table;
-    PTableItem item = (PTableItem)value;
-
-    myRenderer.getTableCellRendererComponent(table, value, isSelected, cellHasFocus, row, column);
-    myRenderer.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
-    Point hoverPos = ptable.getHoverPosition();
-    boolean hoveringOnStar = ptable.isHover(row, column) && hitTestStarIcon(hoverPos.x, hoverPos.y);
-    myStarLabel.setIcon(getStar(item.getStarState(), isSelected, hoveringOnStar));
-    myPanel.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
-
-    String label = item.getParent() != null ? item.getParent().getChildLabel(item) : item.getName();
-    myRenderer.append(label, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    myRenderer.setToolTipText(item.getTooltipText());
+    super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+    myPanel.setBackground(getBackground());
     return myPanel;
   }
 
@@ -85,47 +67,55 @@ public class NlTableNameRenderer implements PNameRenderer {
     }
   }
 
-  private static class Renderer extends ColoredTableCellRenderer {
-    @Override
-    protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
-      setIcon((PTableItem)value, selected, hasFocus);
-      setPaintFocusBorder(false);
-      setFocusBorderAroundIcon(true);
+  @Override
+  protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem item, boolean selected, boolean hasFocus,
+                                       int row, int col) {
+    String label = item.getParent() != null ? item.getParent().getChildLabel(item) : item.getName();
+    append(label, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    setToolTipText(item.getTooltipText());
+
+    Point hoverPos = table.getHoverPosition();
+    boolean hoveringOnStar = table.isHover(row, col) && hitTestStarIcon(hoverPos.x, hoverPos.y);
+    myStarLabel.setIcon(getStar(item.getStarState(), selected, hoveringOnStar));
+
+    setIcon(item, selected, hasFocus);
+    setPaintFocusBorder(false);
+    setFocusBorderAroundIcon(true);
+  }
+
+
+  private void setIcon(PTableItem item, boolean selected, boolean hasFocus) {
+    Icon groupIcon = UIUtil.getTreeNodeIcon(item.isExpanded(), selected, hasFocus);
+    int beforeGroupIcon = getBeforeIconSpacing(getDepth(item), groupIcon.getIconWidth());
+    int afterGroupIcon = getAfterIconSpacing(groupIcon.getIconWidth());
+
+    Icon icon;
+    int indent;
+    int textGap;
+    if (item.hasChildren()) {
+      icon = groupIcon;
+      indent = beforeGroupIcon;
+      textGap = afterGroupIcon;
     }
-
-    private void setIcon(PTableItem item, boolean selected, boolean hasFocus) {
-      Icon groupIcon = UIUtil.getTreeNodeIcon(item.isExpanded(), selected, hasFocus);
-      int beforeGroupIcon = getBeforeIconSpacing(getDepth(item), groupIcon.getIconWidth());
-      int afterGroupIcon = getAfterIconSpacing(groupIcon.getIconWidth());
-
-      Icon icon;
-      int indent;
-      int textGap;
-      if (item.hasChildren()) {
-        icon = groupIcon;
-        indent = beforeGroupIcon;
-        textGap = afterGroupIcon;
+    else {
+      icon = null;
+      indent = beforeGroupIcon + groupIcon.getIconWidth() + afterGroupIcon;
+      textGap = 0;
+    }
+    if (TOOLS_URI.equals(item.getNamespace())) {
+      if (icon == null) {
+        icon = DesignProperty;
       }
       else {
-        icon = null;
-        indent = beforeGroupIcon + groupIcon.getIconWidth() + afterGroupIcon;
-        textGap = 0;
+        LayeredIcon layered = new LayeredIcon(icon, DesignProperty);
+        layered.setIcon(DesignProperty, 1, afterGroupIcon + icon.getIconWidth(), 0);
+        icon = layered;
       }
-      if (TOOLS_URI.equals(item.getNamespace())) {
-        if (icon == null) {
-          icon = DesignProperty;
-        }
-        else {
-          LayeredIcon layered = new LayeredIcon(icon, DesignProperty);
-          layered.setIcon(DesignProperty, 1, afterGroupIcon + icon.getIconWidth(), 0);
-          icon = layered;
-        }
-        textGap = 4;
-      }
-      setIcon(icon);
-      setIconTextGap(textGap);
-      setIpad(JBUI.insetsLeft(indent));
+      textGap = 4;
     }
+    super.setIcon(icon);
+    setIconTextGap(textGap);
+    setIpad(JBUI.insetsLeft(indent));
   }
 
   @Override

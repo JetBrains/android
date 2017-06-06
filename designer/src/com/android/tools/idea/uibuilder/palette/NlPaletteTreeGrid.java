@@ -49,11 +49,9 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.*;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
@@ -110,12 +108,14 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
     myCategoryList.addListSelectionListener(this::categorySelectionChanged);
     myCategoryList.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
+    myCategoryList.setCellRenderer(new MyCategoryCellRenderer());
     myFilter = new MyFilter();
 
     JScrollPane categoryPane = ScrollPaneFactory.createScrollPane(myCategoryList, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     categoryPane.setBorder(BorderFactory.createEmptyBorder());
 
     JScrollPane paletteScrollPane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    paletteScrollPane.setFocusable(false);
     paletteScrollPane.setBorder(BorderFactory.createEmptyBorder());
     paletteScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     paletteScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
@@ -126,6 +126,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     mySplitter.setInnerComponent(paletteScrollPane);
     mySplitter.setHonorComponentsMinimumSize(true);
     mySplitter.setFirstSize(JBUI.scale(getInitialCategoryWidth()));
+    mySplitter.setFocusCycleRoot(false);
     myCategoryList.addComponentListener(createCategoryWidthUpdater());
     setMinimumWidth(categoryPane, JBUI.scale(20));
     setMinimumWidth(paletteScrollPane, JBUI.scale(20));
@@ -133,8 +134,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
     setLayout(new BorderLayout());
     add(mySplitter, BorderLayout.CENTER);
-    setFocusCycleRoot(true);
-    setFocusTraversalPolicy(new MyFocusTraversalPolicy(myCategoryList, myTree));
+    setFocusTraversalPolicyProvider(true);
   }
 
   private static TreeGrid<Palette.Item> createItemTreeGrid(@NotNull Project project) {
@@ -235,6 +235,10 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private void categorySelectionChanged(@Nullable @SuppressWarnings("unused") ListSelectionEvent event) {
     if (myFilter.getPattern().isEmpty()) {
       myTree.setVisibleSection(myCategoryList.getSelectedValue());
+      Palette.Item selected = myTree.getSelectedVisibleElement();
+      if (selected == null) {
+        myTree.getFocusRecipient();  // Will select the first item in a visible list
+      }
     }
   }
 
@@ -352,6 +356,19 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     }
   }
 
+  private static class MyCategoryCellRenderer extends ColoredListCellRenderer<Palette.Group> {
+    @Override
+    protected void customizeCellRenderer(@NotNull JList list, @NotNull Palette.Group group, int index, boolean selected, boolean hasFocus) {
+      if (selected) {
+        // Use the tree colors.
+        // This makes the designer tools look consistent with the component tree.
+        setBackground(UIUtil.getTreeSelectionBackground(hasFocus));
+        mySelectionForeground = UIUtil.getTreeForeground(true, hasFocus);
+      }
+      append(group.getName());
+    }
+  }
+
   private static class MyCellRenderer extends ColoredListCellRenderer<Palette.Item> {
     private final DependencyManager myDependencyManager;
     private final PaletteMode myMode;
@@ -366,6 +383,12 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, @NotNull Palette.Item item, int index, boolean selected, boolean hasFocus) {
+      if (selected) {
+        // Use the tree colors.
+        // This makes the designer tools look consistent with the component tree.
+        setBackground(UIUtil.getTreeSelectionBackground(hasFocus));
+        mySelectionForeground = UIUtil.getTreeForeground(true, hasFocus);
+      }
       switch (myMode) {
         case ICON_AND_NAME:
           setIcon(myDependencyManager.createItemIcon(item, list));
@@ -382,60 +405,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
           setToolTipText(item.getTitle());
           break;
       }
-    }
-  }
-
-  private static class MyFocusTraversalPolicy extends FocusTraversalPolicy {
-    private final JList<Palette.Group> myCategoryList;
-    private final TreeGrid<Palette.Item> myTree;
-
-    private MyFocusTraversalPolicy(@NotNull JList<Palette.Group> categoryList, @NotNull TreeGrid<Palette.Item> tree) {
-      myCategoryList = categoryList;
-      myTree = tree;
-    }
-
-    @Override
-    public Component getComponentAfter(Container container, Component component) {
-      return getOtherComponent(component);
-    }
-
-    @Override
-    public Component getComponentBefore(Container container, Component component) {
-      return getOtherComponent(component);
-    }
-
-    @Override
-    public Component getFirstComponent(Container container) {
-      return getTreeComponent();
-    }
-
-    @Override
-    public Component getLastComponent(Container container) {
-      return myCategoryList;
-    }
-
-    @Override
-    public Component getDefaultComponent(Container container) {
-      return getTreeComponent();
-    }
-
-    @NotNull
-    private Component getOtherComponent(Component component) {
-      if (component != null && SwingUtilities.isDescendingFrom(component, myTree)) {
-        return myCategoryList;
-      }
-      else {
-        return getTreeComponent();
-      }
-    }
-
-    @NotNull
-    private Component getTreeComponent() {
-      Component component = myTree.getFocusRecipient();
-      if (component != null) {
-        return component;
-      }
-      return myTree;
     }
   }
 

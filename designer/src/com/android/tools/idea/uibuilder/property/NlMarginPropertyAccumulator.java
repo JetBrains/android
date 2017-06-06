@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableCellRenderer;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.util.Set;
 
 public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
-  private static final ColoredTableCellRenderer MARGIN_VALUE_RENDERER = createTableCellRenderer();
+  private static final TableCellRenderer MARGIN_VALUE_RENDERER = createTableCellRenderer();
 
   private final String myAllMargin;
   private final String myLeftMargin;
@@ -69,10 +69,11 @@ public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
     return new MarginGroupNode(groupName, prefix);
   }
 
-  private static ColoredTableCellRenderer createTableCellRenderer() {
-    return new ColoredTableCellRenderer() {
+  private static TableCellRenderer createTableCellRenderer() {
+    return new PTableCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JTable table, @Nullable Object value, boolean selected, boolean hasFocus, int row, int column) {
+      protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
+                                           boolean selected, boolean hasFocus, int row, int column) {
         assert value instanceof MarginGroupNode;
         MarginGroupNode node = (MarginGroupNode)value;
         NlMarginPropertyAccumulator accumulator = node.getAccumulator();

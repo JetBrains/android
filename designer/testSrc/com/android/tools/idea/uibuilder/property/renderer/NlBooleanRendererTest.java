@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -38,84 +38,82 @@ import static org.mockito.Mockito.when;
 public class NlBooleanRendererTest extends PropertyTestCase {
   private NlBooleanRenderer myRenderer;
   private ThreeStateCheckBox myCheckbox;
-  private SimpleColoredComponent myLabel;
-  private JTable myTable;
+  private PTable myTable;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myRenderer = new NlBooleanRenderer();
     JPanel panel = myRenderer.getContentPanel();
-    myCheckbox = (ThreeStateCheckBox)panel.getComponent(1);
-    myLabel = (SimpleColoredComponent)panel.getComponent(2);
-    myTable = new JBTable();
+    myCheckbox = (ThreeStateCheckBox)panel.getComponent(2);
+    myTable = new PTable(new PTableModel());
   }
 
   public void testAutoTextNotSet() {
-    NlProperty property = getProperty(myButton, ATTR_AUTO_TEXT);
-    myRenderer.customizeRenderContent(myTable, property, false, false, 10, 1);
+    NlPropertyItem property = getProperty(myButton, ATTR_AUTO_TEXT);
+    myRenderer.customizeCellRenderer(myTable, property, false, false, 10, 1);
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.DONT_CARE);
   }
 
   public void testAutoTextOff() {
-    NlProperty property = getProperty(myButton, ATTR_AUTO_TEXT);
+    NlPropertyItem property = getProperty(myButton, ATTR_AUTO_TEXT);
     property.setValue(VALUE_FALSE);
     UIUtil.dispatchAllInvocationEvents();
 
-    myRenderer.customizeRenderContent(myTable, property, false, false, 10, 1);
+    myRenderer.customizeCellRenderer(myTable, property, false, false, 10, 1);
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.NOT_SELECTED);
   }
 
   public void testAutoTextOn() {
-    NlProperty property = getProperty(myButton, ATTR_AUTO_TEXT);
+    NlPropertyItem property = getProperty(myButton, ATTR_AUTO_TEXT);
     property.setValue(VALUE_TRUE);
     UIUtil.dispatchAllInvocationEvents();
 
-    myRenderer.customizeRenderContent(myTable, property, false, false, 10, 1);
+    myRenderer.customizeCellRenderer(myTable, property, false, false, 10, 1);
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.SELECTED);
   }
 
   public void testAutoTextNotSetFromResource() {
-    NlProperty property = createMockProperty(ATTR_AUTO_TEXT, "@string/whatever", null);
+    NlPropertyItem property = createMockProperty(ATTR_AUTO_TEXT, "@string/whatever", null);
 
-    myRenderer.customizeRenderContent(myTable, property, false, false, 10, 1);
+    myRenderer.customizeCellRenderer(myTable, property, false, false, 10, 1);
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.DONT_CARE);
   }
 
   public void testAutoTextOnFromResource() {
-    NlProperty property = createMockProperty(ATTR_AUTO_TEXT, "@string/another", "true");
+    NlPropertyItem property = createMockProperty(ATTR_AUTO_TEXT, "@string/another", "true");
 
-    myRenderer.customizeRenderContent(myTable, property, false, false, 10, 1);
+    myRenderer.customizeCellRenderer(myTable, property, false, false, 10, 1);
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.SELECTED);
   }
 
   public void testAutoTextOffFromResource() {
-    NlProperty property = createMockProperty(ATTR_AUTO_TEXT, "@string/whatever", "false");
+    NlPropertyItem property = createMockProperty(ATTR_AUTO_TEXT, "@string/whatever", "false");
 
-    myRenderer.customizeRenderContent(myTable, property, false, false, 10, 1);
+    myRenderer.customizeCellRenderer(myTable, property, false, false, 10, 1);
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.NOT_SELECTED);
   }
 
   public void testAutoTextFromNonExistingResource() {
     ResourceResolver resolver = mock(ResourceResolver.class);
 
-    NlProperty property = mock(NlProperty.class);
+    NlPropertyItem property = mock(NlPropertyItem.class);
     when(property.getName()).thenReturn(ATTR_AUTO_TEXT);
     when(property.getValue()).thenReturn("@string/whatever");
     when(property.getResolver()).thenReturn(resolver);
 
-    myRenderer.customizeRenderContent(myTable, property, false, false, 10, 1);
+    myRenderer.customizeCellRenderer(myTable, property, false, false, 10, 1);
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.DONT_CARE);
   }
 
-  private static NlProperty createMockProperty(@NotNull String propertyName, @Nullable String value, @Nullable String resolvedValue) {
+  private static NlPropertyItem createMockProperty(@NotNull String propertyName, @Nullable String value, @Nullable String resolvedValue) {
     ResourceValue resource = mock(ResourceValue.class);
     when(resource.getValue()).thenReturn(resolvedValue);
 
     ResourceResolver resolver = mock(ResourceResolver.class);
     when(resolver.findResValue(eq(value), anyBoolean())).thenReturn(resource);
 
-    NlProperty property = mock(NlProperty.class);
+    NlPropertyItem property = mock(NlPropertyItem.class);
     when(property.getName()).thenReturn(propertyName);
     when(property.getValue()).thenReturn(value);
     when(property.getResolver()).thenReturn(resolver);

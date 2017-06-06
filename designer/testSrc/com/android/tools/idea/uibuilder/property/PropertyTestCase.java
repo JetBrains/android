@@ -50,7 +50,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
@@ -427,11 +426,11 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @NotNull
-  protected NlProperty getProperty(@NotNull NlComponent component, @NotNull String propertyName) {
+  protected NlPropertyItem getProperty(@NotNull NlComponent component, @NotNull String propertyName) {
     Map<String, NlProperty> properties = getPropertyMap(ImmutableList.of(component));
     NlProperty property = properties.get(propertyName);
     assert property != null;
-    return property;
+    return (NlPropertyItem)property;
   }
 
   @NotNull
