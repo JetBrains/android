@@ -38,10 +38,10 @@ public class NetworkRadioDataSeriesTest {
   private static final ImmutableList<NetworkProfiler.NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<NetworkProfiler.NetworkProfilerData>()
       .add(FakeNetworkService.newRadioData(0, ConnectivityData.NetworkType.WIFI, ConnectivityData.RadioState.UNSPECIFIED))
-      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
-      .add(FakeNetworkService.newRadioData(10, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.IDLE))
-      .add(FakeNetworkService.newRadioData(15, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.SLEEPING))
-      .add(FakeNetworkService.newRadioData(1000, ConnectivityData.NetworkType.INVALID, ConnectivityData.RadioState.SLEEPING))
+      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.HIGH))
+      .add(FakeNetworkService.newRadioData(10, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.LOW))
+      .add(FakeNetworkService.newRadioData(15, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.LOW))
+      .add(FakeNetworkService.newRadioData(1000, ConnectivityData.NetworkType.INVALID, ConnectivityData.RadioState.HIGH))
       .add(FakeNetworkService.newRadioData(1005, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.UNSPECIFIED))
       .build();
   @Rule public FakeGrpcChannel myGrpcChannel =
@@ -61,7 +61,7 @@ public class NetworkRadioDataSeriesTest {
         .add(new SeriesData<>(0, NetworkRadioDataSeries.RadioState.WIFI))
         .add(new SeriesData<>(5, NetworkRadioDataSeries.RadioState.HIGH))
         .add(new SeriesData<>(10, NetworkRadioDataSeries.RadioState.LOW))
-        .add(new SeriesData<>(15, NetworkRadioDataSeries.RadioState.IDLE))
+        .add(new SeriesData<>(15, NetworkRadioDataSeries.RadioState.LOW))
         .build();
     check(0, 15, expected);
   }
@@ -72,7 +72,7 @@ public class NetworkRadioDataSeriesTest {
       new ImmutableList.Builder<SeriesData<NetworkRadioDataSeries.RadioState>>()
         .add(new SeriesData<>(5, NetworkRadioDataSeries.RadioState.HIGH))
         .add(new SeriesData<>(10, NetworkRadioDataSeries.RadioState.LOW))
-        .add(new SeriesData<>(15, NetworkRadioDataSeries.RadioState.IDLE))
+        .add(new SeriesData<>(15, NetworkRadioDataSeries.RadioState.LOW))
         .build();
 
     check(4, 16, expected);
