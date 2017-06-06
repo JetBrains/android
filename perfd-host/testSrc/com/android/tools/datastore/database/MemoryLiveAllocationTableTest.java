@@ -309,8 +309,13 @@ public class MemoryLiveAllocationTableTest {
     final long METHOD3 = 12;
     final long CLASS1 = 1000;
     final long CLASS2 = 1001;
+    final int LINE1 = 10000;
+    final int LINE2 = 10001;
+    final int LINE3 = 10002;
     final List<Long> STACK_METHODS1 = Arrays.asList(METHOD1, METHOD2);
     final List<Long> STACK_METHODS2 = Arrays.asList(METHOD2, METHOD3);
+    final List<Integer> STACK_LINES1 = Arrays.asList(LINE1, LINE2);
+    final List<Integer> STACK_LINES2 = Arrays.asList(LINE2, LINE3);
     final String METHOD1_NAME = "Method1";
     final String METHOD2_NAME = "Method2";
     final String METHOD3_NAME = "Method3";
@@ -339,9 +344,11 @@ public class MemoryLiveAllocationTableTest {
 
     List<EncodedAllocationStack> stacksToInsert = new ArrayList<>();
     EncodedAllocationStack stack1 =
-      EncodedAllocationStack.newBuilder().setStackId(STACK1).addAllMethodIds(STACK_METHODS1).setTimestamp(STACK1_TIME).build();
+      EncodedAllocationStack.newBuilder().setStackId(STACK1).addAllMethodIds(STACK_METHODS1).addAllLineNumbers(STACK_LINES1)
+        .setTimestamp(STACK1_TIME).build();
     EncodedAllocationStack stack2 =
-      EncodedAllocationStack.newBuilder().setStackId(STACK2).addAllMethodIds(STACK_METHODS2).setTimestamp(STACK2_TIME).build();
+      EncodedAllocationStack.newBuilder().setStackId(STACK2).addAllMethodIds(STACK_METHODS2).addAllLineNumbers(STACK_LINES2)
+        .setTimestamp(STACK2_TIME).build();
     stacksToInsert.add(stack1);
     stacksToInsert.add(stack2);
 
@@ -359,11 +366,17 @@ public class MemoryLiveAllocationTableTest {
     AllocatedClass expectedKlass1 = AllocatedClass.newBuilder().setClassId(CLASS1).setClassName(JAVA_KLASS1_NAME).build();
     AllocatedClass expectedKlass2 = AllocatedClass.newBuilder().setClassId(CLASS2).setClassName(JAVA_KLASS2_NAME).build();
     AllocationStack expectedStack1 = AllocationStack.newBuilder().setStackId(STACK1)
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setClassName(JAVA_KLASS1_NAME))
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setClassName(JAVA_KLASS2_NAME)).build();
+      .addStackFrames(
+        StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setLineNumber(LINE1).setClassName(JAVA_KLASS1_NAME))
+      .addStackFrames(
+        StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setLineNumber(LINE2).setClassName(JAVA_KLASS2_NAME))
+      .build();
     AllocationStack expectedStack2 = AllocationStack.newBuilder().setStackId(STACK2)
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setClassName(JAVA_KLASS2_NAME))
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD3).setMethodName(METHOD3_NAME).setClassName(JAVA_KLASS3_NAME)).build();
+      .addStackFrames(
+        StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setLineNumber(LINE2).setClassName(JAVA_KLASS2_NAME))
+      .addStackFrames(
+        StackFrame.newBuilder().setMethodId(METHOD3).setMethodName(METHOD3_NAME).setLineNumber(LINE3).setClassName(JAVA_KLASS3_NAME))
+      .build();
 
     AllocationContextsResponse contexts = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(2, contexts.getAllocatedClassesCount());
