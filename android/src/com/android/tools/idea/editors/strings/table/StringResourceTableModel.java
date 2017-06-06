@@ -170,7 +170,21 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @Override
   public boolean isCellEditable(int row, int column) {
-    return true;
+    switch (column) {
+      case KEY_COLUMN:
+        return true;
+      case RESOURCE_FOLDER_COLUMN:
+        return false;
+      case UNTRANSLATABLE_COLUMN:
+        return true;
+      case DEFAULT_VALUE_COLUMN:
+        return !getStringResourceAt(row).getDefaultValueAsString().contains("\n");
+      default:
+        Locale locale = getLocale(column);
+        assert locale != null;
+
+        return !getStringResourceAt(row).getTranslationAsString(locale).contains("\n");
+    }
   }
 
   @Nullable

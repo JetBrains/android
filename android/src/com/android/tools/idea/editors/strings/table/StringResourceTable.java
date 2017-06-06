@@ -74,7 +74,7 @@ public final class StringResourceTable extends FixedColumnTable implements DataP
 
     getDefaultEditor(Boolean.class).addCellEditorListener(editorListener);
 
-    TableCellEditor editor = new StringsCellEditor();
+    TableCellEditor editor = new StringTableCellEditor();
     editor.addCellEditorListener(editorListener);
 
     InputMap inputMap = getInputMap(WHEN_FOCUSED);
