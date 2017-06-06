@@ -42,6 +42,7 @@ public class AndroidGradleModuleUtils {
    */
   @Nullable
   public static Module getContainingModule(File file, Project project) {
+    if (project.isDisposed()) return null;
     VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
     if (vFile == null) {
       return null;
