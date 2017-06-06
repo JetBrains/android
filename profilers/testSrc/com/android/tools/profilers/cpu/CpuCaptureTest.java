@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -48,9 +47,9 @@ public class CpuCaptureTest {
     assertNotNull(mainNode.getData());
     assertEquals("main", mainNode.getData().getClassName());
 
-    Set<ThreadInfo> threads = capture.getThreads();
+    Set<CpuThreadInfo> threads = capture.getThreads();
     assertFalse(threads.isEmpty());
-    for (ThreadInfo thread : threads) {
+    for (CpuThreadInfo thread : threads) {
       assertNotNull(capture.getCaptureNode(thread.getId()));
       assertTrue(capture.containsThread(thread.getId()));
     }
