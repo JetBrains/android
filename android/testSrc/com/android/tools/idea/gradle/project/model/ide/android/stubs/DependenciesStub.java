@@ -15,46 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
-import com.android.builder.model.AndroidAtom;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidAtom;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Objects;
 
 public final class DependenciesStub extends BaseStub implements Dependencies {
-  @NotNull private final Collection<AndroidAtom> myAtoms;
   @NotNull private final Collection<AndroidLibrary> myLibraries;
   @NotNull private final Collection<JavaLibrary> myJavaLibraries;
   @NotNull private final Collection<String> myProjects;
-  @Nullable private final AndroidAtom myBaseAtom;
 
   public DependenciesStub() {
-    this(Lists.newArrayList(), Lists.newArrayList(), Lists.newArrayList(new JavaLibraryStub()), Lists.newArrayList("project1", "project2"),
-         null);
+    this(Lists.newArrayList(), Lists.newArrayList(new JavaLibraryStub()), Lists.newArrayList("project1", "project2"));
   }
 
-  public DependenciesStub(@NotNull Collection<AndroidAtom> atoms,
-                          @NotNull Collection<AndroidLibrary> libraries,
+  public DependenciesStub(@NotNull Collection<AndroidLibrary> libraries,
                           @NotNull Collection<JavaLibrary> javaLibraries,
-                          @NotNull Collection<String> projects,
-                          @Nullable AndroidAtom atom) {
-    myAtoms = atoms;
+                          @NotNull Collection<String> projects) {
     myLibraries = libraries;
     myJavaLibraries = javaLibraries;
     myProjects = projects;
-    myBaseAtom = atom;
-  }
-
-  @Override
-  @NotNull
-  public Collection<AndroidAtom> getAtoms() {
-    return myAtoms;
   }
 
   @Override
@@ -76,12 +60,6 @@ public final class DependenciesStub extends BaseStub implements Dependencies {
   }
 
   @Override
-  @Nullable
-  public AndroidAtom getBaseAtom() {
-    return myBaseAtom;
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -90,26 +68,22 @@ public final class DependenciesStub extends BaseStub implements Dependencies {
       return false;
     }
     Dependencies stub = (Dependencies)o;
-    return Objects.equals(getAtoms(), stub.getAtoms()) &&
-           Objects.equals(getLibraries(), stub.getLibraries()) &&
+    return Objects.equals(getLibraries(), stub.getLibraries()) &&
            Objects.equals(getJavaLibraries(), stub.getJavaLibraries()) &&
-           Objects.equals(getProjects(), stub.getProjects()) &&
-           Objects.equals(getBaseAtom(), stub.getBaseAtom());
+           Objects.equals(getProjects(), stub.getProjects());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getAtoms(), getLibraries(), getJavaLibraries(), getProjects(), getBaseAtom());
+    return Objects.hash(getLibraries(), getJavaLibraries(), getProjects());
   }
 
   @Override
   public String toString() {
     return "DependenciesStub{" +
-           "myAtoms=" + myAtoms +
-           ", myLibraries=" + myLibraries +
+           "myLibraries=" + myLibraries +
            ", myJavaLibraries=" + myJavaLibraries +
            ", myProjects=" + myProjects +
-           ", myBaseAtom=" + myBaseAtom +
            "}";
   }
 }
