@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.tools.idea.AndroidTextUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableSet;
@@ -63,7 +64,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
@@ -416,7 +416,7 @@ public class AttributeProcessingUtil {
       }
 
       // Mockup attributes can be associated with any View, even include tag
-      if (MOCKUP_EDITOR_ENABLED) {
+      if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
         registerToolsAttribute(ATTR_MOCKUP, callback);
         registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
         registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);

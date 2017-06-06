@@ -66,7 +66,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  */
 public class RenderService extends AndroidFacetScopedService {
   public static final boolean NELE_ENABLED = true;
-  public static final boolean MOCKUP_EDITOR_ENABLED = false;
 
   /** Number of ms that we will wait for the rendering thread to return before timing out */
   private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Long.getLong("layoutlib.thread.timeout",

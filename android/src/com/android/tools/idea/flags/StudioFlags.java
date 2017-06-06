@@ -116,6 +116,11 @@ public final class StudioFlags {
     "Enables the use of @sample references in the tools namespace to use sample data.",
     true);
 
+  public static final Flag<Boolean> NELE_MOCKUP_EDITOR = Flag.create(
+    NELE, "mockup.editor", "Enable the Mockup Editor",
+    "Enable the Mockup Editor to ease the creation of Layouts from a design file.",
+    false);
+
   private StudioFlags() {
   }
 }
