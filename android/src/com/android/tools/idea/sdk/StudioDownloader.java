@@ -79,7 +79,7 @@ public class StudioDownloader implements Downloader {
     if (studioProgress == null) {
       studioProgress = ProgressManager.getInstance().getProgressIndicator();
     }
-    HttpRequests.request(url.toExternalForm())
+    HttpRequests.request(url.toExternalForm()).productNameAsUserAgent()
       .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, studioProgress));
   }
 
