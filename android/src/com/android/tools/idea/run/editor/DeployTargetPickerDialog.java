@@ -21,6 +21,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -95,7 +96,8 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     if (!deployTargetProviders.isEmpty()) {
       myDeployTargetProvider = deployTargetProviders.get(0);
       myDeployTargetState = deployTargetStates.get(myDeployTargetProvider.getId());
-    } else {
+    }
+    else {
       myDeployTargetProvider = null;
       myDeployTargetState = null;
     }
@@ -117,7 +119,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     });
 
     // Tab 2
-    if (!deployTargetProviders.isEmpty()) {
+    if (!deployTargetProviders.isEmpty() && myDeployTargetProvider != null) {
       Module module = facet.getModule();
       myDeployTargetConfigurable = myDeployTargetProvider.createConfigurable(module.getProject(), getDisposable(), new Context(module));
       JComponent component = myDeployTargetConfigurable.createComponent();
@@ -125,7 +127,8 @@ public class DeployTargetPickerDialog extends DialogWrapper {
         myCloudTargetsPanel.add(component, BorderLayout.CENTER);
       }
       myDeployTargetConfigurable.resetFrom(myDeployTargetState, myContextId);
-    } else {
+    }
+    else {
       myDeployTargetConfigurable = null;
     }
 
@@ -135,8 +138,11 @@ public class DeployTargetPickerDialog extends DialogWrapper {
     }
     myAdbFuture = AdbService.getInstance().getDebugBridge(adb);
 
-    DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
-    setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
+    // do not offer option to "use same selection" if Instant Run is enabled since we automatically
+    if (!InstantRunSettings.isInstantRunEnabled()) {
+      DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
+      setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
+    }
     setTitle("Select Deployment Target");
     setModal(true);
     init();
@@ -160,7 +166,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
         }
 
         @Override
-        public void onFailure(Throwable t) {
+        public void onFailure(@Nullable Throwable t) {
           loadingPanel.stopLoading();
           Logger.getInstance(DeployTargetPickerDialog.class).info("Unable to obtain debug bridge", t);
           // TODO: show an inline banner to restart adb?
@@ -186,13 +192,16 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    if (myTabbedPane.getSelectedIndex() == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX) {
+    if (myTabbedPane.getSelectedIndex() == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX &&
+        myDeployTargetConfigurable != null &&
+        myDeployTargetState != null) {
       myDeployTargetConfigurable.applyTo(myDeployTargetState, myContextId);
       List<ValidationError> errors = myDeployTargetState.validate(myFacet);
       if (!errors.isEmpty()) {
         return new ValidationInfo(errors.get(0).getMessage(), null);
       }
-    } else {
+    }
+    else {
       return myDevicePicker.validate();
     }
 
@@ -217,7 +226,8 @@ public class DeployTargetPickerDialog extends DialogWrapper {
         myDeployTarget = null;
         return;
       }
-    } else if (selectedIndex == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX) {
+    }
+    else if (selectedIndex == CUSTOM_RUNPROFILE_PROVIDER_TARGET_INDEX) {
       mySelectedDevices = Collections.emptyList();
       myDeployTarget = new RealizedDeployTarget(myDeployTargetProvider, myDeployTargetState, null);
     }
@@ -233,13 +243,14 @@ public class DeployTargetPickerDialog extends DialogWrapper {
 
   /**
    * Check the AVDs for missing system images and offer to download them.
+   *
    * @return true if the devices are able to launch, false if the user cancelled.
    */
   private boolean canLaunchDevices(@NotNull List<AndroidDevice> devices) {
     Set<String> requiredPackages = Sets.newHashSet();
     for (AndroidDevice device : devices) {
       if (device instanceof LaunchableAndroidDevice) {
-        LaunchableAndroidDevice avd = (LaunchableAndroidDevice) device;
+        LaunchableAndroidDevice avd = (LaunchableAndroidDevice)device;
         AvdInfo info = avd.getAvdInfo();
         if (AvdManagerConnection.isSystemImageDownloadProblem(info.getStatus())) {
           requiredPackages.add(AvdManagerConnection.getRequiredSystemImagePath(info));
@@ -333,7 +344,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
       myModule = module;
     }
 
-    @Nullable
+    @NotNull
     @Override
     public Module getModule() {
       return myModule;
