@@ -34,7 +34,7 @@ public class EmulatorTestRule extends ExternalResource {
   @Override
   protected void before() throws Throwable {
     MockAvdManagerConnection.inject();
-    getEmulatorConnection().cleanEmulatorProcess();
+    getEmulatorConnection().stopRunningAvd();
     // Remove all AVDs
     for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {
       getEmulatorConnection().deleteAvd(avdInfo);
@@ -45,7 +45,7 @@ public class EmulatorTestRule extends ExternalResource {
   protected void after() {
     // Close a no-window emulator by calling 'adb emu kill'
     // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
-    getEmulatorConnection().cleanEmulatorProcess();
+    getEmulatorConnection().stopRunningAvd();
     // Remove all AVDs
     for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {
       getEmulatorConnection().deleteAvd(avdInfo);
