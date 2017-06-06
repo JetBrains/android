@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.Objects;
 
 /**
- * Creates a deep copy of {@link Library} if getType() returns LIBRARY_MODULE
+ * Creates a deep copy of {@link Library} of type LIBRARY_MODULE.
  */
 public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -37,13 +37,18 @@ public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
   private final int myType;
   private final int myHashCode;
 
-  public IdeLevel2ModuleLibrary(@NotNull Library library, @NotNull ModelCache modelCache) {
-    super(library, modelCache);
-    myType = library.getType();
-    myArtifactAddress = library.getArtifactAddress();
-    myArtifactFile = library.getArtifact();
-    myProjectPath = library.getProjectPath();
-    myVariant = library.getVariant();
+  IdeLevel2ModuleLibrary(@NotNull String artifactAddress,
+                         @NotNull File artifactFile,
+                         @Nullable String projectPath,
+                         @Nullable String variant,
+                         @NotNull ModelCache modelCache,
+                         @NotNull Object sourceObject) {
+    super(sourceObject, modelCache);
+    myType = LIBRARY_MODULE;
+    myArtifactAddress = artifactAddress;
+    myArtifactFile = artifactFile;
+    myProjectPath = projectPath;
+    myVariant = variant;
     myHashCode = calculateHashCode();
   }
 

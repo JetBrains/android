@@ -46,7 +46,7 @@ public class IdeLevel2AndroidLibraryTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeLevel2AndroidLibrary androidLibrary = new IdeLevel2AndroidLibrary(new Level2AndroidLibraryStub(), myModelCache);
+    Library androidLibrary = IdeLevel2LibraryFactory.create(new Level2AndroidLibraryStub(), myModelCache);
     byte[] bytes = serialize(androidLibrary);
     Object o = deserialize(bytes);
     assertEquals(androidLibrary, o);
@@ -55,7 +55,7 @@ public class IdeLevel2AndroidLibraryTest {
   @Test
   public void constructor() throws Throwable {
     Library original = new Level2AndroidLibraryStub();
-    IdeLevel2AndroidLibrary copy = new IdeLevel2AndroidLibrary(original, myModelCache);
+    Library copy = IdeLevel2LibraryFactory.create(original, myModelCache);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
   }
