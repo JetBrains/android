@@ -15,104 +15,65 @@
  */
 package com.android.tools.idea.gradle.project.sync.common;
 
-import com.android.java.model.JavaProject;
-import com.android.java.model.builder.JavaLibraryPlugin;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.intellij.util.ArrayUtil.toStringArray;
-import static com.intellij.util.containers.ContainerUtil.addAll;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
-import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.writeToFileGradleInitScript;
-import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_OPTION;
 
 public class CommandLineArgs {
   @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
 
-  @Nullable private final File myClasspathInitScript;
-
-  public CommandLineArgs(boolean generateClasspathInitScript) {
-    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(), generateClasspathInitScript);
+  public CommandLineArgs() {
+    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance());
   }
 
   @VisibleForTesting
   CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
                   @NotNull IdeInfo ideInfo,
-                  @NotNull GradleInitScripts initScripts,
-                  boolean generateClasspathInitScript) {
+                  @NotNull GradleInitScripts initScripts) {
     myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
-    if (generateClasspathInitScript) {
-      myClasspathInitScript = getClasspathInitScript();
-    }
-    else {
-      myClasspathInitScript = null;
-    }
-  }
-
-  // Create init script that applies java library plugin to all projects
-  @Nullable
-  private static File getClasspathInitScript() {
-    String javaPluginClasspath = String.format("classpath files(['%s', '%s'])",
-                                               PathManager.getJarPathForClass(JavaProject.class),
-                                               PathManager.getJarPathForClass(JavaLibraryPlugin.class));
-    String initScriptContent = "initscript{\n" +
-                               "    dependencies {\n" +
-                               "        " + javaPluginClasspath + "\n" +
-                               "    }\n" +
-                               "}\n" +
-                               "allprojects{\n" +
-                               "    apply plugin: " + JavaLibraryPlugin.class.getName() + "\n" +
-                               "}\n";
-
-    try {
-      return writeToFileGradleInitScript(initScriptContent, "sync.init");
-    }
-    catch (Exception e) {
-      Logger.getInstance(CommandLineArgs.class).warn("Unable to create init script.", e);
-      return null;
-    }
   }
 
   @NotNull
-  public List<String> get(@Nullable Project project) {
+  public List<String> get(@NotNull Options options, @Nullable Project project) {
     List<String> args = new ArrayList<>();
 
     // TODO: figure out why this is making sync fail.
-    if (myClasspathInitScript != null) {
-      addAll(args, INIT_SCRIPT_CMD_OPTION, myClasspathInitScript.getPath());
+    if (options.applyJavaPlugin) {
+      myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
     }
 
     // http://b.android.com/201742, let's make sure the daemon always runs in headless mode.
     args.add("-Djava.awt.headless=true");
 
     if (project != null) {
-      String[] options = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
-      if (options != null) {
+      String[] extraOptions = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
+      if (extraOptions != null) {
         project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, null);
-        Collections.addAll(args, options);
+        Collections.addAll(args, extraOptions);
       }
     }
 
@@ -136,12 +97,46 @@ public class CommandLineArgs {
       }
     }
 
-    if (isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()) {
+    Application application = ApplicationManager.getApplication();
+    if (isGuiTestingMode() || application.isUnitTestMode()) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
-      ApplicationManager.getApplication().putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
+      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    myInitScripts.addLocalMavenRepoInitScriptCommandLineArgTo(args);
+    if (options.includeLocalMavenRepo) {
+      myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
+    }
     return args;
+  }
+
+  public static class Options {
+    boolean applyJavaPlugin;
+    boolean includeLocalMavenRepo;
+
+    public void applyJavaPlugin() {
+      applyJavaPlugin = true;
+    }
+
+    public void includeLocalMavenRepo() {
+      includeLocalMavenRepo = true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof Options)) {
+        return false;
+      }
+      Options options = (Options)o;
+      return applyJavaPlugin == options.applyJavaPlugin &&
+             includeLocalMavenRepo == options.includeLocalMavenRepo;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(applyJavaPlugin, includeLocalMavenRepo);
+    }
   }
 }

@@ -32,6 +32,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   @Mock private SyncExecutor mySyncExecutor;
   @Mock private SyncResultHandler myResultHandler;
   @Mock private GradleSyncListener mySyncListener;
+  @Mock private SyncExecutionCallback.Factory myCallbackFactory;
 
   private SyncExecutionCallback myCallback;
   private NewGradleSync myGradleSync;
@@ -42,32 +43,34 @@ public class NewGradleSyncTest extends IdeaTestCase {
     initMocks(this);
 
     myCallback = new SyncExecutionCallback();
-    myGradleSync = new NewGradleSync(getProject(), mySyncExecutor, myResultHandler);
+    myGradleSync = new NewGradleSync(getProject(), mySyncExecutor, myResultHandler, myCallbackFactory);
   }
 
   public void testSyncWithSuccessfulSync() {
     // Simulate successful sync.
-    myCallback.setDone(mock(SyncAction.ProjectModels.class));
-    when(mySyncExecutor.createCallBack()).thenReturn(myCallback);
-    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
-
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+
+    myCallback.setDone(mock(SyncAction.ProjectModels.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback), eq(request.isNewProject()));
+
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler).onSyncFinished(same(myCallback), any(), same(mySyncListener), same(request.isNewProject()));
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewProject()));
     verify(myResultHandler, never()).onSyncFailed(myCallback, mySyncListener);
   }
 
   public void testSyncWithFailedSync() {
     // Simulate failed sync.
-    myCallback.setRejected(new Throwable("Test error"));
-    when(mySyncExecutor.createCallBack()).thenReturn(myCallback);
-    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
-
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+
+    myCallback.setRejected(new Throwable("Test error"));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback), eq(request.isNewProject()));
+
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), same(mySyncListener), same(request.isNewProject()));
+    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewProject()));
     verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
   }
 

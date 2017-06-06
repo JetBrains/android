@@ -1181,7 +1181,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
       List<String> commandLineArguments = Lists.newArrayList();
       GradleInitScripts initScripts = GradleInitScripts.getInstance();
-      initScripts.addLocalMavenRepoInitScriptCommandLineArgTo(commandLineArguments);
+      initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
       buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
       try {
         buildLauncher.run();

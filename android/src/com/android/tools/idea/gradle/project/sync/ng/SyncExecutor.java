@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandlerManager;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
@@ -40,12 +42,12 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.gradle.tooling.GradleConnector.newCancellationTokenSource;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 class SyncExecutor {
   @NotNull private final Project myProject;
+  @NotNull private final GradleSyncMessages mySyncMessages;
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final SyncErrorHandlerManager myErrorHandlerManager;
   @NotNull private final ExtraSyncModelExtensionManager myExtraSyncModelExtensionManager;
@@ -53,22 +55,32 @@ class SyncExecutor {
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   SyncExecutor(@NotNull Project project) {
-    this(project, new CommandLineArgs(true), new SyncErrorHandlerManager(project), new ExtraSyncModelExtensionManager());
+    this(project, GradleSyncMessages.getInstance(project), new CommandLineArgs(), new SyncErrorHandlerManager(project),
+         new ExtraSyncModelExtensionManager());
   }
 
   @VisibleForTesting
   SyncExecutor(@NotNull Project project,
+               @NotNull GradleSyncMessages syncMessages,
                @NotNull CommandLineArgs commandLineArgs,
                @NotNull SyncErrorHandlerManager errorHandlerManager,
                @NotNull ExtraSyncModelExtensionManager extraSyncModelExtensionManager) {
     myProject = project;
+    mySyncMessages = syncMessages;
     myCommandLineArgs = commandLineArgs;
     myErrorHandlerManager = errorHandlerManager;
     myExtraSyncModelExtensionManager = extraSyncModelExtensionManager;
   }
 
-  public void syncProject(@NotNull ProgressIndicator indicator, SyncExecutionCallback callback) {
-    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeMessages((String)null));
+  void syncProject(@NotNull ProgressIndicator indicator, @NotNull SyncExecutionCallback callback, boolean isNewProject) {
+    Runnable removeMessagesTask = () -> mySyncMessages.removeMessages((String)null);
+    Application application = ApplicationManager.getApplication();
+    if (application.isDispatchThread()) {
+      removeMessagesTask.run();
+    }
+    else {
+      application.invokeAndWait(removeMessagesTask);
+    }
 
     if (myProject.isDisposed()) {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
@@ -78,11 +90,11 @@ class SyncExecutor {
 
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject);
     Function<ProjectConnection, Void> syncFunction = connection -> {
-      BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(
-        new SyncAction(myExtraSyncModelExtensionManager.getExtraAndroidModels(),
-                       myExtraSyncModelExtensionManager.getExtraJavaModels()));
+      SyncAction syncAction = new SyncAction(myExtraSyncModelExtensionManager.getExtraAndroidModels(),
+                                             myExtraSyncModelExtensionManager.getExtraJavaModels());
+      BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(syncAction);
 
-      List<String> commandLineArgs = myCommandLineArgs.get(myProject);
+      List<String> commandLineArgs = getCommandLineOptions(isNewProject);
 
       // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
       // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
@@ -109,20 +121,20 @@ class SyncExecutor {
     myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
   }
 
+  @VisibleForTesting
+  @NotNull
+  List<String> getCommandLineOptions(boolean isNewProject) {
+    CommandLineArgs.Options options = new CommandLineArgs.Options();
+    options.applyJavaPlugin();
+    if (isNewProject) {
+      options.includeLocalMavenRepo();
+    }
+    return myCommandLineArgs.get(options, myProject);
+  }
+
   @NotNull
   private static ExternalSystemTaskId createId(@NotNull Project project) {
     return ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, project);
-  }
-
-  private static boolean useEmbeddedGradle() {
-    // Do not use the Gradle distribution embedded in Android Studio, but the one set in the project's preference ("local" or "wrapper.")
-    return false;
-  }
-
-  @VisibleForTesting
-  SyncExecutionCallback createCallBack() {
-    // This is used to be able to mock a sync without calling mySyncExecutor.syncProject
-    return new SyncExecutionCallback();
   }
 
   @VisibleForTesting

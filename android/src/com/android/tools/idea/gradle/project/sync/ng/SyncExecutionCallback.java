@@ -23,6 +23,13 @@ class SyncExecutionCallback extends ActionCallback {
   @Nullable private SyncAction.ProjectModels myModels;
   @Nullable private Throwable mySyncError;
 
+  static class Factory {
+    @NotNull
+    SyncExecutionCallback create() {
+      return new SyncExecutionCallback();
+    }
+  }
+
   @Nullable
   SyncAction.ProjectModels getModels() {
     return myModels;

@@ -29,8 +29,7 @@ import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -41,24 +40,44 @@ public class CommandLineArgsTest extends IdeaTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleInitScripts myInitScripts;
 
+  private CommandLineArgs.Options myOptions;
   private CommandLineArgs myArgs;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, false);
+    myOptions = new CommandLineArgs.Options();
+    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts);
   }
 
-  public void testGet() throws Exception {
-    List<String> args = myArgs.get(getProject());
+  public void testGetWithDefaultOptions() {
+    List<String> args = myArgs.get(myOptions, getProject());
     check(args);
+    verify(myInitScripts, never()).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, never()).addLocalMavenRepoInitScriptCommandLineArg(args);
+  }
+
+  public void testGetWhenIncludingLocalMavenRepo() {
+    myOptions.includeLocalMavenRepo();
+    List<String> args = myArgs.get(myOptions, getProject());
+    check(args);
+    verify(myInitScripts, never()).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, times(1)).addLocalMavenRepoInitScriptCommandLineArg(args);
+  }
+
+  public void testGetWhenApplyingJavaPlugin() {
+    myOptions.applyJavaPlugin();
+    List<String> args = myArgs.get(myOptions, getProject());
+    check(args);
+    verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    verify(myInitScripts, never()).addLocalMavenRepoInitScriptCommandLineArg(args);
   }
 
   public void testGetWithAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     when(myApplicationInfo.getStrictVersion()).thenReturn("100");
-    List<String> args = myArgs.get(getProject());
+    List<String> args = myArgs.get(myOptions, getProject());
     check(args);
     assertThat(args).contains("-P" + PROPERTY_STUDIO_VERSION + "=100");
   }
@@ -66,7 +85,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
   public void testGetWithIdeNotAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(false);
     when(myApplicationInfo.getStrictVersion()).thenReturn("100");
-    List<String> args = myArgs.get(getProject());
+    List<String> args = myArgs.get(myOptions, getProject());
     check(args);
     assertThat(args).doesNotContain("-P" + PROPERTY_STUDIO_VERSION + "=100");
   }
@@ -76,7 +95,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
     String[] options = {"-Doption1=true", "-Doption2=true"};
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, options);
 
-    List<String> args = myArgs.get(getProject());
+    List<String> args = myArgs.get(myOptions, getProject());
     check(args);
     assertThat(args).contains("-Doption1=true");
     assertThat(args).contains("-Doption2=true");
@@ -88,18 +107,16 @@ public class CommandLineArgsTest extends IdeaTestCase {
     Project project = getProject();
     project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
 
-    List<String> args = myArgs.get(getProject());
+    List<String> args = myArgs.get(myOptions, getProject());
     check(args);
     assertThat(args).contains("-P" + PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL + "=true");
   }
 
-  private void check(@NotNull List<String> args) {
+  private static void check(@NotNull List<String> args) {
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
     assertThat(args).contains("-P" + PROPERTY_INVOKED_FROM_IDE + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_ADVANCED + "=true");
     assertThat(args).contains("-P" + PROPERTY_BUILD_MODEL_ONLY_VERSIONED + "=" + MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD);
-
-    verify(myInitScripts).addLocalMavenRepoInitScriptCommandLineArgTo(args);
   }
 }
