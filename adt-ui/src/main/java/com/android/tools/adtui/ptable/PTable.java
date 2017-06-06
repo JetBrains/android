@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.plaf.TableUI;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.text.JTextComponent;
@@ -49,8 +50,8 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class PTable extends JBTable implements DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
+  private final CopyPasteManager myCopyPasteManager;
   private PTableModel myModel;
-  private CopyPasteManager myCopyPasteManager;
   private PTableCellRendererProvider myRendererProvider;
   private PTableCellEditorProvider myEditorProvider;
 
@@ -90,6 +91,10 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     addMouseListener(hoverListener);
 
     addKeyListener(new PTableKeyListener(this));
+
+    resetDefaultFocusTraversalKeys();
+    setFocusTraversalPolicyProvider(true);
+    setFocusTraversalPolicy(new MyFocusTraversalPolicy(this));
   }
 
   @Override
@@ -118,6 +123,17 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   @Override
   public boolean surrendersFocusOnKeyStroke() {
     return false;
+  }
+
+  // Override the JTable.prepareEditor
+  // Return the same value but do NOT call component.setNextFocusableComponent.
+  // This allows us to TAB from the last editor to the first editor in the table.
+  // Without this a TAB from the last editor would cause the table to get the focus.
+  @Override
+  public Component prepareEditor(TableCellEditor editor, int row, int column) {
+    Object value = getValueAt(row, column);
+    boolean isSelected = isCellSelected(row, column);
+    return editor.getTableCellEditorComponent(this, value, isSelected, row, column);
   }
 
   @Override
@@ -157,13 +173,6 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   public void setUI(TableUI ui) {
     super.setUI(ui);
 
-    // Setup focus traversal keys such that tab takes focus out of the table
-    setFocusTraversalKeys(
-      KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
-      KeyboardFocusManager.getCurrentKeyboardFocusManager().getDefaultFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS));
-    setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, KeyboardFocusManager.getCurrentKeyboardFocusManager()
-      .getDefaultFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS));
-
     // Customize keymaps. See https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html for info on how this works, but the
     // summary is that we set an input map mapping key bindings to a string, and an action map that maps those strings to specific actions.
     ActionMap actionMap = getActionMap();
@@ -175,7 +184,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     actionMap.put("smartEnter", new MyEnterAction(false));
 
     focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "toggleEditor");
-    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0));
     actionMap.put("toggleEditor", new MyEnterAction(true));
 
     ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0));
@@ -660,7 +669,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     @Override
     public void keyTyped(@NotNull KeyEvent event) {
       int row = myTable.getSelectedRow();
-      if (myTable.isEditing() || row == -1) {
+      if (myTable.isEditing() || row == -1 || event.getKeyChar() == '\t') {
         return;
       }
       myTable.startEditing(row, () ->
@@ -673,6 +682,75 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
             new KeyEvent(textEditor, event.getID(), event.getWhen(), event.getModifiers(), event.getKeyCode(), event.getKeyChar());
           textEditor.dispatchEvent(keyEvent);
         })));
+    }
+  }
+
+  // Setup focus traversal keys such that tab takes focus out of the table if the user is not editing.
+  // When the user is editing the focus traversal keys will move to the next editable cell.
+  private static class MyFocusTraversalPolicy extends LayoutFocusTraversalPolicy {
+    private final PTable myTable;
+
+    private MyFocusTraversalPolicy(@NotNull PTable table) {
+      myTable = table;
+    }
+
+    @Override
+    public Component getComponentAfter(Container aContainer, Component aComponent) {
+      Component after = super.getComponentAfter(aContainer, aComponent);
+      if (after != null && after != myTable) {
+        return after;
+      }
+      return myTable.isEditing() ? editNextEditableCell(true) : null;
+    }
+
+    @Override
+    public Component getComponentBefore(Container aContainer, Component aComponent) {
+      Component before = super.getComponentBefore(aContainer, aComponent);
+      if (before != null && before != myTable) {
+        return before;
+      }
+      return myTable.isEditing() ? editNextEditableCell(false) : null;
+    }
+
+    private Component editNextEditableCell(boolean forwards) {
+      int rows = myTable.getRowCount();
+      int row = myTable.getEditingRow();
+      int col = myTable.getEditingColumn();
+      int next = forwards ? 1 : -1;
+      int wrapped = forwards ? 0 : 1;
+
+      // Make sure we don't loop forever
+      int rowIterations = 0;
+      while (rowIterations < rows) {
+        col = Math.floorMod(col + next, 2);
+        if (col == wrapped) {
+          row = Math.floorMod(row + next, rows);
+          rowIterations++;
+        }
+        if (myTable.isCellEditable(row, col)) {
+          myTable.setRowSelectionInterval(row, row);
+          myTable.startEditing(row, null);
+          return myTable.getEditorComponent();
+        }
+      }
+      // We can't find an editable cell.
+      // Delegate focus out of the table.
+      return null;
+    }
+
+    @Override
+    public Component getFirstComponent(Container aContainer) {
+      return myTable;
+    }
+
+    @Override
+    public Component getLastComponent(Container aContainer) {
+      return myTable;
+    }
+
+    @Override
+    public Component getDefaultComponent(Container aContainer) {
+        return null;
     }
   }
 }

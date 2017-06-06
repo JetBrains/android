@@ -92,14 +92,7 @@ public class NlBooleanEditor extends NlBaseComponentEditor implements NlComponen
     return myValue;
   }
 
-  @Override
-  public void activate() {
-    myValue = NlBooleanRenderer.getNextState(myCheckbox.getState());
-    stopEditing(myValue);
-  }
-
-  private void checkboxChanged(ActionEvent e) {
+  private void checkboxChanged(@SuppressWarnings("unused") ActionEvent event) {
     myValue = NlBooleanRenderer.getBoolean(myCheckbox.getState());
-    stopEditing(myValue);
   }
 }

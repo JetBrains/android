@@ -37,7 +37,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.JBUI;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
 
 import javax.swing.*;
@@ -45,7 +44,6 @@ import javax.xml.ws.Holder;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
-import java.awt.event.MouseEvent;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -178,22 +176,6 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
     clickOnItem(9, 0);
 
     assertThat(lastSelectedItem.value.getTagName()).isEqualTo(COORDINATOR_LAYOUT);
-  }
-
-  public void testFocusTraversalPolicy() {
-    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
-    myPanel.populateUiModel(palette, mySurface);
-    JList<Palette.Item> list = myPanel.getComponentTree().getLists().get(3);
-
-    FocusTraversalPolicy policy = myPanel.getFocusTraversalPolicy();
-    assertThat(classify(policy.getFirstComponent(myPanel))).isEqualTo(FocusComponent.LIST_IN_COMPONENT_TREE);
-    assertThat(classify(policy.getLastComponent(myPanel))).isEqualTo(FocusComponent.CATEGORY_LIST);
-    assertThat(classify(policy.getComponentAfter(myPanel, list))).isEqualTo(FocusComponent.CATEGORY_LIST);
-    assertThat(classify(policy.getComponentBefore(myPanel, list))).isEqualTo(FocusComponent.CATEGORY_LIST);
-    assertThat(classify(policy.getComponentAfter(myPanel, myPanel.getCategoryList()))).isEqualTo(FocusComponent.LIST_IN_COMPONENT_TREE);
-    assertThat(classify(policy.getComponentBefore(myPanel, myPanel.getCategoryList()))).isEqualTo(FocusComponent.LIST_IN_COMPONENT_TREE);
-    assertThat(classify(policy.getDefaultComponent(myPanel))).isEqualTo(FocusComponent.LIST_IN_COMPONENT_TREE);
-    assertThat(classify(policy.getInitialComponent(mock(Window.class)))).isEqualTo(FocusComponent.LIST_IN_COMPONENT_TREE);
   }
 
   public void testSetFilter() {
@@ -391,28 +373,6 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
       }
     }
     throw new RuntimeException("Group not found:" + groupName);
-  }
-
-  private enum FocusComponent {
-    LIST_IN_COMPONENT_TREE,
-    CATEGORY_LIST,
-    OTHER
-  }
-
-  @NotNull
-  private FocusComponent classify(@Nullable Component component) {
-    if (component == null) {
-      return FocusComponent.OTHER;
-    }
-    boolean isCategory = component == myPanel.getCategoryList();
-    boolean isList = component instanceof JList && SwingUtilities.isDescendingFrom(component, myPanel.getComponentTree());
-    if (isCategory && !isList) {
-      return FocusComponent.CATEGORY_LIST;
-    }
-    if (isList && !isCategory) {
-      return FocusComponent.LIST_IN_COMPONENT_TREE;
-    }
-    return FocusComponent.OTHER;
   }
 
   private void clickOnItem(int listIndex, int itemIndex) {
