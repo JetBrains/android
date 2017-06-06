@@ -95,11 +95,9 @@ public class IdeaGradleSync implements GradleSync {
 
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
                                                   @NotNull PostSyncProjectSetup.Request setupRequest) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      if (syncRequest.isSkipAndroidPluginUpgrade()) {
-        //noinspection TestOnlyProblems
-        setupRequest.setSkipAndroidPluginUpgrade();
-      }
+    if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.isSkipAndroidPluginUpgrade()) {
+      //noinspection TestOnlyProblems
+      setupRequest.setSkipAndroidPluginUpgrade();
     }
   }
 }

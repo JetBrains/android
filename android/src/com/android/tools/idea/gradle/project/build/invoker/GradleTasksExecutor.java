@@ -97,7 +97,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.gradle.project.build.BuildStatus.*;
@@ -379,7 +378,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           commandLineArguments.addAll(myRequest.getCommandLineArguments());
 
           GradleInitScripts initScripts = GradleInitScripts.getInstance();
-          initScripts.addLocalMavenRepoInitScriptCommandLineArgTo(commandLineArguments);
+          initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
 
           attemptToUseEmbeddedGradle(project);
 

@@ -3368,7 +3368,7 @@ public class GradleImportTest extends AndroidTestCase {
       args.add(customizedGradleHome);
     }
     args.add("assembleDebug");
-    GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
+    GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(args);
     removeJcenter(new File(base, "build.gradle"));
     updateGradleVersions(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
