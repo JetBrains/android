@@ -131,16 +131,16 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("Key 'key6' is marked as non translatable, but is translated in locale French (fr)",
                  data.validateKey(newStringResourceKey("key6")));
 
-    assertEquals("Key 'key1' is missing Hindi (hi) translation",
-                 data.validateTranslation(newStringResourceKey("key1"), Locale.create("hi")));
+    assertEquals("Key \"key1\" is missing its Hindi (hi) translation",
+                 data.getStringResource(newStringResourceKey("key1")).validateTranslation(Locale.create("hi")));
 
-    assertNull(data.validateTranslation(newStringResourceKey("key2"), Locale.create("hi")));
+    assertNull(data.getStringResource(newStringResourceKey("key2")).validateTranslation(Locale.create("hi")));
 
-    assertEquals("Key 'key6' is marked as untranslatable and should not be translated to French (fr)",
-                 data.validateTranslation(newStringResourceKey("key6"), Locale.create("fr")));
+    assertEquals("Key \"key6\" is untranslatable and should not be translated to French (fr)",
+                 data.getStringResource(newStringResourceKey("key6")).validateTranslation(Locale.create("fr")));
 
-    assertNull(data.validateTranslation(newStringResourceKey("key1"), null));
-    assertEquals("Key 'key4' is missing the default value", data.validateTranslation(newStringResourceKey("key4"), null));
+    assertNull(data.getStringResource(newStringResourceKey("key1")).validateDefaultValue());
+    assertEquals("Key \"key4\" is missing its default value", data.getStringResource(newStringResourceKey("key4")).validateDefaultValue());
   }
 
   public void testGetMissingTranslations() {

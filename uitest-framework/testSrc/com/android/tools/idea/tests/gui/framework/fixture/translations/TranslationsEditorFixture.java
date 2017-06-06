@@ -24,6 +24,8 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.SimpleColoredComponent.ColoredIterator;
+import com.intellij.ui.SimpleTextAttributes;
 import org.fest.swing.cell.JTableCellWriter;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -33,16 +35,15 @@ import org.fest.swing.data.TableCell;
 import org.fest.swing.driver.AbstractJTableCellWriter;
 import org.fest.swing.driver.JTableCheckBoxEditorCellWriter;
 import org.fest.swing.driver.JTableTextComponentEditorCellWriter;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableFixture;
-import org.fest.swing.fixture.JTableHeaderFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.JTableHeader;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.List;
@@ -126,6 +127,30 @@ public final class TranslationsEditorFixture {
         .mapToObj(table::getColumnName)
         .collect(Collectors.toList());
     });
+  }
+
+  @Nullable
+  public SimpleColoredComponent getCellRenderer(int row, int column) {
+    return GuiActionRunner.execute(new GuiQuery<SimpleColoredComponent>() {
+      @Override
+      protected SimpleColoredComponent executeInEDT() throws Throwable {
+        return new SimpleColoredComponent((com.intellij.ui.SimpleColoredComponent)getTable().target().getCellRenderer(row, column));
+      }
+    });
+  }
+
+  public static final class SimpleColoredComponent {
+    public final String myValue;
+    public final SimpleTextAttributes myAttributes;
+    public final String myTooltipText;
+
+    private SimpleColoredComponent(@NotNull com.intellij.ui.SimpleColoredComponent component) {
+      ColoredIterator i = component.iterator();
+
+      myValue = i.next();
+      myAttributes = i.getTextAttributes();
+      myTooltipText = component.getToolTipText();
+    }
   }
 
   @NotNull

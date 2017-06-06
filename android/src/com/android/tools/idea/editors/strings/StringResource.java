@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.openapi.project.Project;
@@ -142,6 +143,19 @@ public final class StringResource {
     return true;
   }
 
+  @Nullable
+  public String validateDefaultValue() {
+    if (myDefaultValue.myResourceItem == null) {
+      return "Key \"" + myKey.getName() + "\" is missing its default value";
+    }
+
+    if (!myDefaultValue.myStringValid) {
+      return "Invalid XML";
+    }
+
+    return null;
+  }
+
   public boolean isTranslatable() {
     return myTranslatable;
   }
@@ -200,6 +214,26 @@ public final class StringResource {
   }
 
   @Nullable
+  public String validateTranslation(@NotNull Locale locale) {
+    ResourceItemEntry entry = myLocaleToTranslationMap.get(locale);
+
+    if (entry != null && !entry.myStringValid) {
+      return "Invalid XML";
+    }
+
+    if (myTranslatable && isTranslationMissing(locale)) {
+      return "Key \"" + myKey.getName() + "\" is missing its " + LocaleMenuAction.getLocaleLabel(locale, false) + " translation";
+    }
+    else if (!myTranslatable && !isTranslationMissing(locale)) {
+      return "Key \"" + myKey.getName() + "\" is untranslatable and should not be translated to " +
+             LocaleMenuAction.getLocaleLabel(locale, false);
+    }
+    else {
+      return null;
+    }
+  }
+
+  @Nullable
   private ResourceItem createItem(@Nullable Locale locale, @NotNull String value) {
     VirtualFile directory = myKey.getDirectory();
 
@@ -237,19 +271,42 @@ public final class StringResource {
   private static final class ResourceItemEntry {
     @Nullable
     private final ResourceItem myResourceItem;
+
     @NotNull
     private final String myString;
+
+    private final boolean myStringValid;
 
     public ResourceItemEntry() {
       myResourceItem = null;
       myString = "";
+      myStringValid = true;
     }
 
     private ResourceItemEntry(@NotNull ResourceItem resourceItem) {
       myResourceItem = resourceItem;
-
       ResourceValue value = resourceItem.getResourceValue(false);
-      myString = value == null ? "" : ValueXmlHelper.unescapeResourceStringAsXml(value.getRawXmlValue());
+
+      if (value == null) {
+        myString = "";
+        myStringValid = true;
+
+        return;
+      }
+
+      String string = value.getRawXmlValue();
+      boolean stringValid;
+
+      try {
+        string = ValueXmlHelper.unescapeResourceStringAsXml(string);
+        stringValid = true;
+      }
+      catch (IllegalArgumentException exception) {
+        stringValid = false;
+      }
+
+      myString = string;
+      myStringValid = stringValid;
     }
   }
 }

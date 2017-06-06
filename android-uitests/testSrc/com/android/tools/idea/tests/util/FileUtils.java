@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.uibuilder;
+package com.android.tools.idea.tests.util;
 
 import com.intellij.openapi.vfs.LocalFileSystem;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +23,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-final class FileUtils {
+public final class FileUtils {
   private FileUtils() {
   }
 
-  static void write(@NotNull Path path, @NotNull String string) throws IOException {
+  public static void write(@NotNull Path path, @NotNull String string) throws IOException {
+    Files.createDirectories(path.getParent());
     LocalFileSystem.getInstance().refreshAndFindFileByIoFile(Files.write(path, string.getBytes(StandardCharsets.UTF_8)).toFile());
   }
 }
