@@ -16,17 +16,21 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
+import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
 import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.List;
 
 /**
  * {@linkplain ActionHandleTarget} is a target for handling drag-creation of actions.
@@ -34,6 +38,7 @@ import java.awt.*;
  */
 public class ActionHandleTarget extends BaseTarget {
   private int myCurrentRadius = 0;
+  private boolean myIsDragging = false;
 
   public ActionHandleTarget(@NotNull SceneComponent component) {
     setComponent(component);
@@ -59,7 +64,31 @@ public class ActionHandleTarget extends BaseTarget {
   }
 
   @Override
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myIsDragging = true;
+    myComponent.getScene().needsRebuildList();
+  }
+
+  @Override
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+    myIsDragging = false;
+  }
+
+  @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
+    DrawCommand drawCommand = myIsDragging
+                              ? createDrawActionHandleDrag(sceneContext)
+                              : createDrawActionHandle(sceneContext);
+
+    list.add(drawCommand);
+  }
+
+  private DrawCommand createDrawActionHandleDrag(@NotNull SceneContext sceneContext) {
+    return new DrawActionHandleDrag(sceneContext.getSwingX(getCenterX()), sceneContext.getSwingY(getCenterY()),
+                                    sceneContext.getColorSet().getSelectedFrames());
+  }
+
+  private DrawCommand createDrawActionHandle(@NotNull SceneContext sceneContext) {
     int newRadius = 0;
 
     if (mIsOver) {
@@ -81,10 +110,11 @@ public class ActionHandleTarget extends BaseTarget {
 
     Color fillColor = colorSet.getBackground();
 
-    list.add(new DrawActionHandle(sceneContext.getSwingX(getCenterX()), sceneContext.getSwingY(getCenterY()), myCurrentRadius, newRadius,
-                                  borderColor, fillColor));
-
+    DrawActionHandle drawCommand =
+      new DrawActionHandle(sceneContext.getSwingX(getCenterX()), sceneContext.getSwingY(getCenterY()), myCurrentRadius, newRadius,
+                           borderColor, fillColor);
     myCurrentRadius = newRadius;
+    return drawCommand;
   }
 
   @Override

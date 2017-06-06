@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
-import com.android.tools.idea.uibuilder.scene.SceneContext;
-import junit.framework.TestCase;
-import org.mockito.InOrder;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.sherpa.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-
-import java.util.ArrayList;
+import com.android.tools.sherpa.drawing.ColorSet;
+import junit.framework.TestCase;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 import static org.mockito.Mockito.*;
 
 public class ActionHandleTargetTest extends TestCase {
   private static int X = 10;
-  private static int Y = 10;
+  private static int Y = 5;
+  private static int DRAGX = X + 20;
+  private static int DRAGY = Y - 10;
   private static Color FRAMES = Color.RED;
   private static Color SELECTEDFRAMES = Color.GREEN;
   private static Color HIGHLIGHTEDFRAMES = Color.BLUE;
@@ -98,6 +99,22 @@ public class ActionHandleTargetTest extends TestCase {
     myActionHandleTarget.setOver(true);
     verifyDrawCommands(DrawActionHandle.SMALL_RADIUS, DrawActionHandle.LARGE_RADIUS, SELECTEDFRAMES);
 
+    // mouse down and drag
+    myActionHandleTarget.mouseDown(X, Y);
+    myActionHandleTarget.mouseDrag(DRAGX, DRAGY, null);
+    verifyDrawCommands();
+
+    // mouse release
+    myActionHandleTarget.setOver(false);
+    when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.NORMAL);
+    myActionHandleTarget.mouseRelease(DRAGX, DRAGY, null);
+    verifyDrawCommands(DrawActionHandle.LARGE_RADIUS, DrawActionHandle.SMALL_RADIUS, SELECTEDFRAMES);
+
+    // hover over target
+    myActionHandleTarget.setOver(true);
+    when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.HOVER);
+    verifyDrawCommands(DrawActionHandle.SMALL_RADIUS, DrawActionHandle.LARGE_RADIUS, SELECTEDFRAMES);
+
     // move away from component and target
     myActionHandleTarget.setOver(false);
     when(mySceneComponent.getDrawState()).thenReturn(SceneComponent.DrawState.NORMAL);
@@ -108,15 +125,19 @@ public class ActionHandleTargetTest extends TestCase {
     verifyDrawCommands(DrawActionHandle.SMALL_RADIUS, 0, FRAMES);
   }
 
-  private void verifyDrawCommands(int initialRadius,
-                                  int finalRadius,
-                                  Color borderColor) {
+  private void verifyDrawCommands(int initialRadius, int finalRadius, Color borderColor) {
+    verifyDrawCommands(new DrawActionHandle(X, Y, initialRadius, finalRadius, borderColor, BACKGROUND));
+  }
 
+  private void verifyDrawCommands() {
+    verifyDrawCommands(new DrawActionHandleDrag(X, Y, SELECTEDFRAMES));
+  }
+
+  private void verifyDrawCommands(DrawCommand drawCommand) {
     DisplayList displayList = new DisplayList();
     myActionHandleTarget.render(displayList, mySceneContext);
     ArrayList<DrawCommand> list = displayList.getCommands();
     assertEquals(list.size(), 1);
-    DrawActionHandle testHandle = new DrawActionHandle(X, Y, initialRadius, finalRadius, borderColor, BACKGROUND);
-    assertEquals(testHandle.serialize(), list.get(0).serialize());
+    assertEquals(drawCommand.serialize(), list.get(0).serialize());
   }
 }
