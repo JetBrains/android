@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.project.sync.*;
+import com.android.tools.idea.gradle.project.sync.GradleSync;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -91,10 +93,11 @@ public class NewGradleSync implements GradleSync {
   }
 
   private void sync(@Nullable GradleSyncListener syncListener, @NotNull ProgressIndicator indicator, boolean isNewProject) {
-    SyncExecutionCallback callback = mySyncExecutor.syncProject(indicator);
     // @formatter:off
+    SyncExecutionCallback callback = mySyncExecutor.createCallBack();
     callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, indicator, syncListener, isNewProject))
             .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
     // @formatter:on
+    mySyncExecutor.syncProject(indicator, callback);
   }
 }
