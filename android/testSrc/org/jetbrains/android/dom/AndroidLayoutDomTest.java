@@ -749,7 +749,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     VirtualFile f = copyFileToProject("bigfile.xml");
     myFixture.configureFromExistingVirtualFile(f);
 
-    PlatformTestUtil.startPerformanceTest("android custom attrs highlighting is slow", 800, () -> myFixture.doHighlighting()).attempts(2).usesAllCPUCores().assertTiming();
+    PlatformTestUtil.startPerformanceTest("android custom attrs highlighting", 800, () -> myFixture.doHighlighting()).attempts(2).usesAllCPUCores().assertTiming();
   }
 
   public void testViewClassReference() throws Throwable {
