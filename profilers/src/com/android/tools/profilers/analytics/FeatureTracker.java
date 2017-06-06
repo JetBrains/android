@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers.analytics;
 
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.Stage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A service for tracking events that occur in our profilers, in order to understand and evaluate
@@ -46,14 +48,16 @@ public interface FeatureTracker {
   void trackAdvancedProfilingStarted();
 
   /**
-   * Track when the user takes an action to change the current device.
+   * Track when the user takes an action to change the current device. This will only be tracked
+   * if the device actually changes.
    */
-  void trackChangeDevice();
+  void trackChangeDevice(@Nullable Profiler.Device device);
 
   /**
-   * Track when the user takes an action to change the current device.
+   * Track when the user takes an action to change the current process. This will only be tracked
+   * if the process actually changes.
    */
-  void trackChangeProcess();
+  void trackChangeProcess(@Nullable Profiler.Process process);
 
   /**
    * Track when the user takes an action to return back to the top-level monitor view (from a
