@@ -60,7 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -347,9 +346,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
     }
     SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
-
-    boolean isInstantAppModule = facet.getProjectType() == PROJECT_TYPE_ATOM;
-    myState.put(IS_INSTANT_APP_KEY, isInstantAppModule);
 
     myParameterStep =
       new TemplateParameterStep2(getFormFactor(myTargetFolder), ImmutableMap.of(), myParentDisposable, KEY_PACKAGE_NAME,

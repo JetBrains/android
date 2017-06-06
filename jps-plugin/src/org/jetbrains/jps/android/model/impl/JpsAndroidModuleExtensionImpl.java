@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 /**
@@ -262,7 +261,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Override
   public boolean isLibrary() {
-    return myProperties.PROJECT_TYPE == PROJECT_TYPE_LIBRARY || myProperties.PROJECT_TYPE == PROJECT_TYPE_ATOM;
+    return myProperties.PROJECT_TYPE == PROJECT_TYPE_LIBRARY;
   }
 
   @Override
