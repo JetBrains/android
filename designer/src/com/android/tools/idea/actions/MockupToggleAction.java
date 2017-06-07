@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.mockup.editor.AnimatedComponentSplitter;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -26,8 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-
-import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 
 /**
  * Display or hide the mockup layer
@@ -47,7 +46,7 @@ public class MockupToggleAction extends ToggleAction {
     Presentation presentation = getTemplatePresentation();
     presentation.setIcon(getDesignIcon());
     presentation.setDescription(getDescription());
-    getTemplatePresentation().setEnabledAndVisible(MOCKUP_EDITOR_ENABLED);
+    getTemplatePresentation().setEnabledAndVisible(StudioFlags.NELE_MOCKUP_EDITOR.get());
   }
 
 

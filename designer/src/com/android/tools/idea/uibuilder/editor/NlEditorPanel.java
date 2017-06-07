@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.structure.DestinationList;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.startup.DelayedInitialization;
@@ -41,8 +42,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 
 /**
  * Assembles a designer editor from various components
@@ -108,7 +107,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     else {
       tools.add(new NlPaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
       tools.add(new NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
-      if (MOCKUP_EDITOR_ENABLED) {
+      if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
         tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
       }
     }
