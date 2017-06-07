@@ -23,6 +23,7 @@ import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProjectImpl;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
@@ -98,12 +99,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final VariantSelector myVariantSelector;
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
+  @NotNull private final IdeLevel2DependenciesFactory myDependenciesFactory;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs(), new ProjectImportErrorHandler(), new ProjectFinder(), new VariantSelector(),
-         new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory());
+         new IdeNativeAndroidProjectImpl.FactoryImpl(), new IdeaJavaModuleModelFactory(), new IdeLevel2DependenciesFactory());
   }
 
   @VisibleForTesting
@@ -112,13 +114,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                @NotNull ProjectFinder projectFinder,
                                @NotNull VariantSelector variantSelector,
                                @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
-                               @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory) {
+                               @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory,
+                               @NotNull IdeLevel2DependenciesFactory dependenciesFactory) {
     myCommandLineArgs = commandLineArgs;
     myErrorHandler = errorHandler;
     myProjectFinder = projectFinder;
     myVariantSelector = variantSelector;
     myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
+    myDependenciesFactory = dependenciesFactory;
   }
 
   @Override
@@ -204,7 +208,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       else {
         String variantName = selectedVariant.getName();
-        AndroidModuleModel model = new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, variantName);
+        AndroidModuleModel model =
+          new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, variantName, myDependenciesFactory);
         ideModule.createChild(ANDROID_MODEL, model);
       }
     }

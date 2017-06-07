@@ -48,8 +48,11 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
   private final boolean mySigned;
   private final int myHashCode;
 
-  public IdeAndroidArtifactImpl(@NotNull AndroidArtifact artifact, @NotNull ModelCache modelCache, @Nullable GradleVersion gradleVersion) {
-    super(artifact, modelCache, gradleVersion);
+  public IdeAndroidArtifactImpl(@NotNull AndroidArtifact artifact,
+                                @NotNull ModelCache modelCache,
+                                @NotNull IdeLevel2DependenciesFactory dependenciesFactory,
+                                @Nullable GradleVersion gradleVersion) {
+    super(artifact, modelCache, dependenciesFactory, gradleVersion);
     myOutputs = copy(artifact.getOutputs(), modelCache, output -> new IdeAndroidArtifactOutput(output, modelCache));
     myApplicationId = artifact.getApplicationId();
     mySourceGenTaskName = artifact.getSourceGenTaskName();

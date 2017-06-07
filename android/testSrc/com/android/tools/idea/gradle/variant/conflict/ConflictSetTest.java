@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -48,6 +49,7 @@ public class ConflictSetTest extends IdeaTestCase {
   private String myLibGradlePath;
   private AndroidProjectStub myLibModel;
   private VariantStub myLibDebugVariant;
+  private IdeLevel2DependenciesFactory myDependenciesFactory;
 
   @Override
   protected void setUp() throws Exception {
@@ -55,6 +57,7 @@ public class ConflictSetTest extends IdeaTestCase {
 
     myLibModule = createModule("lib");
     myLibGradlePath = ":lib";
+    myDependenciesFactory = new IdeLevel2DependenciesFactory();
   }
 
   @Override
@@ -133,7 +136,8 @@ public class ConflictSetTest extends IdeaTestCase {
       AndroidFacet facet = createFacet(facetManager, PROJECT_TYPE_APP);
 
       File rootDirPath = getBaseDirPath(myProject);
-      AndroidModuleModel model = new AndroidModuleModel(myModule.getName(), rootDirPath, myAppModel, myAppDebugVariant.getName());
+      AndroidModuleModel model =
+        new AndroidModuleModel(myModule.getName(), rootDirPath, myAppModel, myAppDebugVariant.getName(), myDependenciesFactory);
       facet.setAndroidModel(model);
       facetModel.addFacet(facet);
     }
@@ -149,8 +153,9 @@ public class ConflictSetTest extends IdeaTestCase {
       AndroidFacet androidFacet = createFacet(facetManager, PROJECT_TYPE_LIBRARY);
 
       File moduleFilePath = new File(myLibModule.getModuleFilePath());
-      AndroidModuleModel model = new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), myLibModel,
-                                                        myLibDebugVariant.getName());
+      AndroidModuleModel model =
+        new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), myLibModel, myLibDebugVariant.getName(),
+                               myDependenciesFactory);
       androidFacet.setAndroidModel(model);
 
       facetModel.addFacet(androidFacet);

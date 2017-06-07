@@ -52,23 +52,51 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testSyncWithGradle2Dot2() throws Exception {
-    loadSimpleApplication();
-    Project project = getProject();
-    updateGradleVersions(getBaseDirPath(project), "2.2.0");
-    GradleWrapper wrapper = GradleWrapper.find(project);
-    wrapper.updateDistributionUrl("3.5");
-
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
-    request.setGenerateSourcesOnSuccess(false).setSkipAndroidPluginUpgrade();
-    requestSyncAndWait(request);
+    syncProjectWithGradle2Dot2();
 
     AndroidProject androidProject = getAndroidProjectInApp();
     // Verify AndroidProject was copied.
     assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
   }
 
+  private void syncProjectWithGradle2Dot2() throws Exception {
+    loadSimpleApplication();
+    Project project = getProject();
+    updateGradleVersions(getBaseDirPath(project), "2.2.0");
+    GradleWrapper wrapper = GradleWrapper.find(project);
+    assertNotNull(wrapper);
+    wrapper.updateDistributionUrl("3.5");
+
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request();
+    request.setGenerateSourcesOnSuccess(false).setSkipAndroidPluginUpgrade();
+    requestSyncAndWait(request);
+  }
+
+  public void testLevel2DependenciesWithGradle2Dot2() throws Exception {
+    syncProjectWithGradle2Dot2();
+    verifyIdeLevel2DependenciesPopulated();
+  }
+
+  public void testLevel2DependenciesWithHeadPlugin() throws Exception {
+    loadSimpleApplication();
+    verifyIdeLevel2DependenciesPopulated();
+  }
+
+  private void verifyIdeLevel2DependenciesPopulated() {
+    IdeAndroidProject androidProject = getAndroidProjectInApp();
+    assertNotNull(androidProject);
+
+    // Verify IdeLevel2Dependencies are populated for each variant.
+    androidProject.forEachVariant(variant -> {
+      IdeLevel2Dependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
+      assertThat(level2Dependencies).isNotNull();
+      assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
+      assertThat(level2Dependencies.getJavaLibraries()).isNotEmpty();
+    });
+  }
+
   @Nullable
-  private AndroidProject getAndroidProjectInApp() {
+  private IdeAndroidProject getAndroidProjectInApp() {
     Module appModule = myModules.getAppModule();
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     return androidModel != null ? androidModel.getAndroidProject() : null;
