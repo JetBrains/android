@@ -59,7 +59,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     myConnectionDetails = new ConnectionDetailsView(this);
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
-    myConnectionsView = new ConnectionsView(this, stage::setSelectedConnection);
+    myConnectionsView = new ConnectionsView(this);
     myTooltipView = new NetworkStageTooltipView(stage);
     myThreadsView = new ThreadsView(this);
 
