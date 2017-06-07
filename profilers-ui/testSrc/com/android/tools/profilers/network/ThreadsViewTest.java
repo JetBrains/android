@@ -19,6 +19,7 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -52,14 +53,17 @@ public class ThreadsViewTest {
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ThreadsViewTest", new FakeProfilerService(false),
                                                                    FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStageView myStageView;
-  private ThreadsView myView;
+  private ThreadsView myThreadsView;
+  private FakeUi myUi;
 
   @Before
   public void setUp() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     myStageView = new NetworkProfilerStageView(profilersView, new NetworkProfilerStage(profilers));
-    myView = new ThreadsView(myStageView);
+    myThreadsView = new ThreadsView(myStageView);
+    myThreadsView.getComponent().setSize(new Dimension(300, 50));
+    myUi = new FakeUi(myThreadsView.getComponent());
   }
 
   @Test
@@ -111,9 +115,33 @@ public class ThreadsViewTest {
     assertTrue(new TreeWalker(comp).descendantStream().anyMatch(c -> c instanceof AxisComponent));
   }
 
+  @Test
+  public void clickingOnARequestSelectsIt() {
+    Range selection = myStageView.getTimeline().getSelectionRange();
+    // The following selection puts threads in the first and second rows on the left
+    // half of the view. The right half is mostly blank.
+    selection.set(0, TimeUnit.SECONDS.toMicros(44));
+
+    int badX = myThreadsView.getComponent().getWidth() - 1;
+    int goodX = getTable().getColumnModel().getColumn(0).getWidth() + 1;
+    int goodY = getTable().getRowHeight() / 2;
+
+    assertNull(myStageView.getStage().getSelectedConnection());
+    // Click on empty space - doesn't select anything
+    myUi.mouse.click(badX, goodY);
+    assertNull(myStageView.getStage().getSelectedConnection());
+
+    myUi.mouse.click(goodX, goodY);
+    assertNotNull(myStageView.getStage().getSelectedConnection());
+
+    // After clicking on a request, clicking on empty space doesn't deselect
+    myUi.mouse.click(badX, goodY);
+    assertNotNull(myStageView.getStage().getSelectedConnection());
+  }
+
   @NotNull
   private JTable getTable() {
-    return (JTable)new TreeWalker(myView.getComponent()).descendantStream().filter(c -> c instanceof JTable).findFirst().get();
+    return (JTable)new TreeWalker(myThreadsView.getComponent()).descendantStream().filter(c -> c instanceof JTable).findFirst().get();
   }
 
   @NotNull

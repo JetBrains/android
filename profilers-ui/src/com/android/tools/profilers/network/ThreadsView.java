@@ -25,6 +25,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTimeline;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -308,7 +309,7 @@ final class ThreadsView {
     }
   }
 
-  private final static class TableTooltipView implements MouseMotionListener {
+  private final static class TableTooltipView extends MouseAdapter {
     @NotNull private final NetworkProfilerStage myStage;
     @NotNull private final JTable myTable;
 
@@ -336,6 +337,7 @@ final class ThreadsView {
       myComponent.add(myTooltipComponent, new TabularLayout.Constraint(0, 0));
       myComponent.setOpaque(false);
       myComponent.addMouseMotionListener(this);
+      myComponent.addMouseListener(this);
     }
 
     @Override
@@ -344,29 +346,46 @@ final class ThreadsView {
 
     @Override
     public void mouseMoved(MouseEvent e) {
+      myTooltipComponent.setVisible(false);
+      HttpData data = findHttpDataUnderCursor(e);
+      if (data != null) {
+        showTooltip(data);
+      }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      HttpData data = findHttpDataUnderCursor(e);
+      if (data != null) {
+        myStage.setSelectedConnection(data);
+        e.consume();
+      }
+    }
+
+    @Nullable
+    private HttpData findHttpDataUnderCursor(@NotNull MouseEvent e) {
       Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), myTable);
       int row = myTable.rowAtPoint(p);
       int column = myTable.columnAtPoint(p);
-      // By default hide.
-      myTooltipComponent.setVisible(false);
 
       if (row == -1 || column == -1) {
-        return;
+        return null;
       }
 
-      Rectangle cellBounds = myTable.getCellRect(row, column, false);
-
-      List<HttpData> dataList = (List<HttpData>)myTable.getModel().getValueAt(row, 1);
       if (column == 1) {
+        Rectangle cellBounds = myTable.getCellRect(row, column, false);
+        List<HttpData> dataList = (List<HttpData>)myTable.getModel().getValueAt(row, 1);
         double at = positionToRange(p.x - cellBounds.x, cellBounds.getWidth());
         for (HttpData data: dataList) {
           if (data.getStartTimeUs() <= at && at <= data.getEndTimeUs()) {
-            showTooltip(data);
-            break;
+            return data;
           }
         }
       }
+
+      return null;
     }
+
 
     JComponent getComponent() {
       return myComponent;
