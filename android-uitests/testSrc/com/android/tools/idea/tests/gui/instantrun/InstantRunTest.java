@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.google.common.base.Strings;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.DialogFixture;
@@ -34,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -496,6 +498,115 @@ public class InstantRunTest {
     finish.click();
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
     Wait.seconds(5).expecting("Apply changes button to be enabled").until(() -> ideFrameFixture.findApplyChangesButton().isEnabled());
+  }
+
+  /**
+   * Verifies that Instant Run should not break after interchanging order of resources : b.android.com/200895
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 22759807-e0c4-48a0-af6a-a83ca8647e56
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Create a project with empty activity
+   *   2. Open Main xml file
+   *   3. Add Two different elements say, TextView and Button
+   *   <TextView id="@+id/view1/>
+   *   <Button id="@+id/view2/>
+   *   And in onCreate() access them:
+   *   TextView a = (TextView) findViewById(R.id.view1);
+   *   Button b = (Button) findViewById(R.id.view2);
+   *   Change order of the views:
+   *   <Button id="@+id/view2/>
+   *   <TextView id="@+id/view1/>
+   *   4. Make Instant Run
+   *   Verify:
+   *   Application should run smoothly without any errors and showing "Hot swapped changes, activity restarted."
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void changeOrderOfResources() throws Exception {
+    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
+    File projectPath = newProjectWizard
+      .getConfigureAndroidProjectStep()
+      .enterApplicationName("Test Application")
+      .enterPackageName("com.test.project")
+      .getLocationInFileSystem();
+    guiTest.setProjectPath(projectPath);
+    newProjectWizard
+      .clickNext()
+      .clickNext()
+      .clickNext()
+      .clickFinish();
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+
+    String MAIN_LAYOUT_FILE = "app/src/main/res/layout/activity_main.xml";
+    String MAIN_ACTIVITY_FILE = "app/src/main/java/com/test/project/MainActivity.java";
+
+    ideFrameFixture
+      .getEditor()
+      .open(MAIN_LAYOUT_FILE, EditorFixture.Tab.EDITOR)
+      .moveBetween("<TextView", "")
+      .enterText("\nandroid:id=\"@+id/view1\"");
+
+    ideFrameFixture
+      .getEditor()
+      .open(MAIN_LAYOUT_FILE, EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(false)
+      .dragComponentToSurface("Widgets", "Button");
+
+    ideFrameFixture
+      .getEditor()
+      .open(MAIN_LAYOUT_FILE, EditorFixture.Tab.EDITOR)
+      .select("\"@\\+id/(button)\"")
+      .enterText("view2");
+
+    ideFrameFixture
+      .getEditor()
+      .open(MAIN_ACTIVITY_FILE, EditorFixture.Tab.EDITOR)
+      .moveBetween("setContentView(R.layout.activity_main);", "")
+      .enterText("\nandroid.widget.TextView a = (android.widget.TextView)findViewById(R.id.view1);" +
+                 "\nandroid.widget.Button b = (android.widget.Button)findViewById(R.id.view2);");
+
+    ideFrameFixture.waitForGradleProjectSyncToFinish()
+      .runApp(APP_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    Pattern RUN_OUTPUT =
+      Pattern.compile(".*Connected to process.*", Pattern.DOTALL);;
+    ExecutionToolWindowFixture.ContentFixture contentFixture =
+      ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+
+    ideFrameFixture
+      .getEditor()
+      .open(MAIN_LAYOUT_FILE, EditorFixture.Tab.EDITOR)
+      .select("(<TextView[\\s\\S]*/>\\s)*<Button")
+      .invokeAction(EditorFixture.EditorAction.BACK_SPACE);
+
+    ideFrameFixture
+      .getEditor()
+      .open(MAIN_LAYOUT_FILE, EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(false)
+      .dragComponentToSurface("Text", "TextView");
+
+    ideFrameFixture
+      .getEditor()
+      .open(MAIN_LAYOUT_FILE, EditorFixture.Tab.EDITOR)
+      .select("\"@\\+id/(textView)\"")
+      .enterText("view1");
+
+    ideFrameFixture
+      .waitForGradleProjectSyncToFinish()
+      .findApplyChangesButton()
+      .click();
+
+    contentFixture.waitForOutput(new PatternTextMatcher(HOT_SWAP_OUTPUT), 120);
   }
 
   @NotNull
