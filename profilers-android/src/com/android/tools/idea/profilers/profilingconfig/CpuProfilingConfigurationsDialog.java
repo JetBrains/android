@@ -55,24 +55,17 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     // TODO: add help button on the bottom-left corner when we have the URL for it.
   }
 
-  @Override
-  protected void doOKAction() {
-    ProfilingConfiguration lastSelectedConfig = getSelectedConfiguration();
-    super.doOKAction();
-    myOnCloseCallback.accept(lastSelectedConfig);
-  }
-
-  @Override
-  public void doCancelAction(AWTEvent source) {
-    ProfilingConfiguration lastSelectedConfig = getSelectedConfiguration();
-    super.doCancelAction(source);
-    myOnCloseCallback.accept(lastSelectedConfig);
-  }
-
   @Nullable
   private ProfilingConfiguration getSelectedConfiguration() {
     ProfilingConfigurable configurable = (ProfilingConfigurable)getConfigurable();
     return configurable.getSelectedConfiguration();
+  }
+
+  @Override
+  public void dispose() {
+    ProfilingConfiguration lastSelectedConfig = getSelectedConfiguration();
+    super.dispose();
+    myOnCloseCallback.accept(lastSelectedConfig);
   }
 
   private static class ProfilingConfigurable extends BaseConfigurable {
