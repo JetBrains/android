@@ -133,12 +133,10 @@ public class NavSceneManager extends SceneManager {
   private static void updateRootBounds(@NotNull SceneComponent root) {
     Rectangle bounds = new Rectangle(0, 0, -1, -1);
     Rectangle temp = new Rectangle();
+    // TODO: include targets
     root.flatten().filter(c -> c != root).forEach(component -> bounds.add(component.fillDrawRect(0, temp)));
-    if (bounds.width > 0) {
-      bounds.add(0, 0);
-    }
-    root.setPosition(0, 0);
-    root.setSize(bounds.width + 20, bounds.height + 20, false);
+    root.setPosition(bounds.x - 50, bounds.y - 50);
+    root.setSize(bounds.width + 100, bounds.height + 100, false);
   }
 
   @Override
@@ -189,8 +187,8 @@ public class NavSceneManager extends SceneManager {
   }
 
   private void layoutAll(@NotNull SceneComponent root) {
-    root.flatten().forEach(component -> component.setPosition(0, 0));
-    root.flatten().forEach(myLayoutAlgorithm::layout);
+    root.flatten().filter(component -> component.getParent() != null).forEach(component -> component.setPosition(0, 0));
+    root.flatten().filter(component -> component.getParent() != null).forEach(myLayoutAlgorithm::layout);
   }
 
   @Override
