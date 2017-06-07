@@ -21,7 +21,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -46,6 +48,9 @@ import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
+  @NotNull private final Application myApplication;
+
+  private volatile boolean myIsNewlyCreatedProject;
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
@@ -53,8 +58,26 @@ public class GradleProjectInfo {
   }
 
   public GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo) {
+    this(project, projectInfo, ApplicationManager.getApplication());
+  }
+
+  @VisibleForTesting
+  GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo, @NotNull Application application) {
     myProject = project;
     myProjectInfo = projectInfo;
+    myApplication = application;
+  }
+
+  public boolean canUseLocalMavenRepo() {
+    return myIsNewlyCreatedProject || myApplication.isInternal();
+  }
+
+  public boolean isNewlyCreatedProject() {
+    return myIsNewlyCreatedProject;
+  }
+
+  public void setNewlyCreatedProject(boolean newlyCreatedProject) {
+    myIsNewlyCreatedProject = newlyCreatedProject;
   }
 
   /**

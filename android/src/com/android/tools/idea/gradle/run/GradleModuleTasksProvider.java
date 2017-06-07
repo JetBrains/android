@@ -27,6 +27,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.build.invoker.TestCompileType.UNIT_TESTS;
+import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
+
 public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   private final Module[] myModules;
 
@@ -41,7 +44,7 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   public List<String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);
-    return GradleTaskFinder.getInstance().findTasksToExecute(affectedModules, buildMode, TestCompileType.UNIT_TESTS);
+    return GradleTaskFinder.getInstance().findTasksToExecute(affectedModules, buildMode, UNIT_TESTS);
   }
 
   @NotNull
@@ -54,7 +57,7 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   @NotNull
   @Override
   public List<String> getFullBuildTasks() {
-    return getTasksFor(BuildMode.ASSEMBLE, TestCompileType.NONE);
+    return getTasksFor(ASSEMBLE, TestCompileType.NONE);
   }
 
   @NotNull

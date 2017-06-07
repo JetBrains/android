@@ -57,7 +57,6 @@ public abstract class TestCompileType {
   @NotNull
   public abstract Collection<IdeBaseArtifact> getArtifacts(@NotNull IdeVariant variant);
 
-
   @NotNull
   public static TestCompileType get(@Nullable String runConfigurationId) {
     if (runConfigurationId != null) {
