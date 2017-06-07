@@ -17,6 +17,7 @@ package com.android.tools.idea.instantapp;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.lint.checks.AndroidPatternMatcher;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.TreeMultimap;
@@ -31,8 +32,12 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_LITERAL;
+import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_PREFIX;
+import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_SIMPLE_GLOB;
 import static com.android.xml.AndroidManifest.NODE_DATA;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public final class InstantAppUrlFinder {
@@ -83,6 +88,20 @@ public final class InstantAppUrlFinder {
     return "";
   }
 
+  public boolean matchesUrl(@NotNull String url) {
+    for (Element activity : myActivities) {
+      Node node = activity.getFirstChild();
+      while (node != null) {
+        InstantAppIntentFilterWrapper wrapper = InstantAppIntentFilterWrapper.of(node);
+        if (wrapper.matchesUrl(url)) {
+          return true;
+        }
+        node = node.getNextSibling();
+      }
+    }
+    return false;
+  }
+
   @VisibleForTesting
   static final class InstantAppIntentFilterWrapper {
     @Nullable/*No valid element*/ private final Element myElement;
@@ -94,7 +113,7 @@ public final class InstantAppUrlFinder {
     }
 
     @NotNull
-    public static InstantAppIntentFilterWrapper of(@NotNull Node node) {
+    static InstantAppIntentFilterWrapper of(@NotNull Node node) {
       Element element;
       int order;
       try {
@@ -110,7 +129,7 @@ public final class InstantAppUrlFinder {
 
     @NotNull
     @VisibleForTesting
-    public static Element getElement(@NotNull Node node) {
+    static Element getElement(@NotNull Node node) {
       if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
         return (Element)node;
       }
@@ -120,7 +139,7 @@ public final class InstantAppUrlFinder {
     }
 
     @VisibleForTesting
-    public static int getOrder(@NotNull Element element) {
+    static int getOrder(@NotNull Element element) {
       String orderValue = element.getAttributeNS(ANDROID_URI, "order");
       if (isNotEmpty(orderValue)) {
         try {
@@ -134,7 +153,7 @@ public final class InstantAppUrlFinder {
     }
 
     @NotNull
-    public Collection<UrlData> getAllUrlData() {
+    Collection<UrlData> getAllUrlData() {
       if (myElement == null) {
         return Collections.emptyList();
       }
@@ -151,22 +170,38 @@ public final class InstantAppUrlFinder {
       return allUrls;
     }
 
-    public int getOrder() {
+    int getOrder() {
       return myOrder;
+    }
+
+    boolean matchesUrl(@NotNull String url) {
+      if (myElement != null) {
+        Node node = myElement.getFirstChild();
+        while (node != null) {
+          UrlData data = UrlData.of(node);
+          if (data.matchesUrl(url)) {
+            return true;
+          }
+          node = node.getNextSibling();
+        }
+      }
+      return false;
     }
   }
 
 
   @VisibleForTesting
   static final class UrlData {
-    private final String myScheme;
-    private final String myHost;
-    private final String myPath;
-    private final String myPathPrefix;
-    private final String myPathPattern;
+    @NotNull private final String myScheme;
+    @NotNull private final String myHost;
+    @NotNull private final String myPath;
+    @NotNull private final String myPathPrefix;
+    @NotNull private final String myPathPattern;
+    // Documentation here: https://developer.android.com/guide/topics/manifest/data-element.html
+    // port and mimeType should be ignored.
 
     @NotNull
-    public static UrlData of(@NotNull Node node) {
+    static UrlData of(@NotNull Node node) {
       String scheme = "";
       String host = "";
       String path = "";
@@ -184,7 +219,7 @@ public final class InstantAppUrlFinder {
     }
 
     @VisibleForTesting
-    public UrlData(String scheme, String host, String path, String pathPrefix, String pathPattern) {
+    UrlData(@NotNull String scheme, @NotNull String host, @NotNull String path, @NotNull String pathPrefix, @NotNull String pathPattern) {
       myScheme = scheme;
       myHost = host;
       myPath = path;
@@ -194,11 +229,11 @@ public final class InstantAppUrlFinder {
 
     @NotNull
     @VisibleForTesting
-    public static String convertPatternToExample(String pattern) {
+    static String convertPatternToExample(@NotNull String pattern) {
       return pattern.replace(".*", "example");
     }
 
-    public boolean isValid() {
+    boolean isValid() {
       String effectivePath = getEffectivePath();
       return isNotEmpty(myScheme) && isNotEmpty(myHost) && effectivePath.startsWith("/");
     }
@@ -206,7 +241,7 @@ public final class InstantAppUrlFinder {
     @NotNull
     private String getEffectivePath() {
       String path = myPath;
-      if (path.isEmpty()) {
+      if (isEmpty(path)) {
         if (isNotEmpty(myPathPrefix)) {
           path = myPathPrefix + "/.*";
         }
@@ -218,8 +253,30 @@ public final class InstantAppUrlFinder {
     }
 
     @NotNull
-    public String getUrl() {
+    String getUrl() {
       return String.format("%s://%s%s", myScheme, myHost, convertPatternToExample(getEffectivePath()));
+    }
+
+    boolean matchesUrl(@NotNull String url) {
+      String beg = String.format("%s://%s", myScheme, myHost);
+      if (!url.startsWith(beg)) {
+        return false;
+      }
+
+      String path = url.replaceFirst(beg, "");
+      if (isNotEmpty(myPath)) {
+        AndroidPatternMatcher matcher = new AndroidPatternMatcher(myPath, PATTERN_LITERAL);
+        return matcher.match(path);
+      }
+      else if (isNotEmpty(myPathPrefix)) {
+        AndroidPatternMatcher matcher = new AndroidPatternMatcher(myPathPrefix, PATTERN_PREFIX);
+        return matcher.match(path);
+      }
+      else if (isNotEmpty(myPathPattern)) {
+        AndroidPatternMatcher matcher = new AndroidPatternMatcher(myPathPattern, PATTERN_SIMPLE_GLOB);
+        return matcher.match(path);
+      }
+      return path.isEmpty() || path.compareTo("/") == 0;
     }
   }
 }

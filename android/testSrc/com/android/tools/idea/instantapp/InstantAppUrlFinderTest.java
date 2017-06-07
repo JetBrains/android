@@ -324,4 +324,19 @@ public class InstantAppUrlFinderTest {
   public void urlData_convertPatternToExample() {
     assertEquals("example", InstantAppUrlFinder.UrlData.convertPatternToExample(".*"));
   }
+
+  @Test
+  public void testUrlDataMatch() {
+    assertTrue(new InstantAppUrlFinder.UrlData("http", "example.com", "", "", "").matchesUrl("http://example.com"));
+    assertTrue(new InstantAppUrlFinder.UrlData("http", "example.com", "", "", "").matchesUrl("http://example.com/"));
+    assertFalse(new InstantAppUrlFinder.UrlData("http", "example.com", "/test", "", "").matchesUrl("http://example.com"));
+    assertTrue(new InstantAppUrlFinder.UrlData("http", "example.com", "/test", "", "").matchesUrl("http://example.com/test"));
+    assertFalse(new InstantAppUrlFinder.UrlData("http", "example.com", "/test", "/*", "").matchesUrl("http://example.com"));
+    assertTrue(new InstantAppUrlFinder.UrlData("http", "example.com", "", "/test", "").matchesUrl("http://example.com/test/other"));
+    assertFalse(new InstantAppUrlFinder.UrlData("http", "example.com", "", "/test", "").matchesUrl("http://example.com/other"));
+    assertFalse(new InstantAppUrlFinder.UrlData("http", "example.com", "", "/test", "/.*").matchesUrl("http://example.com/other"));
+    assertTrue(new InstantAppUrlFinder.UrlData("http", "example.com", "", "", "/.*").matchesUrl("http://example.com/anything"));
+    assertTrue(new InstantAppUrlFinder.UrlData("http", "example.com", "", "", "/.*").matchesUrl("http://example.com/any/thing"));
+    assertFalse(new InstantAppUrlFinder.UrlData("http", "example.com", "", "", "/test/.*").matchesUrl("http://example.com/any/thing"));
+  }
 }
