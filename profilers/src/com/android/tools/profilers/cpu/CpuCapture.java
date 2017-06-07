@@ -19,8 +19,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
+import com.android.tools.profilers.cpu.art.ArtTraceHandler;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -52,18 +52,15 @@ public class CpuCapture implements ConfigurableDurationData {
     // TODO: Remove layers, analyze whether we can keep the whole file in memory.
     try {
       File trace = FileUtil.createTempFile("cpu_trace", ".trace");
-      VmTraceData data;
+      ArtTraceHandler traceHandler = new ArtTraceHandler();
       try (FileOutputStream out = new FileOutputStream(trace)) {
         out.write(bytes.toByteArray());
-        VmTraceParser parser = new VmTraceParser(trace);
+        VmTraceParser parser = new VmTraceParser(trace, traceHandler);
         parser.parse();
-        data = parser.getTraceData();
       }
 
-      CpuTraceArt traceArt = new CpuTraceArt();
-      traceArt.parse(data);
-      myRange = new Range(data.getStartTimeUs(), data.getStartTimeUs() + data.getElapsedTimeUs());
-      myCaptureTrees = traceArt.getThreadsGraph();
+      myRange = new Range(traceHandler.getStartTimeUs(), traceHandler.getStartTimeUs() + traceHandler.getElapsedTimeUs());
+      myCaptureTrees = traceHandler.getThreadsGraph();
     }
     catch (IOException | BufferUnderflowException e) {
       throw new IllegalStateException(e);
@@ -114,7 +111,7 @@ public class CpuCapture implements ConfigurableDurationData {
   }
 
   @NotNull
-  public Set<CpuThreadInfo> getThreads() {
+  Set<CpuThreadInfo> getThreads() {
     return myCaptureTrees.keySet();
   }
 
