@@ -318,20 +318,20 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
       @Override
       public boolean isEnabled(AnActionEvent e) {
-        return selectionExists();
+        return nonDefaultSelectionExists();
       }
 
-      private boolean selectionExists() {
-        return myConfigurations.getSelectedIndex() >= 0;
+      /**
+       * Whether there is a configuration selected and it's not a default one.
+       */
+      private boolean nonDefaultSelectionExists() {
+        int index = myConfigurations.getSelectedIndex();
+        return myConfigurations.getSelectedIndex() >= 0 && index < getCustomConfigurationCount();
       }
 
       private void removeSelectedConfiguration() {
-        if (selectionExists()) {
+        if (nonDefaultSelectionExists()) {
           int removedIndex = myConfigurations.getSelectedIndex();
-          if (removedIndex >= getCustomConfigurationCount()) {
-            // TODO: display an error popup saying we can't remove default configurations.
-            return;
-          }
           myConfigurationsModel.remove(removedIndex);
           myConfigurations.setSelectedIndex(removedIndex);
         }
