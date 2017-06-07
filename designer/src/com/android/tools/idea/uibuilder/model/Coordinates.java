@@ -39,7 +39,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingX(@NotNull SceneView view, @AndroidCoordinate int androidX) {
-    return view.getX() + (int)(view.getScale() * androidX);
+    return view.getX() + view.getContentTranslationX() + (int)(view.getScale() * androidX);
   }
 
   /**
@@ -48,7 +48,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingY(@NotNull SceneView view, @AndroidCoordinate int androidY) {
-    return view.getY() + (int)(view.getScale() * androidY);
+    return view.getY() + view.getContentTranslationY() + (int)(view.getScale() * androidY);
   }
 
   /**
@@ -143,7 +143,7 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidX(@NotNull SceneView view, @SwingCoordinate int swingX) {
-    return (int)((swingX - view.getX()) / view.getScale());
+    return (int)((swingX - view.getX() - view.getContentTranslationX()) / view.getScale());
   }
 
   /**
@@ -161,7 +161,7 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidY(@NotNull SceneView view, @SwingCoordinate int swingY) {
-    return (int)((swingY - view.getY()) / view.getScale());
+    return (int)((swingY - view.getY() - view.getContentTranslationY()) / view.getScale());
   }
 
   /**
@@ -224,6 +224,7 @@ public class Coordinates {
    * @deprecated If you're interacting with the UI (as is implied by {@code @SwingCoordinate} you should probably be using SceneComponents
    * directly, rather than NlComponents.
    */
+  @Deprecated
   @Nullable
   public static NlComponent findComponent(@NotNull SceneView view,
                                           @SwingCoordinate int swingX,

@@ -64,7 +64,7 @@ public class ScreenDragTargetTest extends NavigationTestCase {
     Scene scene = model.getSurface().getScene();
     scene.layout(0, SceneContext.get());
 
-    SceneComponent component = scene.getSceneComponent("fragment2");
+    SceneComponent component = scene.getSceneComponent("fragment1");
     InteractionManager interactionManager = new InteractionManager(surface);
     interactionManager.registerListeners();
 

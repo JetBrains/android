@@ -189,6 +189,22 @@ public abstract class SceneView {
     return 0;
   }
 
+  /**
+   * Custom translation to apply when converting between android coordinate space and swing coordinate space.
+   */
+  @SwingCoordinate
+  public int getContentTranslationX() {
+    return 0;
+  }
+
+  /**
+   * Custom translation to apply when converting between android coordinate space and swing coordinate space.
+   */
+  @SwingCoordinate
+  public int getContentTranslationY() {
+    return 0;
+  }
+
   public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
     SceneContext.get(this).setMouseLocation(x, y);
     getScene().mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
@@ -201,7 +217,6 @@ public abstract class SceneView {
 
   /**
    * Sets the tool tip to be shown
-   * @param toolTip
    */
   public void setToolTip(String toolTip) {
      mySurface.setDesignToolTip(toolTip);
