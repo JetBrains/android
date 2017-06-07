@@ -281,8 +281,8 @@ public class ConnectionDetailsViewTest {
     assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(3000),
                                 TimeUnit.MILLISECONDS.toMicros(4234), "2s", "1s 234ms");
 
-    // No download time indicates request timed out / was aborted
-    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(2000), "*", "*");
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(1000), "0ms", "0ms");
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(2000), "1s", "0ms");
   }
 
   private void assertExpectedTimingLegends(long startTimeUs,
