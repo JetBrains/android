@@ -267,7 +267,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     runWriteCommandAction(getProject(), () -> {
       try {
         // Build the project, since sync times can be different for built/unbuilt projects
-        GradleBuildInvoker.getInstance(getProject()).generateSources(false);
+        GradleBuildInvoker.getInstance(getProject()).generateSources();
 
         // Do a few syncs to warm up the JVM to get typical real-world runtimes
         requestSyncAndWait();

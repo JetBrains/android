@@ -107,7 +107,15 @@ public class GradleBuildInvoker {
     executeTasks(Collections.singletonList(ASSEMBLE_TRANSLATE_TASK_NAME));
   }
 
-  public void generateSources(boolean cleanProject) {
+  public void cleanAndGenerateSources() {
+    generateSources(true /* clean project */);
+  }
+
+  public void generateSources() {
+    generateSources(false /* do not clean project */);
+  }
+
+  private void generateSources(boolean cleanProject) {
     BuildMode buildMode = SOURCE_GEN;
     setProjectBuildMode(buildMode);
 
@@ -186,20 +194,6 @@ public class GradleBuildInvoker {
 
   private void setProjectBuildMode(@NotNull BuildMode buildMode) {
     BuildSettings.getInstance(myProject).setBuildMode(buildMode);
-  }
-
-  @NotNull
-  public static List<String> findCleanTasksForModules(@NotNull Module[] modules) {
-    List<String> tasks = new ArrayList<>();
-    for (Module module : modules) {
-      GradleFacet gradleFacet = GradleFacet.getInstance(module);
-      if (gradleFacet == null) {
-        continue;
-      }
-      String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-      addTaskIfSpecified(tasks, gradlePath, CLEAN_TASK_NAME);
-    }
-    return tasks;
   }
 
   @NotNull
@@ -600,8 +594,8 @@ public class GradleBuildInvoker {
     }
 
     @NotNull
-    public Request setWaitForCompletion(boolean waitForCompletion) {
-      myWaitForCompletion = waitForCompletion;
+    public Request waitForCompletion() {
+      myWaitForCompletion = true;
       return this;
     }
 
