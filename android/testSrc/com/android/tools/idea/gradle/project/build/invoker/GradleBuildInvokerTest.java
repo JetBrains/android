@@ -138,7 +138,7 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     myTaskExecutorFactory.setExpectedTasks(":app:generateDebugSources", ":app:generateDebugAndroidTestSources", ":app:mockableAndroidJar",
                                            ":app:prepareDebugUnitTestDependencies");
-    myInvoker.generateSources(false /* do not clean */);
+    myInvoker.generateSources();
 
     assertIsCurrent(SOURCE_GEN);
     myTasksExecutor.assertWasExecuted();
@@ -150,7 +150,7 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     myTaskExecutorFactory.setExpectedTasks("clean", ":app:generateDebugSources", ":app:generateDebugAndroidTestSources",
                                            ":app:mockableAndroidJar", ":app:prepareDebugUnitTestDependencies");
 
-    myInvoker.generateSources(true /* clean */);
+    myInvoker.cleanAndGenerateSources();
 
     // "clean" should be the first task.
     assertEquals("clean", myTaskExecutorFactory.getRequestedTasks().get(0));
