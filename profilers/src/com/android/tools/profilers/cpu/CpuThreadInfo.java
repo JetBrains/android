@@ -15,20 +15,17 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.annotations.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuThreadInfo {
-  /**
-   * Thread id
-   */
+  /** Thread id */
   private final int myId;
 
-  /**
-   * Thread name
-   */
+  /** Thread name */
   private final String myName;
 
-  public CpuThreadInfo(int threadId, @NotNull String name) {
+  public CpuThreadInfo(int threadId, @NonNull String name) {
     myId = threadId;
     myName = name;
   }

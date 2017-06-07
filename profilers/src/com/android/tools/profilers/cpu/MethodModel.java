@@ -19,36 +19,33 @@ package com.android.tools.profilers.cpu;
 import org.jetbrains.annotations.NotNull;
 
 public class MethodModel {
+  @NotNull private final String myClassName;
+  @NotNull private final String myName;
+  @NotNull private final String mySignature;
 
-  private String myClassName;
-  private final String myName;
-  private String mySignature;
-
-  public MethodModel(String name) {
+  public MethodModel(@NotNull String name, @NotNull String className, @NotNull String signature) {
     myName = name;
-    myClassName = "";
-    mySignature = "";
+    myClassName = className;
+    mySignature = signature;
   }
 
+  public MethodModel(String name) {
+    this(name, "", "");
+  }
+
+  @NotNull
   public String getName() {
     return myName;
   }
 
+  @NotNull
   public String getClassName() {
     return myClassName;
-  }
-
-  public void setClassName(String namespace) {
-    myClassName = namespace;
   }
 
   @NotNull
   public String getSignature() {
     return mySignature;
-  }
-
-  public void setSignature(@NotNull String signature) {
-    mySignature = signature;
   }
 
   public String getId() {
