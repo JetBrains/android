@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.MethodModel;
@@ -36,6 +37,8 @@ public class SimplePerfTraceParserTest {
 
   private SimplePerfTraceParser myParser;
 
+  private File myTraceFile;
+
   @Before
   public void setUp() throws IOException {
     ByteString traceBytes = traceFileToByteString("simpleperf.trace");
@@ -43,20 +46,22 @@ public class SimplePerfTraceParserTest {
     try (FileOutputStream out = new FileOutputStream(trace)) {
       out.write(traceBytes.toByteArray());
     }
-    myParser = new SimplePerfTraceParser(trace);
+    myTraceFile = trace;
+    myParser = new SimplePerfTraceParser();
   }
 
   @Test
   public void samplesAndLostCountShouldMatchSimpleperfReport() throws IOException {
-    myParser.parseTraceFile();
+    myParser.parseTraceFile(myTraceFile);
     assertEquals(32844, myParser.getSampleCount());
     assertEquals(10396, myParser.getLostSampleCount());
   }
 
   @Test
   public void allTreesShouldStartWithMain() throws IOException {
-    myParser.parse();
+    myParser.parse(myTraceFile);
     Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
+
     for (CaptureNode tree : callTrees.values()) {
       assertNotNull(tree.getData());
       assertEquals("main", tree.getData().getName());
@@ -65,7 +70,7 @@ public class SimplePerfTraceParserTest {
 
   @Test
   public void nodeDepthsShouldBeCoherent() throws IOException {
-    myParser.parse();
+    myParser.parse(myTraceFile);
     CaptureNode anyTree = myParser.getCaptureTrees().values().iterator().next();
     assertEquals(0, anyTree.getDepth());
 
@@ -82,7 +87,7 @@ public class SimplePerfTraceParserTest {
 
   @Test
   public void mainProcessShouldBePresent() throws IOException {
-    myParser.parse();
+    myParser.parse(myTraceFile);
     CaptureNode mainThread = myParser.getCaptureTrees().entrySet().stream()
       .filter(entry -> entry.getKey().getId() == 24358 /* App pid */)
       .map(Map.Entry::getValue)
@@ -98,14 +103,22 @@ public class SimplePerfTraceParserTest {
     try (FileOutputStream out = new FileOutputStream(trace)) {
       out.write(traceBytes.toByteArray());
     }
-    myParser = new SimplePerfTraceParser(trace);
+    myParser = new SimplePerfTraceParser();
 
     try {
-      myParser.parse();
-      fail("IllegalStateException should have been thrown due to malformed file.");
+      myParser.parse(trace);
+      fail("IllegalStateException should have been thrown due to missing file.");
     } catch (IllegalStateException e) {
       assertTrue(e.getMessage().contains("Malformed trace file"));
       // Do nothing. Expected exception.
     }
+  }
+
+  @Test
+  public void rangeShouldBeFromFirstToLastTimestamp() throws IOException {
+    myParser.parse(myTraceFile);
+    Range expected = new Range(myParser.mySamples.get(0).getTime(), myParser.mySamples.get(myParser.mySamples.size() - 1).getTime());
+    assertEquals(expected.getMin(), myParser.getRange().getMin(), 0);
+    assertEquals(expected.getMax(), myParser.getRange().getMax(), 0);
   }
 }

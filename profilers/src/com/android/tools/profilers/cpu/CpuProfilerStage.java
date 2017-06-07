@@ -335,7 +335,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
     else {
       setCaptureState(CaptureState.PARSING);
-      CompletableFuture.supplyAsync(() -> new CpuCapture(response.getTrace()), getStudioProfilers().getIdeServices().getPoolExecutor())
+      CompletableFuture.supplyAsync(
+        () -> new CpuCapture(response.getTrace(), myProfilerType), getStudioProfilers().getIdeServices().getPoolExecutor())
         .handleAsync((capture, exception) -> {
           if (capture != null) {
             myTraceCaptures.put(response.getTraceId(), capture);
@@ -535,7 +536,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       if (trace.getStatus() == CpuProfiler.GetTraceResponse.Status.SUCCESS) {
         // TODO: move this parsing to a separate thread
         try {
-          capture = new CpuCapture(trace.getData());
+          capture = new CpuCapture(trace.getData(), trace.getProfilerType());
         }
         catch (IllegalStateException e) {
           // Don't crash studio if parsing fails.
