@@ -51,7 +51,6 @@ public class NetworkRadioView {
     RADIO_STATE_COLOR.put(RadioState.WIFI, ProfilerColors.NETWORK_RADIO_WIFI);
     RADIO_STATE_COLOR.put(RadioState.HIGH, ProfilerColors.NETWORK_RADIO_HIGH);
     RADIO_STATE_COLOR.put(RadioState.LOW, ProfilerColors.NETWORK_RADIO_LOW);
-    RADIO_STATE_COLOR.put(RadioState.IDLE, ProfilerColors.NETWORK_RADIO_IDLE);
   }
 
   @NotNull private final StateChart<RadioState> myRadioChart;

@@ -79,7 +79,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     .setConnectionNumber(CONNECTION_COUNT)
     .build();
   private static final NetworkProfiler.ConnectivityData NETWORK_CONNECTIVITY_DATA = NetworkProfiler.ConnectivityData.newBuilder()
-    .setRadioState(NetworkProfiler.ConnectivityData.RadioState.ACTIVE)
+    .setRadioState(NetworkProfiler.ConnectivityData.RadioState.HIGH)
     .setDefaultNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
     .build();
   private static final NetworkProfiler.NetworkDataResponse NETWORK_DATA_RESPONSE = NetworkProfiler.NetworkDataResponse.newBuilder()

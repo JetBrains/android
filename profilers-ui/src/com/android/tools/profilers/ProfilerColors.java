@@ -122,13 +122,11 @@ public class ProfilerColors {
 
   public static final Color NETWORK_WAITING_COLOR = new JBColor(0xAAAAAA, 0xAAAAAA);
 
-  public static final Color NETWORK_RADIO_WIFI = new JBColor(0xCAD3E2, 0x4E4F50);
+  public static final Color NETWORK_RADIO_WIFI = new JBColor(0xD4DCE8, 0x535658);
 
-  public static final Color NETWORK_RADIO_IDLE = new JBColor(0xB2CAF5, 0x384460);
+  public static final Color NETWORK_RADIO_LOW = new JBColor(0x99BFFF, 0x4B6690);
 
-  public static final Color NETWORK_RADIO_LOW = new JBColor(0x6A99FE, 0x567CCF);
-
-  public static final Color NETWORK_RADIO_HIGH = new JBColor(0x396EE7, 0x3D5FAB);
+  public static final Color NETWORK_RADIO_HIGH = new JBColor(0x335A9A, 0x669FFF);
 
   public static final Color NETWORK_TABLE_AXIS = new JBColor(Gray._103, Gray._120);
 
