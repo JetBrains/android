@@ -16,10 +16,12 @@
 package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.MethodModel;
+import com.android.tools.profilers.cpu.TraceParser;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,17 +37,12 @@ import java.util.*;
 /**
  * Parses a trace file obtained using simpleperf to a map threadId -> {@link CaptureNode}.
  */
-public class SimplePerfTraceParser {
+public class SimplePerfTraceParser implements TraceParser {
 
   /**
    * When the name of a function (symbol) is not found in the symbol table, the symbol_id field is set to -1.
    */
   private static final int INVALID_SYMBOL_ID = -1;
-
-  /**
-   * Trace file to be parsed.
-   */
-  private final File myTraceFile;
 
   /**
    * Maps a file id to its correspondent {@link SimpleperfReport.File}.
@@ -60,7 +57,8 @@ public class SimplePerfTraceParser {
   /**
    * List of samples containing method trace data.
    */
-  private final List<SimpleperfReport.Sample> mySamples;
+  @VisibleForTesting
+  final List<SimpleperfReport.Sample> mySamples;
 
   /**
    * Maps a {@link CpuThreadInfo} to its correspondent method call tree.
@@ -80,7 +78,7 @@ public class SimplePerfTraceParser {
   private final Map<Integer, CaptureNode> myLastCallStackTopNode;
 
   /**
-   * Number of samples read from {@link #myTraceFile}.
+   * Number of samples read from trace file.
    */
   private long mySampleCount;
 
@@ -89,12 +87,12 @@ public class SimplePerfTraceParser {
    */
   private long myLostSampleCount;
 
-  public SimplePerfTraceParser(File traceFile) {
-    if (!traceFile.exists()) {
-      throw new IllegalArgumentException(
-        "Trace file " + traceFile.getAbsolutePath() + " does not exist.");
-    }
-    myTraceFile = traceFile;
+  /**
+   * Capture range in absolute time, measured in microseconds.
+   */
+  private Range myRange;
+
+  public SimplePerfTraceParser() {
     myFiles = new HashMap<>();
     mySamples = new ArrayList<>();
     myCaptureTrees = new HashMap<>();
@@ -127,13 +125,20 @@ public class SimplePerfTraceParser {
     }
   }
 
-  public void parse() throws IOException {
-    parseTraceFile();
+  @Override
+  public void parse(File trace) throws IOException {
+    parseTraceFile(trace);
     parseSampleData();
   }
 
+  @Override
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
     return myCaptureTrees;
+  }
+
+  @Override
+  public Range getRange() {
+    return myRange;
   }
 
   public long getLostSampleCount() {
@@ -169,8 +174,8 @@ public class SimplePerfTraceParser {
    * Parsed data is stored in {@link #myFiles} and {@link #mySamples}.
    */
   @VisibleForTesting
-  void parseTraceFile() throws IOException {
-    ByteBuffer buffer = byteBufferFromFile(myTraceFile, ByteOrder.LITTLE_ENDIAN);
+  void parseTraceFile(File trace) throws IOException {
+    ByteBuffer buffer = byteBufferFromFile(trace, ByteOrder.LITTLE_ENDIAN);
     // Read the first record size
     int recordSize = buffer.getInt();
 
@@ -221,6 +226,7 @@ public class SimplePerfTraceParser {
     if (mySamples.isEmpty()) {
       return;
     }
+    long startTimestamp = mySamples.get(0).getTime();
 
     // Process each sample
     for (SimpleperfReport.Sample sample : mySamples) {
@@ -229,6 +235,7 @@ public class SimplePerfTraceParser {
 
     // Update the end timestamp of the last active call chain of each thread
     long endTimestamp = mySamples.get(mySamples.size() - 1).getTime();
+    myRange = new Range(startTimestamp, endTimestamp);
     for (CaptureNode lastNode : myLastCallStackTopNode.values()) {
       CaptureNode node = lastNode;
       while (node != null && node.getEnd() == 0) {

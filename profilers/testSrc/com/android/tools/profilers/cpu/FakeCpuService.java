@@ -76,7 +76,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private int myTraceId = FAKE_TRACE_ID;
 
-  private CpuProfiler.CpuProfilerType myProfilerType;
+  private CpuProfiler.CpuProfilerType myProfilerType = CpuProfiler.CpuProfilerType.ART;
 
   private CpuProfiler.CpuProfilingAppStartRequest myLastSuccessfulStartRequest;
 
@@ -255,6 +255,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     response.setStatus(myGetTraceResponseStatus);
     if (myTrace != null) {
       response.setData(myTrace);
+      response.setProfilerType(myProfilerType);
     }
 
     responseObserver.onNext(response.build());
@@ -345,7 +346,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       myTrace = readValidTrace();
     }
     if (myCapture == null) {
-      myCapture = new CpuCapture(myTrace);
+      myCapture = new CpuCapture(myTrace, myProfilerType);
     }
     return myCapture;
   }
