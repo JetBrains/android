@@ -183,7 +183,7 @@ public class ConnectionDetailsView extends JPanel {
       myStackTraceView.getModel().clearStackFrames();
     }
     setVisible(httpData != null);
-    revalidate();
+    repaint();
   }
 
   private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
