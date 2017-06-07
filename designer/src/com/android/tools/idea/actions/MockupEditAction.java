@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.mockup.editor.MockUpFileChooser;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABLED;
 
 /**
  * Shows the popup for editing the mockup of the selected component
@@ -46,7 +45,7 @@ public class MockupEditAction extends AnAction {
   public MockupEditAction(@NotNull NlDesignSurface designSurface) {
     super(ADD_ACTION_TITLE);
 
-    if (!MOCKUP_EDITOR_ENABLED) {
+    if (!StudioFlags.NELE_MOCKUP_EDITOR.get()) {
       getTemplatePresentation().setEnabledAndVisible(false);
       myMockupToggleAction = null;
       myDesignSurface = null;
@@ -60,7 +59,7 @@ public class MockupEditAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
-    if (MOCKUP_EDITOR_ENABLED) {
+    if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
       // If the selected component already has a mock-up attribute, display the Edit text
       // else display the add text
       NlComponent component = getFirstSelectedComponent();
