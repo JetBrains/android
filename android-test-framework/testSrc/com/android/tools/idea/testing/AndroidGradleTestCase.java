@@ -327,7 +327,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected GradleInvocationResult generateSources() throws InterruptedException {
-    return invokeGradle(getProject(), gradleInvoker -> gradleInvoker.generateSources(false));
+    return invokeGradle(getProject(), GradleBuildInvoker::generateSources);
   }
 
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)

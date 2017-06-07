@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -50,7 +51,7 @@ public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
       }
     });
 
-    invokeGradle(project, invoker -> invoker.generateSources(false));
+    invokeGradle(project, GradleBuildInvoker::generateSources);
 
     GradleBuildState buildState = GradleBuildState.getInstance(project);
     assertFalse(buildState.isBuildInProgress());

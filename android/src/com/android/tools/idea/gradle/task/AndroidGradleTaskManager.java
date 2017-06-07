@@ -50,7 +50,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
       request.setJvmArguments(vmOptions)
              .setCommandLineArguments(scriptParameters)
              .setTaskListener(listener)
-             .setWaitForCompletion(true);
+             .waitForCompletion();
       // @formatter:on
 
       gradleBuildInvoker.executeTasks(request);

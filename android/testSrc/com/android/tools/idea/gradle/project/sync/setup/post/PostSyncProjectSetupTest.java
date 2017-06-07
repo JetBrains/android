@@ -160,6 +160,6 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(mySyncState, never()).syncEnded();
 
     // Source generation should not be invoked if sync failed.
-    verify(myProjectBuilder, never()).generateSourcesOnly(true);
+    verify(myProjectBuilder, never()).cleanAndGenerateSources();
   }
 }

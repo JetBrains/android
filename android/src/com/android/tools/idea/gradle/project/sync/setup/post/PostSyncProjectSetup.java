@@ -327,7 +327,11 @@ public class PostSyncProjectSetup {
         }
       }
     }
-    myProjectBuilder.generateSourcesOnly(cleanProjectAfterSync);
+    if (cleanProjectAfterSync) {
+      myProjectBuilder.cleanAndGenerateSources();
+      return;
+    }
+    myProjectBuilder.generateSources();
   }
 
   public static class Request {
