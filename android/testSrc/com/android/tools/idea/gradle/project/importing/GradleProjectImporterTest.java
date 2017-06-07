@@ -172,7 +172,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
     // @formatter:off
     syncRequest.setGenerateSourcesOnSuccess(importSettings.isGenerateSourcesOnSuccess())
-               .setNewProject(true)
+               .setNewOrImportedProject()
                .setRunInBackground(false)
                .setTrigger(TRIGGER_PROJECT_LOADED);
     // @formatter:on

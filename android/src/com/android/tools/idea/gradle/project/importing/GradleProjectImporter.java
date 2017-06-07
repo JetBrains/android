@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
@@ -170,17 +171,18 @@ public class GradleProjectImporter {
     projectFolder.createTopLevelBuildFile();
     projectFolder.createIdeaProjectFolder();
 
-    Project project = request.getProject();
-    Project newProject = project;
+    Project newProject = request.getProject();
+
     if (newProject == null) {
       newProject = open
                    ? myNewProjectSetup.openProject(projectFolderPath.getPath())
                    : myNewProjectSetup.createProject(projectName, projectFolderPath.getPath());
-    }
-
-    if (project == null) {
       GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
       gradleSettings.setGradleVmOptions("");
+    }
+
+    if (request.isNewlyCreatedProject()) {
+      GradleProjectInfo.getInstance(newProject).setNewlyCreatedProject(true);
     }
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.getLanguageLevel());
@@ -200,7 +202,7 @@ public class GradleProjectImporter {
     request.setGenerateSourcesOnSuccess(importProjectSettings.isGenerateSourcesOnSuccess())
            .setRunInBackground(false)
            .setUseCachedGradleModels(false)
-           .setNewProject(true)
+           .setNewOrImportedProject()
            .setTrigger(TRIGGER_PROJECT_LOADED);
     // @formatter:on
     return request;
@@ -213,6 +215,7 @@ public class GradleProjectImporter {
     @Nullable private LanguageLevel myLanguageLevel;
 
     private boolean myGenerateSourcesOnSuccess = true;
+    private boolean myNewlyCreatedProject;
 
     @Nullable
     public Project getProject() {
@@ -243,6 +246,16 @@ public class GradleProjectImporter {
     @NotNull
     public Request setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
       myGenerateSourcesOnSuccess = generateSourcesOnSuccess;
+      return this;
+    }
+
+    public boolean isNewlyCreatedProject() {
+      return myNewlyCreatedProject;
+    }
+
+    @NotNull
+    public Request newlyCreatedProject() {
+      myNewlyCreatedProject = true;
       return this;
     }
   }

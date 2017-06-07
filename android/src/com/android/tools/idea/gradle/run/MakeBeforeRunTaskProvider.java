@@ -326,11 +326,11 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     List<String> properties = new ArrayList<>(2);
 
     // Find the minimum value of the build API level and pass it to Gradle as a property
-    List<AndroidVersion> versionLists = devices.stream().map(d -> d.getVersion()).collect(Collectors.toList());
+    List<AndroidVersion> versionLists = devices.stream().map(AndroidDevice::getVersion).collect(Collectors.toList());
     AndroidVersion minVersion = Ordering.natural().min(versionLists);
-    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getApiLevel())));
+    properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getApiLevel())));
     if(minVersion.getCodename() != null) {
-      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API_CODENAME, minVersion.getCodename()));
+      properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, minVersion.getCodename()));
     }
 
     // If we are building for only one device, pass the density and the ABI
@@ -338,13 +338,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       AndroidDevice device = devices.get(0);
       Density density = Density.getEnum(device.getDensity());
       if (density != null) {
-        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
+        properties.add(createProjectProperty(PROPERTY_BUILD_DENSITY, density.getResourceValue()));
       }
 
       // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
       List<String> abis = device.getAbis().stream().map(Abi::toString).collect(Collectors.toList());
       if (!abis.isEmpty()) {
-        properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(abis)));
+        properties.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(abis)));
       }
     }
 
@@ -359,7 +359,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Find the minimum API version in case both a pre-O and post-O devices are selected.
     // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
-    List<AndroidVersion> versionLists = devices.stream().map(d -> d.getVersion()).collect(Collectors.toList());
+    List<AndroidVersion> versionLists = devices.stream().map(AndroidDevice::getVersion).collect(Collectors.toList());
     AndroidVersion minVersion = Ordering.natural().min(versionLists);
     List<String> arguments = new LinkedList<>();
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();

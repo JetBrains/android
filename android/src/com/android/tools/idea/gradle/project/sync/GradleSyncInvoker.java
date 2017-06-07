@@ -157,7 +157,7 @@ public class GradleSyncInvoker {
   private boolean prepareProject(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener)
     throws ConfigurationException {
     if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || hasTopLevelGradleBuildFile(project)) {
-      if (!request.isNewProject()) {
+      if (!request.isNewOrImportedProject()) {
         myFileDocumentManager.saveAllDocuments();
       }
       return true; // continue with sync.
@@ -201,10 +201,10 @@ public class GradleSyncInvoker {
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     boolean started;
     if (request.isUseCachedGradleModels()) {
-      started = GradleSyncState.getInstance(project).skippedSyncStarted(!request.isNewProject(), request.getTrigger());
+      started = GradleSyncState.getInstance(project).skippedSyncStarted(!request.isNewOrImportedProject(), request.getTrigger());
     }
     else {
-      started = GradleSyncState.getInstance(project).syncStarted(!request.isNewProject(), request.getTrigger());
+      started = GradleSyncState.getInstance(project).syncStarted(!request.isNewOrImportedProject(), request.getTrigger());
     }
     if (!started) {
       return;
@@ -252,7 +252,7 @@ public class GradleSyncInvoker {
     private boolean myGenerateSourcesOnSuccess = true;
     private boolean myCleanProject;
     private boolean myUseCachedGradleModels;
-    private boolean myNewProject;
+    private boolean myNewOrImportedProject;
     private boolean mySkipAndroidPluginUpgrade;
     private GradleSyncStats.Trigger myTrigger = TRIGGER_UNKNOWN;
 
@@ -296,13 +296,13 @@ public class GradleSyncInvoker {
       return this;
     }
 
-    public boolean isNewProject() {
-      return myNewProject;
+    public boolean isNewOrImportedProject() {
+      return myNewOrImportedProject;
     }
 
     @NotNull
-    public Request setNewProject(boolean newProject) {
-      myNewProject = newProject;
+    public Request setNewOrImportedProject() {
+      myNewOrImportedProject = true;
       return this;
     }
 
@@ -346,14 +346,14 @@ public class GradleSyncInvoker {
              myCleanProject == request.myCleanProject &&
              myGenerateSourcesOnSuccess == request.myGenerateSourcesOnSuccess &&
              myUseCachedGradleModels == request.myUseCachedGradleModels &&
-             myNewProject == request.myNewProject &&
+             myNewOrImportedProject == request.myNewOrImportedProject &&
              myTrigger == request.myTrigger;
     }
 
     @Override
     public int hashCode() {
-      return Objects
-        .hashCode(myRunInBackground, myCleanProject, myGenerateSourcesOnSuccess, myUseCachedGradleModels, myNewProject, myTrigger);
+      return Objects.hashCode(myRunInBackground, myCleanProject, myGenerateSourcesOnSuccess, myUseCachedGradleModels,
+                              myNewOrImportedProject, myTrigger);
     }
 
     @Override
@@ -363,7 +363,7 @@ public class GradleSyncInvoker {
              ", myCleanProject=" + myCleanProject +
              ", myGenerateSourcesOnSuccess=" + myGenerateSourcesOnSuccess +
              ", myUseCachedGradleModels=" + myUseCachedGradleModels +
-             ", myNewProject=" + myNewProject +
+             ", myNewOrImportedProject=" + myNewOrImportedProject +
              ", myTrigger=" + myTrigger +
              '}';
     }
