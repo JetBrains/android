@@ -192,4 +192,14 @@ public interface FeatureTracker {
    * Track the user opening up the "Trace" tab in the network details view.
    */
   void trackSelectNetworkDetailsStack();
+
+  /**
+   * Track the user opening up the CPU profiling configurations dialog.
+   */
+  void trackOpenProfilingConfigDialog();
+
+  /**
+   * Track the user creating custom CPU profiling configurations.
+   */
+  void trackCreateCustomProfilingConfig();
 }

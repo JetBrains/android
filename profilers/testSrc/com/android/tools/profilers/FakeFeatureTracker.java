@@ -175,4 +175,14 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public void trackSelectNetworkDetailsStack() {
 
   }
+
+  @Override
+  public void trackOpenProfilingConfigDialog() {
+
+  }
+
+  @Override
+  public void trackCreateCustomProfilingConfig() {
+
+  }
 }

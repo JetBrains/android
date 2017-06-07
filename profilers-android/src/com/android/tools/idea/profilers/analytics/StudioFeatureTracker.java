@@ -216,6 +216,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
     track(AndroidProfilerEvent.Type.SELECT_DETAILS_STACK);
   }
 
+  @Override
+  public void trackOpenProfilingConfigDialog() {
+    track(AndroidProfilerEvent.Type.OPEN_CPU_CONFIG_DIALOG);
+  }
+
+  @Override
+  public void trackCreateCustomProfilingConfig() {
+    track(AndroidProfilerEvent.Type.CREATE_CPU_CONFIG);
+  }
+
   private void track(AndroidProfilerEvent.Type eventType) {
     AndroidProfilerEvent profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(eventType).build();
 
