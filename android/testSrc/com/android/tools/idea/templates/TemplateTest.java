@@ -157,8 +157,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static final Set<String> KNOWN_BROKEN = new HashSet<>();
 
   static {
-    KNOWN_BROKEN.add("AndroidThingsActivity");
-
     // See http://b.android.com/253296
     if (SystemInfo.isWindows) {
       KNOWN_BROKEN.add("AidlFile");
