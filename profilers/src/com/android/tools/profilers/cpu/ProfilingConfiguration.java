@@ -36,6 +36,8 @@ public class ProfilingConfiguration {
 
   public static final String SIMPLEPERF = "Sampled (Hybrid)";
 
+  private static List<ProfilingConfiguration> ourDefaultConfigurations;
+
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
    */
@@ -111,15 +113,18 @@ public class ProfilingConfiguration {
   }
 
   public static List<ProfilingConfiguration> getDefaultProfilingConfigurations() {
-    ProfilingConfiguration artSampled = new ProfilingConfiguration(ART_SAMPLED,
-                                                                   CpuProfiler.CpuProfilerType.ART,
-                                                                   CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ART_INSTRUMENTED,
-                                                                        CpuProfiler.CpuProfilerType.ART,
-                                                                        CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-    ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
-                                                                   CpuProfiler.CpuProfilerType.SIMPLE_PERF,
-                                                                   CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    return ImmutableList.of(artSampled, artInstrumented, simpleperf);
+    if (ourDefaultConfigurations == null) {
+      ProfilingConfiguration artSampled = new ProfilingConfiguration(ART_SAMPLED,
+                                                                     CpuProfiler.CpuProfilerType.ART,
+                                                                     CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+      ProfilingConfiguration artInstrumented = new ProfilingConfiguration(ART_INSTRUMENTED,
+                                                                          CpuProfiler.CpuProfilerType.ART,
+                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+      ProfilingConfiguration simpleperf = new ProfilingConfiguration(SIMPLEPERF,
+                                                                     CpuProfiler.CpuProfilerType.SIMPLE_PERF,
+                                                                     CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+      ourDefaultConfigurations = ImmutableList.of(artSampled, artInstrumented, simpleperf);
+    }
+    return ourDefaultConfigurations;
   }
 }
