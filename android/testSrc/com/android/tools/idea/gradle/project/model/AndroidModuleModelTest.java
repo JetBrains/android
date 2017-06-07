@@ -19,6 +19,7 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import org.junit.Ignore;
@@ -44,7 +45,8 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     super.setUp();
     File rootDirPath = getBaseDirPath(getProject());
     myAndroidProject = TestProjects.createFlavorsProject();
-    myAndroidModel = new AndroidModuleModel(myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug");
+    myAndroidModel =
+      new AndroidModuleModel(myAndroidProject.getName(), rootDirPath, myAndroidProject, "f1fa-debug", new IdeLevel2DependenciesFactory());
   }
 
   public void /*test*/FindBuildType() throws Exception {

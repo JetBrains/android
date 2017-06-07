@@ -48,16 +48,21 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
   @NotNull private final Collection<TestedTargetVariant> myTestedTargetVariants;
   private final int myHashCode;
 
-  public IdeVariantImpl(@NotNull Variant variant, @NotNull ModelCache modelCache, @Nullable GradleVersion modelVersion) {
+  public IdeVariantImpl(@NotNull Variant variant,
+                        @NotNull ModelCache modelCache,
+                        @NotNull IdeLevel2DependenciesFactory dependenciesFactory,
+                        @Nullable GradleVersion modelVersion) {
     super(variant, modelCache);
     myName = variant.getName();
     myDisplayName = variant.getDisplayName();
     myMainArtifact = modelCache.computeIfAbsent(variant.getMainArtifact(),
-                                                artifact -> new IdeAndroidArtifactImpl(artifact, modelCache, modelVersion));
+                                                artifact -> new IdeAndroidArtifactImpl(artifact, modelCache, dependenciesFactory,
+                                                                                       modelVersion));
     myExtraAndroidArtifacts = copy(variant.getExtraAndroidArtifacts(), modelCache,
-                                   artifact -> new IdeAndroidArtifactImpl(artifact, modelCache, modelVersion));
+                                   artifact -> new IdeAndroidArtifactImpl(artifact, modelCache, dependenciesFactory, modelVersion));
     myExtraJavaArtifacts = copy(variant.getExtraJavaArtifacts(), modelCache,
-                                (Function<JavaArtifact, JavaArtifact>)artifact -> new IdeJavaArtifact(artifact, modelCache, modelVersion));
+                                (Function<JavaArtifact, JavaArtifact>)artifact -> new IdeJavaArtifact(artifact, modelCache,
+                                                                                                      dependenciesFactory, modelVersion));
     myBuildType = variant.getBuildType();
     myProductFlavors = ImmutableList.copyOf(variant.getProductFlavors());
     myMergedFlavor = modelCache.computeIfAbsent(variant.getMergedFlavor(), flavor -> new IdeProductFlavor(flavor, modelCache));
@@ -162,6 +167,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
     }
     return null;
   }
+
   @Override
   @Nullable
   public IdeJavaArtifact getUnitTestArtifact() {

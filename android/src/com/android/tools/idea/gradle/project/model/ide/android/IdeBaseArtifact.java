@@ -23,6 +23,9 @@ import java.io.Serializable;
 public interface IdeBaseArtifact extends Serializable, BaseArtifact {
   boolean isTestArtifact();
 
+  @NotNull
+  IdeLevel2Dependencies getLevel2Dependencies();
+
   @Override
   @NotNull
   IdeDependencies getDependencies();

@@ -39,11 +39,13 @@ import static org.junit.Assert.assertEquals;
 public class IdeAndroidArtifactImplTest {
   private ModelCache myModelCache;
   private GradleVersion myGradleVersion;
+  private IdeLevel2DependenciesFactory myDependenciesFactory;
 
   @Before
   public void setUp() throws Exception {
     myModelCache = new ModelCache();
     myGradleVersion = GradleVersion.parse("3.2");
+    myDependenciesFactory = new IdeLevel2DependenciesFactory();
   }
 
   @Test
@@ -53,7 +55,8 @@ public class IdeAndroidArtifactImplTest {
 
   @Test
   public void serialization() throws Exception {
-    IdeAndroidArtifact artifact = new IdeAndroidArtifactImpl(new AndroidArtifactStub(), myModelCache, myGradleVersion);
+    IdeAndroidArtifact artifact =
+      new IdeAndroidArtifactImpl(new AndroidArtifactStub(), myModelCache, myDependenciesFactory, myGradleVersion);
     byte[] bytes = serialize(artifact);
     Object o = deserialize(bytes);
     assertEquals(artifact, o);
@@ -77,14 +80,14 @@ public class IdeAndroidArtifactImplTest {
                             getResValues(), getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned());
       }
     };
-    IdeAndroidArtifact artifact = new IdeAndroidArtifactImpl(original, myModelCache, myGradleVersion);
+    IdeAndroidArtifact artifact = new IdeAndroidArtifactImpl(original, myModelCache, myDependenciesFactory, myGradleVersion);
     expectUnsupportedMethodException(artifact::getInstantRun);
   }
 
   @Test
   public void constructor() throws Throwable {
     AndroidArtifact original = new AndroidArtifactStub();
-    IdeAndroidArtifactImpl copy = new IdeAndroidArtifactImpl(original, myModelCache, myGradleVersion);
+    IdeAndroidArtifactImpl copy = new IdeAndroidArtifactImpl(original, myModelCache, myDependenciesFactory, myGradleVersion);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
   }

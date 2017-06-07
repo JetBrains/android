@@ -30,7 +30,7 @@ public final class DependencyGraphsStub extends BaseStub implements DependencyGr
   @NotNull private final List<String> mySkippedLibraries;
 
   public DependencyGraphsStub() {
-    this(Lists.newArrayList(new GraphItemStub()), Lists.newArrayList(new GraphItemStub()), Lists.newArrayList("provided"),
+    this(Lists.newArrayList(), Lists.newArrayList(new GraphItemStub()), Lists.newArrayList("provided"),
          Lists.newArrayList("skipped"));
   }
 

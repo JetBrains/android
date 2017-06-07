@@ -18,10 +18,12 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProjectImpl;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -63,7 +65,8 @@ abstract class ModuleSetup {
                                  new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()),
                                  new VariantSelector(), new ProjectCleanup(), new ObsoleteModuleDisposer(project, modelsProvider),
                                  new NewJavaModuleSetup(), new IdeNativeAndroidProjectImpl.FactoryImpl(), new NewJavaModuleModelFactory(),
-                                 new ArtifactModuleModelFactory(), new ExtraSyncModelExtensionManager());
+                                 new ArtifactModuleModelFactory(), new ExtraSyncModelExtensionManager(),
+                                 new IdeLevel2DependenciesFactory());
     }
   }
 
@@ -85,6 +88,7 @@ abstract class ModuleSetup {
     @NotNull private final NewJavaModuleModelFactory myNewJavaModuleModelFactory;
     @NotNull private final ArtifactModuleModelFactory myArtifactModuleModelFactory;
     @NotNull private final ExtraSyncModelExtensionManager myExtraSyncModelExtensionManager;
+    @NotNull private final IdeLevel2DependenciesFactory myDependenciesFactory;
 
     @NotNull private final List<Module> myAndroidModules = new ArrayList<>();
 
@@ -103,7 +107,8 @@ abstract class ModuleSetup {
                     @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                     @NotNull NewJavaModuleModelFactory javaModuleModelFactory,
                     @NotNull ArtifactModuleModelFactory artifactModuleModelFactory,
-                    @NotNull ExtraSyncModelExtensionManager extraSyncModelExtensionManager) {
+                    @NotNull ExtraSyncModelExtensionManager extraSyncModelExtensionManager,
+                    @NotNull IdeLevel2DependenciesFactory dependenciesFactory) {
       myProject = project;
       myModelsProvider = modelsProvider;
       mySyncState = syncState;
@@ -120,12 +125,16 @@ abstract class ModuleSetup {
       myNewJavaModuleModelFactory = javaModuleModelFactory;
       myArtifactModuleModelFactory = artifactModuleModelFactory;
       myExtraSyncModelExtensionManager = extraSyncModelExtensionManager;
+      myDependenciesFactory = dependenciesFactory;
     }
 
     @Override
     void setUpModules(@NotNull SyncAction.ProjectModels projectModels, @NotNull ProgressIndicator indicator) {
       notifyProgress(indicator, "Configuring modules");
-
+      GlobalLibraryMap globalLibraryMap = projectModels.getGlobalLibraryMap();
+      if (globalLibraryMap != null) {
+        myDependenciesFactory.setupGlobalLibraryMap(globalLibraryMap);
+      }
       createAndSetUpModules(projectModels, indicator);
       myAndroidModuleProcessor.processAndroidModels(myAndroidModules, indicator);
       myProjectCleanup.cleanUpProject(myProject, myModelsProvider, indicator);
@@ -208,7 +217,8 @@ abstract class ModuleSetup {
       if (variantToSelect != null) {
         File moduleRootFolderPath = findModuleRootFolderPath(module);
         if (moduleRootFolderPath != null) {
-          return new AndroidModuleModel(module.getName(), moduleRootFolderPath, androidProject, variantToSelect.getName());
+          return new AndroidModuleModel(module.getName(), moduleRootFolderPath, androidProject, variantToSelect.getName(),
+                                        myDependenciesFactory);
         }
       }
       // If an Android project does not have variants, it would be impossible to build. This is a possible but invalid use case.

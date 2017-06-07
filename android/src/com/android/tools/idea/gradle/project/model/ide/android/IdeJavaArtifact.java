@@ -33,8 +33,11 @@ public final class IdeJavaArtifact extends IdeBaseArtifactImpl implements JavaAr
   @Nullable private final File myMockablePlatformJar;
   private final int myHashCode;
 
-  public IdeJavaArtifact(@NotNull JavaArtifact artifact, @NotNull ModelCache seen, @Nullable GradleVersion gradleVersion) {
-    super(artifact, seen, gradleVersion);
+  public IdeJavaArtifact(@NotNull JavaArtifact artifact,
+                         @NotNull ModelCache seen,
+                         @NotNull IdeLevel2DependenciesFactory dependenciesFactory,
+                         @Nullable GradleVersion gradleVersion) {
+    super(artifact, seen, dependenciesFactory, gradleVersion);
     myMockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar, null);
 
     myHashCode = calculateHashCode();
