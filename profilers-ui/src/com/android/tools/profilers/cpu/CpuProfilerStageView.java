@@ -23,6 +23,7 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
@@ -179,13 +180,21 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
         .setLabelProvider(this::formatCaptureLabel)
         .setStroke(new BasicStroke(1))
-        .setLabelColors(new Color(0x70000000, true), Color.BLACK, Color.lightGray, Color.WHITE)
+        .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .setClickHander(getStage()::setAndSelectCapture)
         .build();
 
-
-    lineChart.addCustomRenderer(traceRenderer);
     overlay.addDurationDataRenderer(traceRenderer);
+    lineChart.addCustomRenderer(traceRenderer);
+
+    DurationDataRenderer<DefaultDurationData> inProgressTraceRenderer =
+      new DurationDataRenderer.Builder<>(getStage().getInProgressTraceDuration(), ProfilerColors.CPU_CAPTURE_EVENT)
+        .setLabelProvider(data -> "Recording in progress")
+        .setStroke(new BasicStroke(1))
+        .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
+        .build();
+    overlay.addDurationDataRenderer(inProgressTraceRenderer);
+    lineChart.addCustomRenderer(inProgressTraceRenderer);
 
     CpuThreadsModel model = myStage.getThreadStates();
     myThreads = new JBList(model);
