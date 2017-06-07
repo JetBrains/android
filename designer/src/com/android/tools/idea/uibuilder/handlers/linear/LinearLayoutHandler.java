@@ -239,6 +239,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   public void distributeWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
+    if (selectedChildren.isEmpty()) {
+      return;
+    }
+
     // Any XML to get weight sum?
     String weightSum = component.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
     double sum = -1.0;
@@ -281,7 +285,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     actions.add(new ToggleOrientationAction().setRank(rank += 20));
     actions.add(new BaselineAction().setRank(rank += 20));
     actions.add(new DistributeWeightsAction().setRank(rank += 20));
-    actions.add(new DominateWeightsAction().setRank(rank += 20));
     actions.add(new ClearWeightsAction().setRank(rank += 20));
     actions.add(new ViewActionSeparator().setRank(rank += 20));
     addDefaultViewActions(actions, rank);

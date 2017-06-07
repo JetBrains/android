@@ -258,4 +258,9 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     return myHandler.createTargets(sceneComponent, isParent);
   }
+
+  @NotNull
+  public ViewHandler getDelegateHandler() {
+    return myHandler;
+  }
 }
