@@ -199,6 +199,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     waitForBuildToFinish(COMPILE_JAVA, wait);
 
+    Wait.seconds(10)
+      .expecting("Listeners to be notified of build-finished event")
+      .until(()->{return resultRef.get() != null;});
     return resultRef.get();
   }
 
