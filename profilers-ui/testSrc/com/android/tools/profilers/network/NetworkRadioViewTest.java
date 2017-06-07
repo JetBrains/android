@@ -40,9 +40,9 @@ import static com.google.common.truth.Truth.assertThat;
 public class NetworkRadioViewTest {
   private static final ImmutableList<NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<NetworkProfilerData>()
-    .add(FakeNetworkService.newRadioData(1, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
+    .add(FakeNetworkService.newRadioData(1, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.HIGH))
     .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.WIFI, ConnectivityData.RadioState.UNSPECIFIED))
-    .add(FakeNetworkService.newRadioData(18, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE)).build();
+    .add(FakeNetworkService.newRadioData(18, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.HIGH)).build();
 
   @Rule public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("NetworkMonitorTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());

@@ -34,7 +34,7 @@ end_timestamp: 9223372036854775807
     end_timestamp: 86400000000000
   }
   connectivity_data {
-    radio_state: ACTIVE
+    radio_state: HIGH
     default_network_type: WIFI
   }
 }
@@ -66,7 +66,7 @@ data {
     end_timestamp: 86400000000000
   }
   connectivity_data {
-    radio_state: ACTIVE
+    radio_state: HIGH
     default_network_type: WIFI
   }
 }
