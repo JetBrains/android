@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
@@ -37,23 +38,23 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link ScreenDragTarget}
+ * Tests for {@link ActionTarget}
  */
-public class ScreenDragTargetTest extends NavigationTestCase {
-
-  public void testMove() throws Exception {
+public class ActionTargetTest extends NavigationTestCase {
+  public void testSelect() throws Exception {
     ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
       .unboundedChildren(
+        component(NavigationSchema.TAG_FRAGMENT)
+          .id("@+id/fragment2")
+          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"),
         component(NavigationSchema.TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
           .unboundedChildren(
             component(NavigationSchema.TAG_ACTION)
-              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")),
-        component(NavigationSchema.TAG_FRAGMENT)
-          .id("@+id/fragment2")
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"));
+              .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
+              .id("@+id/action1")));
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     NavDesignSurface surface = (NavDesignSurface)model.getSurface();
@@ -63,24 +64,21 @@ public class ScreenDragTargetTest extends NavigationTestCase {
 
     Scene scene = model.getSurface().getScene();
     scene.layout(0, SceneContext.get());
+    scene.buildDisplayList(new DisplayList(), 0, view);
 
     SceneComponent component = scene.getSceneComponent("fragment1");
+    SceneComponent component2 = scene.getSceneComponent("fragment2");
+
     InteractionManager interactionManager = new InteractionManager(surface);
     interactionManager.registerListeners();
 
-    @AndroidDpCoordinate int x = component.getDrawX();
-    @AndroidDpCoordinate int y = component.getDrawY();
+    @AndroidDpCoordinate int x = (component.getCenterX() + component2.getCenterX()) / 2;
+    @AndroidDpCoordinate int y = (component.getCenterY() + component2.getCenterY()) / 2;
 
-    LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x + 10),
-                                   Coordinates.getSwingYDip(view, y + 10), 0);
-    LayoutTestUtilities.dragMouse(interactionManager, Coordinates.getSwingXDip(view, x), Coordinates.getSwingYDip(view, y),
-                                  Coordinates.getSwingXDip(view, x + 30), Coordinates.getSwingYDip(view, y + 40), 0);
-    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingXDip(view, x + 30),
-                                     Coordinates.getSwingYDip(view, y + 40), 0);
+    LayoutTestUtilities.clickMouse(interactionManager, BUTTON1, 1, Coordinates.getSwingXDip(view, x),
+                                   Coordinates.getSwingYDip(view, y), 0);
 
-    assertEquals(x + 20, component.getDrawX());
-    assertEquals(y + 30, component.getDrawY());
+    assertEquals(model.find("action1"), model.getSelectionModel().getPrimary());
     interactionManager.unregisterListeners();
-
   }
 }

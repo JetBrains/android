@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
@@ -30,9 +31,8 @@ public class DrawComponentFrame extends DrawRegion {
   public static final int OVER = 2;
   public static final int SELECTED = 3;
 
-  static Stroke myNormalStroke = new BasicStroke(1);
-  static Stroke myProblemStroke = new BasicStroke(2);
-  static Stroke myDragReceiverStroke = new BasicStroke(3);
+  private static final Stroke myNormalStroke = new BasicStroke(1);
+  private static final Stroke myDragReceiverStroke = new BasicStroke(3);
 
   private final int myMode;
   private final boolean myRounded;
@@ -50,10 +50,10 @@ public class DrawComponentFrame extends DrawRegion {
     return COMPONENT_LEVEL;
   }
 
-  public DrawComponentFrame(@AndroidDpCoordinate int x,
-                            @AndroidDpCoordinate int y,
-                            @AndroidDpCoordinate int width,
-                            @AndroidDpCoordinate int height,
+  public DrawComponentFrame(@SwingCoordinate int x,
+                            @SwingCoordinate int y,
+                            @SwingCoordinate int width,
+                            @SwingCoordinate int height,
                             int mode,
                             boolean rounded) {
     super(x, y, width, height);

@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.uibuilder.model.Coordinates
 import com.android.tools.idea.uibuilder.model.NlModel
 import com.android.tools.idea.uibuilder.scene.Scene
 import com.android.tools.idea.uibuilder.surface.SceneView
-
-import java.awt.*
+import java.awt.Color
+import java.awt.Dimension
 
 /**
  * View of a navigation editor [Scene], as part of a [NavDesignSurface].
  */
 class NavView(surface: NavDesignSurface, model: NlModel) : SceneView(surface, model) {
 
-  @SwingCoordinate
+  override fun getContentTranslationX() = -Coordinates.getSwingDimensionDip(this, surface.scene?.root?.drawX ?: 0)
+  override fun getContentTranslationY() = -Coordinates.getSwingDimensionDip(this, surface.scene?.root?.drawY ?: 0)
+
   override fun getPreferredSize(dimension: Dimension?): Dimension {
     val result = dimension ?: Dimension()
 
