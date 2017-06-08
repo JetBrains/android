@@ -16,23 +16,35 @@
 package com.android.tools.idea.tests.gui.webp;
 
 import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.webp.WebpConversionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.webp.WebpPreviewDialogFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.ComponentWithMnemonics;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.swing.*;
 import java.io.IOException;
+import java.util.Collection;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(GuiTestRunner.class)
 public class ConvertToWebpActionTest {
@@ -183,5 +195,91 @@ public class ConvertToWebpActionTest {
     assertThat(webpIcon).isNull();
     VirtualFile pngIcon = guiTest.ideFrame().getProject().getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test2.png");
     assertThat(pngIcon).isNotNull();
+  }
+
+  /**
+   * Verify that .9.png and transparent images are not converted to .WebP.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: d48504cb-f03a-4e05-9c68-7c39db65bc8e
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Create a project with minsdk 15.
+   *   2. Right click on any .png file and select Create 9-patch file... option. (verify 1)
+   *   3. Right click on res folder and select Convert to WebP.. (verify 2) (verify 3)
+   *   4. Click OK on the popped up window. (verify 4)
+   *   Verify:
+   *   1. Verify that corresponding nine-patch file is created.
+   *   2. Verify that Ã¢â‚¬Å“Skip nine-patch (.9.png) imagesÃ¢â‚¬ï¿¾ option is checked and disabled.
+   *   3. Since minSdkVersion is less than 18, the flag to "skip images with transparency"
+   *      is selected by default.
+   *   4. Verify that no images are converted .WebP and observe a notification at the bottom right
+   *      corner with the message similar to the one below. 0 files were converted 1 9-patch files
+   *      were skipped 10 transparent images were skipped
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testCannotConvertFrom9PatchAndTransparentImagesToWebp() throws Exception {
+    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk15App");
+
+    PaneFixture androidPane = ideFrame.getProjectView().selectAndroidPane();
+
+    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.png")
+      .invokeMenuPath("Create 9-Patch file...");
+    new JButtonFixture(ideFrame.robot(),
+                       GuiTests.waitUntilShowingAndEnabled(ideFrame.robot(),
+                                                           ideFrame.target(),
+                                                           Matchers.byText(JButton.class, "OK")))
+      .click();
+
+    // Check nine-patch file is created by clicking on it.
+    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png");
+
+    // Try to convert to webp and verify.
+    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res")
+      .invokeMenuPath("Convert to WebP...");
+    WebpConversionDialogFixture webpConversionDialog = WebpConversionDialogFixture.findDialog(guiTest.robot());
+    JCheckBox skip9PatchCheckBox = webpConversionDialog.getCheckBox("Skip nine-patch (.9.png) images");
+    assertThat(skip9PatchCheckBox.isEnabled()).isFalse();
+    JCheckBox skipImagesWithtransparencyCheckboc = webpConversionDialog.getCheckBox("Skip images with transparency/alpha channel");
+    assertThat(skipImagesWithtransparencyCheckboc.isSelected()).isTrue();
+    webpConversionDialog.clickOk();
+
+    // Since the message like "0 files were converted" in the notification balloon cannot be retrieved,
+    // (NotificationsManagerImpl$5:model:Data:array), here we can only check there is only one
+    // BalloomImpl:MyComponent instance showing.
+    Ref<JPanel> notificationJpanel = new Ref<>();
+    Wait.seconds(5).expecting("Wait for notification").until(() -> {
+      Collection<JPanel> allFound = ideFrame.robot().finder().findAll(ideFrame.target(), Matchers.byType(JPanel.class));
+      JPanel targetJpanel = null;
+      int componentWithMnemonicsCount = 0;
+      for (JPanel jPanel : allFound) {
+        try {
+          if (jPanel instanceof ComponentWithMnemonics) {
+            componentWithMnemonicsCount++;
+            targetJpanel = jPanel;
+          }
+        }
+        catch (ComponentLookupException e) {
+          return false;
+        }
+      }
+
+      if (targetJpanel == null) {
+        return false;
+      }
+
+      if (componentWithMnemonicsCount > 1) {
+        fail("Found more than one ComponentWithMnemonics type which matches the criteria.");
+      }
+
+      notificationJpanel.set(targetJpanel);
+      return true;
+    });
+    assertThat(notificationJpanel.get()).isNotNull();
   }
 }
