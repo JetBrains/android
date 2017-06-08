@@ -44,10 +44,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.AndroidDomElement;
-import org.jetbrains.android.dom.converters.AndroidPackageConverter;
-import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
-import org.jetbrains.android.dom.converters.ConstantFieldConverter;
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -172,7 +169,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
           if (converter instanceof ResourceReferenceConverter) {
             return myResourceReferenceTokenizer;
           }
-          else if (converter instanceof ConstantFieldConverter) {
+          else if (converter instanceof ConstantFieldConverter || converter instanceof AndroidPermissionConverter) {
             return EMPTY_TOKENIZER;
           }
           else if (converter instanceof ResourceNameConverter || converter instanceof AndroidPackageConverter) {
