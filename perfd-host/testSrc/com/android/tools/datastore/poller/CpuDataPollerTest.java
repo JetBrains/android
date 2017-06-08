@@ -235,6 +235,31 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
+  public void traceProfilerTypeShouldBeCorrectlySet() {
+    CpuProfiler.CpuProfilerType traceType = CpuProfiler.CpuProfilerType.SIMPLE_PERF;
+    CpuProfiler.CpuProfilingAppStartRequest startRequest = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
+      .setProfilerType(traceType)
+      .build();
+    StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
+    myCpuService.startProfilingApp(startRequest, startObserver);
+    CpuProfiler.CpuProfilingAppStopRequest stopRequest = CpuProfiler.CpuProfilingAppStopRequest.getDefaultInstance();
+    StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
+    myCpuService.stopProfilingApp(stopRequest, stopObserver);
+
+    CpuProfiler.GetTraceRequest request = CpuProfiler.GetTraceRequest.newBuilder()
+      .setTraceId(TRACE_ID)
+      .build();
+    CpuProfiler.GetTraceResponse expectedResponse = CpuProfiler.GetTraceResponse.newBuilder()
+      .setStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
+      .setData(TRACE_DATA)
+      .setProfilerType(traceType)
+      .build();
+    StreamObserver<CpuProfiler.GetTraceResponse> observer = mock(StreamObserver.class);
+    myCpuService.getTrace(request, observer);
+    validateResponse(observer, expectedResponse);
+  }
+
+  @Test
   public void testGetTraceValid() {
     CpuProfiler.CpuProfilingAppStartRequest startRequest = CpuProfiler.CpuProfilingAppStartRequest.getDefaultInstance();
     StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);

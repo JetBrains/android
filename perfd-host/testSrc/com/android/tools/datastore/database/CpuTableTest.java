@@ -272,7 +272,7 @@ public class CpuTableTest {
 
   @Test
   public void testGetInvalidTraceByRequest() throws Exception {
-    ByteString traceData = myTable.getTraceData(-1, SESSION_HUNDREDS);
+    CpuTable.TraceData traceData = myTable.getTraceData(-1, SESSION_HUNDREDS);
     assertNull(traceData);
   }
 
