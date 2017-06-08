@@ -77,7 +77,7 @@ public class JavaDebuggerTest extends DebuggerTestBase {
     openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/basiccmakeapp/MainActivity.java", "setContentView(tv);");
 
     ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
-        .selectDevice(emulator.getDefaulAvdName())
+        .selectDevice(emulator.getDefaultAvdName())
         .clickOk();
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
