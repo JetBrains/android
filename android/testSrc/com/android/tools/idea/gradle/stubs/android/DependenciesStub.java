@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.builder.model.AndroidAtom;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidLibrary;
@@ -62,6 +63,16 @@ public class DependenciesStub implements IdeDependencies {
   @NotNull
   public List<String> getProjects() {
     return myProjects;
+  }
+
+  @Override
+  public Collection<AndroidAtom> getAtoms() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public AndroidAtom getBaseAtom() {
+    return null;
   }
 
   @Override
