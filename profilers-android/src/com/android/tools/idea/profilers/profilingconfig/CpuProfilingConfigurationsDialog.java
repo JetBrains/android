@@ -230,13 +230,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       for (ProfilingConfiguration config : configsToSave) {
         String configName = config.getName();
         if (configNames.contains(configName)) {
-          // TODO: adjust icon of the error dialog
           throw new ConfigurationException("Configuration with name \"" + configName + "\" already exists.");
         }
 
         for (ProfilingConfiguration defaultConfig : defaultConfigs) {
           if (configName.equals(defaultConfig.getName())) {
-            // TODO: adjust icon of the error dialog
             throw new ConfigurationException("\"" + configName + "\" is already being used as a default configuration." +
                                              " Please choose another name.");
           }
