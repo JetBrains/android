@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private Status myExplicitAllocationsStatus = null;
@@ -39,6 +40,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
   private BatchAllocationSample myExplicitBatchAllocationSample = null;
   private int myTrackAllocationCount;
+  private CountDownLatch myGetAllocationContextsLatch;
 
   private int myAppId;
 
@@ -122,6 +124,14 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void getAllocationContexts(AllocationContextsRequest request,
                                     StreamObserver<AllocationContextsResponse> responseObserver) {
+    if (myGetAllocationContextsLatch != null) {
+      try {
+        myGetAllocationContextsLatch.await();
+      }
+      catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
     responseObserver.onNext(myAllocationContextBuilder.build());
     responseObserver.onCompleted();
   }
@@ -151,6 +161,19 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public FakeMemoryService setExplicitAllocationsStatus(@Nullable Status status) {
     myExplicitAllocationsStatus = status;
     return this;
+  }
+
+  public void blockGetAllocationContexts() {
+    if (myGetAllocationContextsLatch != null && myGetAllocationContextsLatch.getCount() == 1) {
+      return;
+    }
+    myGetAllocationContextsLatch = new CountDownLatch(1);
+  }
+
+  public void unblockGetAllocatinoContexts() {
+    if (myGetAllocationContextsLatch != null) {
+      myGetAllocationContextsLatch.countDown();
+    }
   }
 
   public FakeMemoryService setExplicitAllocationsInfo(AllocationsInfo.Status infoStatus,
