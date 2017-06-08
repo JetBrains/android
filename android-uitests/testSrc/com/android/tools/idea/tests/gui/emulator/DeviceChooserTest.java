@@ -62,7 +62,7 @@ public class DeviceChooserTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14606216
+   * TT ID: 5cb54993-8f45-4632-8a9b-ebfc51be6667
    * <p>
    *   <pre>
    *   Test Steps:

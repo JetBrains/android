@@ -102,7 +102,7 @@ public class LaunchAndroidApplicationTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14603477
+   * TT ID: 1a36d98e-a0bf-4a4f-8eed-6fd55aa61a30
    * <p>
    *   <pre>
    *   Test Steps:
@@ -138,7 +138,7 @@ public class LaunchAndroidApplicationTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14603476
+   * TT ID: 62320838-5ab1-4808-9a56-11e1fe349e1a
    * <p>
    *   <pre>
    *   Test Steps:
@@ -174,7 +174,7 @@ public class LaunchAndroidApplicationTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14578820
+   * TT ID: 1eb26e7c-5127-49aa-83c9-32d9ff160315
    * <p>
    *   <pre>
    *   Test Steps:
@@ -243,7 +243,7 @@ public class LaunchAndroidApplicationTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: C14578815
+   * TT ID: c8fc3fd5-1a7d-405d-974f-5e4f0b42e168
    * <p>
    *   <pre>
    *   Test Steps:
