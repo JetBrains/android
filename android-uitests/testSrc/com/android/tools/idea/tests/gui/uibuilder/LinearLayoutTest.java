@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.xml.XmlBuilder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.FileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
+import com.android.xml.XmlBuilder;
 import org.fest.swing.fixture.JTreeFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -43,7 +44,8 @@ public final class LinearLayoutTest {
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
   private Path myProjectPath;
-  private Path myStylePath;
+  private Path myNewStylePath;
+  private Path myMainStylePath;
   private Path myLayoutPath;
 
   @Before
@@ -53,8 +55,9 @@ public final class LinearLayoutTest {
 
     FileSystem fileSystem = FileSystems.getDefault();
 
-    myStylePath = fileSystem.getPath("app", "src", "main", "res", "values", "linear_layout.xml");
+    myNewStylePath = fileSystem.getPath("app", "src", "main", "res", "values", "linear_layout.xml");
     myLayoutPath = fileSystem.getPath("app", "src", "main", "res", "layout", "linear_layout.xml");
+    myMainStylePath = fileSystem.getPath("app", "src", "main", "res", "values", "styles.xml");
   }
 
   @Test
@@ -73,8 +76,8 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    FileUtils.write(myProjectPath.resolve(myStylePath), xml);
-    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout());
+    FileUtils.write(myProjectPath.resolve(myNewStylePath), xml);
+    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
 
     myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
@@ -92,19 +95,57 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    FileUtils.write(myProjectPath.resolve(myStylePath), xml);
-    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout());
+    FileUtils.write(myProjectPath.resolve(myNewStylePath), xml);
+    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
 
     myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
   }
 
+  /** Tries the case where style is referenced indirectly, e.g. through a reference in the theme. */
+  @Test
+  public void resolveAttributeStyleReference() throws IOException {
+    // @formatter:off
+    String xml = new XmlBuilder()
+      .startTag("resources")
+        // Style that defines the vertical orientation.
+        .startTag("style")
+          .attribute("name", "vertical_linear_layout")
+            .startTag("item")
+              .attribute("name", "android:orientation")
+              .characterData("vertical")
+            .endTag("item")
+        .endTag("style")
+        // Attr used to point to a style. AppTheme defines linear_layout_style to point to @style/vertical_linear_layout.
+        .startTag("attr")
+          .attribute("name", "linear_layout_style")
+          .attribute("format", "reference")
+        .endTag("attr")
+      .endTag("resources")
+      .toString();
+    // @formatter:on
+
+    FileUtils.write(myProjectPath.resolve(myNewStylePath), xml);
+    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout("?linear_layout_style"));
+
+    EditorFixture editor = myGuiTest.ideFrame().getEditor();
+    editor.open(myMainStylePath);
+    editor.moveBetween("AppTheme", "");
+    editor.invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
+
+    // Editor inserts the closing tag automatically.
+    editor.enterText("<item name=\"linear_layout_style\">@style/vertical_linear_layout");
+
+    editor.open(myLayoutPath.toString());
+    assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
+  }
+
   @NotNull
-  private static String buildLayout() {
+  private static String buildLayout(@NotNull String styleReference) {
     return new XmlBuilder()
       .startTag("LinearLayout")
       .attribute("xmlns", "android", "http://schemas.android.com/apk/res/android")
-      .attribute("style", "@style/linear_layout")
+      .attribute("style", styleReference)
       .androidAttribute("layout_width", "match_parent")
       .androidAttribute("layout_height", "match_parent")
       .endTag("LinearLayout")
