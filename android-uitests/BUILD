@@ -1,0 +1,33 @@
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+
+iml_module(
+    name = "android-uitests",
+    test_srcs = ["testSrc"],
+    test_tags = ["manual"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/adt/idea/uitest-framework[module, test]",
+        "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/android[module, test]",
+        "//tools/adt/idea/wizard[module, test]",
+        "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/base/testutils:studio.testutils[module, test]",
+        "//tools:fest-swing[module, test]",
+        "//tools/idea/java/debugger/openapi:debugger-openapi[module, test]",
+        "//tools/idea/platform/analysis-api[module, test]",
+        "//tools/idea/platform/platform-api[module, test]",
+        "//tools/idea/platform/external-system-api[module, test]",
+        "//tools/idea/java/openapi[module, test]",
+        "//tools/idea/plugins/gradle[module, test]",
+        "//tools/idea/java/compiler/openapi:compiler-openapi[module, test]",
+        "//tools/idea:java-impl[module, test]",
+        "//tools/idea:platform-impl_and_others[module]",
+        "//tools/adt/idea/designer[module, test]",
+        "//tools/base/flags:studio.flags[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/base/instantapp-deploy:studio.instantapp-deploy[module, test]",  # added manually for SdkReplacer which should be deleted according to ag/2034355
+    ],
+)
