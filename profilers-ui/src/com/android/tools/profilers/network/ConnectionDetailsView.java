@@ -274,12 +274,14 @@ public class ConnectionDetailsView extends JPanel {
 
     long sentTime = -1;
     long receivedTime = -1;
-    // Note: If download time is 0 but end time is non-zero, it means the connection was aborted or
-    // experienced some error. In that case, we can't be certain about our timings, so leave at -1.
     if (httpData.getDownloadingTimeUs() > 0) {
       sentTime = httpData.getDownloadingTimeUs() - httpData.getStartTimeUs();
       receivedTime = httpData.getEndTimeUs() - httpData.getDownloadingTimeUs();
+    } else if (httpData.getEndTimeUs() > 0) {
+      sentTime = httpData.getEndTimeUs() - httpData.getStartTimeUs();
+      receivedTime = 0;
     }
+
     Legend sentLegend = new FixedLegend("Sent", TIME_FORMATTER.apply(sentTime));
     Legend receivedLegend = new FixedLegend("Received", TIME_FORMATTER.apply(receivedTime));
     LegendComponentModel legendModel = new LegendComponentModel(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
