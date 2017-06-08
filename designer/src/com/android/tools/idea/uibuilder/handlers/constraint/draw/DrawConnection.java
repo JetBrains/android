@@ -598,7 +598,7 @@ public class DrawConnection implements DrawCommand {
             }
           }
         }
-        if (startx - endx == 0 || starty - endy == 0) {
+        if ((startx - endx == 0 ||  starty - endy == 0) &&  sourceDirection != destDirection ) {
           scale_source = 0;
           scale_dest = 0;
         }

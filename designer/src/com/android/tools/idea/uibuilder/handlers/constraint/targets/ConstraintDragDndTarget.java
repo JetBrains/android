@@ -28,6 +28,10 @@ import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutArrange;
 import com.android.tools.idea.uibuilder.scout.ScoutWidget;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,7 +105,17 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
         }
       }
       attributes.apply();
-      attributes.commit();
+
+      Project project = myComponent.getNlComponent().getModel().getProject();
+      XmlFile file = myComponent.getNlComponent().getModel().getFile();
+      WriteCommandAction action = new WriteCommandAction(project, "drag", file) {
+        @Override
+        protected void run(@NotNull Result result) throws Throwable {
+          attributes.commit();
+        }
+      };
+      action.execute();
+
     }
     if (myChangedComponent) {
       myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
