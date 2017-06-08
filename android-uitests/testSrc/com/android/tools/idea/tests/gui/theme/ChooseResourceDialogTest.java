@@ -231,9 +231,7 @@ public class ChooseResourceDialogTest {
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
 
     // Get property sheet, find text property, open customizer
-    layout.getPropertiesPanel().openAsInspector().findProperty("text").clickCustomizer();
-
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    ChooseResourceDialogFixture dialog = layout.getPropertiesPanel().openAsInspector().findProperty("text").clickCustomizer();
     JTableFixture nameTable = dialog.getResourceNameTable();
 
     assertEquals("Project                                                     \n" +
@@ -289,9 +287,7 @@ public class ChooseResourceDialogTest {
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
     NlPropertyFixture property = fixture.findProperty("srcCompat");
-    property.clickCustomizer();
-
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
     tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
 
@@ -352,9 +348,7 @@ public class ChooseResourceDialogTest {
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
     NlPropertyFixture property = fixture.findProperty("backgroundTint");
-    property.clickCustomizer();
-
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
     tabs.requireTabTitles("Drawable", "Color");
     assertThat(dialog.getSelectedTabTitle()).isEqualTo("Color");
@@ -381,9 +375,7 @@ public class ChooseResourceDialogTest {
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
     NlPropertyFixture property = fixture.findProperty("srcCompat");
-    property.clickCustomizer();
-
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
     tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
 

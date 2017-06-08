@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.Robot;
@@ -36,13 +37,14 @@ public class NlPropertyFixture {
     myValuePanel = valuePanel;
   }
 
-  public void clickCustomizer() {
+  public ChooseResourceDialogFixture clickCustomizer() {
     //JPanel
     //  TextEditor
     //  BrowsePanel
     //    ActionButton
     ActionButton button = GuiTests.waitUntilFound(myRobot, myValuePanel, Matchers.byType(ActionButton.class));
     new ComponentDriver(myRobot).click(button);
+    return ChooseResourceDialogFixture.find(myRobot);
   }
 
   public String getValue() {
