@@ -139,8 +139,9 @@ public class IdeLevel2DependenciesFactoryTest {
     };
 
     DependenciesStub dependenciesStub =
-      new DependenciesStub(Collections.emptyList(), Collections.emptyList(), Collections.singletonList(javaLibraryB),
-                           Lists.newArrayList("project1", "project2"), null);
+      new DependenciesStub(Collections.emptyList(),
+                           Collections.singletonList(javaLibraryB),
+                           Lists.newArrayList("project1", "project2"));
 
     BaseArtifactStub baseArtifactStub = new BaseArtifactStub() {
       @Override
