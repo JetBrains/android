@@ -104,7 +104,7 @@ public class LegendComponentTest {
     for (JLabel label : legend.getLabelsToDraw()) {
       // Add padding for each label.
       legendWidth += LegendComponent.LEGEND_MARGIN_PX + iconWidth;
-      legendWidth += label.getPreferredSize().width;
+      legendWidth += legend.getMaximumLabelWidth();
       height = label.getPreferredSize().height;
     }
     // Verify legends computed size is the same as ours.

@@ -101,6 +101,8 @@ public class LegendComponent extends AnimatedComponent {
   @NotNull
   private Orientation myOrientation;
 
+  private int myMaximumLabelWidth;
+
   /**
    * Legend component that renders a label, and icon for each series in a chart.
    *
@@ -115,6 +117,7 @@ public class LegendComponent extends AnimatedComponent {
     myModel.addDependency(myAspectObserver)
       .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
     setFont(AdtUiUtils.DEFAULT_FONT);
+    myMaximumLabelWidth = 0;
     modelChanged();
   }
 
@@ -153,6 +156,10 @@ public class LegendComponent extends AnimatedComponent {
 
       Dimension preferredSize = label.getPreferredSize();
       label.setBounds(0, 0, preferredSize.width, preferredSize.height);
+
+      if (preferredSize.width > myMaximumLabelWidth) {
+        myMaximumLabelWidth = preferredSize.width;
+      }
     }
     if (oldSize != getPreferredSize()) {
       revalidate();
@@ -228,7 +235,7 @@ public class LegendComponent extends AnimatedComponent {
 
       // Translate the draw position for the next set of labels.
       if (myOrientation == Orientation.HORIZONTAL) {
-        g2d.translate(labelPreferredSize.width + LEGEND_MARGIN_PX, -myVerticalPadding);
+        g2d.translate(myMaximumLabelWidth + LEGEND_MARGIN_PX, -myVerticalPadding);
       }
       else if (myOrientation == Orientation.VERTICAL) {
         g2d.translate(-xOffset, -myVerticalPadding + labelPreferredSize.height + LEGEND_VERTICAL_GAP);
@@ -274,15 +281,15 @@ public class LegendComponent extends AnimatedComponent {
       if (myOrientation == Orientation.HORIZONTAL) {
         // Due to the way we draw the legend, we always add the legend margin to the offset.
         // So if there is more than 1 element we need to compound the legend margin.
-        totalWidth += iconPaddedSize + size.width + LEGEND_MARGIN_PX;
+        totalWidth += iconPaddedSize + myMaximumLabelWidth + LEGEND_MARGIN_PX;
         if (totalHeight < size.height) {
           totalHeight = size.height;
         }
       }
       else if (myOrientation == Orientation.VERTICAL) {
         totalHeight += size.height;
-        if (totalWidth < size.width + iconPaddedSize) {
-          totalWidth = size.width + iconPaddedSize;
+        if (totalWidth < myMaximumLabelWidth + iconPaddedSize) {
+          totalWidth = myMaximumLabelWidth + iconPaddedSize;
         }
       }
     }
@@ -300,5 +307,10 @@ public class LegendComponent extends AnimatedComponent {
   @VisibleForTesting
   ImmutableList<JLabel> getLabelsToDraw() {
     return ImmutableList.copyOf(myLabelsToDraw);
+  }
+
+  @VisibleForTesting
+  public int getMaximumLabelWidth() {
+    return myMaximumLabelWidth;
   }
 }
