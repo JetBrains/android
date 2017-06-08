@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.strings;
 import com.android.tools.idea.editors.strings.table.NeedsTranslationsRowFilter;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.editors.strings.table.StringsCellEditor;
+import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.ui.TableUtils;
@@ -136,7 +136,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       ((AbstractButton)component).setSelected((Boolean)value);
     }
     else {
-      ((StringsCellEditor)cellEditor).setCellEditorValue(value);
+      ((StringTableCellEditor)cellEditor).setCellEditorValue(value);
     }
 
     cellEditor.stopCellEditing();
