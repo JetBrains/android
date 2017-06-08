@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.simpleperf;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.MethodModel;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -52,14 +53,19 @@ public class SimplePerfTraceParser {
   private final Map<Integer, SimpleperfReport.File> myFiles;
 
   /**
+   * Maps a thread id to its correspondent name.
+   */
+  private final Map<Integer, String> myThreads;
+
+  /**
    * List of samples containing method trace data.
    */
   private final List<SimpleperfReport.Sample> mySamples;
 
   /**
-   * Maps a thread id to its correspondent method call tree.
+   * Maps a {@link CpuThreadInfo} to its correspondent method call tree.
    */
-  private final Map<Integer, CaptureNode> myCallTrees;
+  private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
 
   /**
    * Maps a thread id to its last callchain collected in samples.
@@ -91,9 +97,10 @@ public class SimplePerfTraceParser {
     myTraceFile = traceFile;
     myFiles = new HashMap<>();
     mySamples = new ArrayList<>();
-    myCallTrees = new HashMap<>();
+    myCaptureTrees = new HashMap<>();
     myLastCallChain = new HashMap<>();
     myLastCallStackTopNode = new HashMap<>();
+    myThreads = new HashMap<>();
   }
 
   /**
@@ -125,8 +132,8 @@ public class SimplePerfTraceParser {
     parseSampleData();
   }
 
-  public Map<Integer, CaptureNode> getCallTrees() {
-    return myCallTrees;
+  public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
+    return myCaptureTrees;
   }
 
   public long getLostSampleCount() {
@@ -189,6 +196,10 @@ public class SimplePerfTraceParser {
           SimpleperfReport.Sample sample = record.getSample();
           mySamples.add(sample);
           break;
+        case THREAD:
+          SimpleperfReport.Thread thread = record.getThread();
+          myThreads.put(thread.getThreadId(), thread.getThreadName());
+          break;
         default:
           getLog().warn("Unexpected record data type " + record.getRecordDataCase());
       }
@@ -224,7 +235,7 @@ public class SimplePerfTraceParser {
         node.setEndGlobal(endTimestamp);
         // TODO: use thread time
         node.setEndThread(endTimestamp);
-        node = (CaptureNode)node.getParent();
+        node = node.getParent();
       }
     }
   }
@@ -234,11 +245,14 @@ public class SimplePerfTraceParser {
    * corresponding to that thread with the information obtained from the call chain.
    */
   private void parseCallChain(List<SimpleperfReport.Sample.CallChainEntry> callChain, int threadId, long timestamp) {
-    if (!myCallTrees.containsKey(threadId)) {
+    if (!myLastCallStackTopNode.containsKey(threadId)) {
       // if there is no entry for threadId in the map, create one with the main node as value.
       CaptureNode main = createCaptureNode("main", timestamp);
       main.setDepth(0);
-      myCallTrees.put(threadId, main);
+      if (!myThreads.containsKey(threadId)) {
+        throw new IllegalStateException("Malformed trace file: thread with id " + threadId + " not found.");
+      }
+      myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), main);
       myLastCallStackTopNode.put(threadId, main);
       // Initiate the previous call chain as an empty list
       myLastCallChain.put(threadId, new LinkedList<>());
@@ -279,7 +293,7 @@ public class SimplePerfTraceParser {
       node.setEndGlobal(endTimestamp);
       // TODO: use thread time
       node.setEndThread(endTimestamp);
-      node = (CaptureNode)node.getParent();
+      node = node.getParent();
     }
 
     // Node should be the parent of the first divergent node
