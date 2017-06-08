@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
+import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardFixture;
+import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,5 +42,24 @@ public class AssetStudioWizardFixture extends AbstractWizardFixture<AssetStudioW
   public NewImageAssetStepFixture getImageAssetStep() {
     JRootPane rootPane = findStepWithTitle("Configure Image Asset");
     return new NewImageAssetStepFixture(robot(), rootPane);
+  }
+
+  public IconPickerDialogFixture chooseIcon(@NotNull IdeFrameFixture ideFrameFixture) {
+    VectorIconButton vectorIconButton = ideFrameFixture.robot().finder().findByType(VectorIconButton.class);
+    new JButtonFixture(ideFrameFixture.robot(), vectorIconButton).click();
+    return IconPickerDialogFixture.find(ideFrameFixture.robot());
+  }
+
+  @NotNull
+  public AssetStudioWizardFixture enableAutoMirror() {
+    Robot robot = robot();
+    String title = "Enable auto mirroring for RTL layout";
+    JCheckBox checkbox = robot.finder().find(target(), Matchers.byText(JCheckBox.class, title));
+    Wait.seconds(1).expecting("button " + title + " to be enabled")
+      .until(() -> checkbox.isEnabled() && checkbox.isVisible() && checkbox.isShowing());
+    if (!checkbox.isSelected()) {
+      robot.click(checkbox);
+    }
+    return this;
   }
 }
