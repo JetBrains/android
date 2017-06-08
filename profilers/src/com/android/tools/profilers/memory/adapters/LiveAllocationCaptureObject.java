@@ -73,6 +73,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   private Range myQueryRange;
 
+  private Future myCurrentTask;
+
   public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                      @Nullable Common.Session session,
                                      int processId,
@@ -209,22 +211,26 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       return;
     }
 
-    long queryTimeStartNs;
-    boolean refresh = false;
-    if (startTimeNs == myPreviousQueryStartTimeNs && endTimeNs >= myPreviousQueryEndTimeNs) {
-      // If we only expanded the range to the right, then do an optimization to only query the delta.
-      // TODO add optimizations for range expansion/shrink
-      queryTimeStartNs = myPreviousQueryEndTimeNs;
-    }
-    else {
-      refresh = true;
-      myPreviousQueryStartTimeNs = startTimeNs;
-      queryTimeStartNs = myPreviousQueryStartTimeNs;
-    }
-
-    boolean clear = refresh;
     try {
-      myExecutorService.submit(() -> {
+      if (myCurrentTask != null) {
+        myCurrentTask.cancel(false);
+      }
+      myCurrentTask = myExecutorService.submit(() -> {
+        long queryTimeStartNs;
+        boolean refresh = false;
+        if (startTimeNs == myPreviousQueryStartTimeNs && endTimeNs >= myPreviousQueryEndTimeNs) {
+          // If we only expanded the range to the right, then do an optimization to only query the delta.
+          // TODO add optimizations for range expansion/shrink
+          queryTimeStartNs = myPreviousQueryEndTimeNs;
+        }
+        else {
+          refresh = true;
+          myPreviousQueryStartTimeNs = startTimeNs;
+          queryTimeStartNs = myPreviousQueryStartTimeNs;
+        }
+
+        boolean clear = refresh;
+
         int totalChanged = 0;
         List<InstanceObject> instancesAdded = new ArrayList<>();
         List<InstanceObject> instancesFreed = new ArrayList<>();
