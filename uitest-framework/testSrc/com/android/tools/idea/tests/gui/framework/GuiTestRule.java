@@ -171,7 +171,7 @@ public class GuiTestRule implements TestRule {
     }
   }
 
-  private void tearDownProject() {
+  protected void tearDownProject() {
     if (myProjectPath != null) {
       if (ideFrame().target().isShowing()) {
         ideFrame().closeProject();
