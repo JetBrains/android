@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.BothModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
+import com.android.tools.idea.actions.RtlAction;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.actions.IssueNotificationAction;
@@ -53,6 +54,8 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new DeviceMenuAction(mySurface::getConfiguration));
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
+    group.add(new RtlAction(mySurface));
+
     group.addSeparator();
 
     group.add(new LocaleMenuAction(mySurface::getConfiguration));
