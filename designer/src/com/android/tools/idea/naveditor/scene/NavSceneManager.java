@@ -133,12 +133,10 @@ public class NavSceneManager extends SceneManager {
   private static void updateRootBounds(@NotNull SceneComponent root) {
     Rectangle bounds = new Rectangle(0, 0, -1, -1);
     Rectangle temp = new Rectangle();
+    // TODO: include targets
     root.flatten().filter(c -> c != root).forEach(component -> bounds.add(component.fillDrawRect(0, temp)));
-    if (bounds.width > 0) {
-      bounds.add(0, 0);
-    }
-    root.setPosition(0, 0);
-    root.setSize(bounds.width + 20, bounds.height + 20, false);
+    root.setPosition(bounds.x - 50, bounds.y - 50);
+    root.setSize(bounds.width + 100, bounds.height + 100, false);
   }
 
   @Override
@@ -189,8 +187,8 @@ public class NavSceneManager extends SceneManager {
   }
 
   private void layoutAll(@NotNull SceneComponent root) {
-    root.flatten().forEach(component -> component.setPosition(0, 0));
-    root.flatten().forEach(myLayoutAlgorithm::layout);
+    root.flatten().filter(component -> component.getParent() != null).forEach(component -> component.setPosition(0, 0));
+    root.flatten().filter(component -> component.getParent() != null).forEach(myLayoutAlgorithm::layout);
   }
 
   @Override
@@ -217,6 +215,7 @@ public class NavSceneManager extends SceneManager {
     return ImmutableMap.of();
   }
 
+  // TODO: this should be moved somewhere model-specific, since it is relevant even absent a Scene
   public static void updateHierarchy(@NotNull NlModel model, @Nullable NlModel newModel) {
     List<NlModel.TagSnapshotTreeNode> roots = ImmutableList.of();
     XmlTag newRoot = AndroidPsiUtils.getRootTagSafely(model.getFile());
@@ -228,8 +227,6 @@ public class NavSceneManager extends SceneManager {
       // TODO error handling (if newRoot is null)
       model.syncWithPsi(newRoot, roots);
     }
-    // TODO: should this be here?
-    model.notifyModified(NlModel.ChangeType.EDIT);
   }
 
   private class ModelChangeListener implements ModelListener {
@@ -240,6 +237,7 @@ public class NavSceneManager extends SceneManager {
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
+      updateHierarchy(model, model);
       requestRender();
     }
 
