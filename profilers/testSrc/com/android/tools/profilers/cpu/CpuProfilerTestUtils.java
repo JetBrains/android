@@ -34,7 +34,11 @@ public class CpuProfilerTestUtils {
   private CpuProfilerTestUtils() {}
 
   public static ByteString traceFileToByteString(@NotNull String filename) throws IOException {
+    return ByteString.copyFrom(Files.readAllBytes(getTraceFile(filename).toPath()));
+  }
+
+  public static File getTraceFile(@NotNull String filename) {
     File traceFile = TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
-    return ByteString.copyFrom(Files.readAllBytes(traceFile.toPath()));
+    return traceFile;
   }
 }
