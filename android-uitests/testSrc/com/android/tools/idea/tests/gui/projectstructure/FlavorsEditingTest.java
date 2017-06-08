@@ -37,7 +37,7 @@ public class FlavorsEditingTest {
    * <p>
    * This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TR ID: 14606142
+   * TT ID: bea78054-1424-4c19-a4e5-aff2596d04e2
    * <p>
    *   <pre>
    *   Steps:
