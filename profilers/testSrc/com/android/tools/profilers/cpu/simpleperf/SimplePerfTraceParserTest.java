@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.MethodModel;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
@@ -48,14 +49,14 @@ public class SimplePerfTraceParserTest {
   @Test
   public void samplesAndLostCountShouldMatchSimpleperfReport() throws IOException {
     myParser.parseTraceFile();
-    assertEquals(40841, myParser.getSampleCount());
-    assertEquals(644, myParser.getLostSampleCount());
+    assertEquals(32844, myParser.getSampleCount());
+    assertEquals(10396, myParser.getLostSampleCount());
   }
 
   @Test
   public void allTreesShouldStartWithMain() throws IOException {
     myParser.parse();
-    Map<Integer, CaptureNode> callTrees = myParser.getCallTrees();
+    Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
     for (CaptureNode tree : callTrees.values()) {
       assertNotNull(tree.getData());
       assertEquals("main", tree.getData().getName());
@@ -65,7 +66,7 @@ public class SimplePerfTraceParserTest {
   @Test
   public void nodeDepthsShouldBeCoherent() throws IOException {
     myParser.parse();
-    CaptureNode anyTree = myParser.getCallTrees().values().iterator().next();
+    CaptureNode anyTree = myParser.getCaptureTrees().values().iterator().next();
     assertEquals(0, anyTree.getDepth());
 
     // Just go as deep as possible in one branch per child and check the depths of each node in the branch
@@ -82,13 +83,17 @@ public class SimplePerfTraceParserTest {
   @Test
   public void mainProcessShouldBePresent() throws IOException {
     myParser.parse();
-    CaptureNode mainThread = myParser.getCallTrees().get(16246 /* App pid */);
+    CaptureNode mainThread = myParser.getCaptureTrees().entrySet().stream()
+      .filter(entry -> entry.getKey().getId() == 24358 /* App pid */)
+      .map(Map.Entry::getValue)
+      .findAny()
+      .orElse(null);
     assertNotNull(mainThread);
   }
 
   @Test
   public void fileIdsShouldBeMappedToAnExistingFile() throws IOException {
-    ByteString traceBytes = traceFileToByteString("simpleperf_missing_file.trace");
+    ByteString traceBytes = traceFileToByteString("simpleperf_malformed.trace");
     File trace = FileUtil.createTempFile("cpu_trace", ".trace");
     try (FileOutputStream out = new FileOutputStream(trace)) {
       out.write(traceBytes.toByteArray());
@@ -97,10 +102,9 @@ public class SimplePerfTraceParserTest {
 
     try {
       myParser.parse();
-      fail("IllegalStateException should have been thrown due to missing file.");
+      fail("IllegalStateException should have been thrown due to malformed file.");
     } catch (IllegalStateException e) {
-      assertTrue(e.getMessage().contains("Symbol file with id"));
-      assertTrue(e.getMessage().contains("not found"));
+      assertTrue(e.getMessage().contains("Malformed trace file"));
       // Do nothing. Expected exception.
     }
   }
