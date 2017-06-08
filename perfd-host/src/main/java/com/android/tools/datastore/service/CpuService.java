@@ -24,7 +24,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
-import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,6 +42,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   private final Map<Integer, PollRunner> myRunners = new HashMap<>();
   private final Consumer<Runnable> myFetchExecutor;
   private long myStartTraceTimestamp = -1;
+  private CpuProfiler.CpuProfilerType myProfilerType;
 
   @NotNull
   private final CpuTable myCpuTable;
@@ -164,6 +164,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
     if (client != null) {
       myStartTraceTimestamp = getCurrentDeviceTimeNs(request.getSession());
+      myProfilerType = request.getProfilerType();
       observer.onNext(client.startProfilingApp(request));
     }
     else {
@@ -183,9 +184,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
         .setTraceId(response.getTraceId())
         .setFromTimestamp(myStartTraceTimestamp)
         .setToTimestamp(getCurrentDeviceTimeNs(request.getSession()))
+        .setProfilerType(myProfilerType)
         .build();
       myCpuTable.insertTrace(trace, request.getSession(), response.getTrace());
       myStartTraceTimestamp = -1;
+      myProfilerType = null;
     }
     observer.onNext(response);
     observer.onCompleted();
@@ -206,13 +209,13 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> observer) {
-    ByteString data = myCpuTable.getTraceData(request.getTraceId(), request.getSession());
+    CpuTable.TraceData data = myCpuTable.getTraceData(request.getTraceId(), request.getSession());
     CpuProfiler.GetTraceResponse.Builder builder = CpuProfiler.GetTraceResponse.newBuilder();
     if (data == null) {
       builder.setStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
     }
     else {
-      builder.setStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS).setData(data);
+      builder.setStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS).setData(data.getTraceBytes()).setProfilerType(data.getProfilerType());
     }
 
     observer.onNext(builder.build());
