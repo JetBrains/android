@@ -37,6 +37,17 @@ import static java.awt.BasicStroke.JOIN_MITER;
 
 public class LineChart extends AnimatedComponent {
 
+  static final float EPSILON = 1e-4f;
+
+  // Helper structure to cache dash-related info used in a previous frame, so we can compensate for where the dash starts in the next frame.
+  private static class DashInfo {
+    double myPreviousFirstX;
+    double myPreviousXMin;
+    double myPreviousXLength;
+    double myPreviousYLength;
+    Path2D myPreviousDashPath;
+  }
+
   @NotNull final LineChartModel myModel;
 
   /**
@@ -89,6 +100,8 @@ public class LineChart extends AnimatedComponent {
   private long myLastCount;
   private long myLastDraws;
   private long myLastRedraws;
+
+  private Map<LineConfig, DashInfo> myDashInfoCache = new HashMap<>();
 
   @VisibleForTesting
   public LineChart(@NotNull LineChartModel model, @NotNull LineChartReducer reducer) {
@@ -154,7 +167,7 @@ public class LineChart extends AnimatedComponent {
     opaqueRepaint();
   }
 
-  private void redraw() {
+  private void redraw(@NotNull Dimension dim) {
     long duration = System.nanoTime();
 
     // Store the last stacked series to use them to increment the Y values
@@ -175,7 +188,8 @@ public class LineChart extends AnimatedComponent {
       if (config.isStacked()) {
         if (lastStackedSeries == null) {
           lastStackedSeries = new ArrayList<>(seriesList);
-        } else {
+        }
+        else {
           // If the current series is stacked, increment its value by the value of the last stacked
           // series.
           // As the series are constantly populated, the current series might have one more
@@ -184,7 +198,8 @@ public class LineChart extends AnimatedComponent {
           for (int i = 0; i < seriesList.size(); ++i) {
             if (i < lastStackedSeries.size()) {
               lastStackedSeries.get(i).value += seriesList.get(i).value;
-            } else {
+            }
+            else {
               lastStackedSeries.add(seriesList.get(i));
             }
           }
@@ -200,6 +215,8 @@ public class LineChart extends AnimatedComponent {
 
       // X coordinate of the first point
       double firstXd = 0f;
+      // Actual value of first point
+      double firstX = 0;
       seriesList = myReducer.reduceData(seriesList, config);
       for (SeriesData<Long> data : seriesList) {
         // TODO: refactor to allow different types (e.g. double)
@@ -210,6 +227,7 @@ public class LineChart extends AnimatedComponent {
         if (path.getCurrentPoint() == null) {
           path.moveTo(xd, yd);
           firstXd = xd;
+          firstX = data.x;
         }
         else {
           // If the chart is stepped, a horizontal line should be drawn from the current
@@ -240,6 +258,27 @@ public class LineChart extends AnimatedComponent {
         orderedPaths.addLast(path);
         orderedConfigs.addLast(config);
       }
+
+      if (config.isDash() && config.isAdjustDash()) {
+        DashInfo dashInfo;
+        if (!myDashInfoCache.containsKey(config)) {
+          dashInfo = new DashInfo();
+          myDashInfoCache.put(config, dashInfo);
+          // No previous dataInfo so don't bother trying to adjust dash phase.
+        }
+        else {
+          dashInfo = myDashInfoCache.get(config);
+          computeAdjustedDashPhase(dashInfo, config, path, dim, firstX, xMin, xLength, yLength);
+        }
+        dashInfo.myPreviousFirstX = firstX;
+        dashInfo.myPreviousXMin = xMin;
+        dashInfo.myPreviousXLength = xLength;
+        dashInfo.myPreviousYLength = yLength;
+        dashInfo.myPreviousDashPath = path;
+      }
+      else {
+        myDashInfoCache.remove(config);
+      }
     }
 
     myLinePaths.clear();
@@ -266,7 +305,7 @@ public class LineChart extends AnimatedComponent {
     myDraws++;
     if (myRedraw) {
       myRedraw = false;
-      redraw();
+      redraw(dim);
       myRedraws++;
     }
     else {
@@ -326,12 +365,13 @@ public class LineChart extends AnimatedComponent {
       else {
         g2d.setColor(lineColor);
       }
-      g2d.setStroke(config.getStroke());
+      g2d.setStroke(config.isDash() && config.isAdjustDash() ? config.getAdjustedStroke() : config.getStroke());
       if (config.isStepped()) {
         // In stepped mode, everything is at right angles, and turning off anti-aliasing
         // in this case makes everything look sharper in a good way.
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-      } else {
+      }
+      else {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       }
 
@@ -354,6 +394,104 @@ public class LineChart extends AnimatedComponent {
 
   public void setMaxLineMargin(int maxLineMargin) {
     myMaxLineMargin = maxLineMargin;
+  }
+
+  /**
+   * Computes the dash phase that a {@link LineConfig} should use to start its next path by comparing it to the last path that was drawn.
+   */
+  private void computeAdjustedDashPhase(@NotNull DashInfo dashInfo,
+                                        @NotNull LineConfig config,
+                                        @NotNull Path2D path,
+                                        @NotNull Dimension dim,
+                                        double firstX,
+                                        double xMin,
+                                        double xLength,
+                                        double yLength) {
+    // Only tries to adjust the dash phase iff:
+    // 1. The lengths in both x and y directions have not changed. Otherwise the path would have been scaled differently anyway and there
+    //    isn't a point to try to compensate
+    // 2. The x min values between the two frames have not changed more than half the length. The constraint is somewhat arbitrary but
+    //    it gives us enough room to locate the new starting X value on the old path, and vice versa.
+    if (Math.abs(dashInfo.myPreviousXLength - xLength) > EPSILON ||
+        Math.abs(dashInfo.myPreviousYLength - yLength) > EPSILON ||
+        Math.abs(dashInfo.myPreviousXMin - xMin) > (xLength / 2f)) {
+      return;
+    }
+
+    Path2D pathToUse = null;
+    double firstXd = 0;
+    boolean newPathIsAhead = false;
+    if (xMin - dashInfo.myPreviousXMin > EPSILON) {
+      // If the new xMin is ahead, then calculate the pixel length between myPreviousX and xMin on the OLD path
+      pathToUse = dashInfo.myPreviousDashPath;
+      firstXd = (firstX - dashInfo.myPreviousXMin) / xLength;
+      newPathIsAhead = true;
+    }
+    else if (dashInfo.myPreviousXMin - xMin > EPSILON) {
+      // If the new xMin is trailing, then calculate the pixel length between xMin and myPreviousX on the NEW path
+      pathToUse = path;
+      firstXd = (dashInfo.myPreviousFirstX - xMin) / xLength;
+    }
+
+    if (pathToUse == null || pathToUse.getCurrentPoint() == null) {
+      return;
+    }
+
+    // Dash pattern length in pixel
+    float dashPatternLength = config.getDashLength();
+    // Length of path between myPreviousXMin and xMin
+    double deltaPathLength = 0;
+
+    // Starting from the beginning of the path. Accumulate the path length until we've reached firstXd - the path length tells us
+    // how much we need to adjust the dash phase by.
+    PathIterator iterator = pathToUse.getPathIterator(null);
+    float[] coords = new float[6];
+    int segType = iterator.currentSegment(coords);
+    assert segType == PathIterator.SEG_MOVETO;
+    // Special case first point - if the x coordinate for the first point has not changed, use the same dash phase.
+    if (Math.abs(coords[0] - firstXd) < EPSILON) {
+      return;
+    }
+
+    double prevX = coords[0];
+    double prevY = coords[1];
+    iterator.next();
+    while (!iterator.isDone()) {
+      segType = iterator.currentSegment(coords);
+      assert segType == PathIterator.SEG_LINETO;
+      if (coords[0] - firstXd >= EPSILON) {
+        // Special case: firstXd could have been reduced away from the series data list if it holds the same y value.
+        // Here we make sure the length from firstXd - prevX is accounted for.
+        if (firstXd - prevX >= EPSILON) {
+          deltaPathLength += (firstXd - prevX) * dim.width;
+        }
+        break;
+      }
+
+      if (config.isStepped()) {
+        deltaPathLength += Math.abs(coords[0] - prevX) * dim.width + Math.abs(coords[1] - prevY) * dim.height;
+      }
+      else {
+        deltaPathLength += Math.hypot((coords[0] - prevX) * dim.width, (coords[1] - prevY) * dim.height);
+      }
+      prevX = coords[0];
+      prevY = coords[1];
+
+      iterator.next();
+    }
+
+    // Update dash phase.
+    double dashPhase = config.getAdjustedDashPhase();
+    if (newPathIsAhead) {
+      dashPhase = (dashPhase + deltaPathLength) % dashPatternLength;
+    }
+    else {
+      dashPhase = (dashPhase - deltaPathLength) % dashPatternLength;
+      if (dashPhase < 0) {
+        dashPhase += dashPatternLength;
+      }
+    }
+    config.setAdjustedDashPhase(dashPhase);
   }
 
   /**
