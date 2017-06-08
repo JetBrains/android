@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.strings;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.editors.strings.table.StringsCellEditor;
+import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -48,7 +48,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
@@ -59,8 +58,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
@@ -122,42 +119,16 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     myRemoveKeysAction.actionPerformed(null);
   }
 
-  interface TextChangeListener {
-    void textChanged(@NotNull String text);
+  void addDocumentListener(@NotNull DocumentListener listener) {
+    ((StringTableCellEditor)myTable.getDefaultEditor(String.class)).getComponent().getDocument().addDocumentListener(listener);
+    myDefaultValueTextField.getTextField().getDocument().addDocumentListener(listener);
+    myTranslationTextField.getTextField().getDocument().addDocumentListener(listener);
   }
 
-  void addTextChangeListener(@NotNull TextChangeListener listener) {
-
-    FocusListener focusListener = new FocusAdapter() {
-      @Override
-      public void focusGained(@NotNull FocusEvent event) {
-        JTextComponent textComponent = (JTextComponent)event.getSource();
-        listener.textChanged(textComponent.getText());
-      }
-    };
-    myDefaultValueTextField.getTextField().addFocusListener(focusListener);
-    myTranslationTextField.getTextField().addFocusListener(focusListener);
-    ((StringsCellEditor)myTable.getDefaultEditor(String.class)).getTextField().addFocusListener(focusListener);
-
-    DocumentListener documentListener = new DocumentAdapter() {
-      @Override
-      protected void textChanged(@NotNull DocumentEvent event) {
-        listener.textChanged(getText(event.getDocument()));
-      }
-    };
-    myDefaultValueTextField.getTextField().getDocument().addDocumentListener(documentListener);
-    myTranslationTextField.getTextField().getDocument().addDocumentListener(documentListener);
-    ((StringsCellEditor)myTable.getDefaultEditor(String.class)).getTextField().getDocument().addDocumentListener(documentListener);
-  }
-
-  @NotNull
-  private static String getText(@NotNull Document document) {
-    try {
-      return document.getText(0, document.getLength());
-    }
-    catch (BadLocationException e) {
-      return "";
-    }
+  void addFocusListener(@NotNull FocusListener listener) {
+    ((StringTableCellEditor)myTable.getDefaultEditor(String.class)).getComponent().addFocusListener(listener);
+    myDefaultValueTextField.getTextField().addFocusListener(listener);
+    myTranslationTextField.getTextField().addFocusListener(listener);
   }
 
   private void createUIComponents() {
