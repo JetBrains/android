@@ -57,11 +57,13 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
     return super.deleteAvd(avdName.replace(' ', '_'));
   }
 
-  public void stopRunningAvd() {
-    String command = getAdbBinary().getPath() + " emu kill";
+  public void killEmulatorProcesses() {
     try {
-      Process p = Runtime.getRuntime().exec(command);
-      p.waitFor();
+      // Kill emulator crash report dialogs left behind
+      Runtime.getRuntime().exec("pkill -9 qemu").waitFor();
+      // Kill emulator crash report dialogs left behind.
+      // Note that pgrep matches up to 15 characters.
+      Runtime.getRuntime().exec("pkill -9 emulator64-cra").waitFor();
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
