@@ -158,7 +158,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public boolean canBeDependency() {
     int projectType = getProjectType();
-    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
+    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_ATOM;
   }
 
   public boolean isLibraryProject() {
