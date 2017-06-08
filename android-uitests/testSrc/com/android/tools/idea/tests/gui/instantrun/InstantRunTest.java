@@ -53,7 +53,7 @@ public class InstantRunTest {
 
   private static final String APP_NAME = "app";
   private static final Pattern RUN_OUTPUT =
-    Pattern.compile(".*adb shell am start .*google\\.simpleapplication.*Connected to process (\\d+) .*", Pattern.DOTALL);
+    Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern CMAKE_RUN_OUTPUT =
     Pattern.compile(".*adb shell am start .*google\\.basiccmake.*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern HOT_SWAP_OUTPUT =
@@ -506,5 +506,54 @@ public class InstantRunTest {
       pid = m.group(1);
     }
     return pid;
+  }
+
+
+  /**
+   * Verifies that Studio InstantRun performs a full build and reinstall when manifest values are changed
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: b8a07ba8-a6ff-4fe3-ac83-52c8e7c02465
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open test project
+   *   2. Hit Run and deploy app to emulator running API level 23.
+   *   3. Open app/manifests/AndroidManifest.xml
+   *   4. Change android:label="@string/app_name" to android:label="Instant Run"
+   *   5. Hit Instant Run
+   *   Verify:
+   *   Verify that Android Studio does a full build and re-installs the app.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA_UNRELIABLE) // http://b/62204067
+  @Test
+  public void fullBuildAndReinstall() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProject("Topeka");
+    emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
+                       "x86 Images",
+                       new ChooseSystemImageStepFixture.SystemImage("Marshmallow", "23", "x86", "Android 6.0"),
+                       "device under test");
+    ideFrameFixture
+      .runApp(APP_NAME)
+      .selectDevice(emulator.getDefaultAvdName())
+      .clickOk();
+
+    ideFrameFixture
+      .getRunToolWindow()
+      .findContent(APP_NAME)
+      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+
+    ideFrameFixture
+      .getEditor()
+      .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+      .select("android:label=([\\S]*)")
+      .enterText("\"Instant Run\"");
+
+    ideFrameFixture
+      .waitForGradleProjectSyncToFinish()
+      .findApplyChangesButton()
+      .click();
   }
 }
