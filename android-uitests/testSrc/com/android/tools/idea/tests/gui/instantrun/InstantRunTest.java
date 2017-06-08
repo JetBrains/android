@@ -577,8 +577,7 @@ public class InstantRunTest {
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
 
-    Pattern RUN_OUTPUT =
-      Pattern.compile(".*Connected to process.*", Pattern.DOTALL);;
+    Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
     ExecutionToolWindowFixture.ContentFixture contentFixture =
       ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
