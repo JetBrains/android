@@ -149,7 +149,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
       variableToSearchPattern("quotient", "int", "512")
     };
     checkAppIsPaused(projectFrame, expectedPatterns);
-    assertThat(debugToolWindowFixture.getJavaDebuggerContent("app-java")).isNull();
+    assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNull();
     stopDebugSession(debugToolWindowFixture);
   }
 
@@ -207,7 +207,7 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
       variableToSearchPattern("s", "\"Success. Sum = 55, Product = 3628800, Quotient = 512\""),
     };
     checkAppIsPaused(ideFrameFixture, expectedPatterns);
-    assertThat(debugToolWindowFixture.getJavaDebuggerContent("app-java")).isNotNull();
+    assertThat(debugToolWindowFixture.getDebuggerContent("app-java")).isNotNull();
     // TODO Stop the session.
   }
 
