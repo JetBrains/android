@@ -68,6 +68,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   private final EventMonitor myEventMonitor;
   private final StackTraceModel myStackTraceModel;
   private final SelectionModel mySelectionModel;
+  private final HttpDataFetcher myHttpDataFetcher;
 
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
@@ -109,6 +110,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
         setProfilerMode(ProfilerMode.NORMAL);
       }
     });
+
+    myHttpDataFetcher = new HttpDataFetcher(myConnectionsModel, timeline.getSelectionRange());
   }
 
   @NotNull
@@ -124,6 +127,11 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   @NotNull
   public StackTraceModel getStackTraceModel() {
     return myStackTraceModel;
+  }
+
+  @NotNull
+  public HttpDataFetcher getHttpDataFetcher() {
+    return myHttpDataFetcher;
   }
 
   /**
@@ -189,7 +197,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().register(myConnectionsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myTooltipLegends);
-
+    getStudioProfilers().getUpdater().register(myHttpDataFetcher);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -205,6 +213,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().unregister(myConnectionsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myTooltipLegends);
+    getStudioProfilers().getUpdater().unregister(myHttpDataFetcher);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 

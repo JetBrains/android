@@ -74,13 +74,15 @@ class ConnectionsStateChart {
     DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
     series.add(0, NetworkState.NONE);
     for (HttpData data : dataList) {
+      if (data.getEndTimeUs() == 0) {
+        continue;
+      }
+
       series.add(data.getStartTimeUs(), NetworkState.SENDING);
       if (data.getDownloadingTimeUs() > 0) {
         series.add(data.getDownloadingTimeUs(), NetworkState.RECEIVING);
       }
-      if (data.getEndTimeUs() > 0) {
-        series.add(data.getEndTimeUs(), NetworkState.NONE);
-      }
+      series.add(data.getEndTimeUs(), NetworkState.NONE);
     }
     StateChartModel<NetworkState> stateModel = new StateChartModel<>();
     StateChart<NetworkState> chart = new StateChart<>(stateModel, myColors);
