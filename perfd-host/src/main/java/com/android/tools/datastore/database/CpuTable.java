@@ -32,9 +32,19 @@ import java.util.TreeMap;
 
 public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
   private static final int DATA_COLUMN = 1;
+
   private static final int TRACE_ID_COLUMN = 1;
   private static final int FROM_TIMESTAMP_COLUMN = 2;
   private static final int TO_TIMESTAMP_COLUMN = 3;
+
+  /**
+   * Profiler type column number when querying trace info.
+   */
+  private static final int PROFILER_TYPE_COLUMN_TRACE_INFO = 4;
+  /**
+   * Profiler type column number when querying trace data.
+   */
+  private static final int PROFILER_TYPE_COLUMN_TRACE_DATA = 2;
 
   public enum CpuStatements {
     INSERT_THREAD_ACTIVITY,
@@ -71,6 +81,7 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
                   "Session INTEGER NOT NULL",
                   "StartTime INTEGER",
                   "EndTime INTEGER",
+                  "ProfilerType TEXT",
                   "Data BLOB");
       createUniqueIndex("Cpu_Data", "AppId", "Timestamp", "Session");
       createUniqueIndex("Cpu_Trace", "TraceId", "Session");
@@ -89,11 +100,11 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
       createStatement(CpuTable.CpuStatements.QUERY_CPU_DATA,
                       "SELECT Data from Cpu_Data WHERE AppId = ? AND Session = ? AND Timestamp > ? AND Timestamp <= ? ");
       createStatement(CpuTable.CpuStatements.QUERY_TRACE_INFO,
-                      "SELECT TraceId, StartTime, EndTime from Cpu_Trace WHERE " +
+                      "SELECT TraceId, StartTime, EndTime, ProfilerType from Cpu_Trace WHERE " +
                       "Session = ? AND ((StartTime < ? AND ? <= EndTime) OR (StartTime > ? AND EndTime = 0));");
-      createStatement(CpuTable.CpuStatements.FIND_TRACE_DATA, "SELECT Data from Cpu_Trace WHERE TraceId = ? AND Session = ?");
+      createStatement(CpuTable.CpuStatements.FIND_TRACE_DATA, "SELECT Data, ProfilerType from Cpu_Trace WHERE TraceId = ? AND Session = ?");
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_DATA,
-                      "INSERT INTO Cpu_Trace (TraceId, Session, StartTime, EndTime, Data) values (?, ?, ?, ?, ?)");
+                      "INSERT INTO Cpu_Trace (TraceId, Session, StartTime, EndTime, ProfilerType, Data) values (?, ?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_THREAD_ACTIVITY,
                       "INSERT OR REPLACE INTO Thread_Activities " +
                       "(AppId, Session, ThreadId, Timestamp, State, Name) VALUES (?, ?, ?, ?, ?, ?)");
@@ -214,6 +225,7 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
         data.setTraceId(results.getInt(TRACE_ID_COLUMN));
         data.setFromTimestamp(results.getLong(FROM_TIMESTAMP_COLUMN));
         data.setToTimestamp(results.getLong(TO_TIMESTAMP_COLUMN));
+        data.setProfilerType(CpuProfiler.CpuProfilerType.valueOf(results.getString(PROFILER_TYPE_COLUMN_TRACE_INFO)));
         traceInfo.add(data.build());
       }
     }
@@ -223,13 +235,15 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
     return traceInfo;
   }
 
-  public ByteString getTraceData(int traceId, Common.Session session) {
+  public TraceData getTraceData(int traceId, Common.Session session) {
     try {
       ResultSet results = executeQuery(CpuStatements.FIND_TRACE_DATA, traceId, session);
       if (results.next()) {
         byte[] data = results.getBytes(DATA_COLUMN);
         if (data != null) {
-          return ByteString.copyFrom(data);
+          CpuProfiler.CpuProfilerType profilerType =
+            CpuProfiler.CpuProfilerType.valueOf(results.getString(PROFILER_TYPE_COLUMN_TRACE_DATA));
+          return new TraceData(ByteString.copyFrom(data), profilerType);
         }
       }
     }
@@ -241,7 +255,7 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
 
   public void insertTrace(CpuProfiler.TraceInfo trace, Common.Session session, ByteString data) {
     execute(CpuStatements.INSERT_TRACE_DATA, trace.getTraceId(), session, trace.getFromTimestamp(), trace.getToTimestamp(),
-            data.toByteArray());
+            trace.getProfilerType().toString(), data.toByteArray());
   }
 
   private static CpuProfiler.GetThreadsResponse.Thread.Builder createThreadBuilder(int tid, String name) {
@@ -249,5 +263,26 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
     thread.setTid(tid);
     thread.setName(name);
     return thread;
+  }
+
+  /**
+   * Trace data wrapper that contains the trace bytes and the profiler type (e.g. simpleperf, ART) used to generate it.
+   */
+  public static class TraceData {
+    private ByteString myTraceBytes;
+    private CpuProfiler.CpuProfilerType myProfilerType;
+
+    public TraceData(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType) {
+      myTraceBytes = traceBytes;
+      myProfilerType = profilerType;
+    }
+
+    public ByteString getTraceBytes() {
+      return myTraceBytes;
+    }
+
+    public CpuProfiler.CpuProfilerType getProfilerType() {
+      return myProfilerType;
+    }
   }
 }
