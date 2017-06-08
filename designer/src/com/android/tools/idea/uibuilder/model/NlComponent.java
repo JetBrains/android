@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
@@ -388,13 +389,17 @@ public class NlComponent implements NlAttributesHolder {
       return null;
     }
 
-    StyleResourceValue styleResourceValue = (StyleResourceValue)resources.findResValue(styleAttributeValue, false);
+    // Pretend the style was referenced from a proper resource by constructing a temporary ResourceValue. TODO: aapt namespace?
+    ResourceValue tmpResourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.STYLE, myTagName),
+                                                       styleAttributeValue);
 
-    if (styleResourceValue == null) {
+    ResourceValue styleResourceValue = resources.resolveResValue(tmpResourceValue);
+
+    if (!(styleResourceValue instanceof StyleResourceValue)) {
       return null;
     }
 
-    ResourceValue itemResourceValue = resources.findItemInStyle(styleResourceValue, attribute, true);
+    ResourceValue itemResourceValue = resources.findItemInStyle((StyleResourceValue)styleResourceValue, attribute, true);
 
     if (itemResourceValue == null) {
       return null;

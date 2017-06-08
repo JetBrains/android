@@ -29,6 +29,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -238,7 +239,7 @@ class PsiResourceItem extends ResourceItem {
     assert myTag != null;
     for (XmlTag child : myTag.getSubTags()) {
       String name = getAttributeValue(child, ATTR_NAME);
-      if (name != null) {
+      if (!StringUtil.isEmpty(name)) {
         // is the attribute in the android namespace?
         boolean isFrameworkAttr = styleValue.isFramework();
         if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
