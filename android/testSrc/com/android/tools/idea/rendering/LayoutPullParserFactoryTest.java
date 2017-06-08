@@ -19,7 +19,6 @@ import com.android.ide.common.fonts.*;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
-import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,7 +33,8 @@ import org.w3c.dom.Element;
 import java.io.File;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class LayoutPullParserFactoryTest extends RenderTestBase {
@@ -70,7 +70,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     Element root = ((DomPullParser)parser).getRoot();
 
     String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
-    String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
+    String expectedLayout = Joiner.on(System.lineSeparator()).join(
       "<ImageView",
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
       "layout_width=\"fill_parent\"",
@@ -113,7 +113,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     Element root = ((DomPullParser)parser).getRoot();
 
     String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
-    String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
+    String expectedLayout = Joiner.on(System.lineSeparator()).join(
       "<ImageView",
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
       "layout_width=\"fill_parent\"",
@@ -142,7 +142,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
 
     String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
     String labelColor = "#" + ColorUtil.toHex(UIUtil.getLabelForeground());
-    String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
+    String expectedLayout = Joiner.on(System.lineSeparator()).join(
       "<LinearLayout",
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
       "layout_width=\"fill_parent\"",
@@ -201,7 +201,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
 
     String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
     String labelColor = "#" + ColorUtil.toHex(UIUtil.getLabelForeground());
-    String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
+    String expectedLayout = Joiner.on(System.lineSeparator()).join(
       "<LinearLayout",
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
       "layout_width=\"fill_parent\"",

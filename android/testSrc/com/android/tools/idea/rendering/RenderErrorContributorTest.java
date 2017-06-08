@@ -19,10 +19,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.utils.SdkUtils;
+import com.android.utils.StringHelper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
@@ -170,7 +169,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     throwable.setStackTrace(frames.toArray(new StackTraceElement[frames.size()]));
 
     // Dump stack back to string to make sure we have the same exception
-    desc = desc.replace("\n", SdkUtils.getLineSeparator());
+    desc = StringHelper.toSystemLineSeparator(desc);
     assertEquals(desc, AndroidCommonUtils.getStackTrace(throwable));
 
     return throwable;
