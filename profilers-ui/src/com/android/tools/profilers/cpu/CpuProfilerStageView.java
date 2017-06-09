@@ -198,6 +198,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
           myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectThread();
         }
       }
+      else {
+        myStage.setSelectedThread(CaptureModel.NO_THREAD);
+      }
     });
     JScrollPane scrollingThreads = new MyScrollPane();
     scrollingThreads.setViewportView(myThreads);
