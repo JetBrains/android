@@ -25,7 +25,10 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.exceptionCases.AbstractExceptionCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
@@ -85,5 +88,45 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
       runConfiguration = createAndroidTestConfigurationFromClass(getProject(), "com.example.instantapp.ExampleInstrumentedTest");
     assertNotNull(runConfiguration);
     runConfiguration.checkConfiguration();
+  }
+
+  public void testRunConfigurationFailsIfWrongURL() throws Throwable {
+    loadProject(INSTANT_APP, "instant-app");
+
+    // Create one run configuration
+    List<RunConfiguration> configurations =
+      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
+    assertEquals(1, configurations.size());
+    RunConfiguration configuration = configurations.get(0);
+    assertInstanceOf(configuration, AndroidRunConfiguration.class);
+    AndroidRunConfiguration runConfig = (AndroidRunConfiguration)configuration;
+
+    runConfig.setLaunchUrl("UrlNotInTheManifest");
+    assertExceptionInCheckingConfig(runConfig, "UrlNotInTheManifest");
+
+    runConfig.setLaunchUrl("http://example.co");
+    assertExceptionInCheckingConfig(runConfig, "http://example.co");
+
+    runConfig.setLaunchUrl("http://example.com/");
+    runConfig.checkConfiguration();
+    // No exception
+
+    runConfig.setLaunchUrl("http://example.com/test");
+    runConfig.checkConfiguration();
+    // No exception
+  }
+
+  private void assertExceptionInCheckingConfig(@NotNull AndroidRunConfiguration runConfig, @NotNull String url) throws Throwable {
+    assertException(new AbstractExceptionCase() {
+      @Override
+      public Class getExpectedExceptionClass() {
+        return RuntimeConfigurationWarning.class;
+      }
+
+      @Override
+      public void tryClosure() throws Throwable {
+        runConfig.checkConfiguration();
+      }
+    }, "URL \"" + url + "\" not defined in the manifest.");
   }
 }
