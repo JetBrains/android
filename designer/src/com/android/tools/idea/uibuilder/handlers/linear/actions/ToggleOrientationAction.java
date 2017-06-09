@@ -19,7 +19,6 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
-import com.android.tools.idea.uibuilder.handlers.DelegatingViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import icons.AndroidDesignerIcons;
@@ -40,18 +39,13 @@ public class ToggleOrientationAction extends DirectViewAction {
   public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
                       @NotNull List<NlComponent> selectedChildren,
                       @JdkConstants.InputEventMask int modifiers) {
-    if (handler instanceof DelegatingViewGroupHandler) {
-      handler = ((DelegatingViewGroupHandler)handler).getDelegateHandler();
-    }
-
-    if (handler instanceof LinearLayoutHandler) {
-      if (!selectedChildren.isEmpty()) {
-        LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-        boolean isHorizontal = !linearLayoutHandler.isVertical(selectedChildren.get(0));
-        for (NlComponent selected : selectedChildren) {
-          String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
-          selected.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
-        }
+    assert handler instanceof LinearLayoutHandler;
+    if (!selectedChildren.isEmpty()) {
+      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+      boolean isHorizontal = !linearLayoutHandler.isVertical(selectedChildren.get(0));
+      for (NlComponent selected : selectedChildren) {
+        String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
+        selected.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
       }
     }
   }
@@ -63,11 +57,11 @@ public class ToggleOrientationAction extends DirectViewAction {
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @JdkConstants.InputEventMask int modifiers) {
-    if (handler instanceof DelegatingViewGroupHandler) {
-      handler = ((DelegatingViewGroupHandler)handler).getDelegateHandler();
+    assert handler instanceof LinearLayoutHandler;
+    if (selectedChildren.isEmpty()) {
+      presentation.setVisible(false);
     }
-
-    if (handler instanceof LinearLayoutHandler) {
+    else {
       presentation.setVisible(true);
       LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
       boolean vertical = linearLayoutHandler.isVertical(selectedChildren.get(0));
@@ -75,9 +69,6 @@ public class ToggleOrientationAction extends DirectViewAction {
       presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
       Icon icon = vertical ? AndroidDesignerIcons.SwitchVerticalLinear : AndroidDesignerIcons.SwitchHorizontalLinear;
       presentation.setIcon(icon);
-    }
-    else {
-      presentation.setVisible(false);
     }
   }
 }
