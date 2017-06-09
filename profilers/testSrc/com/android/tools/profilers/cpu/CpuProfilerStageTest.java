@@ -275,6 +275,18 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void unselectingThreadSetDetailsNodeToNull() throws InterruptedException {
+    captureSuccessfully();
+    myStage.setCaptureDetails(CaptureModel.Details.Type.CALL_CHART);
+    myStage.setSelectedThread(myStage.getCapture().getMainThreadId());
+    assertTrue(myStage.getCaptureDetails() instanceof CaptureModel.CallChart);
+    assertNotNull(((CaptureModel.CallChart)myStage.getCaptureDetails()).getNode());
+
+    myStage.setSelectedThread(CaptureModel.NO_THREAD);
+    assertNull(((CaptureModel.CallChart)myStage.getCaptureDetails()).getNode());
+  }
+
+  @Test
   public void settingTheSameThreadDoesNothing() throws Exception {
     myCpuService.setTraceId(0);
     captureSuccessfully();
@@ -427,7 +439,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void settingACaptureAfterNullShouldSelectMainThread() throws Exception {
-    assertEquals(CaptureModel.INVALID_THREAD, myStage.getSelectedThread());
+    assertEquals(CaptureModel.NO_THREAD, myStage.getSelectedThread());
     assertNull(myStage.getCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
@@ -441,7 +453,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.setCapture(null);
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     // Thread selection is reset when going to NORMAL mode
-    assertEquals(CaptureModel.INVALID_THREAD, myStage.getSelectedThread());
+    assertEquals(CaptureModel.NO_THREAD, myStage.getSelectedThread());
   }
 
   @Test
