@@ -35,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -67,6 +69,8 @@ final class MemoryClassifierView extends AspectObserver {
   @Nullable private JTree myTree;
 
   @Nullable private DefaultTreeModel myTreeModel;
+
+  @Nullable private TableColumnModel myTableColumnModel;
 
   @Nullable private MemoryClassifierTreeNode myTreeRoot;
 
@@ -152,6 +156,12 @@ final class MemoryClassifierView extends AspectObserver {
     return myColumnTree;
   }
 
+  @VisibleForTesting
+  @Nullable
+  TableColumnModel getTableColumnModel() {
+    return myTableColumnModel;
+  }
+
   /**
    * Must manually remove from parent container!
    */
@@ -215,7 +225,8 @@ final class MemoryClassifierView extends AspectObserver {
     });
 
     List<ClassifierAttribute> attributes = myCaptureObject.getClassifierAttributes();
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree);
+    myTableColumnModel = new DefaultTableColumnModel();
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree, myTableColumnModel);
     ClassifierAttribute sortAttribute = Collections.max(attributes, Comparator.comparingInt(ClassifierAttribute::getWeight));
     for (ClassifierAttribute attribute : attributes) {
       AttributeColumn<ClassifierSet> column = myAttributeColumns.get(attribute);
@@ -328,6 +339,21 @@ final class MemoryClassifierView extends AspectObserver {
 
     myTreeModel = new DefaultTreeModel(myTreeRoot);
     myTree.setModel(myTreeModel);
+
+    // Rename class column depending on group by mechanism
+    assert myColumnTree != null;
+    String headerName = null;
+    switch (myStage.getConfiguration().getClassGrouping()) {
+      case ARRANGE_BY_CLASS:
+        headerName = "Class Name";
+        break;
+      case ARRANGE_BY_CALLSTACK:
+        headerName = "Callstack Name";
+        break;
+      case ARRANGE_BY_PACKAGE:
+        headerName = "Package Name";
+    }
+    myTableColumnModel.getColumn(0).setHeaderValue(headerName);
 
     // Attempt to reselect the previously selected ClassSet node or FieldPath.
     ClassSet selectedClassSet = myStage.getSelectedClassSet();
