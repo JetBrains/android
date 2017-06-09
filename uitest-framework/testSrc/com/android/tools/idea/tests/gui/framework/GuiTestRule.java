@@ -398,7 +398,7 @@ public class GuiTestRule implements TestRule {
       // This call to find() creates a new IdeFrameFixture object every time. Each of these Objects creates a new gradleProjectEventListener
       // and registers it with GradleSyncState. This keeps adding more and more listeners, and the new recent listeners are only updated
       // with gradle State when that State changes. This means the listeners may have outdated info.
-      myIdeFrameFixture = IdeFrameFixture.find(robot(), getProjectPath(), null);
+      myIdeFrameFixture = IdeFrameFixture.find(robot());
       myIdeFrameFixture.requestFocusIfLost();
     }
     return myIdeFrameFixture;

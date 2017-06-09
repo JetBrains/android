@@ -54,7 +54,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.ThreeState;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -80,7 +79,6 @@ import java.util.function.Function;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.util.Strings.quote;
@@ -90,7 +88,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
-  @NotNull private final File myProjectPath;
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
   @NotNull private final Modules myModules;
 
@@ -98,24 +95,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   private boolean myIsClosed;
 
   @NotNull
-  public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
-    final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
-      @Override
-      protected boolean isMatching(@NotNull IdeFrameImpl frame) {
-        Project project = frame.getProject();
-        if (project != null && toSystemIndependentName(projectPath.getPath()).equals(project.getBasePath())) {
-          return projectName == null || projectName.equals(project.getName());
-        }
-        return false;
-      }
-    };
-
-    return new IdeFrameFixture(robot, GuiTests.waitUntilShowing(robot, matcher), projectPath);
+  public static IdeFrameFixture find(@NotNull final Robot robot) {
+    return new IdeFrameFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(IdeFrameImpl.class)));
   }
 
-  public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
+  private IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
     super(IdeFrameFixture.class, robot, target);
-    myProjectPath = projectPath;
     Project project = getProject();
     myModules = new Modules(project);
 
@@ -130,7 +115,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public File getProjectPath() {
-    return myProjectPath;
+    return new File(target().getProject().getBasePath());
   }
 
   @NotNull
