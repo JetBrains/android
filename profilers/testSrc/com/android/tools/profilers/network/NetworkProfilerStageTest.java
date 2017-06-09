@@ -25,10 +25,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.MalformedInputException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPOutputStream;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
@@ -283,6 +285,47 @@ public class NetworkProfilerStageTest {
 
     myStage.setSelectedConnection(data);
     assertNull(data.getResponsePayloadFile());
+  }
+
+  /**
+   * Test payload file is unzipped from payload. See also {@link #testGetGzipPayloadWithoutUnzipThrowsException()}
+   */
+  @Test
+  public void testGetPayloadExtractFromGzip() throws IOException {
+    HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
+    builder.setResponsePayloadId("test");
+    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
+    String unzipPayload = "This is unzipped payload";
+    HttpData data = builder.build();
+
+    ByteString byteString = gzip(unzipPayload);
+    File file = myStage.getConnectionPayload(byteString, data);
+    assertEquals(unzipPayload, Files.readAllLines(file.toPath()).get(0));
+  }
+
+  /**
+   * Test get payload from GZip compressed bytes but without response header field that indicates the compression.
+   * See also {@link #testGetPayloadExtractFromGzip()}
+   */
+  @Test(expected = MalformedInputException.class)
+  public void testGetGzipPayloadWithoutUnzipThrowsException() throws IOException {
+    HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
+    builder.setResponsePayloadId("test");
+    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n");
+    String unzipPayload = "This is unzipped payload";
+    HttpData data = builder.build();
+
+    ByteString byteString = gzip(unzipPayload);
+    File file = myStage.getConnectionPayload(byteString, data);
+    Files.readAllLines(file.toPath());
+  }
+
+  private ByteString gzip(String input) {
+    ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+    try (GZIPOutputStream compressor = new GZIPOutputStream(byteOutputStream)) {
+      compressor.write(input.getBytes());
+    } catch (IOException ignored) {}
+    return ByteString.copyFrom(byteOutputStream.toByteArray());
   }
 
   @Test
