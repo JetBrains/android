@@ -200,6 +200,12 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     }
 
     @Override
+    public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> response) {
+      response.onNext(GetTraceInfoResponse.getDefaultInstance());
+      response.onCompleted();
+    }
+
+    @Override
     public void checkAppProfilingState(ProfilingStateRequest request,
                                        StreamObserver<ProfilingStateResponse> response) {
       response.onNext(ProfilingStateResponse.getDefaultInstance());
