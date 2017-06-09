@@ -19,6 +19,8 @@ import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import icons.AndroidDesignerIcons;
@@ -166,5 +168,10 @@ public class ViewHandler extends StructurePaneComponentHandler {
                                         @NotNull NlComponent component,
                                         @AndroidCoordinate int x,
                                         @AndroidCoordinate int y) {
+  }
+
+  @Nullable
+  public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    return null;
   }
 }

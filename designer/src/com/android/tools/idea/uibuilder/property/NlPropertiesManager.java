@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -37,6 +38,10 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Divider;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
@@ -73,6 +78,8 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   private boolean myFirstLoad = true;
   private boolean myLoading;
   private int myUpdateCount;
+  private JBSplitter mySplitter;
+  private ComponentAssistant myComponentAssistant;
 
   public NlPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
     myProject = facet.getModule().getProject();
@@ -104,7 +111,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   private JBLoadingPanel getLoadingPanel() {
     if (myLoadingPanel == null) {
       myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject, 20);
-      myLoadingPanel.add(getPropertiesPanel());
+      myLoadingPanel.add(getContentPanel());
     }
     return myLoadingPanel;
   }
@@ -115,6 +122,36 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
       myPropertiesPanel = new NlPropertiesPanel(this, this);
     }
     return myPropertiesPanel;
+  }
+
+  @NotNull
+  private ComponentAssistant getComponentAssistant() {
+    if (myComponentAssistant == null) {
+      myComponentAssistant = new ComponentAssistant(myProject);
+    }
+
+    return myComponentAssistant;
+  }
+
+  @NotNull
+  private JBSplitter getContentPanel() {
+    if (mySplitter == null) {
+      mySplitter = new JBSplitter(true, 0.8f) {
+        {
+          setDividerWidth(9);
+        }
+
+        @Override
+        protected Divider createDivider() {
+          Divider divider = new DividerImpl();
+          divider.setBorder(IdeBorderFactory.createBorder(SideBorder.TOP + SideBorder.BOTTOM));
+          return divider;
+        }
+      };
+      mySplitter.setFirstComponent(getPropertiesPanel());
+    }
+
+    return mySplitter;
   }
 
   private void setToolContextWithoutCheck(@Nullable DesignSurface designSurface) {
@@ -145,7 +182,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   @NotNull
   @Override
   public JComponent getFocusedComponent() {
-    return getPropertiesPanel();
+    return getContentPanel();
   }
 
   @NotNull
@@ -366,6 +403,11 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
       myFirstLoad = false;
       getLoadingPanel().startLoading();
     }
+
+    ComponentAssistant assistant = getComponentAssistant();
+    assistant.componentSelectionChanged(surface, newSelection);
+    getContentPanel().setSecondComponent(assistant.isVisible() ? assistant : null);
+
     myLoading = true;
     MergingUpdateQueue queue = getUpdateQueue();
     queue.queue(new Update("updateProperties") {
@@ -383,10 +425,12 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
   @Override
   public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
+    getComponentAssistant().sceneChanged(surface, sceneView);
   }
 
   @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
+    getComponentAssistant().modelChanged(surface, model);
   }
 
   @Override
@@ -396,6 +440,8 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
   @Override
   public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    getComponentAssistant().activatePreferredEditor(surface, component);
+
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
     String propertyName = handler != null ? handler.getPreferredProperty() : null;
     if (propertyName == null) {

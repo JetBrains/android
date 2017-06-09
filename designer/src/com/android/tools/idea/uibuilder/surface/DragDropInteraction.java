@@ -146,7 +146,7 @@ public class DragDropInteraction extends Interaction {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     mySceneView = myDesignSurface.getSceneView(x, y);
-    if (mySceneView != null && !canceled) {
+    if (mySceneView != null && myDragReceiver != null && !canceled) {
       mySceneView.getModel().notifyModified(NlModel.ChangeType.DND_END);
 
       // We need to clear the selection otherwise the targets for the newly component are not added until
