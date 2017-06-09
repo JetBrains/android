@@ -49,10 +49,10 @@ import java.util.Collection;
 public class NavSceneTest extends NavigationTestCase {
 
   public void testDisplayList() {
-    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+    ComponentDescriptor root = component(TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment1")
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
           .unboundedChildren(
@@ -61,9 +61,9 @@ public class NavSceneTest extends NavigationTestCase {
             component(NavigationSchema.TAG_ACTION)
               .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@id/activity")
           ),
-        component(NavigationSchema.TAG_NAVIGATION).id("@+id/subnav")
+        component(TAG_NAVIGATION).id("@+id/subnav")
           .unboundedChildren(
-            component(NavigationSchema.TAG_FRAGMENT)
+            component(TAG_FRAGMENT)
               .id("@+id/fragment2")
               .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2")
               .unboundedChildren(component(NavigationSchema.TAG_ACTION)
@@ -93,16 +93,16 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testNegativePositions() {
-    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+    ComponentDescriptor root = component(TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment1")
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment2")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment3")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"));
     ModelBuilder modelBuilder = model("nav.xml", root);
@@ -139,16 +139,16 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testVeryPositivePositions() {
-    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+    ComponentDescriptor root = component(TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment1")
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment2")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment3")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"));
     ModelBuilder modelBuilder = model("nav.xml", root);
@@ -185,17 +185,17 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testAddComponent() {
-    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+    ComponentDescriptor root = component(TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
           .unboundedChildren(
             component(NavigationSchema.TAG_ACTION)
               .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
           ),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment2")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"));
     ModelBuilder modelBuilder = model("nav.xml", root);
@@ -205,7 +205,7 @@ public class NavSceneTest extends NavigationTestCase {
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get());
 
-    root.addChild(component(NavigationSchema.TAG_FRAGMENT).id("@+id/fragment3"), null);
+    root.addChild(component(TAG_FRAGMENT).id("@+id/fragment3"), null);
     modelBuilder.updateModel(model);
     model.notifyModified(NlModel.ChangeType.EDIT);
     scene.layout(0, SceneContext.get());
@@ -225,16 +225,16 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testRemoveComponent() {
-    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+    ComponentDescriptor root = component(TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
           .unboundedChildren(
             component(NavigationSchema.TAG_ACTION)
               .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment2")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"));
     ModelBuilder modelBuilder = model("nav.xml", root);
@@ -290,31 +290,31 @@ public class NavSceneTest extends NavigationTestCase {
   }
 
   public void testSubflow() {
-    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+    ComponentDescriptor root = component(TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .unboundedChildren(
             component(NavigationSchema.TAG_ACTION)
               .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
           ),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment2")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2")
           .unboundedChildren(
             component(NavigationSchema.TAG_ACTION)
               .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment3")
           ),
-        component(NavigationSchema.TAG_NAVIGATION)
+        component(TAG_NAVIGATION)
           .id("@+id/subnav")
           .unboundedChildren(
-            component(NavigationSchema.TAG_FRAGMENT)
+            component(TAG_FRAGMENT)
               .id("@+id/fragment3")
               .unboundedChildren(
                 component(NavigationSchema.TAG_ACTION)
                   .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment4")),
-            component(NavigationSchema.TAG_FRAGMENT)
+            component(TAG_FRAGMENT)
               .id("@+id/fragment4")
               .unboundedChildren(
                 component(NavigationSchema.TAG_ACTION)

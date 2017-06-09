@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 import javax.swing.*;
 import java.awt.event.MouseEvent;
@@ -42,12 +41,12 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testComponentActivated() throws Exception {
     NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
-    SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
+    SyncNlModel model = model("nav.xml", component(TAG_NAVIGATION)
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment2")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"))
     ).build();
@@ -62,13 +61,13 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
 
   public void testSubflowActivated() throws Exception {
     NavDesignSurface surface = new NavDesignSurface(getProject(), getTestRootDisposable());
-    SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
+    SyncNlModel model = model("nav.xml", component(TAG_NAVIGATION)
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1"),
-        component(NavigationSchema.TAG_NAVIGATION)
+        component(TAG_NAVIGATION)
           .id("@+id/subnav")
-          .unboundedChildren(component(NavigationSchema.TAG_FRAGMENT)
+          .unboundedChildren(component(TAG_FRAGMENT)
                                .id("@+id/fragment2")))
       ).build();
     surface.setModel(model);
@@ -79,12 +78,12 @@ public class NavDesignSurfaceTest extends NavigationTestCase {
   }
 
   public void testDoubleClickFragment() throws Exception {
-    SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
+    SyncNlModel model = model("nav.xml", component(TAG_NAVIGATION)
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main"),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment2")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"))
     ).build();

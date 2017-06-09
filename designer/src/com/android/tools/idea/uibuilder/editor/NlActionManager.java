@@ -32,7 +32,6 @@ import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Result;
@@ -59,15 +58,13 @@ import java.util.List;
 /**
  * Provides and handles actions in the layout editor
  */
-public class NlActionManager extends ActionManager {
+public class NlActionManager extends ActionManager<NlDesignSurface> {
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
-  private final NlDesignSurface mySurface;
 
   public NlActionManager(@NotNull NlDesignSurface surface) {
     super(surface);
-    mySurface = surface;
   }
 
   @Override

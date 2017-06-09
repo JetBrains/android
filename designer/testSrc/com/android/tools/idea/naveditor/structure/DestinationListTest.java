@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -47,11 +46,11 @@ public class DestinationListTest extends NavigationTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myModel = model("nav.xml",
-                    component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
-                      component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
-                      component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
-                      component(NavigationSchema.TAG_NAVIGATION).id("@id/subnav")
-                                             .unboundedChildren(component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3"))))
+                    component(TAG_NAVIGATION).unboundedChildren(
+                      component(TAG_FRAGMENT).id("@id/fragment1"),
+                      component(TAG_FRAGMENT).id("@id/fragment2"),
+                      component(TAG_NAVIGATION).id("@id/subnav")
+                                             .unboundedChildren(component(TAG_FRAGMENT).id("@id/fragment3"))))
       .build();
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     myList = (DestinationList)def.getFactory().create();
@@ -125,9 +124,9 @@ public class DestinationListTest extends NavigationTestCase {
   }
 
   public void testModifyModel() throws Exception {
-    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
-      component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1"),
-      component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"));
+    ComponentDescriptor root = component(TAG_NAVIGATION).unboundedChildren(
+      component(TAG_FRAGMENT).id("@id/fragment1"),
+      component(TAG_FRAGMENT).id("@id/fragment2"));
     ModelBuilder modelBuilder = model("nav.xml", root);
     SyncNlModel model = modelBuilder.build();
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
@@ -140,7 +139,7 @@ public class DestinationListTest extends NavigationTestCase {
 
     assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2")), list.myComponentList);
 
-    root.addChild(component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3"), null);
+    root.addChild(component(TAG_FRAGMENT).id("@id/fragment3"), null);
     modelBuilder.updateModel(model);
     model.notifyModified(NlModel.ChangeType.EDIT);
 

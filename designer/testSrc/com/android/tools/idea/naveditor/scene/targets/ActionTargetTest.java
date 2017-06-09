@@ -42,13 +42,13 @@ import static org.mockito.Mockito.when;
  */
 public class ActionTargetTest extends NavigationTestCase {
   public void testSelect() throws Exception {
-    ComponentDescriptor root = component(NavigationSchema.TAG_NAVIGATION)
+    ComponentDescriptor root = component(TAG_NAVIGATION)
       .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION, "@id/fragment2")
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment2")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main2"),
-        component(NavigationSchema.TAG_FRAGMENT)
+        component(TAG_FRAGMENT)
           .id("@+id/fragment1")
           .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT, "@layout/activity_main")
           .unboundedChildren(
