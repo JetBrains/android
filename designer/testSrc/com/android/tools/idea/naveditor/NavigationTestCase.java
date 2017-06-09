@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.TestableThumbnailManager;
 import com.android.tools.idea.naveditor.scene.ThumbnailManager;
@@ -111,4 +112,29 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     return new ComponentDescriptor(tag);
   }
 
+  protected ComponentDescriptor rootComponent() {
+    return new ComponentDescriptor(NavigationSchema.TAG_NAVIGATION);
+  }
+
+  protected ComponentDescriptor fragmentComponent(@NotNull String id) {
+    ComponentDescriptor descriptor = new ComponentDescriptor(NavigationSchema.TAG_FRAGMENT);
+    return descriptor.id("@id/" + id);
+  }
+
+  protected ActionComponentDescriptor actionComponent(@NotNull String id) {
+    ActionComponentDescriptor descriptor = new ActionComponentDescriptor();
+    descriptor.id("@id/" + id);
+    return descriptor;
+  }
+
+  protected class ActionComponentDescriptor extends ComponentDescriptor {
+    public ActionComponentDescriptor() {
+      super(NavigationSchema.TAG_ACTION);
+    }
+
+    public ActionComponentDescriptor withDestinationAttribute(@NotNull String destination) {
+      withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@id/" + destination);
+      return this;
+    }
+  }
 }
