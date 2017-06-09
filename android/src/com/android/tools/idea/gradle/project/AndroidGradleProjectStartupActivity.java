@@ -28,7 +28,10 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 public class AndroidGradleProjectStartupActivity implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
-    if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+    GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
+    if (gradleProjectInfo.isBuildWithGradle() && !gradleProjectInfo.isNewlyCreatedProject()) {
+      // http://b/62543184
+      // If the project was created with the "New Project" wizard, there is no need to sync again.
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setUseCachedGradleModels(true).setTrigger(TRIGGER_PROJECT_LOADED);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
     }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -36,11 +37,10 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
-  private static final Logger LOG = Logger.getInstance(ProjectSetUpTask.class);
-
   @NotNull private final Project myProject;
   @NotNull private final PostSyncProjectSetup.Request mySetupRequest;
 
@@ -130,15 +130,15 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
     invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(myProject, GRADLE_SYSTEM_ID));
 
-    if (errorDetails != null) {
-      LOG.warn(errorDetails);
+    if (isNotEmpty(errorDetails)) {
+      getLogger().warn(errorDetails);
     }
     handleSyncFailure(errorMessage);
   }
 
   private void handleSyncFailure(@NotNull String errorMessage) {
     String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
-    LOG.info(newMessage);
+    getLogger().warn(newMessage);
 
     // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
     // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
@@ -149,5 +149,16 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     if (mySyncListener != null) {
       mySyncListener.syncFailed(myProject, newMessage);
     }
+
+    if (!myProject.isOpen()) {
+      // if the project is not open yet (e.g. a project created with the NPW) the error will be ignored bt
+      // ExternalSystemNotificationManager#processExternalProjectRefreshError
+      GradleProjectInfo.getInstance(myProject).setProjectCreationError(newMessage);
+    }
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(ProjectSetUpTask.class);
   }
 }
