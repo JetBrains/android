@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.io.FileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -24,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAc
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.util.FileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;

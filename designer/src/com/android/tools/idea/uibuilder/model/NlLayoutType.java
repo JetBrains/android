@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.SdkConstants;
-import com.android.resources.ResourceConstants;
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
@@ -25,18 +25,16 @@ import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
 import com.android.tools.idea.uibuilder.statelist.StateListActionGroups;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.FileDescriptionUtils;
 import org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription;
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.Locale;
 
 /**
@@ -86,14 +84,14 @@ public enum NlLayoutType {
   PREFERENCE_SCREEN(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return isResourceTypeOf(file, ResourceConstants.FD_RES_XML, SdkConstants.TAG_PREFERENCE_SCREEN);
+      return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.XML, Collections.singleton(SdkConstants.TAG_PREFERENCE_SCREEN));
     }
   },
 
   STATE_LIST(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return isResourceTypeOf(file, ResourceConstants.FD_RES_DRAWABLE, SdkConstants.TAG_SELECTOR);
+      return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_SELECTOR));
     }
 
     @NotNull
@@ -125,7 +123,7 @@ public enum NlLayoutType {
   VECTOR(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return isResourceTypeOf(file, ResourceConstants.FD_RES_DRAWABLE, SdkConstants.TAG_VECTOR) ||
+      return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_VECTOR)) ||
              AdaptiveIconDomFileDescription.isAdaptiveIcon(file);
     }
 
@@ -143,26 +141,6 @@ public enum NlLayoutType {
   }
 
   public abstract boolean isResourceTypeOf(@NotNull XmlFile file);
-
-  static boolean isResourceTypeOf(@NotNull XmlFile file, @NotNull String directoryName, @NotNull String tagName) {
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      if (file.getProject().isDisposed()) {
-        return false;
-      }
-
-      if (!AndroidResourceUtil.isInResourceSubdirectory(file, directoryName)) {
-        return false;
-      }
-
-      XmlTag tag = file.getRootTag();
-
-      if (tag == null) {
-        return false;
-      }
-
-      return tag.getName().equals(tagName);
-    });
-  }
 
   public boolean isLayout() {
     return this == LAYOUT;
