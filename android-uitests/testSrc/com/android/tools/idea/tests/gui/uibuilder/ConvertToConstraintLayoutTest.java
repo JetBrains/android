@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -32,12 +33,16 @@ import org.junit.runner.RunWith;
 
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 
 @RunWith(GuiTestRunner.class)
 public class ConvertToConstraintLayoutTest {
+  private static final Pattern TOOLS_DIMENSION = Pattern.compile("tools:(.*)=\"(.*)dp\"");
+  private static final Pattern ANDROID_DIMENSION = Pattern.compile("android:(.*)=\"(.*)dp\"");
+
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
@@ -66,7 +71,9 @@ public class ConvertToConstraintLayoutTest {
     layout.waitForRenderToFinish();
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     waitForScout();
-    editor.invokeAction(EditorFixture.EditorAction.FORMAT);
+
+    editor.invokeAction(EditorAction.SELECT_ALL);
+    guiTest.ideFrame().invokeMenuPath("Code", "Reformat Code");
 
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -149,8 +156,9 @@ public class ConvertToConstraintLayoutTest {
   private static String wipeDimensions(@Language("XML") String xml) {
     // Remove specific pixel sizes from an XML layout before pretty printing it; they may very from machine
     // to machine. It's the constraints that matter.
-    xml = xml.replaceAll("tools:(.*)=\"(.*)dp\"", "tools:$1=\"<test>\"");
-    xml = xml.replaceAll("android:(.*)=\"(.*)dp\"", "android:$1=\"<test>\"");
+    xml = TOOLS_DIMENSION.matcher(xml).replaceAll("tools:$1=\"<test>\"");
+    xml = ANDROID_DIMENSION.matcher(xml).replaceAll("android:$1=\"<test>\"");
+
     return xml;
   }
 
@@ -180,9 +188,12 @@ public class ConvertToConstraintLayoutTest {
     layout.waitForRenderToFinish();
     editor.selectEditorTab(EditorFixture.Tab.EDITOR);
     waitForScout();
-    editor.invokeAction(EditorFixture.EditorAction.FORMAT);
+
+    editor.invokeAction(EditorAction.SELECT_ALL);
+    guiTest.ideFrame().invokeMenuPath("Code", "Reformat Code");
 
     @Language("XML")
+    @SuppressWarnings("XmlUnusedNamespaceDeclaration")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
@@ -250,12 +261,9 @@ public class ConvertToConstraintLayoutTest {
   }
 
   private void waitForScout() {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        // No op
-      }
+    ApplicationManager.getApplication().invokeLater(() -> {
     });
+
     guiTest.robot().waitForIdle();
   }
 }

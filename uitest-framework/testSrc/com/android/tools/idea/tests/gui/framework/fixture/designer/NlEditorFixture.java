@@ -36,7 +36,6 @@ import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import org.fest.swing.core.ComponentDragAndDrop;
@@ -77,7 +76,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   public NlEditorFixture waitForRenderToFinish() {
-    return waitForRenderToFinish(Wait.seconds(5));
+    return waitForRenderToFinish(Wait.seconds(9));
   }
 
   public NlEditorFixture waitForRenderToFinish(@NotNull Wait waitForRender) {
