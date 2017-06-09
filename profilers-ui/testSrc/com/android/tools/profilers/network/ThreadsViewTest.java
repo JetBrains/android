@@ -24,6 +24,7 @@ import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -115,6 +116,7 @@ public class ThreadsViewTest {
     assertTrue(new TreeWalker(comp).descendantStream().anyMatch(c -> c instanceof AxisComponent));
   }
 
+  @Ignore // TODO: Re-enable. Test seems flaky and is failing on presubmit bots sometimes.
   @Test
   public void clickingOnARequestSelectsIt() {
     Range selection = myStageView.getTimeline().getSelectionRange();
