@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.DefaultHNode;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,8 +40,7 @@ class CaptureModel {
   /**
    * Negative number used when no thread is selected.
    */
-  @VisibleForTesting
-  static final int INVALID_THREAD = -1;
+  static final int NO_THREAD = -1;
 
   @NotNull
   private final CpuProfilerStage myStage;
@@ -66,7 +64,7 @@ class CaptureModel {
   CaptureModel(@NotNull CpuProfilerStage stage) {
     myStage = stage;
     myCaptureConvertedRange = new Range();
-    myThread = INVALID_THREAD;
+    myThread = NO_THREAD;
 
     Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
     selection.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
@@ -80,11 +78,11 @@ class CaptureModel {
     myCapture = capture;
     if (myCapture != null) {
       // If a thread was already selected, keep the selection. Otherwise select the capture main thread.
-      setThread(myThread != INVALID_THREAD ? myThread : capture.getMainThreadId());
+      setThread(myThread != NO_THREAD ? myThread : capture.getMainThreadId());
       myCapture.updateClockType(myClockType);
     }
     else {
-      setThread(INVALID_THREAD);
+      setThread(NO_THREAD);
     }
     rebuildDetails();
     myStage.getAspect().changed(CpuProfilerAspect.CAPTURE);
