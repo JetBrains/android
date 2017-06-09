@@ -27,14 +27,16 @@ import java.util.List;
  */
 public interface DesignSurfaceListener {
   /** The set of currently selected components in the given surface changed */
-  void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection);
+  default void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {}
 
   /** The current screen, if any, changed */
-  void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView);
+  default void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {}
 
   /** The current model changed */
-  void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model);
+  default void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {}
 
   /** Ask the tools to activate an editor for the component specified, return true if such an editor is found */
-  boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component);
+  default boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    return false;
+  }
 }

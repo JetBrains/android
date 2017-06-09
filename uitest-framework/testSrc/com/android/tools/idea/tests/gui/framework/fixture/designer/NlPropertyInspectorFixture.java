@@ -20,13 +20,16 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlProp
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyTableFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.Robot;
+import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.FocusManager;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -48,6 +51,19 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
 
   public static NlPropertiesPanel create(@NotNull Robot robot) {
     return waitUntilFound(robot, null, Matchers.byType(NlPropertiesPanel.class));
+  }
+
+  public boolean hasComponentAssistantPanel() {
+    try {
+      return robot().finder().find(Matchers.byType(ComponentAssistant.class)).isVisible();
+    }
+    catch (ComponentLookupException ignored) {
+    }
+    return false;
+  }
+
+  public ComponentAssistantFixture getComponentAssistantPanel() {
+    return new ComponentAssistantFixture(robot(), waitUntilFound(robot(), null, Matchers.byType(ComponentAssistant.class)));
   }
 
   @NotNull

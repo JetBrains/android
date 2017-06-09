@@ -16,6 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
@@ -24,7 +27,7 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -32,6 +35,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -78,15 +82,7 @@ public class ImageViewHandler extends ViewHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
-      if (src != null) {
-        setSrcAttribute(newChild, src);
-        return true;
-      }
-      else {
-        // Remove the view; the insertion was canceled
-        return false;
-      }
+      return showImageChooser(editor, newChild);
     }
 
     // Fallback if dismissed or during previews etc
@@ -95,6 +91,17 @@ public class ImageViewHandler extends ViewHandler {
     }
 
     return true;
+  }
+
+  private boolean showImageChooser(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE));
+    if (src != null) {
+      setSrcAttribute(component, src);
+      return true;
+    }
+
+    // Remove the view; the insertion was canceled
+    return false;
   }
 
   /**
@@ -111,7 +118,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   public void setSrcAttribute(@NotNull NlComponent component, @NotNull String imageSource) {
-    ApplicationManager.getApplication().runWriteAction(() -> {
+    WriteCommandAction.runWriteCommandAction(component.getModel().getProject(), () -> {
       if (shouldUseSrcCompat(component.getModel())) {
         component.setAttribute(ANDROID_URI, ATTR_SRC, null);
         component.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, imageSource);
@@ -121,6 +128,16 @@ public class ImageViewHandler extends ViewHandler {
         component.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, null);
       }
     });
+  }
+
+  @Nullable
+  public String getSrcAttribute(@NotNull NlComponent component) {
+    String srcAttribute = null;
+    if (shouldUseSrcCompat(component.getModel())) {
+      srcAttribute = component.getAttribute(AUTO_URI, ATTR_SRC_COMPAT);
+    }
+
+    return srcAttribute != null ? srcAttribute : component.getAttribute(ANDROID_URI, ATTR_SRC);
   }
 
   public boolean shouldUseSrcCompat(@NotNull NlModel model) {
@@ -153,5 +170,21 @@ public class ImageViewHandler extends ViewHandler {
       activityClass = activityClass.getSuperClass();
     }
     return activityClass != null;
+  }
+
+  @Nullable
+  @Override
+  public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
+    SceneView sceneView = surface.getCurrentSceneView();
+    if (sceneView == null || getSrcAttribute(component) != null) {
+      return null;
+    }
+
+    JButton button = new JButton("Set image");
+    button.addActionListener(e -> {
+      showImageChooser(new ViewEditorImpl(surface.getCurrentSceneView()), component);
+    });
+
+    return (comp, close) -> button;
   }
 }
