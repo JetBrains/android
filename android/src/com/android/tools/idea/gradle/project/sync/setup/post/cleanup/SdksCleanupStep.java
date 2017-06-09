@@ -128,7 +128,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
             myAndroidSdks.findAndSetPlatformSources(target, sdkModificator);
           }
           if (sdkModificator != null) {
-            ApplicationManager.getApplication().invokeAndWait(sdkModificator::commitChanges, NON_MODAL);
+            ApplicationManager.getApplication().invokeAndWait(sdkModificator::commitChanges);
             fixedSdks.add(sdk);
           }
         }
