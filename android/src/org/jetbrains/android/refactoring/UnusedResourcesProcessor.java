@@ -298,8 +298,8 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
       LintIdeClient client = LintIdeClient.forBatch(myProject, map, scope, issues);
       LintRequest request = new LintIdeRequest(client, myProject, null, Arrays.asList(myModules), false);
       request.setScope(Scope.ALL);
-      LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
-      lint.analyze(request);
+      LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client, request);
+      lint.analyze();
     }
     finally {
       UnusedResourceDetector.ISSUE.setEnabledByDefault(unusedWasEnabled);

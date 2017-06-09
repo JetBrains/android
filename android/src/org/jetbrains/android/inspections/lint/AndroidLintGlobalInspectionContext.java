@@ -105,7 +105,6 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     final LintIdeClient client = LintIdeClient.forBatch(project, problemMap, scope, issues);
-    final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
 
     final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
     if (indicator != null) {
@@ -235,6 +234,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     LintRequest request = new LintIdeRequest(client, project, files, modules, false);
     request.setScope(lintScope);
+    final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client, request);
 
     // Baseline analysis?
     myBaseline = null;
@@ -271,7 +271,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    lint.analyze(request);
+    lint.analyze();
 
     AndroidLintLintBaselineInspection.clearNextRunState();
 

@@ -22,6 +22,7 @@ import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
 import com.android.tools.lint.detector.api.XmlContext;
+import com.android.utils.PositionXmlParser;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -51,10 +52,9 @@ class DomPsiParser extends XmlParser {
 
   @Override
   public void dispose(@NonNull XmlContext context, @NonNull Document document) {
-    if (context.document != null) {
+    if (myReadLock != null) {
       myReadLock.finish();
       myReadLock = null;
-      context.document = null;
     }
   }
 
@@ -139,10 +139,31 @@ class DomPsiParser extends XmlParser {
     }
   }
 
+  @Nullable
+  @Override
+  public Document parseXml(@NonNull CharSequence xml, @Nullable File file) {
+    if (file != null) {
+      assert myReadLock == null;
+      myReadLock = ApplicationManager.getApplication().acquireReadActionLock();
+      Document document = parseXml(file);
+      if (document == null) {
+        myReadLock.finish();
+        myReadLock = null;
+      }
+
+      return document;
+    }
+    try {
+      return PositionXmlParser.parse(xml.toString());
+    } catch (Exception ignore) {
+      return null;
+    }
+  }
+
   @NonNull
   @Override
   public Location getLocation(@NonNull XmlContext context, @NonNull Node node) {
-    return getLocation(context.file, node).setSource(node);
+    return getLocation(context.file, node).withSource(node);
   }
 
   @NonNull
@@ -151,7 +172,7 @@ class DomPsiParser extends XmlParser {
     TextRange textRange = DomPsiConverter.getTextRange(node);
     Position start = new LintXmlPosition(node, textRange.getStartOffset());
     Position end = new LintXmlPosition(node, textRange.getEndOffset());
-    return Location.create(file, start, end).setSource(node);
+    return Location.create(file, start, end).withSource(node);
   }
 
   @NonNull
@@ -160,7 +181,7 @@ class DomPsiParser extends XmlParser {
     TextRange textRange = DomPsiConverter.getTextRange(node);
     Position start = new LintXmlPosition(node, textRange.getStartOffset() + startDelta);
     Position end = new LintXmlPosition(node, textRange.getStartOffset() + endDelta);
-    return Location.create(context.file, start, end).setSource(node);
+    return Location.create(context.file, start, end).withSource(node);
   }
 
   @NonNull
@@ -169,7 +190,7 @@ class DomPsiParser extends XmlParser {
     TextRange textRange = DomPsiConverter.getTextNameRange(node);
     Position start = new LintXmlPosition(node, textRange.getStartOffset());
     Position end = new LintXmlPosition(node, textRange.getEndOffset());
-    return Location.create(context.file, start, end).setSource(node);
+    return Location.create(context.file, start, end).withSource(node);
   }
 
   @NonNull
@@ -178,7 +199,7 @@ class DomPsiParser extends XmlParser {
     TextRange textRange = DomPsiConverter.getTextValueRange(node);
     Position start = new LintXmlPosition(node, textRange.getStartOffset());
     Position end = new LintXmlPosition(node, textRange.getEndOffset());
-    return Location.create(context.file, start, end).setSource(node);
+    return Location.create(context.file, start, end).withSource(node);
   }
 
   @NonNull
@@ -226,7 +247,7 @@ class DomPsiParser extends XmlParser {
       TextRange textRange = DomPsiConverter.getTextRange(myNode);
       Position start = new LintXmlPosition(myNode, textRange.getStartOffset());
       Position end = new LintXmlPosition(myNode, textRange.getEndOffset());
-      return Location.create(myFile, start, end).setSource(myNode);
+      return Location.create(myFile, start, end).withSource(myNode);
     }
 
     @Override
