@@ -131,6 +131,7 @@ iml_module(
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
+        "cpu:3",
         "block-network",
     ],
     test_timeout = "eternal",
