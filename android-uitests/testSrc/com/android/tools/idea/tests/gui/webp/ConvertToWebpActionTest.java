@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.webp;
 
 import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -24,27 +23,34 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.webp.WebpConversionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.webp.WebpPreviewDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ComponentWithMnemonics;
+import org.fest.reflect.exception.ReflectionError;
+import org.fest.reflect.reference.TypeRef;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.exception.ComponentLookupException;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import static org.fest.reflect.core.Reflection.field;
 
 @RunWith(GuiTestRunner.class)
 public class ConvertToWebpActionTest {
@@ -221,7 +227,7 @@ public class ConvertToWebpActionTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/62462733
+  @RunIn(TestGroup.QA)
   @Test
   public void testCannotConvertFrom9PatchAndTransparentImagesToWebp() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk15App");
@@ -230,16 +236,38 @@ public class ConvertToWebpActionTest {
 
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.png")
       .invokeMenuPath("Create 9-Patch file...");
-    new JButtonFixture(ideFrame.robot(),
-                       GuiTests.waitUntilShowingAndEnabled(ideFrame.robot(),
-                                                           ideFrame.target(),
-                                                           Matchers.byText(JButton.class, "OK")))
-      .click();
+
+    FileChooserDialogFixture.find(ideFrame.robot())
+      .clickOk();
+
+    GenericTypeMatcher<JDialog> matcher = new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(@NotNull JDialog dialog) {
+        if (Matchers.byType(JDialog.class).matches(dialog)) {
+          DialogWrapper wrapper = getDialogWrapperFrom(dialog, FileChooserDialogImpl.class);
+          if (wrapper != null) {
+            return true;
+          }
+        }
+        return false;
+      }
+    };
+
+    Wait.seconds(20).expecting("Wait for Save As .9.png Dialog disappear. ").until(() -> {
+      try {
+        guiTest.robot().finder().find(ideFrame.target(), matcher);
+        return false;
+      } catch (ComponentLookupException e) {
+        return true;
+      }
+    });
 
     // Check nine-patch file is created by clicking on it.
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png");
 
     // Try to convert to webp and verify.
+    int countOfBalloonBeforeConvert = getNotificationBalloonCount(ideFrame);
+
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res")
       .invokeMenuPath("Convert to WebP...");
     WebpConversionDialogFixture webpConversionDialog = WebpConversionDialogFixture.findDialog(guiTest.robot());
@@ -251,35 +279,42 @@ public class ConvertToWebpActionTest {
 
     // Since the message like "0 files were converted" in the notification balloon cannot be retrieved,
     // (NotificationsManagerImpl$5:model:Data:array), here we can only check there is only one
-    // BalloomImpl:MyComponent instance showing.
-    Ref<JPanel> notificationJpanel = new Ref<>();
-    Wait.seconds(5).expecting("Wait for notification").until(() -> {
-      Collection<JPanel> allFound = ideFrame.robot().finder().findAll(ideFrame.target(), Matchers.byType(JPanel.class));
-      JPanel targetJpanel = null;
-      int componentWithMnemonicsCount = 0;
-      for (JPanel jPanel : allFound) {
-        try {
-          if (jPanel instanceof ComponentWithMnemonics) {
-            componentWithMnemonicsCount++;
-            targetJpanel = jPanel;
-          }
+    // more BalloomImpl:MyComponent instance after converting.
+    int countOfBalloonAfterConvert = getNotificationBalloonCount(ideFrame);
+    assertThat(countOfBalloonAfterConvert - countOfBalloonBeforeConvert).isEqualTo(1);
+  }
+
+  private int getNotificationBalloonCount(@NotNull IdeFrameFixture ideFrame) {
+    Collection<JPanel> allFound = ideFrame.robot().finder()
+      .findAll(ideFrame.target(), Matchers.byType(JPanel.class));
+
+    int count = 0;
+    for (JPanel jPanel : allFound) {
+      try {
+        if (jPanel instanceof ComponentWithMnemonics) {
+          count++;
         }
-        catch (ComponentLookupException e) {
-          return false;
-        }
       }
-
-      if (targetJpanel == null) {
-        return false;
+      catch (ComponentLookupException e) {
+        continue;
       }
+    }
 
-      if (componentWithMnemonicsCount > 1) {
-        fail("Found more than one ComponentWithMnemonics type which matches the criteria.");
+    return count;
+  }
+
+  // Copied from IdeaDialogFixture.getDialogWrapperFrom(), which is protected method.
+  @Nullable
+  private <T extends DialogWrapper> T getDialogWrapperFrom(@NotNull JDialog dialog,
+                                                           Class<T> dialogWrapperType) {
+    try {
+      DialogWrapper wrapper = field("myDialogWrapper")
+        .ofType(new TypeRef<WeakReference<DialogWrapper>>() {}).in(dialog).get().get();
+      if (dialogWrapperType.isInstance(wrapper)) {
+        return dialogWrapperType.cast(wrapper);
       }
-
-      notificationJpanel.set(targetJpanel);
-      return true;
-    });
-    assertThat(notificationJpanel.get()).isNotNull();
+    } catch (ReflectionError ignored) {
+    }
+    return null;
   }
 }
