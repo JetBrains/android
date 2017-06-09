@@ -90,6 +90,7 @@ public class AttributesTransaction implements NlAttributesHolder {
 
   private static void triggerViewRelayout(@NotNull View view) {
     view.setLayoutParams(view.getLayoutParams());
+    view.forceLayout();
   }
 
   /**

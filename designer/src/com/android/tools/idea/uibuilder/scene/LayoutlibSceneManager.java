@@ -20,6 +20,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -31,6 +32,7 @@ import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,11 +52,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -92,6 +93,7 @@ public class LayoutlibSceneManager extends SceneManager {
   private String myPreviousTheme;
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private long myElapsedFrameTimeMs = -1;
+  private final LinkedList<Runnable> myRenderCallbacks = new LinkedList<>();
 
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
     super(model, designSurface);
@@ -312,8 +314,12 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  @Override
-  public void requestRender() {
+  public void requestRender(@Nullable Runnable callback) {
+    if (callback != null) {
+      synchronized (myRenderCallbacks) {
+        myRenderCallbacks.add(callback);
+      }
+    }
     // This update is low priority so the model updates take precedence
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
@@ -325,6 +331,17 @@ public class LayoutlibSceneManager extends SceneManager {
       public boolean canEat(Update update) {
         return this.equals(update);
       }
+    });
+  }
+
+  @Override
+  public void requestRender() {
+    requestRender(null);
+  }
+
+  public void requestLayoutAndRender(boolean animate) {
+    requestRender(() -> {
+      getModel().notifyListenersModelLayoutComplete(animate);
     });
   }
 
@@ -569,6 +586,12 @@ public class LayoutlibSceneManager extends SceneManager {
       if (!getModel().getFacet().isDisposed()) {
         throw e;
       }
+    } finally {
+      ImmutableList<Runnable> callbacks;
+      synchronized (myRenderCallbacks) {
+        callbacks = ImmutableList.copyOf(myRenderCallbacks);
+      }
+      callbacks.forEach(Runnable::run);
     }
   }
 
@@ -608,7 +631,7 @@ public class LayoutlibSceneManager extends SceneManager {
         }
         RenderResult result = Futures.getUnchecked(myRenderTask.render());
         // When the layout was inflated in this same call, we do not have to update the hierarchy again
-        if (!inflated) {
+        if (result != null && !inflated) {
           updateHierarchy(result);
         }
         myRenderResultLock.writeLock().lock();

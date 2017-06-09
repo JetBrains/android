@@ -21,6 +21,7 @@ import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -874,7 +875,13 @@ public class Scene implements SelectionListener {
 
   public void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
-      myDesignSurface.getSceneManager().layout(mNeedsLayout == ANIMATED_LAYOUT);
+      SceneManager manager = myDesignSurface.getSceneManager();
+      if (StudioFlags.NELE_LIVE_RENDER.get() && manager instanceof LayoutlibSceneManager) {
+        ((LayoutlibSceneManager)manager).requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
+      }
+      else if (manager != null) {
+        manager.layout(mNeedsLayout == ANIMATED_LAYOUT);
+      }
     }
   }
 
