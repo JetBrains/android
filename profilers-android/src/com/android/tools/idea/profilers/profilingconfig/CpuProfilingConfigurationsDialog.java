@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.profilingconfig;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -34,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -120,21 +123,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     private void setUpConfigurationsList() {
       myConfigurations.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      // TODO: finish customizing cell renderer
-      myConfigurations.setCellRenderer(new ListCellRendererWrapper<ProfilingConfiguration>() {
-        @Override
-        public void customize(JList list,
-                              ProfilingConfiguration value,
-                              int index,
-                              boolean selected,
-                              boolean hasFocus) {
-          String cellText = value.getName();
-          if (index >= getCustomConfigurationCount()) {
-            cellText += " - Default";
-          }
-          setText(cellText);
-        }
-      });
+      myConfigurations.setCellRenderer(new ProfilingConfigurationsListCellRenderer());
       myConfigurations.addListSelectionListener((e) -> {
         int index = myConfigurations.getSelectedIndex();
         myProfilersPanel.setConfiguration(index < 0 ? null : myConfigurationsModel.get(index), index >= getCustomConfigurationCount());
@@ -250,6 +239,45 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     public boolean isModified() {
       // TODO: Handle that properly.
       return true;
+    }
+
+    private class ProfilingConfigurationsListCellRenderer implements ListCellRenderer<ProfilingConfiguration> {
+
+      /**
+       * Label to display the configuration name.
+       */
+      private JLabel myLabel;
+
+      public ProfilingConfigurationsListCellRenderer() {
+        myLabel = new JLabel();
+        Border marginLeft = new EmptyBorder(0, 10, 0, 0);
+        myLabel.setBorder(marginLeft);
+      }
+
+      @Override
+      public Component getListCellRendererComponent(JList<? extends ProfilingConfiguration> list,
+                                                    ProfilingConfiguration value,
+                                                    int index,
+                                                    boolean isSelected,
+                                                    boolean cellHasFocus) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 25));
+        panel.setBackground(list.getBackground());
+
+        String cellText = value.getName();
+        if (index >= getCustomConfigurationCount()) {
+          cellText += " - Default";
+        }
+        myLabel.setText(cellText);
+        myLabel.setForeground(isSelected ? Gray._255 : JBColor.BLACK);
+        if (isSelected) {
+          panel.setBackground(ProfilerColors.CPU_PROFILING_CONFIGURATIONS_SELECTED);
+        }
+
+        panel.add(myLabel, BorderLayout.CENTER);
+
+        return panel;
+      }
     }
 
     /**
