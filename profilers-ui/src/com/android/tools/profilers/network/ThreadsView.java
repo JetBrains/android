@@ -19,7 +19,8 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
@@ -34,11 +35,16 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Displays network connection information of all threads.
@@ -53,7 +59,8 @@ final class ThreadsView {
   private final JLayeredPane myPanel;
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
-    myThreadsTable = new HoverRowTable(new ThreadsTableModel(stageView.getStage()), ProfilerColors.NETWORK_TABLE_HOVER_COLOR);
+    myThreadsTable =
+      new HoverRowTable(new ThreadsTableModel(stageView.getStage().getHttpDataFetcher()), ProfilerColors.NETWORK_TABLE_HOVER_COLOR);
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(new TimelineRenderer(myThreadsTable, stageView.getTimeline()));
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myThreadsTable.setFont(AdtUiUtils.DEFAULT_FONT);
@@ -92,29 +99,20 @@ final class ThreadsView {
   }
 
   private static final class ThreadsTableModel extends AbstractTableModel {
-    @NotNull private final AspectObserver myAspectObserver;
-    @NotNull private final NetworkProfilerStage myStage;
     @NotNull private final List<List<HttpData>> myThreads;
 
-    private ThreadsTableModel(@NotNull NetworkProfilerStage stage) {
-      myStage = stage;
-      myAspectObserver = new AspectObserver();
+    private ThreadsTableModel(@NotNull HttpDataFetcher httpDataFetcher) {
       myThreads = new ArrayList<>();
-
-      Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-      selection.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
-      rangeChanged();
+      httpDataFetcher.addListener(this::httpDataChanged);
     }
 
-    public void rangeChanged() {
-      Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    private void httpDataChanged(List<HttpData> dataList) {
       myThreads.clear();
-      if (selection.isEmpty()) {
+      if (dataList.isEmpty()) {
         fireTableDataChanged();
         return;
       }
 
-      List<HttpData> dataList = myStage.getConnectionsModel().getData(selection);
       Map<Long, List<HttpData>> threads = new HashMap<>();
       for (HttpData data : dataList) {
         if (data.getJavaThreads().isEmpty()) {

@@ -43,9 +43,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_AXIS;
-import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_AXIS_SELECTED;
-import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_HOVER_COLOR;
+import static com.android.tools.profilers.ProfilerColors.*;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -53,8 +51,6 @@ import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_HOVER_COL
  */
 final class ConnectionsView {
   private static final int ROW_HEIGHT_PADDING = JBUI.scale(8);
-
-  private Range mySelectionRange;
 
   /**
    * Columns for each connection information
@@ -136,15 +132,9 @@ final class ConnectionsView {
   private final AspectObserver myAspectObserver;
 
   public ConnectionsView(@NotNull NetworkProfilerStageView stageView) {
-    this(stageView.getStage(), stageView.getTimeline().getSelectionRange());
-  }
+    myStage = stageView.getStage();
 
-  @VisibleForTesting
-  public ConnectionsView(@NotNull NetworkProfilerStage stage,
-                         @NotNull Range selectionRange) {
-    myStage = stage;
-    myTableModel = new ConnectionsTableModel(selectionRange);
-    mySelectionRange = selectionRange;
+    myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());
 
     myConnectionsTable = new HoverRowTable(myTableModel, NETWORK_TABLE_HOVER_COLOR);
     myConnectionsTable.setFocusable(false);
@@ -165,7 +155,7 @@ final class ConnectionsView {
     myConnectionsTable.getColumnModel().getColumn(Column.STATUS.ordinal()).setCellRenderer(new StatusRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIME.ordinal()).setCellRenderer(new TimeRenderer());
     myConnectionsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
-      new TimelineRenderer(myConnectionsTable, mySelectionRange));
+      new TimelineRenderer(myConnectionsTable, myStage.getStudioProfilers().getTimeline().getSelectionRange()));
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
@@ -225,17 +215,16 @@ final class ConnectionsView {
   }
 
   private final class ConnectionsTableModel extends AbstractTableModel {
-    private final AspectObserver myAspectObserver;
     @NotNull private List<HttpData> myDataList = new ArrayList<>();
-    @NotNull private final Range myRange;
 
-    private ConnectionsTableModel(@NotNull Range range) {
-      myRange = range;
-      myAspectObserver = new AspectObserver();
-      myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
-      if (!myRange.isEmpty()) {
-        rangeChanged();
-      }
+    private ConnectionsTableModel(HttpDataFetcher httpDataFetcher) {
+      httpDataFetcher.addListener(httpDataList -> {
+        myDataList = httpDataList;
+        fireTableDataChanged();
+        // Although the selected row doesn't change on range moved, we do this here to prevent
+        // flickering that otherwise occurs in our table.
+        updateTableSelection();
+      });
     }
 
     @Override
@@ -267,14 +256,6 @@ final class ConnectionsView {
     @NotNull
     public HttpData getHttpData(int rowIndex) {
       return myDataList.get(rowIndex);
-    }
-
-    public void rangeChanged() {
-      myDataList = myStage.getConnectionsModel().getData(myRange);
-      fireTableDataChanged();
-      // Although the selected data doesn't change on range moved, we do this here to prevent
-      // flickering that otherwise occurs in our table.
-      updateTableSelection();
     }
   }
 
