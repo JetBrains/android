@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.project.FeatureEnableService;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
@@ -24,9 +23,7 @@ import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,18 +34,9 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   public static final String DESIGNER_ID = "android-designer2";
 
   @Override
-  public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-    if (!(psiFile instanceof XmlFile) || AndroidFacet.getInstance(psiFile) == null) {
-      return false;
-    }
-
-    FeatureEnableService featureEnableService = FeatureEnableService.getInstance(project);
-    if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled(project)) {
-      return false;
-    }
-
-    return NlLayoutType.supports((XmlFile)psiFile);
+  public boolean accept(@NotNull Project project, @NotNull VirtualFile virtualFile) {
+    Object psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+    return psiFile instanceof XmlFile && NlLayoutType.supports((XmlFile)psiFile);
   }
 
   @NotNull

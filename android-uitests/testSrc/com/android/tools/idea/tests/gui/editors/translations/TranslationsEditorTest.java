@@ -16,13 +16,13 @@
 package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
+import com.android.tools.idea.io.FileUtils;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture.SimpleColoredComponent;
-import com.android.tools.idea.tests.util.FileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.swing.ui.FixedColumnTable;
 import com.intellij.notification.Notification;
