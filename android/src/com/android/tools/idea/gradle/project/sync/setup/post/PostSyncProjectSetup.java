@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -172,7 +172,7 @@ public class PostSyncProjectSetup {
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
-    AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
+    SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
 
     findAndShowVariantConflicts();
     myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);

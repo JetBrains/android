@@ -21,7 +21,12 @@ import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.ide.startup.StartupManagerEx;
+import com.intellij.ide.startup.impl.StartupManagerImpl;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
@@ -33,18 +38,24 @@ import static org.mockito.Mockito.*;
  * Tests for {@link GradleBuildSystemService}.
  */
 public class GradleBuildSystemServiceTest extends IdeaTestCase {
-  private BuildSystemService myService;
   private GradleSyncInvoker myOriginalGradleSyncInvoker;
+  private GradleSyncInvoker mySyncInvoker;
+
+  private BuildSystemService myService;
+  private GradleProjectInfo myGradleProjectInfo;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myOriginalGradleSyncInvoker = GradleSyncInvoker.getInstance();
-    IdeComponents.replaceServiceWithMock(GradleSyncInvoker.class);
-    IdeComponents.replaceServiceWithMock(myProject, GradleProjectInfo.class);
+
+    mySyncInvoker = IdeComponents.replaceServiceWithMock(GradleSyncInvoker.class);
     IdeComponents.replaceServiceWithMock(myProject, GradleProjectBuilder.class);
     IdeComponents.replaceServiceWithMock(myProject, GradleDependencyManager.class);
-    when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
+
+    myGradleProjectInfo = IdeComponents.replaceServiceWithMock(myProject, GradleProjectInfo.class);
+    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+
     myService = BuildSystemService.getInstance(myProject);
   }
 
@@ -71,6 +82,27 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
   public void testSyncProject() {
     myService.syncProject(myProject);
     verify(GradleSyncInvoker.getInstance()).requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+  }
+
+  public void testSyncProjectWithUninitializedProject() {
+    Project project = getProject();
+    StartupManagerEx startupManager = new StartupManagerImpl(project) {
+      @Override
+      public boolean startupActivityPassed() {
+        return false; // this will make Project.isInitialized return false;
+      }
+
+      @Override
+      public void runWhenProjectIsInitialized(@NotNull Runnable action) {
+        action.run();
+      }
+    };
+    IdeComponents.replaceService(project, StartupManager.class, startupManager);
+    // http://b/62543184
+    when(myGradleProjectInfo.isNewlyCreatedProject()).thenReturn(true);
+
+    myService.syncProject(myProject);
+    verify(mySyncInvoker, never()).requestProjectSyncAndSourceGeneration(same(project), any(), any());
   }
 
   public void testBuildProject() {

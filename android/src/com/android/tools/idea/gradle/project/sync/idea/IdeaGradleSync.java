@@ -42,7 +42,6 @@ public class IdeaGradleSync implements GradleSync {
   @NotNull private final Project myProject;
 
   public IdeaGradleSync(@NotNull Project project) {
-
     myProject = project;
   }
 

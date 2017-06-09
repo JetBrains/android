@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.project.BuildSystemService;
 import com.android.tools.idea.templates.GradleFilePsiMerger;
 import com.android.tools.idea.templates.GradleFileSimpleMerger;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
@@ -55,12 +56,21 @@ public class GradleBuildSystemService extends BuildSystemService {
     if (project.isInitialized()) {
       BuildVariantView.getInstance(project).projectImportStarted();
       // TODO Can this be called directly by the user? If yes, then need to add something to tell what triggered sync
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_MODIFIED);
+      syncAndGenerateSources(project, TRIGGER_PROJECT_MODIFIED);
     }
     else {
-      StartupManager.getInstance(project)
-        .runWhenProjectIsInitialized(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_PROJECT_LOADED));
+      StartupManager.getInstance(project).runWhenProjectIsInitialized(() -> {
+        if (!GradleProjectInfo.getInstance(project).isNewlyCreatedProject()) {
+          // http://b/62543184
+          // If the project was created with the "New Project" wizard, there is no need to sync again.
+          syncAndGenerateSources(project, TRIGGER_PROJECT_LOADED);
+        }
+      });
     }
+  }
+
+  private static void syncAndGenerateSources(@NotNull Project project, GradleSyncStats.Trigger trigger) {
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, trigger);
   }
 
   /**

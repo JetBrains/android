@@ -15,63 +15,41 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.startup.DelayedInitialization;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
-import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.module.JavaModuleType;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.project.ModuleListener;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.canImportAsGradleProject;
-import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
-import static com.intellij.openapi.util.text.StringUtil.join;
+import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
-  @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
-
-  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
+  @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
 
   @Nullable private Disposable myDisposable;
 
@@ -82,16 +60,17 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     return component;
   }
 
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleProjectInfo gradleProjectInfo) {
+  public AndroidGradleProjectComponent(@NotNull Project project) {
+    this(project, new LegacyAndroidProjects(project));
+  }
+
+  public AndroidGradleProjectComponent(@NotNull Project project, @NotNull LegacyAndroidProjects legacyAndroidProjects) {
     super(project);
-    myAndroidProjectInfo = androidProjectInfo;
-    myGradleProjectInfo = gradleProjectInfo;
+    myLegacyAndroidProjects = legacyAndroidProjects;
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
     CompilerManager.getInstance(myProject).addAfterTask(context -> {
-      if (myGradleProjectInfo.isBuildWithGradle()) {
+      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
         PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
 
         JpsBuildContext newContext = new JpsBuildContext(context);
@@ -116,133 +95,71 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   @Override
   public void projectOpened() {
-    checkForSupportedModules();
+    GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(myProject);
+    if (myProject.isOpen()) {
+      String error = gradleProjectInfo.getProjectCreationError();
+      if (isNotEmpty(error)) {
+        // http://b/62543339
+        // If we have a "project creation" error, it means that an error occurred when syncing a project that just created with the NPW.
+        // The error was ignored by the IDEA's Gradle infrastructure. Here we report the error.
+        ExternalSystemNotificationManager notificationManager = ExternalSystemNotificationManager.getInstance(myProject);
+        notificationManager.processExternalProjectRefreshError(new Exception(error), myProject.getName(), GradleConstants.SYSTEM_ID);
+        gradleProjectInfo.setProjectCreationError(null);
+      }
+    }
+
+    SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     if (syncState.isSyncInProgress()) {
       // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
       // button and editor notifications.
       syncState.notifyStateChanged();
     }
-    if (IdeInfo.getInstance().isAndroidStudio() &&
-        myAndroidProjectInfo.isLegacyIdeaAndroidProject() &&
-        !myAndroidProjectInfo.isApkProject()) {
-      trackLegacyIdeaAndroidProject();
-      if (shouldShowMigrateToGradleNotification()) {
-        // Suggest that Android Studio users use Gradle instead of IDEA project builder.
-        showMigrateToGradleWarning();
-      }
+
+    IdeInfo ideInfo = IdeInfo.getInstance();
+    AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(myProject);
+    if (ideInfo.isAndroidStudio() && androidProjectInfo.isLegacyIdeaAndroidProject() && !androidProjectInfo.isApkProject()) {
+      myLegacyAndroidProjects.trackProject();
+      // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+      myLegacyAndroidProjects.showMigrateToGradleWarning();
       return;
     }
 
-    boolean isGradleProject = myGradleProjectInfo.isBuildWithGradle();
-    if (isGradleProject) {
+    if (gradleProjectInfo.isBuildWithGradle()) {
       configureGradleProject();
     }
-    else if (IdeInfo.getInstance().isAndroidStudio() &&
-             myProject.getBaseDir() != null &&
-             canImportAsGradleProject(myProject.getBaseDir())) {
+    else if (ideInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
       GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_LOADED);
     }
-  }
-
-  private boolean shouldShowMigrateToGradleNotification() {
-    return PropertiesComponent.getInstance(myProject).getBoolean(SHOW_MIGRATE_TO_GRADLE_POPUP, true);
-  }
-
-  private void trackLegacyIdeaAndroidProject() {
-    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
-      return;
-    }
-
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
-      String packageName = null;
-
-      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-      for (Module module : moduleManager.getModules()) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null && !facet.requiresAndroidModel()) {
-          if (facet.isAppProject()) {
-            // Prefer the package name from an app module.
-            packageName = getPackageNameInLegacyIdeaAndroidModule(facet);
-            if (packageName != null) {
-              break;
-            }
-          }
-          else if (packageName == null) {
-            String modulePackageName = getPackageNameInLegacyIdeaAndroidModule(facet);
-            if (modulePackageName != null) {
-              packageName = modulePackageName;
-            }
-          }
-        }
-        if (packageName != null) {
-          AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(EventCategory.GRADLE)
-            .setKind(EventKind.LEGACY_IDEA_ANDROID_PROJECT)
-            .setProjectId(anonymizeUtf8(packageName));
-          UsageTracker.getInstance().log(event);
-        }
-      }
-    });
-  }
-
-  @Nullable
-  private static String getPackageNameInLegacyIdeaAndroidModule(@NotNull AndroidFacet facet) {
-    // This invocation must happen after the project has been initialized.
-    Manifest manifest = facet.getManifest();
-    return manifest != null ? manifest.getPackage().getValue() : null;
-  }
-
-  private void showMigrateToGradleWarning() {
-    String errMsg = "This project does not use the Gradle build system. We recommend that you migrate to using the Gradle build system.";
-    NotificationHyperlink moreInfoHyperlink = new OpenMigrationToGradleUrlHyperlink().setCloseOnClick(true);
-    NotificationHyperlink doNotShowAgainHyperlink = new NotificationHyperlink("do.not.show", "Don't show this message again.") {
-      @Override
-      protected void execute(@NotNull Project project) {
-        PropertiesComponent.getInstance(myProject).setValue(SHOW_MIGRATE_TO_GRADLE_POPUP, Boolean.FALSE.toString());
-      }
-    };
-
-    AndroidNotification notification = AndroidNotification.getInstance(myProject);
-    notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, moreInfoHyperlink, doNotShowAgainHyperlink);
   }
 
   public void configureGradleProject() {
     if (myDisposable != null) {
       return;
     }
-    myDisposable = () -> {
-    };
+    myDisposable = Disposer.newDisposable();
 
     // Prevent IDEA from refreshing project. We will do it ourselves in AndroidGradleProjectStartupActivity.
-    myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+    myProject.putUserData(NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
 
     List<Class<? extends RunConfigurationProducer<?>>> runConfigurationProducerTypes = new ArrayList<>();
     runConfigurationProducerTypes.add(AllInPackageGradleConfigurationProducer.class);
     runConfigurationProducerTypes.add(TestClassGradleConfigurationProducer.class);
     runConfigurationProducerTypes.add(TestMethodGradleConfigurationProducer.class);
 
+    RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
     if (IdeInfo.getInstance().isAndroidStudio()) {
       // Make sure the gradle test configurations are ignored in this project. This will modify .idea/runConfigurations.xml
-      ignore(runConfigurationProducerTypes);
+      for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
+        runConfigurationProducerManager.getState().ignoredProducers.add(type.getName());
+      }
     }
     else {
       // Make sure the gradle test configurations are not ignored in this project, since they already work in Android gradle projects. This
       // will modify .idea/runConfigurations.xml
-      doNotIgnore(runConfigurationProducerTypes);
-    }
-  }
-
-  private void ignore(@NotNull List<Class<? extends RunConfigurationProducer<?>>> runConfigurationProducerTypes) {
-    RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
-    for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
-      runConfigurationProducerManager.getState().ignoredProducers.add(type.getName());
-    }
-  }
-
-  private void doNotIgnore(@NotNull List<Class<? extends RunConfigurationProducer<?>>> runConfigurationProducerTypes) {
-    RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
-    for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
-      runConfigurationProducerManager.getState().ignoredProducers.remove(type.getName());
+      for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
+        runConfigurationProducerManager.getState().ignoredProducers.remove(type.getName());
+      }
     }
   }
 
@@ -251,41 +168,5 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (myDisposable != null) {
       Disposer.dispose(myDisposable);
     }
-  }
-
-  /**
-   * Verifies that the project, if it is an Android Gradle project, does not have any modules that are not known by Gradle. For example,
-   * when adding a plain IDEA Java module.
-   * Do not call this method from {@link ModuleListener#moduleAdded(Project, Module)} because the settings that this method look for are
-   * not present when importing a valid Gradle-aware module, resulting in false positives.
-   */
-  public void checkForSupportedModules() {
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    if (modules.length == 0 || !myGradleProjectInfo.isBuildWithGradle()) {
-      return;
-    }
-    List<Module> unsupportedModules = new ArrayList<>();
-
-    for (Module module : modules) {
-      ModuleType moduleType = ModuleType.get(module);
-
-      if (moduleType instanceof JavaModuleType) {
-        String externalSystemId = module.getOptionValue(EXTERNAL_SYSTEM_ID_KEY);
-
-        if (!GRADLE_SYSTEM_ID.getId().equals(externalSystemId)) {
-          unsupportedModules.add(module);
-        }
-      }
-    }
-
-    if (unsupportedModules.size() == 0) {
-      return;
-    }
-    String s = join(unsupportedModules, Module::getName, ", ");
-    AndroidNotification.getInstance(myProject).showBalloon(
-      "Unsupported Modules Detected",
-      "Compilation is not supported for following modules: " + s +
-      ". Unfortunately you can't have non-Gradle Java modules and Android-Gradle modules in one project.",
-      NotificationType.ERROR);
   }
 }
