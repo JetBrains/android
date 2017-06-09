@@ -159,45 +159,6 @@ fun NlComponent.ensureLiveId(): String {
   return id
 }
 
-private fun NlComponent.assignId(): String {
-  return assignId(NlComponent.getIds(model))
-}
-
-fun NlComponent.assignId(idList: Collection<String>): String {
-  val tagName = tagName.substring(tagName.lastIndexOf('.') + 1)
-  var idValue = StringUtil.decapitalize(tagName)
-
-  val module = model.module
-  val project = module.project
-  idValue = ResourceHelper.prependResourcePrefix(module, idValue, ResourceFolderType.LAYOUT)
-
-  var nextIdValue = idValue
-  var index = 0
-
-  // Ensure that we don't create something like "switch" as an id, which won't compile when used
-  // in the R class
-  val validator = LanguageNamesValidation.INSTANCE.forLanguage(JavaLanguage.INSTANCE)
-
-  while (idList.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
-    ++index
-    if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
-      nextIdValue = idValue
-    }
-    else {
-      nextIdValue = idValue + Integer.toString(index)
-    }
-  }
-
-  val newId = idValue + if (index == 0) "" else Integer.toString(index)
-
-  // If the component has an open transaction, assign the id in that transaction
-  val attributes = myCurrentTransaction ?: this
-  attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId)
-
-  model.pendingIds.add(newId) // TODO clear the pending ids
-  return newId
-}
-
 @AndroidCoordinate
 fun NlComponent.getBaseline(): Int {
   try {

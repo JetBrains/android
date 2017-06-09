@@ -378,7 +378,7 @@ public class NlDesignSurface extends DesignSurface {
 
   @NotNull
   @Override
-  protected ActionManager createActionManager() {
+  protected NlActionManager createActionManager() {
     return new NlActionManager(this);
   }
 

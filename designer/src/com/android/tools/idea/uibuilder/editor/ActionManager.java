@@ -34,10 +34,10 @@ import java.awt.event.MouseEvent;
 /**
  * Provides and handles actions for an {@link NlEditor}.
  */
-public abstract class ActionManager {
-  protected final DesignSurface mySurface;
+public abstract class ActionManager<S extends DesignSurface> {
+  protected final S mySurface;
 
-  public ActionManager(@NotNull DesignSurface surface) {
+  public ActionManager(@NotNull S surface) {
     mySurface = surface;
   }
 

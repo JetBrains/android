@@ -25,8 +25,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NavigationDomFileDescription extends AndroidResourceDomFileDescription<NavDestinationElement> {
+  // We don't have access to a project at this point, and thus don't have access to the nav library, so this has to be hardcoded.
+  private static final String DEFAULT_ROOT_TAG = "navigation";
+
   public NavigationDomFileDescription() {
-    super(NavDestinationElement.class, NavigationSchema.DEFAULT_ROOT_TAG, ResourceFolderType.NAVIGATION);
+    super(NavDestinationElement.class, DEFAULT_ROOT_TAG, ResourceFolderType.NAVIGATION);
   }
 
   @Override

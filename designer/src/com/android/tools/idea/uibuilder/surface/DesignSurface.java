@@ -182,8 +182,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myActionManager.registerActions(myLayeredPane);
   }
 
+  // TODO: add self-type parameter DesignSurface?
   @NotNull
-  protected abstract ActionManager createActionManager();
+  protected abstract ActionManager<? extends DesignSurface> createActionManager();
 
   @NotNull
   protected abstract SceneManager createSceneManager(@NotNull NlModel model);

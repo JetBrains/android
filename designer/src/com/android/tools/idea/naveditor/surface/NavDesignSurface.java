@@ -69,7 +69,7 @@ public class NavDesignSurface extends DesignSurface {
 
   @NotNull
   @Override
-  protected ActionManager createActionManager() {
+  protected NavActionManager createActionManager() {
     return new NavActionManager(this);
   }
 

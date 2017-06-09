@@ -18,16 +18,24 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
+import com.intellij.lang.LanguageNamesValidation;
+import com.intellij.lang.java.JavaLanguage;
+import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -518,6 +526,85 @@ public class NlComponent implements NlAttributesHolder {
    */
   public void fireLiveChangeEvent() {
     myListeners.forEach(listener -> listener.stateChanged(myChangeEvent));
+  }
+
+  /**
+   * Assign a new unique and valid id to this component. The id will be based on the tag name, and will not be de-duped against any
+   * existing pending ids.
+   *
+   * @return The new id.
+   */
+  @NotNull
+  public String assignId() {
+    return assignId(getTagName());
+  }
+
+  /**
+   * Assign a new unique and valid id to this component. The id will not be du-duped against any existing pending ids.
+   *
+   * @param baseName The base (prefix) for the new id.
+   *
+   * @return The new id.
+   */
+  @NotNull
+  public String assignId(@NotNull String baseName) {
+    return assignId(baseName, getIds(getModel()));
+  }
+
+  /**
+   * Assign a new unique and valid id to this component. The id will be based on the tag name.
+   *
+   * @param ids A collection of existing pending ids, so the newly-created id doesn't clash with existing pending ones.
+   *
+   * @return The new id.
+   */
+  @NotNull
+  public String assignId(@NotNull Collection<String> ids) {
+    return assignId(getTagName(), ids);
+  }
+
+  /**
+   * Assign a new unique and valid id to this component.
+   *
+   * @param baseName The base (prefix) for the new id.
+   * @param ids A collection of existing pending ids, so the newly-created id doesn't clash with existing pending ones.
+   *
+   * @return The new id.
+   */
+  @NotNull
+  public String assignId(@NotNull String baseName, @NotNull Collection<String> ids) {
+    String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));
+
+    Module module = getModel().getModule();
+    Project project = module.getProject();
+    idValue = ResourceHelper.prependResourcePrefix(module, idValue, ResourceFolderType.LAYOUT);
+
+    String nextIdValue = idValue;
+    int index = 0;
+
+    // Ensure that we don't create something like "switch" as an id, which won't compile when used
+    // in the R class
+    NamesValidator validator = LanguageNamesValidation.INSTANCE.forLanguage(JavaLanguage.INSTANCE);
+
+    while (ids.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
+      index++;
+      if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
+        nextIdValue = idValue;
+      }
+      else {
+        nextIdValue = idValue + index;
+      }
+    }
+
+    String newId = idValue + (index == 0 ? "" : index);
+
+    // If the component has an open transaction, assign the id in that transaction
+    NlAttributesHolder attributes = myCurrentTransaction == null ? this : myCurrentTransaction;
+    attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
+
+    // TODO clear the pending ids
+    getModel().getPendingIds().add(newId);
+    return newId;
   }
 
   public abstract static class XmlModelComponentMixin {

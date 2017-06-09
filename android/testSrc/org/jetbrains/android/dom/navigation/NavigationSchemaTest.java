@@ -84,4 +84,11 @@ public class NavigationSchemaTest extends AndroidGradleTestCase {
     assertEquals(NavigationSchema.DestinationType.OTHER, schema.getDestinationType("other_1"));
     assertEquals(NavigationSchema.DestinationType.OTHER, schema.getDestinationType("other_2"));
   }
+
+  public void testTagByType() {
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(myAndroidFacet);
+    assertEquals("activity", schema.getTag(NavigationSchema.DestinationType.ACTIVITY));
+    assertEquals("navigation", schema.getTag(NavigationSchema.DestinationType.NAVIGATION));
+    assertEquals("fragment", schema.getTag(NavigationSchema.DestinationType.FRAGMENT));
+  }
 }

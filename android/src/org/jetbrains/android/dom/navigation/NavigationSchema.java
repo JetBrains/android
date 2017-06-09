@@ -15,10 +15,8 @@
  */
 package org.jetbrains.android.dom.navigation;
 
-import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
+import com.android.SdkConstants;
+import com.google.common.collect.*;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -27,6 +25,7 @@ import com.intellij.psi.PsiClass;
 import org.jetbrains.android.ClassMaps;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,10 +38,6 @@ import java.util.Map;
 public class NavigationSchema implements Disposable {
   public static final String TAG_ACTION = "action";
   public static final String ATTR_DESTINATION = "destination";
-  public static final String TAG_NAVIGATION = "navigation";
-  @VisibleForTesting  // Normally the introspective methods below should be used
-  public static final String TAG_FRAGMENT = "fragment";
-  public static final String DEFAULT_ROOT_TAG = TAG_NAVIGATION;
 
   public static final String NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.Navigator";
   public static final String NAV_GRAPH_NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.NavGraphNavigator";
@@ -57,9 +52,16 @@ public class NavigationSchema implements Disposable {
   public static final String ATTR_NAV_TYPE = "navType";
   public static final String ATTR_START_DESTINATION = "startDestination";
 
-  private Map<String, DestinationType> myTagToDestinationType;
+  // TODO: get these from the xml metadata once supported by platform
+  public static final Map<String, DestinationType> DESTINATION_SUPERCLASS_TO_TYPE = ImmutableMap.of(
+    SdkConstants.CLASS_ACTIVITY, DestinationType.ACTIVITY,
+    SdkConstants.CLASS_FRAGMENT, DestinationType.FRAGMENT,
+    SdkConstants.CLASS_V4_FRAGMENT, DestinationType.FRAGMENT);
 
   private static final Map<AndroidFacet, NavigationSchema> ourSchemas = new HashMap<>();
+
+  private Map<String, DestinationType> myTagToDestinationType;
+  private Map<DestinationType, String> myTypeToRootTag;
 
   private Map<DestinationType, Map<String, PsiClass>> myNavTagToClass;
 
@@ -163,6 +165,18 @@ public class NavigationSchema implements Disposable {
       }
       myNavTagToClass = result;
       myTagToDestinationType = tagToType;
+
+      Map<DestinationType, String> typeToTag = new HashMap<>();
+      Map<DestinationType, PsiClass> typeToBestClass = new HashMap<>();
+      for (String tag : myTagToDestinationType.keySet()) {
+        DestinationType type = myTagToDestinationType.get(tag);
+        PsiClass psiClass = myNavTagToClass.get(type).get(tag);
+        if (!typeToBestClass.containsKey(type) || typeToBestClass.get(type).isInheritor(psiClass, true)) {
+          typeToBestClass.put(type, psiClass);
+          typeToTag.put(type, tag);
+        }
+      }
+      myTypeToRootTag = typeToTag;
     }
   }
 
@@ -189,4 +203,35 @@ public class NavigationSchema implements Disposable {
     return myTagToDestinationType.get(tag);
   }
 
+  @Nullable
+  public String getTag(@NotNull DestinationType type) {
+    initIfNeeded();
+    return myTypeToRootTag.get(type);
+  }
+
+  @Nullable
+  public String getTagForComponentSuperclass(@NotNull String superclassName) {
+    initIfNeeded();
+    DestinationType type = DESTINATION_SUPERCLASS_TO_TYPE.get(superclassName);
+    if (type != null) {
+      return getTag(type);
+    }
+    return null;
+  }
+
+  @Contract("null -> null")
+  @Nullable
+  public String findTagForComponent(@Nullable PsiClass layoutClass) {
+    while (layoutClass != null) {
+      String qName = layoutClass.getQualifiedName();
+      if (qName != null) {
+        String tag = getTagForComponentSuperclass(qName);
+        if (tag != null) {
+          return tag;
+        }
+      }
+      layoutClass = layoutClass.getSuperClass();
+    }
+    return null;
+  }
 }

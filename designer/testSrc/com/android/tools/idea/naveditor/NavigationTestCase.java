@@ -45,6 +45,8 @@ import static org.mockito.Mockito.when;
 // TODO: in most cases this probably doesn't need to extend AndroidGradleTestCase/doesn't need to load the project.
 public abstract class NavigationTestCase extends AndroidGradleTestCase {
 
+  public static final String TAG_FRAGMENT = "fragment";
+  public static final String TAG_NAVIGATION = "navigation";
   protected CodeStyleSettings mySettings;
   private boolean myUseCustomSettings;
 
@@ -82,10 +84,12 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
   }
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
+  @NotNull
   public static String getTestDataPath() {
     return getDesignerPluginHome() + "/testData";
   }
 
+  @NotNull
   public static String getDesignerPluginHome() {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
@@ -96,6 +100,7 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
     return AndroidTestBase.getAndroidPluginHome();
   }
 
+  @NotNull
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
     Function<? super SyncNlModel, ? extends SceneManager> managerFactory = model -> {
       when(((NavDesignSurface)model.getSurface()).getSchema()).thenReturn(NavigationSchema.getOrCreateSchema(myAndroidFacet));
@@ -108,30 +113,35 @@ public abstract class NavigationTestCase extends AndroidGradleTestCase {
                             (tag, model) -> DesignSurface.createComponent(tag, model));
   }
 
+  @NotNull
   protected ComponentDescriptor component(@NotNull String tag) {
     return new ComponentDescriptor(tag);
   }
 
+  @NotNull
   protected ComponentDescriptor rootComponent() {
-    return new ComponentDescriptor(NavigationSchema.TAG_NAVIGATION);
+    return new ComponentDescriptor(TAG_NAVIGATION);
   }
 
+  @NotNull
   protected ComponentDescriptor fragmentComponent(@NotNull String id) {
-    ComponentDescriptor descriptor = new ComponentDescriptor(NavigationSchema.TAG_FRAGMENT);
+    ComponentDescriptor descriptor = new ComponentDescriptor(TAG_FRAGMENT);
     return descriptor.id("@id/" + id);
   }
 
+  @NotNull
   protected ActionComponentDescriptor actionComponent(@NotNull String id) {
     ActionComponentDescriptor descriptor = new ActionComponentDescriptor();
     descriptor.id("@id/" + id);
     return descriptor;
   }
 
-  protected class ActionComponentDescriptor extends ComponentDescriptor {
+  protected static class ActionComponentDescriptor extends ComponentDescriptor {
     public ActionComponentDescriptor() {
       super(NavigationSchema.TAG_ACTION);
     }
 
+    @NotNull
     public ActionComponentDescriptor withDestinationAttribute(@NotNull String destination) {
       withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@id/" + destination);
       return this;
