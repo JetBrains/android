@@ -295,6 +295,7 @@ public class InstantRunTest {
    *   </pre>
    */
   @Test
+  @Ignore // http://b/62493006
   public void unnecessaryCleanCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
