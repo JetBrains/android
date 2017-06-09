@@ -18,20 +18,27 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.TextEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
+
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
 /**
@@ -262,5 +269,75 @@ public class NlPreviewTest {
       .getLayoutPreview(false)
       .waitForRenderToFinish()
       .waitForScreenMode(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testNavigation() throws Exception {
+    // Open 2 different layout files in a horizontal split view (both editors visible).
+    // Open the preview for one of the files.
+    // Navigate in the preview. Only 1 of the layouts should change its scroll position (regression test for b/62367302).
+    // Navigate in the file. The preview selection should update.
+
+    EditorFixture editor = guiTest.importSimpleApplication().getEditor();
+    editor
+      .open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.EDITOR)
+      .invokeAction(EditorFixture.EditorAction.SPLIT_HORIZONTALLY)
+      .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.EDITOR);
+
+    TextEditorFixture absolute = checkNotNull(editor.getVisibleTextEditor("absolute.xml"));
+    TextEditorFixture frames = checkNotNull(editor.getVisibleTextEditor("frames.xml"));
+
+    // Navigation in absolute.xml
+    navigateEditor(editor, absolute, 323, 1706, frames, 0);
+
+    // Navigation in frames.xml
+    frames.focusAndWaitForFocusGain();
+    navigateEditor(editor, frames, 345, 1572, absolute, 1706);
+  }
+
+  private static void navigateEditor(@NotNull EditorFixture editor,
+                                     @NotNull TextEditorFixture selectedEditor, int firstOffset, int lastOffset,
+                                     @NotNull TextEditorFixture otherEditor, int expectedOffset) {
+    NlPreviewFixture layout = editor.getLayoutPreview(true);
+    layout.waitForRenderToFinish();
+
+    List<NlComponentFixture> components = layout.getAllComponents();
+    NlComponentFixture first = components.get(1);                     // First child of the top level Layout
+    NlComponentFixture last = components.get(components.size() - 1);  // Last child of the top level layout
+
+    assertThat(first).isNotEqualTo(last);
+
+    // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
+    first.doubleClick();
+    Wait.seconds(5).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
+      .until(() -> selectedEditor.getOffset() == firstOffset);
+    assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
+
+    // Double click on the last component should move the caret in the selected editor, and leave the other editor unchanged
+    last.doubleClick();
+    Wait.seconds(1).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
+      .until(() -> selectedEditor.getOffset() == lastOffset);
+    assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
+
+    // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
+    first.doubleClick();
+    Wait.seconds(1).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
+      .until(() -> selectedEditor.getOffset() == firstOffset);
+    assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
+
+    // Double click on the last component should move the caret in the selected editor, and leave the other editor unchanged
+    last.doubleClick();
+    Wait.seconds(1).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
+      .until(() -> selectedEditor.getOffset() == lastOffset);
+    assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
+
+    // Move the caret to the first component in the selected editor should change the selection in the preview.
+    selectedEditor.setOffset(firstOffset);
+    assertThat(layout.getSelection()).containsExactly(first.getComponent());
+
+    // Move the caret to the last component in the selected editor should change the selection in the preview.
+    selectedEditor.setOffset(lastOffset);
+    assertThat(layout.getSelection()).containsExactly(last.getComponent());
   }
 }
