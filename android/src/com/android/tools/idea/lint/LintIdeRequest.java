@@ -107,7 +107,8 @@ public class LintIdeRequest extends LintRequest {
       }
     }
 
-    return projects;
+    //noinspection unchecked
+    return (Collection<com.android.tools.lint.detector.api.Project>)projects;
   }
 
   @NonNull
