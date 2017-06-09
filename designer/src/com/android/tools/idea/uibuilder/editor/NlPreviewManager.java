@@ -38,6 +38,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
@@ -54,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.util.Arrays;
 
 /**
  * Manages a shared UI Preview window on the right side of the source editor which shows a preview
@@ -88,7 +90,7 @@ public class NlPreviewManager implements ProjectComponent {
   public void projectOpened() {
     StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
       myToolWindowReady = true;
-      processFileEditorChange(getActiveLayoutXmlEditor());
+      processFileEditorChange(getActiveLayoutXmlEditor(null));
     });
   }
 
@@ -211,7 +213,6 @@ public class NlPreviewManager implements ProjectComponent {
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
         }
-        boolean renderImmediately = myRenderImmediately;
         myRenderImmediately = false;
 
         final Editor activeEditor = newEditor != null ? newEditor.getEditor() : null;
@@ -245,16 +246,13 @@ public class NlPreviewManager implements ProjectComponent {
             if (!mySeenEditor) {
               myPendingShowComponent = activeEditor.getComponent();
               if (myHierarchyListener == null) {
-                myHierarchyListener = new HierarchyListener() {
-                  @Override
-                  public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
-                    if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
-                      if (hierarchyEvent.getComponent() == myPendingShowComponent && myPendingShowComponent.isShowing()) {
-                        myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
-                        mySeenEditor = true;
-                        myPendingShowComponent = null;
-                        processFileEditorChange(getActiveLayoutXmlEditor());
-                      }
+                myHierarchyListener = hierarchyEvent -> {
+                  if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+                    if (hierarchyEvent.getComponent() == myPendingShowComponent && myPendingShowComponent.isShowing()) {
+                      myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
+                      mySeenEditor = true;
+                      myPendingShowComponent = null;
+                      processFileEditorChange(getActiveLayoutXmlEditor(null));
                     }
                   }
                 };
@@ -301,30 +299,28 @@ public class NlPreviewManager implements ProjectComponent {
     });
   }
 
+  /**
+   * Find an active editor for the specified file, or just the first active editor if file is null.
+   */
   @Nullable
-  TextEditor getActiveLayoutXmlEditor() {
+  TextEditor getActiveLayoutXmlEditor(@Nullable PsiFile file) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<TextEditor>() {
-        @Override
-        public TextEditor compute() {
-          return getActiveLayoutXmlEditor();
-        }
-      });
+      return ApplicationManager.getApplication().runReadAction((Computable<TextEditor>)() -> getActiveLayoutXmlEditor(file));
     }
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    FileEditor[] fileEditors = myFileEditorManager.getSelectedEditors();
-    if (fileEditors.length > 0 && fileEditors[0] instanceof TextEditor) {
-      final TextEditor textEditor = (TextEditor)fileEditors[0];
-      if (isApplicableEditor(textEditor)) {
-        return textEditor;
-      }
-    }
-    return null;
+    return (TextEditor)Arrays.stream(myFileEditorManager.getSelectedEditors())
+      .filter(editor -> editor instanceof TextEditor && isApplicableEditor((TextEditor)editor, file))
+      .findFirst()
+      .orElse(null);
   }
 
-  protected boolean isApplicableEditor(TextEditor textEditor) {
+  protected boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
+
+    if (file != null && !file.equals(psiFile)) {
+      return false;
+    }
 
     FeatureEnableService featureEnableService = FeatureEnableService.getInstance(myProject);
     if (featureEnableService == null || !featureEnableService.isLayoutEditorEnabled(myProject)) {
@@ -396,13 +392,16 @@ public class NlPreviewManager implements ProjectComponent {
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      processFileEditorChange(getActiveLayoutXmlEditor());
+      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+      processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
     }
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      ApplicationManager.getApplication().invokeLater(
-        () -> processFileEditorChange(getActiveLayoutXmlEditor()), myProject.getDisposed());
+      ApplicationManager.getApplication().invokeLater(() -> {
+        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+        processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
+      }, myProject.getDisposed());
     }
 
     @Override
@@ -410,8 +409,8 @@ public class NlPreviewManager implements ProjectComponent {
       final FileEditor newEditor = event.getNewEditor();
       TextEditor layoutXmlEditor = null;
       if (newEditor instanceof TextEditor) {
-        final TextEditor textEditor = (TextEditor)newEditor;
-        if (isApplicableEditor(textEditor)) {
+        TextEditor textEditor = (TextEditor)newEditor;
+        if (isApplicableEditor(textEditor, null)) {
           layoutXmlEditor = textEditor;
         }
       }

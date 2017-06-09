@@ -27,12 +27,12 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
-import com.android.tools.idea.uibuilder.surface.*;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
@@ -54,6 +54,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
+
+  public static final String PREVIEW_DESIGN_SURFACE = "NlPreviewFormDesignSurface";
+
   private final NlPreviewManager myManager;
   private final Project myProject;
   private final NlDesignSurface mySurface;
@@ -86,28 +89,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     mySurface = new NlDesignSurface(myProject, true, this);
     mySurface.setCentered(true);
     mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
-    mySurface.addListener(new DesignSurfaceListener() {
-      @Override
-      public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
-        assert surface == mySurface; // We're maintaining the listener per surface
-        // Allow only one component
-        NlComponent component = newSelection.size() == 1 ? newSelection.get(0) : null;
-        selectComponent(component);
-      }
-
-      @Override
-      public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
-      }
-
-      @Override
-      public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
-      }
-
-      @Override
-      public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-        return false;
-      }
-    });
+    mySurface.setName(PREVIEW_DESIGN_SURFACE);
 
     myRenderingQueue.setRestartTimerOnAdd(true);
 
@@ -153,29 +135,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
       if (editor != null) {
         myCaretModel = myEditor.getEditor().getCaretModel();
         myCaretModel.addCaretListener(this);
-      }
-    }
-  }
-
-  private void selectComponent(@Nullable NlComponent component) {
-    ScreenView screenView = mySurface.getCurrentSceneView();
-    if (screenView == null) {
-      return;
-    }
-
-    if (myEditor != null && component != null && component.getTag().isValid() && myUseInteractiveSelector && !myIgnoreListener) {
-      int offset = component.getTag().getTextOffset();
-      if (offset != -1) {
-        Editor editor = myEditor.getEditor();
-        myIgnoreListener = true;
-        try {
-          screenView.getSelectionModel().setSelection(Collections.singletonList(component));
-          editor.getCaretModel().moveToOffset(offset);
-          editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
-        }
-        finally {
-          myIgnoreListener = false;
-        }
       }
     }
   }
@@ -378,7 +337,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       else {
         mySurface.updateScrolledAreaSize();
       }
-      setEditor(myManager.getActiveLayoutXmlEditor());
+      setEditor(myManager.getActiveLayoutXmlEditor(myFile));
       model.activate();
       myWorkBench.setToolContext(mySurface);
       myWorkBench.setFileEditor(myEditor);

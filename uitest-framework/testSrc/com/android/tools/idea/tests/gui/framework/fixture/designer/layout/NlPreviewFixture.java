@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -47,7 +48,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
 
   public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Preview", project, robot);
-    myDesignSurfaceFixture = new NlDesignSurfaceFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(NlDesignSurface.class)));
+    myDesignSurfaceFixture = new NlDesignSurfaceFixture(
+      robot, GuiTests.waitUntilShowing(robot, Matchers.byName(NlDesignSurface.class, NlPreviewForm.PREVIEW_DESIGN_SURFACE)));
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 

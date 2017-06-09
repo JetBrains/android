@@ -31,18 +31,14 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import com.intellij.openapi.actionSystem.Shortcut;
-import com.intellij.openapi.editor.Caret;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.LogicalPosition;
-import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.editor.*;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
@@ -50,6 +46,8 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
@@ -380,12 +378,12 @@ public class EditorFixture {
     AnAction anAction = ActionManager.getInstance().getAction(editorAction.id);
     assertTrue(editorAction.id + " is not enabled", anAction.getTemplatePresentation().isEnabled());
 
+    Component component = getFocusedEditor();
     Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
-    Shortcut shortcut = keymap.getShortcuts(editorAction.id)[0];
-    if (shortcut instanceof KeyboardShortcut) {
-      KeyboardShortcut cs = (KeyboardShortcut)shortcut;
+    Shortcut[] shortcuts = keymap.getShortcuts(editorAction.id);
+    if (shortcuts.length > 0 && shortcuts[0] instanceof KeyboardShortcut) {
+      KeyboardShortcut cs = (KeyboardShortcut)shortcuts[0];
       KeyStroke firstKeyStroke = cs.getFirstKeyStroke();
-      Component component = getFocusedEditor();
       ComponentDriver<Component> driver = new ComponentDriver<>(robot);
       driver.pressAndReleaseKey(component, firstKeyStroke.getKeyCode(), new int[]{firstKeyStroke.getModifiers()});
       KeyStroke secondKeyStroke = cs.getSecondKeyStroke();
@@ -394,9 +392,32 @@ public class EditorFixture {
       }
     }
     else {
-      fail("Unsupported shortcut type " + shortcut.getClass().getName());
+      GuiTask.execute(() -> {
+        DataContext context = DataManager.getInstance().getDataContext(component);
+        AnActionEvent event = AnActionEvent.createFromAnAction(anAction, null, "menu", context);
+        anAction.actionPerformed(event);
+      });
     }
     return this;
+  }
+
+  @Nullable
+  public TextEditorFixture getVisibleTextEditor(@NotNull String relativePath) {
+    return GuiQuery.get(
+      () -> {
+        FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getAllEditors();
+        for (FileEditor editor : editors) {
+          if (editor instanceof TextEditor && editor.getComponent().isShowing()) {
+            TextEditor textEditor = (TextEditor)editor;
+            Document document = textEditor.getEditor().getDocument();
+            PsiFile psiFile = PsiDocumentManager.getInstance(myFrame.getProject()).getPsiFile(document);
+            if (psiFile != null && psiFile.getName().endsWith(relativePath)) {
+              return new TextEditorFixture(robot, textEditor);
+            }
+          }
+        }
+        return null;
+      });
   }
 
   @NotNull
@@ -651,6 +672,8 @@ public class EditorFixture {
     SAVE("SaveAll"),
     SELECT_ALL("$SelectAll"),
     SHOW_INTENTION_ACTIONS("ShowIntentionActions"),
+    SPLIT_HORIZONTALLY("SplitHorizontally"),
+    SPLIT_VERTICALLY("SplitVertically"),
     TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
     UNDO("$Undo"),
     ;
