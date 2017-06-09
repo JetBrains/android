@@ -112,6 +112,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/2.0.1:jar",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/18.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/github/bumptech/glide/glide/3.8.0:jar",
         "//prebuilts/tools/common/m2/repository/com/squareup/javawriter/2.1.1:jar",
         "//prebuilts/tools/common/m2/repository/javax/annotation/javax.annotation-api/1.2:jar",
         "//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:jar",
