@@ -119,7 +119,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
     CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
-                                                  modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null);
+                                                   modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null);
 
     if (defaultFile == null) {
       final String defaultFileName = AndroidResourceUtil.getDefaultResourceFileName(myResourceType);
@@ -215,6 +215,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   @Override
   public ValidationInfo doValidate() {
     String resourceName = getResourceName();
+    String resourceValue = getResourceValue();
     Module selectedModule = getModule();
     VirtualFile resourceDir = getResourceDirectory();
     List<String> directoryNames = getDirNames();
@@ -243,7 +244,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     }
 
     return CreateXmlResourceDialog.checkIfResourceAlreadyExists(selectedModule.getProject(), resourceDir, resourceName,
-                                                                myResourceType, directoryNames, fileName);
+                                                                resourceValue, myResourceType, directoryNames, fileName);
   }
 
   @Override
@@ -258,7 +259,11 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   @Override
   public JComponent getPreferredFocusedComponent() {
     String name = myNameField.getText();
-    if (name.isEmpty() || name.equals(ResourceHelper.prependResourcePrefix(myModule, null, myFolderType))) {
+    if (name.isEmpty() ||
+        // If the value is already populated, the user probably don't want to change it
+        // (e.g extracting a string resources), so we focus the name field
+        myValueField.isVisible() && !myValueField.getText().isEmpty()
+        || name.equals(ResourceHelper.prependResourcePrefix(myModule, null, myFolderType))) {
       return myNameField;
     }
     else if (myValueField.isVisible()) {
@@ -276,6 +281,11 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   @NotNull
   public String getResourceName() {
     return myNameField.getText().trim();
+  }
+
+  @NotNull
+  public String getResourceValue() {
+    return myValueField.getText().trim();
   }
 
   @Override
@@ -365,5 +375,4 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     myFileNameCombo.setModel(new DefaultComboBoxModel(fileNames.toArray()));
     myFileNameCombo.getEditor().setItem(oldItem);
   }
-
 }

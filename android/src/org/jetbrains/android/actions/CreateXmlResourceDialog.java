@@ -27,6 +27,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -139,6 +140,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
   public static ValidationInfo checkIfResourceAlreadyExists(@NotNull Project project,
                                                             @NotNull VirtualFile resourceDir,
                                                             @NotNull String resourceName,
+                                                            @Nullable String resourceValue,
                                                             @NotNull ResourceType resourceType,
                                                             @NotNull List<String> dirNames,
                                                             @NotNull String fileName) {
@@ -169,9 +171,9 @@ public class CreateXmlResourceDialog extends DialogWrapper {
       }
 
       for (ResourceElement element : AndroidResourceUtil.getValueResourcesFromElement(resourceType, resources)) {
-        if (resourceName.equals(element.getName().getValue())) {
+        if (resourceName.equals(element.getName().getStringValue()) && !StringUtil.equals(resourceValue, element.getStringValue())) {
           return new ValidationInfo("resource '" + resourceName + "' already exists in " + FileUtil.toSystemDependentName(
-            resFile.getPath()));
+            resFile.getPath()) + "with a different value.");
         }
       }
     }
