@@ -221,7 +221,7 @@ public class ConvertToWebpActionTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/62462733
   @Test
   public void testCannotConvertFrom9PatchAndTransparentImagesToWebp() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("MinSdk15App");
