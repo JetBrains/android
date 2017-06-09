@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
@@ -135,8 +135,8 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
         mxCell moduleVertex = createVertex(module);
         moduleVertex.setConnectable(false);
 
-        for (AndroidLibrary library : getDirectLibraryDependencies(variant)) {
-          String gradlePath = library.getProject();
+        for (Library library : getModuleDependencies(variant)) {
+          String gradlePath = library.getProjectPath();
           if (gradlePath == null) {
             continue;
           }
@@ -144,7 +144,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
           if (dependency != null) {
             mxCell dependencyVertex = createVertex(dependency);
             dependencyVertex.setConnectable(false);
-            String projectVariant = notNullize(library.getProjectVariant());
+            String projectVariant = notNullize(library.getVariant());
             insertEdge(parent, null, projectVariant, moduleVertex, dependencyVertex);
           }
         }
