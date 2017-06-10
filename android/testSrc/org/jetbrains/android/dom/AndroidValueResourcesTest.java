@@ -46,13 +46,11 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Ignore // Fails with the sandbox enabled
 public class AndroidValueResourcesTest extends AndroidDomTestCase {
   public AndroidValueResourcesTest() {
     super("dom/resources");
@@ -458,7 +456,8 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  public void testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
+  // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
+  public void ignore_testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
@@ -486,7 +485,8 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     assertEquals(themes, targetElement.getContainingFile().getVirtualFile());
   }
 
-  public void testNavigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
+  // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
+  public void ignore_testNavigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
@@ -514,7 +514,8 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     assertEquals(themes, targetElement.getContainingFile().getVirtualFile());
   }
 
-  public void testNavigationInPlatformXml3() throws Exception {
+  // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
+  public void ignore_testNavigationInPlatformXml3() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
     assertNotNull(themes_holo);
