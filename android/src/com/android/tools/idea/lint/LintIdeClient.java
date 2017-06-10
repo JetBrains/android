@@ -246,7 +246,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   protected void reportSecondary(@NonNull Context context, @NonNull Issue issue, @NonNull Severity severity, @NonNull Location location,
                                  @NonNull String message, @NonNull TextFormat format, @Nullable LintFix extraData) {
     Location secondary = location.getSecondary();
-    if (secondary != null && secondary.isVisible()) {
+    if (secondary != null && secondary.getVisible()) {
       String secondaryMessage = secondary.getMessage();
       if (secondaryMessage != null) {
         if (secondary.isSelfExplanatory()) {
@@ -410,6 +410,8 @@ public class LintIdeClient extends LintClient implements Disposable {
     return IdeSdks.getInstance().getAndroidSdkPath();
   }
 
+  private AndroidSdkHandler sdk = null;
+
   @Nullable
   @Override
   public AndroidSdkHandler getSdk() {
@@ -554,14 +556,13 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   @Nullable
   public Pair<File, Node> findManifestSourceNode(@NonNull Node mergedNode) {
-    if (sourceNodeCache != null) {
-      Pair<File,Node> source = sourceNodeCache.get(mergedNode);
-      if (source != null) {
-        if (source == NOT_FOUND) {
-          return null;
-        }
-        return source;
+    Map<Node, Pair<File, Node>> sourceNodeCache = getSourceNodeCache();
+    Pair<File,Node> source = sourceNodeCache.get(mergedNode);
+    if (source != null) {
+      if (source == NOT_FOUND) {
+        return null;
       }
+      return source;
     }
 
     org.w3c.dom.Document doc = mergedNode.getOwnerDocument();
@@ -573,7 +574,7 @@ public class LintIdeClient extends LintClient implements Disposable {
       return null;
     }
 
-    Pair<File,Node> source = NOT_FOUND;
+    source = NOT_FOUND;
     List<? extends Actions.Record> records = ManifestUtils.getRecords(mergedManifest, mergedNode);
     for (Actions.Record record : records) {
       if (record.getActionType() == Actions.ActionType.ADDED ||
@@ -588,9 +589,6 @@ public class LintIdeClient extends LintClient implements Disposable {
       }
     }
 
-    if (sourceNodeCache == null) {
-      sourceNodeCache = Maps.newIdentityHashMap();
-    }
     sourceNodeCache.put(mergedNode, source);
 
     return source != NOT_FOUND ? source : null;
