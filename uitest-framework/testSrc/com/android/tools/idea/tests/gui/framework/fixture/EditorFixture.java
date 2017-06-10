@@ -90,7 +90,7 @@ import static org.junit.Assert.*;
 public class EditorFixture {
 
   /**
-   * Performs simulation of user events on <code>{@link #target}</code>
+   * Performs simulation of user events on <code>target</code>
    */
   final Robot robot;
   private final IdeFrameFixture myFrame;
@@ -209,7 +209,7 @@ public class EditorFixture {
   /**
    * Given a {@code regex} with one capturing group, selects the subsequence captured in the first match found in the selected text editor.
    *
-   * @throws IllegalStateException if there is no currently selected text editor or no match is found
+   * @throws IllegalStateException    if there is no currently selected text editor or no match is found
    * @throws IllegalArgumentException if {@code regex} does not have exactly one capturing group
    */
   @NotNull
@@ -298,7 +298,7 @@ public class EditorFixture {
    * find and select the given file.
    *
    * @param file the file to open
-   * @param tab which tab to open initially, if there are multiple editors
+   * @param tab  which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
     GuiTask.execute(
@@ -351,8 +351,8 @@ public class EditorFixture {
    * Opens up a different file. This will run through the "Open File..." dialog to
    * find and select the given file.
    *
-   * @param file the project-relative path (with /, not File.separator, as the path separator)
-   * @param tab which tab to open initially, if there are multiple editors
+   * @param relativePath the project-relative path (with /, not File.separator, as the path separator)
+   * @param tab          which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab) {
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
@@ -369,7 +369,7 @@ public class EditorFixture {
    * Like {@link #open(String, com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab)} but
    * always uses the default tab
    *
-   * @param file the project-relative path (with /, not File.separator, as the path separator)
+   * @param relativePath the project-relative path (with /, not File.separator, as the path separator)
    */
   public EditorFixture open(@NotNull final String relativePath) {
     return open(relativePath, Tab.DEFAULT);
@@ -527,7 +527,7 @@ public class EditorFixture {
    *
    * @param switchToTabIfNecessary if true, switch to the editor tab if it is not already showing
    * @return a layout preview fixture, or null if the current file is not a layout file or the
-   *     wrong tab is showing
+   * wrong tab is showing
    */
   @NotNull
   public NlPreviewFixture getLayoutPreview(boolean switchToTabIfNecessary) {
@@ -646,7 +646,6 @@ public class EditorFixture {
     DELETE_LINE("EditorDeleteLine"),
     DOWN("EditorDown"),
     ESCAPE("EditorEscape"),
-    FORMAT("ReformatCode"),
     GOTO_DECLARATION("GotoDeclaration"),
     GOTO_IMPLEMENTATION("GotoImplementation"),
     SAVE("SaveAll"),
