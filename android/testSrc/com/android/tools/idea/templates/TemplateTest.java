@@ -1333,7 +1333,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     BuiltinIssueRegistry registry = new LintIdeIssueRegistry();
     Map<Issue, Map<File, List<ProblemData>>> map = new HashMap<>();
     LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), Sets.newHashSet(registry.getIssues()));
-    LintDriver driver = new LintDriver(registry, client);
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
     LintRequest request = new LintIdeRequest(client, project, null, modules, false);
     EnumSet<Scope> scope = EnumSet.allOf(Scope.class);
@@ -1341,7 +1340,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     scope.remove(Scope.ALL_CLASS_FILES);
     scope.remove(Scope.JAVA_LIBRARIES);
     request.setScope(scope);
-    driver.analyze(request);
+    LintDriver driver = new LintDriver(registry, client, request);
+    driver.analyze();
     if (!map.isEmpty()) {
       for (Map<File, List<ProblemData>> fileListMap : map.values()) {
         for (Map.Entry<File, List<ProblemData>> entry : fileListMap.entrySet()) {

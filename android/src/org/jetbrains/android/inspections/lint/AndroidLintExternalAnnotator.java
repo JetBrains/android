@@ -142,8 +142,6 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
   public State doAnnotate(final State state) {
     final LintIdeClient client = LintIdeClient.forEditor(state);
     try {
-      final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
-
       EnumSet<Scope> scope;
       VirtualFile mainFile = state.getMainFile();
       final FileType fileType = mainFile.getFileType();
@@ -181,7 +179,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
                                                Collections.singletonList(state.getModule()), true /* incremental */);
       request.setScope(scope);
 
-      lint.analyze(request);
+      LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client, request);
+      lint.analyze();
     }
     finally {
       Disposer.dispose(client);
