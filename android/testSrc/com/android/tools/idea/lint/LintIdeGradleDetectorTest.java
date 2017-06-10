@@ -19,7 +19,6 @@ import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidLintTest;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
@@ -124,7 +123,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
-    AndroidLintTest.enableOnlySpecificLintInspections(myFixture, inspection);
+    myFixture.enableInspections(inspection);
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".gradle", "build.gradle");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
