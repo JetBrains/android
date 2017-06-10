@@ -18,12 +18,12 @@ package com.android.tools.idea.gradle.project.build.compiler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.module.Module;
@@ -35,6 +35,7 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,7 +47,6 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.ASSEMBLE_TRANSLATE
 import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
@@ -62,10 +62,10 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   @Override
   @NotNull
   public List<String> getVMArguments() {
-    if (!isBuildWithGradle(myProject)) {
+    if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
       return Collections.emptyList();
     }
-    List<String> jvmArgs = Lists.newArrayList();
+    List<String> jvmArgs = new ArrayList<>();
 
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
     populateJvmArgs(buildConfiguration, jvmArgs, myProject);
@@ -179,9 +179,9 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       return;
     }
 
-    GradleBuildInvoker.TestCompileType testCompileType = GradleBuildInvoker.getTestCompileType(buildSettings.getRunConfigurationTypeId());
+    TestCompileType testCompileType = TestCompileType.get(buildSettings.getRunConfigurationTypeId());
 
-    List<String> tasks = GradleBuildInvoker.findTasksToExecute(modulesToBuild, buildMode, testCompileType);
+    List<String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modulesToBuild, buildMode, testCompileType);
     int taskCount = tasks.size();
     for (int i = 0; i < taskCount; i++) {
       String name = GRADLE_TASKS_TO_INVOKE_PROPERTY_PREFIX + i;

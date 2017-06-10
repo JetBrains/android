@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
