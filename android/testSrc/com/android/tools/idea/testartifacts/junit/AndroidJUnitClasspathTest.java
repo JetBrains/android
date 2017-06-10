@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -31,7 +31,7 @@ public class AndroidJUnitClasspathTest extends AndroidGradleTestCase {
     Module[] modulesToCompile = {module};
 
     GradleInvocationResult invocationResult =
-      invokeGradle(getProject(), invoker -> invoker.compileJava(modulesToCompile, GradleBuildInvoker.TestCompileType.UNIT_TESTS));
+      invokeGradle(getProject(), invoker -> invoker.compileJava(modulesToCompile, TestCompileType.UNIT_TESTS));
 
     assertTrue(invocationResult.isBuildSuccessful());
 

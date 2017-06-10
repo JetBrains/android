@@ -22,6 +22,7 @@ import com.android.builder.model.Variant;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -64,7 +65,6 @@ import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -224,7 +224,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       Variant v = variantsByFlavor.get("");
       if (v != null) {
         String taskName = v.getMainArtifact().getAssembleTaskName();
-        return Collections.singletonList(GradleBuildInvoker.createBuildTask(gradleProjectPath, taskName));
+        return Collections.singletonList(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
       } else {
         LOG.error("Unable to find default variant");
         return Collections.emptyList();
@@ -236,7 +236,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       Variant v = variantsByFlavor.get(flavor);
       if (v != null) {
         String taskName = v.getMainArtifact().getAssembleTaskName();
-        assembleTasks.add(GradleBuildInvoker.createBuildTask(gradleProjectPath, taskName));
+        assembleTasks.add(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
       }
     }
 

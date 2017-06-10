@@ -47,7 +47,7 @@ public abstract class GradleConsoleView implements Disposable {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       return NO_OP;
     }
-    return ServiceManager.getService(project, DefaultGradleConsoleView.class);
+    return ServiceManager.getService(project, GradleConsoleView.class);
   }
 
   public abstract void clear();
