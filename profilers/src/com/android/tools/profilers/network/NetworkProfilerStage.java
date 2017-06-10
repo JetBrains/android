@@ -30,13 +30,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.zip.GZIPInputStream;
 
 import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
 import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
@@ -163,7 +164,16 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   File getConnectionPayload(@NotNull ByteString payload, @NotNull HttpData data) throws IOException {
     String extension = (data.getContentType() == null) ? null : data.getContentType().guessFileExtension();
     File file = FileUtil.createTempFile(data.getResponsePayloadId(), StringUtil.notNullize(extension), true);
-    FileUtil.writeToFile(file, payload.toByteArray());
+
+    byte[] bytes = payload.toByteArray();
+    String contentEncoding = data.getResponseField("content-encoding");
+    if (contentEncoding != null && contentEncoding.toLowerCase().contains("gzip")) {
+      try (GZIPInputStream inputStream = new GZIPInputStream(new ByteArrayInputStream(bytes))) {
+        bytes = FileUtil.loadBytes(inputStream);
+      } catch (IOException ignored) {}
+    }
+
+    FileUtil.writeToFile(file, bytes);
     // We don't expect the following call to fail but don't care if it does
     //noinspection ResultOfMethodCallIgnored
     file.setReadOnly();
