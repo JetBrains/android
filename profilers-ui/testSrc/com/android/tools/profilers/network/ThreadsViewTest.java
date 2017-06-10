@@ -22,15 +22,16 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -58,12 +59,23 @@ public class ThreadsViewTest {
   private FakeUi myUi;
 
   @Before
-  public void setUp() {
+  public void setUp() throws InvocationTargetException, InterruptedException {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     myStageView = new NetworkProfilerStageView(profilersView, new NetworkProfilerStage(profilers));
     myThreadsView = new ThreadsView(myStageView);
     myThreadsView.getComponent().setSize(new Dimension(300, 50));
+
+    // Normally, when ThreadsView changes size, it updates the size of its table which in turn
+    // fires an event that updates the preferred size of its columns. This requires multiple layout
+    // passes, as well as firing a event that happens on another thread, so the timing is not
+    // deterministic. For testing, we short-circuit the process and set the size of the table
+    // directly, so when the FakeUi is created below (which performs a layout pass), the table will
+    // already be in its final size.
+    JTable table = getTable();
+    table.setSize(myThreadsView.getComponent().getSize());
+    SwingUtilities.invokeAndWait(EmptyRunnable.getInstance()); // Allow table columns to resize
+
     myUi = new FakeUi(myThreadsView.getComponent());
   }
 
@@ -116,7 +128,6 @@ public class ThreadsViewTest {
     assertTrue(new TreeWalker(comp).descendantStream().anyMatch(c -> c instanceof AxisComponent));
   }
 
-  @Ignore // TODO: Re-enable. Test seems flaky and is failing on presubmit bots sometimes.
   @Test
   public void clickingOnARequestSelectsIt() {
     Range selection = myStageView.getTimeline().getSelectionRange();
