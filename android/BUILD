@@ -128,6 +128,7 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    test_shard_count = 8,
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
