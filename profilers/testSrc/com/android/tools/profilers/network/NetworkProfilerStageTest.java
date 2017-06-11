@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.MalformedInputException;
 import java.nio.file.Files;
 import java.util.List;
@@ -287,37 +288,47 @@ public class NetworkProfilerStageTest {
     assertNull(data.getResponsePayloadFile());
   }
 
-  /**
-   * Test payload file is unzipped from payload. See also {@link #testGetGzipPayloadWithoutUnzipThrowsException()}
-   */
   @Test
-  public void testGetPayloadExtractFromGzip() throws IOException {
+  public void getConnectionPayloadRespectsContentEncodingGzip() throws IOException {
     HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
     builder.setResponsePayloadId("test");
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
-    String unzipPayload = "This is unzipped payload";
     HttpData data = builder.build();
 
-    ByteString byteString = gzip(unzipPayload);
-    File file = myStage.getConnectionPayload(byteString, data);
-    assertEquals(unzipPayload, Files.readAllLines(file.toPath()).get(0));
+    String unzippedPayload = "Unzipped payload";
+    byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
+
+    ByteArrayOutputStream zippedBytes = new ByteArrayOutputStream();
+    try (GZIPOutputStream compressor = new GZIPOutputStream(zippedBytes)) {
+      compressor.write(unzippedBytes);
+    }
+    assertTrue(zippedBytes.toByteArray().length > 0);
+    assertNotEquals(unzippedBytes.length, zippedBytes.toByteArray().length);
+    ByteString zippedBytesString = ByteString.copyFrom(zippedBytes.toByteArray());
+
+    File file = myStage.getConnectionPayload(zippedBytesString, data);
+    try (BufferedReader reader = Files.newBufferedReader(file.toPath())) {
+      String output = reader.readLine();
+      assertEquals(unzippedPayload, output);
+    }
   }
 
-  /**
-   * Test get payload from GZip compressed bytes but without response header field that indicates the compression.
-   * See also {@link #testGetPayloadExtractFromGzip()}
-   */
-  @Test(expected = MalformedInputException.class)
-  public void testGetGzipPayloadWithoutUnzipThrowsException() throws IOException {
+  @Test
+  public void getConnectionPayloadReturnsOriginalBytesIfInvalidGzipContent() throws IOException {
     HttpData.Builder builder = new HttpData.Builder(1, 2, 20, 20);
     builder.setResponsePayloadId("test");
-    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n");
-    String unzipPayload = "This is unzipped payload";
+    builder.setResponseFields("null  =  HTTP/1.1 302 Found \n content-encoding=gzip \n");
     HttpData data = builder.build();
 
-    ByteString byteString = gzip(unzipPayload);
-    File file = myStage.getConnectionPayload(byteString, data);
-    Files.readAllLines(file.toPath());
+    String unzippedPayload = "Unzipped payload";
+    byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
+    ByteString unzippedBytesString = ByteString.copyFrom(unzippedBytes);
+
+    File file = myStage.getConnectionPayload(unzippedBytesString, data);
+    try (BufferedReader reader = Files.newBufferedReader(file.toPath())) {
+      String output = reader.readLine();
+      assertEquals(unzippedPayload, output);
+    }
   }
 
   private ByteString gzip(String input) {
