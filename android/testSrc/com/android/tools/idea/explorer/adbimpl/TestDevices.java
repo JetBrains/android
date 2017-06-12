@@ -381,6 +381,133 @@ public class TestDevices {
                "package:com.hp.android.printservice\n" +
                "package:com.google.android.inputmethod.latin\n");
 
+    addCommand(commands,
+               "pm list packages -f",
+               "package:/data/app/com.google.android.youtube-1/base.apk=com.google.android.youtube\n" +
+               "package:/system/priv-app/TelephonyProvider/TelephonyProvider.apk=com.android.providers.telephony\n" +
+               "package:/system/app/MediaShortcuts/MediaShortcuts.apk=com.google.android.gallery3d\n" +
+               "package:/data/app/com.google.android.googlequicksearchbox-2/base.apk=com.google.android.googlequicksearchbox\n" +
+               "package:/system/priv-app/CalendarProvider/CalendarProvider.apk=com.android.providers.calendar\n" +
+               "package:/system/priv-app/MediaProvider/MediaProvider.apk=com.android.providers.media\n" +
+               "package:/data/app/com.google.android.apps.docs.editors.docs-2/base.apk=com.google.android.apps.docs.editors.docs\n" +
+               "package:/system/priv-app/GoogleOneTimeInitializer/GoogleOneTimeInitializer.apk=com.google.android.onetimeinitializer\n" +
+               "package:/system/priv-app/WallpaperCropper/WallpaperCropper.apk=com.android.wallpapercropper\n" +
+               "package:/data/app/com.example.rpaquay.myapplication-2/base.apk=com.example.rpaquay.myapplication\n" +
+               "package:/system/priv-app/Launcher2/Launcher2.apk=com.android.launcher\n" +
+               "package:/data/app/com.weather.Weather-2/base.apk=com.weather.Weather\n" +
+               "package:/system/app/DocumentsUI/DocumentsUI.apk=com.android.documentsui\n" +
+               "package:/system/priv-app/ExternalStorageProvider/ExternalStorageProvider.apk=com.android.externalstorage\n" +
+               "package:/data/app/com.google.android.apps.enterprise.dmagent-1/base.apk=com.google.android.apps.enterprise.dmagent\n" +
+               "package:/system/app/HTMLViewer/HTMLViewer.apk=com.android.htmlviewer\n" +
+               "package:/system/priv-app/MmsService/MmsService.apk=com.android.mms.service\n" +
+               "package:/data/app/com.google.android.apps.docs.editors.sheets-1/base.apk=com.google.android.apps.docs.editors.sheets\n" +
+               "package:/data/app/com.google.android.apps.docs.editors.slides-1/base.apk=com.google.android.apps.docs.editors.slides\n" +
+               "package:/system/priv-app/DownloadProvider/DownloadProvider.apk=com.android.providers.downloads\n" +
+               "package:/data/app/com.google.android.apps.currents-2.apk=com.google.android.apps.currents\n" +
+               "package:/system/priv-app/ConfigUpdater/ConfigUpdater.apk=com.google.android.configupdater\n" +
+               "package:/system/priv-app/DefaultContainerService/DefaultContainerService.apk=com.android.defcontainer\n" +
+               "package:/data/app/org.zwanoo.android.speedtest-1/base.apk=org.zwanoo.android.speedtest\n" +
+               "package:/system/app/DownloadProviderUi/DownloadProviderUi.apk=com.android.providers.downloads.ui\n" +
+               "package:/data/app/com.android.vending-1/base.apk=com.android.vending\n" +
+               "package:/system/app/PacProcessor/PacProcessor.apk=com.android.pacprocessor\n" +
+               "package:/system/app/CertInstaller/CertInstaller.apk=com.android.certinstaller\n" +
+               "package:/data/app/com.google.android.marvin.talkback-1/base.apk=com.google.android.marvin.talkback\n" +
+               "package:/system/framework/framework-res.apk=android\n" +
+               "package:/system/app/NfcNci/NfcNci.apk=com.android.nfc\n" +
+               "package:/system/priv-app/BackupRestoreConfirmation/BackupRestoreConfirmation.apk=com.android.backupconfirm\n" +
+               "package:/data/app/com.googleplex.android.apps.dogfood.frick-2.apk=com.googleplex.android.apps.dogfood.frick\n" +
+               "package:/data/app/com.google.android.launcher-1/base.apk=com.google.android.launcher\n" +
+               "package:/data/app/com.google.android.deskclock-2/base.apk=com.google.android.deskclock\n" +
+               "package:/system/priv-app/StatementService/StatementService.apk=com.android.statementservice\n" +
+               "package:/data/app/com.google.android.gm-1/base.apk=com.google.android.gm\n" +
+               "package:/system/app/HoloSpiralWallpaper/HoloSpiralWallpaper.apk=com.android.wallpaper.holospiral\n" +
+               "package:/system/app/PhaseBeam/PhaseBeam.apk=com.android.phasebeam\n" +
+               "package:/data/app/com.google.android.instantapps.supervisor-1/base.apk=com.google.android.instantapps.supervisor\n" +
+               "package:/system/priv-app/SetupWizard/SetupWizard.apk=com.google.android.setupwizard\n" +
+               "package:/system/priv-app/SettingsProvider/SettingsProvider.apk=com.android.providers.settings\n" +
+               "package:/system/priv-app/SharedStorageBackup/SharedStorageBackup.apk=com.android.sharedstoragebackup\n" +
+               "package:/data/app/com.google.android.music-1/base.apk=com.google.android.music\n" +
+               "package:/system/app/PrintSpooler/PrintSpooler.apk=com.android.printspooler\n" +
+               "package:/system/app/BasicDreams/BasicDreams.apk=com.android.dreams.basic\n" +
+               "package:/system/priv-app/GoogleBackupTransport/GoogleBackupTransport.apk=com.google.android.backup\n" +
+               "package:/system/priv-app/InputDevices/InputDevices.apk=com.android.inputdevices\n" +
+               "package:/data/app/com.google.android.apps.cloudprint-2/base.apk=com.google.android.apps.cloudprint\n" +
+               "package:/system/priv-app/MusicFX/MusicFX.apk=com.android.musicfx\n" +
+               "package:/data/app/com.google.android.apps.docs-1/base.apk=com.google.android.apps.docs\n" +
+               "package:/data/app/com.google.android.apps.maps-1/base.apk=com.google.android.apps.maps\n" +
+               "package:/data/app/com.google.android.apps.plus-1/base.apk=com.google.android.apps.plus\n" +
+               "package:/system/priv-app/NfcProvision/NfcProvision.apk=com.google.android.nfcprovision\n" +
+               "package:/data/app/com.google.android.webview-2/base.apk=com.google.android.webview\n" +
+               "package:/data/app/com.google.android.contacts-2/base.apk=com.google.android.contacts\n" +
+               "package:/system/priv-app/Telecom/Telecom.apk=com.android.server.telecom\n" +
+               "package:/system/app/GoogleContactsSyncAdapter/GoogleContactsSyncAdapter.apk=com.google.android.syncadapters.contacts\n" +
+               "package:/system/app/FaceLock/FaceLock.apk=com.android.facelock\n" +
+               "package:/system/app/KeyChain/KeyChain.apk=com.android.keychain\n" +
+               "package:/data/app/com.google.android.gm.exchange-2/base.apk=com.google.android.gm.exchange\n" +
+               "package:/data/app/com.android.chrome-1/base.apk=com.android.chrome\n" +
+               "package:/data/app/com.google.android.gms-1/base.apk=com.google.android.gms\n" +
+               "package:/system/priv-app/GoogleServicesFramework/GoogleServicesFramework.apk=com.google.android.gsf\n" +
+               "package:/system/priv-app/TagGoogle/TagGoogle.apk=com.google.android.tag\n" +
+               "package:/data/app/com.google.android.tts-2/base.apk=com.google.android.tts\n" +
+               "package:/system/priv-app/GooglePartnerSetup/GooglePartnerSetup.apk=com.google.android.partnersetup\n" +
+               "package:/system/priv-app/GooglePackageInstaller/GooglePackageInstaller.apk=com.android.packageinstaller\n" +
+               "package:/data/app/com.google.android.videos-1/base.apk=com.google.android.videos\n" +
+               "package:/system/priv-app/ProxyHandler/ProxyHandler.apk=com.android.proxyhandler\n" +
+               "package:/system/priv-app/GoogleFeedback/GoogleFeedback.apk=com.google.android.feedback\n" +
+               "package:/data/app/com.google.android.apps.photos-1/base.apk=com.google.android.apps.photos\n" +
+               "package:/data/app/com.google.android.calendar-1/base.apk=com.google.android.calendar\n" +
+               "package:/system/priv-app/ManagedProvisioning/ManagedProvisioning.apk=com.android.managedprovisioning\n" +
+               "package:/data/app/com.example.rpaquay.myapplication.test-2/base.apk=com.example.rpaquay.myapplication.test\n" +
+               "package:/system/app/NoiseField/NoiseField.apk=com.android.noisefield\n" +
+               "package:/system/app/PartnerBookmarksProvider/PartnerBookmarksProvider.apk=com.android.providers.partnerbookmarks\n" +
+               "package:/system/priv-app/GoogleLoginService/GoogleLoginService.apk=com.google.android.gsf.login\n" +
+               "package:/system/app/LiveWallpapersPicker/LiveWallpapersPicker.apk=com.android.wallpaper.livepicker\n" +
+               "package:/system/app/KoreanIME/KoreanIME.apk=com.google.android.inputmethod.korean\n" +
+               "package:/system/priv-app/Settings/Settings.apk=com.android.settings\n" +
+               "package:/system/app/GooglePinyinIME/GooglePinyinIME.apk=com.google.android.inputmethod.pinyin\n" +
+               "package:/system/app/CalculatorGoogle/CalculatorGoogle.apk=com.android.calculator2\n" +
+               "package:/data/app/com.google.android.apps.books-1/base.apk=com.google.android.apps.books\n" +
+               "package:/system/app/XT9IME/XT9IME.apk=com.nuance.xt9.input\n" +
+               "package:/system/app/LiveWallpapers/LiveWallpapers.apk=com.android.wallpaper\n" +
+               "package:/system/priv-app/VpnDialogs/VpnDialogs.apk=com.android.vpndialogs\n" +
+               "package:/system/app/GoogleEars/GoogleEars.apk=com.google.android.ears\n" +
+               "package:/data/app/com.google.android.keep-2/base.apk=com.google.android.keep\n" +
+               "package:/data/app/com.google.android.talk-2/base.apk=com.google.android.talk\n" +
+               "package:/system/priv-app/TeleService/TeleService.apk=com.android.phone\n" +
+               "package:/system/priv-app/Shell/Shell.apk=com.android.shell\n" +
+               "package:/system/app/UserDictionaryProvider/UserDictionaryProvider.apk=com.android.providers.userdictionary\n" +
+               "package:/system/app/iWnnIME/iWnnIME.apk=jp.co.omronsoft.iwnnime.ml\n" +
+               "package:/system/priv-app/FusedLocation/FusedLocation.apk=com.android.location.fused\n" +
+               "package:/system/priv-app/SystemUI/SystemUI.apk=com.android.systemui\n" +
+               "package:/system/app/BluetoothMidiService/BluetoothMidiService.apk=com.android.bluetoothmidiservice\n" +
+               "package:/data/app/com.google.android.play.games-2/base.apk=com.google.android.play.games\n" +
+               "package:/data/app/com.google.android.apps.magazines-1/base.apk=com.google.android.apps.magazines\n" +
+               "package:/data/app/com.google.android.apps.gcs-2/base.apk=com.google.android.apps.gcs\n" +
+               "package:/system/app/Bluetooth/Bluetooth.apk=com.android.bluetooth\n" +
+               "package:/system/priv-app/ContactsProvider/ContactsProvider.apk=com.android.providers.contacts\n" +
+               "package:/system/app/CaptivePortalLogin/CaptivePortalLogin.apk=com.android.captiveportallogin\n" +
+               "package:/system/app/GoogleCamera/GoogleCamera.apk=com.google.android.GoogleCamera\n" +
+               "package:/data/app/com.google.earth-1/base.apk=com.google.earth\n" +
+               "package:/data/app/com.hp.android.printservice-1/base.apk=com.hp.android.printservice\n" +
+               "package:/data/app/com.google.android.inputmethod.latin-1/base.apk=com.google.android.inputmethod.latin\n");
+
+    addCommand(commands,
+               "run-as com.example.rpaquay.myapplication sh -c 'ls -l /data/app/com.example.rpaquay.myapplication-2/'",
+               "-rw-r--r-- system   system     468458 2017-06-12 11:21 base.apk\n" +
+               "drwxr-xr-x system   system            2017-06-12 11:21 lib\n" +
+               "drwxrwx--x system   install           2017-06-12 11:21 oat\n" +
+               "-rw-r--r-- system   system    1351085 2017-06-12 11:21 split_lib_dependencies_apk.apk\n" +
+               "-rw-r--r-- system   system       3332 2017-06-12 11:21 split_lib_slice_0_apk.apk\n" +
+               "-rw-r--r-- system   system       3088 2017-06-12 11:21 split_lib_slice_1_apk.apk\n" +
+               "-rw-r--r-- system   system      26485 2017-06-12 11:21 split_lib_slice_2_apk.apk\n" +
+               "-rw-r--r-- system   system       3262 2017-06-12 11:21 split_lib_slice_3_apk.apk\n" +
+               "-rw-r--r-- system   system       3088 2017-06-12 11:21 split_lib_slice_4_apk.apk\n" +
+               "-rw-r--r-- system   system       3091 2017-06-12 11:21 split_lib_slice_5_apk.apk\n" +
+               "-rw-r--r-- system   system       3090 2017-06-12 11:21 split_lib_slice_6_apk.apk\n" +
+               "-rw-r--r-- system   system       3254 2017-06-12 11:21 split_lib_slice_7_apk.apk\n" +
+               "-rw-r--r-- system   system      44095 2017-06-12 11:21 split_lib_slice_8_apk.apk\n" +
+               "-rw-r--r-- system   system       6289 2017-06-12 11:21 split_lib_slice_9_apk.apk\n");
+
     addCommand(commands, "mkdir /sdcard/foo-dir", "");
     addFailedCommand(commands, "mkdir /foo-dir", "mkdir: '/foo-dir': Read-only file system\n");
     addFailedCommand(commands, "mkdir /system/foo-dir", "mkdir: '/system/foo-dir': Read-only file system\n");

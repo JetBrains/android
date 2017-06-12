@@ -21,6 +21,8 @@ import com.intellij.util.PathUtilRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +45,29 @@ public class AdbPathUtil {
   @NotNull
   public static String getFileName(@NotNull String path) {
     return PathUtilRt.getFileName(path);
+  }
+
+  /**
+   * Returns the directory name of a path, i.e. the last segment.
+   * Returns the empty string for the root path "/".
+   */
+  @NotNull
+  public static String getParentPath(@NotNull String path) {
+    if (StringUtil.isEmpty(path)) {
+      return "";
+    }
+    int end = path.lastIndexOf(FILE_SEPARATOR);
+    if (end == path.length() - 1) {
+      end = path.lastIndexOf(FILE_SEPARATOR, end - 1);
+    }
+    switch(end) {
+      case -1:
+        return "";
+      case 0:
+        return FILE_SEPARATOR;
+      default:
+        return path.substring(0, end);
+    }
   }
 
   /**
@@ -72,10 +97,20 @@ public class AdbPathUtil {
     }
 
     // Escape each segment, then re-join them by file separator
-    return StringUtil.split(path, FILE_SEPARATOR)
+    return getSegments(path)
       .stream()
       .map(x -> FILE_SEPARATOR + FileListingService.FileEntry.escape(x))
       .collect(Collectors.joining());
+  }
+
+  @NotNull
+  public static List<String> getSegments(@NotNull String path) {
+    // Special case for root
+    if (StringUtil.isEmpty(path) || FILE_SEPARATOR.equals(path)) {
+      return new ArrayList<>();
+    }
+
+    return StringUtil.split(path, FILE_SEPARATOR);
   }
 
   private static boolean isEmpty(@NotNull String path) {

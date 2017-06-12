@@ -222,6 +222,44 @@ public class AdbDeviceFileSystemTest {
   }
 
   @Test
+  public void test_FileSystem_GetEntry_Returns_DataAppDirectory() throws Exception {
+    // Prepare
+    assert myFileSystem != null;
+
+    // Act
+    DeviceFileEntry result = waitForFuture(myFileSystem.getEntry("/data/app"));
+
+    // Assert
+    assertThat(result).isNotNull();
+    assertThat(result.getName()).isEqualTo("app");
+  }
+
+  @Test
+  public void test_FileSystem_GetEntries_Returns_DataAppPackages() throws Exception {
+    // Prepare
+    assert myFileSystem != null;
+    DeviceFileEntry dataEntry = waitForFuture(myFileSystem.getEntry("/data/app"));
+
+    // Act
+    List<DeviceFileEntry> result = waitForFuture(dataEntry.getEntries());
+
+    // Assert
+    assertThat(result).isNotNull();
+    DeviceFileEntry app = result.stream()
+      .filter(x -> Objects.equals(x.getName(), "com.example.rpaquay.myapplication-2"))
+      .findFirst()
+      .orElse(null);
+    assertThat(app).isNotNull();
+
+    // Act
+    List<DeviceFileEntry> appFiles = waitForFuture(app.getEntries());
+
+    // Assert
+    assertThat(appFiles).isNotNull();
+    assertThat(appFiles.stream().anyMatch(x -> Objects.equals(x.getName(), "base.apk"))).isTrue();
+  }
+
+  @Test
   public void test_FileSystem_GetEntry_Returns_DataDataDirectory() throws Exception {
     // Prepare
     assert myFileSystem != null;
@@ -235,7 +273,7 @@ public class AdbDeviceFileSystemTest {
   }
 
   @Test
-  public void test_FileSystem_GetEntries_Returns_AppDirectories() throws Exception {
+  public void test_FileSystem_GetEntries_Returns_DataDataPackages() throws Exception {
     // Prepare
     assert myFileSystem != null;
     DeviceFileEntry dataEntry = waitForFuture(myFileSystem.getEntry("/data/data"));
@@ -246,6 +284,19 @@ public class AdbDeviceFileSystemTest {
     // Assert
     assertThat(result).isNotNull();
     assertThat(result.stream().anyMatch(x -> Objects.equals(x.getName(), "com.example.rpaquay.myapplication"))).isTrue();
+  }
+
+  @Test
+  public void test_FileSystem_GetEntry_Returns_DataLocalDirectory() throws Exception {
+    // Prepare
+    assert myFileSystem != null;
+
+    // Act
+    DeviceFileEntry result = waitForFuture(myFileSystem.getEntry("/data/local"));
+
+    // Assert
+    assertThat(result).isNotNull();
+    assertThat(result.getName()).isEqualTo("local");
   }
 
   @Test
