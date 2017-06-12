@@ -473,7 +473,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
    */
-  private double getFitScale(boolean fitInto) {
+  protected double getFitScale(boolean fitInto) {
     // Fit to zoom
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
     int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
@@ -578,8 +578,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     else if (scale > 10) {
       scale = 10;
     }
-    double fitScale = getFitScale(false);
-    myScale = Math.max(scale, fitScale > 1 ? 1 : fitScale);
+    myScale = Math.max(scale, getMinScale());
 
     Dimension oldSize = myScrollPane.getViewport().getViewSize();
     Point viewPortTargetCoordinates;
@@ -608,6 +607,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       myScrollPane.getViewport().setViewPosition(viewPortTargetCoordinates);
       notifyScaleChanged();
     }
+  }
+
+  /**
+   * The minimum scale we'll allow.
+   */
+  protected double getMinScale() {
+    return 0;
   }
 
   private void notifyScaleChanged() {
@@ -895,7 +901,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     private void paintBackground(@NotNull Graphics2D graphics, int lx, int ly) {
       int width = myScrollPane.getWidth();
       int height = myScrollPane.getHeight();
-      graphics.setColor(DESIGN_SURFACE_BG);
+      graphics.setColor(getBackgroundColor());
       graphics.fillRect(lx, ly, width, height);
     }
 
@@ -925,6 +931,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       return null;
     }
+  }
+
+  @NotNull
+  protected JBColor getBackgroundColor() {
+    return DESIGN_SURFACE_BG;
   }
 
   private static class GlassPane extends JComponent {

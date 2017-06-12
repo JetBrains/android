@@ -36,6 +36,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,6 +95,12 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   protected void layoutContent() {
     requestRender();
+  }
+
+  @NotNull
+  @Override
+  protected JBColor getBackgroundColor() {
+    return JBColor.white;
   }
 
   @NotNull
