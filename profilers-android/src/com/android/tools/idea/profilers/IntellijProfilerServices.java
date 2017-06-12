@@ -169,7 +169,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, int deviceApi,
                                                    Consumer<ProfilingConfiguration> dialogCallback) {
-    CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject, deviceApi, configuration, dialogCallback);
+    CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
+                                                                                   deviceApi,
+                                                                                   configuration,
+                                                                                   dialogCallback,
+                                                                                   myFeatureTracker);
     dialog.show();
   }
 

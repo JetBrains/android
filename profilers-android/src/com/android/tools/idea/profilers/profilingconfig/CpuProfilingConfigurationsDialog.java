@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -51,8 +52,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
   public CpuProfilingConfigurationsDialog(final Project project,
                                           int deviceApi,
                                           ProfilingConfiguration preSelectedConfiguration,
-                                          Consumer<ProfilingConfiguration> onCloseCallback) {
-    super(project, new ProfilingConfigurable(project, preSelectedConfiguration, deviceApi), IdeModalityType.IDE);
+                                          Consumer<ProfilingConfiguration> onCloseCallback,
+                                          FeatureTracker featureTracker) {
+    super(project, new ProfilingConfigurable(project, preSelectedConfiguration, deviceApi, featureTracker), IdeModalityType.IDE);
     myOnCloseCallback = onCloseCallback;
     setHorizontalStretch(1.3F);
     // TODO: add help button on the bottom-left corner when we have the URL for it.
@@ -106,13 +108,19 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     private final Project myProject;
 
+    private final FeatureTracker myFeatureTracker;
+
     /**
      * Panel containing key-value CPU profiling settings.
      */
     private CpuProfilingConfigPanel myProfilersPanel;
 
-    public ProfilingConfigurable(Project project, ProfilingConfiguration preSelectedConfiguration, int deviceApi) {
+    public ProfilingConfigurable(Project project,
+                                 ProfilingConfiguration preSelectedConfiguration,
+                                 int deviceApi,
+                                 FeatureTracker featureTracker) {
       myProject = project;
+      myFeatureTracker = featureTracker;
       myProfilersPanel = new CpuProfilingConfigPanel(deviceApi >= AndroidVersion.VersionCodes.O);
 
       myConfigurationsModel = new DefaultListModel<>();
@@ -313,6 +321,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration
         myConfigurations.setSelectedIndex(lastConfigurationIndex);
+        myFeatureTracker.trackCreateCustomProfilingConfig();
       }
     }
 
