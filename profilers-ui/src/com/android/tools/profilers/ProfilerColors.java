@@ -100,6 +100,8 @@ public class ProfilerColors {
 
   public static final Color CPU_TREECHART_PLATFORM_BORDER = new JBColor(0xD5963C, 0xD0AA6F);
 
+  public static final Color CPU_PROFILING_CONFIGURATIONS_SELECTED = new JBColor(0x1155CC, 0x1155CC);
+
   public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
 
   public static final Color DEFAULT_STAGE_BACKGROUND = new JBColor(0xFFFFFF, 0x2B2D2E);
