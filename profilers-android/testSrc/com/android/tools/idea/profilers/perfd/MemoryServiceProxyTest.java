@@ -46,8 +46,7 @@ import java.util.stream.Collectors;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class MemoryServiceProxyTest {
@@ -123,7 +122,7 @@ public class MemoryServiceProxyTest {
     Collection<MethodDescriptor<?, ?>> allMethods = MemoryServiceGrpc.getServiceDescriptor().getMethods();
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
-    assertEquals(allMethods.size(), definedMethods.size());
+    assertThat(definedMethods.size()).isEqualTo(allMethods.size());
     definedMethods.containsAll(allMethods);
   }
 
@@ -190,7 +189,7 @@ public class MemoryServiceProxyTest {
     myProxy.trackAllocations(
       TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).setRequestTime(time1).build(),
       observer1);
-    assertTrue(myAllocationTrackingState);
+    assertThat(myAllocationTrackingState).isTrue();
     verify(observer1, times(1)).onNext(expected1);
     verify(observer1, times(1)).onCompleted();
 
