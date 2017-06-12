@@ -37,11 +37,31 @@ import java.util.Map;
  */
 public class LegendComponent extends AnimatedComponent {
 
-  public enum Orientation {
-    HORIZONTAL,
-    VERTICAL,
-  }
-
+  /**
+   * Side of the (squared) box icon in pixels.
+   */
+  @VisibleForTesting
+  public static final int BOX_ICON_WIDTH_PX = 10;
+  /**
+   * Width of the line icons in pixels.
+   */
+  @VisibleForTesting
+  public static final int LINE_ICON_WIDTH_PX = 12;
+  /**
+   * Distance, in pixels, between icons and their correspondent labels.
+   */
+  @VisibleForTesting
+  public static final int ICON_MARGIN_PX = 5;
+  /**
+   * Vertical space, in pixels, between the legend and the border.
+   */
+  @VisibleForTesting
+  public static final int DEFAULT_VERTICAL_PADDING_PX = 5;
+  /**
+   * Distance, in pixels, between legends.
+   */
+  @VisibleForTesting
+  public final static int LEGEND_MARGIN_PX = 10;
   private static final BasicStroke LINE_STROKE = new BasicStroke(3);
   private static final BasicStroke DASH_STROKE = new BasicStroke(3.0f,
                                                                  BasicStroke.CAP_BUTT,
@@ -50,79 +70,43 @@ public class LegendComponent extends AnimatedComponent {
                                                                  new float[]{5.0f, 2f},  // Dash pattern in pixel
                                                                  0.0f);  // Dash phase - just starts at zero.
   private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
-
-  /**
-   * Side of the (squared) box icon in pixels.
-   */
-  @VisibleForTesting
-  public static final int BOX_ICON_WIDTH_PX = 10;
-
-  /**
-   * Width of the line icons in pixels.
-   */
-  @VisibleForTesting
-  public static final int LINE_ICON_WIDTH_PX = 12;
-
-  /**
-   * Distance, in pixels, between icons and their correspondent labels.
-   */
-  @VisibleForTesting
-  public static final int ICON_MARGIN_PX = 5;
-
-  /**
-   * Vertical space, in pixels, between the legend and the border.
-   */
-  @VisibleForTesting
-  public static final int DEFAULT_VERTICAL_PADDING_PX = 5;
-
   /**
    * Vertical space, in pixels, between legends.
    */
   private static final int LEGEND_VERTICAL_GAP = 10;
-
-  /**
-   * Distance, in pixels, between legends.
-   */
-  @VisibleForTesting
-  public final static int LEGEND_MARGIN_PX = 10;
-
   private final int myVerticalPadding;
-
   private final LegendComponentModel myModel;
-
   /**
    * The visual configuration of the legends
    */
   private final Map<Legend, LegendConfig> myConfigs;
-
+  @NotNull
+  private final Orientation myOrientation;
   @NotNull
   private List<JLabel> myLabelsToDraw = new ArrayList<>();
-
-  @NotNull
-  private Orientation myOrientation;
-
   private int myMaximumLabelWidth;
 
   /**
-   * Legend component that renders a label, and icon for each series in a chart.
-   *
-   * @param orientation     Determines if we want the labels to be stacked horizontally or vertically
-   * @param frequencyMillis How frequently the labels get updated
+   * Convenience method for creating a default, horizontal legend component based on a target
+   * model. If you want to override defaults, use a {@link Builder} instead.
    */
-  public LegendComponent(@NotNull LegendComponentModel model, int verticalPadding) {
-    myModel = model;
+  public LegendComponent(@NotNull LegendComponentModel model) {
+    this(new Builder(model));
+  }
+
+  /**
+   * Legend component that renders a label, and icon for each series in a chart.
+   */
+  private LegendComponent(@NotNull Builder builder) {
+    myModel = builder.myModel;
     myConfigs = new HashMap<>();
-    myOrientation = Orientation.HORIZONTAL;
-    myVerticalPadding = verticalPadding;
+    myOrientation = builder.myOrientation;
+    myVerticalPadding = builder.myVerticalPadding;
     myModel.addDependency(myAspectObserver)
       .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
     setFont(AdtUiUtils.DEFAULT_FONT);
     myMaximumLabelWidth = 0;
     modelChanged();
-  }
-
-  public LegendComponent(@NotNull LegendComponentModel model) {
-    this(model, DEFAULT_VERTICAL_PADDING_PX);
   }
 
   public void configure(Legend legend, LegendConfig config) {
@@ -164,10 +148,6 @@ public class LegendComponent extends AnimatedComponent {
     if (oldSize != getPreferredSize()) {
       revalidate();
     }
-  }
-
-  public void setOrientation(@NotNull Orientation orientation) {
-    myOrientation = orientation;
   }
 
   @NotNull
@@ -312,5 +292,37 @@ public class LegendComponent extends AnimatedComponent {
   @VisibleForTesting
   public int getMaximumLabelWidth() {
     return myMaximumLabelWidth;
+  }
+
+  public enum Orientation {
+    HORIZONTAL,
+    VERTICAL,
+  }
+
+  public static final class Builder {
+    private final LegendComponentModel myModel;
+    private int myVerticalPadding = DEFAULT_VERTICAL_PADDING_PX;
+    private Orientation myOrientation = Orientation.HORIZONTAL;
+
+    public Builder(@NotNull LegendComponentModel model) {
+      myModel = model;
+    }
+
+    @NotNull
+    public Builder setVerticalPadding(int verticalPadding) {
+      myVerticalPadding = verticalPadding;
+      return this;
+    }
+
+    @NotNull
+    public Builder setOrientation(@NotNull Orientation orientation) {
+      myOrientation = orientation;
+      return this;
+    }
+
+    @NotNull
+    public LegendComponent build() {
+      return new LegendComponent(this);
+    }
   }
 }
