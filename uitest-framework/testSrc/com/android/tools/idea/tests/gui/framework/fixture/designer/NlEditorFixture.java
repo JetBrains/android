@@ -20,10 +20,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlRhsToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
@@ -278,5 +275,10 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public IssuePanelFixture getIssuePanel() {
     return myDesignSurfaceFixture.getIssuePanelFixture();
+  }
+
+  public MorphDialogFixture openMorphDialogForComponent(NlComponentFixture componentFixture) {
+    componentFixture.invokeContextMenuAction("Morph View...");
+    return new MorphDialogFixture(robot());
   }
 }
