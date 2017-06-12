@@ -17,6 +17,9 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import static com.google.common.truth.Truth.assertThat;
 
 public class AdbPathUtilTest  {
@@ -27,6 +30,37 @@ public class AdbPathUtilTest  {
     assertThat(AdbPathUtil.getFileName("/foo")).isEqualTo("foo");
     assertThat(AdbPathUtil.getFileName("/foo/bar")).isEqualTo("bar");
     assertThat(AdbPathUtil.getFileName("/foo/blah/bar-test.txt")).isEqualTo("bar-test.txt");
+  }
+
+  @Test
+  public void testGetParentPath() {
+    assertThat(AdbPathUtil.getParentPath("")).isEqualTo("");
+    assertThat(AdbPathUtil.getParentPath("/")).isEqualTo("");
+    assertThat(AdbPathUtil.getParentPath("/foo")).isEqualTo("/");
+    assertThat(AdbPathUtil.getParentPath("/foo/")).isEqualTo("/");
+    assertThat(AdbPathUtil.getParentPath("/foo/bar")).isEqualTo("/foo");
+    assertThat(AdbPathUtil.getParentPath("/foo/bar/")).isEqualTo("/foo");
+    assertThat(AdbPathUtil.getParentPath("/foo/blah/bar-test.txt")).isEqualTo("/foo/blah");
+  }
+
+  @Test
+  public void testGetEscapedPath() {
+    assertThat(AdbPathUtil.getEscapedPath("")).isEqualTo("");
+    assertThat(AdbPathUtil.getEscapedPath("/")).isEqualTo("/");
+    assertThat(AdbPathUtil.getEscapedPath("/foo\\")).isEqualTo("/foo\\\\");
+    assertThat(AdbPathUtil.getEscapedPath("/foo/&")).isEqualTo("/foo/\\&");
+    assertThat(AdbPathUtil.getEscapedPath("/foo/blah/bar-#test.txt")).isEqualTo("/foo/blah/bar-\\#test.txt");
+  }
+
+  @Test
+  public void testGetSegments() {
+    assertThat(AdbPathUtil.getSegments("")).isEqualTo(Collections.emptyList());
+    assertThat(AdbPathUtil.getSegments("/")).isEqualTo(Collections.emptyList());
+    assertThat(AdbPathUtil.getSegments("/foo")).isEqualTo(Collections.singletonList("foo"));
+    assertThat(AdbPathUtil.getSegments("/foo/")).isEqualTo(Collections.singletonList("foo"));
+    assertThat(AdbPathUtil.getSegments("/foo/bar")).isEqualTo(Arrays.asList("foo", "bar"));
+    assertThat(AdbPathUtil.getSegments("/foo/bar/")).isEqualTo(Arrays.asList("foo", "bar"));
+    assertThat(AdbPathUtil.getSegments("/foo/blah/bar-test.txt")).isEqualTo(Arrays.asList("foo", "blah", "bar-test.txt"));
   }
 
   @Test

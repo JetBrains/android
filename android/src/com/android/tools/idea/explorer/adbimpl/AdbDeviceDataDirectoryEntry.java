@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -51,11 +52,20 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
       .build();
   }
 
+  private static AdbFileListingEntry createFileEntry(@NotNull AdbFileListingEntry parent, @NotNull String name) {
+    return new AdbFileListingEntryBuilder(parent)
+      .setPath(AdbPathUtil.resolve(parent.getFullPath(), name))
+      .setKind(AdbFileListingEntry.EntryKind.FILE)
+      .setSize(-1)
+      .build();
+  }
+
   @NotNull
   @Override
   public ListenableFuture<List<DeviceFileEntry>> getEntries() {
     return myDevice.getTaskExecutor().executeAsync(() -> {
       List<DeviceFileEntry> entries = new ArrayList<>();
+      entries.add(new AdbDeviceDataAppDirectoryEntry(this, createDirectoryEntry(myEntry, "app")));
       entries.add(new AdbDeviceDataDataDirectoryEntry(this, createDirectoryEntry(myEntry, "data")));
       entries.add(new AdbDeviceDataLocalDirectoryEntry(this, createDirectoryEntry(myEntry, "local")));
       return entries;
@@ -94,6 +104,64 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
 
         return packages.stream()
           .map(packageName -> new AdbDevicePackageDirectoryEntry(this, createDirectoryEntry(myEntry, packageName), packageName))
+          .collect(Collectors.toList());
+      });
+    }
+  }
+
+  /**
+   * A custom {@link AdbDeviceFileEntry} implementation for the the "/data/app" directory of a device.
+   *
+   * <p>The purpose is to allow file operations on files under "/data/app/packageName" using the
+   * "run-as" command shell prefix.
+   */
+  private static class AdbDeviceDataAppDirectoryEntry extends AdbDeviceForwardingFileEntry {
+    @NotNull
+    private final AdbDeviceDirectFileEntry myDirectEntry;
+
+    public AdbDeviceDataAppDirectoryEntry(@NotNull AdbDeviceFileEntry parent,
+                                           @NotNull AdbFileListingEntry entry) {
+      super(parent.myDevice, entry, parent);
+      myDirectEntry = new AdbDeviceDirectFileEntry(parent.myDevice, entry, parent, null);
+    }
+
+    @NotNull
+    @Override
+    public AdbDeviceFileEntry getForwardedFileEntry() {
+      return myDirectEntry;
+    }
+
+    @NotNull
+    @Override
+    public ListenableFuture<List<DeviceFileEntry>> getEntries() {
+      // Create an entry for each package returned by "pm list packages"
+      ListenableFuture<List<AdbFileOperations.PackageInfo>> futurePackages = myDevice.getAdbFileOperations().listPackageInfo();
+      return myDevice.getTaskExecutor().transform(futurePackages, packages -> {
+        assert packages != null;
+
+        return packages.stream()
+          .map(info -> {
+            List<String> segments = AdbPathUtil.getSegments(info.getPath());
+            if (segments.size() <= 2) {
+              return null;
+            }
+            if (!"data".equals(segments.get(0))) {
+              return null;
+            }
+            if (!"app".equals(segments.get(1))) {
+              return null;
+            }
+            if (segments.size() == 3) {
+              // Some package paths are files directly inside the "/data/app" directory
+              AdbFileListingEntry entry = createFileEntry(myEntry, segments.get(2));
+              return new AdbDeviceDirectFileEntry(myDevice, entry, this, info.getPackageName());
+            } else {
+              // Most package paths are directories inside the "/data/app" directory
+              AdbFileListingEntry entry = createDirectoryEntry(myEntry, segments.get(2));
+              return new AdbDevicePackageDirectoryEntry(this, entry, info.getPackageName());
+            }
+          })
+          .filter(Objects::nonNull)
           .collect(Collectors.toList());
       });
     }

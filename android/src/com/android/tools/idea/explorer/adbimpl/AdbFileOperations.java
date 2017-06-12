@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -120,6 +121,67 @@ public class AdbFileOperations {
     return line.substring(prefix.length());
   }
 
+  public ListenableFuture<List<PackageInfo>> listPackageInfo() {
+    return myExecutor.executeAsync(() -> {
+      String command = getCommand(null, "pm list packages -f").build();
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      commandResult.throwIfError();
+
+      return commandResult.getOutput().stream()
+        .map(AdbFileOperations::processPackageInfoLine)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    });
+  }
+
+  public static class PackageInfo {
+    @NotNull private final String myName;
+    @NotNull private final String myPath;
+
+    public PackageInfo(@NotNull String name, @NotNull String path) {
+      myName = name;
+      myPath = path;
+    }
+
+    @NotNull
+    public String getPackageName() {
+      return myName;
+    }
+
+    @NotNull
+    public String getPath() {
+      return myPath;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("%s: path=%s", myName, myPath);
+    }
+  }
+
+  @Nullable
+  private static PackageInfo processPackageInfoLine(@NotNull String line) {
+    // Format is: package:<path>=<name>
+    String prefix = "package:";
+    if (!line.startsWith(prefix)) {
+      return null;
+    }
+    int separatorIndex = line.indexOf('=', prefix.length());
+    if (separatorIndex < 0) {
+      return null;
+    }
+    String path = line.substring(prefix.length(), separatorIndex).trim();
+    if (StringUtil.isEmpty(path)) {
+      return null;
+    }
+
+    String packageName = line.substring(separatorIndex + 1).trim();
+    if (StringUtil.isEmpty(packageName)) {
+      return null;
+    }
+
+    return new PackageInfo(packageName, path);
+  }
 
   @NotNull
   public ListenableFuture<Void> deleteFile(@NotNull String path) {
