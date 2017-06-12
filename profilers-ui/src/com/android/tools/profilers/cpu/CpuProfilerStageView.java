@@ -374,7 +374,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     }
     CpuCapture capture = myStage.getCapture();
     if (capture == null) {
-      mySplitter.setSecondComponent(null);
+      // If the capture is still being parsed, the splitter second component should be myCaptureViewLoading
+      if (myStage.getCaptureState() != CpuProfilerStage.CaptureState.PARSING) {
+        mySplitter.setSecondComponent(null);
+      }
       myCaptureView = null;
     }
     else {
