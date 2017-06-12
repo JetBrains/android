@@ -319,6 +319,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
   @TestOnly
   public static void invalidateInspectionShortName2IssueMap() {
+    //noinspection FieldAccessNotGuarded  // TestOnly method
     ourIssue2InspectionShortName = null;
   }
 
@@ -342,8 +343,12 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         }
       }
 
+      // Third party lint check? If so register it dynamically, but
+      // not during unit tests (where we typically end up with empty
+      // inspection profiles containing only the to-be-tested inspections
+      // and we don't want random other inspections to show up)
       String name = ourIssue2InspectionShortName.get(issue);
-      if (name == null) {
+      if (name == null && !ApplicationManager.getApplication().isUnitTestMode()) {
         AndroidLintInspectionBase tool = createInspection(issue);
         LintInspectionFactory factory = new LintInspectionFactory(tool);
         // We have to add the tool both to the current and the base profile; otherwise, bringing up

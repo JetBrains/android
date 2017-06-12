@@ -22,7 +22,6 @@ import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.android.tools.lint.detector.api.CharSequences;
-import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
@@ -31,7 +30,6 @@ import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.QuickFix;
-import com.intellij.codeInspection.ex.InspectionProfileImpl;
 import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
@@ -43,13 +41,11 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.PlatformUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -1138,7 +1134,7 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   private Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
-    enableOnlySpecificLintInspections(myFixture, inspection);
+    myFixture.enableInspections(inspection);
     return doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
 
@@ -1242,7 +1238,7 @@ public class AndroidLintTest extends AndroidTestCase {
   }
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension,
                                   boolean skipCheck) throws IOException {
-    enableOnlySpecificLintInspections(myFixture, inspection);
+    myFixture.enableInspections(inspection);
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo);
     myFixture.configureFromExistingVirtualFile(file);
 
@@ -1317,36 +1313,5 @@ public class AndroidLintTest extends AndroidTestCase {
     }
 
     WriteCommandAction.runWriteCommandAction(project, () -> document.setText(contents));
-  }
-
-  // Here to prevent having to insert explicit cast when using varargs version
-  public static void enableOnlySpecificLintInspections(@NotNull JavaCodeInsightTestFixture fixture, @NotNull AndroidLintInspectionBase inspection) {
-    enableOnlySpecificLintInspections(fixture, new AndroidLintInspectionBase[] { inspection });
-  }
-
-  public static void enableOnlySpecificLintInspections(@NotNull JavaCodeInsightTestFixture fixture, @NotNull AndroidLintInspectionBase... inspections) {
-    // Ensure all issues are initially registered but disabled
-    Set<Issue> enabledIssues = Sets.newHashSet();
-    for (AndroidLintInspectionBase inspection : inspections) {
-      enabledIssues.add(inspection.getIssue());
-    }
-    Project project = fixture.getProject();
-    for (Issue issue : new LintIdeIssueRegistry().getIssues()) {
-      AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
-      InspectionProfileImpl profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-      String shortName = AndroidLintInspectionBase.LINT_INSPECTION_PREFIX + issue.getId();
-      try {
-        if (enabledIssues.contains(issue)) {
-          profile.enableTool(shortName, project);
-        }
-        else {
-          profile.disableTool(shortName, project);
-        }
-      } catch (Throwable ignore) {
-        // Ignore potential third party issues picked up from the environment
-      }
-    }
-
-    fixture.enableInspections(inspections);
   }
 }

@@ -26,6 +26,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
@@ -196,6 +197,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     final Set<Issue> result = Sets.newHashSetWithExpectedSize(issueList.size() + 10);
     for (Issue issue : issueList) {
       final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
+      if (inspectionShortName == null) {
+        continue;
+      }
       final HighlightDisplayKey key = HighlightDisplayKey.find(inspectionShortName);
       if (key == null) {
         continue;
