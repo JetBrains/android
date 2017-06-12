@@ -24,13 +24,18 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
+import com.android.tools.idea.uibuilder.actions.MorphDialog;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -176,5 +181,27 @@ public class NlEditorTest {
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
       .performAction("Sync Now")
       .waitForGradleProjectSyncToFinish();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void morphComponent() throws IOException {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layout = editor.getLayoutEditor(true)
+      .dragComponentToSurface("Widgets", "Button")
+      .waitForRenderToFinish();
+
+    NlComponentFixture button = layout.findView("Button", 0);
+    MorphDialogFixture fixture = layout.openMorphDialogForComponent(button);
+    assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+
+    ideFrame.robot().enterText("TextView");
+    ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+    assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
+    fixture.getOkButton().click();
+    assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
   }
 }
