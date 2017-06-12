@@ -26,5 +26,6 @@ iml_module(
         "//tools/analytics-library/protos:analytics-protos[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/flags:studio.flags[module]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )
