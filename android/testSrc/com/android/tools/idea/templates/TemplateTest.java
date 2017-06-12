@@ -27,6 +27,7 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.AssetStudioAssetGenerator;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.npw.NewProjectWizardState;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
@@ -87,8 +88,11 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
@@ -153,12 +157,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static final Set<String> KNOWN_BROKEN = new HashSet<>();
 
   static {
-    // Wear templates are currently broken because they cannot
-    // resolve the wear support library from the prebuilts sdk.
-    KNOWN_BROKEN.add("WatchFaceService");
-    KNOWN_BROKEN.add("BlankWearActivity");
-    KNOWN_BROKEN.add("GoogleMapsWearActivity");
-
     // See http://b.android.com/253296
     if (SystemInfo.isWindows) {
       KNOWN_BROKEN.add("AidlFile");
@@ -591,7 +589,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       IAndroidTarget target = targets[targets.length - 1];
       Map<String, Object> overrides = new HashMap<>();
       overrides.put(ATTR_JAVA_VERSION, "1.7");
-      NewProjectWizardState state = createNewProjectState(true, sdkData);
+      NewProjectWizardState state = createNewProjectState(true, sdkData, getDefaultModuleTemplate());
 
       // TODO: Allow null activity state!
       File activity = findTemplate("activities", "BasicActivity");
@@ -617,7 +615,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     IAndroidTarget target = targets[targets.length - 1];
     Map<String, Object> overrides = new HashMap<>();
     overrides.put(ATTR_JAVA_VERSION, "1.5");
-    NewProjectWizardState state = createNewProjectState(true, sdkData);
+    NewProjectWizardState state = createNewProjectState(true, sdkData, getDefaultModuleTemplate());
 
     // TODO: Allow null activity state!
     File activity = findTemplate("activities", "BasicActivity");
@@ -762,8 +760,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     return file;
   }
 
-  private static NewProjectWizardState createNewProjectState(boolean createWithProject, AndroidSdkData sdkData) {
-    NewProjectWizardState values = new NewProjectWizardState();
+  private static NewProjectWizardState createNewProjectState(boolean createWithProject, AndroidSdkData sdkData, Template moduleTemplate) {
+    NewProjectWizardState values = new NewProjectWizardState(moduleTemplate);
     assertNotNull(values);
     Template.convertApisToInt(values.getParameters());
     values.put(ATTR_CREATE_ACTIVITY, createWithProject);
@@ -809,7 +807,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
-    NewProjectWizardState values = createNewProjectState(createWithProject, sdkData);
+    NewProjectWizardState values = createNewProjectState(createWithProject, sdkData, getModuleTemplateForFormFactor(templateFile));
 
     String projectNameBase = templateFile.getName();
 
@@ -1191,6 +1189,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
       //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
       //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
+      //  throw e
       //}
       finally {
         connection.close();
@@ -1360,5 +1359,34 @@ public class TemplateTest extends AndroidGradleTestCase {
         }
       }
     }
+  }
+
+  @NotNull
+  private static Template getModuleTemplateForFormFactor(@NotNull File templateFile) {
+    Template activityTemplate = Template.createFromPath(templateFile);
+    Template moduleTemplate = getDefaultModuleTemplate();
+    TemplateMetadata activityMetadata = activityTemplate.getMetadata();
+    assertNotNull(activityMetadata);
+    String activityFormFactorName = activityMetadata.getFormFactor();
+    if (activityFormFactorName != null) {
+      FormFactor activityFormFactor = FormFactor.get(activityFormFactorName);
+      if (activityFormFactor != FormFactor.CAR) {
+        TemplateManager manager = TemplateManager.getInstance();
+        List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
+        for (File formFactorTemplateFile : applicationTemplates) {
+          TemplateMetadata metadata = manager.getTemplateMetadata(formFactorTemplateFile);
+          if (metadata != null && metadata.getFormFactor() != null && FormFactor.get(metadata.getFormFactor()) == activityFormFactor) {
+            moduleTemplate = Template.createFromPath(formFactorTemplateFile);
+            break;
+          }
+        }
+      }
+    }
+    return moduleTemplate;
+  }
+
+  @NotNull
+  private static Template getDefaultModuleTemplate() {
+    return Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME);
   }
 }

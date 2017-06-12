@@ -19,23 +19,28 @@ package com.android.tools.idea.npw;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.WizardConstants;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
 
 /**
- * Value object which holds the current state of the wizard pages for the
- * {@link NewProjectWizard}
+ * Value object which holds the current state of the wizard pages for the NewProjectWizard
  * Deprecated by {@link NewProjectWizardDynamic} and {@link ConfigureAndroidProjectPath}
  */
 @Deprecated
 public class NewProjectWizardState extends NewModuleWizardState {
   private static final String APPLICATION_NAME = "My Application";
 
-  protected Template myProjectTemplate;
+  protected final Template myProjectTemplate;
 
   public NewProjectWizardState() {
+    this(Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME));
+  }
+
+  public NewProjectWizardState(@NotNull Template moduleTemplate) {
     myHidden.remove(ATTR_PROJECT_LOCATION);
     myHidden.remove(ATTR_IS_LIBRARY_MODULE);
     myHidden.remove(ATTR_APP_TITLE);
@@ -48,7 +53,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
     put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
     put(ATTR_MIN_API, Integer.toString(DEFAULT_MIN));
     myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
-    myTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.MODULE_TEMPLATE_NAME);
+    myTemplate = moduleTemplate;
     setParameterDefaults();
 
     updateParameters();
