@@ -216,7 +216,7 @@ class PsiResourceItem extends ResourceItem {
     assert myTag != null;
     for (XmlTag child : myTag.getSubTags()) {
       String name = getAttributeValue(child, ATTR_NAME);
-      if (name != null) {
+      if (!StringUtil.isEmpty(name)) {
         // is the attribute in the android namespace?
         boolean isFrameworkAttr = declareStyleable.isFramework();
         if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {

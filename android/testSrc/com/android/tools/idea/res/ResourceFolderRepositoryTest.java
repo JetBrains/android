@@ -3136,7 +3136,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
-  public void testEmptyNames() throws Exception {
+  public void testEmptyNames_values() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject(VALUES_EMPTY, "res/values/empty.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -3151,6 +3151,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       document.replaceString(0, document.getTextLength() - 1, "<resources>\n<string name=\"\"\n</resources>");
       documentManager.commitDocument(document);
     });
+    UIUtil.dispatchAllInvocationEvents();
+    resources.getConfiguredResources(new FolderConfiguration());
 
     WriteCommandAction.runWriteCommandAction(null, () -> {
       document.replaceString(0,
@@ -3158,19 +3160,48 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
                              "<resources>\n<declare-styleable name=\"foo\"><attr format=\"boolean\" name=\"\"\n</declare-styleable></resources>");
       documentManager.commitDocument(document);
     });
+    UIUtil.dispatchAllInvocationEvents();
+    resources.getConfiguredResources(new FolderConfiguration());
 
     // Now exercise childAdded, without a full rescan.
     WriteCommandAction.runWriteCommandAction(null, () -> {
       document.replaceString(0, document.getTextLength() - 1, "<resources>\n\n</resources>");
       documentManager.commitDocument(document);
     });
-
     UIUtil.dispatchAllInvocationEvents();
 
     WriteCommandAction.runWriteCommandAction(null, () -> {
       document.insertString(document.getLineStartOffset(1), "<string name=\"\">foo</string>");
       documentManager.commitDocument(document);
     });
+    UIUtil.dispatchAllInvocationEvents();
+    resources.getConfiguredResources(new FolderConfiguration());
+  }
+
+  public void testEmptyNames_layouts() throws Exception {
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    assertNotNull(documentManager);
+    Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    XmlTag tag = findTagById(psiFile1, "noteArea");
+    assertNotNull(tag);
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      // First edit runs the PSI parser, convering ResourceFile to PsiResourceFile.
+      tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/forcePsiConversion");
+    });
+
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/");
+    });
+
+    UIUtil.dispatchAllInvocationEvents();
+    resources.getConfiguredResources(new FolderConfiguration());
   }
 
   public void testIssue56799() throws Exception {
