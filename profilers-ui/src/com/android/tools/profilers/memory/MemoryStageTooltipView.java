@@ -34,7 +34,8 @@ class MemoryStageTooltipView extends ProfilerTooltipView {
   @Override
   protected Component createTooltip() {
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
-    final LegendComponent legend = new LegendComponent(legends);
+    LegendComponent legend =
+      new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
 
     legend.configure(legends.getJavaLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_JAVA));
     legend.configure(legends.getNativeLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_NATIVE));
@@ -46,7 +47,6 @@ class MemoryStageTooltipView extends ProfilerTooltipView {
     legend.configure(legends.getTotalLegend(), new LegendConfig(LegendConfig.IconType.NONE, ProfilerColors.DEFAULT_STAGE_BACKGROUND));
     legend.configure(legends.getObjectsLegend(), new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.MEMORY_OBJECTS));
 
-    legend.setOrientation(LegendComponent.Orientation.VERTICAL);
     return legend;
   }
 }

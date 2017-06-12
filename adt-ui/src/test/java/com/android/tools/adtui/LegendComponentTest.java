@@ -15,9 +15,7 @@
  */
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.legend.FixedLegend;
-import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
@@ -30,6 +28,8 @@ import static org.junit.Assert.assertEquals;
 
 public class LegendComponentTest {
 
+  private static final int TEST_VERTICAL_PADDING = 123;
+
   /**
    * Verifies that adding/removing legends in the model between updates would keep the internal states of LegendComponent in sync.
    */
@@ -38,7 +38,7 @@ public class LegendComponentTest {
     LegendComponentModel model = new LegendComponentModel(0);
     FixedLegend fixedLegend1 = new FixedLegend("Test1");
     FixedLegend fixedLegend2 = new FixedLegend("Test2");
-    LegendComponent legendComponent = new LegendComponent(model);
+    LegendComponent legendComponent = new LegendComponent.Builder(model).setVerticalPadding(TEST_VERTICAL_PADDING).build();
     assertEquals(0, legendComponent.getLabelsToDraw().size());
 
     model.add(fixedLegend1);
@@ -69,7 +69,7 @@ public class LegendComponentTest {
     LegendComponentModel model = new LegendComponentModel(0);
     FixedLegend fixedLegend1 = new FixedLegend("Test1");
     FixedLegend fixedLegend2 = new FixedLegend("Test2");
-    LegendComponent legendComponent = new LegendComponent(model, LegendComponent.DEFAULT_VERTICAL_PADDING_PX);
+    LegendComponent legendComponent = new LegendComponent.Builder(model).setVerticalPadding(TEST_VERTICAL_PADDING).build();
     model.add(fixedLegend1);
     model.add(fixedLegend2);
     verifyDimensions(legendComponent, LegendComponent.BOX_ICON_WIDTH_PX + LegendComponent.ICON_MARGIN_PX);
@@ -80,7 +80,7 @@ public class LegendComponentTest {
     LegendComponentModel model = new LegendComponentModel(0);
     FixedLegend fixedLegend1 = new FixedLegend("Test1");
     FixedLegend fixedLegend2 = new FixedLegend("Test2");
-    LegendComponent legendComponent = new LegendComponent(model, LegendComponent.DEFAULT_VERTICAL_PADDING_PX);
+    LegendComponent legendComponent = new LegendComponent.Builder(model).setVerticalPadding(TEST_VERTICAL_PADDING).build();
     model.add(fixedLegend1);
     model.add(fixedLegend2);
     legendComponent.configure(fixedLegend1, new LegendConfig(LegendConfig.IconType.LINE, Color.black));
@@ -92,7 +92,7 @@ public class LegendComponentTest {
   public void testGetPreferredSizeNoConfig() {
     LegendComponentModel model = new LegendComponentModel(0);
     FixedLegend fixedLegend1 = new FixedLegend("Test1");
-    LegendComponent legendComponent = new LegendComponent(model, LegendComponent.DEFAULT_VERTICAL_PADDING_PX);
+    LegendComponent legendComponent = new LegendComponent.Builder(model).setVerticalPadding(TEST_VERTICAL_PADDING).build();
     model.add(fixedLegend1);
     legendComponent.configure(fixedLegend1, new LegendConfig(LegendConfig.IconType.NONE, Color.black));
     verifyDimensions(legendComponent, 0);
@@ -108,6 +108,6 @@ public class LegendComponentTest {
       height = label.getPreferredSize().height;
     }
     // Verify legends computed size is the same as ours.
-    assertEquals(legend.getPreferredSize(), new Dimension(legendWidth, height + (LegendComponent.DEFAULT_VERTICAL_PADDING_PX * 2)));
+    assertEquals(legend.getPreferredSize(), new Dimension(legendWidth, height + TEST_VERTICAL_PADDING * 2));
   }
 }

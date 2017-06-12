@@ -35,9 +35,9 @@ public class MemoryMonitorTooltipView extends ProfilerTooltipView {
   public Component createTooltip() {
     MemoryMonitor.MemoryLegend legends = myMonitor.getTooltipLegend();
 
-    LegendComponent legend = new LegendComponent(legends, 0);
+    LegendComponent legend =
+      new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
     legend.configure(legends.getTotalLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_TOTAL));
-    legend.setOrientation(LegendComponent.Orientation.VERTICAL);
 
     return legend;
   }
