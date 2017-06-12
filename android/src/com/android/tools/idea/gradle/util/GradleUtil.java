@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
@@ -25,8 +26,7 @@ import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
+import com.android.tools.idea.gradle.project.model.ide.android.*;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -230,20 +230,20 @@ public final class GradleUtil {
   }
 
   /**
-   * Returns the library dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
-   * in the UI) artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
+   * @return list of the module dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
+   * in the UI) artifacts.
    */
   @NotNull
-  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull IdeVariant variant) {
-    List<AndroidLibrary> libraries = Lists.newArrayList();
+  public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
+    List<Library> libraries = Lists.newArrayList();
 
-    AndroidArtifact mainArtifact = variant.getMainArtifact();
-    Dependencies dependencies = mainArtifact.getDependencies();
-    libraries.addAll(dependencies.getLibraries());
+    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
+    IdeLevel2Dependencies dependencies = mainArtifact.getLevel2Dependencies();
+    libraries.addAll(dependencies.getModuleDependencies());
 
-    for (BaseArtifact testArtifact : variant.getTestArtifacts()) {
-      dependencies = testArtifact.getDependencies();
-      libraries.addAll(dependencies.getLibraries());
+    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
+      dependencies = testArtifact.getLevel2Dependencies();
+      libraries.addAll(dependencies.getModuleDependencies());
     }
     return libraries;
   }
@@ -820,10 +820,12 @@ public final class GradleUtil {
       int suffixBegin = s.length() - suffix.length();
       if (Character.isUpperCase(s.charAt(suffixBegin))) {
         return s.substring(0, suffixBegin) + Character.toUpperCase(newSuffix.charAt(0)) + newSuffix.substring(1);
-      } else {
+      }
+      else {
         if (suffixBegin == 0) {
           return newSuffix;
-        } else {
+        }
+        else {
           return s.substring(0, suffixBegin) + suffix;
         }
       }

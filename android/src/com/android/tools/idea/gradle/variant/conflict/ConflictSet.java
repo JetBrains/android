@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -39,8 +39,8 @@ import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
-import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.intellij.openapi.module.ModuleUtilCore.getAllDependentModules;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -119,12 +119,11 @@ public class ConflictSet {
 
   @Nullable
   private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
-    List<AndroidLibrary> dependencies = getDirectLibraryDependencies(dependentAndroidModel.getSelectedVariant());
-    for (AndroidLibrary dependency : dependencies) {
-      if (!dependencyGradlePath.equals(dependency.getProject())) {
-        continue;
+    List<Library> dependencies = getModuleDependencies(dependentAndroidModel.getSelectedVariant());
+    for (Library dependency : dependencies) {
+      if (dependencyGradlePath.equals(dependency.getProjectPath())) {
+        return dependency.getVariant();
       }
-      return dependency.getProjectVariant();
     }
     return null;
   }

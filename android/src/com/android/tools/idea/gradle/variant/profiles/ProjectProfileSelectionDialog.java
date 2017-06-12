@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.profiles;
 
-import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -62,8 +62,8 @@ import java.text.Collator;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDependencies;
 
 public class ProjectProfileSelectionDialog extends DialogWrapper {
   private static final SimpleTextAttributes UNRESOLVED_ATTRIBUTES =
@@ -191,8 +191,8 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       Multimap<String, DependencyTreeElement> dependenciesByVariant = HashMultimap.create();
 
       androidModel.getAndroidProject().forEachVariant(variant -> {
-        for (AndroidLibrary library : getDirectLibraryDependencies(variant)) {
-          String libraryPath = library.getProject();
+        for (Library library : getModuleDependencies(variant)) {
+          String libraryPath = library.getProjectPath();
           if (libraryPath == null) {
             continue;
           }
@@ -208,7 +208,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
           modulesByGradlePath.put(libraryPath, dependency);
 
           DependencyTreeElement dependencyElement =
-            new DependencyTreeElement(dependency, libraryPath, library.getProjectVariant(), conflict);
+            new DependencyTreeElement(dependency, libraryPath, library.getVariant(), conflict);
           dependenciesByVariant.put(variant.getName(), dependencyElement);
         }
       });
