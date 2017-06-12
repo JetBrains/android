@@ -20,15 +20,12 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
@@ -46,7 +43,6 @@ import java.awt.event.*;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
@@ -372,78 +368,7 @@ public class InteractionManager {
         return;
       }
 
-      // Deal with the canvas resizing interaction at the bottom right of the screen view.
-      // If both screen views are present, only enable it next to the normal one.
-      SceneView sceneView = mySurface.getCurrentSceneView(); // Gets the preview screen view if both are present
-      if (sceneView == null) {
-        return;
-      }
-      // TODO: find a way to move layout-specific logic elsewhere.
-      if (mySurface instanceof NlDesignSurface) {
-        Dimension size = sceneView.getSize();
-        Rectangle resizeZone =
-          new Rectangle(sceneView.getX() + size.width, sceneView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-        if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
-          startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction((NlDesignSurface)mySurface), ourLastStateMask);
-          return;
-        }
-      }
-
-      // Check if we have a ViewGroupHandler that might want
-      // to handle the entire interaction
-
-      sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-      if (sceneView == null) {
-        return;
-      }
-
-      if (!(sceneView instanceof ScreenView)) {
-        Interaction interaction = new SceneInteraction(sceneView);
-        startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
-        return;
-      }
-
-      ScreenView screenView = (ScreenView)sceneView;
-      SelectionModel selectionModel = screenView.getSelectionModel();
-      NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
-      if (component == null) {
-        // If we cannot find an element where we clicked, try to use the first element currently selected
-        // (if any) to find the view group handler that may want to handle the mousePressed()
-        // This allows us to correctly handle elements out of the bounds of the screen view.
-        if (!selectionModel.isEmpty()) {
-          component = selectionModel.getPrimary();
-        }
-        else {
-          return;
-        }
-      }
-      ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
-      if (viewGroupHandler == null) {
-        return;
-      }
-
-      Interaction interaction = null;
-
-      // Give a chance to the current selection's parent handler
-      if (!selectionModel.isEmpty()) {
-        NlComponent primary = screenView.getSelectionModel().getPrimary();
-        NlComponent parent = primary != null ? primary.getParent() : null;
-        if (parent != null) {
-          int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
-          int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
-          if (NlComponentHelperKt.containsX(primary, ax) && NlComponentHelperKt.containsY(primary, ay)) {
-            ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
-            if (handler != null) {
-              interaction = handler.createInteraction(screenView, primary);
-            }
-          }
-        }
-      }
-
-      if (interaction == null) {
-        interaction = viewGroupHandler.createInteraction(screenView, component);
-      }
-
+      Interaction interaction = getSurface().createInteractionOnClick(myLastMouseX, myLastMouseY);
       if (interaction != null) {
         startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
       }
@@ -622,36 +547,13 @@ public class InteractionManager {
             interaction = new MarqueeInteraction(sceneView, toggle);
           }
           else {
-            List<NlComponent> dragged;
-            // Dragging over a non-root component: move the set of components (if the component dragged over is
-            // part of the selection, drag them all, otherwise drag just this component)
-            if (selectionModel.isSelected(component.getNlComponent())) {
-              dragged = Lists.newArrayList();
-
-              // Make sure the primary is the first element
-              if (primary != null) {
-                if (primary.getParent() == null) {
-                  primaryNlComponent = null;
-                }
-                else {
-                  dragged.add(primaryNlComponent);
-                }
-              }
-
-              for (NlComponent selected : selectionModel.getSelection()) {
-                if (!selected.isRoot() && selected != primaryNlComponent) {
-                  dragged.add(selected);
-                }
-              }
-            }
-            else {
-              dragged = Collections.singletonList(primaryNlComponent);
-            }
-            interaction = new DragDropInteraction(mySurface, dragged);
+            interaction = getSurface().createInteractionOnDrag(component, primary);
           }
         }
 
-        startInteraction(x, y, interaction, modifiers);
+        if (interaction != null) {
+          startInteraction(x, y, interaction, modifiers);
+        }
         updateCursor(x, y);
       }
 
