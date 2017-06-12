@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.google.common.annotations.VisibleForTesting;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
@@ -43,26 +43,29 @@ public class CommandLineArgs {
   @NotNull private final ApplicationInfo myApplicationInfo;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleInitScripts myInitScripts;
+  private final boolean myApplyJavaLibraryPlugin;
 
-  public CommandLineArgs() {
-    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance());
+  public CommandLineArgs(boolean applyJavaLibraryPlugin) {
+    this(ApplicationInfo.getInstance(), IdeInfo.getInstance(), GradleInitScripts.getInstance(), applyJavaLibraryPlugin);
   }
 
   @VisibleForTesting
   CommandLineArgs(@NotNull ApplicationInfo applicationInfo,
                   @NotNull IdeInfo ideInfo,
-                  @NotNull GradleInitScripts initScripts) {
+                  @NotNull GradleInitScripts initScripts,
+                  boolean applyJavaLibraryPlugin) {
     myApplicationInfo = applicationInfo;
     myIdeInfo = ideInfo;
     myInitScripts = initScripts;
+    myApplyJavaLibraryPlugin = applyJavaLibraryPlugin;
   }
 
   @NotNull
-  public List<String> get(@NotNull Options options, @Nullable Project project) {
+  public List<String> get(@Nullable Project project) {
     List<String> args = new ArrayList<>();
 
     // TODO: figure out why this is making sync fail.
-    if (options.applyJavaPlugin) {
+    if (myApplyJavaLibraryPlugin) {
       myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
     }
 
@@ -103,40 +106,10 @@ public class CommandLineArgs {
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     }
 
-    if (options.includeLocalMavenRepo) {
+    if (project == null || GradleProjectInfo.getInstance(project).canUseLocalMavenRepo()) {
+      // null project happens when is a new project.
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
     return args;
-  }
-
-  public static class Options {
-    boolean applyJavaPlugin;
-    boolean includeLocalMavenRepo;
-
-    public void applyJavaPlugin() {
-      applyJavaPlugin = true;
-    }
-
-    public void includeLocalMavenRepo() {
-      includeLocalMavenRepo = true;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof Options)) {
-        return false;
-      }
-      Options options = (Options)o;
-      return applyJavaPlugin == options.applyJavaPlugin &&
-             includeLocalMavenRepo == options.includeLocalMavenRepo;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(applyJavaPlugin, includeLocalMavenRepo);
-    }
   }
 }

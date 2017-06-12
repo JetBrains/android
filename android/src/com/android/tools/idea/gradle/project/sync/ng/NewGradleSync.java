@@ -67,7 +67,7 @@ public class NewGradleSync implements GradleSync {
   @Override
   public void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener) {
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      sync(listener, new EmptyProgressIndicator(), request.isNewProject());
+      sync(listener, new EmptyProgressIndicator(), request.isNewOrImportedProject());
       return;
     }
     Task task = createSyncTask(request, listener);
@@ -80,7 +80,7 @@ public class NewGradleSync implements GradleSync {
     String title = "Gradle Sync"; // TODO show Gradle feedback
 
     ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-    boolean isNewProject = request.isNewProject();
+    boolean isNewProject = request.isNewOrImportedProject();
     switch (executionMode) {
       case MODAL_SYNC:
         return new Task.Modal(myProject, title, true) {
@@ -107,6 +107,6 @@ public class NewGradleSync implements GradleSync {
     callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, indicator, syncListener, isNewProject))
             .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
     // @formatter:on
-    mySyncExecutor.syncProject(indicator, callback, isNewProject);
+    mySyncExecutor.syncProject(indicator, callback);
   }
 }

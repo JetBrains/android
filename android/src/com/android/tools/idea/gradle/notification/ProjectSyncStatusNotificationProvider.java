@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
@@ -38,12 +39,13 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
+import static com.intellij.util.ThreeState.YES;
 
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
 public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
+  @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
   @NotNull private final Project myProject;
   @NotNull private final GradleProjectInfo myProjectInfo;
@@ -71,8 +73,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     return (oldPanel != null && oldPanel.type == newPanelType) ? oldPanel : newPanelType.create(myProject);
   }
 
+  @VisibleForTesting
   @NotNull
-  private NotificationPanel.Type notificationPanelType() {
+  NotificationPanel.Type notificationPanelType() {
     if (!myProjectInfo.isBuildWithGradle()) {
       return NotificationPanel.Type.NONE;
     }
@@ -90,14 +93,19 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
 
     ThreeState gradleSyncNeeded = mySyncState.isSyncNeeded();
-    if (gradleSyncNeeded == ThreeState.YES) {
+    if (gradleSyncNeeded == YES) {
+      // If sync is needed, the project has changed and it is no longer a "newly created" project.
+      if (myProjectInfo.isNewlyCreatedProject()) {
+        myProjectInfo.setNewlyCreatedProject(false);
+      }
       return NotificationPanel.Type.SYNC_NEEDED;
     }
 
     return NotificationPanel.Type.NONE;
   }
 
-  private static class NotificationPanel extends EditorNotificationPanel {
+  @VisibleForTesting
+  static class NotificationPanel extends EditorNotificationPanel {
     enum Type {
       NONE() {
         @Override
@@ -156,7 +164,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
 
-      createActionLabel("Sync Now", () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST));
+      createActionLabel("Sync Now",
+                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST));
     }
   }
 
@@ -164,7 +173,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(type, text);
 
-      createActionLabel("Try Again", () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST));
+      createActionLabel("Try Again",
+                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST));
 
       createActionLabel("Open 'Messages' View",
                         () -> ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC));
