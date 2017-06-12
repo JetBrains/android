@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.google.common.annotations.VisibleForTesting;
@@ -62,18 +63,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
     myTimeline.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
     myTimeline.getDataRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
 
-    setUI(new ButtonlessScrollBarUI() {
-      /**
-       * The default ButtonlessScrollBarUI contains logic to overlay the scrollbar
-       * and fade in/out on top of a JScrollPane. Because we are using the scrollbar
-       * without a scroll pane, it can fade in and out unexpectedly. This subclass
-       * simply disables the overlay feature.
-       */
-      @Override
-      protected boolean isMacOverlayScrollbar() {
-        return false;
-      }
-    });
+    setUI(new RangeScrollBarUI());
 
     addAdjustmentListener(e -> {
       if (!myUpdating) {
