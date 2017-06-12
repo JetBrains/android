@@ -298,8 +298,6 @@ public class NlDesignSurface extends DesignSurface {
   /**
    * Return the ScreenView under the given position
    *
-   * @param x
-   * @param y
    * @return the ScreenView, or null if we are not above one.
    */
   @Nullable
@@ -729,8 +727,6 @@ public class NlDesignSurface extends DesignSurface {
    *
    * If the {@link DesignSurface} is not shows yet, it register a callback that will show the {@link PanZoomPanel}
    * once the {@link DesignSurface} is visible, otherwise it shows it directly.
-   *
-   * @param show
    */
   public void setPanZoomPanelVisible(boolean show) {
     PanZoomPanel panel = myPanZoomPanel.get();
@@ -818,5 +814,10 @@ public class NlDesignSurface extends DesignSurface {
     NlComponent result = DesignSurface.createComponent(tag, model);
     NlComponentHelper.INSTANCE.registerComponent(result);
     return result;
+  }
+
+  @Override
+  protected double getMinScale() {
+    return Math.min(getFitScale(false), 1);
   }
 }

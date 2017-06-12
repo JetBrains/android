@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.ide.IdeEventQueue;
@@ -25,6 +26,8 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.util.Disposer;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
 
 public class NlDesignSurfaceTest extends LayoutTestCase {
   private NlDesignSurface mySurface;
@@ -168,5 +171,42 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Horizontal stack
     assertTrue(screenView.getY() == blueprintView.getY());
     mySurface.removeNotify();
+  }
+
+  public void testZoom() {
+    SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(FRAME_LAYOUT)
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    mySurface.getScrollPane().setSize(1000, 1000);
+    mySurface.zoomToFit();
+    double origScale = mySurface.getScale();
+    assertEquals(origScale, mySurface.getMinScale());
+
+    mySurface.zoom(ZoomType.IN);
+    double scale = mySurface.getScale();
+    assertTrue(scale > origScale);
+
+    mySurface.zoom(ZoomType.IN);
+    assertTrue(mySurface.getScale() > scale);
+
+    mySurface.zoom(ZoomType.OUT);
+    mySurface.zoom(ZoomType.OUT);
+    mySurface.zoom(ZoomType.OUT);
+
+    assertEquals(mySurface.getScale(), origScale);
+    mySurface.zoom(ZoomType.OUT);
+    assertEquals(mySurface.getScale(), origScale);
+
+    mySurface.getScrollPane().setSize(2000, 2000);
+    assertEquals(1.0, mySurface.getMinScale());
   }
 }
