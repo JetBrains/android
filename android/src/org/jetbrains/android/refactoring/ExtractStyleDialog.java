@@ -225,7 +225,7 @@ class ExtractStyleDialog extends DialogWrapper {
       return new ValidationInfo("specify a module with resources", myModuleCombo);
     }
 
-    return CreateXmlResourceDialog.checkIfResourceAlreadyExists(module.getProject(), resourceDir, getStyleName(), ResourceType.STYLE,
+    return CreateXmlResourceDialog.checkIfResourceAlreadyExists(module.getProject(), resourceDir, getStyleName(), null, ResourceType.STYLE,
                                                                 myDirNames, myFileName);
   }
 
