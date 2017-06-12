@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,7 +53,7 @@ public class ProfilerServiceProxyTest {
     Collection<MethodDescriptor<?, ?>> allMethods = ProfilerServiceGrpc.getServiceDescriptor().getMethods();
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
-    assertEquals(allMethods.size(), definedMethods.size());
+    assertThat(definedMethods.size()).isEqualTo(allMethods.size());
     definedMethods.containsAll(allMethods);
   }
 
@@ -61,7 +61,7 @@ public class ProfilerServiceProxyTest {
   public void testUnknownDeviceLabel() throws Exception {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
     Profiler.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
-    assertEquals("Unknown", profilerDevice.getModel());
+    assertThat(profilerDevice.getModel()).isEqualTo("Unknown");
   }
 
   @Test
@@ -71,7 +71,7 @@ public class ProfilerServiceProxyTest {
     when(mockDevice.getAvdName()).thenReturn(null);
     Profiler.Device profilerDevice = ProfilerServiceProxy.profilerDeviceFromIDevice(mockDevice);
 
-    assertEquals("Unknown", profilerDevice.getModel());
+    assertThat(profilerDevice.getModel()).isEqualTo("Unknown");
   }
 
   @Test
@@ -82,12 +82,12 @@ public class ProfilerServiceProxyTest {
 
     ProfilerServiceProxy proxy = new ProfilerServiceProxy(mockDevice, startNamedChannel("testClientsWithNullDescriptionsNotAdded"));
     Map<Client, Profiler.Process> cachedProcesses = proxy.getCachedProcesses();
-    assertEquals(1, cachedProcesses.size());
+    assertThat(cachedProcesses.size()).isEqualTo(1);
     Map.Entry<Client, Profiler.Process>  cachedProcess = cachedProcesses.entrySet().iterator().next();
-    assertEquals(client1, cachedProcess.getKey());
-    assertEquals(1, cachedProcess.getValue().getPid());
-    assertEquals("testClientDescription", cachedProcess.getValue().getName());
-    assertEquals(Profiler.Process.State.ALIVE, cachedProcess.getValue().getState());
+    assertThat(cachedProcess.getKey()).isEqualTo(client1);
+    assertThat(cachedProcess.getValue().getPid()).isEqualTo(1);
+    assertThat(cachedProcess.getValue().getName()).isEqualTo("testClientDescription");
+    assertThat(cachedProcess.getValue().getState()).isEqualTo(Profiler.Process.State.ALIVE);
   }
 
   /**

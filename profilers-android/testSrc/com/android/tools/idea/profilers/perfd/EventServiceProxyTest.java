@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +49,7 @@ public class EventServiceProxyTest {
     Collection<MethodDescriptor<?, ?>> allMethods = EventServiceGrpc.getServiceDescriptor().getMethods();
     Set<MethodDescriptor<?, ?>> definedMethods =
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
-    assertEquals(allMethods.size(), definedMethods.size());
+    assertThat(definedMethods.size()).isEqualTo(allMethods.size());
     definedMethods.containsAll(allMethods);
   }
 }
