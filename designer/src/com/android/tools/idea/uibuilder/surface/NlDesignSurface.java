@@ -28,6 +28,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
@@ -38,9 +39,11 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -56,10 +59,12 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.lang.ref.WeakReference;
-import java.util.Objects;
+import java.util.*;
+import java.util.List;
 
 import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.annotations.VisibleForTesting.*;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
 /**
@@ -819,5 +824,93 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   protected double getMinScale() {
     return Math.min(getFitScale(false), 1);
+  }
+
+  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  @Nullable
+  @Override
+  public Interaction doCreateInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY, @NotNull SceneView view) {
+    ScreenView screenView = (ScreenView)view;
+    Dimension size = screenView.getSize();
+    Rectangle resizeZone =
+      new Rectangle(view.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+    if (resizeZone.contains(mouseX, mouseY)) {
+      return new CanvasResizeInteraction(this);
+    }
+
+    SelectionModel selectionModel = screenView.getSelectionModel();
+    NlComponent component = Coordinates.findComponent(screenView, mouseX, mouseY);
+    if (component == null) {
+      // If we cannot find an element where we clicked, try to use the first element currently selected
+      // (if any) to find the view group handler that may want to handle the mousePressed()
+      // This allows us to correctly handle elements out of the bounds of the screen view.
+      if (!selectionModel.isEmpty()) {
+        component = selectionModel.getPrimary();
+      }
+      else {
+        return null;
+      }
+    }
+    // Check if we have a ViewGroupHandler that might want
+    // to handle the entire interaction
+    ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
+    if (viewGroupHandler == null) {
+      return null;
+    }
+
+    Interaction interaction = null;
+
+    // Give a chance to the current selection's parent handler
+    if (!selectionModel.isEmpty()) {
+      NlComponent primary = screenView.getSelectionModel().getPrimary();
+      NlComponent parent = primary != null ? primary.getParent() : null;
+      if (parent != null) {
+        int ax = Coordinates.getAndroidX(screenView, mouseX);
+        int ay = Coordinates.getAndroidY(screenView, mouseY);
+        if (NlComponentHelperKt.containsX(primary, ax) && NlComponentHelperKt.containsY(primary, ay)) {
+          ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
+          if (handler != null) {
+            interaction = handler.createInteraction(screenView, primary);
+          }
+        }
+      }
+    }
+
+    if (interaction == null) {
+      interaction = viewGroupHandler.createInteraction(screenView, component);
+    }
+    return interaction;
+  }
+
+  @Override
+  @Nullable
+  public Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary) {
+    List<NlComponent> dragged;
+    NlComponent primaryNlComponent = primary != null ? primary.getNlComponent() : null;
+    // Dragging over a non-root component: move the set of components (if the component dragged over is
+    // part of the selection, drag them all, otherwise drag just this component)
+    if (getSelectionModel().isSelected(draggedSceneComponent.getNlComponent())) {
+      dragged = Lists.newArrayList();
+
+      // Make sure the primary is the first element
+      if (primary != null) {
+        if (primary.getParent() == null) {
+          primaryNlComponent = null;
+        }
+        else {
+          dragged.add(primaryNlComponent);
+        }
+      }
+
+      for (NlComponent selected : getSelectionModel().getSelection()) {
+        if (!selected.isRoot() && selected != primaryNlComponent) {
+          dragged.add(selected);
+        }
+      }
+    }
+    else {
+      dragged = Collections.singletonList(primaryNlComponent);
+    }
+    return new DragDropInteraction(this, dragged);
   }
 }

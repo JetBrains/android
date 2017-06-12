@@ -47,6 +47,8 @@ import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 /** Fixture for building up models for tests */
@@ -159,6 +161,9 @@ public class ModelBuilder {
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());
+      when(surface.createInteractionOnClick(anyInt(), anyInt())).thenCallRealMethod();
+      when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
+      when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
       //TODO: handle calls to surface.getCurrentSceneView
 
       return model;

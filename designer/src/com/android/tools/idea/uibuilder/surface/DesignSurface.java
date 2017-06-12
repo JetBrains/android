@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProviders;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -70,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.annotations.VisibleForTesting.*;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFACE_BG;
 
 /**
@@ -1270,4 +1272,20 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected ImmutableList<Layer> getLayers() {
     return myLayers;
   }
+
+  @Nullable
+  public final Interaction createInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY) {
+    SceneView sceneView = getSceneView(mouseX, mouseY);
+    if (sceneView == null) {
+      return null;
+    }
+    return doCreateInteractionOnClick(mouseX, mouseY, sceneView);
+  }
+
+  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  @Nullable
+  public abstract Interaction doCreateInteractionOnClick(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY, @NotNull SceneView view);
+
+  @Nullable
+  public abstract Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary);
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.surface;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
@@ -26,8 +27,11 @@ import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.ImmutableList;
@@ -43,6 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+
+import static com.android.annotations.VisibleForTesting.*;
 
 /**
  * {@link DesignSurface} for the navigation editor.
@@ -219,5 +225,18 @@ public class NavDesignSurface extends DesignSurface {
       }
     }
     super.notifyComponentActivate(component);
+  }
+
+  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  @Nullable
+  @Override
+  public Interaction doCreateInteractionOnClick(int mouseX, int mouseY, @NotNull SceneView view) {
+    return new SceneInteraction(view);
+  }
+
+  @Nullable
+  @Override
+  public Interaction createInteractionOnDrag(@NotNull SceneComponent draggedSceneComponent, @Nullable SceneComponent primary) {
+    return null;
   }
 }
