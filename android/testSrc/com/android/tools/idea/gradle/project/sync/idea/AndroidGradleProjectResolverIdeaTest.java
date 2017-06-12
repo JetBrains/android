@@ -201,15 +201,12 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     when(myProjectFinder.findProject(myResolverCtx)).thenReturn(project);
 
     List<String> commandLineArgs = Arrays.asList("arg1", "arg2");
-    when(myCommandLineArgs.get(any(), same(project))).thenReturn(commandLineArgs);
+    when(myCommandLineArgs.get(project)).thenReturn(commandLineArgs);
 
     List<String> actual = myProjectResolver.getExtraCommandLineArgs();
     assertSame(commandLineArgs, actual);
 
     verify(myProjectFinder).findProject(myResolverCtx);
-
-    CommandLineArgs.Options options = new CommandLineArgs.Options();
-    options.includeLocalMavenRepo();
-    verify(myCommandLineArgs).get(options, project);
+    verify(myCommandLineArgs).get(project);
   }
 }

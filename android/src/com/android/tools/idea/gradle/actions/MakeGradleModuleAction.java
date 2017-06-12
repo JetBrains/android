@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;

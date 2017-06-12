@@ -47,8 +47,9 @@ public interface GradleTaskRunner {
 
   class DefaultGradleTaskRunner implements GradleTaskRunner {
     @NotNull final Project myProject;
+    @NotNull final AtomicReference<Object> model = new AtomicReference<>();
+
     @Nullable final BuildAction myBuildAction;
-    @NotNull AtomicReference<Object> model = new AtomicReference<>(null);
 
     DefaultGradleTaskRunner(@NotNull Project project) {
       this(project, null);
@@ -64,13 +65,13 @@ public interface GradleTaskRunner {
       throws InvocationTargetException, InterruptedException {
       assert !ApplicationManager.getApplication().isDispatchThread();
 
-      final GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
+      GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
 
-      final AtomicBoolean success = new AtomicBoolean();
-      final Semaphore done = new Semaphore();
+      AtomicBoolean success = new AtomicBoolean();
+      Semaphore done = new Semaphore();
       done.down();
 
-      final GradleBuildInvoker.AfterGradleInvocationTask afterTask = new GradleBuildInvoker.AfterGradleInvocationTask() {
+      GradleBuildInvoker.AfterGradleInvocationTask afterTask = new GradleBuildInvoker.AfterGradleInvocationTask() {
         @Override
         public void execute(@NotNull GradleInvocationResult result) {
           success.set(result.isBuildSuccessful());

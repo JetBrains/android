@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
@@ -40,35 +42,38 @@ public class CommandLineArgsTest extends IdeaTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleInitScripts myInitScripts;
 
-  private CommandLineArgs.Options myOptions;
+  private GradleProjectInfo myGradleProjectInfo;
   private CommandLineArgs myArgs;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myOptions = new CommandLineArgs.Options();
-    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts);
+    myGradleProjectInfo = IdeComponents.replaceServiceWithMock(getProject(), GradleProjectInfo.class);
+
+    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, false /* do not apply Java library plugin */);
   }
 
   public void testGetWithDefaultOptions() {
-    List<String> args = myArgs.get(myOptions, getProject());
+    List<String> args = myArgs.get(getProject());
     check(args);
     verify(myInitScripts, never()).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
     verify(myInitScripts, never()).addLocalMavenRepoInitScriptCommandLineArg(args);
   }
 
   public void testGetWhenIncludingLocalMavenRepo() {
-    myOptions.includeLocalMavenRepo();
-    List<String> args = myArgs.get(myOptions, getProject());
+    when(myGradleProjectInfo.canUseLocalMavenRepo()).thenReturn(true);
+
+    Project project = getProject();
+    List<String> args = myArgs.get(project);
     check(args);
     verify(myInitScripts, never()).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
     verify(myInitScripts, times(1)).addLocalMavenRepoInitScriptCommandLineArg(args);
   }
 
   public void testGetWhenApplyingJavaPlugin() {
-    myOptions.applyJavaPlugin();
-    List<String> args = myArgs.get(myOptions, getProject());
+    myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, true /* apply Java library plugin */);
+    List<String> args = myArgs.get(getProject());
     check(args);
     verify(myInitScripts, times(1)).addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
     verify(myInitScripts, never()).addLocalMavenRepoInitScriptCommandLineArg(args);
@@ -77,7 +82,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
   public void testGetWithAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     when(myApplicationInfo.getStrictVersion()).thenReturn("100");
-    List<String> args = myArgs.get(myOptions, getProject());
+    List<String> args = myArgs.get(getProject());
     check(args);
     assertThat(args).contains("-P" + PROPERTY_STUDIO_VERSION + "=100");
   }
@@ -85,7 +90,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
   public void testGetWithIdeNotAndroidStudio() {
     when(myIdeInfo.isAndroidStudio()).thenReturn(false);
     when(myApplicationInfo.getStrictVersion()).thenReturn("100");
-    List<String> args = myArgs.get(myOptions, getProject());
+    List<String> args = myArgs.get(getProject());
     check(args);
     assertThat(args).doesNotContain("-P" + PROPERTY_STUDIO_VERSION + "=100");
   }
@@ -95,7 +100,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
     String[] options = {"-Doption1=true", "-Doption2=true"};
     project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, options);
 
-    List<String> args = myArgs.get(myOptions, getProject());
+    List<String> args = myArgs.get(getProject());
     check(args);
     assertThat(args).contains("-Doption1=true");
     assertThat(args).contains("-Doption2=true");
@@ -107,7 +112,7 @@ public class CommandLineArgsTest extends IdeaTestCase {
     Project project = getProject();
     project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
 
-    List<String> args = myArgs.get(myOptions, getProject());
+    List<String> args = myArgs.get(getProject());
     check(args);
     assertThat(args).contains("-P" + PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL + "=true");
   }

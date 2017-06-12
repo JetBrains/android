@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea;
 import com.android.tools.analytics.UsageTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.LocationAwareExternalSystemException;
 import com.intellij.openapi.util.Pair;

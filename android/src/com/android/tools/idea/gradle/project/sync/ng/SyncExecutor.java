@@ -55,8 +55,8 @@ class SyncExecutor {
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   SyncExecutor(@NotNull Project project) {
-    this(project, GradleSyncMessages.getInstance(project), new CommandLineArgs(), new SyncErrorHandlerManager(project),
-         new ExtraSyncModelExtensionManager());
+    this(project, GradleSyncMessages.getInstance(project), new CommandLineArgs(true /* apply Java library plugin */),
+         new SyncErrorHandlerManager(project), new ExtraSyncModelExtensionManager());
   }
 
   @VisibleForTesting
@@ -72,7 +72,7 @@ class SyncExecutor {
     myExtraSyncModelExtensionManager = extraSyncModelExtensionManager;
   }
 
-  void syncProject(@NotNull ProgressIndicator indicator, @NotNull SyncExecutionCallback callback, boolean isNewProject) {
+  void syncProject(@NotNull ProgressIndicator indicator, @NotNull SyncExecutionCallback callback) {
     Runnable removeMessagesTask = () -> mySyncMessages.removeMessages((String)null);
     Application application = ApplicationManager.getApplication();
     if (application.isDispatchThread()) {
@@ -94,7 +94,7 @@ class SyncExecutor {
                                              myExtraSyncModelExtensionManager.getExtraJavaModels());
       BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(syncAction);
 
-      List<String> commandLineArgs = getCommandLineOptions(isNewProject);
+      List<String> commandLineArgs = myCommandLineArgs.get(myProject);
 
       // We try to avoid passing JVM arguments, to share Gradle daemons between Gradle sync and Gradle build.
       // If JVM arguments from Gradle sync are different than the ones from Gradle build, Gradle won't reuse daemons. This is bad because
@@ -119,17 +119,6 @@ class SyncExecutor {
     };
 
     myHelper.execute(getBaseDirPath(myProject).getPath(), executionSettings, syncFunction);
-  }
-
-  @VisibleForTesting
-  @NotNull
-  List<String> getCommandLineOptions(boolean isNewProject) {
-    CommandLineArgs.Options options = new CommandLineArgs.Options();
-    options.applyJavaPlugin();
-    if (isNewProject) {
-      options.includeLocalMavenRepo();
-    }
-    return myCommandLineArgs.get(options, myProject);
   }
 
   @NotNull

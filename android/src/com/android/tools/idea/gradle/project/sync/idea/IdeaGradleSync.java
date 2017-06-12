@@ -51,7 +51,7 @@ public class IdeaGradleSync implements GradleSync {
                    @Nullable GradleSyncListener listener) {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
-    boolean newProject = request.isNewProject();
+    boolean newProject = request.isNewOrImportedProject();
 
     if (SYNC_WITH_CACHED_MODEL_ONLY || request.isUseCachedGradleModels()) {
       GradleProjectSyncData syncData = GradleProjectSyncData.getInstance((myProject));

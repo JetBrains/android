@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;

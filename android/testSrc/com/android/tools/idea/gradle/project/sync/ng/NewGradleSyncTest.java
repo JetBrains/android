@@ -52,11 +52,11 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myCallback.setDone(mock(SyncAction.ProjectModels.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
-    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback), eq(request.isNewProject()));
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewProject()));
+    verify(myResultHandler).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
     verify(myResultHandler, never()).onSyncFailed(myCallback, mySyncListener);
   }
 
@@ -66,11 +66,11 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
     myCallback.setRejected(new Throwable("Test error"));
     when(myCallbackFactory.create()).thenReturn(myCallback);
-    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback), eq(request.isNewProject()));
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
     myGradleSync.sync(request, mySyncListener);
 
-    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewProject()));
+    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), same(mySyncListener), eq(request.isNewOrImportedProject()));
     verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
   }
 
