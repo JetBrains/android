@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StudioMonitorStageView;
 
 import java.awt.*;
@@ -35,9 +35,9 @@ public class CpuMonitorTooltipView extends ProfilerTooltipView {
   public Component createTooltip() {
     CpuMonitor.Legends legends = myMonitor.getTooltipLegends();
 
-    LegendComponent legend = new LegendComponent(legends, 0);
+    LegendComponent legend =
+      new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
     legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE));
-    legend.setOrientation(LegendComponent.Orientation.VERTICAL);
 
     return legend;
   }

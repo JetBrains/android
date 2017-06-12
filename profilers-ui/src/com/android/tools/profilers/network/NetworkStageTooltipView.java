@@ -33,12 +33,12 @@ class NetworkStageTooltipView extends ProfilerTooltipView {
   @Override
   protected Component createTooltip() {
     NetworkProfilerStage.NetworkStageLegends legends = myStage.getTooltipLegends();
-    LegendComponent legend = new LegendComponent(legends, 0);
+    LegendComponent legend =
+      new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
     legend.configure(legends.getRxLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.NETWORK_RECEIVING_COLOR));
     legend.configure(legends.getTxLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.NETWORK_SENDING_COLOR));
     legend.configure(legends.getConnectionLegend(),
                      new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.NETWORK_CONNECTIONS_COLOR));
-    legend.setOrientation(LegendComponent.Orientation.VERTICAL);
 
     return legend;
   }
