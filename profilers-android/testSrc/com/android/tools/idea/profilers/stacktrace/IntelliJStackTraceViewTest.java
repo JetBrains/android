@@ -41,7 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class IntelliJStackTraceViewTest {
   private static final String STACK_STRING =
@@ -82,32 +82,32 @@ public class IntelliJStackTraceViewTest {
     CodeLocation negativeTest1 = CodeLocation.stub();
     CodeLocation negativeTest2 = new CodeLocation.Builder(positiveTest).setMethodName(positiveTest.getFileName()).build();
     CodeLocation negativeTest3 = new CodeLocation.Builder(positiveTest).setLineNumber(-1).build();
-    assertEquals(positiveTest, CODE_LOCATIONS.get(0));
-    assertNotEquals(positiveTest, negativeTest1);
-    assertNotEquals(positiveTest, negativeTest2);
-    assertNotEquals(positiveTest, negativeTest3);
-    assertNotEquals(negativeTest1, negativeTest2);
-    assertNotEquals(negativeTest1, negativeTest3);
+    assertThat(CODE_LOCATIONS.get(0)).isEqualTo(positiveTest);
+    assertThat(negativeTest1).isNotEqualTo(positiveTest);
+    assertThat(negativeTest2).isNotEqualTo(positiveTest);
+    assertThat(negativeTest3).isNotEqualTo(positiveTest);
+    assertThat(negativeTest2).isNotEqualTo(negativeTest1);
+    assertThat(negativeTest3).isNotEqualTo(negativeTest1);
   }
 
   @Test
   public void setStackFramesTest() {
     myStackView.getModel().setStackFrames(STACK_STRING);
     List<CodeLocation> viewLocations = myStackView.getModel().getCodeLocations();
-    assertEquals(CODE_LOCATIONS, viewLocations);
+    assertThat(viewLocations).isEqualTo(CODE_LOCATIONS);
 
     myStackView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, CODE_LOCATIONS);
     viewLocations = myStackView.getModel().getCodeLocations();
-    assertEquals(CODE_LOCATIONS, viewLocations);
+    assertThat(viewLocations).isEqualTo(CODE_LOCATIONS);
 
     myStackView.getModel().setStackFrames(new ThreadId(5), CODE_LOCATIONS);
     viewLocations = myStackView.getModel().getCodeLocations();
-    assertEquals(CODE_LOCATIONS, viewLocations);
+    assertThat(viewLocations).isEqualTo(CODE_LOCATIONS);
     ListModel model = myStackView.getListView().getModel();
-    assertEquals(CODE_LOCATIONS.size() + 1, model.getSize());
+    assertThat(model.getSize()).isEqualTo(CODE_LOCATIONS.size() + 1);
     Object threadElement = model.getElementAt(model.getSize() - 1);
-    assertTrue(threadElement instanceof ThreadElement);
-    assertEquals(new ThreadId(5), ((ThreadElement)threadElement).getThreadId());
+    assertThat(threadElement).isInstanceOf(ThreadElement.class);
+    assertThat(((ThreadElement)threadElement).getThreadId()).isEqualTo(new ThreadId(5));
   }
 
   @Test
@@ -117,17 +117,17 @@ public class IntelliJStackTraceViewTest {
     myStackView.getListView().addListSelectionListener(e -> invocationCount[0]++);
 
     JList list = myStackView.getListView();
-    assertEquals(0, invocationCount[0]);
-    assertEquals(-1, list.getSelectedIndex());
+    assertThat(invocationCount[0]).isEqualTo(0);
+    assertThat(list.getSelectedIndex()).isEqualTo(-1);
 
     myStackView.getModel().setSelectedIndex(3);
-    assertTrue(list.getSelectedValue() instanceof FakeCodeElement);
-    assertEquals(1, invocationCount[0]);
-    assertEquals(3, list.getSelectedIndex());
+    assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
+    assertThat(invocationCount[0]).isEqualTo(1);
+    assertThat(list.getSelectedIndex()).isEqualTo(3);
 
     myStackView.getModel().setSelectedIndex(-2);
-    assertEquals(2, invocationCount[0]);
-    assertNull(list.getSelectedValue());
+    assertThat(invocationCount[0]).isEqualTo(2);
+    assertThat(list.getSelectedValue()).isNull();
   }
 
   @Test
@@ -138,22 +138,22 @@ public class IntelliJStackTraceViewTest {
     myStackView.getModel().addDependency(observer).onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> invocationCount[0]++);
 
     JList list = myStackView.getListView();
-    assertEquals(ListSelectionModel.SINGLE_SELECTION, list.getSelectionModel().getSelectionMode());
-    assertEquals(0, invocationCount[0]);
-    assertEquals(-1, list.getSelectedIndex());
+    assertThat(list.getSelectionModel().getSelectionMode()).isEqualTo(ListSelectionModel.SINGLE_SELECTION);
+    assertThat(invocationCount[0]).isEqualTo(0);
+    assertThat(list.getSelectedIndex()).isEqualTo(-1);
 
     myStackView.getModel().setStackFrames(STACK_STRING);
-    assertEquals(CODE_LOCATIONS.size(), myStackView.getModel().getCodeLocations().size());
+    assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     // fakeUi.mouse.click(5, 5); <- Can't click as the ListView is a heavyweight component and
     // can't be interacted with in headless mode. Instead, just set programmatically:
     list.setSelectedIndex(0);
-    assertTrue(list.getSelectedValue() instanceof FakeCodeElement);
-    assertEquals(1, invocationCount[0]);
+    assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
+    assertThat(invocationCount[0]).isEqualTo(1);
 
     fakeUi.keyboard.setFocus(myStackView.getListView());
     fakeUi.keyboard.press(FakeKeyboard.Key.ESC);
-    assertNull(list.getSelectedValue());
+    assertThat(list.getSelectedValue()).isNull();
   }
 
   /**
