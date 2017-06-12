@@ -485,6 +485,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     };
     int selectedDeviceApi = getStudioProfilers().getDevice().getFeatureLevel();
     getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilingConfiguration, selectedDeviceApi, dialogCallback);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
   }
 
   public void updateProfilingConfigurations() {
