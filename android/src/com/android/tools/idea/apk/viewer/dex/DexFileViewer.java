@@ -18,10 +18,11 @@ package com.android.tools.idea.apk.viewer.dex;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.apk.analyzer.FilteredTreeModel;
 import com.android.tools.apk.analyzer.dex.*;
-import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
-import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
 import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
+import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
+import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
+import com.android.tools.idea.apk.viewer.ApkViewPanel;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
@@ -132,7 +133,13 @@ public class DexFileViewer implements ApkFileEditorComponent {
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setComparator(Comparator.comparing(DexElementNode::getMethodReferencesCount))
-                   .setRenderer(new MethodCountRenderer(false)));
+                   .setRenderer(new MethodCountRenderer(false)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Size")
+                   .setPreferredWidth(50)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setComparator(Comparator.comparing(DexElementNode::getSize))
+                   .setRenderer(new SizeRenderer()));
 
     builder.setTreeSorter((Comparator<DexElementNode> comparator, SortOrder order) -> {
       if (comparator != null) {
@@ -463,6 +470,22 @@ public class DexFileViewer implements ApkFileEditorComponent {
         if (count != 0) {
           append(Integer.toString(count));
         }
+      }
+    }
+  }
+
+  private static class SizeRenderer extends ColoredTreeCellRenderer {
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      if (value instanceof DexElementNode) {
+        DexElementNode node = (DexElementNode)value;
+        append(ApkViewPanel.getHumanizedSize(node.getSize()));
       }
     }
   }
