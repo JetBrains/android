@@ -35,13 +35,13 @@ class CpuStageTooltipView extends ProfilerTooltipView {
   protected Component createTooltip() {
     CpuProfilerStage.CpuStageLegends legends = myStage.getTooltipLegends();
 
-    LegendComponent legend = new LegendComponent(legends, 0);
+    LegendComponent legend =
+      new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
     legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE));
     legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_USAGE));
     legend.configure(legends.getThreadsLegend(), new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT));
 
-    legend.setOrientation(LegendComponent.Orientation.VERTICAL);
     return legend;
   }
 }

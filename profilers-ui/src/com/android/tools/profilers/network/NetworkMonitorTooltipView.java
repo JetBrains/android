@@ -37,10 +37,10 @@ public class NetworkMonitorTooltipView extends ProfilerTooltipView {
   public Component createTooltip() {
     NetworkMonitor.NetworkLegends legends = myMonitor.getTooltipLegends();
 
-    LegendComponent legend = new LegendComponent(legends, 0);
+    LegendComponent legend =
+      new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
     legend.configure(legends.getRxLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.NETWORK_RECEIVING_COLOR));
     legend.configure(legends.getTxLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.NETWORK_SENDING_COLOR));
-    legend.setOrientation(LegendComponent.Orientation.VERTICAL);
 
     return legend;
   }
