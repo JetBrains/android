@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Ignore;
 
 import javax.swing.*;
 
@@ -46,7 +45,6 @@ import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOther
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.isGoogleApiTag;
 import static com.google.common.truth.Truth.assertThat;
 
-@Ignore("Test fails on its own, needs another test before to initialize the SDK")
 public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
   private static final String SDK_LOCATION = "/sdk";
@@ -135,6 +133,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   }
 
   public void testUpdateSystemImageData() throws Exception {
+    ensureSdkManagerAvailable();
     AvdOptionsModel optionsModel = new AvdOptionsModel(myMarshmallowAvdInfo);
 
     ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(getProject(), optionsModel);
