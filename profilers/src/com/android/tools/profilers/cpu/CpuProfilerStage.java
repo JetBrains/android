@@ -68,6 +68,20 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final SelectionModel mySelectionModel;
 
   /**
+   * {@link DurationDataModel} used when a trace recording in progress.
+   */
+  @NotNull
+  private final DurationDataModel<DefaultDurationData> myInProgressTraceDuration;
+
+  /**
+   * Series used by {@link #myInProgressTraceDuration} when a trace recording in progress.
+   * {@code myInProgressTraceSeries} will contain zero or one unfinished duration depending on the state of recording.
+   * Should be cleared when stop capturing.
+   */
+  @NotNull
+  private final DefaultDataSeries<DefaultDurationData> myInProgressTraceSeries;
+
+  /**
    * The thread states combined with the capture states.
    */
   public enum ThreadState {
@@ -163,6 +177,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
     myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getProcessId(), getStudioProfilers().getSession());
 
+    myInProgressTraceSeries = new DefaultDataSeries<>();
+    myInProgressTraceDuration = new DurationDataModel<>(new RangedSeries<>(viewRange, myInProgressTraceSeries));
+
     myEventMonitor = new EventMonitor(profilers);
 
     mySelectionModel = new SelectionModel(selectionRange, viewRange);
@@ -219,6 +236,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myTraceDurations;
   }
 
+  @NotNull
+  public DurationDataModel<DefaultDurationData> getInProgressTraceDuration() {
+    return myInProgressTraceDuration;
+  }
+
   public String getName() {
     return "CPU";
   }
@@ -231,6 +253,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void enter() {
     myEventMonitor.enter();
     getStudioProfilers().getUpdater().register(myCpuUsage);
+    getStudioProfilers().getUpdater().register(myInProgressTraceDuration);
     getStudioProfilers().getUpdater().register(myTraceDurations);
     getStudioProfilers().getUpdater().register(myCpuUsageAxis);
     getStudioProfilers().getUpdater().register(myThreadCountAxis);
@@ -251,6 +274,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myCpuUsage);
     getStudioProfilers().getUpdater().unregister(myTraceDurations);
+    getStudioProfilers().getUpdater().unregister(myInProgressTraceDuration);
     getStudioProfilers().getUpdater().unregister(myCpuUsageAxis);
     getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
     getStudioProfilers().getUpdater().unregister(myTimeAxisGuide);
@@ -300,7 +324,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     if (response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
       myProfilerType = profilerType;
       setCaptureState(CaptureState.CAPTURING);
+
       myCaptureStartTimeNs = currentTimeNs();
+      myInProgressTraceSeries.clear();
+      myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
     }
     else {
       getLogger().warn("Unable to start tracing: " + response.getStatus());
@@ -318,6 +345,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .build();
 
     setCaptureState(CaptureState.STOPPING);
+    myInProgressTraceSeries.clear();
     CompletableFuture.supplyAsync(
       () -> cpuService.stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
       .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
@@ -378,6 +406,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       myCaptureStartTimeNs = currentTimeNs() - elapsedTime;
       myCaptureState = CaptureState.CAPTURING;
       myProfilerType = response.getStartRequest().getProfilerType();
+      myInProgressTraceSeries.clear();
+      myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
     }
     else {
       // otherwise, invalidate capture start time

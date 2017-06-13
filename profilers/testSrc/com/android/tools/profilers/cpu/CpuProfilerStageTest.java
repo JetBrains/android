@@ -681,6 +681,36 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertFalse(myStage.getStudioProfilers().getTimeline().isStreaming());
   }
 
+  @Test
+  public void testInProgressDuration() throws InterruptedException {
+    assertEquals(0, myStage.getInProgressTraceDuration().getSeries().getSeries().size());
+    startCapturingSuccess();
+    // Starting capturing should display in progress duration, it will be displayed when
+    // myStage.getInProgressTraceDuration() contains exactly one element corresponding to unfinished duration.
+    assertEquals(1, myStage.getInProgressTraceDuration().getSeries().getSeries().size());
+    assertEquals(Long.MAX_VALUE, myStage.getInProgressTraceDuration().getSeries().getSeries().get(0).value.getDuration());
+
+    stopCapturing();
+    assertEquals(0, myStage.getInProgressTraceDuration().getSeries().getSeries().size());
+  }
+
+  @Test
+  public void testInProgressDurationAfterExitAndEnter() throws InterruptedException {
+    assertEquals(0, myStage.getInProgressTraceDuration().getSeries().getSeries().size());
+    startCapturingSuccess();
+    assertEquals(1, myStage.getInProgressTraceDuration().getSeries().getSeries().size());
+    myStage.exit();
+
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    CpuProfilerStage newStage = new CpuProfilerStage(profilers);
+    newStage.getStudioProfilers().setStage(newStage);
+
+    assertEquals(1, newStage.getInProgressTraceDuration().getSeries().getSeries().size());
+    stopCapturing(newStage);
+    assertEquals(0, newStage.getInProgressTraceDuration().getSeries().getSeries().size());
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
     Profiler.Device device =
       Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Profiler.Device.State.ONLINE).build();
