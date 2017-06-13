@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.*;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,6 +47,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
 import static com.android.tools.idea.templates.GradleFileMergers.removeExistingDependencies;
@@ -154,7 +156,8 @@ public class GradleFilePsiMerger {
 
     // Load existing dependencies into a map for the existing build.gradle
     Map<String, Multimap<String, GradleCoordinate>> originalDependencies = Maps.newHashMap();
-    pullDependenciesIntoMap(toRoot, originalDependencies, null);
+    final List<String> originalUnparsedDependencies = Lists.newArrayList();
+    pullDependenciesIntoMap(toRoot, originalDependencies, originalUnparsedDependencies);
 
     // Load dependencies into a map for the new build.gradle
     pullDependenciesIntoMap(fromRoot, dependencies, unparsedDependencies);
@@ -185,9 +188,13 @@ public class GradleFilePsiMerger {
       }
     }
 
+    // Unfortunately the "from" and "to" dependencies may not have the same white space formatting
+    Set<String> originalSet = originalUnparsedDependencies.stream().map(CharMatcher.WHITESPACE::removeFrom).collect(Collectors.toSet());
     for (String dependency : unparsedDependencies) {
-      PsiElement dependencyElement = factory.createStatementFromText(dependency);
-      toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+      if (!originalSet.contains(CharMatcher.WHITESPACE.removeFrom(dependency))) {
+        PsiElement dependencyElement = factory.createStatementFromText(dependency);
+        toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+      }
     }
   }
 

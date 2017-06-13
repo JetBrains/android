@@ -216,12 +216,7 @@ public final class RenderTemplateModel extends WizardModel {
       }.execute().getResultObject();
 
       if (success) {
-        Language language = getLanguage().get();
-
-        if (StudioFlags.NPW_KOTLIN.get() &&
-            (language == Language.KOTLIN ||
-             (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false))) {
-
+        if (isKotlinTemplate()) {
           JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, myIsNewProject, () -> {
             // replace .java w/ .kt files
             for (int i = 0; i < filesToOpen.size(); i++) {
@@ -241,6 +236,10 @@ public final class RenderTemplateModel extends WizardModel {
           DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
         }
       }
+    }
+
+    private boolean isKotlinTemplate() {
+      return StudioFlags.NPW_KOTLIN.get() && (Boolean)myTemplateValues.getOrDefault(ATTR_KOTLIN_SUPPORT, false);
     }
 
     private boolean renderTemplate(boolean dryRun,
