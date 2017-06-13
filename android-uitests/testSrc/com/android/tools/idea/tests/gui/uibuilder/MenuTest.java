@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.io.FileUtils;
+import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -150,7 +150,7 @@ public final class MenuTest {
                  "        app:showAsAction=\"always\" />\n" +
                  "</menu>\n";
 
-    FileUtils.write(myGuiTest.getProjectPath().toPath().resolve(myMenuPath), xml);
+    TestFileUtils.writeAndRefreshVfs(myGuiTest.getProjectPath().toPath().resolve(myMenuPath), xml);
   }
 
   private void dragAndDrop(@NotNull String item, @NotNull Point point) {

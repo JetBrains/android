@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.io.FileUtils;
+import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -76,8 +76,8 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    FileUtils.write(myProjectPath.resolve(myNewStylePath), xml);
-    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
+    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myNewStylePath), xml);
+    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
 
     myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
@@ -95,8 +95,8 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    FileUtils.write(myProjectPath.resolve(myNewStylePath), xml);
-    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
+    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myNewStylePath), xml);
+    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
 
     myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
@@ -127,8 +127,8 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    FileUtils.write(myProjectPath.resolve(myNewStylePath), xml);
-    FileUtils.write(myProjectPath.resolve(myLayoutPath), buildLayout("?linear_layout_style"));
+    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myNewStylePath), xml);
+    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myLayoutPath), buildLayout("?linear_layout_style"));
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open(myMainStylePath);
