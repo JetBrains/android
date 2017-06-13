@@ -268,9 +268,6 @@ public class ConvertToConstraintLayoutAction extends AnAction {
               name.equals(ATTR_LAYOUT_HEIGHT)) {
             continue;
           }
-          if (name.equals(ATTR_ID)) {
-            System.out.println("here");
-          }
           if (toDelete == null) {
             toDelete = Lists.newArrayList();
           }
@@ -278,9 +275,6 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         }
         if (toDelete != null) {
           for (String name : toDelete) {
-            if (name.equals(ATTR_ID)) {
-              System.out.println("here");
-            }
             child.setAttribute(ANDROID_URI, name, null);
           }
         }
