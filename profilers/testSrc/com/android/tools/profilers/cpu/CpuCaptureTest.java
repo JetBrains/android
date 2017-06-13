@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -32,7 +33,7 @@ public class CpuCaptureTest {
 
   @Test
   public void validCapture() throws IOException {
-    CpuCapture capture = new CpuCapture(readValidTrace());
+    CpuCapture capture = new CpuCapture(readValidTrace(), CpuProfiler.CpuProfilerType.ART);
     assertNotNull(capture);
 
     Range captureRange = capture.getRange();
@@ -70,7 +71,7 @@ public class CpuCaptureTest {
     ByteString corruptedTrace = traceFileToByteString("corrupted_trace.trace"); // Malformed trace file.
     assertNotNull(corruptedTrace);
     try {
-      capture = new CpuCapture(corruptedTrace);
+      capture = new CpuCapture(corruptedTrace, CpuProfiler.CpuProfilerType.ART);
       fail();
     } catch (IllegalStateException e) {
       // Expected BufferUnderflowException to be thrown in VmTraceParser.
@@ -87,7 +88,7 @@ public class CpuCaptureTest {
     assertNotNull(emptyTrace);
 
     try {
-      capture = new CpuCapture(emptyTrace);
+      capture = new CpuCapture(emptyTrace, CpuProfiler.CpuProfilerType.ART);
       fail();
     } catch (IllegalStateException e) {
       // Expected IOException to be thrown in VmTraceParser.
@@ -95,5 +96,30 @@ public class CpuCaptureTest {
       // CpuCapture constructor catches the IOException and throw an IllegalStateException instead.
     }
     assertNull(capture);
+  }
+
+  @Test
+  public void profilerTypeMustBeSpecified() throws IOException {
+    try {
+      new CpuCapture(readValidTrace(), CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+      fail();
+    }
+    catch (IllegalStateException e) {
+      // Exception expected to be thrown because a valid profiler type was not set.
+      assertTrue(e.getMessage().contains("Trace file cannot be parsed"));
+    }
+  }
+
+  @Test
+  public void parsingTraceWithWrongProfilerTypeShouldFail() throws IOException {
+    try {
+      // Try to create a capture by passing an ART trace and simpleperf profiler type
+      new CpuCapture(readValidTrace(), CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+      fail();
+    } catch (IllegalStateException e) {
+      // Expected BufferUnderflowException to be thrown in SimplePerfTraceParser.
+      assertTrue(e.getCause() instanceof BufferUnderflowException);
+      // CpuCapture constructor catches the BufferUnderflowException and throw an IllegalStateException instead.
+    }
   }
 }
