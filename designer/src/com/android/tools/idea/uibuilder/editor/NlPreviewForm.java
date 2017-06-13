@@ -127,6 +127,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
     myWorkBench = new WorkBench<>(myProject, "Preview", null);
     myWorkBench.setLoadingText("Waiting for build to finish...");
+
+    Disposer.register(this, myWorkBench);
   }
 
   private void createContentPanel() {
