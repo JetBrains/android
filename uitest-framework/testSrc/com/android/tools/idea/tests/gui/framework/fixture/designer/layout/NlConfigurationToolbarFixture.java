@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.function.Predicate;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
@@ -94,6 +95,16 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   public void chooseLayoutVariant(@NotNull String layoutVariant) {
     new JButtonFixture(myRobot, findToolbarButton("Layout Variants")).click();
     clickPopupMenuItemMatching(Predicate.isEqual(layoutVariant), myToolBar.getComponent(), myRobot);
+  }
+
+  /**
+   * Selects the density matching the given string in the configuration toolbar's density menu
+   */
+  @NotNull
+  public NlConfigurationToolbarFixture chooseDensity(@NotNull String density) {
+    new JButtonFixture(myRobot, findToolbarButton("Device Screen Density")).click();
+    clickPopupMenuItem(density, myToolBar.getComponent(), myRobot);
+    return this;
   }
 
   /**
