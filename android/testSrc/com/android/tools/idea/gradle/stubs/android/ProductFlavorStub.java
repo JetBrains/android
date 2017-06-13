@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.builder.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.util.Collection;
@@ -216,6 +215,12 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @NotNull
   public Map<String, ClassField> getResValues() {
+    return Collections.emptyMap();
+  }
+
+  @Override
+  @NotNull
+  public Map<String, String> getFlavorSelections() {
     return Collections.emptyMap();
   }
 
