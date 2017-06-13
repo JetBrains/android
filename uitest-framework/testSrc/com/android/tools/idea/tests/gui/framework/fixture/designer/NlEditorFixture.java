@@ -19,6 +19,7 @@ import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture;
@@ -127,6 +128,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   public NlConfigurationToolbarFixture<NlEditorFixture> getConfigToolbar() {
     ActionToolbar toolbar = robot().finder().findByName(target(), "NlConfigToolbar", ActionToolbarImpl.class);
     return new NlConfigurationToolbarFixture<>(this, robot(), myDesignSurfaceFixture.target(), toolbar);
+  }
+
+  @NotNull
+  public CreateResourceDirectoryDialogFixture getSelectResourceDirectoryDialog() {
+    return new CreateResourceDirectoryDialogFixture(robot());
   }
 
   @NotNull
