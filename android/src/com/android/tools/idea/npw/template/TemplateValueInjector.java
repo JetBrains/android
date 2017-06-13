@@ -26,7 +26,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
@@ -56,6 +58,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -117,6 +120,15 @@ public final class TemplateValueInjector {
 
     if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
       myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
+
+      Module baseFeature = InstantApps.findBaseFeature(facet.getModule().getProject());
+      AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
+      assert moduleModel != null;
+      Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
+      assert resDirectories.size() > 0;
+      File baseModuleResourceRoot = resDirectories.iterator().next();
+
+      myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
     }
 
     return this;
