@@ -44,6 +44,7 @@ import java.util.List;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
+import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
@@ -69,7 +70,7 @@ public class GradleProjectInfo {
   }
 
   public boolean canUseLocalMavenRepo() {
-    return myIsNewlyCreatedProject || myApplication.isInternal();
+    return myIsNewlyCreatedProject || myApplication.isInternal() || isGuiTestingMode() || myApplication.isUnitTestMode();
   }
 
   public boolean isNewlyCreatedProject() {
