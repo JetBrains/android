@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
-import com.android.tools.idea.io.FileUtils;
+import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -371,7 +371,7 @@ public final class TranslationsEditorTest {
     WizardUtils.createNewProject(myGuiTest, "Empty Activity");
     Path stringsXml = FileSystems.getDefault().getPath("app", "src", "main", "res", "values", "strings.xml");
 
-    FileUtils.write(
+    TestFileUtils.writeAndRefreshVfs(
       myGuiTest.getProjectPath().toPath().resolve(stringsXml),
 
       "<resources>\n" +
@@ -394,7 +394,7 @@ public final class TranslationsEditorTest {
     WizardUtils.createNewProject(myGuiTest, "Empty Activity");
     Path stringsXml = FileSystems.getDefault().getPath("app", "src", "main", "res", "values-en", "strings.xml");
 
-    FileUtils.write(
+    TestFileUtils.writeAndRefreshVfs(
       myGuiTest.getProjectPath().toPath().resolve(stringsXml),
 
       "<resources>\n" +
