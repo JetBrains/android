@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.scopes;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
@@ -276,7 +275,7 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   @NotNull
   private DependencySet extractUnitTestDependencies(@NotNull AndroidModuleModel androidModel) {
-    IdeBaseArtifact artifact = androidModel.getSelectedVariant().getUnitTestArtifact();
+    BaseArtifact artifact = androidModel.getSelectedVariant().getUnitTestArtifact();
     if (unitTestDependencies == null) {
       unitTestDependencies = extractTestDependencies(artifact);
     }
@@ -285,7 +284,7 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   @NotNull
   private DependencySet extractAndroidTestDependencies(@NotNull AndroidModuleModel androidModel) {
-    IdeBaseArtifact artifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
+    BaseArtifact artifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
     if (androidTestDependencies == null) {
       androidTestDependencies = extractTestDependencies(artifact);
     }
@@ -293,7 +292,7 @@ public final class TestArtifactSearchScopes implements Disposable {
   }
 
   @NotNull
-  private static DependencySet extractTestDependencies(@Nullable IdeBaseArtifact artifact) {
+  private static DependencySet extractTestDependencies(@Nullable BaseArtifact artifact) {
     return extractDependencies(TEST, artifact);
   }
 
@@ -307,7 +306,7 @@ public final class TestArtifactSearchScopes implements Disposable {
 
   @NotNull
   private static DependencySet extractDependencies(@NotNull DependencyScope scope,
-                                                   @Nullable IdeBaseArtifact artifact) {
+                                                   @Nullable BaseArtifact artifact) {
     return artifact != null ? DependenciesExtractor.getInstance().extractFrom(artifact, scope) : DependencySet.EMPTY;
   }
 

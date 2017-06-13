@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependencies;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 public class IdeLevel2DependenciesStub implements IdeLevel2Dependencies {
@@ -28,12 +28,12 @@ public class IdeLevel2DependenciesStub implements IdeLevel2Dependencies {
   @NotNull private final Collection<Library> myModuleDependencies;
 
   public IdeLevel2DependenciesStub() {
-    this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+    this(ImmutableList.of(), ImmutableList.of(), ImmutableList.of());
   }
 
-  IdeLevel2DependenciesStub(@NotNull Collection<Library> androidLibraries,
-                            @NotNull Collection<Library> javaLibraries,
-                            @NotNull Collection<Library> moduleDependencies) {
+  IdeLevel2DependenciesStub(@NotNull ImmutableList<Library> androidLibraries,
+                            @NotNull ImmutableList<Library> javaLibraries,
+                            @NotNull ImmutableList<Library> moduleDependencies) {
     myAndroidLibraries = androidLibraries;
     myJavaLibraries = javaLibraries;
     myModuleDependencies = moduleDependencies;
@@ -55,17 +55,5 @@ public class IdeLevel2DependenciesStub implements IdeLevel2Dependencies {
   @NotNull
   public Collection<Library> getModuleDependencies() {
     return myModuleDependencies;
-  }
-
-  public void addAndroidLibrary(@NotNull Library library) {
-    myAndroidLibraries.add(library);
-  }
-
-  public void addJavaLibrary(@NotNull Library library) {
-    myJavaLibraries.add(library);
-  }
-
-  public void addModuleDependency(@NotNull Library library) {
-    myModuleDependencies.add(library);
   }
 }
