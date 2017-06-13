@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.ScalableIcon;
 import com.intellij.ui.LayeredIcon;
 import org.fest.reflect.exception.ReflectionError;
-import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +40,7 @@ import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.method;
+import static org.fest.reflect.core.Reflection.field;
 
 @RunWith(GuiTestRunner.class)
 public class DeviceChooserTest {
@@ -80,8 +82,8 @@ public class DeviceChooserTest {
    *      of the selections.
    *   3. The run button should have a live indicator (a dot below the green triangle) indicating
    *      the app is live.
-   *   4. The app should be killed (after the app dies on the device, the stop button should
-   *      become disabled)
+   *   4. The app should be killed (after the app dies on the device, the stop button on Run Tool
+   *      window should become disabled)
    *   </pre>
    * <p>
    */
@@ -111,7 +113,7 @@ public class DeviceChooserTest {
     // The run button should have a live indicator (a dot below the green triangle) indicating
     // the app is live. Here we check the icon is LayeredIcon type and it has 2 icons there:
     // one is the green triangle icon, another is the dot near it.
-    ActionButtonFixture runButtonFixture = ideFrame.getRunButton();
+    ActionButtonFixture runButtonFixture = ideFrame.findRunApplicationButton();
     Ref<LayeredIcon> runButtonIcon = new Ref<>();
     try {
       LayeredIcon layeredIcon = method(GET_ICON_METHOD_NAME)
@@ -129,7 +131,7 @@ public class DeviceChooserTest {
     // Stop app and check the app is stopped and there is only one icon, the green triangle icon.
     ideFrame.stopApp();
     Wait.seconds(10).expecting("Run button icon is not null").until(() -> {
-      ActionButtonFixture runButton = ideFrame.getRunButton();
+      ActionButtonFixture runButton = ideFrame.findRunApplicationButton();
       Icon icon = method(GET_ICON_METHOD_NAME)
           .withReturnType(ScalableIcon.class)
           .in(runButton.target())
@@ -137,20 +139,51 @@ public class DeviceChooserTest {
       return icon != null;
     });
 
-    ActionButtonFixture runButton = ideFrame.getRunButton();
+    ActionButtonFixture runButton = ideFrame.findRunApplicationButton();
     Icon icon = method(GET_ICON_METHOD_NAME)
         .withReturnType(ScalableIcon.class)
         .in(runButton.target())
         .invoke();
     assertThat(icon).isNotNull();
 
-    Wait.seconds(20).expecting("The Stop button shouldn't be enabled").until(() -> {
-      try {
-        ideFrame.getStopButton();
+    // Check the Stop button on Run Tool Window should be disabled.
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        if (!component.isShowing()) {
+          return false;
+        }
+
+        Ref<String> myPlace = new Ref<>();
+        try {
+          String place = field("myPlace")
+            .ofType(String.class)
+            .in(component)
+            .get();
+          myPlace.set(place);
+        } catch (ReflectionError e) {
+          System.err.println("ReflectionError: " + e.getMessage());
+          throw e;
+        }
+
+        if (!myPlace.get().equals("RunnerToolbar")) {
+          return false;
+        }
+
+        AnAction action = component.getAction();
+        if (action != null) {
+          String id = ActionManager.getInstance().getId(action);
+          return "Stop".equals(id);
+        }
         return false;
       }
-      catch (WaitTimedOutError e) {
-        // Got the WaitTimedOutError is expected. The Stop button shouldn't be enabled.
+    };
+
+    Wait.seconds(20).expecting("The Stop button on Run Tool Window should be disabled.").until(() -> {
+      ActionButton found = guiTest.robot().finder().find(ideFrame.target(), matcher);
+      if (found.isEnabled()) {
+        return false;
+      } else {
         return true;
       }
     });
