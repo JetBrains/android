@@ -21,7 +21,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
-import com.android.tools.lint.detector.api.CharSequences;
+import com.android.utils.CharSequences;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;

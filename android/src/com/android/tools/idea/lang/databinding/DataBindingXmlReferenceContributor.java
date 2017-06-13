@@ -19,6 +19,7 @@ import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.lang.databinding.model.PsiModelClass;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
@@ -40,8 +41,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ProcessingContext;
-import org.jetbrains.android.dom.converters.DataBindingConverter;
-import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
+import org.jetbrains.android.dom.converters.DataBindingVariableTypeConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,9 +51,8 @@ import java.util.List;
 
 import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
 
-
 /**
- * For references in DataBinding expressions. For references in {@code <data>} tag, see {@link DataBindingConverter}
+ * For references in DataBinding expressions. For references in {@code <data>} tag, see {@link DataBindingVariableTypeConverter}.
  */
 public class DataBindingXmlReferenceContributor extends PsiReferenceContributor {
 
@@ -119,7 +118,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
           }
         }
         for (PsiDataBindingResourceItem anImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
-          if (text.equals(AndroidLayoutUtil.getAlias(anImport))) {
+          if (text.equals(DataBindingUtil.getAlias(anImport))) {
             final XmlTag xmlTag = anImport.getXmlTag();
             return toArray(new ImportDefinitionReference(id, xmlTag, anImport, module));
           }
@@ -263,9 +262,6 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
           }
         }
         List<ModelMethod> methods = psiModelClass.findMethods(methodExpr.getRefExpr().getId().getText(), false);
-        if (methods == null) {
-          return PsiReference.EMPTY_ARRAY;
-        }
         List<PsiMethodReference> selected = new ArrayList<>();
         for (ModelMethod modelMethod : methods) {
           if (modelMethod instanceof PsiModelMethod) {
@@ -274,7 +270,6 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
           }
         }
         return selected.toArray(new PsiReference[selected.size()]);
-
       }
     });
   }
@@ -351,7 +346,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
                                        @NotNull DataBindingInfo dataBindingInfo,
                                        @NotNull Module module) {
       super(element, resolveTo);
-      final String type = DataBindingConverter.getQualifiedType(variable.getTypeDeclaration(), dataBindingInfo);
+      final String type = DataBindingVariableTypeConverter.getQualifiedType(variable.getTypeDeclaration(), dataBindingInfo);
       if (type != null) {
         final PsiClass psiType =
           JavaPsiFacade.getInstance(element.getProject()).findClass(type, module.getModuleWithDependenciesAndLibrariesScope(false));

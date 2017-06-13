@@ -17,8 +17,8 @@ package com.android.tools.idea.databinding;
 
 
 import com.android.SdkConstants;
-import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.config.DataBindingConfiguration;
 import com.android.tools.idea.lang.databinding.DbFile;
 import com.android.tools.idea.lang.databinding.psi.DbTokenTypes;
@@ -29,6 +29,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.PsiDataBindingResourceItem;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,6 +49,8 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.FileContentUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.xml.GenericAttributeValue;
+import org.jetbrains.android.dom.layout.Import;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +63,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.ATTR_ALIAS;
 
 /**
  * Utility class that handles the interaction between Data Binding and the IDE.
@@ -417,6 +422,44 @@ public class DataBindingUtil {
   public static boolean isBindingExpression(@NotNull String string) {
     return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR) || string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
   }
+
+  @Nullable/*invalid type*/
+  public static String getAlias(@NotNull Import anImport) {
+    String aliasValue = null;
+    String typeValue = null;
+    GenericAttributeValue<String> alias = anImport.getAlias();
+    if (alias != null && alias.getXmlAttributeValue() != null) {
+      aliasValue = alias.getXmlAttributeValue().getValue();
+    }
+    GenericAttributeValue<PsiElement> type = anImport.getType();
+    if (type != null) {
+      XmlAttributeValue value = type.getXmlAttributeValue();
+      if (value != null) {
+        typeValue = value.getValue();
+      }
+    }
+    return getAlias(typeValue, aliasValue);
+  }
+
+  @Nullable
+  public static String getAlias(@NotNull PsiDataBindingResourceItem anImport) {
+    return getAlias(anImport.getTypeDeclaration(), anImport.getExtra(ATTR_ALIAS));
+  }
+
+  private static String getAlias(@Nullable String type, @Nullable String alias) {
+    if (alias != null || type == null) {
+      return alias;
+    }
+    int i = type.lastIndexOf('.');
+    int d = type.lastIndexOf('$');
+    i = i > d ? i : d;
+    if (i < 0) {
+      return type;
+    }
+    // Return null in case of an invalid type.
+    return type.length() > i + 1 ? type.substring(i + 1) : null;
+  }
+
   /**
    * Tracker that changes when a facet's data binding enabled value changes
    */
