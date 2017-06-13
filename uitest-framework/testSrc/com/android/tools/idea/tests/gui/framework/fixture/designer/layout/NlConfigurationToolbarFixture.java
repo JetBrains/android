@@ -32,7 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.function.Predicate;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
@@ -61,7 +62,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    * Requires the orientation name to be the given name (typically Portrait or Landscape)
    */
   @NotNull
-  public NlConfigurationToolbarFixture<ParentFixture> requireOrientation(@NotNull String name)  {
+  public NlConfigurationToolbarFixture<ParentFixture> requireOrientation(@NotNull String name) {
     Wait.seconds(1).expecting("configuration to be updated").until(() -> {
       Configuration configuration = mySurface.getConfiguration();
       if (configuration != null) {
@@ -75,7 +76,9 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     return this;
   }
 
-  /** Returns the current API level of the toolbar's configuration as a String */
+  /**
+   * Returns the current API level of the toolbar's configuration as a String
+   */
   public String getApiLevel() {
     return new JButtonFixture(myRobot, findToolbarButton("API Version in Editor")).text();
   }
@@ -88,11 +91,16 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     clickPopupMenuItemMatching(new DeviceNamePredicate(label), myToolBar.getComponent(), myRobot);
   }
 
+  public void chooseLayoutVariant(@NotNull String layoutVariant) {
+    new JButtonFixture(myRobot, findToolbarButton("Layout Variants")).click();
+    clickPopupMenuItemMatching(Predicate.isEqual(layoutVariant), myToolBar.getComponent(), myRobot);
+  }
+
   /**
    * Requires the device id to be the given id
    */
   @NotNull
-  public NlConfigurationToolbarFixture<ParentFixture> requireDevice(@NotNull String id)  {
+  public NlConfigurationToolbarFixture<ParentFixture> requireDevice(@NotNull String id) {
     Wait.seconds(1).expecting("configuration to be updated").until(() -> {
       Configuration configuration = mySurface.getConfiguration();
       if (configuration != null) {
