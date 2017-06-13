@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.ImmutableList;
+import com.intellij.facet.FacetIndex;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -64,12 +66,10 @@ public class GradleProjectInfo {
    * Gradle-specific.
    */
   public boolean isBuildWithGradle() {
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      if (Projects.isBuildWithGradle(module)) {
-        return true;
-      }
+    if (FacetIndex.getIndex(myProject).hasAnyModuleWithFacet(GradleFacet.getFacetTypeId())) {
+      return true;
     }
+
     // See https://code.google.com/p/android/issues/detail?id=203384
     // This could be a project without modules. Check that at least it synced with Gradle.
     return GradleSyncState.getInstance(myProject).getSummary().getSyncTimestamp() != -1L;
