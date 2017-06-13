@@ -581,7 +581,13 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
-    templateValues.put(ATTR_LANGUAGE, getModel().getLanguage().get());
+    //noinspection ConstantConditions
+    if (displayLanguageChoice(getModel().getTemplateHandle().getMetadata())) {
+      Language language = getModel().getLanguage().get();
+      templateValues.put(ATTR_LANGUAGE, language);
+      templateValues.put(ATTR_KOTLIN_SUPPORT, language == Language.KOTLIN);
+    }
+
     templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
     if (isNewModule()) {
       templateValues.put(ATTR_IS_LAUNCHER, true);

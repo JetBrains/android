@@ -166,9 +166,15 @@ public class NewActivityTest {
     myConfigActivity.setSourceLanguage("Kotlin");
     myDialog.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    // importSimpleApplication() imports a non kotlin project, sync is expected to fail
+    guiTest.ideFrame().waitForGradleProjectSyncToFail();
 
-    // TODO: Open the generated file. This is failing when running the UI tests, as it can't load the kotlin plugin...
+    myEditor
+      .open("app/src/main/java/google/simpleapplication/MainActivity.kt")
+      .moveBetween("override fun onCreate", "")
+      .open("app/build.gradle")
+      .moveBetween("apply plugin: 'kotlin-android'", "")
+      .moveBetween("apply plugin: 'kotlin-android-extensions'", "");
 
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
     assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
