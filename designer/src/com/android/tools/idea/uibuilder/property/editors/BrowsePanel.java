@@ -33,10 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 public class BrowsePanel extends JPanel {
   private final Context myContext;
@@ -179,6 +176,10 @@ public class BrowsePanel extends JPanel {
 
   @NotNull
   public static EnumSet<ResourceType> getResourceTypes(@NotNull String propertyName, @Nullable AttributeDefinition definition) {
+    if (propertyName.equals(SdkConstants.ATTR_ID)) {
+      // Don't encourage the use of android IDs
+      return EnumSet.noneOf(ResourceType.class);
+    }
     Set<AttributeFormat> formats = definition != null ? definition.getFormats() : EnumSet.allOf(AttributeFormat.class);
     // for some special known properties, we can narrow down the possible types (rather than the all encompassing reference type)
     Collection<ResourceType> types = AndroidDomUtil.getSpecialResourceTypes(propertyName);
