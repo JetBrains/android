@@ -34,10 +34,13 @@ import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JToggleButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+
+import static org.fest.swing.awt.AWT.translate;
 
 /**
  * Fixture for the layout editor preview window
@@ -45,6 +48,7 @@ import java.util.List;
 public class NlPreviewFixture extends ToolWindowFixture {
   private final NlDesignSurfaceFixture myDesignSurfaceFixture;
   private ComponentDragAndDrop myDragAndDrop;
+  private java.awt.Robot myAwtRobot;
 
   public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Preview", project, robot);
@@ -132,5 +136,20 @@ public class NlPreviewFixture extends ToolWindowFixture {
   public NlPreviewFixture waitForScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     Wait.seconds(1).expecting("the design surface to be in mode " + mode).until(() -> myDesignSurfaceFixture.isInScreenMode(mode));
     return this;
+  }
+
+  public int getCenterLeftPixelColor() {
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    Point centerLeftPoint = translate(surface, surface.getCurrentSceneView().getX(), surface.getHeight() / 2);
+    if (myAwtRobot == null) {
+      try {
+        myAwtRobot = new java.awt.Robot();
+      }
+      catch (AWTException e) {
+        e.printStackTrace();
+      }
+    }
+    return myAwtRobot.getPixelColor(centerLeftPoint.x, centerLeftPoint.y).getRGB();
+
   }
 }
