@@ -17,7 +17,12 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseConfig;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseConfigStub;
+import com.google.common.truth.Truth;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
+import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.assertEqualsOrSimilar;
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.createEqualsVerifier;
@@ -33,6 +38,19 @@ public class IdeBaseConfigTest {
     IdeBaseConfig copy = new IdeBaseConfig(original, new ModelCache()) {};
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
+  }
+
+  @Test
+  public void modelOlderThan3_0() {
+    BaseConfigStub original = new BaseConfigStub() {
+      @Override
+      @NotNull
+      public Map<String, String> getFlavorSelections() {
+        throw new UnsupportedMethodException("Unsupported method: AndroidLibrary.getSymbolFile()");
+      }
+    };
+    IdeBaseConfig copy = new IdeBaseConfig(original, new ModelCache()) {};
+    Truth.assertThat(copy.getFlavorSelections()).isEmpty();
   }
 
   @Test
