@@ -228,8 +228,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
-  // FIXME: permission name is broken with SDK 26
-  public void disabled_testUsesPermissionCompletion6() throws Throwable {
+  public void testUsesPermissionCompletion6() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
@@ -249,8 +248,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestExternalDoc("Allows applications to access information about Wi-Fi networks");
   }
 
-  // FIXME: test is broken with SDK 26.
-  public void disabled_testUsesPermissionDoc2() throws Throwable {
+  public void testUsesPermissionDoc2() throws Throwable {
     myFixture.configureFromExistingVirtualFile(copyFileToProject(getTestName(false) + ".xml"));
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
     doTestDoc("Removed in <a href=\"" + API_LEVELS_URL + "\">API level 24</a>");
