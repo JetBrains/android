@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
@@ -30,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class ProfilerDevicePoller extends PollRunner {
+public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.DataStoreTableErrorCallback {
   private static final class DeviceData {
     public final Profiler.Device device;
     public final Set<Profiler.Process> processes = new HashSet<>();
@@ -39,10 +40,10 @@ public class ProfilerDevicePoller extends PollRunner {
     }
   }
 
-  private ProfilerTable myTable;
-  private DataStoreService myService;
-  private ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
-  private Map<Common.Session, DeviceData> myDevices = new HashMap<>();
+  private final ProfilerTable myTable;
+  private final DataStoreService myService;
+  private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
+  private final Map<Common.Session, DeviceData> myDevices = new HashMap<>();
 
   public ProfilerDevicePoller(DataStoreService service,
                               ProfilerTable table,
@@ -51,6 +52,15 @@ public class ProfilerDevicePoller extends PollRunner {
     myTable = table;
     myService = service;
     myPollingService = pollingService;
+  }
+
+  @Override
+  public void onDataStoreError(Throwable t) {
+    if (myTable.isClosed()) {
+      // This can happend if we encounter a database error. The database error will be logged at time of error,
+      // and we will stop all polling here.
+      disconnect();
+    }
   }
 
   @Override
@@ -101,15 +111,19 @@ public class ProfilerDevicePoller extends PollRunner {
       // We expect this to get called when connection to the device is lost.
       // To properly clean up the state we first set all ALIVE processes to DEAD
       // then we disconnect the channel.
-      for (Map.Entry<Common.Session, DeviceData> entry : myDevices.entrySet()) {
-        Common.Session session = entry.getKey();
-        DeviceData activeDevice = entry.getValue();
-        disconnectDevice(activeDevice.device);
-        killProcesses(session, activeDevice.processes);
-        myService.disconnect(session);
-      }
-      myDevices.clear();
+      disconnect();
     }
+  }
+
+  private void disconnect() {
+    for (Map.Entry<Common.Session, DeviceData> entry : myDevices.entrySet()) {
+      Common.Session session = entry.getKey();
+      DeviceData activeDevice = entry.getValue();
+      disconnectDevice(activeDevice.device);
+      killProcesses(session, activeDevice.processes);
+      myService.disconnect(session);
+    }
+    myDevices.clear();
   }
 
   private void disconnectDevice(Device device) {

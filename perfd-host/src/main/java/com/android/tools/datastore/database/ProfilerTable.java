@@ -32,7 +32,7 @@ import java.util.Map;
  * Class that wraps database access for profiler level services. The primary information
  * managed by this class is device/process lifetime.
  */
-public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatements> {
+public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatements> {
   public enum ProfilerStatements {
     INSERT_DEVICE,
     UPDATE_DEVICE,
@@ -107,6 +107,10 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   }
 
   public Profiler.GetDevicesResponse getDevices(Profiler.GetDevicesRequest request) {
+    if (isClosed()) {
+      return Profiler.GetDevicesResponse.getDefaultInstance();
+    }
+
     synchronized (myLock) {
       Profiler.GetDevicesResponse.Builder responseBuilder = Profiler.GetDevicesResponse.newBuilder();
       try {
@@ -123,6 +127,9 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   }
 
   public Profiler.GetProcessesResponse getProcesses(Profiler.GetProcessesRequest request) {
+    if (isClosed()) {
+      return Profiler.GetProcessesResponse.getDefaultInstance();
+    }
     synchronized (myLock) {
       Profiler.GetProcessesResponse.Builder responseBuilder = Profiler.GetProcessesResponse.newBuilder();
       try {

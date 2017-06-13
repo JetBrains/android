@@ -53,8 +53,16 @@ public class DatabaseTableTest {
 
   @After
   public void tearDown() throws Exception {
-    myDatabase.disconnect();
+    if (!myDatabase.getConnection().isClosed()) {
+      myDatabase.disconnect();
+    }
     myDbFile.delete();
+  }
+
+  @Test
+  public void testConnectionClosed() throws Exception {
+    myDatabase.disconnect();
+    assertTrue(myTable.isClosed());
   }
 
   @Test
@@ -138,7 +146,7 @@ public class DatabaseTableTest {
   /**
    * Setup a simple Datastore table to validate operations on.
    */
-  private class ThreadTestTable extends DatastoreTable<ThreadTableStatement> {
+  private class ThreadTestTable extends DataStoreTable<ThreadTableStatement> {
     public ThreadTestTable(@NotNull Map<Common.Session, Long> sesstionIdLookup) {
       super(sesstionIdLookup);
     }

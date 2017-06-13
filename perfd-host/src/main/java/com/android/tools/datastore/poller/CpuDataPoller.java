@@ -33,15 +33,14 @@ public class CpuDataPoller extends PollRunner {
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
 
   @NotNull
-  private CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
+  private final CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
   @NotNull
-  private CpuTable myCpuTable;
+  private final CpuTable myCpuTable;
   @NotNull
+  private final Common.Session mySession;
   private int myProcessId = -1;
-  @NotNull
-  private Common.Session mySession;
 
-  public CpuDataPoller(@NotNull int processId,
+  public CpuDataPoller(int processId,
                        @NotNull Common.Session session,
                        @NotNull CpuTable table,
                        @NotNull CpuServiceGrpc.CpuServiceBlockingStub pollingService) {

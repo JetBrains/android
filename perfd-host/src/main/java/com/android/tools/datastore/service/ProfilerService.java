@@ -17,7 +17,7 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
-import com.android.tools.datastore.database.DatastoreTable;
+import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.poller.ProfilerDevicePoller;
 import com.android.tools.profiler.proto.Common;
@@ -106,7 +106,9 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void startMonitoring(Channel channel) {
     assert !myPollers.containsKey(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(channel);
-    myPollers.put(channel, new ProfilerDevicePoller(myService, myTable, stub));
+    ProfilerDevicePoller poller = new ProfilerDevicePoller(myService, myTable, stub);
+    myPollers.put(channel, poller);
+    DataStoreTable.addDataStoreErrorCallback(poller);
     myFetchExecutor.accept(myPollers.get(channel));
   }
 
@@ -114,6 +116,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     if (myPollers.containsKey(channel)) {
       ProfilerDevicePoller poller = myPollers.remove(channel);
       poller.stop();
+      DataStoreTable.removeDataStoreErrorCallback(poller);
     }
   }
 
