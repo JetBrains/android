@@ -20,6 +20,7 @@ import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -49,6 +50,7 @@ final class HoverRowTable extends JBTable {
     };
     addMouseMotionListener(mouseAdapter);
     addMouseListener(mouseAdapter);
+    getEmptyText().clear();
   }
 
   private void hoveredRowChanged(int row) {
@@ -86,5 +88,25 @@ final class HoverRowTable extends JBTable {
     }
 
     return comp;
+  }
+
+  @Override
+  public void paint(@NotNull Graphics g) {
+    super.paint(g);
+    // Draw column line down to bottom of table, matches the look and feel of BasicTableUI#paintGrid which is private and cannot override.
+    g.setColor(getGridColor());
+    TableColumnModel columnModel = getColumnModel();
+    int x = 0;
+    if (getComponentOrientation().isLeftToRight()) {
+      for (int column = 0; column < columnModel.getColumnCount() - 1; column++) {
+        x += columnModel.getColumn(column).getWidth();
+        g.drawLine(x - 1, 0, x - 1, getHeight());
+      }
+    } else {
+      for (int column = columnModel.getColumnCount() - 1; column > 0; column--) {
+        x += columnModel.getColumn(column).getWidth();
+        g.drawLine(x - 1, 0, x - 1, getHeight());
+      }
+    }
   }
 }
