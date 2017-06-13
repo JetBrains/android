@@ -84,9 +84,14 @@ public class ColumnTreeBuilder {
   private Color myBackground;
 
   public ColumnTreeBuilder(@NotNull JTree tree) {
+    this(tree, null);
+  }
+
+  public ColumnTreeBuilder(@NotNull JTree tree, TableColumnModel tableColumnModel) {
     myTree = tree;
     myTableModel = new DefaultTableModel();
-    myTable = new JBTable(myTableModel);
+    myTable = new JBTable(myTableModel, tableColumnModel);
+    myTable.setAutoCreateColumnsFromModel(true);
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
     myRowSorter = new TableRowSorter<>(myTable.getModel());
     myColumnBuilders = new LinkedList<>();
