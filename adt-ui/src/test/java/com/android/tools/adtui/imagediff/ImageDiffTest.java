@@ -23,6 +23,9 @@ import java.util.List;
 
 /**
  * Parametrized test class that runs all the tests of {@link com.android.tools.adtui.imagediff}.
+ *
+ * Use {@link BaselineImagesGenerator} if you need to generate new images. For consistency, you
+ * should use a Linux machine.
  */
 @RunWith(Parameterized.class)
 public class ImageDiffTest {
