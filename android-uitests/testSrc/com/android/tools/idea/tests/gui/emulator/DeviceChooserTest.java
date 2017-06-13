@@ -85,7 +85,7 @@ public class DeviceChooserTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/38270567
+  @RunIn(TestGroup.QA)
   @Test
   public void testDeviceChooser() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
@@ -144,12 +144,15 @@ public class DeviceChooserTest {
         .invoke();
     assertThat(icon).isNotNull();
 
-    // The Stop button shouldn't be enabled.
-    try {
-      ideFrame.getStopButton();
-      throw new IllegalThreadStateException("Stop button shouldn't be enabled.");
-    } catch (WaitTimedOutError e) {
-      // Got the WaitTimedOutError is expected. The Stop button shouldn't be enabled.
-    }
+    Wait.seconds(20).expecting("The Stop button shouldn't be enabled").until(() -> {
+      try {
+        ideFrame.getStopButton();
+        return false;
+      }
+      catch (WaitTimedOutError e) {
+        // Got the WaitTimedOutError is expected. The Stop button shouldn't be enabled.
+        return true;
+      }
+    });
   }
 }
