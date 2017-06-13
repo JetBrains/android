@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
@@ -29,6 +33,8 @@ import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
@@ -83,9 +89,14 @@ public class BuildApkActionTest extends IdeaTestCase {
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
     when(androidProject.getProjectType()).thenReturn(type);
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
-
-    AndroidArtifact mainArtifact = mock(AndroidArtifact.class);
-    when(mainArtifact.getOutputs()).thenReturn(Collections.emptyList());
+    IdeAndroidArtifact mainArtifact =
+      new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, "f1fa-debug", "debug", new FileStructure(new File("debug"))) {
+        @Override
+        @NotNull
+        public Collection<AndroidArtifactOutput> getOutputs() {
+          return Collections.emptyList();
+        }
+      };
     when(androidModel.getMainArtifact()).thenReturn(mainArtifact);
 
     return module;
