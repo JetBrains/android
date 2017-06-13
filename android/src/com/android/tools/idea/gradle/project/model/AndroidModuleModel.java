@@ -181,7 +181,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  public IdeAndroidArtifact getMainArtifact() {
+  public AndroidArtifact getMainArtifact() {
     return getSelectedVariant().getMainArtifact();
   }
 

@@ -74,10 +74,6 @@ public class LibraryDependency extends Dependency {
     paths.add(path);
   }
 
-  void addPath(@NotNull PathType type, @NotNull String path) {
-    addPath(type, new File(path));
-  }
-
   @NotNull
   public File[] getPaths(@NotNull PathType type) {
     Collection<File> paths = myPathsByType.get(type);

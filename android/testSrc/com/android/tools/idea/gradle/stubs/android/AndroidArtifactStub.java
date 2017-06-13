@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.ClassField;
-import com.android.builder.model.InstantRun;
-import com.android.builder.model.NativeLibrary;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependencies;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.IdeLevel2DependenciesStub;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
@@ -38,19 +36,17 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
   @NotNull String myApplicationId;
-  @NotNull private final IdeLevel2DependenciesStub myIdeLevel2DependenciesStub;
 
   private InstantRun myInstantRun;
 
-  public AndroidArtifactStub(@NotNull String name,
-                             @NotNull String folderName,
-                             @NonNls @NotNull String buildType,
-                             @NotNull FileStructure fileStructure) {
+  AndroidArtifactStub(@NotNull String name,
+                      @NotNull String folderName,
+                      @NonNls @NotNull String buildType,
+                      @NotNull FileStructure fileStructure) {
     super(name, folderName, new DependenciesStub(), buildType, fileStructure);
     myApplicationId = "app." + buildType.toLowerCase();
     AndroidArtifactOutputStub output = new AndroidArtifactOutputStub(new OutputFileStub(new File(name + "-" + buildType + ".apk")));
     myOutputs = Collections.singletonList(output);
-    myIdeLevel2DependenciesStub = new IdeLevel2DependenciesStub();
   }
 
   @Override
@@ -145,7 +141,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
 
   @Override
   @NotNull
-  public IdeLevel2DependenciesStub getLevel2Dependencies() {
-    return myIdeLevel2DependenciesStub;
+  public IdeLevel2Dependencies getLevel2Dependencies() {
+    return new IdeLevel2DependenciesStub();
   }
 }
