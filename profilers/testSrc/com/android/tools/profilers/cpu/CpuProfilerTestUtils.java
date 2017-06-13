@@ -43,7 +43,6 @@ public class CpuProfilerTestUtils {
   }
 
   public static File getTraceFile(@NotNull String filename) {
-    File traceFile = TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
-    return traceFile;
+    return TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
   }
 }

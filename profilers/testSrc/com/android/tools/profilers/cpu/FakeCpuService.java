@@ -43,7 +43,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public static final int TOTAL_ELAPSED_TIME = 100;
 
-  private static final int FAKE_TRACE_ID = 6;
+  public static final int FAKE_TRACE_ID = 6;
 
   private CpuProfiler.CpuProfilingAppStartResponse.Status myStartProfilingStatus = CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS;
 
@@ -105,7 +105,14 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       myIsAppBeingProfiled = false;
     }
     if (myValidTrace) {
-      response.setTrace(getTrace());
+      if (myTrace == null) {
+        try {
+          parseTraceFile();
+        }
+        catch (IOException ignored) {
+        }
+      }
+      response.setTrace(myTrace);
       response.setTraceId(myTraceId);
     }
 
@@ -155,6 +162,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       fail("Unable to get a response trace file");
     }
     return myTrace;
+  }
+
+  public void setTrace(@Nullable ByteString trace) {
+    myTrace = trace;
   }
 
   @Override
