@@ -141,7 +141,7 @@ final class ConnectionsView {
     customizeConnectionsTable();
 
     myAspectObserver = new AspectObserver();
-    myStage.getAspect().addDependency(myAspectObserver).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateActiveConnection);
+    myStage.getAspect().addDependency(myAspectObserver).onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateTableSelection);
   }
 
   @NotNull
@@ -186,13 +186,12 @@ final class ConnectionsView {
         }
       }
     });
+    myStage.getHttpDataFetcher().addListener(httpDataList -> {
+      // Although the selected row doesn't change on range moved, we do this here to prevent
+      // flickering that otherwise occurs in our table.
 
-    // Keep the previously selected row selected if it's still there
-
-    // We cannot update directly but have to invoke later as otherwise the table in some cases
-    // overwrites our value.
-    //noinspection SSBasedInspection: Prefer SwingUtilities for unit testing; Application is null in unit tests.
-    myTableModel.addTableModelListener(e -> SwingUtilities.invokeLater(this::updateTableSelection));
+      updateTableSelection();
+    });
   }
 
   private void updateTableSelection() {
@@ -202,14 +201,10 @@ final class ConnectionsView {
         if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
           int row = myConnectionsTable.convertRowIndexToView(i);
           myConnectionsTable.setRowSelectionInterval(row, row);
-          break;
+          return;
         }
       }
-    }
-  }
-
-  private void updateActiveConnection() {
-    if (myStage.getSelectedConnection() == null) {
+    } else {
       myConnectionsTable.clearSelection();
     }
   }
@@ -221,9 +216,6 @@ final class ConnectionsView {
       httpDataFetcher.addListener(httpDataList -> {
         myDataList = httpDataList;
         fireTableDataChanged();
-        // Although the selected row doesn't change on range moved, we do this here to prevent
-        // flickering that otherwise occurs in our table.
-        updateTableSelection();
       });
     }
 

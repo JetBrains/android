@@ -55,7 +55,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     super(profilersView, stage);
 
     getStage().getAspect().addDependency(this)
-      .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
+      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView(this);
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));

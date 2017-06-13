@@ -265,7 +265,7 @@ public class NetworkProfilerStageTest {
 
     AspectObserver observer = new AspectObserver();
     final boolean[] connectionChanged = {false};
-    myStage.getAspect().addDependency(observer).onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () ->
+    myStage.getAspect().addDependency(observer).onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () ->
       connectionChanged[0] = true
     );
 
@@ -351,7 +351,7 @@ public class NetworkProfilerStageTest {
     AspectObserver observer = new AspectObserver();
     final boolean[] connectionChanged = {false};
     spyStage.getAspect().addDependency(observer).
-      onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, () -> connectionChanged[0] = true);
+      onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> connectionChanged[0] = true);
 
     doThrow(IOException.class).when(spyStage).getConnectionPayload(any(ByteString.class), any(HttpData.class));
     spyStage.setSelectedConnection(data);
