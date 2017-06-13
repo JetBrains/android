@@ -54,7 +54,9 @@ public class DataStoreDatabase {
           File dbFile = new File(dbPath);
           File parent = dbFile.getParentFile();
           if (parent != null) {
-            parent.mkdirs();
+            if (!parent.mkdirs() && !parent.exists()) {
+              getLogger().error("Unable to create parent directory");
+            }
           }
           connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", dbFile.getPath()));
           break;
@@ -81,7 +83,9 @@ public class DataStoreDatabase {
     }
     finally {
       try {
-        myConnection.close();
+        if (!myConnection.isClosed()) {
+          myConnection.close();
+        }
       }
       catch (SQLException e) {
         getLogger().error(e);

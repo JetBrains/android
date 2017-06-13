@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
+public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
   private static final int DATA_COLUMN = 1;
 
   private static final int TRACE_ID_COLUMN = 1;
@@ -269,8 +269,8 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
    * Trace data wrapper that contains the trace bytes and the profiler type (e.g. simpleperf, ART) used to generate it.
    */
   public static class TraceData {
-    private ByteString myTraceBytes;
-    private CpuProfiler.CpuProfilerType myProfilerType;
+    private final ByteString myTraceBytes;
+    private final CpuProfiler.CpuProfilerType myProfilerType;
 
     public TraceData(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType) {
       myTraceBytes = traceBytes;

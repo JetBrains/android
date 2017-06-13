@@ -28,9 +28,9 @@ public class EventDataPoller extends PollRunner {
 
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
   private int myProcessId = -1;
-  private Common.Session mySession;
-  private EventsTable myEventsTable;
-  private EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
+  private final Common.Session mySession;
+  private final EventsTable myEventsTable;
+  private final EventServiceGrpc.EventServiceBlockingStub myEventPollingService;
 
   public EventDataPoller(int processId, Common.Session session, EventsTable eventTable, EventServiceGrpc.EventServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
@@ -42,6 +42,10 @@ public class EventDataPoller extends PollRunner {
 
   @Override
   public void poll() throws StatusRuntimeException {
+    if (myProcessId == -1) {
+      return;
+    }
+
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
       .setProcessId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)

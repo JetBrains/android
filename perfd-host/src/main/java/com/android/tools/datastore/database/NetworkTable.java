@@ -26,7 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements> {
+public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements> {
   public enum NetworkStatements {
     INSERT_NETWORK_DATA,
     QUERY_NETWORK_DATA_BY_TYPE,
