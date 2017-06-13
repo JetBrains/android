@@ -113,7 +113,7 @@ public class StudioProfilersView extends AspectObserver {
     // There is a border of 5 pixels that is not scaled.
     toolbar.setPreferredSize(new Dimension(15, JBUI.scale(25) + 5));
 
-    myMonitoringToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+    myMonitoringToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
     myMonitoringToolbar.add(deviceCombo);
     myMonitoringToolbar.add(processCombo);
 
@@ -144,8 +144,7 @@ public class StudioProfilersView extends AspectObserver {
     leftToolbar.add(myCommonToolbar);
     toolbar.add(leftToolbar, BorderLayout.WEST);
 
-    // Changing from default to add additional padding.
-    JPanel rightToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 2));
+    JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
     toolbar.add(rightToolbar, BorderLayout.EAST);
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
