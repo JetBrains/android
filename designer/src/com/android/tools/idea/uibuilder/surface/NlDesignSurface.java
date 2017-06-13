@@ -200,7 +200,7 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   private void addLayers() {
-    myLayers.add(new MyBottomLayer());
+    addLayer(new MyBottomLayer());
 
     switch (myScreenMode) {
       case SCREEN_ONLY:
@@ -226,27 +226,27 @@ public class NlDesignSurface extends DesignSurface {
   private void addScreenLayers() {
     assert myScreenView != null;
 
-    myLayers.add(new ScreenViewLayer(myScreenView));
-    myLayers.add(new SelectionLayer(myScreenView));
+    addLayer(new ScreenViewLayer(myScreenView));
+    addLayer(new SelectionLayer(myScreenView));
 
     if (myScreenView.getModel().getType().isLayout()) {
-      myLayers.add(new ConstraintsLayer(this, myScreenView, true));
+      addLayer(new ConstraintsLayer(this, myScreenView, true));
     }
 
     SceneLayer sceneLayer = new SceneLayer(this, myScreenView, false);
     sceneLayer.setAlwaysShowSelection(true);
-    myLayers.add(new WarningLayer(myScreenView));
-    myLayers.add(sceneLayer);
+    addLayer(new WarningLayer(myScreenView));
+    addLayer(sceneLayer);
     if (getLayoutType().isSupportedByDesigner()) {
-      myLayers.add(new CanvasResizeLayer(this, myScreenView));
+      addLayer(new CanvasResizeLayer(this, myScreenView));
     }
   }
 
   private void addBlueprintLayers(@NotNull ScreenView view) {
-    myLayers.add(new SelectionLayer(view));
-    myLayers.add(new MockupLayer(view));
-    myLayers.add(new CanvasResizeLayer(this, view));
-    myLayers.add(new SceneLayer(this, view, true));
+    addLayer(new SelectionLayer(view));
+    addLayer(new MockupLayer(view));
+    addLayer(new CanvasResizeLayer(this, view));
+    addLayer(new SceneLayer(this, view, true));
   }
 
   /**
@@ -256,7 +256,7 @@ public class NlDesignSurface extends DesignSurface {
    * @param value if true, force painting
    */
   public void forceLayersPaint(boolean value) {
-    for (Layer layer : myLayers) {
+    for (Layer layer : getLayers()) {
       if (layer instanceof ConstraintsLayer) {
         ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
         constraintsLayer.setTemporaryShow(value);
@@ -475,7 +475,7 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   protected void doCreateSceneViews() {
-    myLayers.clear();
+    clearLayers();
 
     myScreenView = null;
     myBlueprintView = null;
@@ -525,7 +525,7 @@ public class NlDesignSurface extends DesignSurface {
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
       myScreenView = new NavigationViewSceneView(this, myModel);
-      myLayers.add(new ScreenViewLayer(myScreenView));
+      addLayer(new ScreenViewLayer(myScreenView));
     }
     else {
       myScreenView = new ScreenView(this, ScreenViewType.NORMAL, myModel);
