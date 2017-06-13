@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.SigningConfig;
@@ -113,12 +112,6 @@ public class BuildTypeStub implements BuildType {
   @Override
   @NotNull
   public Map<String, ClassField> getResValues() {
-    return Collections.emptyMap();
-  }
-
-  @NonNull
-  @Override
-  public Map<String, String> getFlavorSelections() {
     return Collections.emptyMap();
   }
 
