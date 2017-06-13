@@ -32,15 +32,16 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -59,6 +60,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration();
   private static final long INVALID_CAPTURE_START_TIME = Long.MAX_VALUE;
+
+  /**
+   * Default capture details to be set after stopping a capture.
+   * {@link CaptureModel.Details.Type.CALL_CHART} is used by default because it's useful and fast to compute.
+   */
+  private static final CaptureModel.Details.Type DEFAULT_CAPTURE_DETAILS = CaptureModel.Details.Type.CALL_CHART;
 
   private final CpuThreadsModel myThreadsStates;
   private final AxisComponentModel myCpuUsageAxis;
@@ -150,9 +157,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final UpdatableManager myUpdatableManager;
 
   /**
-   * A cache of already parsed captures, indexed by trace_id.
+   * Responsible for parsing trace files into {@link CpuCapture}.
+   * Parsed captures should be obtained from this object.
    */
-  private Map<Integer, CpuCapture> myTraceCaptures = new HashMap<>();
+  private final CpuCaptureParser myCaptureParser;
 
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -201,6 +209,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCaptureModel = new CaptureModel(this);
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
+    myCaptureParser = new CpuCaptureParser(getStudioProfilers().getIdeServices().getPoolExecutor());
   }
 
   private static Logger getLogger() {
@@ -369,27 +378,63 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
     else {
       setCaptureState(CaptureState.PARSING);
-      CompletableFuture.supplyAsync(
-        () -> new CpuCapture(response.getTrace(), myProfilerType), getStudioProfilers().getIdeServices().getPoolExecutor())
-        .handleAsync((capture, exception) -> {
-          if (capture != null) {
-            myTraceCaptures.put(response.getTraceId(), capture);
-            // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
-            myCaptureState = CaptureState.IDLE;
-            setAndSelectCapture(capture);
-            // Select CALL_CHART by default after a capture because it's useful and fast to compute.
-            setCaptureDetails(CaptureModel.Details.Type.CALL_CHART);
-          }
-          else {
-            assert exception != null;
-            getLogger().warn("Unable to parse capture: " + exception.getMessage());
-            // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
-            myCaptureState = CaptureState.IDLE;
-            setCapture(null);
-          }
-          return capture;
-        }, getStudioProfilers().getIdeServices().getMainExecutor());
+      handleCaptureParsing(response.getTraceId(), response.getTrace());
     }
+  }
+
+  /**
+   * Handles capture parsing after stopping a capture. Basically, this method checks if {@link CpuCaptureParser} has already parsed the
+   * capture and delegates the parsing to such class if it hasn't yet. After that, it waits asynchronously for the parsing to happen
+   * and sets the capture in the main executor after it's done.
+   */
+  private void handleCaptureParsing(int traceId, ByteString traceBytes) {
+    CompletableFuture<CpuCapture> capture = myCaptureParser.getCapture(traceId);
+    if (capture == null) {
+      // Parser doesn't have any information regarding the capture. It needs to be parsed.
+      capture = myCaptureParser.parse(traceId, traceBytes, myProfilerType);
+    }
+    assert capture != null;
+
+    Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
+      // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
+      myCaptureState = CaptureState.IDLE;
+      if (parsedCapture != null) {
+        setAndSelectCapture(parsedCapture);
+        setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
+      }
+      else {
+        setCapture(null);
+      }
+    };
+
+    // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
+    capture.handleAsync((parsedCapture, exception) -> {
+      if (parsedCapture == null) {
+        assert exception != null;
+        getLogger().warn("Unable to parse capture: " + exception.getMessage());
+      }
+      parsingCallback.accept(parsedCapture);
+      return parsedCapture;
+    }, getStudioProfilers().getIdeServices().getMainExecutor());
+  }
+
+  /**
+   * Gets and returns {@link CpuCapture} from a {@link Future<CpuCapture>} logging exceptions that might occur.
+   * Returns null if capture's computation throws an exception.
+   */
+  @Nullable
+  private static CpuCapture getCaptureFromFuture(Future<CpuCapture> futureCapture) {
+    try {
+      return futureCapture.get();
+    }
+    catch (ExecutionException e) {
+      getLogger().warn("Unable to parse capture: " + e.getMessage());
+      getLogger().warn(e.getCause());
+    }
+    catch (InterruptedException e) {
+      getLogger().error("Unexpected InterruptedException when parsing capture");
+    }
+    return null;
   }
 
   /**
@@ -585,29 +630,37 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myThreadsStates;
   }
 
+  /**
+   * Returns a {@link CpuCapture} corresponding to a trace id if there is one already parsed.
+   * Returns null otherwise. Also, starts the trace parsing if it's not in progress or done.
+   *
+   */
+  @Nullable
   public CpuCapture getCapture(int traceId) {
-    CpuCapture capture = myTraceCaptures.get(traceId);
+    Future<CpuCapture> capture = myCaptureParser.getCapture(traceId);
     if (capture == null) {
+      // Parser doesn't have any information regarding the capture. We need to request
+      // trace data from CPU service and tell the parser to start parsing it.
       CpuProfiler.GetTraceRequest request = CpuProfiler.GetTraceRequest.newBuilder()
         .setProcessId(getStudioProfilers().getProcessId())
         .setSession(getStudioProfilers().getSession())
         .setTraceId(traceId)
         .build();
       CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
+      // TODO: investigate if this call can take too much time as it's blocking.
       CpuProfiler.GetTraceResponse trace = cpuService.getTrace(request);
       if (trace.getStatus() == CpuProfiler.GetTraceResponse.Status.SUCCESS) {
-        // TODO: move this parsing to a separate thread
-        try {
-          capture = new CpuCapture(trace.getData(), trace.getProfilerType());
-        }
-        catch (IllegalStateException e) {
-          // Don't crash studio if parsing fails.
-        }
+        capture = myCaptureParser.parse(traceId, trace.getData(), trace.getProfilerType());
       }
-      // TODO: Limit how many captures we keep parsed in memory
-      myTraceCaptures.put(traceId, capture);
     }
-    return capture;
+    if (capture != null && capture.isDone()) {
+      // Parsing is done. Return the capture.
+      return getCaptureFromFuture(capture);
+    }
+
+    // Parsing has not started, is still in progress or an exception has occurred when parsing the capture.
+    // In all cases, there is no parsed capture corresponding to the given trace id, so return null.
+    return null;
   }
 
   public void setCaptureDetails(@Nullable CaptureModel.Details.Type type) {
