@@ -222,24 +222,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public DeployTargetPickerDialogFixture debugApp(@NotNull String appName) throws ClassNotFoundException {
     selectApp(appName);
-    findActionButtonByActionId("Debug").click();
+    findDebugApplicationButton().click();
     return DeployTargetPickerDialogFixture.find(robot());
   }
 
   public DeployTargetPickerDialogFixture runApp(@NotNull String appName) throws ClassNotFoundException {
     selectApp(appName);
-    getRunButton().click();
+    findRunApplicationButton().click();
     return DeployTargetPickerDialogFixture.find(robot());
-  }
-
-  @NotNull
-  public ActionButtonFixture getRunButton() {
-    return findActionButtonByActionId("Run");
-  }
-
-  @NotNull
-  public ActionButtonFixture getStopButton() {
-    return findActionButtonByActionId("Stop");
   }
 
   @NotNull
