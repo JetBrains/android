@@ -75,6 +75,9 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   private boolean mRender;
 
+  @Nullable
+  private Image myCanvas;
+
   @VisibleForTesting
   public HTreeChart(@NotNull Range xRange, Orientation orientation, @NotNull HTreeChartReducer<T> reducer) {
     mRectangles = new ArrayList<>();
@@ -91,7 +94,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     addMouseListener(this);
     initializeInputMap();
     setFont(AdtUiUtils.DEFAULT_FONT);
-
     xRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
     mYRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
     changed();
@@ -128,6 +130,27 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       return;
     }
 
+    if (myCanvas == null || myCanvas.getHeight(null) != dim.getHeight()
+        || myCanvas.getWidth(null) != dim.getWidth()) {
+      redrawToCanvas(dim);
+    }
+
+    g.drawImage(myCanvas, 0, 0, null);
+
+    addDebugInfo("Draw time %.2fms", (System.nanoTime() - startTime) / 1e6);
+    addDebugInfo("# of nodes %d", mNodes.size());
+    addDebugInfo("# of reduced nodes %d", mDrawnNodes.size());
+  }
+
+  private void redrawToCanvas(@NotNull Dimension dim) {
+    final Graphics2D g;
+    if (myCanvas != null && myCanvas.getWidth(null) >= dim.width && myCanvas.getHeight(null) >= dim.height) {
+      g = (Graphics2D)myCanvas.getGraphics();
+      g.clearRect(0, 0, dim.width, dim.height);
+    } else {
+      myCanvas = createImage(dim.width, dim.height);
+      g = (Graphics2D)myCanvas.getGraphics();
+    }
     mDrawnNodes.clear();
     mDrawnNodes.addAll(mNodes);
 
@@ -137,7 +160,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       Rectangle2D.Float newRect = new Rectangle2D.Float();
       newRect.x = rect.x * (float)dim.getWidth();
       newRect.y = rect.y;
-      newRect.width = rect.width * (float)dim.getWidth() - BORDER_PLUS_PADDING;
+      newRect.width = Math.max(0, rect.width * (float)dim.getWidth() - BORDER_PLUS_PADDING);
       newRect.height = rect.height;
 
       if (mOrientation == HTreeChart.Orientation.BOTTOM_UP) {
@@ -155,14 +178,13 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       mHRenderer.render(g, mDrawnNodes.get(i).getData(), mDrawnRectangles.get(i));
     }
 
-    addDebugInfo("Draw time %.2fms", (System.nanoTime() - startTime) / 1e6);
-    addDebugInfo("# of nodes %d", mNodes.size());
-    addDebugInfo("# of reduced nodes %d", mDrawnNodes.size());
+    g.dispose();
   }
 
   protected void render() {
     mNodes.clear();
     mRectangles.clear();
+    myCanvas = null;
     if (mRoot == null) {
       return;
     }
@@ -207,9 +229,13 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     return x / getWidth() * getXRange().getLength() + getXRange().getMin();
   }
 
-  public void setHRenderer(HRenderer<T> r) {
+  public void setHRenderer(@NotNull HRenderer<T> r) {
     this.mHRenderer = r;
-    this.mHRenderer.setFont(getFont());
+    if (getFont() != null) {
+      this.mHRenderer.setFont(getFont());
+    } else {
+      this.mHRenderer.setFont(AdtUiUtils.DEFAULT_FONT);
+    }
   }
 
   public void setHTree(@Nullable HNode<T> root) {
