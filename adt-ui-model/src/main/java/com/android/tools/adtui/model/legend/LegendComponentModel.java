@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspect> implements Updatable {
 
@@ -28,17 +29,16 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
     LEGEND,
   }
 
-  private int mFrequencyMillis;
-
-  private long mLastUpdate;
-
   @NotNull
-  private List<Legend> myLegends;
+  private final List<Legend> myLegends;
+  private final long mUpdateFrequencyNs;
+  private long mElapsedNs;
 
   public LegendComponentModel(int updateFrequencyMs) {
-    mFrequencyMillis = updateFrequencyMs;
-    mLastUpdate = 0;
+    mUpdateFrequencyNs = TimeUnit.MILLISECONDS.toNanos(updateFrequencyMs);
     myLegends = new ArrayList<>();
+    // Set elapsedNs to full value to ensure update loop always triggers the first time
+    mElapsedNs = mUpdateFrequencyNs;
   }
 
   @NotNull
@@ -48,9 +48,9 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
 
   @Override
   public void update(long elapsedNs) {
-    long now = System.currentTimeMillis();
-    if (now - mLastUpdate > mFrequencyMillis) {
-      mLastUpdate = now;
+    mElapsedNs += elapsedNs;
+    if (mElapsedNs >= mUpdateFrequencyNs) {
+      mElapsedNs = 0;
       changed(Aspect.LEGEND);
     }
   }
