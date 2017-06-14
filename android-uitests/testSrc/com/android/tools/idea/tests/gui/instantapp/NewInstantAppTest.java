@@ -111,7 +111,7 @@ public class NewInstantAppTest {
                                "    Android Lint: Correctness\n" +
                                "        Gradle Dynamic Version\n" +
                                "            build.gradle\n" +
-                               "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:25.+)\n" +
+                               "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:26.+)\n" +
                                "    Android Lint: Security\n" +
                                "        AllowBackup/FullBackupContent Problems\n" +
                                "            AndroidManifest.xml\n" +
