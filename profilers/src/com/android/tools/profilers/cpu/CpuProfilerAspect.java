@@ -28,4 +28,6 @@ public enum CpuProfilerAspect {
   CLOCK_TYPE,
   // Time elapsed since the capture has started has changed.
   CAPTURE_ELAPSED_TIME,
+  // Tooltip has changed, e.g the user hovers over cpu usage chart or threads list.
+  TOOLTIP,
 }

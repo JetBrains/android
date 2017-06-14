@@ -95,6 +95,7 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
     private final int myThreadId;
     private final String myName;
     private final Range myRange;
+    private final ThreadStateDataSeries mySeries;
     private final StateChartModel<CpuProfilerStage.ThreadState> myModel;
 
     public RangedCpuThread(Range range, int threadId, String name) {
@@ -102,8 +103,8 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       myThreadId = threadId;
       myName = name;
       myModel = new StateChartModel<>();
-      ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, myProcessId, mySession, myThreadId);
-      myModel.addSeries(new RangedSeries<>(myRange, series));
+      mySeries = new ThreadStateDataSeries(myStage, myProcessId, mySession, myThreadId);
+      myModel.addSeries(new RangedSeries<>(myRange, mySeries));
     }
 
     public int getThreadId() {
@@ -116,6 +117,10 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
     public StateChartModel<CpuProfilerStage.ThreadState> getModel() {
       return myModel;
+    }
+
+    public ThreadStateDataSeries getStateSeries() {
+      return mySeries;
     }
   }
 }

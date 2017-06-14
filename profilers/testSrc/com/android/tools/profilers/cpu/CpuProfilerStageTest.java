@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -491,9 +492,13 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void testTooltipLegends() {
+  public void testUsageTooltip() {
     myStage.enter();
-    CpuProfilerStage.CpuStageLegends legends = myStage.getTooltipLegends();
+    myStage.setTooltip(CpuProfilerStage.Tooltip.Type.USAGE);
+    assertThat(myStage.getTooltip()).isInstanceOf(CpuProfilerStage.UsageTooltip.class);
+    CpuProfilerStage.UsageTooltip tooltip = (CpuProfilerStage.UsageTooltip)myStage.getTooltip();
+
+    CpuProfilerStage.CpuStageLegends legends = tooltip.getLegends();
     double tooltipTime = TimeUnit.SECONDS.toMicros(0);
     myCpuService.setAppTimeMs(10);
     myCpuService.setSystemTimeMs(50);
@@ -504,6 +509,30 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(legends.getCpuLegend().getValue()).isEqualTo("10%");
     assertThat(legends.getOthersLegend().getValue()).isEqualTo("40%");
     assertThat(legends.getThreadsLegend().getValue()).isEqualTo("1");
+  }
+
+  @Test
+  public void testThreadsTooltip() {
+    Range viewRange = myStage.getStudioProfilers().getTimeline().getViewRange();
+    Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
+
+    viewRange.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(11));
+
+    myStage.enter();
+    myStage.setTooltip(CpuProfilerStage.Tooltip.Type.THREADS);
+    assertThat(myStage.getTooltip()).isInstanceOf(CpuProfilerStage.ThreadsTooltip.class);
+    CpuProfilerStage.ThreadsTooltip tooltip = (CpuProfilerStage.ThreadsTooltip)myStage.getTooltip();
+
+    ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, 1, ProfilersTestData.SESSION_DATA, 1);
+    // 1 - running - 8 - dead - 11
+    tooltip.setThread("myThread", series);
+
+    assertThat(tooltip.getThreadName()).isEqualTo("myThread");
+    tooltipRange.set(TimeUnit.SECONDS.toMicros(5), TimeUnit.SECONDS.toMicros(5));
+    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.RUNNING);
+
+    tooltipRange.set(TimeUnit.SECONDS.toMicros(9), TimeUnit.SECONDS.toMicros(9));
+    assertThat(tooltip.getThreadState()).isEqualTo(CpuProfilerStage.ThreadState.DEAD);
   }
 
   @Test
