@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.handlers.DelegatingViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import icons.AndroidDesignerIcons;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class DistributeWeightsAction extends DirectViewAction {
+public class DistributeWeightsAction extends LinearLayoutAction {
   public DistributeWeightsAction() {
     super(AndroidDesignerIcons.DistributeWeights, "Distribute Weights Evenly");
   }
@@ -35,7 +36,7 @@ public class DistributeWeightsAction extends DirectViewAction {
   @Override
   public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                  @NotNull ViewEditor editor,
-                                 @NotNull ViewHandler handler,
+                                 @NotNull LinearLayoutHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @JdkConstants.InputEventMask int modifiers) {
@@ -43,10 +44,11 @@ public class DistributeWeightsAction extends DirectViewAction {
   }
 
   @Override
-  public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                      @NotNull List<NlComponent> selectedChildren, @JdkConstants.InputEventMask int modifiers) {
-    assert handler instanceof LinearLayoutHandler;
-    LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-    linearLayoutHandler.distributeWeights(component, selectedChildren);
+  protected void perform(@NotNull ViewEditor editor,
+                         @NotNull LinearLayoutHandler handler,
+                         @NotNull NlComponent component,
+                         @NotNull List<NlComponent> selectedChildren,
+                         int modifiers) {
+    handler.distributeWeights(component, selectedChildren);
   }
 }

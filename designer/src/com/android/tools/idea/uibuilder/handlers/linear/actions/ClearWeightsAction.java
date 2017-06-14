@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.handlers.DelegatingViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import icons.AndroidDesignerIcons;
@@ -27,24 +28,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class ClearWeightsAction extends DirectViewAction {
+public class ClearWeightsAction extends LinearLayoutAction {
   public ClearWeightsAction() {
     super(AndroidDesignerIcons.ClearWeights, "Clear All Weights");
   }
 
   @Override
-  public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+  public void perform(@NotNull ViewEditor editor, @NotNull LinearLayoutHandler handler, @NotNull NlComponent component,
                       @NotNull List<NlComponent> selectedChildren, @JdkConstants.InputEventMask int modifiers) {
-
-    assert handler instanceof LinearLayoutHandler;
-    LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-    linearLayoutHandler.clearWeights(component, selectedChildren);
+    handler.clearWeights(component, selectedChildren);
   }
 
   @Override
   public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                  @NotNull ViewEditor editor,
-                                 @NotNull ViewHandler handler,
+                                 @NotNull LinearLayoutHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @JdkConstants.InputEventMask int modifiers) {
