@@ -276,7 +276,10 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testIntentActionCompletion1() throws Throwable {
-    doTestCompletionVariants(getTestName(false) + ".xml", "android.intent.action.CALL", "android.intent.action.CALL_BUTTON");
+    doTestCompletionVariants(getTestName(false) + ".xml",
+                             "android.intent.action.CALL",
+                             "android.intent.action.CALL_BUTTON",
+                             "android.intent.action.CARRIER_SETUP");
   }
 
   public void testIntentActionCompletion2() throws Throwable {
@@ -507,7 +510,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
                                "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-                               "O");
+                               "26");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));
