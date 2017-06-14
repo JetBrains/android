@@ -55,11 +55,10 @@ public final class ConfigureDeviceModel extends WizardModel {
       }
       myDeviceData.setUniqueName(String.format("%s (Edited)", device.getDisplayName()));
     }
-    if (cloneDevice || device == null) {
-      // Clear device's density. This will cause us to calculate
-      // the most accurate setting based on the final screen size.
-      myDeviceData.density().set(Density.NODPI);
-    }
+
+    // Clear device's density. This will cause us to calculate the most accurate setting based on the final screen size.
+    myDeviceData.density().set(Density.NODPI);
+
     if (device != null) {
       initBootProperties(device);
     }
