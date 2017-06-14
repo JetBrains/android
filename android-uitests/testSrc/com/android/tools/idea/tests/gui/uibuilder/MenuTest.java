@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -108,10 +107,6 @@ public final class MenuTest {
                       "</menu>\n";
 
     myEditor.open(myMenuPath, Tab.EDITOR);
-
-    myEditor.invokeAction(EditorAction.SELECT_ALL);
-    myGuiTest.ideFrame().invokeMenuPath("Code", "Reformat Code");
-
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
