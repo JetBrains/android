@@ -19,6 +19,7 @@ import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -43,11 +44,11 @@ public class LocaleMenuAction extends FlatComboAction {
   private final ConfigurationHolder myRenderContext;
   private final boolean myClassicStyle;
 
-  public LocaleMenuAction(ConfigurationHolder renderContext) {
+  public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
     this(renderContext, !RenderService.NELE_ENABLED);
   }
 
-  public LocaleMenuAction(ConfigurationHolder renderContext, boolean classicStyle) {
+  public LocaleMenuAction(@NotNull ConfigurationHolder renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
     myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
@@ -90,6 +91,11 @@ public class LocaleMenuAction extends FlatComboAction {
 
     group.add(new EditTranslationAction());
 
+    if (configuration != null && !hasAnyRtlLocales(configuration, locales)) {
+      // The switch RtlAction is only added is there are not any RTL locales that you can use to preview the layout
+      group.add(new RtlAction(myRenderContext));
+    }
+
     /* TODO: Restore multi-configuration editing
     group.addSeparator();
     RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
@@ -104,6 +110,18 @@ public class LocaleMenuAction extends FlatComboAction {
     */
 
     return group;
+  }
+
+  /**
+   * Returns whether any of the passed locales is RTL
+   */
+  private static boolean hasAnyRtlLocales(@NotNull Configuration configuration, @NotNull List<Locale> locales) {
+    LayoutLibrary layoutlib = RenderService.getLayoutLibrary(configuration.getModule(), configuration.getTarget());
+    if (layoutlib == null) {
+      return false;
+    }
+
+    return locales.stream().anyMatch(locale -> layoutlib.isRtl(locale.toLocaleId()));
   }
 
   /**
