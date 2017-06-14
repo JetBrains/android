@@ -116,7 +116,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final ProjectResourceRepository myProjectResourceRepository;
-  private final XmlFile myFile;
+  private final VirtualFile myFile;
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
     @Override
@@ -157,23 +157,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public static NlModel create(@NotNull DesignSurface surface,
                                @Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
-                               @NotNull XmlFile file) {
+                               @NotNull VirtualFile file) {
     return new NlModel(surface, parent, facet, file);
   }
 
   @VisibleForTesting
-  protected NlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull XmlFile file) {
+  protected NlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     mySurface = surface;
     myFacet = facet;
     myFile = file;
-    myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
+    myConfiguration = facet.getConfigurationManager().getConfiguration(myFile);
     myConfigurationModificationCount = myConfiguration.getModificationCount();
     mySelectionModel = new SelectionModel();
     myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {
       Disposer.register(parent, this);
     }
-    myType = NlLayoutType.typeOf(file);
+    myType = NlLayoutType.typeOf(getFile());
     myProjectResourceRepository = ProjectResourceRepository.getProjectResources(myFacet, true);
 
     updateTrackingConfiguration();
@@ -187,8 +187,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myActive = true;
 
       myConfiguration.addListener(myConfigurationListener);
-      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
-      ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+      ResourceVersion version = manager.addListener(this, myFacet, null, null);
 
       // If the resources have changed or the configuration has been modified, request a model update
       if (!version.equals(myRenderedVersion) || (myConfiguration.getModificationCount() != myConfigurationModificationCount)) {
@@ -208,8 +208,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void deactivate() {
     if (myActive) {
       getRenderingQueue().cancelAllUpdates();
-      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
-      manager.removeListener(this, myFacet, myFile, myConfiguration);
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+      manager.removeListener(this, myFacet, null, null);
       myConfigurationModificationCount = myConfiguration.getModificationCount();
       myConfiguration.removeListener(myConfigurationListener);
       myActive = false;
@@ -218,7 +218,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull
   public XmlFile getFile() {
-    return myFile;
+    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(getProject(), myFile);
+    assert file != null;
+    return file;
   }
 
   @NotNull
@@ -336,12 +338,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return false;
     }
 
-    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(myFile.getProject());
+    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(getProject());
 
     // Some types of files must be saved to disk first, because layoutlib doesn't
     // delegate XML parsers for non-layout files (meaning layoutlib will read the
     // disk contents, so we have to push any edits to disk before rendering)
-    LayoutPullParserFactory.saveFileIfNecessary(myFile);
+    XmlFile file = getFile();
+    LayoutPullParserFactory.saveFileIfNecessary(file);
 
     RenderResult result = null;
     synchronized (RENDERING_LOCK) {
@@ -352,18 +355,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
       // external changes
-      myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, myFile, myConfiguration);
+      myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, file, myConfiguration);
 
       RenderService renderService = RenderService.get(myFacet);
       RenderLogger logger = renderService.createLogger();
       if (myRenderTask != null) {
         myRenderTask.dispose();
       }
-      myRenderTask = renderService.createTask(myFile, configuration, logger, mySurface);
+      myRenderTask = renderService.createTask(file, configuration, logger, mySurface);
       setupRenderTask(myRenderTask);
       if (myRenderTask != null) {
         if (!isRenderViewPort()) {
-          myRenderTask.useDesignMode(myFile);
+          myRenderTask.useDesignMode(file);
         }
         result = myRenderTask.inflate();
         if (result == null || !result.getRenderResult().isSuccess()) {
@@ -371,7 +374,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           myRenderTask = null;
 
           if (result == null) {
-            result = RenderResult.createBlank(myFile);
+            result = RenderResult.createBlank(file);
           }
         }
       }
@@ -399,7 +402,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myComponents = Collections.emptyList();
     }
     else {
-      XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(myFile);
+      XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(getFile());
       List<ViewInfo> rootViews;
       rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
       updateHierarchy(rootTag, rootViews);
@@ -431,7 +434,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       ApplicationManager.getApplication().runReadAction(() -> {
         Set<NlComponent> unique = Sets.newIdentityHashSet();
         Set<XmlTag> uniqueTags = Sets.newIdentityHashSet();
-        checkUnique(myFile.getRootTag(), uniqueTags);
+        checkUnique(getFile().getRootTag(), uniqueTags);
         uniqueTags.clear();
         for (NlComponent component : myComponents) {
           checkUnique(component.getTag(), uniqueTags);
@@ -1238,7 +1241,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @Nullable
   public List<NlComponent> findByOffset(int offset) {
-    XmlTag tag = PsiTreeUtil.findElementOfClassAtOffset(myFile, offset, XmlTag.class, false);
+    XmlTag tag = PsiTreeUtil.findElementOfClassAtOffset(getFile(), offset, XmlTag.class, false);
     return (tag != null) ? findViewsByTag(tag) : null;
   }
 
@@ -1370,7 +1373,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void delete(final Collection<NlComponent> components) {
     // Group by parent and ask each one to participate
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", myFile) {
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", getFile()) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
         handleDeletion(components);
@@ -1614,7 +1617,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     assert toAdd != null;
 
-    WriteCommandAction<Void> action = new WriteCommandAction<Void>(getProject(), insertType.getDragType().getDescription(), myFile) {
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(getProject(), insertType.getDragType().getDescription(), getFile()) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
         handleAddition(toAdd, receiver, before, insertType);
@@ -1671,7 +1674,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   private void transferNamespaces(@NotNull XmlTag tag) {
     // Transfer namespace attributes
-    XmlDocument xmlDocument = myFile.getDocument();
+    XmlFile file = getFile();
+    XmlDocument xmlDocument = file.getDocument();
     assert xmlDocument != null;
     XmlTag rootTag = xmlDocument.getRootTag();
     assert rootTag != null;
@@ -1688,7 +1692,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       String currentPrefix = namespaceToPrefix.get(namespace);
       if (currentPrefix == null) {
         // The namespace isn't used in the document. Import it.
-        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(myFile, namespace, prefix);
+        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(file, namespace, prefix);
         if (!prefix.equals(newPrefix)) {
           // We imported the namespace, but the prefix used in the new document isn't available
           // so we need to update all attribute references to the new name

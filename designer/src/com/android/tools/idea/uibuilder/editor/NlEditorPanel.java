@@ -43,19 +43,19 @@ import java.util.List;
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends WorkBench<DesignSurface> {
-  private final XmlFile myFile;
+  private final VirtualFile myFile;
   private final DesignSurface mySurface;
+  private final Project myProject;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(project, "NELE_EDITOR", editor);
     setOpaque(true);
 
-    myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
-    assert myFile != null : file;
-
+    myProject = project;
+    myFile = file;
     mySurface = new DesignSurface(project, false);
     Disposer.register(editor, mySurface);
-    NlModel model = NlModel.create(mySurface, editor, facet, myFile);
+    NlModel model = NlModel.create(mySurface, editor, facet, file);
     mySurface.setModel(model);
 
     JPanel contentPanel = new JPanel(new BorderLayout());
@@ -89,7 +89,9 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
   @NotNull
   public XmlFile getFile() {
-    return myFile;
+    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myFile);
+    assert file != null;
+    return file;
   }
 
   @NotNull
