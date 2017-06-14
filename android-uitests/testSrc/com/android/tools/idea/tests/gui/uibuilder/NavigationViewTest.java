@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
@@ -33,6 +35,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
+@RunIn(TestGroup.UNRELIABLE)  // b/62620559
 @RunWith(GuiTestRunner.class)
 public final class NavigationViewTest {
   @Rule
