@@ -37,10 +37,10 @@ public class MemoryLiveAllocationTable extends DatastoreTable<MemoryLiveAllocati
     // O+ Allocation Tracking
     INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Pid, Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?, ?)"),
     INSERT_ALLOC(
-      "INSERT INTO Memory_AllocationEvents (Pid, Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId) " +
+      "INSERT OR IGNORE INTO Memory_AllocationEvents (Pid, Session, Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"),
-    INSERT_METHOD("INSERT INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
-    INSERT_ENCODED_STACK("INSERT INTO Memory_StackInfos (Pid, Session, StackId, AllocTime, MethodIdData) VALUES (?, ?, ?, ?, ?)"),
+    INSERT_METHOD("INSERT OR IGNORE  INTO Memory_MethodInfos (Pid, Session, MethodId, MethodName, ClassName) VALUES (?, ?, ?, ?, ?)"),
+    INSERT_ENCODED_STACK("INSERT OR IGNORE  INTO Memory_StackInfos (Pid, Session, StackId, AllocTime, MethodIdData) VALUES (?, ?, ?, ?, ?)"),
     UPDATE_ALLOC(
       "UPDATE Memory_AllocationEvents SET FreeTime = ? WHERE Pid = ? AND Session = ? AND Tag = ?"),
     QUERY_CLASS(
