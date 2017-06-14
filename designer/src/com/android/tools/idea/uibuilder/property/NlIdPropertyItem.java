@@ -43,6 +43,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.android.SdkConstants.ANDROID_ID_PREFIX;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 
@@ -93,11 +94,13 @@ public class NlIdPropertyItem extends NlPropertyItem {
     String newId = value != null ? stripIdPrefix(value.toString()) : "";
     String oldId = getValue();
     XmlTag tag = getTag();
+    String newValue = !StringUtil.isEmpty(newId) && !newId.startsWith(ANDROID_ID_PREFIX) ? NEW_ID_PREFIX + newId : newId;
 
     if (ourRefactoringChoice != REFACTOR_NO
         && oldId != null
         && !oldId.isEmpty()
         && !newId.isEmpty()
+        && newValue != null
         && !oldId.equals(newId)
         && tag != null
         && tag.isValid()) {
@@ -110,7 +113,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
         if (valueElement != null && valueElement.isValid()) {
           // Exact replace only, no comment/text occurrence changes since it is non-interactive
           ValueResourceElementWrapper wrapper = new ValueResourceElementWrapper(valueElement);
-          RenameProcessor processor = new RenameProcessor(project, wrapper, NEW_ID_PREFIX + newId, false /*comments*/, false /*text*/);
+          RenameProcessor processor = new RenameProcessor(project, wrapper, newValue, false /*comments*/, false /*text*/);
           processor.setPreviewUsages(false);
           // Do a quick usage search to see if we need to ask about renaming
           UsageInfo[] usages = processor.findUsages();
@@ -164,7 +167,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
       }
     }
 
-    super.setValue(!StringUtil.isEmpty(newId) ? NEW_ID_PREFIX + newId : null);
+    super.setValue(newValue);
   }
 
   @TestOnly
