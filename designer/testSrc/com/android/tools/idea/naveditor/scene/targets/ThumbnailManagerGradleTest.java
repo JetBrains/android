@@ -50,7 +50,7 @@ public class ThumbnailManagerGradleTest extends NavigationGradleTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     DesignSurface surface = mock(NavDesignSurface.class);
-    NlModel model = NlModel.create(null, myAndroidFacet, psiFile);
+    NlModel model = NlModel.create(null, myAndroidFacet, psiFile.getVirtualFile());
     CompletableFuture<ImagePool.Image> imageFuture = manager.getThumbnail(psiFile, surface, model.getConfiguration());
     ImagePool.Image image = imageFuture.get();
     ImageDiffUtil.assertImageSimilar("thumbnail.png", goldenImage, image.getCopy(), MAX_PERCENT_DIFFERENT);
