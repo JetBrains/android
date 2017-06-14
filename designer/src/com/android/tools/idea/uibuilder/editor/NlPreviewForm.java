@@ -294,7 +294,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
     else {
       XmlFile xmlFile = (XmlFile)file;
-      NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
+      NlModel model = NlModel.create(mySurface, null, facet, xmlFile.getVirtualFile());
       myPendingFile = new Pending(xmlFile, model);
     }
     return true;
