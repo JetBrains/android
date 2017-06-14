@@ -16,7 +16,6 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import org.junit.Ignore;
 
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
 import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
@@ -24,8 +23,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
 public class InstantAppsTest extends AndroidGradleTestCase {
-  // FIXME: This is broken with SDK 26.
-  public void disabled_testFindBaseFeatureWithInstantApp() throws Exception {
+  public void testFindBaseFeatureWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
     assertEquals(myModules.getModule("feature"), findBaseFeature(myAndroidFacet));
   }
@@ -35,8 +33,7 @@ public class InstantAppsTest extends AndroidGradleTestCase {
     assertNull(findBaseFeature(myAndroidFacet));
   }
 
-  // FIXME: This is broken with SDK 26.
-  public void disabled_testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
+  public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
     assertEquals("http://example.com/example", getDefaultInstantAppUrl(myAndroidFacet));
   }
