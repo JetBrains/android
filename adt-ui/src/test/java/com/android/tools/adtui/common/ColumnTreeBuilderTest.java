@@ -25,6 +25,7 @@ import org.junit.runners.JUnit4;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.plaf.TreeUI;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -101,6 +102,17 @@ public class ColumnTreeBuilderTest {
     assertThat(((JComponent)component).getToolTipText()).isEqualTo(toolTipTestText);
   }
 
+  @Test
+  public void updatingUIShouldPreserveColumnTreeUI() {
+    ColumnTreeTestInfo info = createTestTable(null);
+    JTree tree = info.getTree();
+    TreeUI ui = tree.getUI();
+    tree.updateUI();
+    assertThat(tree.getUI().getClass()).isSameAs(ui.getClass());
+    // ColumnTreeBuilder should create a new ui.
+    assertThat(tree.getUI()).isNotSameAs(ui);
+  }
+
   private ColumnTreeTestInfo createTestTable(Border headerBorder) {
     return createTestTable(headerBorder, new MyEmptyRenderer());
   }
@@ -140,7 +152,7 @@ public class ColumnTreeBuilderTest {
     sizes.headerSize = table.getTableHeader().getPreferredSize();
     sizes.column0Size = getColumnHeaderComponent(table.getTableHeader(), 0).getPreferredSize();
     sizes.column1Size = getColumnHeaderComponent(table.getTableHeader(), 1).getPreferredSize();
-    ;
+
     return sizes;
   }
 

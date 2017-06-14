@@ -113,6 +113,17 @@ public class ColumnTreeBuilder {
   public JComponent build() {
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
     myTree.setUI(new ColumnTreeUI());
+
+    myTree.addPropertyChangeListener(evt-> {
+      if (evt.getPropertyName().equals("UI")) {
+        // We need to preserve ColumnTreeUI always,
+        // Otherwise width of rows will be wrong and the table will lose its formatting.
+        if (!(evt.getNewValue() instanceof ColumnTreeUI)) {
+          myTree.setUI(new ColumnTreeUI());
+        }
+      }
+    });
+
     myTree.setShowsRootHandles(showsRootHandles);
     myTree.setCellRenderer(myCellRenderer);
 
