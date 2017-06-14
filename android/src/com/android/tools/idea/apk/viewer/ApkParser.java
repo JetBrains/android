@@ -16,21 +16,20 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.android.tools.apk.analyzer.ApkSizeCalculator;
-import com.android.tools.apk.analyzer.Archive;
-import com.android.tools.apk.analyzer.ArchiveNode;
-import com.android.tools.apk.analyzer.ArchiveTreeStructure;
+import com.android.ide.common.process.ProcessException;
+import com.android.tools.apk.analyzer.*;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.stats.IntelliJLogger;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 import java.io.IOException;
+import java.util.List;
 
 public class ApkParser {
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
@@ -39,8 +38,6 @@ public class ApkParser {
   private final ApkSizeCalculator myApkSizeCalculator;
 
   private ListenableFuture<ArchiveNode> myTreeStructure;
-
-  private ListenableFuture<AndroidApplicationInfo> myApplicationInfo;
   private ListenableFuture<Long> myCompressedFullApkSize;
 
   public ApkParser(@NotNull Archive archive, @NotNull ApkSizeCalculator sizeCalculator) {
@@ -94,15 +91,12 @@ public class ApkParser {
       return AndroidApplicationInfo.UNKNOWN;
     }
     try {
-      AaptInvoker invoker = AaptInvoker.getInstance();
-      if (invoker == null) {
-        return AndroidApplicationInfo.UNKNOWN;
-      }
+      AaptInvoker invoker = new AaptInvoker(AndroidSdks.getInstance().tryToChooseSdkHandler(), new IntelliJLogger(ApkParser.class));
 
-      ProcessOutput xmlTree = invoker.getXmlTree(archive.getPath().toFile(), SdkConstants.FN_ANDROID_MANIFEST_XML);
-      return AndroidApplicationInfo.fromXmlTree(xmlTree);
+      List<String> xmlTree = invoker.getXmlTree(archive.getPath().toFile(), SdkConstants.FN_ANDROID_MANIFEST_XML);
+      return AndroidApplicationInfo.parse(xmlTree);
     }
-    catch (ExecutionException e) {
+    catch (ProcessException e) {
       Logger.getInstance(ApkViewPanel.class).warn("Unable to run aapt", e);
       return AndroidApplicationInfo.UNKNOWN;
     }
