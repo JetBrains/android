@@ -192,6 +192,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   public TemplateTest() {
   }
 
+  // b/62613769
+  @Override
+  protected boolean shouldRunTest() {
+    return false;
+  }
+
   @Override
   protected boolean createDefaultProject() {
     // We'll be creating projects manually except for the following tests
