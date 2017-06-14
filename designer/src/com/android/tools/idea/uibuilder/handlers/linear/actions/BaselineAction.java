@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import icons.AndroidDesignerIcons;
 import org.intellij.lang.annotations.JdkConstants;
@@ -31,9 +32,10 @@ import static com.android.SdkConstants.*;
 /**
  * Action to set the {@linkplain ATTR_BASELINE_ALIGNED} value.
  */
-public class BaselineAction extends DirectViewAction {
+public class BaselineAction extends LinearLayoutAction {
+
   @Override
-  public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
+  public void perform(@NotNull ViewEditor editor, @NotNull LinearLayoutHandler handler, @NotNull NlComponent component,
                       @NotNull List<NlComponent> selectedChildren, @JdkConstants.InputEventMask int modifiers) {
     if (!selectedChildren.isEmpty()) {
       boolean align = !isBaselineAligned(selectedChildren.get(0));
@@ -46,7 +48,7 @@ public class BaselineAction extends DirectViewAction {
   @Override
   public void updatePresentation(@NotNull ViewActionPresentation presentation,
                                  @NotNull ViewEditor editor,
-                                 @NotNull ViewHandler handler,
+                                 @NotNull LinearLayoutHandler handler,
                                  @NotNull NlComponent component,
                                  @NotNull List<NlComponent> selectedChildren,
                                  @JdkConstants.InputEventMask int modifiers) {
