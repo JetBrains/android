@@ -53,8 +53,18 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     myItem.setValue("label");
 
     assertThat(myTextView.getId()).isEqualTo("label");
+    assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/label");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/label");
     assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label");
+  }
+
+  public void testSetAndroidValueChangeReferences() {
+    when(myBuilder.show()).thenReturn(DialogWrapper.OK_EXIT_CODE);
+    myItem.setValue("@android:id/text2");
+
+    assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@android:id/text2");
+    assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@android:id/text2");
+    assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@android:id/text2");
   }
 
   public void testSetValueDoNotChangeReferences() {

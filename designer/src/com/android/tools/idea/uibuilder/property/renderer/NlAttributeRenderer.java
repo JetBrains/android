@@ -59,6 +59,9 @@ public abstract class NlAttributeRenderer extends PTableCellRenderer {
     boolean hover = ((PTable)table).isHover(row, col);
     myBrowsePanel.setVisible(hover);
     myBrowsePanel.setDesignState(NlTableCellEditor.getDesignState(table, row));
+    if (value instanceof NlProperty) {
+      myBrowsePanel.setProperty((NlProperty)value);
+    }
 
     return myPanel;
   }
