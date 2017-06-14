@@ -58,7 +58,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int COMPONENT_HEIGHT_PX = 25;
 
-    private static final int COMPONENT_WIDTH_PX = 300;
+    private static final int COMPONENT_WIDTH_PX = 250;
 
     private LegendComponent myLegend;
 
@@ -90,8 +90,8 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
       series.add(0, 999L);
 
       SeriesLegend legend = new SeriesLegend(rangedSeries, formatter, myXRange);
-      myLegendModel.add(legend);
       myLegend.configure(legend, new LegendConfig(lineConfig));
+      myLegendModel.add(legend);
     }
   }
 }
