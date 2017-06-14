@@ -84,6 +84,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     myManager = manager;
     myProject = myManager.getProject();
     mySurface = new NlDesignSurface(myProject, true, this);
+    Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.addListener(new DesignSurfaceListener() {
@@ -460,6 +461,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     if (myContentPanel != null) {
       initNeleModel();
     }
+    mySurface.activate();
   }
 
   /**
@@ -471,6 +473,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       return;
     }
 
+    mySurface.deactivate();
     isActive = false;
     if (myContentPanel != null) {
       initNeleModel();
