@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.annotations.NonNull;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -76,13 +75,15 @@ import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.runners.MethodSorters;
 import org.w3c.dom.Element;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -93,7 +94,9 @@ import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static java.lang.annotation.ElementType.METHOD;
 
 /**
  * Test for template instantiation.
@@ -103,13 +106,12 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * <li>Make the project templates work for API=1 (currently requires API 7); with API 1
  * you get a build error because included libraries have targetSdkVersion higher than 1</li>
  * <li>Fix type conversion, to make the service and fragment templates work</li>
- * <li>Fix compilation errors in the remaining templates</li>
- * <li>Should abstract out the state initialization code from the UI such that we
- * can use the same code path from the test</li>
  * </ul>
  *
  * Remaining work on template test:
  * <ul>
+ * <li>Add mechanism to ensure that test coverage is comprehensive (made difficult by </li>
+ * <li>Start using new NewProjectModel etc to initialise TemplateParameters and set parameter values</li>
  * <li>Fix clean model syncing, and hook up clean lint checks</li>
  * <li>We should test more combinations of parameters</li>
  * <li>We should test all combinations of build tools</li>
@@ -117,7 +119,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * </ul>
  */
 @SuppressWarnings("deprecation") // We need to move away from the old Wizard framework usage
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TemplateTest extends AndroidGradleTestCase {
   /**
    * Whether we should run comprehensive tests or not. This flag allows a simple run to just check a small set of
@@ -182,7 +183,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static final boolean TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_TARGET_SDK_VERSION = !COMPREHENSIVE;
-  private static int ourCount = 0;
 
   private static boolean ourValidatedTemplateManager;
 
@@ -262,11 +262,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    */
   private boolean myApiSensitiveTemplate;
 
-  /**
-   * Set of templates already tested with separate unit test; remainder is
-   * checked in {@link #testZCreateRemainingTemplates()}
-   */
-  private static final Set<String> ourTemplatesChecked = new HashSet<>();
 
   /**
    * Is the given api level interesting for testing purposes? This is used to
@@ -313,17 +308,327 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
+  //--- Activity templates ---
+
+  @TemplateCheck
   public void testNewBasicActivity() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false);
   }
 
+  @TemplateCheck
   public void testNewProjectWithBasicActivity() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", true);
   }
 
+  @TemplateCheck
+  public void testNewThingsActivity() throws Exception {
+    checkCreateTemplate("activities", "AndroidThingsActivity", false);
+  }
+
+  @TemplateCheck
   public void testNewProjectWithThingsActivity() throws Exception {
     checkCreateTemplate("activities", "AndroidThingsActivity", true);
   }
+
+  @TemplateCheck
+  public void testNewEmptyActivity() throws Exception {
+    checkCreateTemplate("activities", "EmptyActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithEmptyActivity() throws Exception {
+    checkCreateTemplate("activities", "EmptyActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewTabbedActivity() throws Exception {
+    checkCreateTemplate("activities", "TabbedActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithTabbedActivity() throws Exception {
+    checkCreateTemplate("activities", "TabbedActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewBlankWearActivity() throws Exception {
+    checkCreateTemplate("activities", "BlankWearActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithBlankWearActivity() throws Exception {
+    checkCreateTemplate("activities", "BlankWearActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewNavigationDrawerActivity() throws Exception {
+    checkCreateTemplate("activities", "NavigationDrawerActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithNavigationDrawerActivity() throws Exception {
+    checkCreateTemplate("activities", "NavigationDrawerActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewMasterDetailFlow() throws Exception {
+    checkCreateTemplate("activities", "MasterDetailFlow", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithMasterDetailFlow() throws Exception {
+    checkCreateTemplate("activities", "MasterDetailFlow", true);
+  }
+
+  @TemplateCheck
+  public void testNewFullscreenActivity() throws Exception {
+    checkCreateTemplate("activities", "FullscreenActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithFullscreenActivity() throws Exception {
+    checkCreateTemplate("activities", "FullscreenActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewLoginActivity() throws Exception {
+    checkCreateTemplate("activities", "LoginActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithLoginActivity() throws Exception {
+    checkCreateTemplate("activities", "LoginActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewScrollActivity() throws Exception {
+    checkCreateTemplate("activities", "ScrollActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithScrollActivity() throws Exception {
+    checkCreateTemplate("activities", "ScrollActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewSettingsActivity() throws Exception {
+    checkCreateTemplate("activities", "SettingsActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithSettingsActivity() throws Exception {
+    checkCreateTemplate("activities", "SettingsActivity", true);
+  }
+
+  @TemplateCheck
+  public void testBottomNavigationActivity() throws Exception {
+    checkCreateTemplate("activities", "BottomNavigationActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithBottomNavigationActivity() throws Exception {
+    checkCreateTemplate("activities", "BottomNavigationActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewTvActivity() throws Exception {
+    checkCreateTemplate("activities", "AndroidTVActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithTvActivity() throws Exception {
+    checkCreateTemplate("activities", "AndroidTVActivity", true);
+  }
+
+  @TemplateCheck
+  public void testGoogleAdMobAdsActivity() throws Exception {
+    checkCreateTemplate("activities", "GoogleAdMobAdsActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithGoogleAdMobAdsActivity() throws Exception {
+    checkCreateTemplate("activities", "GoogleAdMobAdsActivity", true);
+  }
+
+  @TemplateCheck
+  public void testGoogleMapsActivity() throws Exception {
+    checkCreateTemplate("activities", "GoogleMapsActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithGoogleMapsActivity() throws Exception {
+    checkCreateTemplate("activities", "GoogleMapsActivity", true);
+  }
+
+  @TemplateCheck
+  public void testGoogleMapsWearActivity() throws Exception {
+    checkCreateTemplate("activities", "GoogleMapsWearActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithGoogleMapsWearActivity() throws Exception {
+    checkCreateTemplate("activities", "GoogleMapsWearActivity", true);
+  }
+
+  //--- Non-activity templates ---
+
+  @TemplateCheck
+  public void testNewBroadcastReceiver() throws Exception {
+    // No need to try this template with multiple platforms, one is adequate
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "BroadcastReceiver");
+  }
+
+  @TemplateCheck
+  public void testNewContentProvider() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ContentProvider");
+  }
+
+  @TemplateCheck
+  public void testNewCustomView() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "CustomView");
+  }
+
+  @TemplateCheck
+  public void testNewIntentService() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "IntentService");
+  }
+
+  @TemplateCheck
+  public void testNewNotification() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "Notification");
+  }
+
+  @TemplateCheck
+  public void testNewDayDream() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "Daydream");
+  }
+
+  @TemplateCheck
+  public void testNewListFragment() throws Exception {
+    myApiSensitiveTemplate = true;
+    checkCreateTemplate("other", "ListFragment");
+  }
+
+  @TemplateCheck
+  public void testNewModalBottomSheet() throws Exception {
+    myApiSensitiveTemplate = true;
+    checkCreateTemplate("other", "ModalBottomSheet");
+  }
+
+  @TemplateCheck
+  public void testNewAppWidget() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AppWidget");
+  }
+
+  @TemplateCheck
+  public void testNewBlankFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "BlankFragment");
+  }
+
+  @TemplateCheck
+  public void testNewService() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "Service");
+  }
+
+  @TemplateCheck
+  public void testNewPlusOneFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "PlusOneFragment");
+  }
+
+  @TemplateCheck
+  public void testNewAidlFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AidlFile");
+  }
+
+  @TemplateCheck
+  public void testNewAidlFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AidlFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "foo"));
+  }
+
+  @TemplateCheck
+  public void testAndroidManifest() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AndroidManifest", false,
+                        (t, p) -> t.put("newLocation", "src/foo/AndroidManifest.xml"));
+  }
+
+  @TemplateCheck
+  public void testAssetsFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AssetsFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/assets/"));
+  }
+
+  @TemplateCheck
+  public void testJavaAndJniFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "JavaFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/java"));
+    checkCreateTemplate("other", "JniFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/jni"));
+  }
+
+  @TemplateCheck
+  public void testRenderSourceFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "RsFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/rs"));
+    checkCreateTemplate("other", "ResFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/res"));
+    checkCreateTemplate("other", "ResourcesFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/res"));
+  }
+
+  @TemplateCheck
+  public void testNewLayoutResourceFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "LayoutResourceFile");
+  }
+
+  @TemplateCheck
+  public void testAndroidAutoMediaService() throws Exception {
+    checkCreateTemplate("other", "AndroidAutoMediaService");
+  }
+
+  @TemplateCheck
+  public void testAndroidAutoMessagingService() throws Exception {
+    checkCreateTemplate("other", "AndroidAutoMessagingService");
+  }
+
+  @TemplateCheck
+  public void testWatchFaceService() throws Exception {
+    checkCreateTemplate("other", "WatchFaceService");
+  }
+
+  @TemplateCheck
+  public void testNewValueResourceFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ValueResourceFile");
+  }
+
+  public void testAllTemplatesCovered() throws Exception {
+    if (DISABLED) {
+      return;
+    }
+
+    new CoverageChecker().testAllTemplatesCovered();
+  }
+
+
+  //--- Special cases ---
 
   // Fails with > java.lang.NullPointerException (no error message)
   public void ignore_testCppBasicActivityWithFragments() throws Exception {
@@ -343,244 +648,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     });
     stopwatch.stop();
     System.out.println("Checked " + templateFile.getName() + " with cpp and fragments successfully in " + stopwatch.toString());
-  }
-
-  public void testNewEmptyActivity() throws Exception {
-    checkCreateTemplate("activities", "EmptyActivity", false);
-  }
-
-  public void testNewProjectWithEmptyActivity() throws Exception {
-    checkCreateTemplate("activities", "EmptyActivity", true);
-  }
-
-  public void testNewTabbedActivity() throws Exception {
-    checkCreateTemplate("activities", "TabbedActivity", false);
-  }
-
-  public void testNewProjectWithTabbedActivity() throws Exception {
-    checkCreateTemplate("activities", "TabbedActivity", true);
-  }
-
-  public void testNewProjectWithBlankWearActivity() throws Exception {
-    checkCreateTemplate("activities", "BlankWearActivity", true);
-  }
-
-  public void testNewNavigationDrawerActivity() throws Exception {
-    checkCreateTemplate("activities", "NavigationDrawerActivity", false);
-  }
-
-  public void testNewProjectWithNavigationDrawerActivity() throws Exception {
-    checkCreateTemplate("activities", "NavigationDrawerActivity", true);
-  }
-
-  public void testNewMasterDetailFlow() throws Exception {
-    checkCreateTemplate("activities", "MasterDetailFlow", false);
-  }
-
-  public void testNewProjectWithMasterDetailFlow() throws Exception {
-    checkCreateTemplate("activities", "MasterDetailFlow", true);
-  }
-
-  public void testNewFullscreenActivity() throws Exception {
-    checkCreateTemplate("activities", "FullscreenActivity", false);
-  }
-
-  public void testNewProjectWithFullscreenActivity() throws Exception {
-    checkCreateTemplate("activities", "FullscreenActivity", true);
-  }
-
-  public void testNewLoginActivity() throws Exception {
-    checkCreateTemplate("activities", "LoginActivity", false);
-  }
-
-  public void testNewProjectWithLoginActivity() throws Exception {
-    checkCreateTemplate("activities", "LoginActivity", true);
-  }
-
-  public void testNewScrollActivity() throws Exception {
-    checkCreateTemplate("activities", "ScrollActivity", false);
-  }
-
-  public void testNewProjectWithScrollActivity() throws Exception {
-    checkCreateTemplate("activities", "ScrollActivity", true);
-  }
-
-  public void testNewSettingsActivity() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", false);
-  }
-
-  public void testNewProjectWithSettingsActivity() throws Exception {
-    checkCreateTemplate("activities", "SettingsActivity", true);
-  }
-
-  public void testBottomNavigationActivity() throws Exception {
-    checkCreateTemplate("activities", "BottomNavigationActivity", false);
-  }
-
-  public void testNewProjectWithBottomNavigationActivity() throws Exception {
-    checkCreateTemplate("activities", "BottomNavigationActivity", true);
-  }
-
-  @Ignore // Fails with the sandbox enabled
-  public void no_testNewProjectWithTvActivity() throws Exception {
-    checkCreateTemplate("activities", "AndroidTVActivity", true);
-  }
-
-  public void testGoogleAdMobAdsActivity() throws Exception {
-    checkCreateTemplate("activities", "GoogleAdMobAdsActivity");
-  }
-
-  // Non-activities
-
-  public void testNewBroadcastReceiver() throws Exception {
-    // No need to try this template with multiple platforms, one is adequate
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "BroadcastReceiver");
-  }
-
-  public void testNewContentProvider() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "ContentProvider");
-  }
-
-  public void testNewCustomView() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "CustomView");
-  }
-
-  public void testNewIntentService() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "IntentService");
-  }
-
-  public void testNewNotification() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "Notification");
-  }
-
-  public void testNewDayDream() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "Daydream");
-  }
-
-  public void testNewListFragment() throws Exception {
-    myApiSensitiveTemplate = true;
-    checkCreateTemplate("other", "ListFragment");
-  }
-
-  public void testNewModalBottomSheet() throws Exception {
-    myApiSensitiveTemplate = true;
-    checkCreateTemplate("other", "ModalBottomSheet");
-  }
-
-  public void testNewAppWidget() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "AppWidget");
-  }
-
-  public void testNewBlankFragment() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "BlankFragment");
-  }
-
-  public void testNewService() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "Service");
-  }
-
-  public void testNewPlusOneFragment() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "PlusOneFragment");
-  }
-
-  public void testNewAidlFile() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "AidlFile");
-  }
-
-  public void testNewAidlFolder() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "AidlFolder", false,
-                        (templateMap, projectMap) -> templateMap.put("newLocation", "foo"));
-  }
-
-  public void testAndroidManifest() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "AndroidManifest", false,
-                        (t, p) -> t.put("newLocation", "src/foo/AndroidManifest.xml"));
-  }
-
-  public void testAssetsFolder() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "AssetsFolder", false,
-                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/assets/"));
-  }
-
-  public void testJavaAndJniFolder() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "JavaFolder", false,
-                        (t, p) -> t.put("newLocation", "src/main/java"));
-    checkCreateTemplate("other", "JniFolder", false,
-                        (t, p) -> t.put("newLocation", "src/main/jni"));
-  }
-
-  public void testRenderSourceFolder() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "RsFolder", false,
-                        (t, p) -> t.put("newLocation", "src/main/rs"));
-    checkCreateTemplate("other", "ResFolder", false,
-                        (t, p) -> t.put("newLocation", "src/main/res"));
-    checkCreateTemplate("other", "ResourcesFolder", false,
-                        (t, p) -> t.put("newLocation", "src/main/res"));
-  }
-
-  public void testNewLayoutResourceFile() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "LayoutResourceFile");
-  }
-
-  public void testAndroidAutoMediaService() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMediaService");
-  }
-
-  public void testAndroidAutoMessagingService() throws Exception {
-    checkCreateTemplate("other", "AndroidAutoMessagingService");
-  }
-
-  // --- Note that this test *must* run after all other tests to check and only
-  // run the templates that have not already been run ---
-  @Ignore // Fails with the sandbox enabled, and tests should not be order dependent
-  public void no_testZCreateRemainingTemplates() throws Exception {
-    if (DISABLED) {
-      return;
-    }
-    ourCount = 0;
-    long begin = System.currentTimeMillis();
-    TemplateManager manager = TemplateManager.getInstance();
-    List<File> other = manager.getTemplates("other");
-    for (File templateFile : other) {
-      if (!haveChecked(templateFile, false)) {
-        checkTemplate(templateFile, false);
-      }
-    }
-    // Also try creating templates, not as part of creating a project
-    List<File> activities = manager.getTemplates("activities");
-    for (File templateFile : activities) {
-      if (!haveChecked(templateFile, false)) {
-        checkTemplate(templateFile, false);
-      }
-      if (!haveChecked(templateFile, true)) {
-        checkTemplate(templateFile, true);
-      }
-    }
-    long end = System.currentTimeMillis();
-    System.out.println("Successfully checked " + ourCount + " template permutations in "
-                       + ((end - begin) / (1000 * 60)) + " minutes");
-  }
-
-  public void testNewValueResourceFile() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "ValueResourceFile");
   }
 
   public void testJdk7() throws Exception {
@@ -674,47 +741,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     assertSameElements(templateMetadata.getRelatedParams(detailsLayoutName), layoutName);
   }
 
-  // ---- Test support code below ----
-
-  /**
-   * Checks whether we've already checked the given template in a new project or existing project context
-   */
-  private static boolean haveChecked(String category, String name, boolean createWithProject) {
-    String key = getCheckKey(category, name, createWithProject);
-    return ourTemplatesChecked.contains(key);
-  }
-
-  /**
-   * Checks whether we've already checked the given template in a new project or existing project context
-   */
-  private static boolean haveChecked(File templateFile, boolean createWithProject) {
-    return haveChecked(templateFile.getParentFile().getName(), templateFile.getName(), createWithProject);
-  }
-
-  /**
-   * Marks that we've already checked the given template in a new project or existing project context
-   */
-  private static void markChecked(String category, String name, boolean createWithProject) {
-    String key = getCheckKey(category, name, createWithProject);
-    ourTemplatesChecked.add(key);
-  }
-
-  /**
-   * Marks that we've already checked the given template in a new project or existing project context
-   */
-  private static void markChecked(File templateFile, boolean createWithProject) {
-    markChecked(templateFile.getParentFile().getName(), templateFile.getName(), createWithProject);
-  }
+  //--- Test support code ---
 
   /**
    * Checks the given template in the given category, adding it to an existing project
    */
   private void checkCreateTemplate(String category, String name) throws Exception {
     checkCreateTemplate(category, name, false);
-  }
-
-  private static String getCheckKey(String category, String name, boolean createWithProject) {
-    return category + ':' + name + ':' + createWithProject;
   }
 
   private void checkCreateTemplate(String category, String name, boolean createWithProject) throws Exception {
@@ -732,20 +765,16 @@ public class TemplateTest extends AndroidGradleTestCase {
    * @param customizer        An instance of {@link ProjectStateCustomizer} used for providing template and project overrides.
    * @throws Exception
    */
-  private void checkCreateTemplate(String category, String name, boolean createWithProject,
-                                   @Nullable ProjectStateCustomizer customizer) throws Exception {
+  protected void checkCreateTemplate(String category, String name, boolean createWithProject,
+                                     @Nullable ProjectStateCustomizer customizer) throws Exception {
     if (DISABLED) {
       return;
     }
     File templateFile = findTemplate(category, name);
     assertNotNull(templateFile);
-    if (haveChecked(templateFile, createWithProject)) {
-      return;
-    }
     if (KNOWN_BROKEN.contains(templateFile.getName())) {
       return;
     }
-    markChecked(templateFile, createWithProject);
     Stopwatch stopwatch = Stopwatch.createStarted();
     if (customizer == null) {
       checkTemplate(templateFile, createWithProject);
@@ -785,10 +814,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
 
     return values;
-  }
-
-  public interface ProjectStateCustomizer {
-    void customize(@NotNull Map<String, Object> templateMap, @NotNull Map<String, Object> projectMap);
   }
 
   private void checkTemplate(File templateFile, boolean createWithProject) throws Exception {
@@ -919,9 +944,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void checkApiTarget(
     int minSdk,
     int targetSdk,
-    @NonNull IAndroidTarget target,
-    @NonNull NewProjectWizardState projectValues,
-    @NonNull String projectNameBase,
+    @NotNull IAndroidTarget target,
+    @NotNull NewProjectWizardState projectValues,
+    @NotNull String projectNameBase,
     @Nullable TemplateWizardState templateValues,
     @Nullable Map<String, Object> overrides,
     @Nullable Map<String, Object> projectOverrides) throws Exception {
@@ -1082,8 +1107,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void checkProject(@NonNull String projectName,
-                            @NonNull NewProjectWizardState projectValues,
+  private void checkProject(@NotNull String projectName,
+                            @NotNull NewProjectWizardState projectValues,
                             @Nullable TemplateWizardState templateValues) throws Exception {
 
     boolean checkLib = false;
@@ -1113,12 +1138,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void checkProjectNow(@NonNull String projectName,
-                               @NonNull NewProjectWizardState projectValues,
+  private void checkProjectNow(@NotNull String projectName,
+                               @NotNull NewProjectWizardState projectValues,
                                @Nullable TemplateWizardState templateValues) throws Exception {
     // Do not add non-unicode characters on Windows
     String modifiedProjectName = SystemInfo.isWindows ? "app" : (projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们");
-    ourCount++;
     projectValues.put(ATTR_RES_OUT, null);
     projectValues.put(ATTR_SRC_OUT, null);
     projectValues.put(ATTR_MANIFEST_OUT, null);
@@ -1395,4 +1419,71 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static Template getDefaultModuleTemplate() {
     return Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME);
   }
+
+  //--- Interfaces ---
+
+  public interface ProjectStateCustomizer {
+    void customize(@NotNull Map<String, Object> templateMap, @NotNull Map<String, Object> projectMap);
+  }
+
+  //--- Annotations ---
+
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({METHOD})
+  public @interface TemplateCheck {
+  }
+
+  //--- Helper classes ---
+
+  // Create a dummy version of this class that just collects all the templates it will test when it is run.
+  // It is important that this class is not run by JUnit may find this and attempt to run it!
+  public static class CoverageChecker extends TemplateTest {
+    // Set of templates tested with unit test
+    private final Set<String> myTemplatesChecked = new HashSet<>();
+
+    private String getCheckKey(String category, String name, boolean createWithProject) {
+      return category + ':' + name + ':' + createWithProject;
+    }
+
+    private void gatherMissedTests(File templateFile, boolean createWithProject, ArrayList<String> failures) {
+      String category = templateFile.getParentFile().getName();
+      String name = templateFile.getName();
+      if (!KNOWN_BROKEN.contains(name) && !myTemplatesChecked.contains(getCheckKey(category, name, createWithProject))) {
+        failures.add("\nCategory: \"" + category + "\" Name: \"" + name + "\" createWithProject: " + createWithProject);
+      }
+    }
+
+    @Override
+    protected void checkCreateTemplate(String category, String name, boolean createWithProject,
+                                       @Nullable ProjectStateCustomizer customizer) {
+      myTemplatesChecked.add(getCheckKey(category, name, createWithProject));
+    }
+
+    // The actual implementation of the test
+    @Override
+    public void testAllTemplatesCovered() throws Exception {
+      for (Method method : getClass().getMethods()) {
+        if (method.getAnnotation(TemplateCheck.class) != null && method.getName().startsWith("test")) {
+          method.invoke(this);
+        }
+      }
+
+      ArrayList<String> failureMessages = new ArrayList<>();
+      TemplateManager manager = TemplateManager.getInstance();
+      for (File templateFile : manager.getTemplates("other")) {
+        gatherMissedTests(templateFile, false, failureMessages);
+      }
+
+      // Also try creating templates, not as part of creating a project
+      for (File templateFile : manager.getTemplates("activities")) {
+        gatherMissedTests(templateFile, true, failureMessages);
+        gatherMissedTests(templateFile, false, failureMessages);
+      }
+
+      String failurePrefix = "\nThe following templates were not covered by TemplateTest. Please ensure that tests are added to cover\n" +
+                             "these templates and that they are annotated with @TemplateCheck.\n\n";
+      assertWithMessage(failurePrefix).that(failureMessages).isEmpty();
+    }
+  };
 }
