@@ -106,7 +106,7 @@ public class SceneCreationTest extends SceneTest {
 
     // Create a sample model
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("sceneDisposedModel.xml", "<LinearLayout/>");
-    SyncNlModel model = SyncNlModel.create(surface, null, myFacet, xmlFile);
+    SyncNlModel model = SyncNlModel.create(surface, null, myFacet, xmlFile.getVirtualFile());
 
     // Setting the model on the surface registers the listener
     surface.setModel(model);

@@ -52,7 +52,7 @@ import java.util.List;
 public class NlEditorPanel extends WorkBench<DesignSurface> {
   private final NlEditor myEditor;
   private final Project myProject;
-  private final XmlFile myFile;
+  private final VirtualFile myFile;
   private final DesignSurface mySurface;
   private final JPanel myContentPanel;
   private boolean myIsActive;
@@ -63,11 +63,10 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
     myEditor = editor;
     myProject = project;
-    myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
-    assert myFile != null : file;
+    myFile = file;
     myContentPanel = new JPanel(new BorderLayout());
 
-    if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
+    if (NlLayoutType.typeOf(getFile()) == NlLayoutType.NAV) {
       mySurface = new NavDesignSurface(project, editor);
     }
     else {
@@ -96,7 +95,9 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     if (Disposer.isDisposed(myEditor) || myContentPanel.getComponentCount() > 0) {
       return;
     }
-    AndroidFacet facet = AndroidFacet.getInstance(myFile);
+    XmlFile file = getFile();
+
+    AndroidFacet facet = AndroidFacet.getInstance(file);
     assert facet != null;
     NlModel model = NlModel.create(myEditor, facet, myFile);
     mySurface.setModel(model);
@@ -108,7 +109,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     // TODO: factor out tool creation
-    if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
+    if (NlLayoutType.typeOf(file) == NlLayoutType.NAV) {
       tools.add(new NavPropertyPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
       tools.add(new DestinationList.DestinationListDefinition());
     }
@@ -150,5 +151,12 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
   @NotNull
   public DesignSurface getSurface() {
     return mySurface;
+  }
+
+  @NotNull
+  public XmlFile getFile() {
+    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myFile);
+    assert file != null;
+    return file;
   }
 }

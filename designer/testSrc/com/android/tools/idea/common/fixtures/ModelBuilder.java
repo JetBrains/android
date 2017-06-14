@@ -165,7 +165,7 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      SyncNlModel model = SyncNlModel.create(createSurface(mySurfaceClass), myFixture.getProject(), myFacet, xmlFile);
+      SyncNlModel model = SyncNlModel.create(createSurface(mySurfaceClass), myFixture.getProject(), myFacet, xmlFile.getVirtualFile());
       DesignSurface surface = model.getSurface();
       Disposer.register(project, surface);
       when(surface.getModel()).thenReturn(model);
