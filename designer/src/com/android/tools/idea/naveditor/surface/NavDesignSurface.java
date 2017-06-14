@@ -122,10 +122,10 @@ public class NavDesignSurface extends DesignSurface {
       return;
     }
     myNavView = null;
-    myLayers.clear();
+    clearLayers();
     if (model != null) {
       myNavView = new NavView(this, model);
-      myLayers.add(new SceneLayer(this, myNavView, true));
+      addLayer(new SceneLayer(this, myNavView, true));
 
       getLayeredPane().setPreferredSize(myNavView.getPreferredSize());
 
