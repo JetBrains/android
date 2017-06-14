@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPrev
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,8 +93,9 @@ public class NlPreviewTest {
     preview.getConfigToolbar().requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
   }
 
-  // @Test Disable this test for now as it fails with the new error panel
-  public void ignore_testEditCustomView() throws Exception {
+  @Ignore("Disable this test for now as it fails with the new error panel")
+  @Test
+  public void editCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
     // that it can't render yet (because the project hasn't been built),
     // builds the project, checks that the render works, edits the custom view
