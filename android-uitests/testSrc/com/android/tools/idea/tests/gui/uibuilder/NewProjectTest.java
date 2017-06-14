@@ -188,6 +188,13 @@ public class NewProjectTest {
 
     assertThat(inspectionResults).isEqualTo(lines(
       "Project '" + guiTest.getProjectPath() + "' TestApplication",
+      // b/62597425
+      "    Android Lint: Correctness",
+      "        Incompatible Gradle Versions",
+      "            build.gradle",
+      "                The targetSdkVersion (26) should not be higher than the compileSdkVersion (25)",
+      "                This support library should not use a lower version (25) than the 'targetSdkVersion' (26)",
+
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android Lint: Performance",
       "        Unused resources",

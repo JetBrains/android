@@ -112,8 +112,21 @@ public class NewInstantAppTest {
                                "        Gradle Dynamic Version\n" +
                                "            build.gradle\n" +
                                "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:25.+)\n" +
+                               "        Incompatible Gradle Versions\n" +
+                               "            build.gradle\n" +
+                               "                The targetSdkVersion (26) should not be higher than the compileSdkVersion (25)\n" +
+                               "                The targetSdkVersion (26) should not be higher than the compileSdkVersion (25)\n" +
+                               "                This support library should not use a lower version (25) than the 'targetSdkVersion' (26)\n" +
+                               "                This support library should not use a lower version (25) than the 'targetSdkVersion' (26)\n" +
+                               "            build.gradle\n" +
+                               "                The targetSdkVersion (26) should not be higher than the compileSdkVersion (25)\n" +
+                               "            build.gradle\n" +
+                               "                The targetSdkVersion (26) should not be higher than the compileSdkVersion (25)\n" +
+                               "                The targetSdkVersion (26) should not be higher than the compileSdkVersion (25)\n" +
                                "    Android Lint: Security\n" +
                                "        AllowBackup/FullBackupContent Problems\n" +
+                               "            AndroidManifest.xml\n" +
+                               "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>\n" +
                                "            AndroidManifest.xml\n" +
                                "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>\n" +
                                "    Android Lint: Usability\n" +
