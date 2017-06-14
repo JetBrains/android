@@ -23,17 +23,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-class CpuStageTooltipView extends ProfilerTooltipView {
-  @NotNull private final CpuProfilerStage myStage;
+class CpuUsageTooltipView extends ProfilerTooltipView {
+  @NotNull private final CpuProfilerStage.UsageTooltip myTooltip;
 
-  CpuStageTooltipView(@NotNull CpuProfilerStage stage) {
-    super(stage.getStudioProfilers().getTimeline(), "CPU");
-    myStage = stage;
+  CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.UsageTooltip tooltip) {
+    super(view.getTimeline(), "CPU");
+    myTooltip = tooltip;
   }
 
   @Override
   protected Component createTooltip() {
-    CpuProfilerStage.CpuStageLegends legends = myStage.getTooltipLegends();
+    CpuProfilerStage.CpuStageLegends legends = myTooltip.getLegends();
 
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
