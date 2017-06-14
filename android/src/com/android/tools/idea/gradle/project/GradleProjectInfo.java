@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.ImmutableList;
-import com.intellij.facet.FacetIndex;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -66,7 +66,7 @@ public class GradleProjectInfo {
    * Gradle-specific.
    */
   public boolean isBuildWithGradle() {
-    if (FacetIndex.getIndex(myProject).hasAnyModuleWithFacet(GradleFacet.getFacetTypeId())) {
+    if (ProjectFacetManager.getInstance(myProject).hasFacets(GradleFacet.getFacetTypeId())) {
       return true;
     }
 
