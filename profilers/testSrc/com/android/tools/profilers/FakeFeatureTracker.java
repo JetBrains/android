@@ -117,6 +117,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectCaptureCallChart() {
+
+  }
+
+  @Override
   public void trackForceGc() {
 
   }
