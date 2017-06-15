@@ -194,12 +194,13 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     artifact.addAdditionalClassesFolder(new File(myKotlinClasses));
     JavaArtifactStub testArtifact = getUnitTestArtifact();
     assert testArtifact != null;
-    testArtifact.addAdditionalClassesFolder(new File(myTestKotlinClasses));
+    File testKotlinClassesDir = new File(myTestKotlinClasses);
+    testArtifact.addAdditionalClassesFolder(testKotlinClassesDir);
     createAndSetAndroidModel();
 
     myPatcher.patchJavaParameters(myModule, myJavaParameters);
 
-    assertThat(myJavaParameters.getClassPath().getPathList()).contains(myTestKotlinClasses);
+    assertThat(myJavaParameters.getClassPath().getPathList()).contains(testKotlinClassesDir.getPath());
   }
 
   @Nullable
