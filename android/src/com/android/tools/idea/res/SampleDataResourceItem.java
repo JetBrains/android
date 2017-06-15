@@ -195,7 +195,10 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         (PsiFile)sampleDataSource));
     }
 
-    SampleDataJsonParser parser = SampleDataJsonParser.parse(new FileReader(VfsUtilCore.virtualToIoFile(sampleDataSource.getVirtualFile())));
+    SampleDataJsonParser parser = null;
+    try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(sampleDataSource.getVirtualFile()))) {
+      parser = SampleDataJsonParser.parse(reader);
+    }
     if (parser == null) {
       // Failed to parse the JSON file
       return Collections.emptyList();
