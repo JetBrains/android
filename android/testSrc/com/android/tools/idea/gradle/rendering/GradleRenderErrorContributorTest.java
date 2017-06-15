@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.rendering;
 
+import com.android.ide.common.builder.model.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;

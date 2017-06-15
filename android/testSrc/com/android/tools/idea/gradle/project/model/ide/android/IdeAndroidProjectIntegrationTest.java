@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidProject;
+import com.android.ide.common.builder.model.IdeAndroidProject;
+import com.android.ide.common.builder.model.IdeAndroidProjectImpl;
+import com.android.ide.common.builder.model.IdeLevel2Dependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
