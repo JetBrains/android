@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -30,6 +31,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @NotNull private final String myApplicationId;
   @NotNull private final String mySourceGenTaskName;
   @NotNull private final Collection<File> myGeneratedResourceFolders = new ArrayList<>();
+  @NotNull private final Collection<File> myAdditionalRuntimeApks;
   @NotNull private final Map<String, ClassField> myBuildConfigFields;
   @NotNull private final Map<String, ClassField> myResValues;
   @NotNull private final InstantRun myInstantRun;
@@ -41,7 +43,8 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   public AndroidArtifactStub() {
     this(Lists.newArrayList(new AndroidArtifactOutputStub()), "applicationId", "sourceGenTaskName",
          ImmutableMap.of("buildConfigField", new ClassFieldStub()), ImmutableMap.of("resValue", new ClassFieldStub()), new InstantRunStub(),
-         "signingConfigName", Sets.newHashSet("filter"), Lists.newArrayList(new NativeLibraryStub()), true);
+         "signingConfigName", Sets.newHashSet("filter"), Lists.newArrayList(new NativeLibraryStub()),
+         Collections.emptyList(), true);
   }
 
   public AndroidArtifactStub(@NotNull Collection<AndroidArtifactOutput> outputs,
@@ -53,6 +56,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
                              @Nullable String signingConfigName,
                              @Nullable Set<String> filters,
                              @Nullable Collection<NativeLibrary> libraries,
+                             @NotNull Collection<File> apks,
                              boolean signed) {
     myOutputs = outputs;
     myApplicationId = applicationId;
@@ -64,6 +68,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
     mySigningConfigName = signingConfigName;
     myAbiFilters = filters;
     myNativeLibraries = libraries;
+    myAdditionalRuntimeApks = apks;
     mySigned = signed;
   }
 
@@ -107,6 +112,12 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @NotNull
   public InstantRun getInstantRun() {
     return myInstantRun;
+  }
+
+  @NonNull
+  @Override
+  public Collection<File> getAdditionalRuntimeApks() {
+    return myAdditionalRuntimeApks;
   }
 
   @Override
@@ -163,6 +174,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
            equals(artifact, AndroidArtifact::getInstantRun) &&
            Objects.equals(getSigningConfigName(), artifact.getSigningConfigName()) &&
            Objects.equals(getAbiFilters(), artifact.getAbiFilters()) &&
+           Objects.equals(getAdditionalRuntimeApks(), artifact.getAdditionalRuntimeApks()) &&
            Objects.equals(getNativeLibraries(), artifact.getNativeLibraries());
   }
 
@@ -172,7 +184,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
             getDependencies(), getCompileDependencies(), getDependencyGraphs(), getIdeSetupTaskNames(),
             getGeneratedSourceFolders(), getVariantSourceProvider(), getMultiFlavorSourceProvider(), getOutputs(), getApplicationId(),
             getSourceGenTaskName(), getGeneratedResourceFolders(), getBuildConfigFields(), getResValues(), getInstantRun(),
-            getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned());
+            getSigningConfigName(), getAbiFilters(), getNativeLibraries(), isSigned(), getAdditionalRuntimeApks());
   }
 
   @Override

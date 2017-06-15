@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import com.google.common.collect.ImmutableList;
@@ -23,22 +24,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Creates a deep copy of {@link AndroidArtifact}.
  */
 public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements IdeAndroidArtifact {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final String myApplicationId;
   @NotNull private final String mySourceGenTaskName;
   @NotNull private final Collection<File> myGeneratedResourceFolders;
+  @NotNull private final Collection<File> myAdditionalRuntimeApks;
   @NotNull private final Map<String, ClassField> myBuildConfigFields;
   @NotNull private final Map<String, ClassField> myResValues;
   @Nullable private final IdeInstantRun myInstantRun;
@@ -64,6 +63,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
     myAbiFilters = copy(artifact.getAbiFilters());
     myNativeLibraries = copy(modelCache, artifact.getNativeLibraries());
     mySigned = artifact.isSigned();
+    myAdditionalRuntimeApks = copyNewProperty(artifact::getAdditionalRuntimeApks, Collections.emptySet());
 
     myHashCode = calculateHashCode();
   }
@@ -118,6 +118,12 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
     throw new UnsupportedMethodException("Unsupported method: AndroidArtifact.getInstantRun()");
   }
 
+  @NonNull
+  @Override
+  public Collection<File> getAdditionalRuntimeApks() {
+    return myAdditionalRuntimeApks;
+  }
+
   @Override
   @Nullable
   public String getSigningConfigName() {
@@ -164,6 +170,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
            Objects.equals(myInstantRun, artifact.myInstantRun) &&
            Objects.equals(mySigningConfigName, artifact.mySigningConfigName) &&
            Objects.equals(myAbiFilters, artifact.myAbiFilters) &&
+           Objects.equals(myAdditionalRuntimeApks, artifact.myAdditionalRuntimeApks) &&
            Objects.equals(myNativeLibraries, artifact.myNativeLibraries);
   }
 
@@ -181,7 +188,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
   protected int calculateHashCode() {
     return Objects.hash(super.calculateHashCode(), myOutputs, myApplicationId, mySourceGenTaskName,
                         myGeneratedResourceFolders, myBuildConfigFields, myResValues, myInstantRun,
-                        mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned);
+                        mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned, myAdditionalRuntimeApks);
   }
 
   @Override
