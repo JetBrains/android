@@ -29,7 +29,7 @@ public class ConfigureAndroidModuleStepFixture extends AbstractWizardStepFixture
 
   @NotNull
   public ConfigureAndroidModuleStepFixture enterModuleName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Application/Library name:");
+    JTextComponent textField = findTextFieldWithLabel("Application/Library name");
     replaceText(textField, text);
     return this;
   }
