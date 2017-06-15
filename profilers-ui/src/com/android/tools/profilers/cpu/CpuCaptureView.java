@@ -150,6 +150,9 @@ class CpuCaptureView {
     JComponent selectedTab = myTabsPanel.getSelectedTabComponent();
     assert selectedTab instanceof JPanel;
     selectedTab.add(myBinder.build(myView, details).getComponent(), BorderLayout.CENTER);
+    // We're replacing the content by removing and adding a new component.
+    // JComponent#removeAll doc says that we should revalidate if it is already visible.
+    selectedTab.revalidate();
   }
 
   void setCaptureDetailToTab() {
