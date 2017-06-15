@@ -22,8 +22,8 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuCapture;
-import com.android.tools.profilers.cpu.CpuCaptureTest;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -69,7 +69,7 @@ public final class StudioProfilersTest {
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
     profilers.setStage(stage);
     assertEquals(ProfilerMode.NORMAL, profilers.getMode());
-    stage.setAndSelectCapture(new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART));
+    stage.setAndSelectCapture(new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART));
     assertEquals(ProfilerMode.EXPANDED, profilers.getMode());
     profilers.setMonitoringStage();
     assertEquals(ProfilerMode.NORMAL, profilers.getMode());

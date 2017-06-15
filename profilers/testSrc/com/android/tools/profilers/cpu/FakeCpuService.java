@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.cpu.CpuCaptureTest.readValidTrace;
 import static org.junit.Assert.fail;
 
 /**
@@ -150,7 +149,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   private ByteString getTrace() {
     try {
       if (myTrace == null) {
-        myTrace = readValidTrace();
+        myTrace = CpuProfilerTestUtils.readValidTrace();
       }
     } catch (IOException e) {
       fail("Unable to get a response trace file");
@@ -343,7 +342,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public CpuCapture parseTraceFile() throws IOException {
     if (myTrace == null) {
-      myTrace = readValidTrace();
+      myTrace = CpuProfilerTestUtils.readValidTrace();
     }
     if (myCapture == null) {
       myCapture = new CpuCapture(myTrace, myProfilerType);

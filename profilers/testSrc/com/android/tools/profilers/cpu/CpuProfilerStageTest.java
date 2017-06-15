@@ -233,7 +233,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertNull(((CaptureModel.BottomUp)details).getModel());
 
     // Capture has changed, keeps the same type of details
-    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+    CpuCapture capture = new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
     myStage.setAndSelectCapture(capture);
     CaptureModel.Details newDetails = myStage.getCaptureDetails();
     assertNotEquals(details, newDetails);
@@ -333,7 +333,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);
     assertEquals(CaptureModel.Details.Type.BOTTOM_UP, myStage.getCaptureDetails().getType());
 
-    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+    CpuCapture capture = new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
     myStage.setAndSelectCapture(capture);
     // Just selecting a different capture shouldn't change the capture details
     assertEquals(CaptureModel.Details.Type.BOTTOM_UP, myStage.getCaptureDetails().getType());
@@ -350,13 +350,13 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // to EXPANDED mode
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
-    myStage.setAndSelectCapture(new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART));
+    myStage.setAndSelectCapture(new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART));
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     // After code navigation it should be Normal mode.
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(CodeLocation.stub());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
-    myStage.setCapture(new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART));
+    myStage.setCapture(new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART));
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
   }
 
@@ -372,8 +372,9 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void setAndSelectCaptureDifferentClockType() throws IOException {
-    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+  public void setAndSelectCaptureDifferentClockType() throws IOException, InterruptedException {
+    captureSuccessfully();
+    CpuCapture capture = myStage.getCapture();
     CaptureNode captureNode = capture.getCaptureNode(capture.getMainThreadId());
     assertNotNull(captureNode);
     myStage.setSelectedThread(capture.getMainThreadId());
@@ -443,7 +444,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertNull(myStage.getCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
-    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+    CpuCapture capture = new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
     assertNotNull(capture);
     myStage.setAndSelectCapture(capture);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
@@ -458,8 +459,8 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void changingCaptureShouldKeepThreadSelection() throws Exception {
-    CpuCapture capture1 = new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
-    CpuCapture capture2 = new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+    CpuCapture capture1 = new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+    CpuCapture capture2 = new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
     assertNotEquals(capture1, capture2);
 
     myStage.setAndSelectCapture(capture1);
@@ -671,7 +672,7 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void setAndSelectCaptureShouldNotChangeStreamingMode() throws Exception {
     // Capture has changed, keeps the same type of details
-    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+    CpuCapture capture = new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART);
     myStage.getStudioProfilers().getTimeline().setIsPaused(false);
     myStage.getStudioProfilers().getTimeline().setStreaming(true);
     myStage.setAndSelectCapture(capture);
@@ -709,6 +710,22 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertEquals(1, newStage.getInProgressTraceDuration().getSeries().getSeries().size());
     stopCapturing(newStage);
     assertEquals(0, newStage.getInProgressTraceDuration().getSeries().getSeries().size());
+  }
+
+  @Test
+  public void selectARangeWithNoCapturesShouldSetCaptureToNull() throws InterruptedException {
+    captureSuccessfully();
+    assertNotNull(myStage.getCapture());
+    CpuCapture capture = myStage.getCapture();
+
+    Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    // Select an are before the capture.
+    selectionRange.set(capture.getRange().getMin() - 20, capture.getRange().getMin() - 10);
+    assertNull(myStage.getCapture());
+
+    // Now select an area that includes the capture
+    selectionRange.set(-Double.MAX_VALUE, Double.MAX_VALUE);
+    assertNotNull(myStage.getCapture());
   }
 
   private void addAndSetDevice(int featureLevel, String serial) {

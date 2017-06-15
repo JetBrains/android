@@ -33,6 +33,11 @@ public class CpuProfilerTestUtils {
 
   private CpuProfilerTestUtils() {}
 
+  @NotNull
+  public static ByteString readValidTrace() throws IOException {
+    return traceFileToByteString("valid_trace.trace");
+  }
+
   public static ByteString traceFileToByteString(@NotNull String filename) throws IOException {
     return ByteString.copyFrom(Files.readAllBytes(getTraceFile(filename).toPath()));
   }

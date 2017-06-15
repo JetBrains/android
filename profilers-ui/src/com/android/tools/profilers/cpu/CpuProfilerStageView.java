@@ -25,7 +25,6 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.UpdatableManager;
@@ -57,7 +56,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
@@ -95,9 +93,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
       .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails)
       .onChange(CpuProfilerAspect.CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
-
-    stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this)
-      .onChange(Range.Aspect.RANGE, this::selectionChanged);
 
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
@@ -292,25 +287,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         }
       }
     });
-  }
-
-  private void selectionChanged() {
-    Range range = getStage().getStudioProfilers().getTimeline().getSelectionRange();
-
-    if (getStage() == getStage().getStudioProfilers().getStage() && !range.isEmpty()) {
-      // Stop timeline when selection is not empty.
-      getStage().getStudioProfilers().getTimeline().setStreaming(false);
-    }
-
-    List<SeriesData<CpuCapture>> captures = getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
-    for (SeriesData<CpuCapture> capture : captures) {
-      Range c = new Range(capture.x, capture.x + capture.value.getDuration());
-      if (!c.getIntersection(range).isEmpty()) {
-        if (!capture.value.equals(getStage().getCapture())) {
-          getStage().setCapture(capture.value);
-        }
-      }
-    }
   }
 
   @VisibleForTesting
