@@ -72,12 +72,12 @@ class CpuCaptureView {
     "Call Chart", CaptureModel.Details.Type.CALL_CHART,
     "Flame Chart", CaptureModel.Details.Type.FLAME_CHART);
 
-  // FIXME: Track Flame Chart
   private static final Map<CaptureModel.Details.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
     CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
     CaptureModel.Details.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
-    CaptureModel.Details.Type.CALL_CHART, FeatureTracker::trackSelectCaptureFlameChart
-    );
+    CaptureModel.Details.Type.CALL_CHART, FeatureTracker::trackSelectCaptureCallChart,
+    CaptureModel.Details.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart
+  );
 
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));

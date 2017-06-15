@@ -131,6 +131,11 @@ public interface FeatureTracker {
   void trackSelectCaptureFlameChart();
 
   /**
+   * Track the user opening up the "Call Chart" tab in the CPU capture view
+   */
+  void trackSelectCaptureCallChart();
+
+  /**
    * Track when the user requests memory be garbage collected.
    */
   void trackForceGc();
