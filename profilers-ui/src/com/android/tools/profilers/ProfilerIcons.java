@@ -37,6 +37,7 @@ public class ProfilerIcons {
   public static final Icon ZOOM_IN = load("/icons/zoom-in.png");
   public static final Icon RESET_ZOOM = load("/icons/reset-zoom.png");
   public static final Icon ANDROID_PROFILERS = load("/icons/android-profiler.png");
+  public static final Icon CLOSE = load("/icons/close.png");
 
   // Collections of constant, do not instantiate.
   private ProfilerIcons() {}

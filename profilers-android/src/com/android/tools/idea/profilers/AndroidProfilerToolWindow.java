@@ -23,7 +23,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +41,6 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
   public AndroidProfilerToolWindow(@NotNull final Project project) {
     myProject = project;
-    Disposer.register(project, this);
 
     ProfilerService service = ProfilerService.getInstance(myProject);
     ProfilerClient client = service.getProfilerClient();
@@ -64,6 +62,9 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
     boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
     if (maximize != manager.isMaximized(window)) {
       manager.setMaximized(window, maximize);
+    }
+    if (myProfilers.isStopped()) {
+      window.getContentManager().removeAllContents(true);
     }
   }
 
