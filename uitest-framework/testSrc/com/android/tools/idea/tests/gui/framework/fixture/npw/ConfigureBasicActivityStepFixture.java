@@ -112,7 +112,7 @@ public class ConfigureBasicActivityStepFixture extends AbstractWizardStepFixture
 
   @NotNull
   public ConfigureBasicActivityStepFixture setSourceLanguage(@NotNull String sourceLanguage) {
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Source Language:", JComboBox.class, true))
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Source Language", JComboBox.class, true))
       .selectItem(sourceLanguage);
     return this;
   }

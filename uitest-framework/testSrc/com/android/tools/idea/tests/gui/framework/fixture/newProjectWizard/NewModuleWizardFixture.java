@@ -41,7 +41,7 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
 
   @NotNull
   public ConfigureAndroidModuleStepFixture getConfigureAndroidModuleStep() {
-    JRootPane rootPane = findStepWithTitle("Configure your new module");
+    JRootPane rootPane = findStepWithTitle("Configure the new module");
     return new ConfigureAndroidModuleStepFixture(robot(), rootPane);
   }
 

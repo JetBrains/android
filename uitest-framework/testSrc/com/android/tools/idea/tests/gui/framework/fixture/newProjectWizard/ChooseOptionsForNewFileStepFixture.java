@@ -42,19 +42,19 @@ public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public String getInstantAppsHost() {
-    final JTextField textField = robot().finder().findByLabel("Instant App URL Host:", JTextField.class, true);
+    final JTextField textField = robot().finder().findByLabel("Instant App URL Host", JTextField.class, true);
     return GuiQuery.getNonNull(textField::getText);
   }
 
   @NotNull
   public String getInstantAppsRouteType() {
-    final JComboBox comboBox = robot().finder().findByLabel("Instant App URL Route Type:", JComboBox.class, true);
+    final JComboBox comboBox = robot().finder().findByLabel("Instant App URL Route Type", JComboBox.class, true);
     return ((ApiComboBoxItem)GuiQuery.getNonNull(comboBox::getSelectedItem)).getLabel();
   }
 
   @NotNull
   public String getInstantAppsRoute() {
-    final JTextField textField = robot().finder().findByLabel("Instant App URL Route:", JTextField.class, true);
+    final JTextField textField = robot().finder().findByLabel("Instant App URL Route", JTextField.class, true);
     return GuiQuery.getNonNull(textField::getText);
   }
 }
