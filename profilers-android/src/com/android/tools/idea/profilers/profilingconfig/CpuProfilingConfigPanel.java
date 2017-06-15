@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.DocumentAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
-import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.function.Consumer;
@@ -215,39 +217,25 @@ public class CpuProfilingConfigPanel {
   }
 
   private void createUiComponents() {
-    // TODO: adjust style of everything
     myConfigPanel = new JPanel();
-    myConfigPanel.setLayout(new BoxLayout(myConfigPanel, BoxLayout.Y_AXIS));
+    myConfigPanel.setLayout(new VerticalFlowLayout());
 
     createConfigNamePanel();
-    addSeparator();
+    myConfigPanel.add(new JSeparator());
     createTraceTechnologyPanel();
-    addSeparator();
+    myConfigPanel.add(new JSeparator());
     createSamplingIntervalPanel();
-    addSeparator();
+    myConfigPanel.add(new JSeparator());
     createFileLimitPanel();
-
-    JPanel bottomFiller = new JPanel();
-    bottomFiller.setPreferredSize(new Dimension(10, 1000));
-    myConfigPanel.add(bottomFiller);
 
     disableFields();
   }
 
-  private void addSeparator() {
-    JSeparator separator = new JSeparator();
-    Dimension dim = new Dimension(20, 20);
-    separator.setPreferredSize(dim);
-    separator.setMinimumSize(dim);
-    myConfigPanel.add(separator);
-  }
-
   private void createConfigNamePanel() {
-    JPanel namePanel = new JPanel();
-    namePanel.setLayout(new BoxLayout(namePanel, BoxLayout.X_AXIS));
-
-    namePanel.add(new JLabel("Name:"));
-    namePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+    JPanel namePanel = new JPanel(new TabularLayout("Fit,200px", "25px"));
+    JLabel nameLabel = new JLabel("Name:");
+    nameLabel.setBorder(new EmptyBorder(0, 0, 0, 5));
+    namePanel.add(nameLabel, new TabularLayout.Constraint(0, 0));
 
     myConfigName = new JTextField();
     myConfigName.getDocument().addDocumentListener(new DocumentAdapter() {
@@ -258,20 +246,13 @@ public class CpuProfilingConfigPanel {
         }
       }
     });
-    Dimension nameMaxSize = myConfigName.getMaximumSize();
-    nameMaxSize.height = (int)myConfigName.getPreferredSize().getHeight();
-    myConfigName.setMaximumSize(nameMaxSize);
-    namePanel.add(myConfigName);
+    namePanel.add(myConfigName, new TabularLayout.Constraint(0, 1));
 
     myConfigPanel.add(namePanel);
   }
 
   private void createTraceTechnologyPanel() {
-    JPanel traceTechnologyPanel = new JPanel();
-    traceTechnologyPanel.setLayout(new BoxLayout(traceTechnologyPanel, BoxLayout.X_AXIS));
-    traceTechnologyPanel.add(new JLabel("Trace technology"));
-    traceTechnologyPanel.add(Box.createHorizontalGlue());
-    myConfigPanel.add(traceTechnologyPanel);
+    myConfigPanel.add(new JLabel("Trace technology"));
 
     ButtonGroup profilersType = new ButtonGroup();
     myArtSampledButton = new JRadioButton(ProfilingConfiguration.ART_SAMPLED);
@@ -318,23 +299,13 @@ public class CpuProfilingConfigPanel {
       }
     });
     group.add(button);
+    myConfigPanel.add(button);
 
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-    buttonPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-    buttonPanel.add(button);
-    buttonPanel.add(Box.createHorizontalGlue());
-    myConfigPanel.add(buttonPanel);
-
-    JPanel descriptionPanel = new JPanel();
-    descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.X_AXIS));
-    // TODO: align the description with the radio button text.
-    descriptionPanel.add(Box.createRigidArea(new Dimension(35, 0)));
     JLabel descriptionLabel = new JLabel(description);
     descriptionLabel.setFont(descriptionLabel.getFont().deriveFont(12f));
-    descriptionPanel.add(descriptionLabel);
-    descriptionPanel.add(Box.createHorizontalGlue());
-    myConfigPanel.add(descriptionPanel);
+    // TODO: align the description with the radio button text.
+    descriptionLabel.setBorder(new EmptyBorder(0, 30, 0, 0));
+    myConfigPanel.add(descriptionLabel);
   }
 
   private void setEnabledSamplingIntervalPanel(boolean isEnabled) {
@@ -343,28 +314,25 @@ public class CpuProfilingConfigPanel {
     mySamplingIntervalUnit.setEnabled(isEnabled);
   }
 
-  private void createSamplingIntervalPanel() {
-    JPanel samplingIntervalPanel = new JPanel();
-    samplingIntervalPanel.setLayout(new BoxLayout(samplingIntervalPanel, BoxLayout.X_AXIS));
-    samplingIntervalPanel.add(mySamplingIntervalText);
-    samplingIntervalPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+  /**
+   * Layout used by sampling interval and file size related components.
+   * The same layout is used so their components keep aligned.
+   */
+  private static TabularLayout getSamplingIntervalFileSizeLayout() {
+    return new TabularLayout("120px,75px,Fit,*", "25px");
+  }
 
+  private void createSamplingIntervalPanel() {
+    JPanel samplingIntervalPanel = new JPanel(getSamplingIntervalFileSizeLayout());
+    samplingIntervalPanel.add(mySamplingIntervalText, new TabularLayout.Constraint(0, 0));
     mySamplingInterval = createNumberTextField(MIN_SAMPLING_INTERVAL_US, MAX_SAMPLING_INTERVAL_US,
                                                ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US,
                                                value -> myConfiguration.setProfilingSamplingIntervalUs(value),
                                                String.format("The sampling interval should be a value between %d and %d microseconds",
                                                              MIN_SAMPLING_INTERVAL_US, MAX_SAMPLING_INTERVAL_US));
-    Dimension samplingMaxSize = mySamplingInterval.getMaximumSize();
-    samplingMaxSize.height = (int)mySamplingInterval.getPreferredSize().getHeight();
-    samplingMaxSize.width = 75;
-    mySamplingInterval.setMaximumSize(samplingMaxSize);
-    mySamplingInterval.setPreferredSize(samplingMaxSize);
-    samplingIntervalPanel.add(mySamplingInterval);
-
-    samplingIntervalPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-    samplingIntervalPanel.add(mySamplingIntervalUnit);
-    samplingIntervalPanel.add(Box.createHorizontalGlue());
-
+    samplingIntervalPanel.add(mySamplingInterval, new TabularLayout.Constraint(0, 1));
+    mySamplingIntervalUnit.setBorder(new EmptyBorder(0, 5, 0, 0));
+    samplingIntervalPanel.add(mySamplingIntervalUnit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(samplingIntervalPanel);
   }
 
@@ -375,39 +343,25 @@ public class CpuProfilingConfigPanel {
   }
 
   private void createFileLimitPanel() {
-    JPanel fileSizeLimitPanel = new JPanel();
-    fileSizeLimitPanel.setLayout(new BoxLayout(fileSizeLimitPanel, BoxLayout.X_AXIS));
-    fileSizeLimitPanel.add(myFileSizeLimitText);
-    fileSizeLimitPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-
+    JPanel fileSizeLimitPanel = new JPanel(getSamplingIntervalFileSizeLayout());
+    fileSizeLimitPanel.add(myFileSizeLimitText, new TabularLayout.Constraint(0, 0));
     myFileSizeLimit = createNumberTextField(MIN_FILE_SIZE_LIMIT_MB, myMaxFileSizeLimitMb, ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB,
                                             value -> myConfiguration.setProfilingBufferSizeInMb(value),
                                             String.format("The file buffer maximum size should be a value between %d and %d MB",
                                                           MIN_FILE_SIZE_LIMIT_MB, myMaxFileSizeLimitMb));
-    Dimension fileMaxSize = myFileSizeLimit.getMaximumSize();
-    fileMaxSize.height = (int)myFileSizeLimit.getPreferredSize().getHeight();
-    fileMaxSize.width = 75;
-    myFileSizeLimit.setMaximumSize(fileMaxSize);
-    myFileSizeLimit.setPreferredSize(fileMaxSize);
-    fileSizeLimitPanel.add(myFileSizeLimit);
+    fileSizeLimitPanel.add(myFileSizeLimit, new TabularLayout.Constraint(0, 1));
 
-    fileSizeLimitPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-    fileSizeLimitPanel.add(myFileSizeLimitUnit);
-    fileSizeLimitPanel.add(Box.createHorizontalGlue());
-
+    myFileSizeLimitUnit.setBorder(new EmptyBorder(0, 5, 0, 0));
+    fileSizeLimitPanel.add(myFileSizeLimitUnit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(fileSizeLimitPanel);
 
-    myConfigPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-
     JPanel descriptionPanel = new JPanel();
-    descriptionPanel.setLayout(new BoxLayout(descriptionPanel, BoxLayout.X_AXIS));
     JLabel description = new JLabel("<html>Maximum size of the output file from recording. On Android O or greater, " +
                                     "there is no limit on the file size and the value is ignored.</html>");
     description.setFont(description.getFont().deriveFont(12f));
     descriptionPanel.add(description);
-    descriptionPanel.add(Box.createHorizontalGlue());
 
-    myConfigPanel.add(descriptionPanel);
+    myConfigPanel.add(description);
   }
 
   private enum TraceTechnology {
