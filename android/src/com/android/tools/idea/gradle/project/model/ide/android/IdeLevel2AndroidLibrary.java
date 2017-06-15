@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.level2.Library;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,12 +45,14 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   @NotNull private final String myLintJar;
   @NotNull private final String myExternalAnnotations;
   @NotNull private final String myPublicResources;
-  @NotNull private final String mySymbolFile;
+  @Nullable private final String mySymbolFile;
   @Nullable private final File myArtifactFile;
   private final int myType;
   private final int myHashCode;
 
-  IdeLevel2AndroidLibrary(@NotNull String artifactAddress,
+  IdeLevel2AndroidLibrary(@NotNull Object original,
+                          @NotNull ModelCache modelCache,
+                          @NotNull String artifactAddress,
                           @NotNull File folder,
                           @NotNull String manifest,
                           @NotNull String jarFile,
@@ -63,11 +66,9 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
                           @NotNull String lintJar,
                           @NotNull String externalAnnotations,
                           @NotNull String publicResources,
-                          @NotNull String symbolFile,
-                          @NotNull ModelCache modelCache,
-                          @NotNull Object sourceObject,
+                          @Nullable String symbolFile,
                           @Nullable File artifactFile) {
-    super(sourceObject, modelCache);
+    super(original, modelCache);
     myType = LIBRARY_ANDROID;
     myArtifactAddress = artifactAddress;
     myFolder = folder;
@@ -103,8 +104,7 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   @NotNull
   public File getArtifact() {
     if (myArtifactFile == null) {
-      throw new UnsupportedOperationException(
-        "getArtifact() cannot be called when getType() returns ANDROID_LIBRARY");
+      throw new UnsupportedOperationException("getArtifact() cannot be called when getType() returns ANDROID_LIBRARY");
     }
     return myArtifactFile;
   }
@@ -190,7 +190,10 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   @Override
   @NotNull
   public String getSymbolFile() {
-    return mySymbolFile;
+    if (mySymbolFile != null) {
+      return mySymbolFile;
+    }
+    throw new UnsupportedMethodException("Unsupported method: AndroidLibrary.getSymbolFile()");
   }
 
   @Override
@@ -241,9 +244,9 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   }
 
   private int calculateHashCode() {
-    return Objects
-      .hash(myType, myArtifactAddress, myFolder, myManifest, myJarFile, myResFolder, myAssetsFolder, myLocalJars, myJniFolder, myAidlFolder,
-            myRenderscriptFolder, myProguardRules, myLintJar, myExternalAnnotations, myPublicResources, mySymbolFile, myArtifactFile);
+    return Objects.hash(myType, myArtifactAddress, myFolder, myManifest, myJarFile, myResFolder, myAssetsFolder, myLocalJars, myJniFolder,
+                        myAidlFolder, myRenderscriptFolder, myProguardRules, myLintJar, myExternalAnnotations, myPublicResources,
+                        mySymbolFile, myArtifactFile);
   }
 
   @Override

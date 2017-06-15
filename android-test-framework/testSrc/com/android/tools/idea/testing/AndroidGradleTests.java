@@ -59,15 +59,35 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
                                    buildEnvironment.getExperimentalPluginVersion());
 
-      contents = replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", buildEnvironment.getBuildToolsVersion());
-      contents = replaceRegexGroup(contents, "compileSdkVersion ([0-9]+)", buildEnvironment.getCompileSdkVersion());
-      contents = replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", buildEnvironment.getTargetSdkVersion());
-      contents = contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
+      contents = updateBuildToolsVersion(contents);
+      contents = updateCompileSdkVersion(contents);
+      contents = updateTargetSdkVersion(contents);
+      contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
         write(contents, path, Charsets.UTF_8);
       }
     }
+  }
+
+  @NotNull
+  public static String updateBuildToolsVersion(@NotNull String contents) {
+    return replaceRegexGroup(contents, "buildToolsVersion ['\"](.+)['\"]", BuildEnvironment.getInstance().getBuildToolsVersion());
+  }
+
+  @NotNull
+  public static String updateCompileSdkVersion(@NotNull String contents) {
+    return replaceRegexGroup(contents, "compileSdkVersion ([0-9]+)", BuildEnvironment.getInstance().getCompileSdkVersion());
+  }
+
+  @NotNull
+  public static String updateTargetSdkVersion(@NotNull String contents) {
+    return replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+  }
+
+  @NotNull
+  public static String updateLocalRepositories(@NotNull String contents, @NotNull String localRepositories) {
+    return contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
   }
 
   @NotNull
