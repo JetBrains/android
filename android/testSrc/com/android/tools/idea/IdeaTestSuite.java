@@ -23,6 +23,7 @@ import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.annotations.NotNull;
 import org.junit.AfterClass;
 import org.junit.runner.RunWith;
 
@@ -143,7 +144,12 @@ public class IdeaTestSuite {
     createTmpDir("prebuilts/tools/common/offline-m2");
 
     // If present, also adds the offline repo we built from the source tree.
-    File offlineRepoZip = TestUtils.getWorkspaceFile("tools/base/bazel/offline_repo_repo.zip");
+    setUpOfflineRepo("tools/base/bazel/offline_repo_repo.zip");
+    setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo_repo.zip");
+  }
+
+  private static void setUpOfflineRepo(@NotNull String path) {
+    File offlineRepoZip = TestUtils.getWorkspaceFile(path);
     if (offlineRepoZip.exists()) {
       try {
         InstallerUtil.unzip(
