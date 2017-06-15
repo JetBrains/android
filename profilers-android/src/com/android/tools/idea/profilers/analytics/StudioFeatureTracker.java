@@ -157,6 +157,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectCaptureCallChart() {
+    track(AndroidProfilerEvent.Type.SELECT_CALL_CHART);
+  }
+
+  @Override
   public void trackForceGc() {
     track(AndroidProfilerEvent.Type.FORCE_GC);
   }
