@@ -830,8 +830,13 @@ public final class StudioProfilersTest {
     assertFalse(myProfilerService.getAgentAttachCalled());
   }
 
+  /**
+   * We need to account for an scenario where perfd reinstantiates and needs to pass a new client socket to the app. Hence we make the
+   * same attach agent call from Studio side and let perfd handles the rest.
+   * @throws Exception
+   */
   @Test
-  public void testAttachAgentNotCalledIfAlreadyAttached() throws Exception {
+  public void testAttachAgentEvenIfAlreadyAttached() throws Exception {
     FakeIdeProfilerServices fakeIdeService = new FakeIdeProfilerServices();
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), fakeIdeService, timer);
@@ -850,7 +855,7 @@ public final class StudioProfilersTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertEquals(device, profilers.getDevice());
     assertEquals(process1, profilers.getProcess());
-    assertFalse(myProfilerService.getAgentAttachCalled());
+    assertTrue(myProfilerService.getAgentAttachCalled());
   }
 
   @Test
