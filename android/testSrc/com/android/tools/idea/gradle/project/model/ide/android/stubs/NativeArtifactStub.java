@@ -153,7 +153,7 @@ public class NativeArtifactStub extends BaseStub implements NativeArtifact {
            Objects.equals(getAbi(), artifact.getAbi()) &&
            Objects.equals(getTargetName(), artifact.getTargetName()) &&
            Objects.equals(getOutputFile(), artifact.getOutputFile()) &&
-           Objects.equals(getRuntimeFiles(), artifact.getRuntimeFiles());
+           equals(artifact, NativeArtifact::getRuntimeFiles);
   }
 
   @Override

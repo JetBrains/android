@@ -36,7 +36,6 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
   @NotNull private final String myAbi;
   @NotNull private final String myTargetName;
   @NotNull private final File myOutputFile;
-  @NotNull private final Collection<File> myRuntimeFiles;
   private final int myHashCode;
 
   public IdeNativeArtifact(@NotNull NativeArtifact artifact, @NotNull ModelCache modelCache) {
@@ -51,7 +50,6 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
     myAbi = artifact.getAbi();
     myTargetName = artifact.getTargetName();
     myOutputFile = artifact.getOutputFile();
-    myRuntimeFiles = ImmutableList.copyOf(artifact.getRuntimeFiles());
     myHashCode = calculateHashCode();
   }
 
@@ -118,7 +116,7 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
   @Override
   @NotNull
   public Collection<File> getRuntimeFiles() {
-    return myRuntimeFiles;
+    throw new UnusedModelMethodException("getRuntimeFiles");
   }
 
   @Override
@@ -139,8 +137,7 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
            Objects.equals(myExportedHeaders, artifact.myExportedHeaders) &&
            Objects.equals(myAbi, artifact.myAbi) &&
            Objects.equals(myTargetName, artifact.myTargetName) &&
-           Objects.equals(myOutputFile, artifact.myOutputFile) &&
-           Objects.equals(myRuntimeFiles, artifact.myRuntimeFiles);
+           Objects.equals(myOutputFile, artifact.myOutputFile);
   }
 
   @Override
@@ -150,7 +147,7 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
 
   private int calculateHashCode() {
     return Objects.hash(myName, myToolChain, myGroupName, myAssembleTaskName, mySourceFolders, mySourceFiles, myExportedHeaders, myAbi,
-                        myTargetName, myOutputFile, myRuntimeFiles);
+                        myTargetName, myOutputFile);
   }
 
   @Override
@@ -166,7 +163,6 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
            ", myAbi='" + myAbi + '\'' +
            ", myTargetName='" + myTargetName + '\'' +
            ", myOutputFile=" + myOutputFile +
-           ", myRuntimeFiles=" + myRuntimeFiles +
            "}";
   }
 }
