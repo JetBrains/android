@@ -107,8 +107,5 @@ class StandardTypeEvaluator : TypeEvaluator, AbstractUastVisitor() {
       val concreteType = expr.returnType ?: throw Error("Constructors should have a return type")
       this[variable] += TypeEstimate(concreteType, TypeRange.Kind.EXACT)
     }
-    else {
-      expr.getExpressionType()?.let { this[variable] += TypeEstimate(it, TypeRange.Kind.SUBTYPE) }
-    }
   }
 }
