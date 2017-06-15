@@ -95,7 +95,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.wizard.project.select.form"));
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
@@ -138,7 +138,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
       if (formFactorInfo.controls.getInstantAppCheckbox().isVisible()) {
         allSteps.add(new ConfigureInstantModuleStep(moduleModel, getModel().projectLocation()));
-        myListeners.receive(moduleModel.instantApp(), value ->  checkValidity());
+        myListeners.receive(moduleModel.instantApp(), value -> checkValidity());
       }
       formFactorInfo.step = new ChooseActivityTypeStep(moduleModel, renderModel, formFactor, Lists.newArrayList());
       allSteps.add(formFactorInfo.step);
@@ -146,7 +146,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       FormFactorSdkControls controls = formFactorInfo.controls;
       myBindings.bindTwoWay(new SelectedProperty(controls.getInstantAppCheckbox()), moduleModel.instantApp());
 
-      myListeners.receive(renderModel.androidSdkInfo(), value ->  checkValidity());
+      myListeners.receive(renderModel.androidSdkInfo(), value -> checkValidity());
       myBindings.bindTwoWay(renderModel.androidSdkInfo(), new SelectedItemProperty<>(controls.getMinSdkCombobox()));
 
       myListeners.listenAll(myEnabledFormFactors, moduleModel.instantApp()).withAndFire(() -> {

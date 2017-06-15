@@ -61,7 +61,7 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
       ModelWizard wizard = new ModelWizard.Builder()
         .addStep(new ConfigureAndroidProjectStep(model))
         .build();
-      new StudioWizardDialogBuilder(wizard, "Create New Project").build().show();
+      new StudioWizardDialogBuilder(wizard, "Create New Project").setUseNewUx(true).build().show();
     }
     else {
       try {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.npw.project.FormFactorSdkControls">
-  <grid id="27dc6" binding="myRootPanel" layout-manager="GridLayoutManager" row-count="6" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myRootPanel" layout-manager="GridLayoutManager" row-count="5" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="609" height="400"/>
@@ -8,18 +8,9 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="a7305" class="com.intellij.ui.components.JBLabel" binding="myLabel">
-        <constraints>
-          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <enabled value="false"/>
-          <text value="Minimum SDK"/>
-        </properties>
-      </component>
       <component id="e94dc" class="com.android.tools.idea.npw.module.FormFactorApiComboBox" binding="myMinSdkCombobox">
         <constraints>
-          <grid row="1" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <enabled value="false"/>
@@ -27,7 +18,7 @@
       </component>
       <vspacer id="e26df">
         <constraints>
-          <grid row="5" column="2" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <hspacer id="669e8">
@@ -40,7 +31,7 @@
       <grid id="5699a" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -51,6 +42,7 @@
             </constraints>
             <properties>
               <enabled value="false"/>
+              <font style="1"/>
               <text value="Form factor name"/>
             </properties>
           </component>
@@ -71,17 +63,9 @@
           </hspacer>
         </children>
       </grid>
-      <component id="e8036" class="com.intellij.ui.components.JBLabel" binding="myHelpMeChooseLabel1">
-        <constraints>
-          <grid row="2" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Lower API levels target more devices, but have fewer features available."/>
-        </properties>
-      </component>
       <grid id="9cc88" binding="myStatsPanel" layout-manager="CardLayout" hgap="0" vgap="0" show="80705">
         <constraints>
-          <grid row="3" column="2" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -95,34 +79,27 @@
             <border type="none"/>
             <children/>
           </grid>
-          <grid id="96435" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="0" bottom="0" right="0"/>
+          <grid id="96435" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
             <constraints>
               <card name="stats"/>
             </constraints>
             <properties/>
             <border type="none"/>
             <children>
-              <component id="ade13" class="com.intellij.ui.components.JBLabel" binding="myHelpMeChooseLabel2">
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
+              <component id="ade13" class="com.intellij.ui.components.JBLabel" binding="myHelpMeChooseLabel">
+                <constraints/>
                 <properties>
                   <text value="help me choose"/>
                 </properties>
               </component>
               <component id="4bbd5" class="com.intellij.ui.HyperlinkLabel" binding="myHelpMeChooseLink">
-                <constraints>
-                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
+                <constraints/>
                 <properties>
                   <visible value="true"/>
                 </properties>
               </component>
               <component id="a7d6c" class="com.intellij.ui.components.JBLabel" binding="myStatsLoadFailedLabel">
-                <constraints>
-                  <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
+                <constraints/>
                 <properties>
                   <text value="Stats load failed. Value may be out of date."/>
                   <visible value="false"/>
@@ -134,7 +111,7 @@
       </grid>
       <component id="70fc0" class="javax.swing.JCheckBox" binding="myInstantAppCheckbox">
         <constraints>
-          <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Include Android Instant App support"/>

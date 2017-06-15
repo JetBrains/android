@@ -32,7 +32,7 @@ import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.validation.validators.FalseValidator;
 import com.android.tools.idea.ui.validation.validators.TrueValidator;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;

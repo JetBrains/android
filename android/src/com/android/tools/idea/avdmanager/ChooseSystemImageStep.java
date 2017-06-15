@@ -19,7 +19,7 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;

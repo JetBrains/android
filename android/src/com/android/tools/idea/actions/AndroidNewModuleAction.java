@@ -64,7 +64,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
         ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(new NewModuleModel(project), moduleDescriptions);
         ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
 
-        new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).build().show();
+        new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUseNewUx(true).build().show();
       }
       else {
         NewModuleWizardDynamic dialog = new NewModuleWizardDynamic(project, null);

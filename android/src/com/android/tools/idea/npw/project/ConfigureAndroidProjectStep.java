@@ -112,7 +112,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myValidatorPanel.registerValidator(model.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel, "Configure your new project");
+    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
