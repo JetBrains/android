@@ -63,6 +63,16 @@ public class LineChart extends AnimatedComponent {
   private boolean myShowMaxLine;
 
   /**
+   * The X coordinate translation offset for line path transformation.
+   */
+  private int myXOffset = 0;
+
+  /**
+   * The Y coordinate translation offset for line path transformation.
+   */
+  private int myYOffset = 0;
+
+  /**
    * The color of the next line to be inserted, if not specified, is picked from {@code COLORS}
    * array of {@link LineConfig}. This field holds the color index.
    */
@@ -266,7 +276,7 @@ public class LineChart extends AnimatedComponent {
     addDebugInfo("Redraws in the last second %d", myLastRedraws);
 
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
+    AffineTransform scale = new AffineTransform(dim.getWidth(), 0, 0, dim.getHeight(), myXOffset, myYOffset);
 
     if (myShowMaxLine) {
       g2d.setColor(myMaxLineColor);
@@ -345,5 +355,12 @@ public class LineChart extends AnimatedComponent {
   public void setMaxLineMargin(int maxLineMargin) {
     myMaxLineMargin = maxLineMargin;
   }
-}
 
+  /**
+   * Sets the translation offsets of lines coordinates transformation.
+   */
+  public void setRenderOffset(int xOffset, int yOffset) {
+    myXOffset = xOffset;
+    myYOffset = yOffset;
+  }
+}

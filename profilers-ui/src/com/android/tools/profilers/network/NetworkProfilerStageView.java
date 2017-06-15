@@ -150,6 +150,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR)
       .setLegendIconType(LegendConfig.IconType.DASHED_LINE).setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE);
     lineChart.configure(usage.getConnectionSeries(), connectionConfig);
+    int yOffset = (int) LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2;
+    lineChart.setRenderOffset(0,  yOffset);
 
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
