@@ -371,9 +371,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     localProperties.save();
   }
 
-  protected static void createGradleWrapper(File projectRoot) throws IOException {
+  protected void createGradleWrapper(@NotNull File projectRoot) throws IOException {
+    createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
+  }
+
+  protected void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File path = getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip");
+    File path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }

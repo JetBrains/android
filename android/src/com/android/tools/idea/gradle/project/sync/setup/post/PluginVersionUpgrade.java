@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,11 @@ import org.jetbrains.annotations.NotNull;
 public class PluginVersionUpgrade {
   @NotNull private final Project myProject;
   @NotNull private final PluginVersionUpgradeStep[] myUpgradeSteps;
+
+  @NotNull
+  public static PluginVersionUpgrade getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, PluginVersionUpgrade.class);
+  }
 
   public PluginVersionUpgrade(@NotNull Project project) {
     this(project, PluginVersionUpgradeStep.getExtensions());
