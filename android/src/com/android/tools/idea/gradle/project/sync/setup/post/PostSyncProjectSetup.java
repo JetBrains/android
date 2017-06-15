@@ -97,10 +97,11 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncState syncState,
                               @NotNull GradleSyncMessages syncMessages,
                               @NotNull DependencySetupIssues dependencySetupIssues,
+                              @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
     this(project, ideInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project), new ModuleSetup(project),
-         new PluginVersionUpgrade(project), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
+         pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
          RunManagerImpl.getInstanceImpl(project));
   }
 
