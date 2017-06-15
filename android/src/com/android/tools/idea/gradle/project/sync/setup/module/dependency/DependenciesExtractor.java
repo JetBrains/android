@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
+import com.android.ide.common.builder.model.IdeVariant;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.roots.DependencyScope;
