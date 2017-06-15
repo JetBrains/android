@@ -36,6 +36,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -96,16 +97,19 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
     GradleBuildInvoker.getInstance(myProject).add(result -> {
-      PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(result);
-      GradleBuildContext newContext = new GradleBuildContext(result);
-      AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
+      ReadAction.run(() -> {
+        if (myProject.isDisposed()) return;
+        PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(result);
+        GradleBuildContext newContext = new GradleBuildContext(result);
+        AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
 
-      // Force a refresh.
-      // https://code.google.com/p/android/issues/detail?id=229633
-      ApplicationManager.getApplication().invokeLater(() -> {
-        FileDocumentManager.getInstance().saveAllDocuments();
-        SaveAndSyncHandler.getInstance().refreshOpenFiles();
-        VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
+        // Force a refresh.
+        // https://code.google.com/p/android/issues/detail?id=229633
+        ApplicationManager.getApplication().invokeLater(() -> {
+          FileDocumentManager.getInstance().saveAllDocuments();
+          SaveAndSyncHandler.getInstance().refreshOpenFiles();
+          VirtualFileManager.getInstance().refreshWithoutFileWatcher(true);
+        });
       });
     });
   }
