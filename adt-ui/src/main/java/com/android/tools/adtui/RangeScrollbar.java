@@ -18,7 +18,6 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.components.JBScrollBar;
-import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -204,16 +203,4 @@ public final class RangeScrollbar extends JBScrollBar implements Updatable {
            STREAMING_POSITION_THRESHOLD * model.getExtent();
   }
 
-  /**
-   * The default ButtonlessScrollBarUI contains logic to overlay the scrollbar
-   * and fade in/out on top of a JScrollPane. Because we are using the scrollbar
-   * without a scroll pane, it can fade in and out unexpectedly. This subclass
-   * simply disables the overlay feature.
-   */
-  private static class RangeScrollBarUI extends ButtonlessScrollBarUI {
-    @Override
-    protected boolean isMacOverlayScrollbar() {
-      return false;
-    }
-  }
 }
