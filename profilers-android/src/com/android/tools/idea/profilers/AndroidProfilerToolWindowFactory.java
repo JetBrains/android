@@ -19,8 +19,12 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +34,32 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    AndroidProfilerToolWindow view = new AndroidProfilerToolWindow(project);
+    createContent(project, toolWindow);
 
+    toolWindow.setToHideOnEmptyContent(true);
+    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerListener() {
+      @Override
+      public void toolWindowRegistered(@NotNull String id) {
+      }
+
+      @Override
+      public void stateChanged() {
+        // We need to query the tool window again, because it might have been unregistered when closing the project.
+        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
+        if (window != null) {
+          if (window.isVisible() && window.getContentManager().getContentCount() == 0) {
+            createContent(project, window);
+          }
+        }
+      }
+    });
+  }
+
+  private static void createContent(Project project, ToolWindow toolWindow) {
+    AndroidProfilerToolWindow view = new AndroidProfilerToolWindow(project);
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(view.getComponent(), "", false);
+    Disposer.register(content, view);
     toolWindow.getContentManager().addContent(content);
   }
 

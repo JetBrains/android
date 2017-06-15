@@ -147,6 +147,13 @@ public class StudioProfilersView extends AspectObserver {
     JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
     toolbar.add(rightToolbar, BorderLayout.EAST);
 
+    FlatButton close = new FlatButton(ProfilerIcons.CLOSE);
+    close.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.CLOSE));
+    close.addActionListener(event -> myProfiler.stop() );
+    rightToolbar.add(close);
+
+    rightToolbar.add(new FlatSeparator());
+
     ProfilerTimeline timeline = myProfiler.getTimeline();
     FlatButton zoomOut = new FlatButton(ProfilerIcons.ZOOM_OUT);
     zoomOut.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.ZOOM_OUT));
