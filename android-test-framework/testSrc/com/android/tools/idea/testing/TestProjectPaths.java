@@ -35,6 +35,7 @@ public final class TestProjectPaths {
   public static final String NESTED_MODULE = "projects/nestedModule";
   public static final String NESTED_MULTI_FEATURE = "projects/nestedMultiFeature";
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
+  public static final String PROJECT_WITH1_DOT5 = "projects/projectWith1Dot5";
   public static final String PROJECT_WITH_APPAND_LIB = "projects/projectWithAppandLib";
   public static final String PROJECT_WITH_DATA_BINDING = "projects/projectWithDataBinding";
   public static final String PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB = "projects/projectWithDataBindingAndSimpleLib";

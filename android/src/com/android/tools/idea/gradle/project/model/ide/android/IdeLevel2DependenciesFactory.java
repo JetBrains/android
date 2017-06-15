@@ -27,6 +27,7 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.google.common.collect.ImmutableList;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,8 +43,7 @@ import static com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2L
  * Create {@link IdeLevel2Dependencies} from {@link BaseArtifact}.
  */
 public class IdeLevel2DependenciesFactory {
-  @NotNull
-  private final Map<String, Library> myMap = new HashMap<>();
+  @NotNull private final Map<String, Library> myMap = new HashMap<>();
 
   /**
    * Create {@link IdeLevel2Dependencies} from {@link BaseArtifact}.
@@ -79,7 +79,6 @@ public class IdeLevel2DependenciesFactory {
     Set<String> visited = new HashSet<>();
     populateAndroidLibraries(dependencies.getLibraries(), visited, modelCache);
     populateJavaLibraries(dependencies.getJavaLibraries(), visited, modelCache);
-    //noinspection deprecation
     for (String projectPath : dependencies.getProjects()) {
       if (!visited.contains(projectPath)) {
         visited.add(projectPath);
@@ -98,10 +97,21 @@ public class IdeLevel2DependenciesFactory {
         visited.add(address);
         myMap.computeIfAbsent(address, k -> IdeLevel2LibraryFactory.create(androidLibrary, modelCache));
         populateAndroidLibraries(androidLibrary.getLibraryDependencies(), visited, modelCache);
-        populateJavaLibraries(androidLibrary.getJavaDependencies(), visited, modelCache);
+        populateJavaLibraries(getJavaDependencies(androidLibrary), visited, modelCache);
       }
     }
   }
+
+  @NotNull
+  private static Collection<? extends JavaLibrary> getJavaDependencies(AndroidLibrary androidLibrary) {
+    try {
+      return androidLibrary.getJavaDependencies();
+    }
+    catch (UnsupportedMethodException e) {
+      return Collections.emptyList();
+    }
+  }
+
 
   private void populateJavaLibraries(@NotNull Collection<? extends JavaLibrary> javaLibraries,
                                      @NotNull Set<String> visited,

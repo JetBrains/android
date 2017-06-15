@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
@@ -50,6 +51,7 @@ public class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
   @NotNull private final Application myApplication;
+  @NotNull private final AtomicReference<String> myProjectCreationErrorRef = new AtomicReference<>();
 
   private volatile boolean myIsNewlyCreatedProject;
 
@@ -79,6 +81,15 @@ public class GradleProjectInfo {
 
   public void setNewlyCreatedProject(boolean newlyCreatedProject) {
     myIsNewlyCreatedProject = newlyCreatedProject;
+  }
+
+  @Nullable
+  public String getProjectCreationError() {
+    return myProjectCreationErrorRef.get();
+  }
+
+  public void setProjectCreationError(@Nullable String error) {
+    myProjectCreationErrorRef.set(error);
   }
 
   /**
