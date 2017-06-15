@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.InstantRun;
@@ -37,8 +38,8 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
-  @NotNull String myApplicationId;
   @NotNull private final IdeLevel2DependenciesStub myIdeLevel2DependenciesStub;
+  @NotNull private String myApplicationId;
 
   private InstantRun myInstantRun;
 
@@ -121,6 +122,12 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @NotNull
   public InstantRun getInstantRun() {
     return myInstantRun != null ? myInstantRun : mock(InstantRun.class);
+  }
+
+  @NonNull
+  @Override
+  public Collection<File> getAdditionalRuntimeApks() {
+    return Collections.emptyList();
   }
 
   public AndroidArtifactStub setInstantRun(InstantRun instantRun) {
