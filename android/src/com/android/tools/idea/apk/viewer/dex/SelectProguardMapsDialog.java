@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -47,7 +48,7 @@ public class SelectProguardMapsDialog {
                                     || file.getName().contains("seeds")
                                     || file.getName().contains("usage")));
 
-    VirtualFile[] files = FileChooser.chooseFiles(desc, myProject, getDefaultFolderToSelect());
+    VirtualFile[] files = FileChooser.chooseFiles(desc, myProject, getDefaultFolderToSelect(myApkFolder));
     if (files.length == 0) { // user canceled
       return false;
     }
@@ -62,16 +63,31 @@ public class SelectProguardMapsDialog {
     return true;
   }
 
-  private VirtualFile getDefaultFolderToSelect() {
+  @VisibleForTesting
+  static VirtualFile getDefaultFolderToSelect(VirtualFile apkFolder) {
     // typically, gradle projects have the following structure
     //   |--build/outputs
-    //   |----apk/release.apk
+    //   |----apk/release/release.apk
     //   |----mapping/release/{mapping|seeds|usage}.txt
     // This method returns the mapping/release folder given the apk folder.
+    //
+    // older android gradle plugin versions used: build/outputs/apk/release.apk (no "build type" folder)
+    // we can try supporting that, too
 
-    VirtualFile folderToSelect = myApkFolder;
+
+    String buildTypeName = null;
+
+    VirtualFile folderToSelect = apkFolder;
     if (folderToSelect.getParent() != null) {
-      folderToSelect = folderToSelect.getParent();
+      VirtualFile parentFolder = folderToSelect.getParent();
+      if ("apk".equals(parentFolder.getName())){
+        buildTypeName = folderToSelect.getName();
+        if (parentFolder.getParent() != null){
+          folderToSelect = parentFolder.getParent(); //foldertoSelect should now be build/outputs
+        }
+      } else { //it might be the "old" gradle plugin structure
+        folderToSelect = parentFolder; //foldertoSelect should now be build/outputs
+      }
     }
 
     //try to find the mapping folder in the project file structure
@@ -81,8 +97,14 @@ public class SelectProguardMapsDialog {
       //if it has just one subfolder (e.g. "mapping/release"), select that
       if (folderToSelect.getChildren().length == 1) {
         folderToSelect = folderToSelect.getChildren()[0];
+      } else if (buildTypeName != null) {
+        VirtualFile buildTypeFolder = folderToSelect.findChild(buildTypeName);
+        if (buildTypeFolder != null){
+          folderToSelect = buildTypeFolder;
+        }
       }
     }
+
     return folderToSelect;
   }
 
