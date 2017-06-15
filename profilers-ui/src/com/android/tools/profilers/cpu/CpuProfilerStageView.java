@@ -150,6 +150,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
     lineChart.configure(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT)
       .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+    int yOffset = (int) LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2;
+    lineChart.setRenderOffset(0,  yOffset);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
