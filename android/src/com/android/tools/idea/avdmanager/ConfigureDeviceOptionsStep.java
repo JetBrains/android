@@ -31,7 +31,7 @@ import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.Validator.Result;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;

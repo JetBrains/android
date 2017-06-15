@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.wizard;
+package com.android.tools.idea.ui.wizard.deprecated;
 
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,12 +25,20 @@ import java.awt.*;
 /**
  * A panel that provides a standard look and feel across wizard steps used in Android Studio.
  */
+@Deprecated
 public final class StudioWizardStepPanel extends JPanel {
 
   private JPanel myRootPanel;
+  private JBLabel myDescriptionLabel;
 
   public StudioWizardStepPanel(@NotNull JPanel innerPanel) {
+    this(innerPanel, null);
+  }
+
+  public StudioWizardStepPanel(@NotNull JPanel innerPanel, @Nullable String description) {
     super(new BorderLayout());
+
+    myDescriptionLabel.setText(description != null ? description : "");
 
     myRootPanel.add(innerPanel);
     add(myRootPanel);

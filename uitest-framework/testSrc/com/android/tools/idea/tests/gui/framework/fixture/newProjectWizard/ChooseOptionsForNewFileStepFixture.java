@@ -29,14 +29,14 @@ public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture enterActivityName(@NotNull String name) {
-    JTextField textField = robot().finder().findByLabel(target(), "Activity Name:", JTextField.class, true);
+    JTextField textField = robot().finder().findByLabel(target(), "Activity Name", JTextField.class, true);
     replaceText(textField, name);
     return this;
   }
 
   @NotNull
   public String getLayoutName() {
-    final JTextField textField = robot().finder().findByLabel("Layout Name:", JTextField.class, true);
+    final JTextField textField = robot().finder().findByLabel("Layout Name", JTextField.class, true);
     return GuiQuery.getNonNull(textField::getText);
   }
 

@@ -180,7 +180,7 @@ public class NewInstantAppTest {
   }
 
   @Test
-  public void testCanCustomiseFeatureModuleInNewInstantAppProjects() throws IOException {
+  public void testCanCustomizeFeatureModuleInNewInstantAppProjects() throws IOException {
     createAndOpenDefaultAIAProject("SetFeatureNameApp", "testfeaturename", null);
 
     guiTest.ideFrame().getModule("testfeaturename");
