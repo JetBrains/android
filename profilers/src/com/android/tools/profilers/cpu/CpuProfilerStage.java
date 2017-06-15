@@ -267,6 +267,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
 
     getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, this::updateProfilingConfigurations);
+    getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
   }
 
   @Override
@@ -286,6 +287,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
     getStudioProfilers().removeDependencies(this);
+    getStudioProfilers().getTimeline().getSelectionRange().removeDependencies(this);
 
     mySelectionModel.clearListeners();
 
@@ -414,6 +416,30 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // otherwise, invalidate capture start time
       myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
       myCaptureState = CaptureState.IDLE;
+    }
+  }
+
+  private void selectionChanged() {
+    Range range = getStudioProfilers().getTimeline().getSelectionRange();
+
+    if (!range.isEmpty()) {
+      // Stop timeline when selection is not empty.
+      getStudioProfilers().getTimeline().setStreaming(false);
+    }
+
+    boolean selectionIntersectsWithCapture = false;
+    List<SeriesData<CpuCapture>> captures = getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
+    for (SeriesData<CpuCapture> capture : captures) {
+      Range captureRange = capture.value.getRange();
+      if (!captureRange.getIntersection(range).isEmpty()) {
+        selectionIntersectsWithCapture = true;
+        setCapture(capture.value);
+        break; // No need to check other captures if one is already selected
+      }
+    }
+    // Selection range doesn't contain any captures. Set capture to null.
+    if (!selectionIntersectsWithCapture) {
+      setCapture(null);
     }
   }
 

@@ -18,13 +18,13 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.google.protobuf3jarjar.ByteString;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.util.Set;
 
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.readValidTrace;
 import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.traceFileToByteString;
 import static org.junit.Assert.*;
 
@@ -58,11 +58,6 @@ public class CpuCaptureTest {
     int inexistentThreadId = -1;
     assertFalse(capture.containsThread(inexistentThreadId));
     assertNull(capture.getCaptureNode(inexistentThreadId));
-  }
-
-  @NotNull
-  public static ByteString readValidTrace() throws IOException {
-    return traceFileToByteString("valid_trace.trace");
   }
 
   @Test
