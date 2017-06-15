@@ -46,7 +46,9 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
 
   @NotNull
   public FileChooserDialogFixture select(@NotNull final VirtualFile file) {
-    new JTextComponentFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), Matchers.byType(JTextField.class))).enterText(file.getPath());
+    JTextField pathTextField =
+      GuiTests.waitUntilShowing(robot(), target(), Matchers.byName(JTextField.class, "FileChooserDialogImpl.myPathTextField"));
+    new JTextComponentFixture(robot(), pathTextField).enterText(file.getPath());
     return this;
   }
 
