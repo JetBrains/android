@@ -855,6 +855,46 @@ public final class StudioProfilersTest {
     assertFalse(myProfilerService.getAgentAttachCalled());
   }
 
+  @Test
+  public void testProfilingStops() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Profiler.Device device1 = Profiler.Device.newBuilder().setSerial("FakeDevice").setState(Profiler.Device.State.ONLINE).build();
+    Profiler.Process process1 = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    Profiler.Process process2 = Profiler.Process.newBuilder()
+      .setPid(21)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess2")
+      .build();
+    Common.Session session1 = Common.Session.newBuilder()
+      .setBootId(device1.getBootId())
+      .setDeviceSerial(device1.getSerial())
+      .build();
+    myProfilerService.addDevice(device1);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(0, myGrpcServer.getProfiledProcessCount());
+    myProfilerService.addProcess(session1, process1);
+    myProfilerService.addProcess(session1, process2);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(process1, profilers.getProcess());
+    assertEquals(1, myGrpcServer.getProfiledProcessCount());
+    assertEquals(process1, profilers.getProcess());
+    assertTrue(timer.isRunning());
+
+    // Stop the profiler
+    profilers.stop();
+
+    assertEquals(0, myGrpcServer.getProfiledProcessCount());
+    assertEquals(null, profilers.getProcess());
+    assertEquals(null, profilers.getDevice());
+    assertEquals(NullMonitorStage.class, profilers.getStageClass());
+    assertFalse(timer.isRunning());
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);

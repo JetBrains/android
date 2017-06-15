@@ -85,6 +85,10 @@ public class Updater implements StopwatchTimer.TickHandler {
     }
   }
 
+  public boolean isRunning() {
+    return mTimer.isRunning();
+  }
+
   public void reset() {
     mReset = true;
   }
