@@ -51,11 +51,12 @@ public class LintOptionsStub extends BaseStub implements LintOptions {
   private final boolean myHtmlReport;
   private final boolean myXmlReport;
   private final boolean myCheckReleaseBuilds;
+  private final boolean myCheckDependencies;
 
   public LintOptionsStub() {
     this(Sets.newHashSet("disable"), Sets.newHashSet("enable"), Sets.newHashSet("check"), new File("lintConfig"), new File("textOutput"),
          new File("htmlOutput"), new File("xmlOutput"), new File("baselineFile"), ImmutableMap.of("key", 1), true, true, true, true, true,
-         true, true, true, true, true, true, true, true, true, true);
+         true, true, true, true, true, true, true, true, true, true, true);
   }
 
   public LintOptionsStub(@NotNull Set<String> disable,
@@ -81,7 +82,8 @@ public class LintOptionsStub extends BaseStub implements LintOptions {
                          boolean textReport,
                          boolean htmlReport,
                          boolean xmlReport,
-                         boolean checkReleaseBuilds) {
+                         boolean checkReleaseBuilds,
+                         boolean checkDependencies) {
     myDisable = disable;
     myEnable = enable;
     myCheck = check;
@@ -107,6 +109,7 @@ public class LintOptionsStub extends BaseStub implements LintOptions {
     myHtmlReport = htmlReport;
     myXmlReport = xmlReport;
     myCheckReleaseBuilds = checkReleaseBuilds;
+    myCheckDependencies = checkDependencies;
   }
 
 
@@ -240,6 +243,11 @@ public class LintOptionsStub extends BaseStub implements LintOptions {
   }
 
   @Override
+  public boolean isCheckDependencies() {
+    return myCheckDependencies;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -262,6 +270,7 @@ public class LintOptionsStub extends BaseStub implements LintOptions {
            equals(options, LintOptions::getHtmlReport) &&
            equals(options, LintOptions::getXmlReport) &&
            equals(options, LintOptions::isCheckReleaseBuilds) &&
+           equals(options, LintOptions::isCheckDependencies) &&
            equals(options, LintOptions::getDisable) &&
            equals(options, LintOptions::getEnable) &&
            equals(options, LintOptions::getCheck) &&
@@ -278,7 +287,8 @@ public class LintOptionsStub extends BaseStub implements LintOptions {
     return Objects.hash(getDisable(), getEnable(), getCheck(), getLintConfig(), getTextOutput(), getHtmlOutput(), getXmlOutput(),
                         getBaselineFile(), getSeverityOverrides(), isAbortOnError(), isAbsolutePaths(), isNoLines(), isQuiet(),
                         isCheckAllWarnings(), isIgnoreWarnings(), isWarningsAsErrors(), isCheckTestSources(), isCheckGeneratedSources(),
-                        isExplainIssues(), isShowAll(), getTextReport(), getHtmlReport(), getXmlReport(), isCheckReleaseBuilds());
+                        isExplainIssues(), isShowAll(), getTextReport(), getHtmlReport(), getXmlReport(), isCheckReleaseBuilds(),
+                        isCheckDependencies());
   }
 
   @Override
@@ -308,6 +318,7 @@ public class LintOptionsStub extends BaseStub implements LintOptions {
            ", myHtmlReport=" + myHtmlReport +
            ", myXmlReport=" + myXmlReport +
            ", myCheckReleaseBuilds=" + myCheckReleaseBuilds +
+           ", myCheckDependencies=" + myCheckDependencies +
            '}';
   }
 }
