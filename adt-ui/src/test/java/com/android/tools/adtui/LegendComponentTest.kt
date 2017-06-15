@@ -33,36 +33,41 @@ class LegendComponentTest {
     val legendComponent = LegendComponent.Builder(model).setVerticalPadding(0).setHorizontalPadding(0).build()
 
     assertThat(legendComponent.instructions.size).isEqualTo(0)
+    assertText(legendComponent, listOf())
     assertThat(legendComponent.preferredSize.width).isEqualTo(0)
     assertThat(legendComponent.preferredSize.height).isEqualTo(0)
 
     model.add(legend1)
     model.update(TimeUnit.SECONDS.toNanos(1))
 
-    assertThat(legendComponent.instructions.count { it is TextInstruction }).isEqualTo(1)
+    assertText(legendComponent, listOf("Name1"))
     assertThat(legendComponent.preferredSize.width).isGreaterThan(0)
     assertThat(legendComponent.preferredSize.height).isGreaterThan(0)
 
     model.add(legend2)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertThat(legendComponent.instructions.count { it is TextInstruction }).isEqualTo(2)
+    assertText(legendComponent, listOf("Name1", "Name2"))
 
-    // legend3 creates instructions for "name" and "value" text
     model.add(legend3)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertThat(legendComponent.instructions.count { it is TextInstruction }).isEqualTo(4)
+    assertText(legendComponent, listOf("Name1", "Name2", "Name3: ", "Value3"))
+
+    legend1.setValue("Value1")
+    model.update(TimeUnit.SECONDS.toNanos(1))
+    assertText(legendComponent, listOf("Name1: ", "Value1", "Name2", "Name3: ", "Value3"))
 
     model.remove(legend1)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertThat(legendComponent.instructions.count { it is TextInstruction }).isEqualTo(3)
+    assertText(legendComponent, listOf("Name2", "Name3: ", "Value3"))
 
     model.remove(legend3)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertThat(legendComponent.instructions.count { it is TextInstruction }).isEqualTo(1)
+    assertText(legendComponent, listOf("Name2"))
 
     model.remove(legend2)
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.size).isEqualTo(0) // Empty legend
+    assertText(legendComponent, listOf())
     assertThat(legendComponent.preferredSize.width).isEqualTo(0)
     assertThat(legendComponent.preferredSize.height).isEqualTo(0)
   }
@@ -81,18 +86,19 @@ class LegendComponentTest {
     legendComponent.configure(legend3, config3)
 
     assertThat(legendComponent.instructions.size).isEqualTo(0)
+    assertIcons(legendComponent, listOf())
 
     model.add(legend1)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertThat(legendComponent.instructions.count { it is IconInstruction }).isEqualTo(0)
+    assertIcons(legendComponent, listOf())
 
     model.add(legend2)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertThat(legendComponent.instructions.count { it is IconInstruction }).isEqualTo(1)
+    assertIcons(legendComponent, listOf(LegendConfig.IconType.BOX))
 
     model.add(legend3)
     model.update(TimeUnit.SECONDS.toNanos(1))
-    assertThat(legendComponent.instructions.count { it is IconInstruction }).isEqualTo(2)
+    assertIcons(legendComponent, listOf(LegendConfig.IconType.BOX, LegendConfig.IconType.LINE))
   }
 
   @Test
@@ -148,32 +154,32 @@ class LegendComponentTest {
     val gapBaseline = legendComponent.instructions.count { it is GapInstruction }
 
     // Long text makes for a new max size
-    legend1.valueText = "12321 b/s"
+    legend1.setValue("12321 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline)
 
     // Gap needed to mantain max size
-    legend1.valueText = "0 b/s"
+    legend1.setValue("0 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
     // Gap still needed to mantain max size
-    legend1.valueText = "123 b/s"
+    legend1.setValue("123 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
     // Long text makes for a new max size (in legend 2)
-    legend2.valueText = "9001 b/s"
+    legend2.setValue("9001 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
 
     // Now both legends have gaps
-    legend2.valueText = "0 b/s"
+    legend2.setValue("0 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 2)
 
     // Gap no longer needed in legend 1
-    legend1.valueText = "123456789 b/s"
+    legend1.setValue("123456789 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(gapBaseline + 1)
   }
@@ -190,12 +196,12 @@ class LegendComponentTest {
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(0)
 
     // Increase text to max size
-    legend.valueText = "12321 b/s"
+    legend.setValue("12321 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(0)
 
     // Shrink text again. In vertical legends, text will be allowed to shrink (no gap added)
-    legend.valueText = "0 b/s"
+    legend.setValue("0 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
     assertThat(legendComponent.instructions.count { it is GapInstruction }).isEqualTo(0)
   }
@@ -211,7 +217,7 @@ class LegendComponentTest {
     val initialWidth = legendComponent.preferredSize.width
 
     // Increase max size
-    legend.valueText = "12321 b/s"
+    legend.setValue("12321 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
 
     var currWidth = legendComponent.preferredSize.width
@@ -220,15 +226,30 @@ class LegendComponentTest {
     val prevWidth = currWidth
 
     // Shrinking value text doesn't affect max size
-    legend.valueText = "0 b/s"
+    legend.setValue("0 b/s")
     model.update(TimeUnit.SECONDS.toNanos(1))
 
     currWidth = legendComponent.preferredSize.width
     assertThat(currWidth).isEqualTo(prevWidth)
   }
 
-  private class FakeLegend(val nameText: String, var valueText: String? = null) : Legend {
-    override fun getName(): String = nameText
-    override fun getValue(): String? = valueText
+  private fun assertText(legend: LegendComponent, text: List<String>) {
+    assertThat(legend.instructions.filterIsInstance<TextInstruction>().map { it.myText })
+        .containsExactlyElementsIn(text).inOrder()
+  }
+
+  private fun assertIcons(legend: LegendComponent, icons: List<LegendConfig.IconType>) {
+    assertThat(legend.instructions.filterIsInstance<IconInstruction>().map { it.myType })
+        .containsExactlyElementsIn(icons).inOrder()
+  }
+
+  private class FakeLegend(name: String, value: String? = null) : Legend {
+    // Need to use backing fields, since otherwise "name" and "value" conflict in Kotlin with the
+    // getter functions "getName" and "getValue"
+    private val _name = name
+    private var _value = value
+    override fun getName(): String = _name
+    override fun getValue(): String? = _value
+    fun setValue(value: String) { _value = value }
   }
 }
