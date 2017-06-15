@@ -135,9 +135,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myUpdater.register(this);
   }
 
+
+  public boolean isStopped() {
+    return !myUpdater.isRunning();
+  }
+
   public void stop() {
-    // Stops the updater to prevent it leaking across projects.
     myUpdater.stop();
+    setDevice(null);
+    changed(ProfilerAspect.STAGE);
   }
 
   public List<Profiler.Device> getDevices() {
