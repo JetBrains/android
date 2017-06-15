@@ -70,6 +70,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   @Override
   public void dispose() {
     myProfilers.removeDependencies(this);
+    myProfilers.stop();
   }
 
   public JComponent getComponent() {

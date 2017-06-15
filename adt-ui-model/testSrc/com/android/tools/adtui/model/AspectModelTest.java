@@ -59,7 +59,7 @@ public class AspectModelTest {
         myModel.removeDependencies(this);
       }
       myModel = model;
-      AspectModel<Aspect>.Dependency dependency = myModel.addDependency(this);
+      AspectModel.Dependency dependency = myModel.addDependency(this);
       for (Aspect aspect : myObserved) {
         dependency.onChange(aspect, () -> changed(aspect));
       }
@@ -137,6 +137,7 @@ public class AspectModelTest {
     AspectModel<Aspect> model2 = new AspectModel<>();
     Observer observer = new Observer(model1);
 
+    assertEquals(1, observer.getDependencies().size());
     assertEquals(0, observer.changes);
     model1.changed(Aspect.ASPECT);
     assertEquals(1, observer.changes);
@@ -144,7 +145,7 @@ public class AspectModelTest {
     assertEquals(1, observer.changes);
 
     observer.setModel(model2);
-
+    assertEquals(1, observer.getDependencies().size());
     assertEquals(1, observer.changes);
     model1.changed(Aspect.ASPECT);
     assertEquals(1, observer.changes);
