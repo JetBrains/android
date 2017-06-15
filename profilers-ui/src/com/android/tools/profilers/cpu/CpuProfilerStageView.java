@@ -64,7 +64,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private final CpuProfilerStage myStage;
 
   private final JButton myCaptureButton;
-  private final JBList myThreads;
+  private final JBList<CpuThreadsModel.RangedCpuThread> myThreads;
   /**
    * The action listener of the capture button changes depending on the state of the profiler.
    * It can be either "start capturing" or "stop capturing".
@@ -192,7 +192,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     lineChart.addCustomRenderer(inProgressTraceRenderer);
 
     CpuThreadsModel model = myStage.getThreadStates();
-    myThreads = new JBList(model);
+    myThreads = new JBList<>(model);
     myThreads.addListSelectionListener((e) -> {
       int selectedIndex = myThreads.getSelectedIndex();
       if (selectedIndex >= 0) {
@@ -403,7 +403,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void updateThreadSelection() {
     // Select the thread which has its tree displayed in capture panel in the threads list
     for (int i = 0; i < myThreads.getModel().getSize(); i++) {
-      CpuThreadsModel.RangedCpuThread thread = (CpuThreadsModel.RangedCpuThread)myThreads.getModel().getElementAt(i);
+      CpuThreadsModel.RangedCpuThread thread = myThreads.getModel().getElementAt(i);
       if (myStage.getSelectedThread() == thread.getThreadId()) {
         myThreads.setSelectedIndex(i);
       }
