@@ -27,27 +27,24 @@ import static org.mockito.Mockito.*;
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
 public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
+  private IdeComponents myIdeComponents;
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
-  private GradleSyncInvoker myOriginalSyncInvoker;
   private GradleSyncInvoker mySyncInvoker;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myOriginalSyncInvoker = GradleSyncInvoker.getInstance();
-    mySyncInvoker = IdeComponents.replaceServiceWithMock(GradleSyncInvoker.class);
-
-    myGradleProjectInfo = IdeComponents.replaceServiceWithMock(getProject(), GradleProjectInfo.class);
+    myIdeComponents = new IdeComponents(myProject);
+    mySyncInvoker = myIdeComponents.mockService(GradleSyncInvoker.class);
+    myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      if (myOriginalSyncInvoker != null) {
-        IdeComponents.replaceService(GradleSyncInvoker.class, myOriginalSyncInvoker);
-      }
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();

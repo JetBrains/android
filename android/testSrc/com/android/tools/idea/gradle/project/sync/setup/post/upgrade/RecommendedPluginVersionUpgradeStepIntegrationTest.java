@@ -42,8 +42,8 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
   @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   @Mock private TimeBasedUpgradeReminder myUpgradeReminder;
+  @Mock private AndroidPluginVersionUpdater myVersionUpdater;
 
-  private AndroidPluginVersionUpdater myVersionUpdater;
   private RecommendedPluginVersionUpgradeStep myUpgradeStep;
 
   @Override
@@ -52,7 +52,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends IdeaTest
     initMocks(this);
 
     Project project = getProject();
-    myVersionUpdater = IdeComponents.replaceServiceWithMock(project, AndroidPluginVersionUpdater.class);
+    IdeComponents.replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater);
 
     when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);

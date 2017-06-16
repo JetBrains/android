@@ -35,24 +35,22 @@ import static org.mockito.Mockito.when;
  * Tests for {@link FailedToParseSdkErrorHandler}.
  */
 public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
-
+  private IdeComponents myIdeComponents;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private AndroidSdks myAndroidSdks;
-  private AndroidSdks myOriginalAndroidSdks;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myOriginalAndroidSdks = AndroidSdks.getInstance();
-    myAndroidSdks = IdeComponents.replaceServiceWithMock(AndroidSdks.class);
+    myIdeComponents = new IdeComponents(getProject());
+    myAndroidSdks = myIdeComponents.mockService(AndroidSdks.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      assertNotNull(myOriginalAndroidSdks);
-      IdeComponents.replaceService(AndroidSdks.class, myOriginalAndroidSdks);
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();

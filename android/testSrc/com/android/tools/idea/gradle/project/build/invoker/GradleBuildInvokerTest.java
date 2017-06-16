@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -41,10 +40,10 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
   @Mock private FileDocumentManager myFileDocumentManager;
   @Mock private GradleTasksExecutor myTasksExecutor;
 
+  private IdeComponents myIdeComponents;
   private GradleTasksExecutorFactoryStub myTasksExecutorFactory;
   private Module[] myModules;
   private BuildSettings myBuildSettings;
-  private GradleTaskFinder myOriginalTaskFinder;
   private GradleTaskFinder myTaskFinder;
   private GradleBuildInvoker myBuildInvoker;
 
@@ -56,21 +55,17 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
-    myOriginalTaskFinder = GradleTaskFinder.getInstance();
-    myTaskFinder = IdeComponents.replaceServiceWithMock(GradleTaskFinder.class);
+    myIdeComponents = new IdeComponents(myProject);
+    myTaskFinder = myIdeComponents.mockService(GradleTaskFinder.class);
+    myBuildSettings = myIdeComponents.mockProjectService(BuildSettings.class);
 
-    Project project = getProject();
-    myBuildSettings = IdeComponents.replaceServiceWithMock(project, BuildSettings.class);
-
-    myBuildInvoker = new GradleBuildInvoker(project, myFileDocumentManager, myTasksExecutorFactory);
+    myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      if (myOriginalTaskFinder != null) {
-        IdeComponents.replaceService(GradleTaskFinder.class, myOriginalTaskFinder);
-      }
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();

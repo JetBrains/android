@@ -33,6 +33,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AndroidGradleProjectComponentTest extends IdeaTestCase {
   @Mock LegacyAndroidProjects myLegacyAndroidProjects;
 
+  private IdeComponents myIdeComponents;
   private SupportedModuleChecker mySupportedModuleChecker;
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectComponent myProjectComponent;
@@ -43,11 +44,21 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-
-    mySupportedModuleChecker = IdeComponents.replaceServiceWithMock(SupportedModuleChecker.class);
-    myGradleProjectInfo = IdeComponents.replaceServiceWithMock(project, GradleProjectInfo.class);
+    myIdeComponents = new IdeComponents(project);
+    mySupportedModuleChecker = myIdeComponents.mockService(SupportedModuleChecker.class);
+    myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
 
     myProjectComponent = new AndroidGradleProjectComponent(project, myLegacyAndroidProjects);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myIdeComponents.restore();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testProjectOpenedWithProjectCreationError() {

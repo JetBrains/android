@@ -21,6 +21,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.google.common.truth.Truth.assertThat;
@@ -28,25 +29,29 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link SupportedModuleChecker}.
  */
 public class SupportedModuleCheckerTest extends IdeaTestCase {
-  private GradleProjectInfo myGradleProjectInfo;
+  @Mock private GradleProjectInfo myGradleProjectInfo;
   private SupportedModuleChecker myModuleChecker;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
+
     Project project = getProject();
-    myGradleProjectInfo = IdeComponents.replaceServiceWithMock(project, GradleProjectInfo.class);
+    IdeComponents.replaceService(project, GradleProjectInfo.class, myGradleProjectInfo);
     myModuleChecker = new SupportedModuleChecker();
   }
 
   public void testCheckForSupportedModulesWithNonGradleProject() {
     Project project = getProject();
-    AndroidNotification androidNotification = IdeComponents.replaceServiceWithMock(project, AndroidNotification.class);
+    AndroidNotification androidNotification = mock(AndroidNotification.class);
+    IdeComponents.replaceService(project, AndroidNotification.class, androidNotification);
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(false);
 
     myModuleChecker.checkForSupportedModules(project);

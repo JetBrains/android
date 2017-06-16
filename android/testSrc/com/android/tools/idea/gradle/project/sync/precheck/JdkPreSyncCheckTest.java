@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
  * Tests for {@link JdkPreSyncCheck}.
  */
 public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
-  private IdeSdks myRealIdeSdks;
+  private IdeComponents myIdeComponents;
   private IdeSdks myMockIdeSdks;
 
   private JdkPreSyncCheck myJdkPreSyncCheck;
@@ -42,11 +42,12 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myRealIdeSdks = IdeSdks.getInstance();
+
+    myIdeComponents = new IdeComponents(getProject());
 
     loadSimpleApplication();
 
-    myMockIdeSdks = IdeComponents.replaceServiceWithMock(IdeSdks.class);
+    myMockIdeSdks = myIdeComponents.mockService(IdeSdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
 
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
@@ -57,7 +58,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      IdeComponents.replaceService(IdeSdks.class, myRealIdeSdks);
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();

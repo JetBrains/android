@@ -38,22 +38,20 @@ import static org.mockito.Mockito.*;
  * Tests for {@link GradleBuildSystemService}.
  */
 public class GradleBuildSystemServiceTest extends IdeaTestCase {
-  private GradleSyncInvoker myOriginalGradleSyncInvoker;
+  private IdeComponents myIdeComponents;
   private GradleSyncInvoker mySyncInvoker;
-
   private BuildSystemService myService;
   private GradleProjectInfo myGradleProjectInfo;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myOriginalGradleSyncInvoker = GradleSyncInvoker.getInstance();
+    myIdeComponents = new IdeComponents(myProject);
 
-    mySyncInvoker = IdeComponents.replaceServiceWithMock(GradleSyncInvoker.class);
-    IdeComponents.replaceServiceWithMock(myProject, GradleProjectBuilder.class);
-    IdeComponents.replaceServiceWithMock(myProject, GradleDependencyManager.class);
-
-    myGradleProjectInfo = IdeComponents.replaceServiceWithMock(myProject, GradleProjectInfo.class);
+    mySyncInvoker = myIdeComponents.mockService(GradleSyncInvoker.class);
+    myIdeComponents.mockProjectService(GradleProjectBuilder.class);
+    myIdeComponents.mockProjectService(GradleDependencyManager.class);
+    myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
 
     myService = BuildSystemService.getInstance(myProject);
@@ -62,9 +60,7 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      if (myOriginalGradleSyncInvoker != null) {
-        IdeComponents.replaceService(GradleSyncInvoker.class, myOriginalGradleSyncInvoker);
-      }
+      myIdeComponents.restore();
     } finally {
       super.tearDown();
     }
