@@ -25,25 +25,28 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 import java.io.IOException;
 
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidGeneratedSourcesFilter}.
  */
 public class AndroidGeneratedSourcesFilterTest extends IdeaTestCase {
-  private GradleProjectInfo myProjectInfo;
+  @Mock private GradleProjectInfo myProjectInfo;
   private AndroidGeneratedSourcesFilter myGeneratedSourcesFilter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
 
-    myProjectInfo = IdeComponents.replaceServiceWithMock(getProject(), GradleProjectInfo.class);
+    IdeComponents.replaceService(getProject(), GradleProjectInfo.class, myProjectInfo);
     myGeneratedSourcesFilter = new AndroidGeneratedSourcesFilter();
   }
 

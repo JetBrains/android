@@ -36,6 +36,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -100,7 +101,8 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
-    ProjectSubset projectSubset = IdeComponents.replaceServiceWithMock(project, ProjectSubset.class);
+    ProjectSubset projectSubset = mock(ProjectSubset.class);
+    IdeComponents.replaceService(project, ProjectSubset.class, projectSubset);
     when(projectSubset.isFeatureEnabled()).thenReturn(false);
 
     Multimap<String, Module> modulesByPath = myStrategy.getModulesByPath();
@@ -120,7 +122,8 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
     Project project = getProject();
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
-    ProjectSubset projectSubset = IdeComponents.replaceServiceWithMock(project, ProjectSubset.class);
+    ProjectSubset projectSubset = mock(ProjectSubset.class);
+    IdeComponents.replaceService(project, ProjectSubset.class, projectSubset);
     when(projectSubset.isFeatureEnabled()).thenReturn(false);
 
     Multimap<String, Module> modulesByPath = myStrategy.getModulesByPath();

@@ -36,9 +36,7 @@ public class ProjectCleanupTest extends IdeaTestCase {
   @Mock private ProjectCleanupStep myStep1;
   @Mock private ProjectCleanupStep myStep2;
 
-  private GradleSyncState myOriginalSyncState;
   private ProgressIndicator myIndicator;
-
   private ProjectCleanup myProjectCleanup;
 
   @Override
@@ -47,23 +45,10 @@ public class ProjectCleanupTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    myOriginalSyncState = GradleSyncState.getInstance(project);
     IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
 
     myIndicator = new EmptyProgressIndicator();
     myProjectCleanup = new ProjectCleanup(myStep1, myStep2);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myOriginalSyncState != null) {
-        IdeComponents.replaceService(getProject(), GradleSyncState.class, myOriginalSyncState);
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testCleanUpProjectWithFailedSync() {

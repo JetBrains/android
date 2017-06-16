@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
@@ -87,23 +86,12 @@ import static org.mockito.Mockito.*;
  * Integration tests for 'Gradle Sync'.
  */
 public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
-  private IdeInfo myOriginalIdeInfo;
-  private DataNodeCaches myOriginalDataNodeCaches;
-  private GradleSyncMessages myOriginalSyncMessages;
+  private IdeComponents myIdeComponents;
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      Project project = getProject();
-      if (myOriginalIdeInfo != null) {
-        IdeComponents.replaceService(IdeInfo.class, myOriginalIdeInfo);
-      }
-      if (myOriginalDataNodeCaches != null) {
-        IdeComponents.replaceService(project, DataNodeCaches.class, myOriginalDataNodeCaches);
-      }
-      if (myOriginalSyncMessages != null) {
-        IdeComponents.replaceService(project, GradleSyncMessages.class, myOriginalSyncMessages);
-      }
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();
@@ -115,6 +103,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     super.setUp();
     Project project = getProject();
 
+    myIdeComponents = new IdeComponents(project);
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
@@ -150,15 +139,12 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   // Verifies that if syncing using cached model, and if the cached model is missing data, we fall back to a full Gradle sync.
   // See: https://code.google.com/p/android/issues/detail?id=160899
   public void testWithCacheMissingModules() throws Exception {
-    Project project = getProject();
-    myOriginalDataNodeCaches = DataNodeCaches.getInstance(project);
-
     loadSimpleApplication();
 
     // Simulate data node cache is missing modules.
     //noinspection unchecked
     DataNode<ProjectData> cache = mock(DataNode.class);
-    DataNodeCaches dataNodeCaches = IdeComponents.replaceServiceWithMock(project, DataNodeCaches.class);
+    DataNodeCaches dataNodeCaches = myIdeComponents.mockProjectService(DataNodeCaches.class);
     when(dataNodeCaches.getCachedProjectData()).thenReturn(cache);
     when(dataNodeCaches.isCacheMissingModels(cache)).thenReturn(true);
 
@@ -340,7 +326,6 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   // See https://code.google.com/p/android/issues/detail?id=170722
   public void testWithAndroidProjectWithoutVariants() throws Exception {
     Project project = getProject();
-    myOriginalSyncMessages = GradleSyncMessages.getInstance(project);
 
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
@@ -420,8 +405,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   }
 
   public void testGradleSyncActionAfterFailedSync() {
-    myOriginalIdeInfo = IdeInfo.getInstance();
-    IdeInfo ideInfo = IdeComponents.replaceServiceWithMock(IdeInfo.class);
+    IdeInfo ideInfo = myIdeComponents.mockService(IdeInfo.class);
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     SyncProjectAction action = new SyncProjectAction();

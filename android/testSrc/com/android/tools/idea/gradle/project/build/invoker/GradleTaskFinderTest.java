@@ -40,6 +40,7 @@ import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddJavaFacet;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -70,7 +71,8 @@ public class GradleTaskFinderTest extends IdeaTestCase {
   }
 
   public void testFindTasksToExecuteWhenAssemblingAndroidProjectAndLastSyncFailed() {
-    GradleSyncState syncState = IdeComponents.replaceServiceWithMock(getProject(), GradleSyncState.class);
+    GradleSyncState syncState = mock(GradleSyncState.class);
+    IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
     when(syncState.lastSyncFailed()).thenReturn(true);
 
     List<String> tasks = myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, myTestCompileType);

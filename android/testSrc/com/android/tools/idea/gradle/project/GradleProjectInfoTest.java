@@ -143,7 +143,8 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     GradleSyncSummary summary = mock(GradleSyncSummary.class);
     when(summary.getSyncTimestamp()).thenReturn(timestamp);
 
-    GradleSyncState syncState = IdeComponents.replaceServiceWithMock(getProject(), GradleSyncState.class);
+    GradleSyncState syncState = mock(GradleSyncState.class);
+    IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
     when(syncState.getSummary()).thenReturn(summary);
   }
 }

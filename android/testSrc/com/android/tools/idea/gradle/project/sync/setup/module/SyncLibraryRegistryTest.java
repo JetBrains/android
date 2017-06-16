@@ -42,24 +42,11 @@ import static org.mockito.Mockito.when;
  * Tests for {@link SyncLibraryRegistry}.
  */
 public class SyncLibraryRegistryTest extends IdeaTestCase {
-  private ProjectLibraryTable myOriginalProjectLibraryTable;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     getProject().putUserData(SyncLibraryRegistry.KEY, null); // ensure nothing is set.
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myOriginalProjectLibraryTable != null) {
-        IdeComponents.replaceService(getProject(), ProjectLibraryTable.class, myOriginalProjectLibraryTable);
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testGetInstancePopulatesProjectLibraries() {
@@ -271,8 +258,8 @@ public class SyncLibraryRegistryTest extends IdeaTestCase {
 
   private void simulateProjectLibraryTableHas(@NotNull Library[] libraries1) {
     Project project = getProject();
-    myOriginalProjectLibraryTable = (ProjectLibraryTable)ProjectLibraryTable.getInstance(project);
-    ProjectLibraryTable projectLibraryTable = IdeComponents.replaceServiceWithMock(project, ProjectLibraryTable.class);
+    ProjectLibraryTable projectLibraryTable = mock(ProjectLibraryTable.class);
+    IdeComponents.replaceService(project, ProjectLibraryTable.class, projectLibraryTable);
     when(projectLibraryTable.getLibraries()).thenReturn(libraries1);
   }
 }

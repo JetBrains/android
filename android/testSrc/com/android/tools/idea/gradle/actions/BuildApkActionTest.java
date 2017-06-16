@@ -24,10 +24,10 @@ import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 import java.util.Collections;
 
@@ -36,21 +36,23 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
 public class BuildApkActionTest extends IdeaTestCase {
-  private GradleProjectInfo myGradleProjectInfo;
-  private GradleBuildInvoker myBuildInvoker;
+  @Mock private GradleProjectInfo myGradleProjectInfo;
+  @Mock private GradleBuildInvoker myBuildInvoker;
   private BuildApkAction myAction;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    Project project = getProject();
-    myBuildInvoker = IdeComponents.replaceServiceWithMock(project, GradleBuildInvoker.class);
-    myGradleProjectInfo = IdeComponents.replaceServiceWithMock(project, GradleProjectInfo.class);
+    initMocks(this);
+
+    IdeComponents.replaceService(myProject, GradleBuildInvoker.class, myBuildInvoker);
+    IdeComponents.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo);
     myAction = new BuildApkAction();
   }
 

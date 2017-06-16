@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
@@ -33,12 +32,10 @@ import org.mockito.MockitoAnnotations;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link GoToApkLocationTask}.
@@ -46,8 +43,7 @@ import static org.mockito.Mockito.when;
 public class GoToApkLocationTaskTest extends IdeaTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
 
-  private AndroidNotification myMockNotification;
-  private AndroidNotification myOriginalNotification;
+  @Mock private AndroidNotification myMockNotification;
   private GoToApkLocationTask myTask;
   private File myApkPath;
 
@@ -62,20 +58,7 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
 
     myTask = new GoToApkLocationTask(getProject(), modulesToPaths,
                                      NOTIFICATION_TITLE);
-    myOriginalNotification = AndroidNotification.getInstance(myProject);
-    myMockNotification = IdeComponents.replaceServiceWithMock(myProject, AndroidNotification.class);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myOriginalNotification != null) {
-        IdeComponents.replaceService(myProject, AndroidNotification.class, myOriginalNotification);
-      }
-    }
-    finally {
-      super.tearDown();
-    }
+    IdeComponents.replaceService(myProject, AndroidNotification.class, myMockNotification);
   }
 
   public void testExecuteWithCancelledBuild() {

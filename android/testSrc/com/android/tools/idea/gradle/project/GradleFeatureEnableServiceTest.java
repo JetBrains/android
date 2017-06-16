@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class GradleFeatureEnableServiceTest extends IdeaTestCase {
@@ -28,7 +29,7 @@ public class GradleFeatureEnableServiceTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents.replaceServiceWithMock(myProject, GradleProjectInfo.class);
+    IdeComponents.replaceService(myProject, GradleProjectInfo.class, mock(GradleProjectInfo.class));
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
 
     myService = FeatureEnableService.getInstance(myProject);

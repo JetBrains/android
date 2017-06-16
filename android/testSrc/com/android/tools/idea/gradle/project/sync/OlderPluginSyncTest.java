@@ -34,6 +34,7 @@ import static com.android.tools.idea.testing.AndroidGradleTests.*;
 import static com.google.common.io.Files.write;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.mockito.Mockito.mock;
 
 @Ignore("The dependencies needed for running this test in the sandbox are not in the offline repo yet")
 public class OlderPluginSyncTest extends AndroidGradleTestCase {
@@ -45,7 +46,7 @@ public class OlderPluginSyncTest extends AndroidGradleTestCase {
     Project project = getProject();
 
     // We don't want the IDE to offer a plugin version upgrade.
-    IdeComponents.replaceServiceWithMock(getProject(), PluginVersionUpgrade.class);
+    IdeComponents.replaceService(getProject(), PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
