@@ -16,6 +16,7 @@
 
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.LegendConfig;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ public class LineConfig {
   public static final BasicStroke DEFAULT_DASH_STROKE =
     new BasicStroke(2.0f,
                     BasicStroke.CAP_SQUARE,
-                    BasicStroke.JOIN_MITER,
+                    BasicStroke.JOIN_BEVEL,
                     10.0f,  // Miter limit, Swing's default
                     new float[]{4.0f, 6.0f},  // Dash pattern in pixel
                     0.0f);  // Dash phase - just starts at zero.
@@ -76,6 +77,14 @@ public class LineConfig {
    * Whether the series should stack with other series instead of being independent.
    */
   private boolean myIsStacked = false;
+
+  private boolean myAdjustDash = false;
+
+  private boolean myIsDash = false;
+
+  private float myDashLength = 0f;
+
+  private double myAdjustedDashPhase = 0;
 
   /**
    * Type of the legend icon that represents the line.
@@ -126,6 +135,45 @@ public class LineConfig {
     return myIsStacked;
   }
 
+  /**
+   * When a line is being drawn with dashes, the dashes can appear to shift/jump around depending on the starting point of the path being
+   * drawn. When set to true, {@link LineChart} will attempt to compensate by comparing the starting point of the previous path and
+   * adjusts the dash phase on the new path.
+   */
+  @NotNull
+  public LineConfig setAdjustDash(boolean adjustDash) {
+    myAdjustDash = adjustDash;
+    return this;
+  }
+
+  public boolean isAdjustDash() {
+    return myAdjustDash;
+  }
+
+  public boolean isDash() {
+    return myIsDash;
+  }
+
+  /**
+   * @return the total length of the dash pattern defined in the stroke. zero if the stroke does not contain dashes.
+   */
+  public float getDashLength() {
+    return myDashLength;
+  }
+
+  /**
+   * Used internally via {@link LineChart} to store the dash phase which should be used for the stroke. The adjusted stroke can be then
+   * retrieved via {@link #getAdjustedStroke()}
+   */
+  void setAdjustedDashPhase(double dashPhase) {
+    myAdjustedDashPhase = dashPhase;
+  }
+
+  @VisibleForTesting
+  double getAdjustedDashPhase() {
+    return myAdjustedDashPhase;
+  }
+
   @NotNull
   public Color getColor() {
     return mColor;
@@ -140,12 +188,41 @@ public class LineConfig {
   @NotNull
   public LineConfig setStroke(@NotNull Stroke stroke) {
     myStroke = stroke;
+
+    if (myStroke instanceof BasicStroke) {
+      BasicStroke basicStroke = (BasicStroke)myStroke;
+      float[] dashArray = basicStroke.getDashArray();
+      myIsDash = dashArray != null;
+      myAdjustDash = myIsDash;  // fixed jumping dashes by default.
+      myDashLength = 0f;
+      if (myIsDash) {
+        for (float value : dashArray) {
+          myDashLength += value;
+        }
+      }
+    }
+    else {
+      myIsDash = false;
+      myDashLength = 0f;
+    }
+
     return this;
   }
 
   @NotNull
   public Stroke getStroke() {
     return myStroke;
+  }
+
+  @NotNull
+  public Stroke getAdjustedStroke() {
+    if (!(myStroke instanceof BasicStroke) || !myAdjustDash) {
+      return myStroke;
+    }
+
+    BasicStroke stroke = (BasicStroke)myStroke;
+    return new BasicStroke(stroke.getLineWidth(), stroke.getEndCap(), stroke.getLineJoin(), stroke.getMiterLimit(), stroke.getDashArray(),
+                           (float)myAdjustedDashPhase);
   }
 
   public LineConfig setLegendIconType(@NotNull LegendConfig.IconType legendIconType) {
