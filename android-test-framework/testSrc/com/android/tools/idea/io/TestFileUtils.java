@@ -23,12 +23,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public final class FileUtils {
-  private FileUtils() {
+/**
+ * Utilities for working with test projects when testing the IDE.
+ *
+ * @see com.android.utils.FileUtils
+ */
+public final class TestFileUtils {
+  private TestFileUtils() {
   }
 
-  public static void write(@NotNull Path path, @NotNull String string) throws IOException {
+  /** Ensures the given path exists and writes the given string to it. Refreshes VFS once done. */
+  public static void writeAndRefreshVfs(@NotNull Path path, @NotNull String string) throws IOException {
     Files.createDirectories(path.getParent());
-    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(Files.write(path, string.getBytes(StandardCharsets.UTF_8)).toFile());
+    Files.write(path, string.getBytes(StandardCharsets.UTF_8));
+    LocalFileSystem.getInstance().refreshAndFindFileByIoFile(path.toFile());
   }
 }

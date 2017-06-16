@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.io.FileUtils;
+import com.android.tools.idea.io.TestFileUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -61,37 +61,37 @@ public final class FileDescriptionUtilsTest extends AndroidTestCase {
   }
 
   public void testNewIsResourceOfTypeComputableFileIsNotInResourceSubdirectory() throws IOException {
-    FileUtils.write(myAndroidManifestXml, "");
+    TestFileUtils.writeAndRefreshVfs(myAndroidManifestXml, "");
 
     XmlFile file = getXmlFile(myAndroidManifestXml);
     assertFalse(FileDescriptionUtils.newIsResourceOfTypeComputable(file, ResourceFolderType.LAYOUT, Collections.emptySet()).compute());
   }
 
   public void testNewIsResourceOfTypeComputableRootTagsIsEmpty() throws IOException {
-    FileUtils.write(myAndroidManifestXml, "");
-    FileUtils.write(myContentScrollingXml, "");
+    TestFileUtils.writeAndRefreshVfs(myAndroidManifestXml, "");
+    TestFileUtils.writeAndRefreshVfs(myContentScrollingXml, "");
 
     XmlFile file = getXmlFile(myContentScrollingXml);
     assertTrue(FileDescriptionUtils.newIsResourceOfTypeComputable(file, ResourceFolderType.LAYOUT, Collections.emptySet()).compute());
   }
 
   public void testNewIsResourceOfTypeComputableRootTagsDoesNotContainRootTag() throws IOException {
-    FileUtils.write(myAndroidManifestXml, "");
+    TestFileUtils.writeAndRefreshVfs(myAndroidManifestXml, "");
 
-    FileUtils.write(myContentScrollingXml, "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                           "    android:layout_width=\"match_parent\"\n" +
-                                           "    android:layout_height=\"match_parent\" />\n");
+    TestFileUtils.writeAndRefreshVfs(myContentScrollingXml, "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                            "    android:layout_width=\"match_parent\"\n" +
+                                                            "    android:layout_height=\"match_parent\" />\n");
 
     XmlFile file = getXmlFile(myContentScrollingXml);
     assertFalse(FileDescriptionUtils.newIsResourceOfTypeComputable(file, ResourceFolderType.LAYOUT, ROOT_TAGS).compute());
   }
 
   public void testNewIsResourceOfTypeComputableRootTagsContainsRootTag() throws IOException {
-    FileUtils.write(myAndroidManifestXml, "");
+    TestFileUtils.writeAndRefreshVfs(myAndroidManifestXml, "");
 
-    FileUtils.write(myContentScrollingXml, "<GridLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                           "    android:layout_width=\"match_parent\"\n" +
-                                           "    android:layout_height=\"match_parent\" />\n");
+    TestFileUtils.writeAndRefreshVfs(myContentScrollingXml, "<GridLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                            "    android:layout_width=\"match_parent\"\n" +
+                                                            "    android:layout_height=\"match_parent\" />\n");
 
     XmlFile file = getXmlFile(myContentScrollingXml);
     assertTrue(FileDescriptionUtils.newIsResourceOfTypeComputable(file, ResourceFolderType.LAYOUT, ROOT_TAGS).compute());
