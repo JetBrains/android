@@ -53,6 +53,8 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private Range mTimeGlobalRangeUs;
 
+  private Range mTimeViewRangeUs;
+
   private LineChart mLineChart;
 
   private AnimatedTimeRange mAnimatedTimeRange;
@@ -69,7 +71,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private SelectionComponent mSelection;
 
-  private RangeScrollbar mScrollbar;
+  private RangeTimeScrollBar mScrollbar;
 
   private LegendComponent mLegendComponent;
   private LineChartModel mLineChartModel;
@@ -89,20 +91,20 @@ public class AxisLineChartVisualTest extends VisualTest {
     mLineChart = new LineChart(mLineChartModel);
 
     mStartTimeUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-    final Range timeCurrentRangeUs = new Range(0, 0);
+    mTimeViewRangeUs = new Range(0, TimeUnit.SECONDS.toMicros(15));
     mTimeGlobalRangeUs = new Range(0, 0);
     mAnimatedTimeRange = new AnimatedTimeRange(mTimeGlobalRangeUs, mStartTimeUs);
-    mScrollbar = new RangeScrollbar(mTimeGlobalRangeUs, timeCurrentRangeUs);
+    mScrollbar = new RangeTimeScrollBar(mTimeGlobalRangeUs, mTimeViewRangeUs, TimeUnit.MICROSECONDS);
 
     // add horizontal time axis
-    mTimeAxisModel = new AxisComponentModel(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT);
+    mTimeAxisModel = new AxisComponentModel(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT);
     mTimeAxisModel.setGlobalRange(mTimeGlobalRangeUs);
 
     mTimeAxis = new AxisComponent(mTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     mTimeAxis.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     // add axis guide to time axis
-    mTimeAxisGuideModel = new AxisComponentModel(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS);
+    mTimeAxisGuideModel = new AxisComponentModel(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS);
     mTimeAxisGuideModel.setGlobalRange(mTimeGlobalRangeUs);
 
     mTimeAxisGuide = new AxisComponent(mTimeAxisGuideModel, AxisComponent.AxisOrientation.BOTTOM);
@@ -127,7 +129,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis1.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     LongDataSeries series1 = new LongDataSeries();
-    RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, timeCurrentRangeUs, yRange1Animatable, series1);
+    RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, mTimeViewRangeUs, yRange1Animatable, series1);
     mRangedData.add(ranged1);
     mData.add(series1);
 
@@ -141,7 +143,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis2.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     LongDataSeries series2 = new LongDataSeries();
-    RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, timeCurrentRangeUs, yRange2Animatable, series2);
+    RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, mTimeViewRangeUs, yRange2Animatable, series2);
     mRangedData.add(ranged2);
     mData.add(series2);
 
@@ -154,14 +156,13 @@ public class AxisLineChartVisualTest extends VisualTest {
     mLegendComponent.configure(legend, new LegendConfig(LegendConfig.IconType.LINE, LineConfig.getColor(1)));
 
     final Range timeSelectionRangeUs = new Range();
-    SelectionModel selection = new SelectionModel(timeSelectionRangeUs, timeCurrentRangeUs);
+    SelectionModel selection = new SelectionModel(timeSelectionRangeUs, mTimeViewRangeUs);
     mSelection = new SelectionComponent(selection);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
     // The comment on each line highlights why the component needs to be in that position.
     return Arrays.asList(mAnimatedTimeRange, // Update global time range immediate.
-                         mScrollbar, // Update current range immediate.
                          mLineChartModel, // Set y's interpolation values.
                          mMemoryAxisModel1, // Clamp/interpolate ranges to major ticks if enabled.
                          mMemoryAxisModel2, // Sync with mMemoryAxis1 if enabled.
@@ -237,8 +238,18 @@ public class AxisLineChartVisualTest extends VisualTest {
         return variance.get();
       }
     }));
-    controls.add(VisualTest.createCheckbox("Stable Scroll",
-                  itemEvent -> mScrollbar.setStableScrolling(itemEvent.getStateChange() == ItemEvent.SELECTED)));
+    controls.add(VisualTest.createVariableSlider("View length in seconds", 0, 50, new VisualTests.Value() {
+      @Override
+      public void set(int v) {
+        mTimeViewRangeUs.setMax(mTimeViewRangeUs.getMin() + TimeUnit.SECONDS.toMicros(v));
+      }
+
+      @Override
+      public int get() {
+        return (int)TimeUnit.MICROSECONDS.toSeconds((long)mTimeViewRangeUs.getLength());
+      }
+    }));
+
     controls.add(VisualTest.createCheckbox("Clamp To Major Ticks",
                   itemEvent -> mMemoryAxisModel1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
 
@@ -292,7 +303,7 @@ public class AxisLineChartVisualTest extends VisualTest {
                   break;
               }
             }
-            else if (c instanceof RangeScrollbar) {
+            else if (c instanceof RangeTimeScrollBar) {
               int sbHeight = c.getPreferredSize().height;
               c.setBounds(0, dim.height - sbHeight, dim.width, sbHeight);
             }
