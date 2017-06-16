@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -23,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.util.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import org.intellij.lang.annotations.Language;
 import org.junit.Rule;
@@ -52,7 +52,7 @@ public final class GridLayoutTest {
                  "    android:layout_height=\"match_parent\">\n" +
                  "</GridLayout>\n";
 
-    TestFileUtils.writeAndRefreshVfs(myGuiTest.getProjectPath().toPath().resolve(activityMainXml), xml);
+    GuiTestFileUtils.writeAndReloadDocument(myGuiTest.getProjectPath().toPath().resolve(activityMainXml), xml);
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open(activityMainXml);
