@@ -19,8 +19,6 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.MavenCoordinates;
-import com.android.ide.common.builder.model.IdeBaseArtifact;
-import com.android.ide.common.builder.model.IdeVariant;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
@@ -30,6 +28,8 @@ import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
@@ -117,7 +117,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
                                                     @NotNull ExternalLibraryDescriptor descriptor,
                                                     @NotNull DependencyScope scope) {
     ArtifactDependencySpec dependencySpec =
-      new ArtifactDependencySpec(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
+        new ArtifactDependencySpec(descriptor.getLibraryArtifactId(), descriptor.getLibraryGroupId(), selectVersion(descriptor));
     return addExternalLibraryDependency(modules, dependencySpec, scope);
   }
 
@@ -215,7 +215,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @NotNull
-  private static String getConfigurationName(@NotNull Module module, @NotNull DependencyScope scope, @Nullable VirtualFile openedFile) {
+  private static String getConfigurationName(@NotNull Module module, @NotNull  DependencyScope scope, @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
       TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
 

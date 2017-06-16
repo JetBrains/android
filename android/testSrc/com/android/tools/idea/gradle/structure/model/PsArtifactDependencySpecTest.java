@@ -16,11 +16,11 @@
 package com.android.tools.idea.gradle.structure.model;
 
 import com.android.builder.model.MavenCoordinates;
-import com.android.ide.common.builder.model.stubs.MavenCoordinatesStub;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.MavenCoordinatesStub;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;

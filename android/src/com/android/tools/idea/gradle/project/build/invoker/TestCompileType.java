@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.ide.common.builder.model.IdeAndroidArtifact;
-import com.android.ide.common.builder.model.IdeBaseArtifact;
-import com.android.ide.common.builder.model.IdeJavaArtifact;
-import com.android.ide.common.builder.model.IdeVariant;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeJavaArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
