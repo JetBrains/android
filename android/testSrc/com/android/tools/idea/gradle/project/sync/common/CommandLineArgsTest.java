@@ -41,15 +41,15 @@ public class CommandLineArgsTest extends IdeaTestCase {
   @Mock private ApplicationInfo myApplicationInfo;
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleInitScripts myInitScripts;
+  @Mock private GradleProjectInfo myGradleProjectInfo;
 
-  private GradleProjectInfo myGradleProjectInfo;
   private CommandLineArgs myArgs;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myGradleProjectInfo = IdeComponents.replaceServiceWithMock(getProject(), GradleProjectInfo.class);
+    IdeComponents.replaceService(getProject(), GradleProjectInfo.class, myGradleProjectInfo);
 
     myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, false /* do not apply Java library plugin */);
   }

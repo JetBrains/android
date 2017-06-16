@@ -26,7 +26,6 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.gradle.tooling.model.GradleModuleVersion;
-import org.jetbrains.annotations.Nullable;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,21 +34,19 @@ import static org.mockito.Mockito.when;
  * Tests for {@link PsArtifactDependencySpec}.
  */
 public class PsArtifactDependencySpecTest extends IdeaTestCase {
-  @Nullable private PsUISettings myOriginalPsUISettings = null;
+  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myOriginalPsUISettings = PsUISettings.getInstance();
-    IdeComponents.replaceServiceWithMock(PsUISettings.class);
+    myIdeComponents = new IdeComponents(myProject);
+    myIdeComponents.mockService(PsUISettings.class);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      if (myOriginalPsUISettings != null) {
-        IdeComponents.replaceService(PsUISettings.class, myOriginalPsUISettings);
-      }
+      myIdeComponents.restore();
     }
     finally {
       //noinspection ThrowFromFinallyBlock

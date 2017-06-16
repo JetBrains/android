@@ -39,6 +39,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class GradleRenderErrorContributorTest extends IdeaTestCase {
@@ -50,7 +51,7 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myDependenciesFactory = new IdeLevel2DependenciesFactory();
-    IdeComponents.replaceServiceWithMock(myProject, GradleProjectInfo.class);
+    IdeComponents.replaceService(myProject, GradleProjectInfo.class, mock(GradleProjectInfo.class));
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
 
     setUpAndroidFacetWithGradleModelWithIssue();

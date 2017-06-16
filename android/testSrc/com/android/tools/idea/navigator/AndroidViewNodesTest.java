@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -73,7 +74,8 @@ public class AndroidViewNodesTest extends AndroidGradleTestCase {
     projectViewPane.createComponent();
     Disposer.register(project, projectViewPane);
 
-    ProjectView projectView = IdeComponents.replaceServiceWithMock(project, ProjectView.class);
+    ProjectView projectView = mock(ProjectView.class);
+    IdeComponents.replaceService(project, ProjectView.class, projectView);
     when(projectView.getProjectViewPaneById(AndroidProjectViewPane.ID)).thenReturn(projectViewPane);
 
     return projectViewPane;

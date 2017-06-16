@@ -31,13 +31,25 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
   @Mock AndroidRunConfigurationBase myRunConfiguration;
+  private IdeComponents myIdeComponents;
   private InstantAppSdks myInstantAppSdks;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myInstantAppSdks = IdeComponents.replaceServiceWithMock(InstantAppSdks.class);
+    myIdeComponents = new IdeComponents(getProject());
+    myInstantAppSdks = myIdeComponents.mockService(InstantAppSdks.class);
     initMocks(this);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myIdeComponents.restore();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testTaskNotCreatedIfSdkNotDefined() {
