@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
+import com.android.ide.common.builder.model.IdeNativeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
@@ -48,7 +48,8 @@ public class NdkModuleModel implements ModuleModel {
   @NotNull private Map<String, NativeSettings> mySettingsByName = new HashMap<>();
 
   @SuppressWarnings("NullableProblems") // Set in the constructor.
-  @NotNull private String mySelectedVariantName;
+  @NotNull
+  private String mySelectedVariantName;
 
   @Nullable
   public static NdkModuleModel get(@NotNull Module module) {
