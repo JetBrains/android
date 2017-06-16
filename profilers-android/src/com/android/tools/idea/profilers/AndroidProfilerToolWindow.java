@@ -64,7 +64,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
       manager.setMaximized(window, maximize);
     }
     if (myProfilers.isStopped()) {
-      window.getContentManager().removeAllContents(true);
+      AndroidProfilerToolWindowFactory.removeContent(myProject, window);
     }
   }
 
