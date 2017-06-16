@@ -16,11 +16,14 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -34,6 +37,15 @@ public class AndroidProfilerAction extends DumbAwareAction {
 
   @Override
   public void update(AnActionEvent e) {
+    Project project = getEventProject(e);
+    if (project != null) {
+      PropertiesComponent properties = PropertiesComponent.getInstance(project);
+      if (properties.getBoolean(AndroidProfilerToolWindowFactory.ANDROID_PROFILER_ACTIVE, false)) {
+        e.getPresentation().setIcon(ExecutionUtil.getLiveIndicator(AndroidIcons.Profiler.Toolbar));
+        return;
+      }
+    }
+    e.getPresentation().setIcon(AndroidIcons.Profiler.Toolbar);
   }
 
   @Override
