@@ -20,10 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,7 +30,7 @@ import java.util.stream.Stream;
 public abstract class ClassifierSet implements MemoryObject {
   @NotNull private final String myName;
 
-  @NotNull protected final ArrayList<InstanceObject> myInstances;
+  @NotNull protected final HashSet<InstanceObject> myInstances;
 
   // Lazily create the Classifier, as it is configurable and isn't necessary until nodes under this node needs to be classified.
   @Nullable protected Classifier myClassifier = null;
@@ -46,7 +43,7 @@ public abstract class ClassifierSet implements MemoryObject {
 
   public ClassifierSet(@NotNull String name) {
     myName = name;
-    myInstances = new ArrayList<>(0);
+    myInstances = new HashSet<>(0);
     resetDescendants();
   }
 
@@ -102,9 +99,10 @@ public abstract class ClassifierSet implements MemoryObject {
     }
 
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      // TODO: ADD TO myInstances, and figure out how to not add duplicates
       // TODO2: In cases where we are adding to myInstances, it should also update myInstancesWithStackInfoCount
       myClassifier.getOrCreateClassifierSet(instanceObject).freeInstanceObject(instanceObject, pathResult);
+    } else {
+      myInstances.add(instanceObject);
     }
 
     myDeallocatedCount++;
@@ -188,7 +186,6 @@ public abstract class ClassifierSet implements MemoryObject {
 
   protected void resetDescendants() {
     myInstances.clear();
-    myInstances.trimToSize();
     myClassifier = null;
     myAllocatedCount = 0;
     myTotalShallowSize = 0;
@@ -273,7 +270,7 @@ public abstract class ClassifierSet implements MemoryObject {
      * Partitions {@link InstanceObject}s in {@code myInstances} according to the current {@link ClassifierSet}'s strategy.
      * This will consume the instance from the input.
      */
-    public final void partition(@NotNull ArrayList<InstanceObject> instances) {
+    public final void partition(@NotNull Set<InstanceObject> instances) {
       List<InstanceObject> partitionedInstances = new ArrayList<>(instances.size());
 
       instances.forEach(instance -> {
@@ -288,7 +285,6 @@ public abstract class ClassifierSet implements MemoryObject {
       else {
         instances.removeAll(partitionedInstances);
       }
-      instances.trimToSize();
     }
   }
 }

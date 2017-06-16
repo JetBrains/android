@@ -29,6 +29,7 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -107,7 +108,7 @@ public class HeapDumpCaptureObjectTest {
 
     ClassifierSet.Classifier classClassifier = ClassSet.createDefaultClassifier();
     classClassifier.partition(
-      testHeap.getInstancesStream().collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
+      testHeap.getInstancesStream().collect(HashSet::new, HashSet::add, HashSet::addAll));
     List<ClassifierSet> classSets = classClassifier.getClassifierSets();
     assertEquals(3, classSets.size());
     assertTrue(classSets.stream().allMatch(classifier -> classifier instanceof ClassSet));
