@@ -356,11 +356,13 @@ public class LegendComponent extends AnimatedComponent {
                                                                    0.0f);  // Dash phase - just starts at zero.
     private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
 
-    private final LegendConfig.IconType myType;
-    private final Color myColor;
-    private final Color myBorderColor;
+    @VisibleForTesting
+    @NotNull
+    final LegendConfig.IconType myType;
+    @NotNull private final Color myColor;
+    @NotNull private final Color myBorderColor;
 
-    public IconInstruction(LegendConfig.IconType type, Color color) {
+    public IconInstruction(@NotNull LegendConfig.IconType type, @NotNull Color color) {
       switch (type) {
         case BOX:
         case LINE:
@@ -438,8 +440,10 @@ public class LegendComponent extends AnimatedComponent {
    */
   @VisibleForTesting
   static final class TextInstruction extends LegendInstruction {
+    @VisibleForTesting
+    @NotNull
+    final String myText;
     @NotNull private final Font myFont;
-    @NotNull private final String myText;
     @NotNull private final LegendSize mySize;
 
     private TextInstruction(@NotNull Font font, @NotNull String text) {
