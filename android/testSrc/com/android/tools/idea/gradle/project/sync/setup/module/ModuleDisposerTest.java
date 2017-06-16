@@ -45,7 +45,6 @@ public class ModuleDisposerTest extends IdeaTestCase {
   @Mock private DisposedModules myDisposedModules;
   @Mock private GradleSyncState mySyncState;
 
-  private GradleSyncState myOriginalSyncState;
   private ModuleDisposer myModuleDisposer;
 
   @Override
@@ -61,9 +60,7 @@ public class ModuleDisposerTest extends IdeaTestCase {
       }
     });
 
-    Project project = getProject();
-    myOriginalSyncState = GradleSyncState.getInstance(project);
-    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
+    IdeComponents.replaceService(myProject, GradleSyncState.class, mySyncState);
 
     myModuleDisposer = new ModuleDisposer(myIdeInfo);
   }
@@ -72,9 +69,6 @@ public class ModuleDisposerTest extends IdeaTestCase {
   protected void tearDown() throws Exception {
     try {
       DisposedModules.restoreFactory();
-      if (myOriginalSyncState != null) {
-        IdeComponents.replaceService(getProject(), GradleSyncState.class, myOriginalSyncState);
-      }
     }
     finally {
       super.tearDown();

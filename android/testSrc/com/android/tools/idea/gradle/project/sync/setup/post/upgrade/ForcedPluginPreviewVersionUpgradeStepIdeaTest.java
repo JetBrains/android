@@ -44,11 +44,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private AndroidPluginGeneration myPluginGeneration;
+  @Mock private AndroidPluginVersionUpdater myVersionUpdater;
+  @Mock private GradleSyncState mySyncState;
 
-  private GradleSyncState mySyncState;
-  private AndroidPluginVersionUpdater myVersionUpdater;
   private GradleSyncMessagesStub mySyncMessages;
-
   private TestDialog myOriginalTestDialog;
 
   private ForcedPluginPreviewVersionUpgradeStep myVersionUpgrade;
@@ -60,8 +59,8 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
 
     Project project = getProject();
-    mySyncState = IdeComponents.replaceServiceWithMock(project, GradleSyncState.class);
-    myVersionUpdater = IdeComponents.replaceServiceWithMock(project, AndroidPluginVersionUpdater.class);
+    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
+    IdeComponents.replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     myVersionUpgrade = new ForcedPluginPreviewVersionUpgradeStep();

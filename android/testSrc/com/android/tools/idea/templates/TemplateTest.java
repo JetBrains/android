@@ -97,6 +97,7 @@ import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static java.lang.annotation.ElementType.METHOD;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test for template instantiation.
@@ -187,7 +188,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static boolean ourValidatedTemplateManager;
 
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
-  private RepositoryUrlManager myOriginalRepositoryUrlManager;
+  private IdeComponents myIdeComponents;
 
   public TemplateTest() {
   }
@@ -240,16 +241,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    myOriginalRepositoryUrlManager = RepositoryUrlManager.get();
-    IdeComponents.replaceService(RepositoryUrlManager.class, new RepositoryUrlManager(true));
+    myIdeComponents.replaceService(RepositoryUrlManager.class, new RepositoryUrlManager(true));
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      if (myOriginalRepositoryUrlManager != null) {
-        IdeComponents.replaceService(RepositoryUrlManager.class, myOriginalRepositoryUrlManager);
-      }
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();
@@ -1159,7 +1157,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       myFixture.setUp();
 
       Project project = myFixture.getProject();
-      IdeComponents.replaceServiceWithMock(project, PostProjectBuildTasksExecutor.class);
+      IdeComponents.replaceService(project, PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
       setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
       projectValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());

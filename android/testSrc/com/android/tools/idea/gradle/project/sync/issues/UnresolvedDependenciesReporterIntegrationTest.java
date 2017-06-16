@@ -45,8 +45,7 @@ import static org.mockito.Mockito.when;
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradleTestCase {
-  private IdeInfo myOriginalIdeInfo;
-
+  private IdeComponents myIdeComponents;
   private SyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
@@ -55,6 +54,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
+    myIdeComponents = new IdeComponents(getProject());
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnresolvedDependenciesReporter();
   }
@@ -62,9 +62,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   @Override
   protected void tearDown() throws Exception {
     try {
-      if (myOriginalIdeInfo != null) {
-        IdeComponents.replaceService(IdeInfo.class, myOriginalIdeInfo);
-      }
+      myIdeComponents.restore();
     }
     finally {
       super.tearDown();
@@ -104,8 +102,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   }
 
   public void testReportWithConstraintLayout() throws Exception {
-    myOriginalIdeInfo = IdeInfo.getInstance();
-    IdeInfo ideInfo = IdeComponents.replaceServiceWithMock(IdeInfo.class);
+    IdeInfo ideInfo = myIdeComponents.mockService(IdeInfo.class);
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     loadSimpleApplication();

@@ -42,8 +42,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class JavaModuleModelDataServiceTest extends IdeaTestCase {
   @Mock private JavaModuleSetup myModuleSetup;
   @Mock private JavaModuleCleanupStep myCleanupStep;
+  @Mock private GradleSyncState mySyncState;
 
-  private GradleSyncState mySyncState;
   private IdeModifiableModelsProvider myModelsProvider;
   private JavaModuleModelDataService myService;
 
@@ -52,7 +52,7 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    mySyncState = IdeComponents.replaceServiceWithMock(getProject(), GradleSyncState.class);
+    IdeComponents.replaceService(getProject(), GradleSyncState.class, mySyncState);
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myService = new JavaModuleModelDataService(myModuleSetup, myCleanupStep);
   }

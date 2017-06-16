@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 
 import java.util.List;
@@ -34,27 +32,13 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link SdkBuildToolsTooLowErrorHandler}.
  */
 public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
-  private GradleSyncMessages myOriginalSyncMessages;
   private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    myOriginalSyncMessages = GradleSyncMessages.getInstance(project);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myOriginalSyncMessages != null) {
-        IdeComponents.replaceService(getProject(), GradleSyncMessages.class, myOriginalSyncMessages);
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testGetInstance() {

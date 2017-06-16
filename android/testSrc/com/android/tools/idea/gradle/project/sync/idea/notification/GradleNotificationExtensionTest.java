@@ -34,9 +34,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class GradleNotificationExtensionTest extends IdeaTestCase {
   @Mock private SyncErrorHandler myHandler1;
   @Mock private SyncErrorHandler myHandler2;
+  @Mock private GradleSyncMessages mySyncMessages;
 
   private NotificationData myNotification;
-  private GradleSyncMessages mySyncMessages;
   private GradleNotificationExtension myNotificationExtension;
 
   @Override
@@ -45,7 +45,7 @@ public class GradleNotificationExtensionTest extends IdeaTestCase {
     initMocks(this);
 
     myNotification = new NotificationData("Title", "Message", ERROR, PROJECT_SYNC);
-    mySyncMessages = IdeComponents.replaceServiceWithMock(getProject(), GradleSyncMessages.class);
+    IdeComponents.replaceService(getProject(), GradleSyncMessages.class, mySyncMessages);
     myNotificationExtension = new GradleNotificationExtension(myHandler1, myHandler2);
   }
 

@@ -33,10 +33,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class AndroidStudioGradleActionTest extends IdeaTestCase {
   @Mock private AnActionEvent myEvent;
+  @Mock private GradleProjectInfo myProjectInfo;
 
   private Presentation myPresentation;
-
-  private GradleProjectInfo myProjectInfo;
 
   @Override
   protected void setUp() throws Exception {
@@ -47,7 +46,7 @@ public class AndroidStudioGradleActionTest extends IdeaTestCase {
     when(myEvent.getPresentation()).thenReturn(myPresentation);
     when(myEvent.getProject()).thenReturn(myProject);
 
-    myProjectInfo = IdeComponents.replaceServiceWithMock(getProject(), GradleProjectInfo.class);
+    IdeComponents.replaceService(getProject(), GradleProjectInfo.class, myProjectInfo);
   }
 
   public void testUpdateWithAndroidStudioAndGradleProject() {
