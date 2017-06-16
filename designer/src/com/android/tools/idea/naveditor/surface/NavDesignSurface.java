@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -122,10 +123,9 @@ public class NavDesignSurface extends DesignSurface {
       return;
     }
     myNavView = null;
-    clearLayers();
     if (model != null) {
       myNavView = new NavView(this, model);
-      addLayer(new SceneLayer(this, myNavView, true));
+      setLayers(ImmutableList.of(new SceneLayer(this, myNavView, true)));
 
       getLayeredPane().setPreferredSize(myNavView.getPreferredSize());
 

@@ -84,7 +84,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   protected boolean myDeviceFrames = false;
-  private final List<Layer> myLayers = Lists.newArrayList();
+  private ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -278,7 +278,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void dispose() {
-    clearLayers();
+    // This takes care of disposing any existing layers
+    setLayers(ImmutableList.of());
   }
 
   /**
@@ -1239,11 +1240,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Adds a given {@link Layer} to the current design surface
-   * @param layer
+   * Attaches the given {@link Layer}s to the current design surface
    */
-  protected void addLayer(@NotNull Layer layer) {
-    myLayers.add(layer);
+  protected void setLayers(@NotNull ImmutableList<Layer> layers) {
+    myLayers.forEach(Disposer::dispose);
+    myLayers = ImmutableList.copyOf(layers);
   }
 
   /**
@@ -1251,14 +1252,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   protected ImmutableList<Layer> getLayers() {
-    return ImmutableList.copyOf(myLayers);
-  }
-
-  /**
-   * Removes and disposes every layer attached to this surface
-   */
-  protected void clearLayers() {
-    myLayers.forEach(Disposer::dispose);
-    myLayers.clear();
+    return myLayers;
   }
 }
