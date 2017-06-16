@@ -92,7 +92,38 @@ public class SelectionModelTest {
   }
 
   @Test
-  public void testNestedConstraints() throws Exception {
+  public void testNestedFullConstraints() throws Exception {
+    SelectionModel selection = new SelectionModel(mySelection, myRange);
+    selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
+    selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
+
+    selection.set(0, 1);
+    assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.set(2.5, 2.6);
+    assertEquals(2, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(3, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.set(4, 5);
+    assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.set(35, 36);
+    assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.set(38.5, 38.6);
+    assertEquals(38, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(39, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.set(39.5, 39.6);
+    assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
+  }
+
+  @Test
+  public void testFullWithNestedPartialConstraints() throws Exception {
     SelectionModel selection = new SelectionModel(mySelection, myRange);
     selection.addConstraint(createConstraint(false, true, 2, 3, 18, 19, 38, 39));
     selection.addConstraint(createConstraint(false, false, 0, 5, 15, 20, 35, 40));
@@ -120,6 +151,41 @@ public class SelectionModelTest {
     selection.set(39.5, 39.6);
     assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
     assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
+  }
+
+  @Test
+  public void testPartialWithNestedFullConstraints() throws Exception {
+    SelectionModel selection = new SelectionModel(mySelection, myRange);
+    selection.addConstraint(createConstraint(false, true, 0, 5, 15, 20, 35, 40));
+    selection.addConstraint(createConstraint(false, false, 2, 3, 18, 19, 38, 39));
+
+    selection.set(0, 1);
+    assertEquals(0, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(1, mySelection.getMax(), Float.MIN_VALUE);
+
+    // SelectionModel selects the first constraint that intersects the previous selected range. If we don't clear the selection, the partial
+    // constrain would have been used instead.
+    selection.clear();
+    selection.set(2.5, 2.6);
+    assertEquals(2, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(3, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.set(4, 5);
+    assertEquals(4, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(5, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.set(35, 36);
+    assertEquals(35, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(36, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.clear();
+    selection.set(38.5, 38.6);
+    assertEquals(38, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(39, mySelection.getMax(), Float.MIN_VALUE);
+
+    selection.set(39.5, 39.6);
+    assertEquals(39.5, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(39.6, mySelection.getMax(), Float.MIN_VALUE);
   }
 
   @Test
@@ -235,12 +301,30 @@ public class SelectionModelTest {
     Arrays.setAll(counts, operand -> 0);
   }
 
+  @Test
+  public void testCanSelectUnfinishedDurationData() throws Exception {
+    SelectionModel selection = new SelectionModel(mySelection, myRange);
+    selection.addConstraint(createConstraint(false, true, 0, Long.MAX_VALUE));
+    selection.set(10, 12);
+    assertTrue(mySelection.isEmpty());
+  }
+
+  @Test
+  public void testCannotSelectUnfinishedDurationData() throws Exception {
+    SelectionModel selection = new SelectionModel(mySelection, myRange);
+    selection.addConstraint(createConstraint(true, true, 0, Long.MAX_VALUE));
+    selection.set(10, 12);
+    assertEquals(10, mySelection.getMin(), Float.MIN_VALUE);
+    assertEquals(12, mySelection.getMax(), Float.MIN_VALUE);
+  }
+
   private DurationDataModel<DefaultConfigurableDurationData> createConstraint(boolean selectableWhenUnspecifiedDuration, boolean selectPartialRange, long... values) {
     DefaultDataSeries<DefaultConfigurableDurationData> series = new DefaultDataSeries<>();
     RangedSeries<DefaultConfigurableDurationData> ranged = new RangedSeries<>(myRange, series);
     DurationDataModel<DefaultConfigurableDurationData> constraint = new DurationDataModel<>(ranged);
     for (int i = 0; i < values.length / 2; i++) {
-      series.add(values[i * 2], new DefaultConfigurableDurationData(values[i * 2 + 1] - values[i * 2], selectableWhenUnspecifiedDuration, selectPartialRange));
+      long duration = values[i * 2 + 1] == Long.MAX_VALUE ? Long.MAX_VALUE : values[i * 2 + 1] - values[i * 2];
+      series.add(values[i * 2], new DefaultConfigurableDurationData(duration, selectableWhenUnspecifiedDuration, selectPartialRange));
     }
 
     return constraint;
