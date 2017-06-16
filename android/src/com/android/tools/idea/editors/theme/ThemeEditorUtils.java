@@ -322,7 +322,10 @@ public class ThemeEditorUtils {
     return new WriteCommandAction<Boolean>(project, "Create new style " + newStyleName) {
       @Override
       protected void run(@NotNull Result<Boolean> result) {
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+        // We use the ThemeEditorVirtual file as the affected file for this command to allow undo/redo operations
+        // from the Theme Editor
+        CommandProcessor.getInstance().addAffectedFiles(project, ThemeEditorVirtualFile.getThemeEditorFile(project));
+
         result.setResult(AndroidResourceUtil.
           createValueResource(project, resourceDir, newStyleName, null,
                               ResourceType.STYLE, fileName, folderNames, element -> {
