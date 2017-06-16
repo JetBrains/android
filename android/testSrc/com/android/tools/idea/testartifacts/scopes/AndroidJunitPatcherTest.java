@@ -17,9 +17,9 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
+import com.android.ide.common.builder.model.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;

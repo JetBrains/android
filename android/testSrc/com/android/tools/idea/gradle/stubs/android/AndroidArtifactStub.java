@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.builder.model.*;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependencies;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.IdeLevel2DependenciesStub;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.ClassField;
+import com.android.builder.model.InstantRun;
+import com.android.builder.model.NativeLibrary;
+import com.android.ide.common.builder.model.IdeAndroidArtifact;
+import com.android.ide.common.builder.model.IdeLevel2Dependencies;
+import com.android.ide.common.builder.model.stubs.IdeLevel2DependenciesStub;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
