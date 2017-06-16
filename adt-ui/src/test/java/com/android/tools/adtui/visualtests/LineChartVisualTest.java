@@ -232,6 +232,13 @@ public class LineChartVisualTest extends VisualTest {
         mLineChart.getLineConfig(series).setStroke(stroke);
       }
     }));
+    controls.add(VisualTest.createCheckbox("Adjust Dash", itemEvent -> {
+      boolean isAdjustDash = itemEvent.getStateChange() == ItemEvent.SELECTED;
+      for (int i = 0; i < mRangedData.size(); i += 2) {
+        RangedContinuousSeries series = mRangedData.get(i);
+        mLineChart.getLineConfig(series).setAdjustDash(isAdjustDash);
+      }
+    }));
     controls.add(VisualTest.createCheckbox("Filled lines", itemEvent -> {
       boolean isFilled = itemEvent.getStateChange() == ItemEvent.SELECTED;
       // Fill only some lines
