@@ -13,33 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.io;
+package com.android.tools.idea.tests.util;
 
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.android.tools.idea.io.TestFileUtils;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Utilities for working with test projects when testing the IDE.
- *
- * @see com.android.utils.FileUtils
- */
-public final class TestFileUtils {
-  private TestFileUtils() {
+public final class GuiTestFileUtils {
+  private GuiTestFileUtils() {
   }
 
   /**
-   * Creates the file if it doesn't exist, writes the string to it, and refreshes the VFS.
+   * Creates the file if it doesn't exist, writes the string to it, refreshes the VFS, and reloads the document.
    */
-  public static VirtualFile writeAndRefreshVfs(@NotNull Path path, @NotNull String string) throws IOException {
-    Files.createDirectories(path.getParent());
-    Files.write(path, string.getBytes(StandardCharsets.UTF_8));
+  public static void writeAndReloadDocument(@NotNull Path path, @NotNull String string) throws IOException {
+    VirtualFile file = TestFileUtils.writeAndRefreshVfs(path, string);
 
-    return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(path.toFile());
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        FileDocumentManager.getInstance().reloadFiles(file);
+      }
+    });
   }
 }
