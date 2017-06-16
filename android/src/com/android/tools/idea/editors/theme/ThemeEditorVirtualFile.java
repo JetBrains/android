@@ -141,10 +141,5 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
     public Icon getIcon() {
       return AndroidIcons.Themes;
     }
-
-    @Override
-    public boolean isBinary() {
-      return false;
-    }
   }
 }

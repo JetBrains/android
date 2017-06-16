@@ -27,7 +27,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorVirtualFile;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
@@ -435,7 +434,7 @@ public class ThemeEditorStyle {
       protected void run() {
         // Makes the command global even if only one xml file is modified
         // That way, the Undo is always available from the theme editor
-        CommandProcessor.getInstance().addAffectedFiles(project, ThemeEditorVirtualFile.getThemeEditorFile(project));
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
 
         Collection<FolderConfiguration> toBeCopied = findToBeCopied(desiredApi);
         for (FolderConfiguration configuration : toBeCopied) {
