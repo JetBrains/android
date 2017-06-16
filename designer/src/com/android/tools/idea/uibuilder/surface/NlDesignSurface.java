@@ -39,6 +39,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -199,54 +200,60 @@ public class NlDesignSurface extends DesignSurface {
     return new LayoutlibSceneManager(model, this);
   }
 
-  private void addLayers() {
-    addLayer(new MyBottomLayer());
+  private void setLayers() {
+    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
+    builder.add(new MyBottomLayer());
 
     switch (myScreenMode) {
       case SCREEN_ONLY:
-        addScreenLayers();
+        assert myScreenView != null;
+        builder.addAll(getScreenLayers(this, myScreenView));
         break;
       case BLUEPRINT_ONLY:
         assert myScreenView != null;
-        addBlueprintLayers(myScreenView);
-
+        builder.addAll(getBlueprintLayers(this, myScreenView));
         break;
       case BOTH:
-        addScreenLayers();
-
-        assert myBlueprintView != null;
-        addBlueprintLayers(myBlueprintView);
-
+        assert myScreenView != null &&  myBlueprintView != null;
+        builder.addAll(getScreenLayers(this, myScreenView));
+        builder.addAll(getBlueprintLayers(this, myBlueprintView));
         break;
       default:
         assert false : myScreenMode;
     }
+
+    setLayers(builder.build());
   }
 
-  private void addScreenLayers() {
-    assert myScreenView != null;
+  @NotNull
+  private static ImmutableList<Layer> getScreenLayers(@NotNull NlDesignSurface surface, @NotNull ScreenView screenView) {
+    ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
-    addLayer(new ScreenViewLayer(myScreenView));
-    addLayer(new SelectionLayer(myScreenView));
+    builder.add(new ScreenViewLayer(screenView));
+    builder.add(new SelectionLayer(screenView));
 
-    if (myScreenView.getModel().getType().isLayout()) {
-      addLayer(new ConstraintsLayer(this, myScreenView, true));
+    if (screenView.getModel().getType().isLayout()) {
+      builder.add(new ConstraintsLayer(surface, screenView, true));
     }
 
-    SceneLayer sceneLayer = new SceneLayer(this, myScreenView, false);
+    SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
-    addLayer(new WarningLayer(myScreenView));
-    addLayer(sceneLayer);
-    if (getLayoutType().isSupportedByDesigner()) {
-      addLayer(new CanvasResizeLayer(this, myScreenView));
+    builder.add(new WarningLayer(screenView));
+    builder.add(sceneLayer);
+    if (surface.getLayoutType().isSupportedByDesigner()) {
+      builder.add(new CanvasResizeLayer(surface, screenView));
     }
+
+    return builder.build();
   }
 
-  private void addBlueprintLayers(@NotNull ScreenView view) {
-    addLayer(new SelectionLayer(view));
-    addLayer(new MockupLayer(view));
-    addLayer(new CanvasResizeLayer(this, view));
-    addLayer(new SceneLayer(this, view, true));
+  @NotNull
+  private static ImmutableList<Layer> getBlueprintLayers(@NotNull NlDesignSurface surface, @NotNull ScreenView view) {
+    return ImmutableList.of(
+      new SelectionLayer(view),
+      new MockupLayer(view),
+      new CanvasResizeLayer(surface, view),
+      new SceneLayer(surface, view, true));
   }
 
   /**
@@ -475,8 +482,6 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   protected void doCreateSceneViews() {
-    clearLayers();
-
     myScreenView = null;
     myBlueprintView = null;
 
@@ -514,7 +519,7 @@ public class NlDesignSurface extends DesignSurface {
     updateErrorDisplay();
     getLayeredPane().setPreferredSize(myScreenView.getPreferredSize());
 
-    addLayers();
+    setLayers();
     layoutContent();
   }
 
@@ -525,11 +530,11 @@ public class NlDesignSurface extends DesignSurface {
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
       myScreenView = new NavigationViewSceneView(this, myModel);
-      addLayer(new ScreenViewLayer(myScreenView));
+      setLayers(ImmutableList.of(new ScreenViewLayer(myScreenView)));
     }
     else {
       myScreenView = new ScreenView(this, ScreenViewType.NORMAL, myModel);
-      addScreenLayers();
+      setLayers(getScreenLayers(this, myScreenView));
     }
 
     updateErrorDisplay();
