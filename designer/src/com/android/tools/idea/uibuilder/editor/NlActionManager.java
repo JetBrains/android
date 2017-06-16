@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Result;
@@ -148,6 +149,9 @@ public class NlActionManager extends ActionManager {
       group.addSeparator();
     }
 
+    if (leafComponent != null) {
+      group.add(new MorphComponentAction(leafComponent, mySurface));
+    }
     group.add(new MockupEditAction(mySurface));
     if (leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
       group.add(new MockupDeleteAction(leafComponent));
