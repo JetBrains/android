@@ -102,26 +102,26 @@ public class InstallTaskTest extends AndroidTestCase {
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.preparePackages(myOperations, failures);
 
-    verify(myInstaller).prepare(myProgressIndicator);
-    verify(myInstaller2).prepare(myProgressIndicator);
-    verify(myUninstaller).prepare(myProgressIndicator);
+    verify(myInstaller).prepare(any());
+    verify(myInstaller2).prepare(any());
+    verify(myUninstaller).prepare(any());
 
     assertTrue(failures.isEmpty());
   }
 
   public void testPrepareWithFallback() throws Exception {
     Installer fallback = mock(Installer.class);
-    when(fallback.prepare(myProgressIndicator)).thenReturn(true);
-    when(myInstaller2.prepare(myProgressIndicator)).thenReturn(false);
+    when(fallback.prepare(any())).thenReturn(true);
+    when(myInstaller2.prepare(any())).thenReturn(false);
     when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
 
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.preparePackages(myOperations, failures);
 
-    verify(myInstaller).prepare(myProgressIndicator);
-    verify(myInstaller2).prepare(myProgressIndicator);
-    verify(myUninstaller).prepare(myProgressIndicator);
-    verify(fallback).prepare(myProgressIndicator);
+    verify(myInstaller).prepare(any());
+    verify(myInstaller2).prepare(any());
+    verify(myUninstaller).prepare(any());
+    verify(fallback).prepare(any());
 
     assertTrue(failures.isEmpty());
     assertEquals(fallback, myOperations.get(myAvailable2));
@@ -129,36 +129,36 @@ public class InstallTaskTest extends AndroidTestCase {
 
   public void testPrepareWithDoubleFallback() throws Exception {
     Installer fallback = mock(Installer.class);
-    when(fallback.prepare(myProgressIndicator)).thenReturn(false);
+    when(fallback.prepare(any())).thenReturn(false);
     Installer fallback2 = mock(Installer.class);
-    when(fallback2.prepare(myProgressIndicator)).thenReturn(true);
+    when(fallback2.prepare(any())).thenReturn(true);
 
-    when(myInstaller2.prepare(myProgressIndicator)).thenReturn(false);
+    when(myInstaller2.prepare(any())).thenReturn(false);
     when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
     when(fallback.getFallbackOperation()).thenReturn(fallback2);
 
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.preparePackages(myOperations, failures);
 
-    verify(myInstaller).prepare(myProgressIndicator);
-    verify(myInstaller2).prepare(myProgressIndicator);
-    verify(myUninstaller).prepare(myProgressIndicator);
-    verify(fallback).prepare(myProgressIndicator);
-    verify(fallback2).prepare(myProgressIndicator);
+    verify(myInstaller).prepare(any());
+    verify(myInstaller2).prepare(any());
+    verify(myUninstaller).prepare(any());
+    verify(fallback).prepare(any());
+    verify(fallback2).prepare(any());
 
     assertTrue(failures.isEmpty());
     assertEquals(fallback2, myOperations.get(myAvailable2));
   }
 
   public void testPrepareWithErrors() throws Exception {
-    when(myInstaller2.prepare(myProgressIndicator)).thenReturn(false);
+    when(myInstaller2.prepare(any())).thenReturn(false);
 
     List<RepoPackage> failures = new ArrayList<>();
     myInstallTask.preparePackages(myOperations, failures);
 
-    verify(myInstaller).prepare(myProgressIndicator);
-    verify(myInstaller2).prepare(myProgressIndicator);
-    verify(myUninstaller).prepare(myProgressIndicator);
+    verify(myInstaller).prepare(any());
+    verify(myInstaller2).prepare(any());
+    verify(myUninstaller).prepare(any());
 
     assertTrue(failures.contains(myAvailable2));
     assertEquals(1, failures.size());
@@ -166,11 +166,11 @@ public class InstallTaskTest extends AndroidTestCase {
 
   public void testComplete() throws Exception {
     List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.completePackages(myOperations, failures);
+    myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true));
 
-    verify(myInstaller).complete(myProgressIndicator);
-    verify(myInstaller2).complete(myProgressIndicator);
-    verify(myUninstaller).complete(myProgressIndicator);
+    verify(myInstaller).complete(any());
+    verify(myInstaller2).complete(any());
+    verify(myUninstaller).complete(any());
 
     assertTrue(failures.isEmpty());
     assertTrue(myOperations.isEmpty());
@@ -180,13 +180,13 @@ public class InstallTaskTest extends AndroidTestCase {
     Installer fallback = mock(Installer.class);
     when(myInstaller.getFallbackOperation()).thenReturn(fallback);
 
-    when(myInstaller.complete(myProgressIndicator)).thenReturn(false);
+    when(myInstaller.complete(any())).thenReturn(false);
     List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.completePackages(myOperations, failures);
+    myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true));
 
-    verify(myInstaller).complete(myProgressIndicator);
-    verify(myInstaller2).complete(myProgressIndicator);
-    verify(myUninstaller).complete(myProgressIndicator);
+    verify(myInstaller).complete(any());
+    verify(myInstaller2).complete(any());
+    verify(myUninstaller).complete(any());
 
     assertTrue(failures.isEmpty());
     assertEquals(fallback, myOperations.get(myAvailable1));
@@ -194,13 +194,13 @@ public class InstallTaskTest extends AndroidTestCase {
   }
 
   public void testCompleteWithErrors() throws Exception {
-    when(myInstaller.complete(myProgressIndicator)).thenReturn(false);
+    when(myInstaller.complete(any())).thenReturn(false);
     List<RepoPackage> failures = new ArrayList<>();
-    myInstallTask.completePackages(myOperations, failures);
+    myInstallTask.completePackages(myOperations, failures, new FakeProgressIndicator(true));
 
-    verify(myInstaller).complete(myProgressIndicator);
-    verify(myInstaller2).complete(myProgressIndicator);
-    verify(myUninstaller).complete(myProgressIndicator);
+    verify(myInstaller).complete(any());
+    verify(myInstaller2).complete(any());
+    verify(myUninstaller).complete(any());
 
     assertTrue(failures.contains(myAvailable1));
     assertEquals(1, failures.size());
@@ -210,14 +210,14 @@ public class InstallTaskTest extends AndroidTestCase {
   public void testRunBasic() throws Exception {
     myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator, new EmptyProgressIndicator()));
     InOrder installer1Calls = inOrder(myInstaller);
-    installer1Calls.verify(myInstaller).prepare(myProgressIndicator);
-    installer1Calls.verify(myInstaller).complete(myProgressIndicator);
+    installer1Calls.verify(myInstaller).prepare(any());
+    installer1Calls.verify(myInstaller).complete(any());
     InOrder installer2Calls = inOrder(myInstaller2);
-    installer2Calls.verify(myInstaller2).prepare(myProgressIndicator);
-    installer2Calls.verify(myInstaller2).complete(myProgressIndicator);
+    installer2Calls.verify(myInstaller2).prepare(any());
+    installer2Calls.verify(myInstaller2).complete(any());
     InOrder uninstallerCalls = inOrder(myUninstaller);
-    uninstallerCalls.verify(myUninstaller).prepare(myProgressIndicator);
-    uninstallerCalls.verify(myUninstaller).complete(myProgressIndicator);
+    uninstallerCalls.verify(myUninstaller).prepare(any());
+    uninstallerCalls.verify(myUninstaller).complete(any());
   }
 
   public void testRunCallbacks() throws Exception {
@@ -229,48 +229,48 @@ public class InstallTaskTest extends AndroidTestCase {
     myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator, new EmptyProgressIndicator()));
 
     InOrder callbackCalls = inOrder(myInstaller, prepareComplete, complete);
-    callbackCalls.verify(myInstaller).prepare(myProgressIndicator);
+    callbackCalls.verify(myInstaller).prepare(any());
     callbackCalls.verify(prepareComplete).run();
-    callbackCalls.verify(myInstaller).complete(myProgressIndicator);
+    callbackCalls.verify(myInstaller).complete(any());
     callbackCalls.verify(complete).apply(new ArrayList<>());
   }
 
   public void testRunWithFallbackOnPrepare() throws Exception {
     Installer fallback = mock(Installer.class);
-    when(fallback.prepare(myProgressIndicator)).thenReturn(true);
-    when(myInstaller2.prepare(myProgressIndicator)).thenReturn(false);
+    when(fallback.prepare(any())).thenReturn(true);
+    when(myInstaller2.prepare(any())).thenReturn(false);
     when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
 
     myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator, new EmptyProgressIndicator()));
 
-    verify(myInstaller).prepare(myProgressIndicator);
-    verify(myInstaller2).prepare(myProgressIndicator);
-    verify(myUninstaller).prepare(myProgressIndicator);
-    verify(fallback).prepare(myProgressIndicator);
+    verify(myInstaller).prepare(any());
+    verify(myInstaller2).prepare(any());
+    verify(myUninstaller).prepare(any());
+    verify(fallback).prepare(any());
 
-    verify(myInstaller).complete(myProgressIndicator);
-    verify(myUninstaller).complete(myProgressIndicator);
-    verify(fallback).complete(myProgressIndicator);
-    verify(myInstaller2, never()).complete(myProgressIndicator);
+    verify(myInstaller).complete(any());
+    verify(myUninstaller).complete(any());
+    verify(fallback).complete(any());
+    verify(myInstaller2, never()).complete(any());
   }
 
   public void testRunWithFallbackOnComplete() throws Exception {
     Installer fallback = mock(Installer.class);
-    when(fallback.prepare(myProgressIndicator)).thenReturn(true);
-    when(myInstaller2.complete(myProgressIndicator)).thenReturn(false);
+    when(fallback.prepare(any())).thenReturn(true);
+    when(myInstaller2.complete(any())).thenReturn(false);
     when(myInstaller2.getFallbackOperation()).thenReturn(fallback);
 
     myInstallTask.run(new StudioProgressIndicatorAdapter(myProgressIndicator, new EmptyProgressIndicator()));
 
-    verify(myInstaller).prepare(myProgressIndicator);
-    verify(myInstaller2).prepare(myProgressIndicator);
-    verify(myUninstaller).prepare(myProgressIndicator);
-    verify(fallback).prepare(myProgressIndicator);
+    verify(myInstaller).prepare(any());
+    verify(myInstaller2).prepare(any());
+    verify(myUninstaller).prepare(any());
+    verify(fallback).prepare(any());
 
-    verify(myInstaller).complete(myProgressIndicator);
-    verify(myUninstaller).complete(myProgressIndicator);
-    verify(fallback).complete(myProgressIndicator);
-    verify(myInstaller2).complete(myProgressIndicator);
+    verify(myInstaller).complete(any());
+    verify(myUninstaller).complete(any());
+    verify(fallback).complete(any());
+    verify(myInstaller2).complete(any());
   }
 
   public void testBackground() throws Exception {

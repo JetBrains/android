@@ -104,7 +104,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
                     new StudioProgressRunner(true, false, false, "Finding Available SDK Components", null),
-                    new StudioDownloader(null), StudioSettingsController.getInstance(), true);
+                    new StudioDownloader(), StudioSettingsController.getInstance(), true);
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
     if (platforms != null) {

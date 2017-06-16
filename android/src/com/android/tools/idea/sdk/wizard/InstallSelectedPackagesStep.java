@@ -95,7 +95,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
                                      @NotNull Collection<LocalPackage> uninstallRequests,
                                      @NotNull AndroidSdkHandler sdkHandler,
                                      boolean backgroundable) {
-    this(installRequests, uninstallRequests, sdkHandler, backgroundable, StudioSdkInstallerUtil.createInstallerFactory(sdkHandler), true);
+    this(installRequests, uninstallRequests, sdkHandler, backgroundable, StudioSdkInstallerUtil.createInstallerFactory(sdkHandler), false);
   }
 
   @VisibleForTesting
@@ -260,6 +260,8 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     private ProgressIndicator myIndicator;
     private boolean myCancelled;
     private Logger myLogger = Logger.getInstance(getClass());
+    // Maintain separately since JProgressBar has low resolution
+    private double myFraction = 0;
 
     @Override
     public void setText(@Nullable final String s) {
@@ -307,6 +309,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
     @Override
     public void setFraction(final double v) {
+      myFraction = v;
       UIUtil.invokeLaterIfNeeded(() -> {
         myProgressBar.setIndeterminate(false);
         myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
@@ -318,14 +321,18 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
     @Override
     public double getFraction() {
-      return myProgressBar.getPercentComplete();
+      return myFraction;
     }
 
     @Override
-    public void setSecondaryText(@Nullable final String s) {
-      UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(s));
+    public void setSecondaryText(@Nullable String s) {
+      if (s != null && s.length() > 80) {
+        s = s.substring(s.length() - 80, s.length());
+      }
+      String label = s;
+      UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(label));
       if (myIndicator != null) {
-        myIndicator.setText2(s);
+        myIndicator.setText2(label);
       }
     }
 

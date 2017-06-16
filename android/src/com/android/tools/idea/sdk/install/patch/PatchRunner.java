@@ -85,7 +85,7 @@ public class PatchRunner {
         progress.logWarning("Failed to find patcher JAR!");
         return null;
       }
-      ClassLoader loader = getClassLoader(patcherFile, progress);
+      ClassLoader loader = getClassLoader(patcherFile);
       Class runnerClass = Class.forName(RUNNER_CLASS_NAME, true, loader);
       Class uiBaseClass = Class.forName(UPDATER_UI_CLASS_NAME, true, loader);
       Class uiClass = Class.forName(REPO_UI_CLASS_NAME, true, loader);
@@ -223,7 +223,7 @@ public class PatchRunner {
    * Gets a class loader for the given jar.
    */
   @NotNull
-  private static ClassLoader getClassLoader(@NotNull File patcherJar, @NotNull ProgressIndicator progress) {
+  private static ClassLoader getClassLoader(@NotNull File patcherJar) {
     ClassLoader loader;
     try {
       loader = UrlClassLoader.build().urls(patcherJar.toURI().toURL()).parent(PatchInstaller.class.getClassLoader()).get();

@@ -32,7 +32,7 @@ public class StudioSdkUtil {
     StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "Refreshing SDK", null);
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(StudioSdkUtil.class);
     RepoManager sdkManager = sdkHandler.getSdkManager(progress);
-    sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null, runner, new StudioDownloader(null),
+    sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null, runner, new StudioDownloader(),
                     StudioSettingsController.getInstance(), true);
 
   }
