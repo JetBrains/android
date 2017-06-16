@@ -34,6 +34,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -535,32 +536,37 @@ public class CpuProfilerStageTest extends AspectObserver {
     addAndSetDevice(14, "FakeDevice1");
 
     List<ProfilingConfiguration> configs = myStage.getProfilingConfigurations();
-    assertThat(configs).hasSize(3);
     // First configuration in the list should be a dummy entry used to open the configurations dialog
     assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
+
+    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(configs);
+    assertThat(realConfigs).hasSize(2);
     // First actual configuration should be ART Sampled
-    assertThat(configs.get(1).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
-    assertThat(configs.get(1).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(configs.get(1).getName()).isEqualTo("Sampled");
+    assertThat(realConfigs.get(0).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(realConfigs.get(0).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
     // Second actual configuration should be ART Instrumented
-    assertThat(configs.get(2).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
-    assertThat(configs.get(2).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
-    assertThat(configs.get(2).getName()).isEqualTo("Instrumented");
+    assertThat(realConfigs.get(1).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(realConfigs.get(1).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
 
     // Simpleperf is supported on API 26 and greater.
     addAndSetDevice(26, "FakeDevice2");
 
     configs = myStage.getProfilingConfigurations();
-    assertThat(configs).hasSize(4);
     // Dummy configuration
     assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
+
+    realConfigs = filterFakeConfigs(configs);
+    assertThat(realConfigs).hasSize(3);
+
     // First and second actual configurations should be the same
-    assertThat(configs.get(1).getName()).isEqualTo("Sampled");
-    assertThat(configs.get(2).getName()).isEqualTo("Instrumented");
+    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
+    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
     // Third configuration should be simpleperf
-    assertThat(configs.get(3).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
-    assertThat(configs.get(3).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(configs.get(3).getName()).isEqualTo("Sampled (Hybrid)");
+    assertThat(realConfigs.get(2).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(realConfigs.get(2).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    assertThat(realConfigs.get(2).getName()).isEqualTo("Sampled (Hybrid)");
   }
 
   @Test
@@ -570,31 +576,23 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Set a device that supports simpleperf
     addAndSetDevice(26, "Fake Device 1");
 
-    List<ProfilingConfiguration> configs = myStage.getProfilingConfigurations();
-    assertThat(configs).hasSize(4);
-    // First configuration in the list should be a dummy entry used to open the configurations dialog
-    assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-    // First and second actual configurations should be the same
-    assertThat(configs.get(1).getName()).isEqualTo("Sampled");
-    assertThat(configs.get(2).getName()).isEqualTo("Instrumented");
-    // Third actual configuration should be simpleperf
-    assertThat(configs.get(3).getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
-    assertThat(configs.get(3).getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
-    assertThat(configs.get(3).getName()).isEqualTo("Sampled (Hybrid)");
+    List<ProfilingConfiguration> realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
+
+    assertThat(realConfigs).hasSize(3);
+    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
+    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
+    assertThat(realConfigs.get(2).getName()).isEqualTo("Sampled (Hybrid)");
 
     // Now disable simpleperf
     myServices.enableSimplePerf(false);
 
     // Set a device that supports simpleperf
     addAndSetDevice(26, "Fake Device 2");
-    configs = myStage.getProfilingConfigurations();
+    realConfigs = filterFakeConfigs(myStage.getProfilingConfigurations());
     // Simpleperf should not be listed as a profiling option
-    assertThat(configs).hasSize(3);
-    // Check for the dummy config in the list
-    assertThat(configs.get(0)).isEqualTo(CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY);
-    // First and second actual configurations should be the ART ones
-    assertThat(configs.get(1).getName()).isEqualTo("Sampled");
-    assertThat(configs.get(2).getName()).isEqualTo("Instrumented");
+    assertThat(realConfigs).hasSize(2);
+    assertThat(realConfigs.get(0).getName()).isEqualTo("Sampled");
+    assertThat(realConfigs.get(1).getName()).isEqualTo("Instrumented");
   }
 
   @Test
@@ -796,5 +794,15 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   private void stopCapturing() {
     stopCapturing(myStage);
+  }
+
+  /**
+   * Some configs are used as placeholders and never actually meant to be selected by users. Strip
+   * those out to test against the configurations that matter.
+   */
+  private List<ProfilingConfiguration> filterFakeConfigs(List<ProfilingConfiguration> configs) {
+    return configs.stream()
+      .filter(pc -> pc != CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY && pc != CpuProfilerStage.CONFIG_SEPARATOR_ENTRY)
+      .collect(Collectors.toList());
   }
 }

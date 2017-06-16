@@ -51,9 +51,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
   /**
-   * Configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
+   * Fake configuration to represent "Edit configurations..." entry on the profiling configurations combobox.
    */
   static final ProfilingConfiguration EDIT_CONFIGURATIONS_ENTRY = new ProfilingConfiguration();
+  /**
+   * Fake configuration to represent a separator on the profiling configurations combobox.
+   */
+  static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration();
   private static final long INVALID_CAPTURE_START_TIME = Long.MAX_VALUE;
 
   private final CpuThreadsModel myThreadsStates;
@@ -512,16 +516,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myProfilingConfiguration;
   }
 
-  public void setProfilingConfiguration(@Nullable ProfilingConfiguration mode) {
-    // EDIT_CONFIGURATIONS_ENTRY should be a transient state for myProfilingConfiguration and should be used
-    // only to open the configurations dialog. When calling setProfilingConfiguration(EDIT_CONFIGURATIONS_ENTRY),
-    // we open the dialog but don't actually change the value of myProfilingConfiguration.
-    assert myProfilingConfiguration != EDIT_CONFIGURATIONS_ENTRY;
-    if (mode != EDIT_CONFIGURATIONS_ENTRY) {
-      myProfilingConfiguration = mode;
-    }
-    else {
+  public void setProfilingConfiguration(@NotNull ProfilingConfiguration mode) {
+    if (mode == EDIT_CONFIGURATIONS_ENTRY) {
       openProfilingConfigurationsDialog();
+    }
+    else if (mode != CONFIG_SEPARATOR_ENTRY) {
+      myProfilingConfiguration = mode;
     }
     myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
   }
@@ -549,24 +549,30 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myProfilingConfigurations = new ArrayList<>();
     // EDIT_CONFIGURATIONS_ENTRY should represent the entry to open the configurations dialog
     myProfilingConfigurations.add(EDIT_CONFIGURATIONS_ENTRY);
+    myProfilingConfigurations.add(CONFIG_SEPARATOR_ENTRY);
+
     List<ProfilingConfiguration> savedConfigs = getStudioProfilers().getIdeServices().getCpuProfilingConfigurations();
     List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
 
     // Simpleperf profiling is not supported by devices older than O (API level 26)
     boolean selectedDeviceSupportsSimpleperf = getStudioProfilers().getDevice().getFeatureLevel() >= 26;
-    if (selectedDeviceSupportsSimpleperf && getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled()) {
-      myProfilingConfigurations.addAll(savedConfigs);
-      myProfilingConfigurations.addAll(defaultConfigs);
-    }
-    else {
+    if (!selectedDeviceSupportsSimpleperf || !getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled()) {
       Predicate<ProfilingConfiguration> simpleperfFilter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLE_PERF;
-      myProfilingConfigurations.addAll(savedConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList()));
-      myProfilingConfigurations.addAll(defaultConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList()));
+      savedConfigs = savedConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList());
+      defaultConfigs = defaultConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList());
     }
 
-    // Configurations should have more than one element, as it contains at least EDIT_CONFIGURATIONS_ENTRY and the default configurations.
-    assert myProfilingConfigurations.size() > 1;
-    myProfilingConfiguration = myProfilingConfigurations.get(1);
+    myProfilingConfigurations.addAll(savedConfigs);
+    if (!savedConfigs.isEmpty()) {
+      // Visually separate saved configs from default configs, if we have any
+      myProfilingConfigurations.add(CONFIG_SEPARATOR_ENTRY);
+    }
+    myProfilingConfigurations.addAll(defaultConfigs);
+
+    // Configurations should have more than two elements, as it contains at least
+    // EDIT_CONFIGURATIONS_ENTRY, CONFIG_SEPARATOR_ENTRY, and default configurations.
+    assert myProfilingConfigurations.size() > 2;
+    myProfilingConfiguration = myProfilingConfigurations.get(2);
   }
 
   @NotNull

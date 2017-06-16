@@ -51,10 +51,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -287,13 +284,43 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       new JComboBoxView<>(myProfilingConfigurationCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_CONFIGURATION,
                           stage::getProfilingConfigurations, stage::getProfilingConfiguration, stage::setProfilingConfiguration);
     profilingConfiguration.bind();
+    myProfilingConfigurationCombo.addKeyListener(new KeyAdapter() {
+      /**
+       * Select the next item, skipping over any separators encountered
+       */
+      private void skipSeparators(int indexDelta) {
+        int selectedIndex = myProfilingConfigurationCombo.getSelectedIndex() + indexDelta;
+        if (selectedIndex < 0 || selectedIndex == myProfilingConfigurationCombo.getItemCount()) {
+          return;
+        }
+        while (myProfilingConfigurationCombo.getItemAt(selectedIndex) == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
+          selectedIndex += indexDelta;
+        }
+        myProfilingConfigurationCombo.setSelectedIndex(selectedIndex);
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+          skipSeparators(1);
+          e.consume();
+        }
+        else if (e.getKeyCode() == KeyEvent.VK_UP) {
+          skipSeparators(-1);
+          e.consume();
+        }
+      }
+    });
     myProfilingConfigurationCombo.setRenderer(new ListCellRendererWrapper<ProfilingConfiguration>() {
       @Override
       public void customize(JList list, ProfilingConfiguration value, int index, boolean selected, boolean hasFocus) {
         if (value == CpuProfilerStage.EDIT_CONFIGURATIONS_ENTRY) {
           setIcon(AllIcons.Actions.EditSource);
           setText("Edit configurations...");
-        } else {
+        } else if (value == CpuProfilerStage.CONFIG_SEPARATOR_ENTRY) {
+          setSeparator();
+        }
+        else {
           setText(value.getName());
         }
       }
