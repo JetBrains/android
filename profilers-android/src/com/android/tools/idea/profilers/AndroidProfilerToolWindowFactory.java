@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -27,10 +29,12 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
   public static final String ID = "Android Profiler";
+  public static final String ANDROID_PROFILER_ACTIVE = "android.profiler.active";
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -61,6 +65,16 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     Content content = contentFactory.createContent(view.getComponent(), "", false);
     Disposer.register(content, view);
     toolWindow.getContentManager().addContent(content);
+    PropertiesComponent properties = PropertiesComponent.getInstance(project);
+    toolWindow.setIcon(ExecutionUtil.getLiveIndicator(AndroidIcons.Profiler.ToolWindow));
+    properties.setValue(ANDROID_PROFILER_ACTIVE, true);
+  }
+
+  public static void removeContent(Project project, ToolWindow toolWindow) {
+    toolWindow.getContentManager().removeAllContents(true);
+    PropertiesComponent properties = PropertiesComponent.getInstance(project);
+    toolWindow.setIcon(AndroidIcons.Profiler.ToolWindow);
+    properties.setValue(ANDROID_PROFILER_ACTIVE, false);
   }
 
   @Override
