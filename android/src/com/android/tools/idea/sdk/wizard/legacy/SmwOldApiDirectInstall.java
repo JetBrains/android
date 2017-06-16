@@ -215,14 +215,21 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       com.android.repository.api.ProgressIndicator repoProgress = new LoggerProgressIndicatorWrapper(myLogger);
       final RepoManager sdkManager = mySdkHandler.getSdkManager(repoProgress);
       InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(mySdkHandler);
+      double progressMax = 0;
+      double progressIncrement = 0.9 / (myRequestedPackages.size() * 2.);
       for (RemotePackage p : myRequestedPackages) {
         FileOp fop = FileOpUtils.create();
-        Installer installer = factory.createInstaller(p, sdkManager, new StudioDownloader(indicator), fop);
-        if (installer.prepare(repoProgress)) {
-          installer.complete(repoProgress);
+        Installer installer = factory.createInstaller(p, sdkManager, new StudioDownloader(), fop);
+        progressMax += progressIncrement;
+        if (installer.prepare(repoProgress.createSubProgress(progressMax))) {
+          repoProgress.setFraction(progressMax);
+          installer.complete(repoProgress.createSubProgress(progressMax + progressIncrement));
+          repoProgress.setFraction(progressMax + progressIncrement);
         }
+        progressMax += progressIncrement;
       }
-      sdkManager.loadSynchronously(0, repoProgress, null, null);
+      sdkManager.loadSynchronously(0, repoProgress.createSubProgress(1), null, null);
+      repoProgress.setFraction(1);
       myState.remove(INSTALL_REQUESTS_KEY);
 
       GuiUtils.invokeLaterIfNeeded(() -> {

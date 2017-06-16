@@ -79,7 +79,7 @@ public class HaxmWizard extends DynamicWizard {
         sdkHandler.getSdkManager(progress).reloadLocalIfNeeded(progress);
         componentInstaller.ensureSdkPackagesUninstalled(myHaxmPath.myHaxm.getRequiredSdkPackages(), progress);
       }
-      catch(Exception e) {
+      catch (Exception e) {
         Messages.showErrorDialog(SDK_PACKAGE_CLEANUP_FAILED, "Cleanup Error");
         LOG.warn("Failed to make sure HAXM SDK package is uninstalled after HAXM wizard was cancelled", e);
       }

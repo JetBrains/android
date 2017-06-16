@@ -166,7 +166,7 @@ public class SdkComponentSourceTest extends UsefulTestCase {
 
       @NotNull
       @Override
-      Downloader getDownloader(@Nullable ProgressIndicator indicator) {
+      Downloader getDownloader() {
         return downloader;
       }
     };
@@ -195,7 +195,7 @@ public class SdkComponentSourceTest extends UsefulTestCase {
 
   public void testAvailableBetaVersions() throws Exception {
     myChannelId = 1;
-    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(), null);
+    ProgressIndicator progress = new StudioProgressIndicatorAdapter(new FakeProgressIndicator(true), null);
     Set<UpdatableExternalComponent> components = Sets.newTreeSet(COMPONENT_COMPARATOR);
     components.addAll(myTestComponentSource.getAvailableVersions(progress, null));
     Iterator<UpdatableExternalComponent> componentIter = components.iterator();

@@ -252,7 +252,8 @@ public class PatchInstallerUtil {
    * @return A handle to the generated patch, or {@code null} if there was a problem.
    */
   public static File generatePatch(PatchOperation patchOp, File destDir, FileOp fop, ProgressIndicator progress) {
-    LocalPackage patcher = patchOp.getPatcher(progress);
+    LocalPackage patcher = patchOp.getPatcher(progress.createSubProgress(0.1));
+    progress.setFraction(0.1);
     if (patcher == null) {
       return null;
     }
@@ -266,9 +267,11 @@ public class PatchInstallerUtil {
     String description = patchOp.getNewVersionName();
     File destination = new File(destDir, PATCH_JAR_FN);
     File newFilesRoot = patchOp.getNewFilesRoot();
-    if (runner.generatePatch(existingRoot, newFilesRoot, existingDescription, description, destination, progress)) {
+    if (runner.generatePatch(existingRoot, newFilesRoot, existingDescription, description, destination, progress.createSubProgress(1))) {
+      progress.setFraction(1);
       return destination;
     }
+    progress.setFraction(1);
     return null;
   }
 

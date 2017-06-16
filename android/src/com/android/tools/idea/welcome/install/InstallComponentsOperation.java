@@ -74,6 +74,7 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
       throw new WizardException("Failed to determine required packages", e);
     }
     while (!packages.isEmpty()) {
+      indicator.setFraction(0);
       SdkManagerProgressIndicatorIntegration logger = new SdkManagerProgressIndicatorIntegration(indicator, myContext);
       myComponentInstaller.installPackages(packages, new StudioDownloader(), logger);
       // If we didn't set remote information on the installer we assume we weren't expecting updates. So set false for

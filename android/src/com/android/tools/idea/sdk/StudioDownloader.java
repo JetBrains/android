@@ -19,7 +19,6 @@ import com.android.annotations.Nullable;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.io.HttpRequests;
 import org.jetbrains.annotations.NotNull;
@@ -35,21 +34,6 @@ import java.nio.file.StandardOpenOption;
  * stream from that file.
  */
 public class StudioDownloader implements Downloader {
-  private com.intellij.openapi.progress.ProgressIndicator myStudioProgressIndicator;
-
-  /**
-   * Creates a new {@code StudioDownloader}. The current {@link com.intellij.openapi.progress.ProgressIndicator} will be picked up
-   * when downloads are run.
-   */
-  public StudioDownloader() {}
-
-  /**
-   * Like {@link #StudioDownloader()}}, but will run downloads using the given {@link com.intellij.openapi.progress.ProgressIndicator}.
-   * @param progress
-   */
-  public StudioDownloader(@Nullable com.intellij.openapi.progress.ProgressIndicator progress) {
-    myStudioProgressIndicator = progress;
-  }
 
   @Override
   @Nullable
@@ -75,12 +59,10 @@ public class StudioDownloader implements Downloader {
     indicator.logInfo("Downloading " + url);
     indicator.setText("Downloading...");
     indicator.setSecondaryText(url.toString());
-    com.intellij.openapi.progress.ProgressIndicator studioProgress = myStudioProgressIndicator;
-    if (studioProgress == null) {
-      studioProgress = ProgressManager.getInstance().getProgressIndicator();
-    }
+    // We can't pick up the existing studio progress indicator since the one passed in here might be a sub-indicator working over a
+    // different range.
     HttpRequests.request(url.toExternalForm()).productNameAsUserAgent()
-      .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, studioProgress));
+      .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, null));
   }
 
   @Nullable

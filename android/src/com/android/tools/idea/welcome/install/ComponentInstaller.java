@@ -61,16 +61,21 @@ public final class ComponentInstaller {
     throws WizardException {
     progress = new ThrottledProgressWrapper(progress);
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
+    double progressMax = 0;
+    double progressIncrement = 0.9 / (packages.size() * 2.);
     for (RemotePackage request : packages) {
       // Intentionally don't register any listeners on the installer, so we don't recurse on haxm
       // TODO: This is a hack. Any future rewrite of this shouldn't require this behavior.
       InstallerFactory factory = new BasicInstallerFactory();
       Installer installer = factory.createInstaller(request, sdkManager, downloader, mySdkHandler.getFileOp());
-      if (installer.prepare(progress)) {
-        installer.complete(progress);
+      progressMax += progressIncrement;
+      if (installer.prepare(progress.createSubProgress(progressMax))) {
+        installer.complete(progress.createSubProgress(progressMax + progressIncrement));
       }
+      progressMax += progressIncrement;
+      progress.setFraction(progressMax);
     }
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress.createSubProgress(1), null, null);
   }
 
   public void ensureSdkPackagesUninstalled(@NotNull Collection<String> packageNames, @NotNull ProgressIndicator progress)
@@ -89,7 +94,8 @@ public final class ComponentInstaller {
         progress.logInfo(String.format("Package '%1$s' does not appear to be installed - ignoring", packageName));
       }
     }
-
+    double progressMax = 0;
+    double progressIncrement = 0.9 / (packagesToUninstall.size() * 2.);
     for (LocalPackage request : packagesToUninstall) {
       // This is pretty much symmetric to the installPackages() method above, so the same comments apply.
       // Should we have registered listeners, HaxmInstallListener would have invoked another instance of HaxmWizard.
@@ -103,10 +109,14 @@ public final class ComponentInstaller {
       // like stack unwinding after an exception.
       InstallerFactory factory = new BasicInstallerFactory();
       Uninstaller uninstaller = factory.createUninstaller(request, sdkManager, mySdkHandler.getFileOp());
-      if (uninstaller.prepare(progress)) {
-        uninstaller.complete(progress);
+      progressMax += progressIncrement;
+      if (uninstaller.prepare(progress.createSubProgress(progressMax))) {
+        uninstaller.complete(progress.createSubProgress(progressMax + progressIncrement));
       }
+      progressMax += progressIncrement;
+      progress.setFraction(progressMax);
     }
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress.createSubProgress(1), null, null);
+    progress.setFraction(1);
   }
 }
