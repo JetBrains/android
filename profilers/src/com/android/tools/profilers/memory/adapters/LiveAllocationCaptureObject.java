@@ -294,7 +294,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(deallocation.getTag(), tag -> {
               ClassDb.ClassEntry entry = myClassDb.getEntry(deallocation.getClassTag());
               assert myClassMap.containsKey(entry);
-              return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), deallocation.getAllocTime(), deallocation.getSize(),
+              return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), Long.MIN_VALUE, deallocation.getSize(),
                                                       null);
             });
             instance.setDeallocTime(event.getTimestamp());
