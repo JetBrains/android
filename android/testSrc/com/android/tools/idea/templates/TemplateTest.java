@@ -241,7 +241,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    myIdeComponents = new IdeComponents(getProject());
+    myIdeComponents = new IdeComponents(null);
     myIdeComponents.replaceService(RepositoryUrlManager.class, new RepositoryUrlManager(true));
   }
 
@@ -1206,7 +1206,8 @@ public class TemplateTest extends AndroidGradleTestCase {
       ProjectConnection connection = connector.connect();
       BuildLauncher buildLauncher = connection.newBuild().forTasks("assembleDebug");
 
-      List<String> commandLineArguments = Lists.newArrayList();
+      // Avoid going online to satisfy dependencies (as this will violate the Bazel sandbox) by using the "--offline" argument.
+      List<String> commandLineArguments = Lists.newArrayList("--offline");
       GradleInitScripts initScripts = GradleInitScripts.getInstance();
       initScripts.addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
       buildLauncher.withArguments(ArrayUtil.toStringArray(commandLineArguments));
@@ -1436,8 +1437,13 @@ public class TemplateTest extends AndroidGradleTestCase {
   //--- Helper classes ---
 
   // Create a dummy version of this class that just collects all the templates it will test when it is run.
-  // It is important that this class is not run by JUnit may find this and attempt to run it!
+  // It is important that this class is not run by JUnit!
   public static class CoverageChecker extends TemplateTest {
+    @Override
+    protected boolean shouldRunTest() {
+      return false;
+    }
+
     // Set of templates tested with unit test
     private final Set<String> myTemplatesChecked = new HashSet<>();
 
@@ -1484,5 +1490,5 @@ public class TemplateTest extends AndroidGradleTestCase {
                              "these templates and that they are annotated with @TemplateCheck.\n\n";
       assertWithMessage(failurePrefix).that(failureMessages).isEmpty();
     }
-  };
+  }
 }
