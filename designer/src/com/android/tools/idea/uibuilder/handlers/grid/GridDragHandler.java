@@ -41,6 +41,12 @@ final class GridDragHandler extends DragHandler {
 
   @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+    // Without this case the children array is empty and the array access throws an ArrayIndexOutOfBoundsException
+    if (layout.getChildCount() == 0) {
+      insertComponents(-1, insertType);
+      return;
+    }
+
     if (info.cellHasChild(row, column)) {
       return;
     }
