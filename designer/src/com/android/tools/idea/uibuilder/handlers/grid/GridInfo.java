@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -56,7 +57,9 @@ final class GridInfo {
   private final Dimension size;
 
   GridInfo(NlComponent layout) {
-    if (layout.children == null || NlComponentHelperKt.getViewInfo(layout) == null) {
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(layout);
+
+    if (viewInfo == null) {
       throw new IllegalArgumentException();
     }
 
@@ -67,24 +70,15 @@ final class GridInfo {
       initVerticalLineLocations();
       initHorizontalLineLocations();
 
-      Object view = NlComponentHelperKt.getViewInfo(layout).getViewObject();
-      Class<?> c = view.getClass();
+      Object viewObject = viewInfo.getViewObject();
+      Class<?> c = viewObject.getClass();
 
-      rowCount = (Integer)c.getDeclaredMethod("getRowCount").invoke(view);
-      columnCount = (Integer)c.getDeclaredMethod("getColumnCount").invoke(view);
+      rowCount = (Integer)c.getDeclaredMethod("getRowCount").invoke(viewObject);
+      columnCount = (Integer)c.getDeclaredMethod("getColumnCount").invoke(viewObject);
 
       initChildren();
     }
-    catch (NoSuchFieldException exception) {
-      throw new IllegalArgumentException(exception);
-    }
-    catch (IllegalAccessException exception) {
-      throw new IllegalArgumentException(exception);
-    }
-    catch (NoSuchMethodException exception) {
-      throw new IllegalArgumentException(exception);
-    }
-    catch (InvocationTargetException exception) {
+    catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException exception) {
       throw new IllegalArgumentException(exception);
     }
   }
@@ -97,8 +91,13 @@ final class GridInfo {
       Insets padding = NlComponentHelperKt.getPadding(layout);
 
       for (NlComponent child : layout.children) {
-        size.width = Math.max(NlComponentHelperKt.getX(child) - NlComponentHelperKt.getX(layout) - padding.left + NlComponentHelperKt.getW(child), size.width);
-        size.height = Math.max(NlComponentHelperKt.getY(child) - NlComponentHelperKt.getY(layout) - padding.top + NlComponentHelperKt.getH(child), size.height);
+        size.width = Math.max(
+          NlComponentHelperKt.getX(child) - NlComponentHelperKt.getX(layout) - padding.left + NlComponentHelperKt.getW(child),
+          size.width);
+
+        size.height = Math.max(
+          NlComponentHelperKt.getY(child) - NlComponentHelperKt.getY(layout) - padding.top + NlComponentHelperKt.getH(child),
+          size.height);
       }
     }
 
@@ -123,13 +122,15 @@ final class GridInfo {
 
   @AndroidCoordinate
   private int[] getAxisLocations(String name1, String name2) throws NoSuchFieldException, IllegalAccessException {
-    assert NlComponentHelperKt.getViewInfo(layout) != null;
-    Object view = NlComponentHelperKt.getViewInfo(layout).getViewObject();
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(layout);
+    assert viewInfo != null;
 
-    Field axisField = getDeclaredField(view.getClass(), name1, name2);
+    Object viewObject = viewInfo.getViewObject();
+
+    Field axisField = getDeclaredField(viewObject.getClass(), name1, name2);
     axisField.setAccessible(true);
 
-    Object axis = axisField.get(view);
+    Object axis = axisField.get(viewObject);
 
     Field locationsField = axis.getClass().getDeclaredField("locations");
     locationsField.setAccessible(true);
@@ -182,7 +183,10 @@ final class GridInfo {
 
   private void initChildren() throws NoSuchFieldException, IllegalAccessException {
     children = new NlComponent[rowCount][columnCount];
-    assert layout.children != null;
+
+    if (layout.children == null) {
+      return;
+    }
 
     for (NlComponent child : layout.children) {
       ChildInfo info = getInfo(child);
@@ -198,9 +202,10 @@ final class GridInfo {
   }
 
   private static ChildInfo getInfo(NlComponent child) throws NoSuchFieldException, IllegalAccessException {
-    assert NlComponentHelperKt.getViewInfo(child) != null;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(child);
+    assert viewInfo != null;
 
-    Object params = NlComponentHelperKt.getViewInfo(child).getLayoutParamsObject();
+    Object params = viewInfo.getLayoutParamsObject();
     Class<?> paramsClass = params.getClass();
 
     Object rowSpec = paramsClass.getDeclaredField("rowSpec").get(params);
@@ -248,6 +253,7 @@ final class GridInfo {
         return j;
       }
 
+      // noinspection AssignmentToForLoopParameter
       j++;
     }
 
