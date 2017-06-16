@@ -26,6 +26,7 @@ import org.picocontainer.ComponentAdapter;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 
@@ -33,7 +34,7 @@ public final class IdeComponents {
   private final Project myProject;
   private final Queue<Runnable> myUndoQueue = new ArrayDeque<>();
 
-  public IdeComponents(@NotNull Project project) {
+  public IdeComponents(@Nullable Project project) {
     myProject = project;
   }
 
@@ -51,6 +52,7 @@ public final class IdeComponents {
   @NotNull
   public <T> T mockProjectService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
+    assertNotNull(myProject);
     doReplaceService(myProject, serviceType, mock, null);
     return mock;
   }

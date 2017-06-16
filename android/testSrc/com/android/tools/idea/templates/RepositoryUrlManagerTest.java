@@ -106,12 +106,16 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
   /** Common boilerplate code for invoking getLibraryRevision. */
   private String getLibraryRevision(SupportLibrary library, boolean preview) {
-    return myRepositoryUrlManager.getLibraryRevision(library.getGroupId(), library.getArtifactId(), null, preview, SDK_DIR, myFileOp);
+    return getLibraryRevision(library, preview, null);
+  }
+
+  private String getLibraryRevision(SupportLibrary library, boolean preview, String filterPrefix) {
+    return myRepositoryUrlManager.getLibraryRevision(library.getGroupId(), library.getArtifactId(), filterPrefix, preview, SDK_DIR, myFileOp);
   }
 
   public void testGetLibraryRevision() throws Exception {
     // Check missing Maven metadata file. We should fall back to scanning the files.
-    assertEquals("21.0.2", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
 
     // Set up our fake file contents for the "maven-metadata.xml" file
     myFileOp.recordExistingFile(new File(SDK_DIR, "extras/android/m2repository/com/android/support/support-v4/maven-metadata.xml").getAbsolutePath(),
@@ -119,8 +123,8 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                                 "<version>13.0.0</version> <version>19.0.1</version> <version>20.0.0-rc1</version>" +
                                 "</versioning>");
 
-    assertEquals("19.0.1", getLibraryRevision(SupportLibrary.SUPPORT_V4, false));
-    assertEquals("20.0.0-rc1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertEquals("25.4.0", getLibraryRevision(SupportLibrary.SUPPORT_V4, false));
+    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
   /** Checks {@link SupportLibrary} values against a real SDK, to make sure the paths are correct. */
@@ -148,9 +152,18 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
                                                          myFileOp));
   }
 
+  public void testGetLibraryRevision_SdkOnly() throws Exception {
+    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true, "24"));
+  }
+
   public void testGetLibraryRevision_missingSdk() throws Exception {
     myFileOp.deleteFileOrFolder(SDK_DIR);
-    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
+    assertNull(getLibraryRevision(SupportLibrary.SUPPORT_V4, true, "24"));
+  }
+
+  public void testGetLibraryRevision_offlineIndex() throws Exception {
+    myFileOp.deleteFileOrFolder(SDK_DIR);
+    assertEquals("26.0.0-beta1", getLibraryRevision(SupportLibrary.SUPPORT_V4, true));
   }
 
   /** @see com.android.ide.common.repository.MavenRepositories#isPreview(com.android.ide.common.repository.GradleCoordinate) */
@@ -213,7 +226,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+");
     assertNotNull(coordinate);
-    assertEquals("21.0.2", resolveDynamicCoordinateVersion(coordinate));
+    assertEquals("25.4.0", resolveDynamicCoordinateVersion(coordinate));
 
     // Make sure already resolved coordinates are handled correctly
     coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:1.2.3");
@@ -289,7 +302,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     dependencies.put("com.android.support.constraint:constraint-layout", GradleCoordinate.parseCoordinateString("com.android.support.constraint:constraint-layout:0.+"));
     List<GradleCoordinate> result = myRepositoryUrlManager.resolveDynamicSdkDependencies(dependencies, "20", mySdk, myFileOp);
     result.sort(Comparator.comparing(GradleCoordinate::toString));
-    assertEquals("com.android.support.constraint:constraint-layout:1.0.0-alpha7", result.get(0).toString());
+    assertEquals("com.android.support.constraint:constraint-layout:1.0.2", result.get(0).toString());
     assertEquals("com.android.support:appcompat-v7:20.0.0", result.get(1).toString());
     assertEquals("com.android.support:support-v4:20.0.0", result.get(2).toString());
     assertEquals("com.google.android.support:wearable:1.0.0", result.get(3).toString());

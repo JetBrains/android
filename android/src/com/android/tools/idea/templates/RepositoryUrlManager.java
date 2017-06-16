@@ -136,12 +136,10 @@ public class RepositoryUrlManager {
                                    boolean includePreviews,
                                    @NotNull File sdkLocation,
                                    @NotNull FileOp fileOp) {
-    // First check the Google maven repository, which has most versions
-    if (!ApplicationManager.getApplication().isUnitTestMode() && !AndroidPlugin.isGuiTestingMode()) {
-      GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filterPrefix, includePreviews);
-      if (version != null) {
-        return version.toString();
-      }
+    // First check the Google maven repository, which has most versions.
+    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filterPrefix, includePreviews);
+    if (version != null) {
+      return version.toString();
     }
 
     // Try the new, combined repository first:
