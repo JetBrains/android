@@ -71,6 +71,11 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     myConstraints = new ArrayList<>();
   }
 
+  /**
+   * Duration data can be added to restrict the time regions that can be selected by the user. The constraint can either be:
+   * 1) Full - if the user tries to select a sub-range within a duration data sample., the entire duration will be selected
+   * 2) Partial - the user is allowed to select a sub-range within a duration data sample.
+   */
   public void addConstraint(@Nullable DurationDataModel<? extends ConfigurableDurationData> constraints) {
     myConstraints.add(constraints);
   }
