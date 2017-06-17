@@ -34,11 +34,7 @@ import java.util.List;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
-import static java.lang.System.getenv;
 
-/**
- * Test that UI is correctly enabled / disabled when WH_SDK environment variable is set
- */
 @RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class EnableInstantAppUiTest {
@@ -46,8 +42,6 @@ public class EnableInstantAppUiTest {
 
   @Test
   public void testNewProjectInstantAppUIHidden() {
-    assertThat(getenv("WH_SDK")).isNull();
-
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject()
       .clickNext();
@@ -82,7 +76,6 @@ public class EnableInstantAppUiTest {
 
   @Test
   public void testNewModuleInstantAppUIHidden() throws IOException {
-    assertThat(getenv("WH_SDK")).isNull();
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
@@ -100,7 +93,6 @@ public class EnableInstantAppUiTest {
   @Test
   public void testNewModuleInstantAppUIShown() throws IOException {
     SdkReplacer.replaceSdkLocationAndActivate(null, true);
-    assertThat(getenv("WH_SDK")).isNull();
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
