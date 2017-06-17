@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import com.android.ide.common.res2.ResourceItem;
+import com.android.resources.ResourceUrl;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -77,7 +79,7 @@ public class AndroidModularizePreviewPanel {
     Set<PsiElement> parentElements = new HashSet<>();
 
     for (PsiElement root : myGraph.getRoots()) {
-      UsageInfoTreeNode rootNode = new UsageInfoTreeNode(myLookupMap.get(root));
+      UsageInfoTreeNode rootNode = new UsageInfoTreeNode(myLookupMap.get(root), 0);
       myRootNode.add(rootNode);
       parentElements.add(root);
       buildTree(rootNode, root, parentElements);
@@ -150,11 +152,26 @@ public class AndroidModularizePreviewPanel {
 
   private void buildTree(CheckedTreeNode parentNode, PsiElement psiElement, Set<PsiElement> parentElements) {
     Set<PsiElement> references = myGraph.getTargets(psiElement);
-    List<UsageInfoTreeNode> childrenNodes = new ArrayList<>(references.size());
+    List<CheckedTreeNode> childrenNodes = new ArrayList<>(references.size());
+
+    Map<ResourceUrl, Set<PsiElement>> resourceGroups = new HashMap<>();
 
     for (PsiElement reference : references) {
       if (parentElements.contains(reference)) {
         continue; // We don't create nodes already present in our current path to the root (back-references).
+      }
+
+      // We want to pre-process the resource items in order to group them by resource URLs.
+      if (myLookupMap.get(reference) instanceof AndroidModularizeProcessor.ResourceXmlUsageInfo) {
+        ResourceItem resourceItem = ((AndroidModularizeProcessor.ResourceXmlUsageInfo)myLookupMap.get(reference)).getResourceItem();
+        ResourceUrl resourceUrl = resourceItem.getResourceUrl(false);
+        Set<PsiElement> otherItems = resourceGroups.get(resourceUrl);
+        if (otherItems == null) {
+          otherItems = new HashSet<>();
+          resourceGroups.put(resourceUrl, otherItems);
+        }
+        otherItems.add(reference);
+        continue; // Postpone node creation until we have all resources mapped out.
       }
 
       UsageInfoTreeNode childNode = new UsageInfoTreeNode(myLookupMap.get(reference), myGraph.getFrequency(psiElement, reference));
@@ -164,9 +181,23 @@ public class AndroidModularizePreviewPanel {
       buildTree(childNode, reference, parentElements);
       parentElements.remove(reference);
     }
-    Collections.sort(childrenNodes);
 
-    for (UsageInfoTreeNode node : childrenNodes) {
+    for (ResourceUrl resourceUrl : resourceGroups.keySet()) {
+      ResourceUrlTreeNode urlTreeNode = new ResourceUrlTreeNode(resourceUrl);
+      childrenNodes.add(urlTreeNode);
+
+      for (PsiElement reference : resourceGroups.get(resourceUrl)) {
+        UsageInfoTreeNode childNode = new UsageInfoTreeNode(myLookupMap.get(reference), myGraph.getFrequency(psiElement, reference));
+        childNode.setEnabled(false); // We don't allow selecting only a subset of resource items, either they all move or none of them move.
+        urlTreeNode.add(childNode);
+
+        parentElements.add(reference);
+        buildTree(childNode, reference, parentElements);
+        parentElements.remove(reference);
+      }
+    }
+
+    for (CheckedTreeNode node : childrenNodes) {
       parentNode.add(node);
     }
   }
@@ -175,17 +206,8 @@ public class AndroidModularizePreviewPanel {
   private static class PreviewRenderer extends CheckboxTree.CheckboxTreeCellRenderer {
     @Override
     public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-      if (!(value instanceof UsageInfoTreeNode)) {
-        return;
-      }
-
-      UsageInfoTreeNode node = (UsageInfoTreeNode)value;
-      ColoredTreeCellRenderer textRenderer = getTextRenderer();
-      if (node.isChecked()) {
-        node.render(textRenderer, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      }
-      else {
-        node.render(textRenderer, new SimpleTextAttributes(SimpleTextAttributes.STYLE_STRIKEOUT | SimpleTextAttributes.STYLE_ITALIC, null));
+      if (value instanceof DependencyTreeNode) {
+        ((DependencyTreeNode)value).render(getTextRenderer());
       }
     }
   }

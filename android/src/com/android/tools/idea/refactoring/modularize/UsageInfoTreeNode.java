@@ -17,90 +17,60 @@ package com.android.tools.idea.refactoring.modularize;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.res.ResourceHelper;
-import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiBinaryFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.usageView.UsageInfo;
-import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 
-public class UsageInfoTreeNode extends CheckedTreeNode implements Comparable<UsageInfoTreeNode> {
+import javax.swing.*;
 
-  private final int myReferenceCount;
+public class UsageInfoTreeNode extends DependencyTreeNode {
+
   private final PsiElement myPsiElement;
 
-  public UsageInfoTreeNode(@NotNull UsageInfo usageInfo) {
-    this(usageInfo, 0);
-  }
-
   public UsageInfoTreeNode(@NotNull UsageInfo usageInfo, int referenceCount) {
-    super(usageInfo);
-    myReferenceCount = referenceCount;
+    super(usageInfo, referenceCount);
     myPsiElement = usageInfo.getElement();
-  }
-
-  public int getReferenceCount() {
-    return myReferenceCount;
   }
 
   public PsiElement getPsiElement() {
     return myPsiElement;
   }
 
-  public void render(@NotNull ColoredTreeCellRenderer renderer, @NotNull SimpleTextAttributes inheritedAttributes) {
-    if (myPsiElement instanceof PsiBinaryFile) {
-      renderer.setIcon(PlatformIcons.FILE_ICON);
-      renderer.append(((PsiBinaryFile)myPsiElement).getName(), inheritedAttributes);
-      renderQualifiers(ResourceHelper.getFolderConfiguration((PsiFile)myPsiElement), renderer, inheritedAttributes);
-      renderReferenceCount(renderer, inheritedAttributes);
-    }
-    else if (myPsiElement instanceof PsiFile) {
-      renderer.setIcon(AllIcons.FileTypes.Xml);
+  @Override
+  public void render(@NotNull ColoredTreeCellRenderer renderer) {
+    renderer.setIcon(ApplicationManager.getApplication().runReadAction(new Computable<Icon>() {
+      @Override
+      public Icon compute() {
+        return myPsiElement.getIcon(Iconable.ICON_FLAG_VISIBILITY | Iconable.ICON_FLAG_READ_STATUS);
+      }
+    }));
+
+    SimpleTextAttributes inheritedAttributes = getTextAttributes();
+    if (myPsiElement instanceof PsiFile) {
       renderer.append(((PsiFile)myPsiElement).getName(), inheritedAttributes);
       renderQualifiers(ResourceHelper.getFolderConfiguration((PsiFile)myPsiElement), renderer, inheritedAttributes);
       renderReferenceCount(renderer, inheritedAttributes);
     }
     else if (myPsiElement instanceof PsiClass) {
       PsiClass psiClass = (PsiClass)myPsiElement;
-      // TODO: use psiClass.getIcon() and figure out how to refresh the presentation once the icon is available.
-      if (psiClass.isInterface()) {
-        renderer.setIcon(PlatformIcons.INTERFACE_ICON);
-      }
-      else if (psiClass.isEnum()) {
-        renderer.setIcon(PlatformIcons.ENUM_ICON);
-      }
-      else if (psiClass.isAnnotationType()) {
-        renderer.setIcon(PlatformIcons.ANNOTATION_TYPE_ICON);
-      }
-      else {
-        renderer.setIcon(PlatformIcons.CLASS_ICON);
-      }
       renderer.append(psiClass.getName() == null ? "<unknown>" : psiClass.getName(), inheritedAttributes);
       renderReferenceCount(renderer, inheritedAttributes);
     }
     else if (myPsiElement instanceof XmlTag) {
       // TODO: use a syntax highlighter? SyntaxHighlighterFactory.getSyntaxHighlighter(psiElement.getLanguage(), null, null)
-      renderer.setIcon(PlatformIcons.XML_TAG_ICON);
       renderer.append(myPsiElement.getText(), inheritedAttributes);
     }
     else {
       throw new IllegalArgumentException("Unknown psiElement " + myPsiElement);
-    }
-  }
-
-  private void renderReferenceCount(ColoredTreeCellRenderer renderer, SimpleTextAttributes inheritedAttributes) {
-    if (myReferenceCount > 1) {
-      SimpleTextAttributes derivedAttributes = new SimpleTextAttributes(
-        inheritedAttributes.getStyle() | SimpleTextAttributes.STYLE_ITALIC | SimpleTextAttributes.STYLE_SMALLER,
-        inheritedAttributes.getFgColor());
-      renderer.append(" (" + myReferenceCount + " usages)", derivedAttributes);
     }
   }
 
@@ -114,11 +84,5 @@ public class UsageInfoTreeNode extends CheckedTreeNode implements Comparable<Usa
         inheritedAttributes.getFgColor());
       renderer.append(" (" + config + ")", derivedAttributes);
     }
-  }
-
-  @Override
-  public int compareTo(@NotNull UsageInfoTreeNode o) {
-    // TODO: How should we sort these properly?
-    return o.getReferenceCount() - myReferenceCount;
   }
 }
