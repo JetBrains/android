@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.openapi.module.Module;
@@ -301,13 +300,10 @@ public class NewProjectTest {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
-    File projectPath = newProjectWizard
-      .getConfigureAndroidProjectStep()
+    newProjectWizard.getConfigureAndroidProjectStep()
       .enterApplicationName("My Test App")
-      .enterPackageName("com.test.project")
-      .getLocationInFileSystem();
+      .enterPackageName("com.test.project");
 
-    guiTest.setProjectPath(projectPath);
     newProjectWizard
       .clickNext()
       .clickNext() // Default Form Factor
@@ -436,9 +432,10 @@ public class NewProjectTest {
       NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
         .createNewProject();
 
-      ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-      configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
-      guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
+      newProjectWizard.getConfigureAndroidProjectStep()
+        .enterApplicationName(myName)
+        .enterCompanyDomain(myDomain)
+        .enterPackageName(myPkg);
       newProjectWizard.clickNext();
 
       newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);

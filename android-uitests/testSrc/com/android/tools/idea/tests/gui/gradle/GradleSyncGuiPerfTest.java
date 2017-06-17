@@ -80,7 +80,6 @@ class GradleSyncGuiPerfTestRule extends GuiTestRule {
 
   public void openProject() throws IOException {
     File projectPath = new File(System.getenv("SYNC_PERFTEST_PROJECT_DIR"));
-    setProjectPath(projectPath);
     GradleSyncGuiPerfSetupTestRule.createGradleWrapper(getProjectPath());
     updateGradleVersions(getProjectPath());
     VirtualFile toSelect = VfsUtil.findFileByIoFile(projectPath, true);

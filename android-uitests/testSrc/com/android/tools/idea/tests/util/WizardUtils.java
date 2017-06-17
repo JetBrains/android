@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.util;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,13 +30,12 @@ public final class WizardUtils {
 
   public static void createNewProject(@NotNull GuiTestRule guiTest, @Nullable String domain, @NotNull String activity) {
     NewProjectWizardFixture wizard = guiTest.welcomeFrame().createNewProject();
-    ConfigureAndroidProjectStepFixture step = wizard.getConfigureAndroidProjectStep();
 
     if (domain != null) {
-      step.enterCompanyDomain(domain);
+      wizard.getConfigureAndroidProjectStep()
+        .enterCompanyDomain(domain);
     }
 
-    guiTest.setProjectPath(step.getLocationInFileSystem());
     wizard.clickNext();
 
     wizard.clickNext();

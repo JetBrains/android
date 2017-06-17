@@ -91,7 +91,6 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
     File masterProjectPath = new File(PathManager.getHomePath() + "/../../external/" + projectDirName);
 
     File testProjectPath = new File(System.getenv("SYNC_PERFTEST_PROJECT_DIR"));
-    setProjectPath(testProjectPath);
     if (testProjectPath.isDirectory()) {
       FileUtilRt.delete(testProjectPath);
     }

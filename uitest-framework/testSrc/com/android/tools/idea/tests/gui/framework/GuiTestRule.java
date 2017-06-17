@@ -302,7 +302,7 @@ public class GuiTestRule implements TestRule {
   public void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
-    setProjectPath(getTestProjectDirPath(projectDirName));
+    myProjectPath = getTestProjectDirPath(projectDirName);
     if (myProjectPath.isDirectory()) {
       FileUtilRt.delete(myProjectPath);
     }
@@ -376,10 +376,6 @@ public class GuiTestRule implements TestRule {
 
   public Robot robot() {
     return myRobotTestRule.getRobot();
-  }
-
-  public void setProjectPath(@NotNull File projectPath) {
-    myProjectPath = projectPath;
   }
 
   @NotNull

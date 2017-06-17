@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.LinkCppProjectFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import org.fest.swing.util.PatternTextMatcher;
@@ -191,9 +190,8 @@ public class NewCppProjectTest {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep()
+    newProjectWizard.getConfigureAndroidProjectStep()
       .setCppSupport(true); // Default "App name", "company domain" and "package name"
-    guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
     newProjectWizard.clickNext();
     newProjectWizard.clickNext(); // Skip "Select minimum SDK Api" step
     newProjectWizard.clickNext(); // Skip "Add Activity" step
