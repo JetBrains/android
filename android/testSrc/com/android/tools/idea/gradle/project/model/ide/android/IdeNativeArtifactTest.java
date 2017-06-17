@@ -17,10 +17,15 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.NativeArtifactStub;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Objects;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
@@ -50,6 +55,25 @@ public class IdeNativeArtifactTest {
     byte[] bytes = serialize(nativeArtifact);
     Object o = deserialize(bytes);
     assertEquals(nativeArtifact, o);
+  }
+
+  @Test(expected = UnusedModelMethodException.class)
+  public void withPlugin2dot2() {
+    NativeArtifactStub original = new NativeArtifactStub() {
+      @Override
+      @NotNull
+      public Collection<File> getRuntimeFiles() {
+        throw new UnsupportedMethodException("getRuntimeFiles()");
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getName(), getToolChain(), getGroupName(), getAssembleTaskName(), getSourceFolders(), getSourceFiles(),
+                            getExportedHeaders(), getAbi(), getTargetName(), getOutputFile());
+      }
+    };
+    IdeNativeArtifact artifact = new IdeNativeArtifact(original, myModelCache);
+    artifact.getRuntimeFiles();
   }
 
   @Test
