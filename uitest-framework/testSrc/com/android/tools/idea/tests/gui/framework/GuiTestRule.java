@@ -177,6 +177,7 @@ public class GuiTestRule implements TestRule {
     if (!robot().finder().findAll(Matchers.byType(IdeFrameImpl.class).andIsShowing()).isEmpty()) {
       ideFrame().closeProject();
     }
+    myIdeFrameFixture = null;
     if (myProjectPath != null) {
       FileUtilRt.delete(myProjectPath);
       GuiTests.refreshFiles();
@@ -380,7 +381,6 @@ public class GuiTestRule implements TestRule {
 
   public void setProjectPath(@NotNull File projectPath) {
     myProjectPath = projectPath;
-    myIdeFrameFixture = null;
   }
 
   @NotNull
