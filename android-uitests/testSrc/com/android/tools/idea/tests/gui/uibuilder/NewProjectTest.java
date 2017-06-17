@@ -34,6 +34,7 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
 import org.fest.swing.timing.Wait;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
 import org.junit.Rule;
@@ -321,6 +322,37 @@ public class NewProjectTest {
       .open("app/src/main/res/layout/content_main.xml")
       .open("app/src/main/res/layout/activity_main.xml")
       .open("app/src/main/java/com/test/project/MainActivity.java");
+  }
+
+  @Test
+  public void androidXmlFormatting() {
+    String actualXml = newProject("P").create()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
+
+    @Language("XML")
+    String expectedXml =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+      "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+      "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+      "    android:layout_width=\"match_parent\"\n" +
+      "    android:layout_height=\"match_parent\"\n" +
+      "    tools:context=\"com.android.test.app.MainActivity\">\n" +
+      "\n" +
+      "    <TextView\n" +
+      "        android:layout_width=\"wrap_content\"\n" +
+      "        android:layout_height=\"wrap_content\"\n" +
+      "        android:text=\"Hello World!\"\n" +
+      "        app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+      "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
+      "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
+      "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
+      "\n" +
+      "</android.support.constraint.ConstraintLayout>\n";
+
+    assertThat(actualXml).isEqualTo(expectedXml);
   }
 
   @NotNull
