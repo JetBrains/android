@@ -35,7 +35,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -530,12 +529,10 @@ public class InstantRunTest {
   @Test
   public void changeOrderOfResources() throws Exception {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
-    File projectPath = newProjectWizard
+    newProjectWizard
       .getConfigureAndroidProjectStep()
       .enterApplicationName("Test Application")
-      .enterPackageName("com.test.project")
-      .getLocationInFileSystem();
-    guiTest.setProjectPath(projectPath);
+      .enterPackageName("com.test.project");
     newProjectWizard
       .clickNext()
       .clickNext()

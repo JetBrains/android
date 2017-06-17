@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -46,9 +45,10 @@ public class NewProjectMultiModuleTest {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-    configureAndroidProjectStep.enterApplicationName("TestApp").enterCompanyDomain("my.test.domain").enterPackageName("my.test");
-    guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
+    newProjectWizard.getConfigureAndroidProjectStep()
+      .enterApplicationName("TestApp")
+      .enterCompanyDomain("my.test.domain")
+      .enterPackageName("my.test");
     newProjectWizard.clickNext();
 
     for (FormFactor formFactor : formFactors) {

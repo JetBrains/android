@@ -71,7 +71,6 @@ public class NewInstantAppTest {
     configureAndroidProjectStep
       .enterCompanyDomain("test.android.com")
       .enterApplicationName(projectName);
-    guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
 
     newProjectWizard
       .clickNext() // Complete project configuration

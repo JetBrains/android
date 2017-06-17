@@ -21,9 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
-import java.io.File;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture<ConfigureAndroidProjectStepFixture> {
   protected ConfigureAndroidProjectStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
@@ -63,12 +60,5 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
     // click "Done"
     robot().click(editButton);
     return this;
-  }
-
-  @NotNull
-  public File getLocationInFileSystem() {
-    String location = findTextFieldWithLabel("Project location").getText();
-    assertThat(location).isNotEmpty();
-    return new File(location);
   }
 }

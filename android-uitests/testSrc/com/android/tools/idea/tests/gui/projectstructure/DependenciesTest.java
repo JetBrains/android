@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplate
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.jetbrains.annotations.NotNull;
@@ -146,12 +145,10 @@ public class DependenciesTest {
   private IdeFrameFixture createNewProject(@NotNull String appName, @NotNull String minSdk) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
 
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard
-      .getConfigureAndroidProjectStep();
-    configureAndroidProjectStep.enterApplicationName(appName)
+    newProjectWizard.getConfigureAndroidProjectStep()
+      .enterApplicationName(appName)
       .enterCompanyDomain("com.android");
 
-    guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
     newProjectWizard.clickNext();
     newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, minSdk);
     newProjectWizard.clickNext();

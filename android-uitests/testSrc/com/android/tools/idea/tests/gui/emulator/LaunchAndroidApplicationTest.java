@@ -28,7 +28,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
@@ -197,13 +196,10 @@ public class LaunchAndroidApplicationTest {
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
     BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
       .importCodeSample();
-    File location = samplesWizard.selectSample("Ndk/Teapots")
+    samplesWizard.selectSample("Ndk/Teapots")
       .clickNext()
       .getConfigureFormFactorStep()
-      .enterApplicationName("TeapotTest")
-      .getLocationInFileSystem();
-
-    guiTest.setProjectPath(location);
+      .enterApplicationName("TeapotTest");
 
     samplesWizard.clickFinish();
 
