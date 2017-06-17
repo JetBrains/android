@@ -59,7 +59,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.TruthJUnit.assume;
 import static org.fest.reflect.core.Reflection.*;
 
@@ -385,8 +384,7 @@ public class GuiTestRule implements TestRule {
 
   @NotNull
   public File getProjectPath() {
-    checkState(myProjectPath != null, "No project path set. Was a project imported?");
-    return myProjectPath;
+    return ideFrame().getProjectPath();
   }
 
   @NotNull
