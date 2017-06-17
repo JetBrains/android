@@ -18,6 +18,8 @@ package com.android.tools.idea.tests.gui.npw;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +29,7 @@ import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.npw.FormFactor.*;
 
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class NewProjectMultiModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
