@@ -30,6 +30,7 @@ import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -103,7 +104,10 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         // If we have a "project creation" error, it means that an error occurred when syncing a project that just created with the NPW.
         // The error was ignored by the IDEA's Gradle infrastructure. Here we report the error.
         ExternalSystemNotificationManager notificationManager = ExternalSystemNotificationManager.getInstance(myProject);
-        notificationManager.processExternalProjectRefreshError(new Exception(error), myProject.getName(), GradleConstants.SYSTEM_ID);
+        // http://b/62761000
+        // The new exception must be an instance of ExternalSystemException, otherwise "quick fixes" will not show up.
+        // GradleNotificationExtension only recognizes a few exception types when decided whether a "quick fix" should be displayed.
+        notificationManager.processExternalProjectRefreshError(new ExternalSystemException(error), myProject.getName(), GradleConstants.SYSTEM_ID);
         gradleProjectInfo.setProjectCreationError(null);
       }
     }
