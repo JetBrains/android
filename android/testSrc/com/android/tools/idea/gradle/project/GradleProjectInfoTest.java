@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.testing.IdeComponents;
@@ -43,6 +44,16 @@ public class GradleProjectInfoTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myProjectInfo = GradleProjectInfo.getInstance(getProject());
+  }
+
+  public void testCanUseLocalMavenRepoWithEnabledRepo() {
+    AndroidStudioGradleProjectSettings.getInstance(getProject()).DISABLE_EMBEDDED_MAVEN_REPO = false;
+    assertTrue(myProjectInfo.canUseLocalMavenRepo());
+  }
+
+  public void testCanUseLocalMavenRepoWithDisabledRepo() {
+    AndroidStudioGradleProjectSettings.getInstance(getProject()).DISABLE_EMBEDDED_MAVEN_REPO = true;
+    assertFalse(myProjectInfo.canUseLocalMavenRepo());
   }
 
   public void testHasTopLevelGradleBuildFileUsingGradleProject() {
