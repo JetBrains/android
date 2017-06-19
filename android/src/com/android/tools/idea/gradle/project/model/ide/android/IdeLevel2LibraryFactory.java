@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.level2.Library;
+import com.android.utils.FileUtils;
+import com.android.utils.ImmutableCollectors;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,11 +41,24 @@ class IdeLevel2LibraryFactory {
   @NotNull
   static Library create(@NotNull Library library, @NotNull ModelCache modelCache) {
     if (library.getType() == LIBRARY_ANDROID) {
-      return new IdeLevel2AndroidLibrary(library, modelCache, library.getArtifactAddress(), library.getFolder(), library.getManifest(),
-                                         library.getJarFile(), library.getResFolder(), library.getAssetsFolder(), library.getLocalJars(),
-                                         library.getJniFolder(), library.getAidlFolder(), library.getRenderscriptFolder(),
-                                         library.getProguardRules(), library.getLintJar(), library.getExternalAnnotations(),
-                                         library.getPublicResources(), library.getArtifact(), library.getSymbolFile());
+      File folder = library.getFolder();
+      return new IdeLevel2AndroidLibrary(library, modelCache,
+                                         library.getArtifactAddress(),
+                                         library.getFolder(),
+                                         getFullPath(folder, library.getManifest()),
+                                         getFullPath(folder, library.getJarFile()),
+                                         getFullPath(folder, library.getResFolder()),
+                                         getFullPath(folder, library.getAssetsFolder()),
+                                         library.getLocalJars().stream().map(jar -> getFullPath(folder, jar)).collect(ImmutableCollectors.toImmutableList()),
+                                         getFullPath(folder, library.getJniFolder()),
+                                         getFullPath(folder, library.getAidlFolder()),
+                                         getFullPath(folder, library.getRenderscriptFolder()),
+                                         getFullPath(folder, library.getProguardRules()),
+                                         getFullPath(folder, library.getLintJar()),
+                                         getFullPath(folder, library.getExternalAnnotations()),
+                                         getFullPath(folder, library.getPublicResources()),
+                                         library.getArtifact(),
+                                         library.getSymbolFile());
     }
     if (library.getType() == LIBRARY_JAVA) {
       return new IdeLevel2JavaLibrary(library.getArtifactAddress(), library.getArtifact(), modelCache, library);
@@ -74,8 +89,14 @@ class IdeLevel2LibraryFactory {
                                          androidLibrary.getJniFolder().getPath(), androidLibrary.getAidlFolder().getPath(),
                                          androidLibrary.getRenderscriptFolder().getPath(), androidLibrary.getProguardRules().getPath(),
                                          androidLibrary.getLintJar().getPath(), androidLibrary.getExternalAnnotations().getPath(),
-                                         androidLibrary.getPublicResources().getPath(), androidLibrary.getBundle(), getSymbolFilePath(androidLibrary));
+                                         androidLibrary.getPublicResources().getPath(), androidLibrary.getBundle(),
+                                         getSymbolFilePath(androidLibrary));
     }
+  }
+
+  @NotNull
+  private static String getFullPath(@NotNull File folder, @NotNull String fileName) {
+    return FileUtils.join(folder, fileName).getPath();
   }
 
   @Nullable
