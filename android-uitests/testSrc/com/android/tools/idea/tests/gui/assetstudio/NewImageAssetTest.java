@@ -22,13 +22,10 @@ import com.android.testutils.filesystemdiff.FileSystemEntry;
 import com.android.testutils.filesystemdiff.Script;
 import com.android.testutils.filesystemdiff.TreeBuilder;
 import com.android.testutils.filesystemdiff.TreeDifferenceEngine;
-import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep_Deprecated;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,48 +42,40 @@ import static com.google.common.truth.Truth.assertThat;
 public class NewImageAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  private AssetStudioWizardFixture myDialog;
-  private NewImageAssetStepFixture myStep;
-
-  @Before
-  public void openProject() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    frame.getProjectView().selectAndroidPane().clickPath("app");
-  }
-
-  private void openAssetStudioWizard() {
-    myDialog = guiTest.ideFrame().openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
-    myStep = myDialog.getImageAssetStep();
-    if (!NewImageAssetStep_Deprecated.isEnabled()) {
-      myStep.selectIconType("Launcher Icons (Legacy only)");
-    }
-    // TODO there does not seem to be a error panel in the image asset config
-  }
-
   @Test
-  public void testAdaptiveIconsPreviewPanelContents() {
-    openAssetStudioWizard();
+  public void testAdaptiveIconsPreviewPanelContents() throws Exception {
+    AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
 
-    myStep.selectIconType("Launcher Icons (Adaptive and Legacy)");
-    assertThat(myStep.getPreviewPanelCount()).isEqualTo(1);
-    assertThat(myStep.getPreviewPanelIconNames(0))
-      .containsExactly("Circle", "Squircle", "Rounded Square", "Square",
-                       "Full Bleed Layers", "Legacy Icon", "Round Icon", "Google Play Store")
+    NewImageAssetStepFixture step = wizard.getImageAssetStep();
+    step.selectIconType("Launcher Icons (Adaptive and Legacy)");
+    assertThat(step.getPreviewPanelCount()).isEqualTo(1);
+    assertThat(step.getPreviewPanelIconNames(0)).containsExactly(
+      "Circle", "Squircle", "Rounded Square", "Square", "Full Bleed Layers", "Legacy Icon", "Round Icon", "Google Play Store")
       .inOrder();
-    myDialog.clickCancel();
+    wizard.clickCancel();
   }
 
   @Test
-  public void testNotificationImageCount() {
-    openAssetStudioWizard();
+  public void testNotificationImageCount() throws Exception {
+    AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
+
+    NewImageAssetStepFixture step = wizard.getImageAssetStep();
     Path projectDir = guiTest.getProjectPath().toPath();
     FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
 
-    myStep.selectIconType("Notification Icons");
-    assertThat(myStep.getPreviewPanelCount()).isEqualTo(1);
-    assertThat(myStep.getPreviewPanelIconNames(0)).containsExactly("xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
-    myDialog.clickNext();
-    myDialog.clickFinish();
+    step.selectIconType("Notification Icons");
+    assertThat(step.getPreviewPanelCount()).isEqualTo(1);
+    assertThat(step.getPreviewPanelIconNames(0)).containsExactly("xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
+    wizard.clickNext();
+    wizard.clickFinish();
 
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
 
@@ -98,22 +87,27 @@ public class NewImageAssetTest {
   }
 
   @Test
-  public void testNotificationImageCountForOldApi() {
-    guiTest.ideFrame().getEditor()
-            .open("app/build.gradle")
-            .select("minSdkVersion (19)")
-            .enterText("4")
-            .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-            .performAction("Sync Now")
-            .waitForGradleProjectSyncToFinish();
+  public void testNotificationImageCountForOldApi() throws Exception {
+    AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .getEditor()
+      .open("app/build.gradle")
+      .select("minSdkVersion (19)")
+      .enterText("4")
+      .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish()
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
 
-    openAssetStudioWizard();
     Path projectDir = guiTest.getProjectPath().toPath();
     FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
 
-    myStep.selectIconType("Notification Icons");
-    myDialog.clickNext();
-    myDialog.clickFinish();
+    wizard.getImageAssetStep()
+      .selectIconType("Notification Icons");
+    wizard.clickNext()
+      .clickFinish();
 
     FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
 
