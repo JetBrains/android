@@ -18,12 +18,11 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleProjectSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -45,12 +44,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
-import static org.jetbrains.android.AndroidPlugin.isGuiTestingMode;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
-  @NotNull private final Application myApplication;
+  @NotNull private final AndroidStudioGradleProjectSettings myGradleProjectSettings;
   @NotNull private final AtomicReference<String> myProjectCreationErrorRef = new AtomicReference<>();
 
   private volatile boolean myIsNewlyCreatedProject;
@@ -60,19 +58,16 @@ public class GradleProjectInfo {
     return ServiceManager.getService(project, GradleProjectInfo.class);
   }
 
-  public GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo) {
-    this(project, projectInfo, ApplicationManager.getApplication());
-  }
-
-  @VisibleForTesting
-  GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo, @NotNull Application application) {
+  public GradleProjectInfo(@NotNull Project project,
+                           @NotNull AndroidProjectInfo projectInfo,
+                           @NotNull AndroidStudioGradleProjectSettings gradleProjectSettings) {
     myProject = project;
     myProjectInfo = projectInfo;
-    myApplication = application;
+    myGradleProjectSettings = gradleProjectSettings;
   }
 
   public boolean canUseLocalMavenRepo() {
-    return myIsNewlyCreatedProject || myApplication.isInternal() || isGuiTestingMode() || myApplication.isUnitTestMode();
+    return !myGradleProjectSettings.DISABLE_EMBEDDED_MAVEN_REPO;
   }
 
   public boolean isNewlyCreatedProject() {
