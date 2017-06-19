@@ -63,7 +63,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @Override
   public LoadingPanel createLoadingPanel() {
     return new LoadingPanel() {
-      private JBLoadingPanel myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject);
+      private final JBLoadingPanel myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject);
 
       @NotNull
       @Override
@@ -86,12 +86,6 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
         myLoadingPanel.stopLoading();
       }
     };
-  }
-
-  @NotNull
-  @Override
-  public TabsPanel createTabsPanel() {
-    return new IntellijTabsPanel(myProject);
   }
 
   @NotNull

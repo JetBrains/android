@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.FlatTabbedPane;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -30,13 +31,13 @@ import com.android.tools.profilers.memory.instanceviewers.InstanceViewer;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
-import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
@@ -65,7 +66,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
 
-  @NotNull private final TabsPanel myTabsPanel;
+  @NotNull private final JTabbedPane myTabsPanel;
 
   @NotNull private final StackTraceView myStackTraceView;
 
@@ -85,8 +86,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
     myIdeProfilerComponents = ideProfilerComponents;
 
-    myTabsPanel = ideProfilerComponents.createTabsPanel();
-    myTabsPanel.setOnSelectionChange(this::trackActiveTab);
+    myTabsPanel = new FlatTabbedPane();
+    myTabsPanel.addChangeListener(this::trackActiveTab);
     myStackTraceView = ideProfilerComponents.createStackView(stage.getStackTraceModel());
 
     myInstanceViewers.add(new BitmapViewer());
@@ -190,13 +191,13 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     instanceChanged();
   }
 
-  private void trackActiveTab() {
-    FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
-    String selectedTab = myTabsPanel.getSelectedTab();
-    if (selectedTab == null) {
+  private void trackActiveTab(ChangeEvent event) {
+    if (myTabsPanel.getSelectedIndex() < 0) {
       return;
     }
-    switch (selectedTab) {
+
+    FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+    switch (myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex())) {
       case TITLE_TAB_REFERENCES:
         featureTracker.trackSelectMemoryReferences();
         break;
@@ -211,7 +212,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull
   JComponent getComponent() {
-    return myTabsPanel.getComponent();
+    return myTabsPanel;
   }
 
   @VisibleForTesting
@@ -234,7 +235,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     if (capture == null || instance == null) {
       myReferenceTree = null;
       myReferenceColumnTree = null;
-      myTabsPanel.getComponent().setVisible(false);
+      myTabsPanel.setVisible(false);
       return;
     }
 
@@ -274,7 +275,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    myTabsPanel.getComponent().setVisible(hasContent);
+    myTabsPanel.setVisible(hasContent);
   }
 
   @Nullable

@@ -30,9 +30,6 @@ public interface IdeProfilerComponents {
   LoadingPanel createLoadingPanel();
 
   @NotNull
-  TabsPanel createTabsPanel();
-
-  @NotNull
   StackTraceView createStackView(@NotNull StackTraceModel model);
 
   /**
