@@ -70,9 +70,13 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
   @Override
   public void dispose() {
+    ProfilingConfiguration selectedConfig = myPreSelectedConfiguration;
+    if (getExitCode() == OK_EXIT_CODE) {
+      selectedConfig = getSelectedConfiguration(); // Call this *before* dispose, otherwise it will be null
+    }
     super.dispose();
-    ProfilingConfiguration lastSelectedConfig = getExitCode() == OK_EXIT_CODE ? getSelectedConfiguration() : myPreSelectedConfiguration;
-    myOnCloseCallback.accept(lastSelectedConfig);
+
+    myOnCloseCallback.accept(selectedConfig);
   }
 
   private static class ProfilingConfigurable extends BaseConfigurable {
