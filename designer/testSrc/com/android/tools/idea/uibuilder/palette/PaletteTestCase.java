@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -23,6 +22,7 @@ import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.TextViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.xml.XmlBuilder;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
@@ -36,7 +36,6 @@ import javax.xml.ws.Holder;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.IN_PLATFORM;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -437,8 +436,8 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkComponent(createMockComponent(IMAGE_VIEW), "ImageView", AndroidIcons.Views.ImageView);
   }
 
-  public void assertVideoView(@NotNull Palette.BaseItem item) {
-    assertNoPreviewView(item, "VideoView", IN_PLATFORM);
+  public void assertExoPlayerView(@NotNull Palette.BaseItem item) {
+    assertStandardView(item, SIMPLE_EXO_PLAYER_VIEW, EXO_PLAYER_ARTIFACT, 1.0);
   }
 
   public void assertTimePicker(@NotNull Palette.BaseItem item) {

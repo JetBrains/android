@@ -219,7 +219,7 @@ public class NlPaletteTreeGridTest extends LayoutTestCase {
 
     myPanel.setFilter("");
     assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
-    assertThat(getVisibleTitles()).containsExactly("ImageButton", "ImageView", "VideoView").inOrder();
+    assertThat(getVisibleTitles()).containsExactly("ImageButton", "ImageView", "SimpleExoPlayerView").inOrder();
   }
 
   public void testTypingInTreeStartsFiltering() {
