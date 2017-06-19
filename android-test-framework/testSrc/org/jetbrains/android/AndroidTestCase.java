@@ -205,6 +205,14 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     return "/additionalModules/" + moduleName;
   }
 
+  @Nullable
+  protected Module getAdditionalModuleByName(@NotNull String moduleName) {
+    return myAdditionalModules.stream()
+      .filter(module -> moduleName.equals(module.getName()))
+      .findFirst()
+      .orElse(null);
+  }
+
   /**
    * Indicates whether this class provides its own {@code AndroidManifest.xml} for its tests. If
    * {@code true}, then {@link #setUp()} calls {@link #deleteManifest()} before finishing.
