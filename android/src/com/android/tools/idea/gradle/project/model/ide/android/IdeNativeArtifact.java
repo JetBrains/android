@@ -19,7 +19,9 @@ import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeFolder;
 import com.google.common.collect.ImmutableList;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -29,13 +31,12 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
   @NotNull private final String myName;
   @NotNull private final String myToolChain;
   @NotNull private final String myGroupName;
-  @NotNull private final String myAssembleTaskName;
   @NotNull private final Collection<NativeFolder> mySourceFolders;
   @NotNull private final Collection<NativeFile> mySourceFiles;
   @NotNull private final Collection<File> myExportedHeaders;
-  @NotNull private final String myAbi;
-  @NotNull private final String myTargetName;
   @NotNull private final File myOutputFile;
+  @Nullable private final String myAbi;
+  @Nullable private final String myTargetName;
   private final int myHashCode;
 
   public IdeNativeArtifact(@NotNull NativeArtifact artifact, @NotNull ModelCache modelCache) {
@@ -43,12 +44,11 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
     myName = artifact.getName();
     myToolChain = artifact.getToolChain();
     myGroupName = artifact.getGroupName();
-    myAssembleTaskName = artifact.getAssembleTaskName();
     mySourceFolders = copy(artifact.getSourceFolders(), modelCache, folder -> new IdeNativeFolder(folder, modelCache));
     mySourceFiles = copy(artifact.getSourceFiles(), modelCache, file -> new IdeNativeFile(file, modelCache));
     myExportedHeaders = ImmutableList.copyOf(artifact.getExportedHeaders());
-    myAbi = artifact.getAbi();
-    myTargetName = artifact.getTargetName();
+    myAbi = copyNewProperty(artifact::getAbi, null);
+    myTargetName = copyNewProperty(artifact::getTargetName, null);
     myOutputFile = artifact.getOutputFile();
     myHashCode = calculateHashCode();
   }
@@ -74,7 +74,7 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
   @Override
   @NotNull
   public String getAssembleTaskName() {
-    return myAssembleTaskName;
+    throw new UnusedModelMethodException("getAssembleTaskName");
   }
 
   @Override
@@ -98,13 +98,19 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
   @Override
   @NotNull
   public String getAbi() {
-    return myAbi;
+    if (myAbi != null) {
+      return myAbi;
+    }
+    throw new UnsupportedMethodException("Unsupported method: NativeArtifact.getAbi()");
   }
 
   @Override
   @NotNull
   public String getTargetName() {
-    return myTargetName;
+    if (myTargetName != null) {
+      return myTargetName;
+    }
+    throw new UnsupportedMethodException("Unsupported method: NativeArtifact.getTargetName()");
   }
 
   @Override
@@ -131,7 +137,6 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
     return Objects.equals(myName, artifact.myName) &&
            Objects.equals(myToolChain, artifact.myToolChain) &&
            Objects.equals(myGroupName, artifact.myGroupName) &&
-           Objects.equals(myAssembleTaskName, artifact.myAssembleTaskName) &&
            Objects.equals(mySourceFolders, artifact.mySourceFolders) &&
            Objects.equals(mySourceFiles, artifact.mySourceFiles) &&
            Objects.equals(myExportedHeaders, artifact.myExportedHeaders) &&
@@ -146,8 +151,8 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
   }
 
   private int calculateHashCode() {
-    return Objects.hash(myName, myToolChain, myGroupName, myAssembleTaskName, mySourceFolders, mySourceFiles, myExportedHeaders, myAbi,
-                        myTargetName, myOutputFile);
+    return Objects.hash(myName, myToolChain, myGroupName, mySourceFolders, mySourceFiles, myExportedHeaders, myAbi, myTargetName,
+                        myOutputFile);
   }
 
   @Override
@@ -156,7 +161,6 @@ public final class IdeNativeArtifact extends IdeModel implements NativeArtifact 
            "myName='" + myName + '\'' +
            ", myToolChain='" + myToolChain + '\'' +
            ", myGroupName='" + myGroupName + '\'' +
-           ", myAssembleTaskName='" + myAssembleTaskName + '\'' +
            ", mySourceFolders=" + mySourceFolders +
            ", mySourceFiles=" + mySourceFiles +
            ", myExportedHeaders=" + myExportedHeaders +
