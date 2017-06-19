@@ -57,7 +57,6 @@ public class ThemeEditorTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/62703126
   @Test
   public void testOpenProject() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
