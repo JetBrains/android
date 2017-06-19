@@ -342,8 +342,9 @@ public class LegendComponent extends AnimatedComponent {
     private static final int ICON_HEIGHT_PX = 15;
     private static final int LINE_THICKNESS = 3;
 
-    private static final LegendSize BOX_SIZE = new LegendSize(10, 10);
-    private static final LegendSize BOX_BOUNDS = new LegendSize(10, ICON_HEIGHT_PX);
+    // Odd size chosen because that centers well (e.g. (15 - 11) / 2, vs. (15 - 10) / 2)
+    private static final LegendSize BOX_SIZE = new LegendSize(11, 11);
+    private static final LegendSize BOX_BOUNDS = new LegendSize(11, ICON_HEIGHT_PX);
     private static final LegendSize LINE_SIZE = new LegendSize(12, LINE_THICKNESS);
     private static final LegendSize LINE_BOUNDS = new LegendSize(12, ICON_HEIGHT_PX);
 
@@ -468,7 +469,9 @@ public class LegendComponent extends AnimatedComponent {
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
       g2d.setColor(c.getForeground());
       FontMetrics metrics = SwingUtilities2.getFontMetrics(c, myFont);
-      g2d.drawString(myText, bounds.x, bounds.y + metrics.getAscent());
+      assert (mySize.h <= bounds.h);
+      int textY = bounds.y + metrics.getAscent() + ((bounds.h - mySize.h) / 2);
+      g2d.drawString(myText, bounds.x, textY);
     }
   }
 
