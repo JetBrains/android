@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.util.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +37,6 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public final class MenuTest {
   @Rule
@@ -150,7 +147,7 @@ public final class MenuTest {
                  "        app:showAsAction=\"always\" />\n" +
                  "</menu>\n";
 
-    TestFileUtils.writeAndRefreshVfs(myGuiTest.getProjectPath().toPath().resolve(myMenuPath), xml);
+    GuiTestFileUtils.writeAndReloadDocument(myGuiTest.getProjectPath().toPath().resolve(myMenuPath), xml);
   }
 
   private void dragAndDrop(@NotNull String item, @NotNull Point point) {

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.util.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
@@ -76,8 +76,8 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myNewStylePath), xml);
-    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
+    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myNewStylePath), xml);
+    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
 
     myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
@@ -95,8 +95,8 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myNewStylePath), xml);
-    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
+    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myNewStylePath), xml);
+    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), buildLayout("@style/linear_layout"));
 
     myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString());
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
@@ -127,8 +127,8 @@ public final class LinearLayoutTest {
       .toString();
     // @formatter:on
 
-    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myNewStylePath), xml);
-    TestFileUtils.writeAndRefreshVfs(myProjectPath.resolve(myLayoutPath), buildLayout("?linear_layout_style"));
+    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myNewStylePath), xml);
+    GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), buildLayout("?linear_layout_style"));
 
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open(myMainStylePath);
