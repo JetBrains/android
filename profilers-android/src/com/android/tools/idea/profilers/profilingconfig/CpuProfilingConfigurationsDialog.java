@@ -23,10 +23,12 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonShortcuts;
 import com.intellij.openapi.options.BaseConfigurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.ex.SingleConfigurableEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
@@ -39,14 +41,13 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
+  private final ProfilingConfiguration myPreSelectedConfiguration;
   private Consumer<ProfilingConfiguration> myOnCloseCallback;
 
   public CpuProfilingConfigurationsDialog(final Project project,
@@ -55,6 +56,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
                                           Consumer<ProfilingConfiguration> onCloseCallback,
                                           FeatureTracker featureTracker) {
     super(project, new ProfilingConfigurable(project, preSelectedConfiguration, deviceApi, featureTracker), IdeModalityType.IDE);
+    myPreSelectedConfiguration = preSelectedConfiguration;
     myOnCloseCallback = onCloseCallback;
     setHorizontalStretch(1.3F);
     // TODO: add help button on the bottom-left corner when we have the URL for it.
@@ -68,8 +70,8 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
   @Override
   public void dispose() {
-    ProfilingConfiguration lastSelectedConfig = getSelectedConfiguration();
     super.dispose();
+    ProfilingConfiguration lastSelectedConfig = getExitCode() == OK_EXIT_CODE ? getSelectedConfiguration() : myPreSelectedConfiguration;
     myOnCloseCallback.accept(lastSelectedConfig);
   }
 
@@ -226,6 +228,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       Set<String> configNames = new HashSet<>();
       for (ProfilingConfiguration config : configsToSave) {
         String configName = config.getName();
+        if (StringUtil.isEmpty(configName)) {
+          throw new ConfigurationException("Empty configuration names are not allowed. Please rename or delete them before continuing.");
+        }
         if (configNames.contains(configName)) {
           throw new ConfigurationException("Configuration with name \"" + configName + "\" already exists.");
         }
@@ -313,8 +318,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       private void addConfiguration() {
-        // TODO: generate sequential names (e.g. Unnamed (1), Unnamed (2), ...) instead of repeated names by default.
-        ProfilingConfiguration configuration = new ProfilingConfiguration("Unnamed",
+        ProfilingConfiguration configuration = new ProfilingConfiguration(getUniqueName("Unnamed"),
                                                                           CpuProfiler.CpuProfilerType.ART,
                                                                           CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
         int lastConfigurationIndex = getCustomConfigurationCount();
@@ -322,6 +326,27 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         // Select the newly added configuration
         myConfigurations.setSelectedIndex(lastConfigurationIndex);
         myFeatureTracker.trackCreateCustomProfilingConfig();
+
+        myProfilersPanel.getPreferredFocusComponent().requestFocusInWindow();
+      }
+
+      /**
+       * Given "name", returns "name", "name-1", "name-2", ..., or whichever first version is unique.
+       */
+      @NotNull
+      private String getUniqueName(@NotNull String name) {
+        Set<String> names = new HashSet<>();
+        Enumeration<ProfilingConfiguration> configurations = myConfigurationsModel.elements();
+        while (configurations.hasMoreElements()) {
+          names.add(configurations.nextElement().getName());
+        }
+
+        String uniqueName = name;
+        int i = 1;
+        while (names.contains(uniqueName)) {
+          uniqueName = String.format("%s (%d)", name, i++);
+        }
+        return uniqueName;
       }
     }
 

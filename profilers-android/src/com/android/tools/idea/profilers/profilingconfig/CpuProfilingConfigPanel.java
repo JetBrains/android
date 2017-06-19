@@ -147,6 +147,10 @@ public class CpuProfilingConfigPanel {
     return myConfigPanel;
   }
 
+  JComponent getPreferredFocusComponent() {
+    return myConfigName;
+  }
+
   void setConfiguration(@Nullable ProfilingConfiguration configuration, boolean isDefaultConfiguration) {
     myConfiguration = configuration;
     if (configuration == null) {
@@ -155,6 +159,7 @@ public class CpuProfilingConfigPanel {
     else {
       myConfigName.setText(configuration.getName());
       myConfigName.setEnabled(true);
+      myConfigName.selectAll();
 
       setAndEnableRadioButtons(configuration);
 
