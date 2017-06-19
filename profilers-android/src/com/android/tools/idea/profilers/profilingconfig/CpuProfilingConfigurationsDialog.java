@@ -331,7 +331,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       /**
-       * Given "name", returns "name", "name-1", "name-2", ..., or whichever first version is unique.
+       * Given "name", returns "name", "name (1)", "name (2)", ..., or whichever first version is unique.
        */
       @NotNull
       private String getUniqueName(@NotNull String name) {
