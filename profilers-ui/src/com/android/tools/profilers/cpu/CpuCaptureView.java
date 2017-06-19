@@ -15,8 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.FlatTabbedPane;
 import com.android.tools.adtui.RangeTimeScrollBar;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
@@ -29,7 +30,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeWillExpandListener;
@@ -66,11 +67,11 @@ import java.util.function.Function;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
-  private static final Map<String, CaptureModel.Details.Type> TABS = ImmutableMap.of(
-    "Top Down", CaptureModel.Details.Type.TOP_DOWN,
-    "Bottom Up", CaptureModel.Details.Type.BOTTOM_UP,
-    "Call Chart", CaptureModel.Details.Type.CALL_CHART,
-    "Flame Chart", CaptureModel.Details.Type.FLAME_CHART);
+  private static final Map<CaptureModel.Details.Type, String> TABS = ImmutableMap.of(
+    CaptureModel.Details.Type.TOP_DOWN, "Top Down",
+    CaptureModel.Details.Type.BOTTOM_UP, "Bottom Up",
+    CaptureModel.Details.Type.CALL_CHART, "Call Chart",
+    CaptureModel.Details.Type.FLAME_CHART, "Flame Chart");
 
   private static final Map<CaptureModel.Details.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
     CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
@@ -89,7 +90,7 @@ class CpuCaptureView {
 
   private final JPanel myPanel;
 
-  private final TabsPanel myTabsPanel;
+  private final JTabbedPane myTabsPanel;
 
   @NotNull
   private final ViewBinder<CpuProfilerStageView, CaptureModel.Details, CaptureDetailsView> myBinder;
@@ -98,12 +99,12 @@ class CpuCaptureView {
     myView = view;
     myPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
-    myTabsPanel = view.getIdeComponents().createTabsPanel();
+    myTabsPanel = new FlatTabbedPane();
 
-    for (String label : TABS.keySet()) {
+    for (String label : TABS.values()) {
       myTabsPanel.addTab(label, new JPanel(new BorderLayout()));
     }
-    myTabsPanel.setOnSelectionChange(this::setCaptureDetailToTab);
+    myTabsPanel.addChangeListener(this::setCaptureDetailToTab);
 
     JComboBox<ClockType> clockTypeCombo = new ComboBox<>();
     JComboBoxView clockTypes =
@@ -113,7 +114,7 @@ class CpuCaptureView {
     clockTypeCombo.setRenderer(new ClockTypeCellRenderer());
 
     myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 1));
-    myPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
+    myPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
 
     myBinder = new ViewBinder<>();
     myBinder.bind(CaptureModel.TopDown.class, TopDownView::new);
@@ -125,7 +126,7 @@ class CpuCaptureView {
 
   void updateView() {
     // Clear the content of all the tabs
-    for (Component tab : myTabsPanel.getTabsComponents()) {
+    for (Component tab : myTabsPanel.getComponents()) {
       // In the constructor, we make sure to use JPanel as root components of the tabs.
       assert tab instanceof JPanel;
       ((JPanel)tab).removeAll();
@@ -137,26 +138,38 @@ class CpuCaptureView {
     }
 
     // Update the current selected tab
-    if (myTabsPanel.getSelectedTab() == null || !TABS.get(myTabsPanel.getSelectedTab()).equals(details.getType())) {
-      for (String tab : TABS.keySet()) {
-        if (TABS.get(tab).equals(details.getType())) {
-          myTabsPanel.selectTab(tab);
+    String detailsTypeString = TABS.get(details.getType());
+    int currentTabIndex = myTabsPanel.getSelectedIndex();
+    if (currentTabIndex < 0 || !myTabsPanel.getTitleAt(currentTabIndex).equals(detailsTypeString)) {
+      for (int i = 0; i < myTabsPanel.getTabCount(); ++i) {
+        if (myTabsPanel.getTitleAt(currentTabIndex).equals(detailsTypeString)) {
+          myTabsPanel.setSelectedIndex(i);
+          break;
         }
       }
     }
+
     // Update selected tab content. As we need to update the content of the tabs dynamically,
     // we use a JPanel (set on the constructor) to wrap the content of each tab's content.
     // This is required because JBTabsImpl doesn't behave consistently when setting tab's component dynamically.
-    JComponent selectedTab = myTabsPanel.getSelectedTabComponent();
+    Component selectedTab = myTabsPanel.getSelectedComponent();
     assert selectedTab instanceof JPanel;
-    selectedTab.add(myBinder.build(myView, details).getComponent(), BorderLayout.CENTER);
+    ((JPanel)selectedTab).add(myBinder.build(myView, details).getComponent(), BorderLayout.CENTER);
     // We're replacing the content by removing and adding a new component.
     // JComponent#removeAll doc says that we should revalidate if it is already visible.
     selectedTab.revalidate();
   }
 
-  void setCaptureDetailToTab() {
-    CaptureModel.Details.Type type = TABS.get(myTabsPanel.getSelectedTab());
+  void setCaptureDetailToTab(ChangeEvent event) {
+    CaptureModel.Details.Type type = null;
+    if (myTabsPanel.getSelectedIndex() >= 0) {
+      String tabTitle = myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex());
+      for (Map.Entry<CaptureModel.Details.Type, String> entry : TABS.entrySet()) {
+        if (tabTitle.equals(entry.getValue())) {
+          type = entry.getKey();
+        }
+      }
+    }
     myView.getStage().setCaptureDetails(type);
 
     // TODO: Move this logic into setCaptureDetails later. Right now, if we do it, we track the
@@ -427,7 +440,8 @@ class CpuCaptureView {
         if (orientation == HTreeChart.Orientation.BOTTOM_UP) {
           // HTreeChart rendered bottom up, so is scrollBar.
           offset = verticalScrollBar.getMaximum() - (e.getValue() + verticalScrollBar.getVisibleAmount());
-        } else {
+        }
+        else {
           offset = e.getValue();
         }
         chart.getYRange().set(offset, offset);

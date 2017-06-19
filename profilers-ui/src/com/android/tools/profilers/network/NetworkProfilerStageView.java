@@ -24,7 +24,6 @@ import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -67,10 +66,10 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     leftSplitter.setFirstComponent(buildMonitorUi());
     myConnectionsPanel = new JPanel(new CardLayout());
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
-      TabsPanel connectionsTab = getIdeComponents().createTabsPanel();
+      JTabbedPane connectionsTab = new FlatTabbedPane();
       connectionsTab.addTab("Connection View", new JBScrollPane(myConnectionsView.getComponent()));
       connectionsTab.addTab("Thread View", new JBScrollPane(myThreadsView.getComponent()));
-      myConnectionsPanel.add(connectionsTab.getComponent(), CARD_CONNECTIONS);
+      myConnectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
     } else {
       myConnectionsPanel.add(new JBScrollPane(myConnectionsView.getComponent()), CARD_CONNECTIONS);
     }

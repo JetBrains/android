@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendConfig;
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
@@ -28,7 +25,6 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.DataViewer;
 import com.android.tools.profilers.stacktrace.StackTraceView;
-import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.BrowserUtil;
@@ -44,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -86,7 +83,7 @@ public class ConnectionDetailsView extends JPanel {
   private final NetworkProfilerStageView myStageView;
 
   @NotNull
-  private final TabsPanel myTabsPanel;
+  private final JTabbedPane myTabsPanel;
 
   public ConnectionDetailsView(@NotNull NetworkProfilerStageView stageView) {
     super(new BorderLayout());
@@ -99,7 +96,7 @@ public class ConnectionDetailsView extends JPanel {
     // where main contents span the whole area and a close button fits into the top right
     JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
-    myTabsPanel = stageView.getIdeComponents().createTabsPanel();
+    myTabsPanel = new FlatTabbedPane();
 
     TabularLayout layout = new TabularLayout("*").setVGap(PAGE_VGAP);
     myResponsePanel = new JPanel(layout);
@@ -130,18 +127,22 @@ public class ConnectionDetailsView extends JPanel {
     myStackTraceView.getComponent().setName("StackTrace");
     myTabsPanel.addTab(TAB_TITLE_STACK, myStackTraceView.getComponent());
 
-    myTabsPanel.setOnSelectionChange(this::trackActiveTab);
+    myTabsPanel.addChangeListener(this::trackActiveTab);
 
     CloseButton closeButton = new CloseButton(e -> myStageView.getStage().setSelectedConnection(null));
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
-    rootPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
+    rootPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
 
     add(rootPanel);
   }
 
-  private void trackActiveTab() {
+  private void trackActiveTab(ChangeEvent event) {
+    if (myTabsPanel.getSelectedIndex() < 0) {
+      return;
+    }
+
     FeatureTracker featureTracker = myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureTracker();
-    switch (myTabsPanel.getSelectedTab()) {
+    switch (myTabsPanel.getTitleAt(myTabsPanel.getSelectedIndex())) {
       case TAB_TITLE_RESPONSE:
         featureTracker.trackSelectNetworkDetailsResponse();
         break;
@@ -158,7 +159,7 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   /**
-   * Updates the view to show given data. If {@code httpData} is {@ocde null}, this clears the view
+   * Updates the view to show given data. If {@code httpData} is {@code null}, this clears the view
    * and closes it.
    */
   public void setHttpData(@Nullable HttpData httpData) {
@@ -322,8 +323,8 @@ public class ConnectionDetailsView extends JPanel {
       Map<String, String> sortedMap = new TreeMap<>(map);
 
       for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
-        stringBuilder.append("<p><nobr><b>" + entry.getKey() + ":&nbsp&nbsp</b></nobr>");
-        stringBuilder.append("<span>" + entry.getValue() + "</span></p>");
+        stringBuilder.append("<p><nobr><b>").append(entry.getKey()).append(":&nbsp&nbsp</b></nobr>");
+        stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
       }
 
       stringBuilder.append("</html>");
