@@ -39,19 +39,11 @@ class IdeLevel2LibraryFactory {
   @NotNull
   static Library create(@NotNull Library library, @NotNull ModelCache modelCache) {
     if (library.getType() == LIBRARY_ANDROID) {
-      File artifactFile;
-      try {
-        // getArtifact throws exception if the value is null.
-        artifactFile = library.getArtifact();
-      }
-      catch (UnsupportedOperationException e) {
-        artifactFile = null;
-      }
       return new IdeLevel2AndroidLibrary(library, modelCache, library.getArtifactAddress(), library.getFolder(), library.getManifest(),
                                          library.getJarFile(), library.getResFolder(), library.getAssetsFolder(), library.getLocalJars(),
                                          library.getJniFolder(), library.getAidlFolder(), library.getRenderscriptFolder(),
                                          library.getProguardRules(), library.getLintJar(), library.getExternalAnnotations(),
-                                         library.getPublicResources(), library.getSymbolFile(), artifactFile);
+                                         library.getPublicResources(), library.getArtifact(), library.getSymbolFile());
     }
     if (library.getType() == LIBRARY_JAVA) {
       return new IdeLevel2JavaLibrary(library.getArtifactAddress(), library.getArtifact(), modelCache, library);
@@ -82,7 +74,7 @@ class IdeLevel2LibraryFactory {
                                          androidLibrary.getJniFolder().getPath(), androidLibrary.getAidlFolder().getPath(),
                                          androidLibrary.getRenderscriptFolder().getPath(), androidLibrary.getProguardRules().getPath(),
                                          androidLibrary.getLintJar().getPath(), androidLibrary.getExternalAnnotations().getPath(),
-                                         androidLibrary.getPublicResources().getPath(), getSymbolFilePath(androidLibrary), null);
+                                         androidLibrary.getPublicResources().getPath(), androidLibrary.getBundle(), getSymbolFilePath(androidLibrary));
     }
   }
 
