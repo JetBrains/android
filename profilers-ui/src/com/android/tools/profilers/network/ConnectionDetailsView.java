@@ -183,6 +183,7 @@ public class ConnectionDetailsView extends JPanel {
       myStackTraceView.getModel().clearStackFrames();
     }
     setVisible(httpData != null);
+    revalidate();
     repaint();
   }
 
