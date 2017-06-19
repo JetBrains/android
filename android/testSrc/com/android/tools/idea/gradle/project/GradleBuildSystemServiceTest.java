@@ -95,7 +95,7 @@ public class GradleBuildSystemServiceTest extends IdeaTestCase {
     };
     IdeComponents.replaceService(project, StartupManager.class, startupManager);
     // http://b/62543184
-    when(myGradleProjectInfo.isNewlyCreatedProject()).thenReturn(true);
+    when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
 
     myService.syncProject(myProject);
     verify(mySyncInvoker, never()).requestProjectSyncAndSourceGeneration(same(project), any(), any());

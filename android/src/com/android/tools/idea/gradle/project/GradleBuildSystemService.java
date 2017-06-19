@@ -60,7 +60,7 @@ public class GradleBuildSystemService extends BuildSystemService {
     }
     else {
       StartupManager.getInstance(project).runWhenProjectIsInitialized(() -> {
-        if (!GradleProjectInfo.getInstance(project).isNewlyCreatedProject()) {
+        if (!GradleProjectInfo.getInstance(project).isNewOrImportedProject()) {
           // http://b/62543184
           // If the project was created with the "New Project" wizard, there is no need to sync again.
           syncAndGenerateSources(project, TRIGGER_PROJECT_LOADED);

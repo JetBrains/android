@@ -52,6 +52,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private IdeInfo myIdeInfo;
+  @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private GradleSyncState mySyncState;
   @Mock private DependencySetupIssues myDependencySetupIssues;
@@ -80,8 +81,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    mySetup = new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupIssues, myProjectSetup,
-                                       myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
+    mySetup = new PostSyncProjectSetup(project, myIdeInfo, myGradleProjectInfo, mySyncInvoker, mySyncState, myDependencySetupIssues,
+                                       myProjectSetup, myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
                                        myModuleValidatorFactory, myRunManager);
   }
 
@@ -113,6 +114,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     mySetup.setUpProject(request, myProgressIndicator);
     assertSize(2, myRunManager.getBeforeRunTasks(runConfiguration));
+
+    verify(myGradleProjectInfo, times(2)).setNewOrImportedProject(false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -131,6 +134,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp);
     verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), null, TRIGGER_PROJECT_LOADED);
     verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
+
+    verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=225938
@@ -161,5 +166,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
     // Source generation should not be invoked if sync failed.
     verify(myProjectBuilder, never()).cleanAndGenerateSources();
+
+    verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
   }
 }

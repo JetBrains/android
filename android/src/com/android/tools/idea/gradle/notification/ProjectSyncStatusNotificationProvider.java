@@ -94,10 +94,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
     ThreeState gradleSyncNeeded = mySyncState.isSyncNeeded();
     if (gradleSyncNeeded == YES) {
-      // If sync is needed, the project has changed and it is no longer a "newly created" project.
-      if (myProjectInfo.isNewlyCreatedProject()) {
-        myProjectInfo.setNewlyCreatedProject(false);
-      }
       return NotificationPanel.Type.SYNC_NEEDED;
     }
 

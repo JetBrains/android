@@ -181,9 +181,7 @@ public class GradleProjectImporter {
       gradleSettings.setGradleVmOptions("");
     }
 
-    if (request.isNewlyCreatedProject()) {
-      GradleProjectInfo.getInstance(newProject).setNewlyCreatedProject(true);
-    }
+    GradleProjectInfo.getInstance(newProject).setNewOrImportedProject(true);
 
     myNewProjectSetup.prepareProjectForImport(newProject, request.getLanguageLevel());
 
@@ -215,7 +213,6 @@ public class GradleProjectImporter {
     @Nullable private LanguageLevel myLanguageLevel;
 
     private boolean myGenerateSourcesOnSuccess = true;
-    private boolean myNewlyCreatedProject;
 
     @Nullable
     public Project getProject() {
@@ -246,16 +243,6 @@ public class GradleProjectImporter {
     @NotNull
     public Request setGenerateSourcesOnSuccess(boolean generateSourcesOnSuccess) {
       myGenerateSourcesOnSuccess = generateSourcesOnSuccess;
-      return this;
-    }
-
-    public boolean isNewlyCreatedProject() {
-      return myNewlyCreatedProject;
-    }
-
-    @NotNull
-    public Request newlyCreatedProject() {
-      myNewlyCreatedProject = true;
       return this;
     }
   }
