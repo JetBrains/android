@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.project.Project;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.mockito.Mock;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -71,8 +73,8 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
 
     myProjectComponent.projectOpened();
 
-    // http://b/62543339
-    assertNotNull(notificationManager.error);
+    // http://b/62543339 http://b/62761000
+    assertThat(notificationManager.error).isInstanceOf(ExternalSystemException.class);
     assertEquals(projectCreationError, notificationManager.error.getMessage());
     assertEquals(project.getName(), notificationManager.externalProjectName);
     assertSame(GradleConstants.SYSTEM_ID, notificationManager.externalSystemId);
