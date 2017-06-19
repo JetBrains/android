@@ -30,7 +30,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class CpuTraceDataSeriesTest {
 
@@ -53,20 +53,20 @@ public class CpuTraceDataSeriesTest {
 
   @Test
   public void emptySeries() {
-    Range maxRange = new Range(-Double.MAX_VALUE, -Double.MAX_VALUE);
+    Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     myService.setValidTrace(false);
-    assertTrue(mySeries.getDataForXRange(maxRange).isEmpty());
+    assertThat(mySeries.getDataForXRange(maxRange)).isEmpty();
   }
 
   @Test
   public void validTraceFailureStatus() throws IOException {
-    Range maxRange = new Range(-Double.MAX_VALUE, -Double.MAX_VALUE);
+    Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
     myService.parseTraceFile();
     // Even if a valid trace is returned from GetTrace, a SUCCESS status is required
     // for the trace to be added to the series.
-    assertTrue(mySeries.getDataForXRange(maxRange).isEmpty());
+    assertThat(mySeries.getDataForXRange(maxRange)).isEmpty();
   }
 
   @Test
@@ -77,30 +77,30 @@ public class CpuTraceDataSeriesTest {
     CpuCapture expectedCapture = myService.parseTraceFile();
 
     List<SeriesData<CpuCapture>> seriesData = mySeries.getDataForXRange(maxRange);
-    assertEquals(1, seriesData.size());
+    assertThat(seriesData).hasSize(1);
     SeriesData data = seriesData.get(0);
-    assertNotNull(data);
-    assertEquals((long)expectedCapture.getRange().getMin(), data.x);
+    assertThat(data).isNotNull();
+    assertThat(data.x).isEqualTo((long)expectedCapture.getRange().getMin());
 
-    assertTrue(data.value instanceof CpuCapture);
+    assertThat(data.value instanceof CpuCapture).isTrue();
     CpuCapture capture = (CpuCapture)data.value;
 
     // As CpuCapture doesn't have an equals method, compare its values.
     // Check main thread is the same
-    assertEquals(expectedCapture.getMainThreadId(), capture.getMainThreadId());
+    assertThat(capture.getMainThreadId()).isEqualTo(expectedCapture.getMainThreadId());
     // Check that capture has the same threads of expected capture
-    assertFalse(capture.getThreads().isEmpty());
-    assertEquals(expectedCapture.getThreads().size(), capture.getThreads().size());
+    assertThat(capture.getThreads()).isNotEmpty();
+    assertThat(capture.getThreads().size()).isEqualTo(expectedCapture.getThreads().size());
     for (CpuThreadInfo thread : expectedCapture.getThreads()) {
-      assertTrue(capture.containsThread(thread.getId()));
+      assertThat(capture.containsThread(thread.getId())).isTrue();
     }
     // Verify duration is also equal
-    assertEquals(expectedCapture.getDuration(), capture.getDuration());
+    assertThat(capture.getDuration()).isEqualTo(expectedCapture.getDuration());
     // As Range also doesn't have an equals method, compare max and min
-    assertNotNull(capture.getRange());
-    assertNotNull(expectedCapture.getRange());
-    assertEquals(expectedCapture.getRange().getMin(), capture.getRange().getMin(), 0);
-    assertEquals(expectedCapture.getRange().getMax(), capture.getRange().getMax(), 0);
+    assertThat(capture.getRange()).isNotNull();
+    assertThat(expectedCapture.getRange()).isNotNull();
+    assertThat(capture.getRange().getMin()).isWithin(0).of(expectedCapture.getRange().getMin());
+    assertThat(capture.getRange().getMax()).isWithin(0).of(expectedCapture.getRange().getMax());
   }
 
   @Test
@@ -109,7 +109,7 @@ public class CpuTraceDataSeriesTest {
     myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     CpuCapture serviceCapture = myService.parseTraceFile(); // Not on the request range
-    assertNotNull(serviceCapture);
-    assertTrue(mySeries.getDataForXRange(noCapturesRange).isEmpty());
+    assertThat(serviceCapture).isNotNull();
+    assertThat(mySeries.getDataForXRange(noCapturesRange)).isEmpty();
   }
 }
