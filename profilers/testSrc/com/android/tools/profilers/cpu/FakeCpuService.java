@@ -296,7 +296,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   }
 
   /**
-   * Create one thread with two activities: RUNNING (2 seconds before capture start) and SLEEPING (2 seconds after capture end).
+   * Create one thread with two activities: RUNNING ({@link myTraceThreadActivityBuffer} seconds before capture start)
+   * and SLEEPING.
    */
   private List<CpuProfiler.GetThreadsResponse.Thread> buildTraceThreads() throws IOException {
     if (myCapture == null) {
