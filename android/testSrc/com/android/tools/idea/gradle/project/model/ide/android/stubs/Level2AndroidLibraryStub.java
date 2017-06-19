@@ -42,7 +42,7 @@ public class Level2AndroidLibraryStub extends BaseStub implements Library {
   @NotNull private final String myExternalAnnotations;
   @NotNull private final String myPublicResources;
   @NotNull private final String mySymbolFile;
-  @Nullable private final File myArtifactFile;
+  @NotNull private final File myArtifactFile;
 
   public Level2AndroidLibraryStub() {
     this(LIBRARY_ANDROID, "artifact:address:1.0", new File("libraryFolder"), "manifest.xml", "file.jar", "res", "assets",
@@ -66,7 +66,7 @@ public class Level2AndroidLibraryStub extends BaseStub implements Library {
                                   @NotNull String externalAnnotations,
                                   @NotNull String publicResources,
                                   @NotNull String symbolFile,
-                                  @Nullable File artifactFile) {
+                                  @NotNull File artifactFile) {
     myType = type;
     myArtifactAddress = artifactAddress;
     myFolder = folder;
@@ -101,10 +101,6 @@ public class Level2AndroidLibraryStub extends BaseStub implements Library {
   @Override
   @NotNull
   public File getArtifact() {
-    if (myArtifactFile == null) {
-      throw new UnsupportedOperationException(
-        "getArtifact() cannot be called when getType() returns ANDROID_LIBRARY");
-    }
     return myArtifactFile;
   }
 
