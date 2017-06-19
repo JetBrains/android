@@ -146,12 +146,12 @@ public class NativeArtifactStub extends BaseStub implements NativeArtifact {
     return Objects.equals(getName(), artifact.getName()) &&
            Objects.equals(getToolChain(), artifact.getToolChain()) &&
            Objects.equals(getGroupName(), artifact.getGroupName()) &&
-           Objects.equals(getAssembleTaskName(), artifact.getAssembleTaskName()) &&
+           equals(artifact, NativeArtifact::getAssembleTaskName) &&
            Objects.equals(getSourceFolders(), artifact.getSourceFolders()) &&
            Objects.equals(getSourceFiles(), artifact.getSourceFiles()) &&
            Objects.equals(getExportedHeaders(), artifact.getExportedHeaders()) &&
-           Objects.equals(getAbi(), artifact.getAbi()) &&
-           Objects.equals(getTargetName(), artifact.getTargetName()) &&
+           equals(artifact, NativeArtifact::getAbi) &&
+           equals(artifact, NativeArtifact::getTargetName) &&
            Objects.equals(getOutputFile(), artifact.getOutputFile()) &&
            equals(artifact, NativeArtifact::getRuntimeFiles);
   }
