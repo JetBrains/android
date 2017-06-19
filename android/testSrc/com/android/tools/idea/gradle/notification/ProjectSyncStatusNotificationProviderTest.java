@@ -89,17 +89,5 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-
-    verify(myProjectInfo, never()).setNewlyCreatedProject(false);
-  }
-
-  public void testNotificationPanelTypeWithSyncNeededAndNewlyCreatedProject() {
-    when(mySyncState.isSyncNeeded()).thenReturn(YES);
-    when(myProjectInfo.isNewlyCreatedProject()).thenReturn(true);
-
-    Type type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.SYNC_NEEDED, type);
-
-    verify(myProjectInfo, times(1)).setNewlyCreatedProject(false);
   }
 }

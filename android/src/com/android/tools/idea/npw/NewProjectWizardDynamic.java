@@ -216,7 +216,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       });
 
       GradleProjectImporter.Request request = new GradleProjectImporter.Request();
-      request.setLanguageLevel(initialLanguageLevel).setProject(myProject).newlyCreatedProject();
+      request.setLanguageLevel(initialLanguageLevel).setProject(myProject);
       projectImporter.importProject(projectName, rootLocation, request, listener);
     }
     catch (IOException | ConfigurationException e) {
