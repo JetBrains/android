@@ -19,6 +19,7 @@ import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.NativeArtifactStub;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -58,7 +59,7 @@ public class IdeNativeArtifactTest {
   }
 
   @Test(expected = UnusedModelMethodException.class)
-  public void withPlugin2dot2() {
+  public void getRuntimeFilesWithPlugin2dot2() {
     NativeArtifactStub original = new NativeArtifactStub() {
       @Override
       @NotNull
@@ -74,6 +75,76 @@ public class IdeNativeArtifactTest {
     };
     IdeNativeArtifact artifact = new IdeNativeArtifact(original, myModelCache);
     artifact.getRuntimeFiles();
+  }
+
+  @Test(expected = UnusedModelMethodException.class)
+  public void getAssembleTaskNameWithExperimentalPlugin0dot7() {
+    NativeArtifactStub original = new NativeArtifactStub() {
+      @Override
+      @NotNull
+      public String getAssembleTaskName() {
+        throw new UnsupportedMethodException("getAssembleTaskName");
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getName(), getToolChain(), getGroupName(), getSourceFolders(), getSourceFiles(), getExportedHeaders(),
+                            getAbi(), getTargetName(), getOutputFile(), getRuntimeFiles());
+      }
+    };
+    IdeNativeArtifact artifact = new IdeNativeArtifact(original, myModelCache);
+    artifact.getAssembleTaskName();
+  }
+
+  @Test
+  public void getAbiWithExperimentalPlugin0dot7() {
+    NativeArtifactStub original = new NativeArtifactStub() {
+      @Override
+      @NotNull
+      public String getAbi() {
+        throw new UnsupportedMethodException("getAbi");
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getName(), getToolChain(), getGroupName(), getAssembleTaskName(), getSourceFolders(), getSourceFiles(),
+                            getExportedHeaders(), getTargetName(), getOutputFile(), getRuntimeFiles());
+      }
+    };
+    IdeNativeArtifact artifact = new IdeNativeArtifact(original, myModelCache);
+    try {
+      artifact.getAbi();
+      Assert.fail("Expecting UnsupportedMethodException");
+    }
+    catch (UnsupportedMethodException expected) {
+      // ignored
+    }
+  }
+
+  @Test
+  public void getTargetNameWithExperimentalPlugin0dot7() {
+    NativeArtifactStub original = new NativeArtifactStub() {
+      @Override
+      @NotNull
+      public String getTargetName() {
+        throw new UnsupportedMethodException("getTargetName");
+      }
+
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getName(), getToolChain(), getGroupName(), getAssembleTaskName(), getSourceFolders(), getSourceFiles(),
+                            getExportedHeaders(), getAbi(), getOutputFile(), getRuntimeFiles());
+      }
+    };
+    IdeNativeArtifact artifact = new IdeNativeArtifact(original, myModelCache);
+    try {
+      artifact.getTargetName();
+      Assert.fail("Expecting UnsupportedMethodException");
+    }
+    catch (UnsupportedMethodException expected) {
+      // ignored
+    }
   }
 
   @Test

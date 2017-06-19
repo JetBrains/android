@@ -17,10 +17,15 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.NativeAndroidProjectStub;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Objects;
 
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
@@ -31,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Tests for {@link IdeNativeAndroidProjectImpl}.
  */
-public class IdeNativeAndroidProjectTest {
+public class IdeNativeAndroidProjectImplTest {
   private ModelCache myModelCache;
 
   @Before
@@ -58,6 +63,31 @@ public class IdeNativeAndroidProjectTest {
     IdeNativeAndroidProjectImpl copy = new IdeNativeAndroidProjectImpl(original, myModelCache);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
+  }
+
+  @Test
+  public void getBuildSystemsWithExperimentalPlugin0dot7() {
+    NativeAndroidProject original = new NativeAndroidProjectStub() {
+      @Override
+      @NotNull
+      public Collection<String> getBuildSystems() {
+        throw new UnsupportedMethodException("getBuildSystems");
+      }
+
+      @Override
+      public int hashCode() {
+        return Objects.hash(getModelVersion(), getName(), getBuildFiles(), getArtifacts(), getToolChains(), getSettings(),
+                            getFileExtensions(), getApiVersion());
+      }
+    };
+    IdeNativeAndroidProjectImpl copy = new IdeNativeAndroidProjectImpl(original, myModelCache);
+    try {
+      copy.getBuildSystems();
+      Assert.fail("Expecting UnsupportedMethodException");
+    }
+    catch (UnsupportedMethodException expected) {
+      // ignored
+    }
   }
 
   @Test
