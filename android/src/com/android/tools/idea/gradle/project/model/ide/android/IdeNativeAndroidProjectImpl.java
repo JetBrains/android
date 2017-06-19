@@ -22,7 +22,9 @@ import com.android.builder.model.NativeToolchain;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
@@ -38,7 +40,7 @@ public final class IdeNativeAndroidProjectImpl extends IdeModel implements IdeNa
   @NotNull private final Collection<NativeToolchain> myToolChains;
   @NotNull private final Collection<NativeSettings> mySettings;
   @NotNull private final Map<String, String> myFileExtensions;
-  @NotNull private final Collection<String> myBuildSystems;
+  @Nullable private final Collection<String> myBuildSystems;
   private final int myApiVersion;
   private final int myHashCode;
 
@@ -57,8 +59,18 @@ public final class IdeNativeAndroidProjectImpl extends IdeModel implements IdeNa
     myToolChains = copy(project.getToolChains(), modelCache, toolchain -> new IdeNativeToolchain(toolchain, modelCache));
     mySettings = copy(project.getSettings(), modelCache, settings -> new IdeNativeSettings(settings, modelCache));
     myFileExtensions = ImmutableMap.copyOf(project.getFileExtensions());
-    myBuildSystems = ImmutableList.copyOf(project.getBuildSystems());
+    myBuildSystems = copyBuildSystems(project);
     myHashCode = calculateHashCode();
+  }
+
+  @Nullable
+  private static Collection<String> copyBuildSystems(@NotNull NativeAndroidProject project) {
+    try {
+      return ImmutableList.copyOf(project.getBuildSystems());
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
+    }
   }
 
   @Override
@@ -111,7 +123,10 @@ public final class IdeNativeAndroidProjectImpl extends IdeModel implements IdeNa
   @Override
   @NotNull
   public Collection<String> getBuildSystems() {
-    return myBuildSystems;
+    if (myBuildSystems != null) {
+      return myBuildSystems;
+    }
+    throw new UnsupportedMethodException("Unsupported method: NativeAndroidProject.getBuildSystems()");
   }
 
   @Override
