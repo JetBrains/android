@@ -72,7 +72,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   public void trackChangeDevice(@Nullable Profiler.Device device) {
     if (myActiveDevice != device) {
       myActiveDevice = device;
-      track(AndroidProfilerEvent.Type.CHANGE_DEVICE);
+      track(AndroidProfilerEvent.Type.CHANGE_DEVICE, myActiveDevice);
     }
   }
 
@@ -232,18 +232,25 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   private void track(AndroidProfilerEvent.Type eventType) {
+    track(eventType, null);
+  }
+
+
+  private void track(AndroidProfilerEvent.Type eventType, @Nullable Profiler.Device device) {
     AndroidProfilerEvent profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(eventType).build();
 
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
       .setAndroidProfilerEvent(profilerEvent);
 
-    if (myActiveDevice != null) {
+    if (device != null) {
       event.setDeviceInfo(
         DeviceInfo.newBuilder()
-          .setBuildVersionRelease(myActiveDevice.getVersion())
-          .setBuildApiLevelFull(new AndroidVersion(myActiveDevice.getApiLevel(), myActiveDevice.getCodename()).getApiString())
-          .setDeviceType(myActiveDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+          .setManufacturer(device.getManufacturer())
+          .setModel(device.getModel())
+          .setBuildVersionRelease(device.getVersion())
+          .setBuildApiLevelFull(new AndroidVersion(device.getApiLevel(), device.getCodename()).getApiString())
+          .setDeviceType(device.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
           .build());
     }
 
