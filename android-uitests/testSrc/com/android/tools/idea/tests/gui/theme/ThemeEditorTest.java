@@ -96,6 +96,7 @@ public class ThemeEditorTest {
     checkNoErrors();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testSetThemeOnActivity() throws IOException {
     // Test that we can open the simple application and the theme editor opens correctly
