@@ -48,7 +48,6 @@ public abstract class SceneView {
   public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
-    myModel.getSelectionModel().addListener((m, selection) -> ApplicationManager.getApplication().invokeLater(mySurface::repaint));
   }
 
   @NotNull
