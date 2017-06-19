@@ -16,12 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,11 +73,5 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JDial
   public S assertStepIcon(Icon expectedIcon) {
     assertThat(robot().finder().findByName("right_icon", JLabel.class).getIcon()).isEqualTo(expectedIcon);
     return myself();
-  }
-
-  @NotNull
-  public JButtonFixture findWizardButton(@NotNull final String text) {
-    JButton button = robot().finder().find(target(), Matchers.byText(JButton.class, text));
-    return new JButtonFixture(robot(), button);
   }
 }
