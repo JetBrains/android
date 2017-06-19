@@ -60,7 +60,6 @@ public class NewImageAssetTest {
     if (!NewImageAssetStep_Deprecated.isEnabled()) {
       myStep.selectIconType("Launcher Icons (Legacy only)");
     }
-    assertThat(myDialog.findWizardButton("Next").isEnabled()).isTrue();
     // TODO there does not seem to be a error panel in the image asset config
   }
 
