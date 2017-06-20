@@ -22,9 +22,11 @@ import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.createEqualsVerifier;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.verifyUsageOfImmutableCollections;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
+import static com.android.utils.FileUtils.join;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
@@ -35,7 +37,7 @@ public class IdeLevel2AndroidLibraryTest {
   private ModelCache myModelCache;
 
   @Before
-  public void setUp() throws Exception{
+  public void setUp() throws Exception {
     myModelCache = new ModelCache();
   }
 
@@ -56,7 +58,12 @@ public class IdeLevel2AndroidLibraryTest {
   public void constructor() throws Throwable {
     Library original = new Level2AndroidLibraryStub();
     Library copy = IdeLevel2LibraryFactory.create(original, myModelCache);
-    assertEqualsOrSimilar(original, copy);
+    assertThat(copy.getAidlFolder()).isEqualTo(join(original.getFolder(), original.getAidlFolder()).getPath());
+    assertThat(copy.getRenderscriptFolder()).isEqualTo(join(original.getFolder(), original.getRenderscriptFolder()).getPath());
+    assertThat(copy.getResFolder()).isEqualTo(join(original.getFolder(), original.getResFolder()).getPath());
+    assertThat(copy.getJarFile()).isEqualTo(join(original.getFolder(), original.getJarFile()).getPath());
+    assertThat(copy.getAssetsFolder()).isEqualTo(join(original.getFolder(), original.getAssetsFolder()).getPath());
+    assertThat(copy.getManifest()).isEqualTo(join(original.getFolder(), original.getManifest()).getPath());
     verifyUsageOfImmutableCollections(copy);
   }
 
