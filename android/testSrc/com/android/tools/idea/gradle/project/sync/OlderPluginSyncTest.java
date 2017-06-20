@@ -38,10 +38,6 @@ import static org.mockito.Mockito.mock;
 public class OlderPluginSyncTest extends AndroidGradleTestCase {
   private String myGradleVersion;
 
-  public void testFakeTest() {
-    // This test is 'disabled' b/62842808
-  }
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -56,7 +52,7 @@ public class OlderPluginSyncTest extends AndroidGradleTestCase {
   }
 
   // Syncs a project with Android plugin 1.5.0 and Gradle 2.2.1
-  public void ignore_testWithPluginOneDotFive() throws Exception {
+  public void testWithPluginOneDotFive() throws Exception {
     myGradleVersion = "2.2.1";
     // We are verifying that sync succeeds without errors.
     loadProject(TestProjectPaths.PROJECT_WITH1_DOT5);
