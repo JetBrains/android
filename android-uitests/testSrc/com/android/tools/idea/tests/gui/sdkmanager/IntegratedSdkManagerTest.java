@@ -66,7 +66,7 @@ public class IntegratedSdkManagerTest {
    *   1. Open Android Studio
    *   2. Open File > Settings > System Settings > Android SDK
    *   3. Select "SDK Tools" tab
-   *   4. Select a package that is not pre-installed (we choose "GPU Debugging tools" here)
+   *   4. Select a package that is not pre-installed (we choose "API 21" here)
    *   5. Click OK
    *   6. Click yes to confirm
    *   7. Wait until the package is installed and click finish.
