@@ -37,6 +37,7 @@ import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.exception.ComponentLookupException;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +52,7 @@ import java.util.Collection;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
+import static org.junit.Assert.fail;
 
 @RunWith(GuiTestRunner.class)
 public class ConvertToWebpActionTest {
@@ -263,6 +265,9 @@ public class ConvertToWebpActionTest {
     });
 
     // Check nine-patch file is created by clicking on it.
+    // Synchronize files before clicking on new generated file.
+    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app")
+      .invokeMenuPath("Synchronize 'app'");
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png");
 
     // Try to convert to webp and verify.
