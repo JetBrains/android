@@ -71,7 +71,7 @@ public class GradleSyncGuiPerfTest {
 
     // Run a bunch of syncs to collect a warm sync time
     for(int i = 0; i < 5; i++) {
-      guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(5 * 60));
+      guiTest.ideFrame().requestProjectSync(Wait.seconds(5 * 60)).waitForGradleProjectSyncToFinish(Wait.seconds(5 * 60));
     }
   }
 }
