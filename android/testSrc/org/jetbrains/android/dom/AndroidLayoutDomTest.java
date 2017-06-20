@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -235,6 +236,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testDataBindingHighlighting() throws Throwable {
+    ModuleDataBinding.enable(myFacet);
     copyFileToProject("User.java", "src/com/android/example/bindingdemo/vo/User.java");
     doTestHighlighting("binding1.xml");
   }
