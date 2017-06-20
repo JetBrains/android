@@ -154,7 +154,7 @@ public class IntegratedSdkManagerTest {
     ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(
       () -> {
         File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath();
-        boolean ignored = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS).mkdir();
+        boolean ignored = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS).mkdirs();
         IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath, null);
       }));
 
