@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.AndroidArtifactOutput;
+import com.android.tools.idea.gradle.project.model.ide.android.UnusedModelMethodException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -23,16 +24,14 @@ import java.util.Objects;
 
 public class AndroidArtifactOutputStub extends VariantOutputStub implements AndroidArtifactOutput {
   @NotNull private final String myAssembleTaskName;
-  @NotNull private final File myGeneratedManifest;
   @NotNull private final File myOutputFile;
 
   public AndroidArtifactOutputStub() {
-    this("name", new File("generatedManifest"), new File("outputFile"));
+    this("name", new File("outputFile"));
   }
 
-  public AndroidArtifactOutputStub(@NotNull String name, @NotNull File generatedManifest, @NotNull File outputFile) {
+  public AndroidArtifactOutputStub(@NotNull String name, @NotNull File outputFile) {
     myAssembleTaskName = name;
-    myGeneratedManifest = generatedManifest;
     myOutputFile = outputFile;
   }
 
@@ -45,7 +44,7 @@ public class AndroidArtifactOutputStub extends VariantOutputStub implements Andr
   @Override
   @NotNull
   public File getGeneratedManifest() {
-    return myGeneratedManifest;
+    throw new UnusedModelMethodException("getGeneratedManifest");
   }
 
   @Override
@@ -70,21 +69,19 @@ public class AndroidArtifactOutputStub extends VariantOutputStub implements Andr
            Objects.equals(getFilterTypes(), output.getFilterTypes()) &&
            Objects.equals(getFilters(), output.getFilters()) &&
            Objects.equals(getAssembleTaskName(), output.getAssembleTaskName()) &&
-           Objects.equals(getGeneratedManifest(), output.getGeneratedManifest()) &&
            Objects.equals(getOutputFile(), output.getOutputFile());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(getMainOutputFile(), getOutputs(), getOutputType(), getFilterTypes(), getFilters(), getVersionCode(),
-                        getAssembleTaskName(), getGeneratedManifest(), getOutputFile());
+                        getAssembleTaskName(), getOutputFile());
   }
 
   @Override
   public String toString() {
     return "AndroidArtifactOutputStub{" +
            "myAssembleTaskName='" + myAssembleTaskName + '\'' +
-           ", myGeneratedManifest=" + myGeneratedManifest +
            ", myOutputFile=" + myOutputFile +
            "} " + super.toString();
   }

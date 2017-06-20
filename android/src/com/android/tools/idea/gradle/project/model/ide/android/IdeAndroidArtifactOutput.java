@@ -30,7 +30,6 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
-  @NotNull private final File myGeneratedManifest;
   @Nullable private final File myOutputFile;
   @Nullable private final String myAssembleTaskName;
   private final int myHashCode;
@@ -46,7 +45,6 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
       assembleTaskName = null;
     }
     myAssembleTaskName = assembleTaskName;
-    myGeneratedManifest = output.getGeneratedManifest();
     // Even though getOutputFile is not new, the class hierarchies in builder-model have changed a lot (e.g. new interfaces have been
     // created, and existing methods have been moved around to new interfaces) making Gradle think that this is a new method.
     // When using the plugin v2.4 or older, we fall back to calling getMainOutputFile().getOutputFile(), which is the older plugins
@@ -68,7 +66,7 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
   @Override
   @NotNull
   public File getGeneratedManifest() {
-    return myGeneratedManifest;
+    throw new UnusedModelMethodException("getGeneratedManifest");
   }
 
   @Override
@@ -94,7 +92,6 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
     IdeAndroidArtifactOutput output = (IdeAndroidArtifactOutput)o;
     return output.canEquals(this) &&
            Objects.equals(myAssembleTaskName, output.myAssembleTaskName) &&
-           Objects.equals(myGeneratedManifest, output.myGeneratedManifest) &&
            Objects.equals(myOutputFile, output.myOutputFile);
   }
 
@@ -110,7 +107,7 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
 
   @Override
   protected int calculateHashCode() {
-    return Objects.hash(super.calculateHashCode(), myAssembleTaskName, myGeneratedManifest, myOutputFile);
+    return Objects.hash(super.calculateHashCode(), myAssembleTaskName, myOutputFile);
   }
 
   @Override
@@ -118,7 +115,6 @@ public final class IdeAndroidArtifactOutput extends IdeVariantOutput implements 
     return "IdeAndroidArtifactOutput{" +
            super.toString() +
            ", myAssembleTaskName='" + myAssembleTaskName + '\'' +
-           ", myGeneratedManifest=" + myGeneratedManifest +
            ", myOutputFile=" + myOutputFile +
            "}";
   }
