@@ -226,14 +226,20 @@ public class CpuProfilingConfigPanel {
     myConfigPanel.setLayout(new VerticalFlowLayout());
 
     createConfigNamePanel();
-    myConfigPanel.add(new JSeparator());
+    addSeparator();
     createTraceTechnologyPanel();
-    myConfigPanel.add(new JSeparator());
+    addSeparator();
     createSamplingIntervalPanel();
-    myConfigPanel.add(new JSeparator());
+    addSeparator();
     createFileLimitPanel();
 
     disableFields();
+  }
+
+  private void addSeparator() {
+    JPanel separatorPanel = new JPanel(new TabularLayout("*", "10px"));
+    separatorPanel.add(new JSeparator(), new TabularLayout.Constraint(0, 0));
+    myConfigPanel.add(separatorPanel);
   }
 
   private void createConfigNamePanel() {
@@ -360,12 +366,9 @@ public class CpuProfilingConfigPanel {
     fileSizeLimitPanel.add(myFileSizeLimitUnit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(fileSizeLimitPanel);
 
-    JPanel descriptionPanel = new JPanel();
     JLabel description = new JLabel("<html>Maximum size of the output file from recording. On Android O or greater, " +
                                     "there is no limit on the file size and the value is ignored.</html>");
     description.setFont(description.getFont().deriveFont(12f));
-    descriptionPanel.add(description);
-
     myConfigPanel.add(description);
   }
 
