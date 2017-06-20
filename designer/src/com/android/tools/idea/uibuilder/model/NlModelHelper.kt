@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.model
 import com.android.SdkConstants.*
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
@@ -79,10 +80,10 @@ fun NlModel.getModuleDependencyVersion(artifact: String): GradleVersion? {
  * Changes the configuration to use a custom device with screen size defined by xDimension and yDimension.
  */
 fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, @AndroidCoordinate yDimension: Int) {
-  val original = configuration.getDevice()
+  val original = configuration.device
   val deviceBuilder = Device.Builder(original) // doesn't copy tag id
   if (original != null) {
-    deviceBuilder.setTagId(original.getTagId())
+    deviceBuilder.setTagId(original.tagId)
   }
   deviceBuilder.setName("Custom")
   deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
@@ -107,11 +108,11 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
   }
 
   // If a custom device already exists, remove it before adding the latest one
-  val devices = configuration.getConfigurationManager().getDevices()
+  val devices = configuration.configurationManager.devices
   var customDeviceReplaced = false
   for (i in devices.indices) {
-    if ("Custom" == devices.get(i).getId()) {
-      devices.set(i, device)
+    if ("Custom" == devices[i].id) {
+      devices[i] = device
       customDeviceReplaced = true
       break
     }
@@ -134,7 +135,7 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
   }
 
   if (better != null) {
-    val old = configuration.getFile()!!
+    val old = configuration.file!!
     val project = project
     val descriptor = OpenFileDescriptor(project, better, -1)
     val manager = FileEditorManager.getInstance(project)
@@ -148,7 +149,7 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
       manager.setSelectedEditor(better, TextEditorProvider.getInstance().editorTypeId)
     }
 
-    val facet = AndroidFacet.getInstance(configuration.getModule())
+    val facet = AndroidFacet.getInstance(configuration.module)
     if (facet != null) {
       val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(better)
       configuration.setEffectiveDevice(device, newState)
@@ -157,6 +158,25 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
   else {
     configuration.setEffectiveDevice(device, newState)
   }
+}
+
+/**
+ * Changes the configuration to use a custom device with the provided density.
+ */
+fun NlModel.overrideConfigurationDensity(density: Density) {
+  val original = configuration.device
+  val deviceBuilder = Device.Builder(original) // doesn't copy tag id
+  if (original != null) {
+    deviceBuilder.setTagId(original.tagId)
+  }
+  deviceBuilder.setName("Custom")
+  deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
+  val device = deviceBuilder.build()
+  device.allStates
+      .map { it.hardware.screen }
+      .forEach { it.pixelDensity = density }
+
+  configuration.setEffectiveDevice(device, device.defaultState)
 }
 
 fun NlModel.canAddComponents(receiver: NlComponent, toAdd: List<NlComponent>): Boolean {
@@ -170,7 +190,7 @@ fun NlModel.canAddComponents(receiver: NlComponent, toAdd: List<NlComponent>): B
       return false
     }
 
-    val handler = ViewHandlerManager.get(getProject()).getHandler(component)
+    val handler = ViewHandlerManager.get(project).getHandler(component)
 
     if (handler != null && !handler.acceptsParent(receiver, component)) {
       return false
@@ -223,7 +243,7 @@ fun NlModel.createComponent(sceneView: SceneView,
   }
 
   // Notify view handlers
-  val viewHandlerManager = ViewHandlerManager.get(getProject())
+  val viewHandlerManager = ViewHandlerManager.get(project)
   val childHandler = viewHandlerManager.getHandler(child)
   val editor = ViewEditorImpl(sceneView)
 
@@ -263,8 +283,8 @@ fun NlModel.addDependencies(toAdd: List<NlComponent>?, insertType: InsertType): 
       .map({ artifact -> GradleCoordinate.parseCoordinateString(artifact + ":+") })
       .filter({ Objects.nonNull(it) })
       .toList()
-  val manager = GradleDependencyManager.getInstance(getProject())
-  return manager.ensureLibraryIsIncluded(getModule(), dependencies, null)
+  val manager = GradleDependencyManager.getInstance(project)
+  return manager.ensureLibraryIsIncluded(module, dependencies, null)
 }
 
 fun NlModel.createComponents(sceneView: SceneView,
@@ -284,7 +304,7 @@ fun NlModel.createComponents(sceneView: SceneView,
 fun NlModel.handleAddition(added: List<NlComponent>, receiver: NlComponent, insertType: InsertType, surface: DesignSurface) {
   var realInsertType = insertType
   if (!receiver.hasNlComponentInfo) {
-    return;
+    return
   }
   val ids = Sets.newHashSet(NlComponent.getIds(this))
   val groupHandler = (receiver.viewHandler as ViewGroupHandler?)!!
@@ -295,9 +315,9 @@ fun NlModel.handleAddition(added: List<NlComponent>, receiver: NlComponent, inse
 
   for (component: NlComponent in added) {
     if (insertType.isMove) {
-      realInsertType = if (component.getParent() === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
+      realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
     }
-    if (component.needsDefaultId() && (StringUtil.isEmpty(component.getId()) || !realInsertType.isMove)) {
+    if (component.needsDefaultId() && (StringUtil.isEmpty(component.id) || !realInsertType.isMove)) {
       ids.add(component.assignId(ids))
     }
 
