@@ -144,9 +144,6 @@ public final class GuiTests {
     setGuiTestingMode(true);
 
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
-    setUpDefaultProjectCreationLocationPath();
-
-    setUpSdks();
   }
 
   public static void setUpSdks() {
