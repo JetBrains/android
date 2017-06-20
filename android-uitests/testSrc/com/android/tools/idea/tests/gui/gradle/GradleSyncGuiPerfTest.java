@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-
 @RunIn(TestGroup.SYNC_PERFORMANCE)
 @RunWith(GuiTestRunner.class)
 public class GradleSyncGuiPerfTest {
@@ -83,16 +81,6 @@ class GradleSyncGuiPerfTestRule extends GuiTestRule {
     updateGradleVersions(getProjectPath());
     VirtualFile toSelect = VfsUtil.findFileByIoFile(projectPath, true);
     ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().openProject(toSelect));
-  }
-
-  @Override
-  protected void setUpProject(@NotNull String projectDirName) throws IOException {
-    copyProjectBeforeOpening(projectDirName);
-
-    createGradleWrapper(getProjectPath(), GRADLE_LATEST_VERSION);
-    updateGradleVersions(getProjectPath());
-    updateLocalProperties(getProjectPath());
-    cleanUpProjectForImport(getProjectPath());
   }
 
   @Override

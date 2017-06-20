@@ -262,7 +262,7 @@ public class GuiTestRule implements TestRule {
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
    * @throws IOException if an unexpected I/O error occurs.
    */
-  protected void setUpProject(@NotNull String projectDirName) throws IOException {
+  private void setUpProject(@NotNull String projectDirName) throws IOException {
     copyProjectBeforeOpening(projectDirName);
 
     createGradleWrapper(myProjectPath, SdkConstants.GRADLE_LATEST_VERSION);
