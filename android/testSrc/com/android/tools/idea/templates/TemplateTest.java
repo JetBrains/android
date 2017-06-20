@@ -163,6 +163,9 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (SystemInfo.isWindows) {
       KNOWN_BROKEN.add("AidlFile");
     }
+
+    // b/63123437
+    KNOWN_BROKEN.add("AndroidAutoMediaService");
   }
 
   /**
@@ -191,12 +194,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private IdeComponents myIdeComponents;
 
   public TemplateTest() {
-  }
-
-  // b/62613769
-  @Override
-  protected boolean shouldRunTest() {
-    return false;
   }
 
   @Override
@@ -695,7 +692,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     assertNotNull(activity);
     activityState.setTemplateLocation(activity);
 
-    checkApiTarget(9, 18, target, state, "Test15", null, overrides, null);
+    checkApiTarget(14, 18, target, state, "Test15", null, overrides, null);
   }
 
   // This test is broken after the IntelliJ 2016.2.4 merge; investigate
