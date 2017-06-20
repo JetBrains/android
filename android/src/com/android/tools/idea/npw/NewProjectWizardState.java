@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.npw;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -49,7 +50,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
     put(ATTR_IS_LAUNCHER, true);
     put(ATTR_PROJECT_LOCATION, WizardUtils.getProjectLocationParent().getPath());
     put(ATTR_APP_TITLE, APPLICATION_NAME);
-    final int DEFAULT_MIN = 9;
+    final int DEFAULT_MIN = SdkVersionInfo.LOWEST_ACTIVE_API;
     put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
     put(ATTR_MIN_API, Integer.toString(DEFAULT_MIN));
     myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
