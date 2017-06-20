@@ -40,7 +40,6 @@ import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -235,20 +234,11 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
-  }
-
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String gradleVersion)
-    throws IOException {
-    return importProject(projectDirName, gradleVersion).waitForGradleProjectSyncToFinish();
+    return importProject(projectDirName).waitForGradleProjectSyncToFinish();
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    return importProject(projectDirName, null);
-  }
-
-  private IdeFrameFixture importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
-    setUpProject(projectDirName, gradleVersion);
+    setUpProject(projectDirName);
     VirtualFile toSelect = VfsUtil.findFileByIoFile(myProjectPath, true);
     ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().importProject(toSelect));
 
@@ -270,21 +260,12 @@ public class GuiTestRule implements TestRule {
    * </ul>
    *
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
-   * @param gradleVersion              the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
-   *                                   version of Gradle.
    * @throws IOException if an unexpected I/O error occurs.
    */
-  protected void setUpProject(@NotNull String projectDirName,
-                            @Nullable String gradleVersion) throws IOException {
+  protected void setUpProject(@NotNull String projectDirName) throws IOException {
     copyProjectBeforeOpening(projectDirName);
 
-    if (gradleVersion == null) {
-      createGradleWrapper(myProjectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    }
-    else {
-      createGradleWrapper(myProjectPath, gradleVersion);
-    }
-
+    createGradleWrapper(myProjectPath, SdkConstants.GRADLE_LATEST_VERSION);
     updateGradleVersions(myProjectPath);
     updateLocalProperties(myProjectPath);
     cleanUpProjectForImport(myProjectPath);

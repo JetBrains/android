@@ -33,7 +33,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
@@ -405,16 +404,10 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
   }
 
   @Override
-  protected void setUpProject(@NotNull String projectDirName, @Nullable String gradleVersion) throws IOException {
+  protected void setUpProject(@NotNull String projectDirName) throws IOException {
     copyProjectBeforeOpening(projectDirName);
 
-    if (gradleVersion == null) {
-      createGradleWrapper(getProjectPath(), GRADLE_LATEST_VERSION);
-    }
-    else {
-      createGradleWrapper(getProjectPath(), gradleVersion);
-    }
-
+    createGradleWrapper(getProjectPath(), GRADLE_LATEST_VERSION);
     updateGradleVersions(getProjectPath());
     updateLocalProperties(getProjectPath());
     cleanUpProjectForImport(getProjectPath());
