@@ -19,6 +19,7 @@ import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.actions.SaveScreenshotAction;
 import com.android.tools.idea.configurations.FlatComboAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -149,7 +150,7 @@ public class NlActionManager extends ActionManager {
       group.addSeparator();
     }
 
-    if (leafComponent != null) {
+    if (leafComponent != null && StudioFlags.NELE_CONVERT_VIEW.get()) {
       group.add(new MorphComponentAction(leafComponent, mySurface));
     }
     group.add(new MockupEditAction(mySurface));

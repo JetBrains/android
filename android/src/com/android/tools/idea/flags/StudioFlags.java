@@ -126,6 +126,11 @@ public final class StudioFlags {
     "Enable the continuous rendering of the surface when moving/resizing components.",
     false);
 
+  public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
+    NELE, "convert.view", "Enable the Convert View Action",
+    "Enable the Convert View Action when right clicking on a component",
+    false);
+
   private StudioFlags() {
   }
 }
