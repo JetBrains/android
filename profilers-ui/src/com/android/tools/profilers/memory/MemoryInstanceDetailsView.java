@@ -307,6 +307,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       treeModel.nodeStructureChanged(root);
     });
 
+    builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     return builder.build();

@@ -80,7 +80,7 @@ public class ProfilerColors {
 
   public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
 
-  public static final Color THREAD_HOVER_OVERLAY = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
+  public static final Color DEFAULT_HOVER_COLOR = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
 
   public static final Color CPU_AXIS_GUIDE_COLOR = Gray._150.withAlpha(50);
 
@@ -141,8 +141,6 @@ public class ProfilerColors {
   public static final Color NETWORK_RADIO_HIGH = new JBColor(0x335A9A, 0x669FFF);
 
   public static final Color NETWORK_TABLE_AXIS = new JBColor(Gray._103, Gray._120);
-
-  public static final Color NETWORK_TABLE_HOVER_COLOR = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
 
   public static final Color NETWORK_TABLE_AXIS_SELECTED = JBColor.BLACK;
 

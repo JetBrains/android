@@ -18,10 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.CloseButton;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -330,6 +327,7 @@ final class MemoryClassSetView extends AspectObserver {
       }
     });
 
+    builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     myColumnTree = builder.build();

@@ -67,7 +67,7 @@ final class ThreadsView {
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
     myThreadsTable =
-      new HoverRowTable(new ThreadsTableModel(stageView.getStage().getHttpDataFetcher()), ProfilerColors.NETWORK_TABLE_HOVER_COLOR);
+      new HoverRowTable(new ThreadsTableModel(stageView.getStage().getHttpDataFetcher()), ProfilerColors.DEFAULT_HOVER_COLOR);
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
     myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);

@@ -137,7 +137,7 @@ final class ConnectionsView {
 
     myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());
 
-    myConnectionsTable = new HoverRowTable(myTableModel, NETWORK_TABLE_HOVER_COLOR);
+    myConnectionsTable = new HoverRowTable(myTableModel, DEFAULT_HOVER_COLOR);
     customizeConnectionsTable();
 
     myAspectObserver = new AspectObserver();
