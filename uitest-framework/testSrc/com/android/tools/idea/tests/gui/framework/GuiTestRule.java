@@ -278,11 +278,6 @@ public class GuiTestRule implements TestRule {
                             @Nullable String gradleVersion) throws IOException {
     copyProjectBeforeOpening(projectDirName);
 
-    File gradlePropertiesFilePath = new File(myProjectPath, SdkConstants.FN_GRADLE_PROPERTIES);
-    if (gradlePropertiesFilePath.isFile()) {
-      FileUtilRt.delete(gradlePropertiesFilePath);
-    }
-
     if (gradleVersion == null) {
       createGradleWrapper(myProjectPath, SdkConstants.GRADLE_LATEST_VERSION);
     }
