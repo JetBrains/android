@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -89,6 +90,18 @@ public class AndroidLogcatServiceTest {
       System.setProperty("idea.cycle.buffer.size", myBufferSize);
     } else {
       System.clearProperty("idea.cycle.buffer.size");
+    }
+
+    // Dispose the service so that listener thread is terminated and AndroidDebugBridge listeners are removed
+    //
+    // Note: If we don't do this, tests using the AndroidDebugBridge (in other unrelated test classes)
+    //       may fail with a thread leak detection error, because the AndroidLogcatService singleton
+    //       adds a global AndroidDebugBridge event listener that creates a logcat listener thread.
+    if (myLogcatService != null) {
+      if (myLogcatListener != null) {
+        myLogcatService.removeListener(mockDevice, myLogcatListener);
+      }
+      Disposer.dispose(myLogcatService);
     }
   }
 

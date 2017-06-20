@@ -28,11 +28,6 @@ public class AdbServiceTest extends AndroidTestCase {
 
   // tests that basic API for getting and terminating a debug bridge works
   public void testBasics() throws ExecutionException {
-    if (SystemInfo.isWindows) {
-      // Do not run tests on Windows (see http://b.android.com/222904)
-      return;
-    }
-
     ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(getProject()));
     AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
     assertTrue(bridge.isConnected());
