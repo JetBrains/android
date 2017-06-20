@@ -403,16 +403,6 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
     wrapper.updateDistributionUrl(path);
   }
 
-  @Override
-  protected void setUpProject(@NotNull String projectDirName) throws IOException {
-    copyProjectBeforeOpening(projectDirName);
-
-    createGradleWrapper(getProjectPath(), GRADLE_LATEST_VERSION);
-    updateGradleVersions(getProjectPath());
-    updateLocalProperties(getProjectPath());
-    cleanUpProjectForImport(getProjectPath());
-  }
-
   /**
    * Replace all occurrence of regex in file
    **/
