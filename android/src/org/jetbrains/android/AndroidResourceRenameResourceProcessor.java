@@ -39,6 +39,8 @@ import com.intellij.openapi.command.undo.DocumentReferenceManager;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
@@ -223,6 +225,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     String id = AndroidResourceUtil.getResourceNameByReferenceText(value.getValue());
     assert id != null;
     List<XmlAttributeValue> idDeclarations = manager.findIdDeclarations(id);
+    ProjectFileIndex fileIndex = ProjectRootManager.getInstance(facet.getModule().getProject()).getFileIndex();
     for (XmlAttributeValue idDeclaration : idDeclarations) {
       // Only include explicit definitions (android:id). References through
       // these are found via the normal rename refactoring usage search in
@@ -235,7 +238,10 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         continue;
       }
 
-      allRenames.put(new ValueResourceElementWrapper(idDeclaration), newName);
+      // Include the element in refactoring only if it is a part of the project.
+      if (fileIndex.isInContent(idDeclaration.getContainingFile().getVirtualFile())) {
+        allRenames.put(new ValueResourceElementWrapper(idDeclaration), newName);
+      }
     }
 
     String name = AndroidResourceUtil.getResourceNameByReferenceText(newName);
