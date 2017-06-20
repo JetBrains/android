@@ -102,9 +102,9 @@ public class NewProjectTest {
    */
   @RunIn(TestGroup.QA)
   @Test
-  public void testCreateNewMobileProject() throws Exception {
-    IdeFrameFixture ideFrame = newProject("Test Application Unique").create();
-    assertThat(ideFrame.getModuleNames()).containsExactly("app", "TestApplicationUnique");
+  public void testCreateNewMobileProject() {
+    IdeFrameFixture ideFrame = newProject("Test Application").create();
+    assertThat(ideFrame.getModuleNames()).containsExactly("app", "TestApplication");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
