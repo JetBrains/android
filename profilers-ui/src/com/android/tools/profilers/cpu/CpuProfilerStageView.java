@@ -642,7 +642,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       else if (myHoveredIndex == index) {
         // Cell is hovered. Draw the hover overlay over it.
         JPanel overlay = new JPanel();
-        overlay.setBackground(ProfilerColors.THREAD_HOVER_OVERLAY);
+        overlay.setBackground(ProfilerColors.DEFAULT_HOVER_COLOR);
         panel.add(overlay, new TabularLayout.Constraint(0, 0, 2));
       }
 

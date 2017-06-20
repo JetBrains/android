@@ -25,6 +25,7 @@ public class ProfilerVisualTests {
     SwingUtilities.invokeAndWait(() -> {
         VisualTestsDialog dialog = new VisualTestsDialog();
         dialog.addTest(new CpuHTreeChartReducerVisualTest());
+        dialog.addTest(new HoverColumnTreeVisualTest());
         dialog.setTitle("Visual Tests");
         dialog.pack();
         dialog.setVisible(true);

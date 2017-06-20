@@ -17,6 +17,7 @@ package com.android.tools.adtui.common;
 
 import com.android.annotations.Nullable;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
@@ -33,6 +34,8 @@ import javax.swing.tree.AbstractLayoutCache;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 
@@ -86,6 +89,9 @@ public class ColumnTreeBuilder {
   @Nullable
   private Color myBackground;
 
+  @Nullable
+  private Color myHoverColor;
+
   public ColumnTreeBuilder(@NotNull JTree tree) {
     this(tree, null);
   }
@@ -118,16 +124,22 @@ public class ColumnTreeBuilder {
     return this;
   }
 
+  public ColumnTreeBuilder setHoverColor(@NotNull Color hoverColor) {
+    myHoverColor = hoverColor;
+    return this;
+  }
+
   public JComponent build() {
     boolean showsRootHandles = myTree.getShowsRootHandles(); // Stash this value since it'll get stomped WideSelectionTreeUI.
-    myTree.setUI(new ColumnTreeUI());
+    final ColumnTreeHoverListener hoverListener = myHoverColor != null ? ColumnTreeHoverListener.create(myTree) : null;
+    myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener));
 
     myTree.addPropertyChangeListener(evt-> {
       if (evt.getPropertyName().equals("UI")) {
         // We need to preserve ColumnTreeUI always,
         // Otherwise width of rows will be wrong and the table will lose its formatting.
         if (!(evt.getNewValue() instanceof ColumnTreeUI)) {
-          myTree.setUI(new ColumnTreeUI());
+          myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener));
         }
       }
     });
@@ -325,8 +337,19 @@ public class ColumnTreeBuilder {
    * this is known by the UI (see getRowX).
    */
   private static class ColumnTreeUI extends WideSelectionTreeUI {
-
     private int myWidth = -1;
+
+    @NotNull private final Color myHoverColor;
+    @NotNull private final ColumnTreeHoverListener myHoverConfig;
+
+    ColumnTreeUI() {
+      this(null, null);
+    }
+
+    ColumnTreeUI(@Nullable Color hoverColor, @Nullable ColumnTreeHoverListener hoverConfig) {
+      myHoverColor = hoverColor != null ? hoverColor : new JBColor(new Color(0, 0, 0, 0), new Color(0, 0,0, 0));
+      myHoverConfig = hoverConfig != null ? hoverConfig : ColumnTreeHoverListener.EMPTY_LISTENER;
+    }
 
     @Override
     public void paint(Graphics g, JComponent c) {
@@ -347,6 +370,26 @@ public class ColumnTreeBuilder {
           return dimensions;
         }
       };
+    }
+
+    @Override
+    protected void paintRow(Graphics g,
+                            Rectangle clipBounds,
+                            Insets insets,
+                            Rectangle bounds,
+                            TreePath path,
+                            int row,
+                            boolean isExpanded,
+                            boolean hasBeenExpanded,
+                            boolean isLeaf) {
+      if (row == myHoverConfig.getHoveredRow() && !tree.isPathSelected(path)) {
+        Color originalColor = g.getColor();
+        g.setColor(myHoverColor);
+        g.fillRect(0, bounds.y, tree.getWidth(), bounds.height);
+        g.setColor(originalColor);
+      }
+
+      super.paintRow(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
     }
   }
 
@@ -433,6 +476,7 @@ public class ColumnTreeBuilder {
   }
 
   private static class TreeWrapperPanel extends JPanel implements Scrollable {
+    @NotNull
     private final JTree myTree;
 
     public TreeWrapperPanel(JTable table, JTree tree) {
@@ -477,6 +521,81 @@ public class ColumnTreeBuilder {
         return parent.getHeight() > myTree.getPreferredSize().height;
       }
       return false;
+    }
+  }
+
+  private static class ColumnTreeHoverListener extends MouseAdapter {
+    /**
+     * Empty hover config which returns the hovered row as -1 always, and it should not listen to tree.
+     */
+    public static final ColumnTreeHoverListener EMPTY_LISTENER = new ColumnTreeHoverListener() {
+      @Override
+      public int getHoveredRow() {
+        return -1;
+      }
+    };
+
+    public static ColumnTreeHoverListener create(@NotNull JTree tree) {
+      ColumnTreeHoverListener config = new ColumnTreeHoverListener();
+      tree.addMouseListener(config);
+      tree.addMouseMotionListener(config);
+      return config;
+    }
+
+    private int myHoveredRow = -1;
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+      JTree tree = (JTree)e.getSource();
+      int row = getRowForLocation(tree, e.getX(), e.getY());
+      if (row != myHoveredRow) {
+        int oldHoveredRow = myHoveredRow;
+        myHoveredRow = row;
+        if (oldHoveredRow != -1) {
+          tree.repaint(getHoverBounds(tree, oldHoveredRow));
+        }
+        if (myHoveredRow != -1) {
+          tree.repaint(getHoverBounds(tree, myHoveredRow));
+        }
+      }
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+      mouseMoved(e);
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+      JTree tree = (JTree)e.getSource();
+      if (myHoveredRow != -1) {
+        int oldHoveredRow = myHoveredRow;
+        myHoveredRow = -1;
+        tree.repaint(getHoverBounds(tree, oldHoveredRow));
+      }
+    }
+
+    public int getHoveredRow() {
+      return myHoveredRow;
+    }
+
+    /**
+     * Row bounds does not include handler on the left, so mark dirty area from x value zero and adjust width.
+     */
+    private static Rectangle getHoverBounds(JTree tree, int row) {
+      Rectangle bounds = tree.getRowBounds(row);
+      return new Rectangle(0, bounds.y, bounds.width + bounds.x, bounds.height);
+    }
+
+    /**
+     * Point may be at tree collapse/expand handler, find closest row first and verify bounds.
+     */
+    private static int getRowForLocation(JTree tree, int x, int y) {
+      int row = tree.getClosestRowForLocation(x, y);
+      if (row != -1 && getHoverBounds(tree, row).contains(x, y)) {
+        return row;
+      }
+      return -1;
     }
   }
 }
