@@ -71,7 +71,7 @@ public class CpuTraceDataSeriesTest {
 
   @Test
   public void validTraceSuccessStatus() throws IOException {
-    Range maxRange = new Range(-Double.MAX_VALUE, -Double.MAX_VALUE);
+    Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     CpuCapture expectedCapture = myService.parseTraceFile();
@@ -101,5 +101,15 @@ public class CpuTraceDataSeriesTest {
     assertNotNull(expectedCapture.getRange());
     assertEquals(expectedCapture.getRange().getMin(), capture.getRange().getMin(), 0);
     assertEquals(expectedCapture.getRange().getMax(), capture.getRange().getMax(), 0);
+  }
+
+  @Test
+  public void validTraceSuccessStatusNoCaptureWithinRange() throws IOException {
+    Range noCapturesRange = new Range(-Double.MAX_VALUE, 0);
+    myService.setValidTrace(true);
+    myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
+    CpuCapture serviceCapture = myService.parseTraceFile(); // Not on the request range
+    assertNotNull(serviceCapture);
+    assertTrue(mySeries.getDataForXRange(noCapturesRange).isEmpty());
   }
 }

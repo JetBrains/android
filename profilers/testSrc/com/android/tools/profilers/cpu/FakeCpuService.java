@@ -183,7 +183,24 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
     CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
     if (myValidTrace) {
-      response.addTraceInfo(CpuProfiler.TraceInfo.newBuilder().setTraceId(myTraceId));
+      Range requestRange = new Range(TimeUnit.NANOSECONDS.toMicros(request.getFromTimestamp()),
+                                     TimeUnit.NANOSECONDS.toMicros(request.getToTimestamp()));
+      if (myCapture == null) {
+        try {
+          parseTraceFile();
+        }
+        catch (IOException ignored) {
+        }
+      }
+      boolean traceWithinRange = !myCapture.getRange().getIntersection(requestRange).isEmpty();
+      if (traceWithinRange) {
+        CpuProfiler.TraceInfo traceInfo = CpuProfiler.TraceInfo.newBuilder()
+          .setTraceId(myTraceId)
+          .setFromTimestamp((long)myCapture.getRange().getMin())
+          .setToTimestamp((long)myCapture.getRange().getMax())
+          .build();
+        response.addTraceInfo(traceInfo);
+      }
     }
 
     responseObserver.onNext(response.build());
