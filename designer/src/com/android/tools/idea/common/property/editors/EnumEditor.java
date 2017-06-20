@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
@@ -42,6 +43,7 @@ import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.ComboBoxUI;
+import javax.swing.plaf.TextUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
@@ -476,6 +478,14 @@ abstract public class EnumEditor extends NlBaseComponentEditor implements NlComp
       // Use a lighter gray for the IntelliJ LAF. Darcula remains what is was.
       return JBColor.LIGHT_GRAY;
     }
-  }
 
+    @Override protected void configureEditor() {
+      super.configureEditor();
+
+      if (editor instanceof JTextField) {
+        JTextField tf = (JTextField)editor;
+        tf.setUI((TextUI)DarculaTextFieldUI.createUI(tf));
+      }
+    }
+  }
 }
