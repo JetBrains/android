@@ -47,13 +47,6 @@ import java.util.concurrent.TimeUnit;
 import static com.android.utils.FileUtils.join;
 
 public class ConnectDebuggerTaskTest extends AndroidTestCase {
-
-  @Override
-  protected boolean shouldRunTest() {
-    // Ignore this class: b/36808469
-    return false;
-  }
-
   private static final String TEST_DEVICE_ID = "test_device_001";
   private static final String TEST_MANUFACTURER = "Google";
   private static final String TEST_MODEL = "Nexus Silver";
@@ -120,25 +113,28 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      //// See if we started a fake process
-      //Client client = myDevice.getClient(TEST_APP_ID);
-      //if (client != null) {
-      //  // Kill process and wait for the process to be removed.
-      //  TargetDeviceChangeListener deviceListener = TargetDeviceChangeListener.createOneShotListener(IDevice.CHANGE_CLIENT_LIST);
-      //  client.kill();
-      //  deviceListener.waitForDeviceChange();
-      //}
-      //
-      //// Disconnect and wait for the device to be removed.
-      //TargetDeviceChangeListener deviceListener = TargetDeviceChangeListener.createOneShotListener(IDevice.CHANGE_STATE);
-      //myServer.disconnectDevice(TEST_DEVICE_ID);
-      //deviceListener.waitForDeviceChange();
+      // See if we started a fake process
+      Client client = myDevice.getClient(TEST_APP_ID);
+      if (client != null) {
+        // Kill process and wait for the process to be removed.
+        TargetDeviceChangeListener deviceListener = TargetDeviceChangeListener.createOneShotListener(IDevice.CHANGE_CLIENT_LIST);
+        client.kill();
+        deviceListener.waitForDeviceChange();
+      }
 
-      // Stop the server and close the debug bridge
-      myServer.stop();
+      // Disconnect and wait for the device to be removed.
+      // Note: This is important to prevent leaking threads, as some components (e.g. logcat) create
+      //       listener threads when a device becomes online, and release the thread when the device
+      //       becomes offline.
+      TargetDeviceChangeListener deviceListener = TargetDeviceChangeListener.createOneShotListener(IDevice.CHANGE_STATE);
+      myServer.disconnectDevice(TEST_DEVICE_ID);
+      deviceListener.waitForDeviceChange();
+
+      // Note: The order below is important to avoid leaking threads: The debug bridge sends a kill-server
+      // command to the server when terminating, so we want the server to be able to process that command,
+      // so we close the server *after* terminating the bridge.
       AndroidDebugBridge.terminate();
-      AndroidDebugBridge.disconnectBridge();
-      myServer.awaitServerTermination();
+      myServer.close();
     }
     finally {
       super.tearDown();
