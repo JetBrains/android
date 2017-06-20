@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.uibuilder.adaptiveicon.AdaptiveIconActionGroups;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
 import com.android.tools.idea.uibuilder.editor.SetZoomActionGroups;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
@@ -41,6 +42,19 @@ import java.util.Locale;
  * Describes the supported types of editors (where each editor type refers to the type of resource that the editor can handle
  */
 public enum NlLayoutType {
+  ADAPTIVE_ICON(false) {
+    @Override
+    public boolean isResourceTypeOf(@NotNull XmlFile file) {
+      return AdaptiveIconDomFileDescription.isAdaptiveIcon(file);
+    }
+
+    @NotNull
+    @Override
+    public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
+      return new AdaptiveIconActionGroups(surface);
+    }
+  },
+
   FONT(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
@@ -123,8 +137,7 @@ public enum NlLayoutType {
   VECTOR(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_VECTOR)) ||
-             AdaptiveIconDomFileDescription.isAdaptiveIcon(file);
+      return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_VECTOR));
     }
 
     @NotNull
