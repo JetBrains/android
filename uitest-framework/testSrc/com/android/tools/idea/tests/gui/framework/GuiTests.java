@@ -34,6 +34,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFrame;
@@ -245,6 +246,8 @@ public final class GuiTests {
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
+    FileUtilRt.delete(getProjectCreationDirPath());
+    refreshFiles();
     RecentProjectsManager.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
   }
 

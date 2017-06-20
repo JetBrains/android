@@ -177,10 +177,6 @@ public class GuiTestRule implements TestRule {
       ideFrame().closeProject();
     }
     myIdeFrameFixture = null;
-    if (myProjectPath != null) {
-      FileUtilRt.delete(myProjectPath);
-      GuiTests.refreshFiles();
-    }
   }
 
   private ImmutableList<Throwable> tearDown() {
