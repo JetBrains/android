@@ -23,7 +23,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +35,6 @@ import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.mock;
 
-@Ignore("The dependencies needed for running this test in the sandbox are not in the offline repo yet")
 public class OlderPluginSyncTest extends AndroidGradleTestCase {
   private String myGradleVersion;
 
@@ -53,9 +51,9 @@ public class OlderPluginSyncTest extends AndroidGradleTestCase {
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
   }
 
-  // Syncs a project with Android plugin 1.5.0 and Gradle 2.2
+  // Syncs a project with Android plugin 1.5.0 and Gradle 2.2.1
   public void testWithPluginOneDotFive() throws Exception {
-    myGradleVersion = "2.2";
+    myGradleVersion = "2.2.1";
     // We are verifying that sync succeeds without errors.
     loadProject(TestProjectPaths.PROJECT_WITH1_DOT5);
   }
