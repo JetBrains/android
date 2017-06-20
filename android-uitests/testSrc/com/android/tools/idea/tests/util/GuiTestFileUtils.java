@@ -33,7 +33,7 @@ public final class GuiTestFileUtils {
    * Creates the file if it doesn't exist, writes the string to it, refreshes the VFS, and reloads the document.
    */
   public static void writeAndReloadDocument(@NotNull Path path, @NotNull String string) throws IOException {
-    VirtualFile file = TestFileUtils.writeAndRefreshVfs(path, string);
+    VirtualFile file = TestFileUtils.writeFileAndRefreshVfs(path, string);
 
     GuiActionRunner.execute(new GuiTask() {
       @Override
