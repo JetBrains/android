@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
-public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListener, MouseListener {
+public class HTreeChart<T> extends AnimatedComponent {
 
   private static final String NO_HTREE = "No data available.";
   private static final String NO_RANGE = "X range width is zero: Please use a wider range.";
@@ -88,11 +88,10 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     mRoot = new DefaultHNode<>();
     mReducer = reducer;
     mYRange = new Range(0, 0);
-    addMouseWheelListener(this);
     mOrientation = orientation;
     setFocusable(true);
-    addMouseListener(this);
     initializeInputMap();
+    initializeMouseEvents();
     setFont(AdtUiUtils.DEFAULT_FONT);
     xRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
     mYRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
@@ -260,6 +259,11 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     return null;
   }
 
+  @NotNull
+  public Orientation getOrientation() {
+    return mOrientation;
+  }
+
   private void initializeInputMap() {
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), ACTION_ZOOM_IN);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ACTION_ZOOM_OUT);
@@ -299,6 +303,49 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     });
   }
 
+  private void initializeMouseEvents() {
+    MouseAdapter adapter = new MouseAdapter() {
+      private Point myLastPoint;
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (!hasFocus()) {
+          requestFocusInWindow();
+        }
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        myLastPoint = e.getPoint();
+      }
+
+      @Override
+      public void mouseDragged(MouseEvent e) {
+        double deltaX = e.getPoint().x - myLastPoint.x;
+        double deltaY = e.getPoint().y - myLastPoint.y;
+
+        getYRange().shift(getOrientation() == Orientation.BOTTOM_UP ? deltaY : -deltaY);
+        getXRange().shift(mXRange.getLength() / getWidth() * -deltaX);
+
+        myLastPoint = e.getPoint();
+      }
+
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        double cursorRange = positionToRange(e.getX());
+        double leftDelta = (cursorRange - getXRange().getMin()) / ZOOM_FACTOR * e
+          .getWheelRotation();
+        double rightDelta = (getXRange().getMax() - cursorRange) / ZOOM_FACTOR * e
+          .getWheelRotation();
+        getXRange().setMin(getXRange().getMin() - leftDelta);
+        getXRange().setMax(getXRange().getMax() + rightDelta);
+      }
+    };
+    addMouseWheelListener(adapter);
+    addMouseListener(adapter);
+    addMouseMotionListener(adapter);
+  }
+
   public Range getYRange() {
     return mYRange;
   }
@@ -324,43 +371,6 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     }
     maxDepth += 1;
     return (mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth;
-  }
-
-  // TODO we probably want to extract/abstract this logic out later so the zooming behavior
-  // is consistent across components
-  @Override
-  public void mouseWheelMoved(MouseWheelEvent e) {
-    double cursorRange = positionToRange(e.getX());
-    double leftDelta = (cursorRange - getXRange().getMin()) / ZOOM_FACTOR * e
-      .getWheelRotation();
-    double rightDelta = (getXRange().getMax() - cursorRange) / ZOOM_FACTOR * e
-      .getWheelRotation();
-    getXRange().setMin(getXRange().getMin() - leftDelta);
-    getXRange().setMax(getXRange().getMax() + rightDelta);
-  }
-
-  @Override
-  public void mouseClicked(MouseEvent e) {
-    if (!hasFocus()) {
-      requestFocusInWindow();
-    }
-  }
-
-  @Override
-  public void mousePressed(MouseEvent e) {
-  }
-
-  @Override
-  public void mouseReleased(MouseEvent e) {
-  }
-
-  @Override
-  public void mouseEntered(MouseEvent e) {
-  }
-
-  @Override
-  public void mouseExited(MouseEvent e) {
-
   }
 
   public enum Orientation {TOP_DOWN, BOTTOM_UP}
