@@ -56,7 +56,6 @@ public class IdeGlobalLibraryMapTest {
   public void constructor() throws Throwable {
     GlobalLibraryMap original = new GlobalLibraryMapStub();
     IdeGlobalLibraryMap copy = new IdeGlobalLibraryMap(original, myModelCache);
-    assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
   }
 

@@ -45,8 +45,9 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   @NotNull private final String myLintJar;
   @NotNull private final String myExternalAnnotations;
   @NotNull private final String myPublicResources;
+  @NotNull private final File myArtifactFile;
+
   @Nullable private final String mySymbolFile;
-  @Nullable private final File myArtifactFile;
   private final int myType;
   private final int myHashCode;
 
@@ -66,8 +67,8 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
                           @NotNull String lintJar,
                           @NotNull String externalAnnotations,
                           @NotNull String publicResources,
-                          @Nullable String symbolFile,
-                          @Nullable File artifactFile) {
+                          @NotNull File artifactFile,
+                          @Nullable String symbolFile) {
     super(original, modelCache);
     myType = LIBRARY_ANDROID;
     myArtifactAddress = artifactAddress;
@@ -103,9 +104,6 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   @Override
   @NotNull
   public File getArtifact() {
-    if (myArtifactFile == null) {
-      throw new UnsupportedOperationException("getArtifact() cannot be called when getType() returns ANDROID_LIBRARY");
-    }
     return myArtifactFile;
   }
 
