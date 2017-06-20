@@ -26,15 +26,17 @@ public class MavenCoordinatesStub extends BaseStub implements MavenCoordinates {
   @NotNull private final String myGroupId;
   @NotNull private final String myArtifactId;
   @NotNull private final String myVersion;
+  @NotNull private final String myPackaging;
 
   public MavenCoordinatesStub() {
-    this("com.android.tools", "test", "2.1");
+    this("com.android.tools", "test", "2.1", "aar");
   }
 
-  public MavenCoordinatesStub(@NotNull String groupId, @NotNull String artifactId, @NotNull String version) {
+  public MavenCoordinatesStub(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @NotNull String packaging) {
     myGroupId = groupId;
     myArtifactId = artifactId;
     myVersion = version;
+    myPackaging = packaging;
   }
 
   @Override
@@ -58,13 +60,13 @@ public class MavenCoordinatesStub extends BaseStub implements MavenCoordinates {
   @Override
   @NotNull
   public String getPackaging() {
-    throw new UnusedModelMethodException("getPackaging");
+    return myPackaging;
   }
 
   @Override
   @Nullable
   public String getClassifier() {
-    throw new UnusedModelMethodException("getClassifier");
+    return null;
   }
 
   @Override

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
+import com.android.builder.model.MavenCoordinates;
 import com.android.builder.model.level2.Library;
 import com.android.utils.FileUtils;
 import com.android.utils.ImmutableCollectors;
@@ -153,6 +154,14 @@ class IdeLevel2LibraryFactory {
    */
   @NotNull
   static String computeAddress(@NotNull com.android.builder.model.Library library) {
-    return library.getResolvedCoordinates().toString().intern();
+    MavenCoordinates coordinate = library.getResolvedCoordinates();
+    String address = coordinate.getGroupId() + ":" + coordinate.getArtifactId() + ":" + coordinate.getVersion();
+    String classifier = coordinate.getClassifier();
+    if (classifier != null) {
+      address = address + ":" + classifier;
+    }
+    String packaging = coordinate.getPackaging();
+    address = address + "@" + packaging;
+    return address.intern();
   }
 }

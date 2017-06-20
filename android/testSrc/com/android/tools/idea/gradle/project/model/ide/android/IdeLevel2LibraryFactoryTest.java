@@ -16,14 +16,15 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.JavaLibrary;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2AndroidLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2JavaLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2ModuleLibraryStub;
+import com.android.builder.model.Library;
+import com.android.builder.model.MavenCoordinates;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2LibraryFactory.computeAddress;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -63,5 +64,17 @@ public class IdeLevel2LibraryFactoryTest {
   @Test
   public void createFromString() {
     assertThat(IdeLevel2LibraryFactory.create("lib", myModelCache)).isInstanceOf(IdeLevel2ModuleLibrary.class);
+  }
+
+  @Test
+  public void computeMavenAddress() {
+    Library library = new LibraryStub() {
+      @Override
+      @NotNull
+      public MavenCoordinates getResolvedCoordinates() {
+        return new MavenCoordinatesStub("com.android.tools", "test", "2.1", "aar");
+      }
+    };
+    assertThat(computeAddress(library)).isEqualTo("com.android.tools:test:2.1@aar");
   }
 }
