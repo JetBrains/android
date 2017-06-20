@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profiler.proto.*;
-import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.StackFrameParser;
 import com.google.common.annotations.VisibleForTesting;

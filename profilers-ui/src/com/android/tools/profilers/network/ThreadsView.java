@@ -19,6 +19,7 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -50,7 +51,7 @@ import java.util.Map;
  * Displays network connection information of all threads.
  */
 final class ThreadsView {
-  private static final int ROW_HEIGHT = 19;
+  private static final int ROW_HEIGHT = 15 + 10;
 
   @NotNull
   private final JTable myThreadsTable;
@@ -58,10 +59,14 @@ final class ThreadsView {
   @NotNull
   private final JLayeredPane myPanel;
 
+  @NotNull
+  private final AspectObserver myObserver;
+
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
     myThreadsTable =
       new HoverRowTable(new ThreadsTableModel(stageView.getStage().getHttpDataFetcher()), ProfilerColors.NETWORK_TABLE_HOVER_COLOR);
-    myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(new TimelineRenderer(myThreadsTable, stageView.getTimeline()));
+    TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
+    myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myThreadsTable.setFont(AdtUiUtils.DEFAULT_FONT);
     myThreadsTable.setShowVerticalLines(true);
@@ -91,6 +96,10 @@ final class ThreadsView {
         tooltip.setSize(myPanel.getSize());
       }
     });
+
+    myObserver = new AspectObserver();
+    stageView.getStage().getAspect().addDependency(myObserver)
+      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, timelineRenderer::repaint);
   }
 
   @NotNull
@@ -161,18 +170,24 @@ final class ThreadsView {
     @NotNull private final JTable myTable;
     @NotNull private final List<JComponent> myRows;
     @NotNull private final ProfilerTimeline myTimeline;
+    @NotNull private final NetworkProfilerStage myStage;
 
-    TimelineRenderer(@NotNull JTable table, @NotNull ProfilerTimeline timeline) {
+    TimelineRenderer(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
       myTable = table;
-      myTimeline = timeline;
+      // TODO: remove
+      myTimeline = stage.getStudioProfilers().getTimeline();
       myRows = new ArrayList<>();
-
+      myStage = stage;
       myTable.getModel().addTableModelListener(this);
       tableChanged(new TableModelEvent(myTable.getModel()));
     }
 
     @Override
     public void tableChanged(TableModelEvent e) {
+      repaint();
+    }
+
+    public void repaint() {
       myRows.clear();
       for (int index = 0; index < myTable.getModel().getRowCount(); ++index) {
         List<HttpData> data = (List<HttpData>)myTable.getModel().getValueAt(index, 1);
@@ -185,7 +200,7 @@ final class ThreadsView {
         JPanel panel = new JPanel(new TabularLayout("*", "*"));
         panel.setPreferredSize(new Dimension((int)panel.getPreferredSize().getWidth(), myTable.getRowHeight()));
         panel.add(axis, new TabularLayout.Constraint(0, 0));
-        panel.add(new ConnectionsInfoComponent(data, myTimeline.getSelectionRange()), new TabularLayout.Constraint(0, 0));
+        panel.add(new ConnectionsInfoComponent(myTable, data, myStage), new TabularLayout.Constraint(0, 0));
         myRows.add(panel);
       }
     }
@@ -215,18 +230,25 @@ final class ThreadsView {
    * such as connection names, warnings, and lifecycle states.
    */
   private static final class ConnectionsInfoComponent extends JComponent {
-    private static final int PADDING = 6;
+    private static final int NAME_PADDING = 6;
     private static final int STATE_HEIGHT = 15;
     private static final int WARNING_SIZE = 10;
+    private static final int SELECTION_PADDING = 3;
+    private static final int SELECTION_BORDER = 2;
+
     @NotNull private final List<HttpData> myDataList;
     @NotNull private final Range myRange;
+    @NotNull private final JTable myTable;
+    @NotNull private final NetworkProfilerStage myStage;
 
-    private ConnectionsInfoComponent(@NotNull List<HttpData> data, @NotNull Range range) {
+    private ConnectionsInfoComponent(@NotNull JTable table, @NotNull List<HttpData> data, @NotNull NetworkProfilerStage stage) {
+      myStage = stage;
       myDataList = data;
-      myRange = range;
+      myRange = stage.getStudioProfilers().getTimeline().getSelectionRange();
       setFont(AdtUiUtils.DEFAULT_FONT);
       setForeground(Color.BLACK);
       setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+      myTable = table;
     }
 
     @Override
@@ -247,6 +269,10 @@ final class ThreadsView {
         }
 
         drawConnectionName(g2d, data, endLimit);
+      }
+
+      if (myStage.getSelectedConnection() != null && myDataList.contains(myStage.getSelectedConnection())) {
+        drawSelection(g2d, myStage.getSelectedConnection(), getWidth());
       }
 
       g2d.dispose();
@@ -296,10 +322,22 @@ final class ThreadsView {
 
       FontMetrics metrics = getFontMetrics(getFont());
       String text =
-        AdtUiUtils.getFittedString(metrics, HttpData.getUrlName(data.getUrl()), (float)(end - start - 2 * PADDING), 1);
+        AdtUiUtils.getFittedString(metrics, HttpData.getUrlName(data.getUrl()), (float)(end - start - 2 * NAME_PADDING), 1);
 
       double availableSpace = (end - start - metrics.stringWidth(text));
       g2d.drawString(text, (float)(start + availableSpace / 2.0), (float)((getHeight() - metrics.getHeight()) * 0.5 + metrics.getAscent()));
+    }
+
+    private void drawSelection(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
+      double start = rangeToPosition(data.getStartTimeUs());
+      double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
+      g2d.setStroke(new BasicStroke(SELECTION_BORDER));
+      g2d.setColor(myTable.getSelectionBackground());
+      Rectangle2D rect = new Rectangle2D.Double(start - SELECTION_PADDING,
+                                                (getHeight() - STATE_HEIGHT) / 2 - SELECTION_PADDING,
+                                                end - start + 2 * SELECTION_PADDING,
+                                                STATE_HEIGHT + 2 * SELECTION_PADDING);
+      g2d.draw(rect);
     }
 
     private double rangeToPosition(double r) {
@@ -383,7 +421,6 @@ final class ThreadsView {
 
       return null;
     }
-
 
     JComponent getComponent() {
       return myComponent;
