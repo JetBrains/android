@@ -27,7 +27,6 @@
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="280" height="-1"/>
-            <maximum-size width="-1" height="23"/>
           </grid>
         </constraints>
         <properties/>
@@ -66,9 +65,7 @@
       </component>
       <grid id="c3b5" binding="mySuperclassFieldPlaceholder" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
-          <grid row="2" column="1" row-span="1" col-span="3" vsize-policy="2" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <maximum-size width="-1" height="23"/>
-          </grid>
+          <grid row="2" column="1" row-span="1" col-span="3" vsize-policy="2" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <alignmentX value="0.0"/>
@@ -93,9 +90,7 @@
       </component>
       <grid id="93e12" binding="myInterfacesFieldPlaceholder" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
-          <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="2" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <maximum-size width="-1" height="23"/>
-          </grid>
+          <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="2" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <name value="interfaces_background_panel"/>
@@ -117,9 +112,7 @@
       </component>
       <grid id="c6ae7" binding="myPackageFieldPlaceholder" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
-          <grid row="4" column="1" row-span="1" col-span="3" vsize-policy="2" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <maximum-size width="-1" height="23"/>
-          </grid>
+          <grid row="4" column="1" row-span="1" col-span="3" vsize-policy="2" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <alignmentX value="0.0"/>
