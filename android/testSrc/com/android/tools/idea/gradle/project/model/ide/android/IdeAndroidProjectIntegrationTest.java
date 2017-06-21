@@ -32,9 +32,12 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link IdeAndroidProjectImpl}.
  */
-@Ignore // Fails with sandbox enabled
 public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
-  public void testSyncFromCachedModel() throws Exception {
+  public void testDisabled() {
+    // Fails with sandbox enabled
+  }
+
+  public void ignore_testSyncFromCachedModel() throws Exception {
     loadSimpleApplication();
 
     AndroidProject androidProject = getAndroidProjectInApp();
@@ -51,7 +54,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     assertEquals(androidProject, cached);
   }
 
-  public void testSyncWithGradle2Dot2() throws Exception {
+  public void ignore_testSyncWithGradle2Dot2() throws Exception {
     syncProjectWithGradle2Dot2();
 
     AndroidProject androidProject = getAndroidProjectInApp();
@@ -72,12 +75,12 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     requestSyncAndWait(request);
   }
 
-  public void testLevel2DependenciesWithGradle2Dot2() throws Exception {
+  public void ignore_testLevel2DependenciesWithGradle2Dot2() throws Exception {
     syncProjectWithGradle2Dot2();
     verifyIdeLevel2DependenciesPopulated();
   }
 
-  public void testLevel2DependenciesWithHeadPlugin() throws Exception {
+  public void ignore_testLevel2DependenciesWithHeadPlugin() throws Exception {
     loadSimpleApplication();
     verifyIdeLevel2DependenciesPopulated();
   }
