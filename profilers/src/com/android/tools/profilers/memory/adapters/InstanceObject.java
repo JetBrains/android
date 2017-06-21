@@ -73,4 +73,6 @@ public interface InstanceObject extends ValueObject {
   default boolean getIsRoot() {
     return false;
   }
+
+  default void removeCallstack() {};
 }
