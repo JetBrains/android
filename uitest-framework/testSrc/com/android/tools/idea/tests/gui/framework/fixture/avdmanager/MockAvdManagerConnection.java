@@ -21,6 +21,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.rt.execution.testFrameworks.ProcessBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -60,10 +61,15 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   public void killEmulatorProcesses() {
     try {
       // Kill emulator crash report dialogs left behind
-      Runtime.getRuntime().exec("pkill -9 qemu").waitFor();
-      // Kill emulator crash report dialogs left behind.
-      // Note that pgrep matches up to 15 characters.
-      Runtime.getRuntime().exec("pkill -9 emulator64-cra").waitFor();
+      if (ProcessBuilder.isWindows) {
+        // On windows killing qemu-system-i386.exe also kills emulator64-crash-service.exe (sub process)
+        Runtime.getRuntime().exec("taskkill /F /IM qemu*").waitFor();
+      }
+      else {
+        // Note that pgrep matches up to 15 characters.
+        Runtime.getRuntime().exec("pkill -9 qemu").waitFor();
+        Runtime.getRuntime().exec("pkill -9 emulator64-cra").waitFor();
+      }
     } catch (IOException | InterruptedException e) {
       throw new RuntimeException(e);
     }
