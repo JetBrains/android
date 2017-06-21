@@ -166,14 +166,6 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
   }
 
   @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
   public void initComponent() {
     LafManager.getInstance().addLafManagerListener(this);
   }

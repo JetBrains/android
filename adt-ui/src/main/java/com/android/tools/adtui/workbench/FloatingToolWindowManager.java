@@ -96,14 +96,6 @@ public class FloatingToolWindowManager implements ProjectComponent {
   }
 
   @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
-  @Override
   public void projectOpened() {
     myStartupManager.runWhenProjectIsInitialized((DumbAwareRunnable)() -> {
       myConnection = myProject.getMessageBus().connect(myProject);
