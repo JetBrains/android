@@ -784,6 +784,18 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     PlatformTestUtil.startPerformanceTest("android custom attrs highlighting is slow", 800, () -> myFixture.doHighlighting()).attempts(2).cpuBound().usesAllCPUCores().assertTiming();
   }
 
+  public void testSupportGridLayoutCompletion() throws Throwable {
+    myFixture.copyFileToProject("dom/layout/GridLayout.java", "src/android/support/v7/widget/GridLayout.java");
+    myFixture.copyFileToProject("dom/resources/attrs_gridlayout.xml", "res/values/attrs_gridlayout.xml");
+    doTestCompletionVariants(getTestName(true) + ".xml", "rowCount", "rowOrderPreserved");
+  }
+
+  public void testSupportGridLayoutCompletion2() throws Throwable {
+    myFixture.copyFileToProject("dom/layout/GridLayout.java", "src/android/support/v7/widget/GridLayout.java");
+    myFixture.copyFileToProject("dom/resources/attrs_gridlayout.xml", "res/values/attrs_gridlayout.xml");
+    toTestCompletion(getTestName(true) + ".xml", getTestName(true) + "_after.xml");
+  }
+
   public void testViewClassReference() throws Throwable {
     VirtualFile file = myFixture.copyFileToProject(myTestFolder + "/vcr.xml", getPathToCopy("vcr.xml"));
     myFixture.configureFromExistingVirtualFile(file);

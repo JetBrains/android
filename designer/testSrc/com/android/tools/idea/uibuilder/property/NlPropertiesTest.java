@@ -214,17 +214,30 @@ public class NlPropertiesTest extends PropertyTestCase {
   }
 
   public void testAppCompatIssues() {
+    @Language("JAVA")
+    String java = "package com.example;\n" +
+                  "\n" +
+                  "import android.content.Context;\n" +
+                  "import android.widget.TextView;\n" +
+                  "\n" +
+                  "public class MyTextView extends TextView {\n" +
+                  "    public MyTextView(Context context) {\n" +
+                  "        super(context);\n" +
+                  "    }\n" +
+                  "}\n";
+    myFixture.addFileToProject("src/com/example/MyTextView.java", java);
+
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                     "<RelativeLayout>" +
-                    "  <TextView />" +
+                    "  <com.example.MyTextView />" +
                     "</RelativeLayout>";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
 
     @Language("XML")
     String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                       "<resources>\n" +
-                      "    <declare-styleable name=\"View\">\n" +
+                      "    <declare-styleable name=\"MyTextView\">\n" +
                       "        <attr name=\"android:focusable\" />\n" +
                       "        <attr name=\"theme\" format=\"reference\" />\n" +
                       "        <attr name=\"android:theme\" />\n" +
@@ -245,9 +258,9 @@ public class NlPropertiesTest extends PropertyTestCase {
 
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
     // The android:focusable refers to the platform attribute, and hence should not be duplicated..
-    assertPresent("TextView", properties, ANDROID_URI, "focusable", "theme");
-    assertPresent("TextView", properties, CUSTOM_NAMESPACE, "custom");
-    assertAbsent("TextView", properties, ANDROID_URI, "android:focusable", "android:theme");
+    assertPresent("com.example.MyTextView", properties, ANDROID_URI, "focusable", "theme");
+    assertPresent("com.example.MyTextView", properties, CUSTOM_NAMESPACE, "custom");
+    assertAbsent("com.example.MyTextView", properties, ANDROID_URI, "android:focusable", "android:theme");
   }
 
   public void testVisibleIsStarredPropertyByDefault() {

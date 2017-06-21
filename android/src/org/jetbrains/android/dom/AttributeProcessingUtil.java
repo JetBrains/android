@@ -210,15 +210,6 @@ public class AttributeProcessingUtil {
   private static void registerAttributes(AndroidFacet facet,
                                          DomElement element,
                                          @NotNull String styleableName,
-                                         AttributeProcessor callback,
-                                         Set<XmlName> skipNames) {
-    registerAttributes(facet, element, styleableName, null, callback, skipNames);
-    registerAttributes(facet, element, styleableName, SYSTEM_RESOURCE_PACKAGE, callback, skipNames);
-  }
-
-  private static void registerAttributes(AndroidFacet facet,
-                                         DomElement element,
-                                         @NotNull String styleableName,
                                          @Nullable String resPackage,
                                          AttributeProcessor callback,
                                          Set<XmlName> skipNames) {
@@ -251,10 +242,19 @@ public class AttributeProcessingUtil {
     while (c != null) {
       String styleableName = c.getName();
       if (styleableName != null) {
-        registerAttributes(facet, element, styleableName, callback, skipNames);
+        registerAttributes(facet, element, styleableName, getResourcePackage(c), callback, skipNames);
       }
       c = getSuperclass(c);
     }
+  }
+
+  @Nullable
+  private static String getResourcePackage(@NotNull PsiClass psiClass) {
+    // TODO: Replace this with the namespace of the styleableName when that is available.
+    String qualifiedName = psiClass.getQualifiedName();
+    return qualifiedName != null &&
+           qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
+           !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ? SYSTEM_RESOURCE_PACKAGE : null;
   }
 
   @Nullable
@@ -339,21 +339,21 @@ public class AttributeProcessingUtil {
       case "CollapsingToolbarLayout":
         // Support library doesn't have particularly consistent naming
         // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "CollapsingAppBarLayout_LayoutParams", callback, skipAttrNames);
+        registerAttributes(facet, element, "CollapsingAppBarLayout_LayoutParams", null, callback, skipAttrNames);
 
         styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
         break;
       case "CoordinatorLayout":
         // Support library doesn't have particularly consistent naming
         // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "CoordinatorLayout_LayoutParams", callback, skipAttrNames);
+        registerAttributes(facet, element, "CoordinatorLayout_LayoutParams", null, callback, skipAttrNames);
 
         styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
         break;
       case "AppBarLayout":
         // Support library doesn't have particularly consistent naming
         // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "AppBarLayout_LayoutParams", callback, skipAttrNames);
+        registerAttributes(facet, element, "AppBarLayout_LayoutParams", null, callback, skipAttrNames);
 
         styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
         break;
@@ -361,7 +361,7 @@ public class AttributeProcessingUtil {
         styleableName = viewName + "_Layout";
     }
 
-    registerAttributes(facet, element, styleableName, callback, skipAttrNames);
+    registerAttributes(facet, element, styleableName, getResourcePackage(psiClass), callback, skipAttrNames);
   }
 
   /**
@@ -447,7 +447,7 @@ public class AttributeProcessingUtil {
           if (name == null) {
             continue;
           }
-          registerAttributes(facet, element, name, callback, skipAttrNames);
+          registerAttributes(facet, element, name, getResourcePackage(aClass), callback, skipAttrNames);
         }
         break;
 
