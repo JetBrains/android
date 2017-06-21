@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.android.tools.tests.layout"
-        minSdkVersion 11
+        minSdkVersion 14
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
