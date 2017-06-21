@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.util.PropertiesMap;
+import com.google.common.base.MoreObjects;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
@@ -179,5 +180,15 @@ public class RenderResult {
   @NotNull
   public Map<Object, PropertiesMap> getDefaultProperties() {
     return myDefaultProperties;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("renderResult", myRenderResult)
+      .add("psiFile", myFile)
+      .add("rootViews", myRootViews)
+      .add("systemViews", mySystemRootViews)
+      .toString();
   }
 }
