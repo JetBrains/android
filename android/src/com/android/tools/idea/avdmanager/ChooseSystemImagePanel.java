@@ -43,6 +43,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
+import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
+
 /**
  * UI panel that presents the user with a list of {@link SystemImageDescription}s to choose from.
  *
@@ -137,9 +140,11 @@ public class ChooseSystemImagePanel extends JPanel
     if (!isAvdIntel) {
       return SystemImageClassification.OTHER;
     }
-    if (apiLevel <= 21) {
-      // The emulator does not yet work very well on older system images.
-      // Remove this when they are fully supported.
+    if (tag.equals(SystemImage.WEAR_TAG)) {
+        // For Wear, recommend based on API level (all Wear have Google APIs)
+        return (apiLevel >= MIN_RECOMMENDED_WEAR_API) ? SystemImageClassification.RECOMMENDED : SystemImageClassification.X86;
+    }
+    if (apiLevel < MIN_RECOMMENDED_API) {
       return SystemImageClassification.X86;
     }
     if (abi == Abi.X86 && AvdWizardUtils.TAGS_WITH_GOOGLE_API.contains(tag)) {
@@ -161,8 +166,7 @@ public class ChooseSystemImagePanel extends JPanel
       // of device. Rather than just checking "imageTag.getId().equals(SystemImage.DEFAULT_TAG.getId())"
       // here (which will filter out system images with a non-default tag, such as the Google API
       // system images (see issue #78947), we instead deliberately skip the other form factor images
-      return imageTag.equals(SystemImage.DEFAULT_TAG) ||
-             !imageTag.equals(SystemImage.TV_TAG) && !imageTag.equals(SystemImage.WEAR_TAG);
+      return !imageTag.equals(SystemImage.TV_TAG) && !imageTag.equals(SystemImage.WEAR_TAG);
     }
     return deviceTagId.equals(imageTag.getId());
   }
