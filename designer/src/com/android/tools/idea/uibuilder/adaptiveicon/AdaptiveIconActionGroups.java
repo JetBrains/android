@@ -18,7 +18,9 @@ package com.android.tools.idea.uibuilder.adaptiveicon;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -33,8 +35,11 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new DensityMenuAction(mySurface.getModel()));
-
+    NlModel model = mySurface.getModel();
+    if (model != null) {
+      group.add(new DensityMenuAction(model));
+    }
+    group.add(new ShapeMenuAction((NlDesignSurface)mySurface));
     return group;
   }
 

@@ -51,7 +51,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
 import java.util.*;
@@ -530,6 +529,7 @@ public class LayoutlibSceneManager extends SceneManager {
       myRenderTask = renderService.createTask(getModel().getFile(), configuration, logger, getDesignSurface());
       setupRenderTask(myRenderTask);
       if (myRenderTask != null) {
+        myRenderTask.getLayoutlibCallback().setAdaptiveIconMaskPath(((NlDesignSurface)getDesignSurface()).getAdaptiveIconShape().getPathDescription());
         if (!isRenderViewPort()) {
           myRenderTask.useDesignMode(getModel().getFile());
         }

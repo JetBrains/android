@@ -19,6 +19,7 @@ import android.view.View;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
@@ -32,6 +33,7 @@ import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -189,6 +191,9 @@ public class LayoutTestUtilities {
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
     when(surface.createComponent(any())).thenCallRealMethod();
+    if (NlDesignSurface.class.equals(surfaceClass)) {
+      when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
+    }
     return surface;
   }
 
