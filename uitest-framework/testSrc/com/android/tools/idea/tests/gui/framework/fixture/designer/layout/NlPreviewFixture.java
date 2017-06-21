@@ -34,7 +34,6 @@ import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JToggleButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -151,5 +150,10 @@ public class NlPreviewFixture extends ToolWindowFixture {
     }
     return myAwtRobot.getPixelColor(centerLeftPoint.x, centerLeftPoint.y).getRGB();
 
+  }
+
+  @NotNull
+  public String getAdaptiveIconPathDescription() {
+    return myDesignSurfaceFixture.target().getAdaptiveIconShape().getPathDescription();
   }
 }

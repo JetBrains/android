@@ -60,7 +60,11 @@ public final class RenderParamsFlags {
      */
     public static final Key<Boolean> FLAG_DO_NOT_RENDER_ON_CREATE =
         new Key<Boolean>("doNotRenderOnCreate", Boolean.class);
-
+    /**
+     * The adaptive icon mask path. Used via {@link LayoutlibCallback#getFlag(Key)}
+     */
+    public static final Key<String> FLAG_KEY_ADAPTIVE_ICON_MASK_PATH =
+      new Key<>("adaptiveIconMaskPath", String.class);
 
     // Disallow instances.
     private RenderParamsFlags() {}

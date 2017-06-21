@@ -111,6 +111,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull public ImmutableMap<String, TagSnapshot> myAaptDeclaredResources = ImmutableMap.of();
   private final Map<String, ResourceValue> myFontFamilies;
   private ProjectFonts myProjectFonts;
+  private String myAdaptiveIconMaskPath;
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -777,6 +778,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (key.equals(FLAG_KEY_XML_FILE_PARSER_SUPPORT)) {
       return (T)Boolean.TRUE;
     }
+    if (key.equals(FLAG_KEY_ADAPTIVE_ICON_MASK_PATH)) {
+      return (T)myAdaptiveIconMaskPath;
+    }
     return null;
   }
 
@@ -809,6 +813,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       throw new ClassNotFoundException(name + " not found.", e);
     }
 
+  }
+
+  public void setAdaptiveIconMaskPath(@NotNull String adaptiveIconMaskPath) {
+    myAdaptiveIconMaskPath = adaptiveIconMaskPath;
   }
 
   private static class ParserFactoryImpl extends ParserFactory {

@@ -101,9 +101,19 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    * Selects the density matching the given string in the configuration toolbar's density menu
    */
   @NotNull
-  public NlConfigurationToolbarFixture chooseDensity(@NotNull String density) {
+  public NlConfigurationToolbarFixture<ParentFixture> chooseDensity(@NotNull String density) {
     new JButtonFixture(myRobot, findToolbarButton("Device Screen Density")).click();
     clickPopupMenuItem(density, myToolBar.getComponent(), myRobot);
+    return this;
+  }
+
+  /**
+   * Selects the shape matching the given string in the configuration toolbar's shape menu
+   */
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> chooseShape(@NotNull String shape) {
+    new JButtonFixture(myRobot, findToolbarButton("Adaptive Icon Shape")).click();
+    clickPopupMenuItem(shape, myToolBar.getComponent(), myRobot);
     return this;
   }
 

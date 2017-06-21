@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
@@ -118,6 +119,7 @@ public class NlDesignSurface extends DesignSurface {
   @Nullable private ScreenView myScreenView;
   private final boolean myInPreview;
   private WeakReference<PanZoomPanel> myPanZoomPanel = new WeakReference<>(null);
+  private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable);
@@ -348,6 +350,15 @@ public class NlDesignSurface extends DesignSurface {
       }
     }
     return dimension;
+  }
+
+  public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
+    myAdaptiveIconShape = adaptiveIconShape;
+  }
+
+  @NotNull
+  public ShapeMenuAction.AdaptiveIconShape getAdaptiveIconShape() {
+    return myAdaptiveIconShape;
   }
 
   /**
