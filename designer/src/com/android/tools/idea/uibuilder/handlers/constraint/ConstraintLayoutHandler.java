@@ -54,14 +54,12 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -84,13 +82,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    */
   public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
   public static final String SHOW_MARGINS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowMargins";
-  public static final String FADE_UNRELATED_VIEWS = PREFERENCE_KEY_PREFIX + "FadeNonRelatedViews";
-  public static final String FADE_ON_LOCK_VIEWS = PREFERENCE_KEY_PREFIX + "FadeOnLock";
   public static final String FADE_UNSELECTED_VIEWS = PREFERENCE_KEY_PREFIX + "FadeUnselected";
 
   private static final NlIcon BASELINE_ICON =
     new NlIcon(AndroidIcons.SherpaIcons.BaselineColor, AndroidIcons.SherpaIcons.BaselineBlue);
-  private boolean myShowAllConstraints = true;
 
   private static boolean ourAutoConnect;
   private final static String ADD_VERTICAL_BARRIER = "Add Vertical barrier";
@@ -101,7 +96,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private final static String ADD_CONSTRAINTS_SET = "Add set of Constraints";
   public static final String EDIT_BASELINE_ACTION_TOOLTIP = "Edit Baseline";
 
-  private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<String, Boolean>();
+  private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<>();
 
   static {
     ourAutoConnect = PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
@@ -111,7 +106,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
   private ArrayList<ViewAction> myActions = new ArrayList<>();
   private ArrayList<ViewAction> myPopupActions = new ArrayList<>();
-  private ArrayList<ViewAction> myControlActions = new ArrayList<>();
 
   /**
    * Utility function to convert from an Icon to an Image
@@ -188,9 +182,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
     myActions.clear();
-    myControlActions.clear();
 
-    actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.Unhide,  Lists.<List<ViewAction>>newArrayList(
+    actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.Unhide, Lists.<List<ViewAction>>newArrayList(
       Lists.newArrayList(
         new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show Constraints", true),
         new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
@@ -205,7 +198,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     actions.add((new MarginSelector()));
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
-
     actions.add(new NestedViewActionMenu("Pack", AndroidIcons.SherpaIcons.PackSelectionVerticallyB, Lists.newArrayList(
 
       Lists.newArrayList(
@@ -392,7 +384,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     str = "Create Horizontal Chain";
     actions.add(action = new AlignAction(Scout.Arrange.CreateHorizontalChain,
-                                         AndroidIcons.SherpaIcons.CreateHorizontalChain, AndroidIcons.SherpaIcons.CreateHorizontalChain, str));
+                                         AndroidIcons.SherpaIcons.CreateHorizontalChain, AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                                         str));
     myPopupActions.add(action);
 
     str = "Create Vertical Chain";
@@ -513,9 +506,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
 
       if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_BARRIER)) {
-        String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
+        @NonNls String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
         boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase()));
-        result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, BarrierTarget.parseDirection(side)));
+        result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT,
+                                           BarrierTarget.parseDirection(side)));
         result.add(new BarrierTarget(BarrierTarget.parseDirection(side)));
         return result;
       }
@@ -552,15 +546,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       result.add(previousAction);
 
       int baseline = NlComponentHelperKt.getBaseline(component.getNlComponent());
-      if (baseline <= 0 && NlComponentHelperKt.getViewInfo(component.getNlComponent()) != null) {
-        baseline = NlComponentHelperKt.getViewInfo(component.getNlComponent()).getBaseLine();
+      ViewInfo info = NlComponentHelperKt.getViewInfo(component.getNlComponent());
+      if (baseline <= 0 && info != null) {
+        baseline = info.getBaseLine();
       }
       if (baseline > 0) {
         result.add(new AnchorTarget(AnchorTarget.Type.BASELINE, true));
         ActionTarget baselineActionTarget =
           new ActionTarget(previousAction, BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
+            @NotNull
             @Override
-            @Nullable
             public String getToolTipText() {
               return EDIT_BASELINE_ACTION_TOOLTIP;
             }
@@ -633,7 +628,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
     @Override
     public void enable(List<NlComponent> selection) {
-
+      // FIXME Why is this empty ? Can we remove the Enableable interface and all related code?
     }
 
     @Override
@@ -694,19 +689,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * Make sure to have the SceneLayer on the DesignSurface
    * are fully painted for the given duration
    *
-   * @param editor the ViewEditor holding the DesignSurface
+   * @param editor   the ViewEditor holding the DesignSurface
    * @param duration how long to paint the SceneLayers, in ms
    */
+  @SuppressWarnings("SameParameterValue") // For duration being always == 1000
   private static void ensureLayersAreShown(@NotNull ViewEditor editor, int duration) {
-    NlDesignSurface designSurface = (NlDesignSurface) ((ViewEditorImpl)editor).getSceneView().getSurface();
+    NlDesignSurface designSurface = (NlDesignSurface)((ViewEditorImpl)editor).getSceneView().getSurface();
     designSurface.forceLayersPaint(true);
     designSurface.repaint();
-    Timer timer = new Timer(duration, new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent arg0) {
-        designSurface.forceLayersPaint(false);
-      }
-    });
+    Timer timer = new Timer(duration, actionEvent -> designSurface.forceLayersPaint(false));
     timer.setRepeats(false);
     timer.start();
   }
@@ -742,7 +733,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-  private class ToggleVisibilityAction extends ToggleViewAction {
+  private static class ToggleVisibilityAction extends ToggleViewAction {
     String mType;
 
     public ToggleVisibilityAction(String type, String text, boolean defaultValue) {
@@ -772,12 +763,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
   }
 
-  public static final boolean getVisualProperty(String prop) {
+  public static boolean getVisualProperty(String prop) {
     if (ourVisibilityFlags.containsKey(prop)) {
-       return ourVisibilityFlags.get(prop);
+      return ourVisibilityFlags.get(prop);
     }
-    boolean selected =  PropertiesComponent.getInstance().getBoolean(prop);
-    ourVisibilityFlags.put(prop,selected);
+    boolean selected = PropertiesComponent.getInstance().getBoolean(prop);
+    ourVisibilityFlags.put(prop, selected);
     return selected;
   }
 
@@ -790,35 +781,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     ourVisibilityFlags.put(FADE_UNSELECTED_VIEWS, false);
   }
 
-  private class ToggleConstraintModeAction extends ToggleViewAction {
-    public ToggleConstraintModeAction() {
-      super(AndroidIcons.SherpaIcons.Hide, AndroidIcons.SherpaIcons.Unhide, "Show Constraints", "Hide Constraints");
-      myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(SHOW_CONSTRAINTS_PREF_KEY);
-    }
-
-    @Override
-    public boolean isSelected(@NotNull ViewEditor editor,
-                              @NotNull ViewHandler handler,
-                              @NotNull NlComponent parent,
-                              @NotNull List<NlComponent> selectedChildren) {
-      return myShowAllConstraints;
-    }
-
-    @Override
-    public void setSelected(@NotNull ViewEditor editor,
-                            @NotNull ViewHandler handler,
-                            @NotNull NlComponent parent,
-                            @NotNull List<NlComponent> selectedChildren,
-                            boolean selected) {
-      myShowAllConstraints = selected;
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
-        .logAction(
-          selected ? LayoutEditorEvent.LayoutEditorEventType.SHOW_CONSTRAINTS : LayoutEditorEvent.LayoutEditorEventType.HIDE_CONSTRAINTS);
-      PropertiesComponent.getInstance().setValue(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
-    }
-  }
-
   static class ControlIcon implements Icon {
+    @SuppressWarnings("UseJBColor")
+    public static final Color HIGHLIGHT_COLOR = new Color(0x03a9f4);
     Icon myIcon;
     boolean myHighlight;
 
@@ -835,7 +800,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
 
       myIcon.paintIcon(c, g, x, y);
       if (myHighlight) {
-        g.setColor(new Color(0x03a9f4));
+        g.setColor(HIGHLIGHT_COLOR);
         g.fillRect(x, y + getIconHeight() - 2, getIconWidth(), 2);
       }
     }
@@ -882,6 +847,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         switch (myType) {
           case HORIZONTAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            assert guideline != null;
             NlComponentHelperKt.ensureId(guideline);
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
@@ -892,6 +858,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case VERTICAL_GUIDELINE: {
             NlComponent guideline = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            assert guideline != null;
             NlComponentHelperKt.ensureId(guideline);
             guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
@@ -903,18 +870,21 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           break;
           case GROUP: {
             NlComponent group = NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_GROUP, null, InsertType.CREATE);
+            assert group != null;
             NlComponentHelperKt.ensureId(group);
           }
           break;
           case CONSTRAINT_SET: {
             NlComponent constraints =
               NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS, null, InsertType.CREATE);
+            assert constraints != null;
             NlComponentHelperKt.ensureId(constraints);
             ConstraintReferenceManagement.populateConstraints(constraints);
           }
           break;
           case LAYER: {
             NlComponent layer = NlComponentHelperKt.createChild(parent, editor, CLASS_CONSTRAINT_LAYOUT_LAYER, null, InsertType.CREATE);
+            assert layer != null;
             NlComponentHelperKt.ensureId(layer);
           }
           break;
@@ -933,7 +903,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               NlComponent barrier = null;
               for (NlComponent child : selectedChildren) {
                 if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
-                  barrier = child;
                   break;
                 }
               }
@@ -955,10 +924,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             }
 
             NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            assert barrier != null;
             NlComponentHelperKt.ensureId(barrier);
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
-            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
 
+            // NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
@@ -992,7 +962,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               NlComponent barrier = null;
               for (NlComponent child : selectedChildren) {
                 if (NlComponentHelperKt.isOrHasSuperclass(child, CONSTRAINT_LAYOUT_BARRIER)) {
-                  barrier = child;
                   break;
                 }
               }
@@ -1013,9 +982,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
               return;
             }
             NlComponent barrier = NlComponentHelperKt.createChild(parent, editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            assert barrier != null;
             NlComponentHelperKt.ensureId(barrier);
             barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
-            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+
+            // NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
@@ -1269,9 +1240,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * @param deleted   the list of components that are deleted
    */
   private static void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
-    final int count = deleted.size();
-    for (int i = 0; i < count; i++) {
-      NlComponent deletedComponent = deleted.get(i);
+    for (NlComponent deletedComponent : deleted) {
       String id = deletedComponent.getId();
       ConstraintComponentUtilities.updateOnDelete(component, id);
       NlComponent parent = deletedComponent.getParent();
@@ -1317,6 +1286,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   @Override
   public NlComponent getComponent(@NotNull SceneComponent component) {
     SceneComponent parent = component.getParent();
+    if (parent == null) {
+      return component.getNlComponent();
+    }
+
     NlComponent nlComponent = parent.getNlComponent();
     String attribute = nlComponent.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET);
     attribute = NlComponent.extractId(attribute);
@@ -1327,7 +1300,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     NlComponent constraints = null;
     for (SceneComponent child : parent.getChildren()) {
       String childId = child.getNlComponent().getId();
-      if (childId != null && childId.equals(attribute)) {
+      if (Objects.equals(attribute, childId)) {
         constraints = child.getNlComponent();
         break;
       }
