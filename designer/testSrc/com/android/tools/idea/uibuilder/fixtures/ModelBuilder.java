@@ -159,6 +159,7 @@ public class ModelBuilder {
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());
+      //TODO: handle calls to surface.getCurrentSceneView
 
       return model;
     });

@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandle;
 import com.android.tools.idea.naveditor.scene.draw.DrawActionHandleDrag;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
@@ -26,8 +30,13 @@ import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
 import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.naveditor.scene.NavSceneManager;
 
 import java.awt.*;
 import java.util.List;
@@ -72,6 +81,30 @@ public class ActionHandleTarget extends BaseTarget {
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myIsDragging = false;
+  }
+
+  public void createAction(@NotNull SceneComponent destination) {
+    NlComponent destinationNlComponent = destination.getNlComponent();
+
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(destinationNlComponent.getModel().getFacet());
+
+    if (schema.getDestinationType(destinationNlComponent.getTagName()) == null) {
+      return;
+    }
+
+    NlComponent myNlComponent = getComponent().getNlComponent();
+    NlModel myModel = myNlComponent.getModel();
+
+    new WriteCommandAction(myModel.getProject(), "Create Action", myModel.getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        XmlTag tag = myNlComponent.getTag().createChildTag(NavigationSchema.TAG_ACTION, null, null, false);
+        NlComponent newComponent = myModel.createComponent(tag, myNlComponent, null);
+        NlComponentHelperKt.ensureId(newComponent);
+        newComponent.setAttribute(
+          SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, SdkConstants.ID_PREFIX + destinationNlComponent.getId());
+      }
+    }.execute();
   }
 
   @Override
