@@ -38,6 +38,10 @@ import static org.mockito.Mockito.mock;
 public class OlderPluginSyncTest extends AndroidGradleTestCase {
   private String myGradleVersion;
 
+  public void testFakeTest() {
+    // This test is 'disabled' b/62842808
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
