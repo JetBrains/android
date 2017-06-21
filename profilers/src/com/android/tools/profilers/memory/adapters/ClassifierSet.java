@@ -53,6 +53,10 @@ public abstract class ClassifierSet implements MemoryObject {
     return myName;
   }
 
+  public boolean isEmpty() {
+    return myAllocatedCount == 0 && myDeallocatedCount == 0;
+  }
+
   public int getAllocatedCount() {
     return myAllocatedCount;
   }
@@ -93,6 +97,30 @@ public abstract class ClassifierSet implements MemoryObject {
       (instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) ? 1 : 0;
   }
 
+  // Remove instance allocation information when correspondent alloc event is out of selection range
+  // Remove instance when it neither has alloc nor dealloc information
+  public void removeAddingInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+    if (pathResult != null) {
+      pathResult.add(this);
+    }
+
+    myAllocatedCount--;
+    myTotalShallowSize -= instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
+    myTotalRetainedSize -= instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
+    myInstancesWithStackInfoCount -=
+      (instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) ? 1 : 0;
+
+    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
+      myClassifier.getOrCreateClassifierSet(instanceObject).removeAddingInstanceObject(instanceObject, pathResult);
+    }
+    else {
+      instanceObject.removeCallstack();
+      if (instanceObject.getAllocTime() == Long.MIN_VALUE && instanceObject.getDeallocTime() == Long.MAX_VALUE) {
+        myInstances.remove(instanceObject);
+      }
+    }
+  }
+
   public void freeInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
     if (pathResult != null) {
       pathResult.add(this);
@@ -108,6 +136,27 @@ public abstract class ClassifierSet implements MemoryObject {
     myDeallocatedCount++;
     myTotalShallowSize -= instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
     myTotalRetainedSize -= instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
+  }
+
+  // Remove instance deallocation information when correspondent dealloc event is out of selection range
+  // Remove instance when it neither has alloc nor dealloc information
+  public void removeFreeingInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+    if (pathResult != null) {
+      pathResult.add(this);
+    }
+
+    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
+      // TODO2: In cases where we are adding to myInstances, it should also update myInstancesWithStackInfoCount
+      myClassifier.getOrCreateClassifierSet(instanceObject).removeFreeingInstanceObject(instanceObject, pathResult);
+    } else {
+      if (instanceObject.getAllocTime() == Long.MIN_VALUE && instanceObject.getDeallocTime() == Long.MAX_VALUE) {
+        myInstances.remove(instanceObject);
+      }
+    }
+
+    myDeallocatedCount--;
+    myTotalShallowSize += instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
+    myTotalRetainedSize += instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
   }
 
   public int getInstancesCount() {

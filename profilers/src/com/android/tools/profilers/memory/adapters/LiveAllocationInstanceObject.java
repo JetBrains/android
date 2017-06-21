@@ -23,21 +23,18 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @NotNull private final ClassDb.ClassEntry myClassEntry;
   @Nullable private final LiveAllocationInstanceObject myClassObject;
   @NotNull private final ValueType myValueType;
-  private final long myAllocTime;
+  private long myAllocTime = Long.MIN_VALUE;
   private long myDeallocTime = Long.MAX_VALUE;
   private final long mySize;
   @Nullable private MemoryProfiler.AllocationStack myCallstack;
 
   public LiveAllocationInstanceObject(@NotNull ClassDb.ClassEntry classEntry,
                                       @Nullable LiveAllocationInstanceObject classObject,
-                                      long allocTime,
-                                      long size,
-                                      @Nullable MemoryProfiler.AllocationStack callstack) {
+                                      long size) {
     myClassEntry = classEntry;
     myClassObject = classObject;
-    myAllocTime = allocTime;
     mySize = size;
-    myCallstack = callstack;
+    myCallstack = null;
     if ("java.lang.String".equals(classEntry.getClassName())) {
       myValueType = ValueType.STRING;
     }
@@ -54,8 +51,14 @@ public class LiveAllocationInstanceObject implements InstanceObject {
     return myAllocTime;
   }
 
+  // Set deallocTime as Long.MAX_VALUE when no deallocation event can be found
   public void setDeallocTime(long deallocTime) {
     myDeallocTime = deallocTime;
+  }
+
+  // Set allocTime as Long.MIN_VALUE when no allocation event can be found
+  public void setAllocationTime(long allocTime) {
+    myAllocTime = allocTime;
   }
 
   @Override
@@ -84,6 +87,15 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public MemoryProfiler.AllocationStack getCallStack() {
     return myCallstack;
+  }
+
+  public void setCallStack(MemoryProfiler.AllocationStack callstack) {
+    myCallstack = callstack;
+  }
+
+  @Override
+  public void removeCallstack() {
+    myCallstack = null;
   }
 
   @NotNull

@@ -38,6 +38,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
@@ -284,27 +285,42 @@ final class MemoryClassifierView extends AspectObserver {
 
   private void updateNodes(@NotNull MemoryObjectTreeNode<ClassifierSet> memoryNode, @NotNull ChangedNode changedNode) {
     assert memoryNode.getAdapter() == changedNode.getClassifierSet();
+    boolean nodeStructureShouldChange = false;
 
     // Recursively update for nodes that already exists.
-    for (MemoryObjectTreeNode<ClassifierSet> childMemoryNode : memoryNode.getChildren()) {
+    ArrayList<MemoryObjectTreeNode<ClassifierSet>> childMemoryNodeList = new ArrayList<>(memoryNode.getChildren());
+    for (MemoryObjectTreeNode<ClassifierSet> childMemoryNode : childMemoryNodeList) {
       if (changedNode.containsChild(childMemoryNode.getAdapter())) {
-        updateNodes(childMemoryNode, changedNode.getChild(childMemoryNode.getAdapter()));
+        if (childMemoryNode.getAdapter().isEmpty()) {
+          memoryNode.remove(childMemoryNode);
+          nodeStructureShouldChange = true;
+        }
+        else {
+          updateNodes(childMemoryNode, changedNode.getChild(childMemoryNode.getAdapter()));
+        }
       }
     }
 
     if (changedNode.getChildClassifierSets().size() > 0) {
       // Add all nodes that are not present in the tree view.
       Set<ClassifierSet> newClassifierSets = new HashSet<>(changedNode.getChildClassifierSets());
+      newClassifierSets.removeIf(child -> child.isEmpty());
       memoryNode.getChildren().forEach(child -> newClassifierSets.remove(child.getAdapter()));
       if (newClassifierSets.size() > 0) {
-        newClassifierSets.forEach(classifierSet -> memoryNode.add(new MemoryClassifierTreeNode(classifierSet)));
+        newClassifierSets.forEach(classifierSet -> {
+          memoryNode.add(new MemoryClassifierTreeNode(classifierSet));
+        });
         assert myTreeModel != null;
-        myTreeModel.nodeStructureChanged(memoryNode);
+        nodeStructureShouldChange = true;
       }
       else {
         assert myTreeModel != null;
         myTreeModel.nodeChanged(memoryNode);
       }
+    }
+
+    if (nodeStructureShouldChange) {
+      myTreeModel.nodeStructureChanged(memoryNode);
     }
   }
 
@@ -554,6 +570,14 @@ final class MemoryClassifierView extends AspectObserver {
       if (myMemoizedChildrenCount == myChildren.size()) {
         super.add(child);
         myMemoizedChildrenCount++;
+      }
+    }
+
+    @Override
+    public void remove(@NotNull MutableTreeNode child) {
+      if (myMemoizedChildrenCount == myChildren.size()) {
+        super.remove(child);
+        myMemoizedChildrenCount--;
       }
     }
 

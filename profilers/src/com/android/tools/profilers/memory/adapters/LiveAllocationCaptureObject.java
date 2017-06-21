@@ -67,6 +67,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final HeapSet myDefaultHeapSet;
   private final AspectObserver myAspectObserver;
 
+  private long myEventsEndTimeNs;
   private long myContextEndTimeNs;
   private long myPreviousQueryStartTimeNs;
   private long myPreviousQueryEndTimeNs;
@@ -94,8 +95,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myDefaultHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
     myAspectObserver = new AspectObserver();
 
+    myEventsEndTimeNs = Long.MIN_VALUE;
     myContextEndTimeNs = Long.MIN_VALUE;
-    myPreviousQueryStartTimeNs = Long.MAX_VALUE;
+    myPreviousQueryStartTimeNs = Long.MIN_VALUE;
     myPreviousQueryEndTimeNs = Long.MIN_VALUE;
   }
 
@@ -199,132 +201,167 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myListeners.add(listener);
   }
 
+  // Update myContextEndTimeNs and Callstack information
+  private void updateAllocationContexts(long endTimeNs) {
+    if (myContextEndTimeNs >= endTimeNs) {
+      return;
+    }
+    AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(
+      AllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
+        .setStartTime(myContextEndTimeNs).setEndTime(endTimeNs).build());
+
+    for (AllocatedClass klass : contextsResponse.getAllocatedClassesList()) {
+      ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
+      if (!myClassMap.containsKey(entry)) {
+        // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
+        // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
+        LiveAllocationInstanceObject instance =
+          new LiveAllocationInstanceObject(entry, null, MemoryObject.INVALID_VALUE);
+        instance.setAllocationTime(myCaptureStartTime);
+        myClassMap.put(entry, instance);
+        // TODO figure out what to do with java.lang.Class instance objects
+      }
+    }
+    contextsResponse.getAllocationStacksList().forEach(callStack -> myCallstackMap.putIfAbsent(callStack.getStackId(), callStack));
+    myContextEndTimeNs = Math.max(myContextEndTimeNs, contextsResponse.getTimestamp());
+  }
+
   /**
    * Load allocation data corresponding to the input time range. Note that load operation is expensive and happens on a different thread
    * (via myExecutorService). When loading is done, it informs the listener (e.g. UI) to update via the input joiner.
    */
   private void loadTimeRange(@NotNull Range queryRange, @NotNull Executor joiner) {
-    long startTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMin());
-    long endTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMax());
-    // Special case for max-value endTimeNs, as that indicates querying the latest events.
-    if (startTimeNs == myPreviousQueryStartTimeNs && endTimeNs == myPreviousQueryEndTimeNs && endTimeNs != Long.MAX_VALUE) {
-      return;
-    }
-
     try {
       if (myCurrentTask != null) {
         myCurrentTask.cancel(false);
       }
       myCurrentTask = myExecutorService.submit(() -> {
-        long queryTimeStartNs;
-        boolean refresh = false;
-        if (startTimeNs == myPreviousQueryStartTimeNs && endTimeNs >= myPreviousQueryEndTimeNs) {
-          // If we only expanded the range to the right, then do an optimization to only query the delta.
-          // TODO add optimizations for range expansion/shrink
-          queryTimeStartNs = myPreviousQueryEndTimeNs;
-        }
-        else {
-          refresh = true;
-          myPreviousQueryStartTimeNs = startTimeNs;
-          queryTimeStartNs = myPreviousQueryStartTimeNs;
+        long newStartTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMin());
+        long newEndTimeNs = TimeUnit.MICROSECONDS.toNanos((long)queryRange.getMax());
+        // Special case for max-value newEndTimeNs, as that indicates querying the latest events.
+        if (newStartTimeNs == myPreviousQueryStartTimeNs && newEndTimeNs == myPreviousQueryEndTimeNs && newEndTimeNs != Long.MAX_VALUE) {
+          return null;
         }
 
-        boolean clear = refresh;
+        updateAllocationContexts(newEndTimeNs);
 
-        int totalChanged = 0;
-        List<InstanceObject> instancesAdded = new ArrayList<>();
-        List<InstanceObject> instancesFreed = new ArrayList<>();
+        // myEventEndTimeNs represents latest timestamp we have event data
+        // If newEndTimeNs > myEventEndTimeNs + 1, we set newEndTimeNs as myEventEndTimeNs + 1
+        // We +1 because current range is left close and right open
+        if (newEndTimeNs > myEventsEndTimeNs + 1) {
+          BatchAllocationSample sampleResponse =
+            myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
+                                      .setStartTime(myEventsEndTimeNs + 1).setEndTime(newEndTimeNs).build());
 
-        long newContextEndTime = Math.max(myContextEndTimeNs, endTimeNs);
-        if (newContextEndTime > myContextEndTimeNs) {
-          // If we clear, we need to grab all the classes again because we may be in a future range.
-          AllocationContextsResponse contextsResponse = myClient.getAllocationContexts(
-            AllocationContextsRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-              .setStartTime(myContextEndTimeNs).setEndTime(newContextEndTime).build());
-          for (AllocatedClass klass : contextsResponse.getAllocatedClassesList()) {
-            ClassDb.ClassEntry entry = myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, klass.getClassName(), klass.getClassId());
-            if (!myClassMap.containsKey(entry)) {
-              // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
-              // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
-              LiveAllocationInstanceObject instance =
-                new LiveAllocationInstanceObject(entry, null, myCaptureStartTime, MemoryObject.INVALID_VALUE, null);
-              myClassMap.put(entry, instance);
-              // TODO figure out what to do with java.lang.Class instance objects
-              //instancesAdded.add(instance);
-              totalChanged++;
-            }
+          myEventsEndTimeNs = Math.max(myEventsEndTimeNs, sampleResponse.getTimestamp());
+          if (newEndTimeNs > myEventsEndTimeNs + 1) {
+            newEndTimeNs = myEventsEndTimeNs + 1;
+            newStartTimeNs = Math.min(newStartTimeNs, newEndTimeNs);
+          }
+        }
+
+        // Split the two ranges into three segments by sorting their end points and analyzing segments with adjacent points
+        long[] timestamps = {myPreviousQueryStartTimeNs, myPreviousQueryEndTimeNs, newStartTimeNs, newEndTimeNs};
+        Arrays.sort(timestamps);
+        List<InstanceObject> setAllocationList = new ArrayList<>();
+        List<InstanceObject> resetAllocationList = new ArrayList<>();
+        List<InstanceObject> setDeallocationList = new ArrayList<>();
+        List<InstanceObject> resetDeallocationList = new ArrayList<>();
+
+        // For each segment, if it is only within previous range, we remove events in this segment
+        // If it is only within current range, we add events in this segments
+        // Otherwise, we do nothing since we already processed events in this segment
+        for (int stampNumber = 0; stampNumber + 1 < timestamps.length; ++stampNumber) {
+          long startTimeNs = timestamps[stampNumber];
+          long endTimeNs = timestamps[stampNumber + 1];
+          if (startTimeNs == endTimeNs) {
+            continue;
           }
 
-          contextsResponse.getAllocationStacksList().forEach(callStack -> myCallstackMap.putIfAbsent(callStack.getStackId(), callStack));
+          boolean insidePreviousRange = startTimeNs >= myPreviousQueryStartTimeNs && endTimeNs <= myPreviousQueryEndTimeNs;
+          boolean insideCurrentRange = startTimeNs >= newStartTimeNs && endTimeNs <= newEndTimeNs;
 
-          myContextEndTimeNs = Math.max(myContextEndTimeNs, contextsResponse.getTimestamp());
-        }
-
-        if (clear) {
-          // We also need to clear the instances map if we're clearing the range.
-          myInstanceMap.clear();
-        }
-
-        BatchAllocationSample sampleResponse =
-          myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
-                                    .setStartTime(queryTimeStartNs).setEndTime(endTimeNs).build());
-
-        myPreviousQueryEndTimeNs = Math.max(myPreviousQueryEndTimeNs, sampleResponse.getTimestamp());
-        for (AllocationEvent event : sampleResponse.getEventsList()) {
-          if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
-            AllocationEvent.Allocation allocation = event.getAllocData();
-            ClassDb.ClassEntry entry = myClassDb.getEntry(allocation.getClassTag());
-            assert myClassMap.containsKey(entry);
-
-            AllocationStack callstack = null;
-            if (allocation.getStackId() != 0) {
-              assert myCallstackMap.containsKey(allocation.getStackId());
-              callstack = myCallstackMap.get(allocation.getStackId());
-            }
-
-            LiveAllocationInstanceObject instance =
-              new LiveAllocationInstanceObject(entry, myClassMap.get(entry), event.getTimestamp(), allocation.getSize(), callstack);
-            assert !myInstanceMap.containsKey(allocation.getTag());
-            myInstanceMap.put(allocation.getTag(), instance);
-            instancesAdded.add(instance);
-            totalChanged++;
+          if (insidePreviousRange == insideCurrentRange) {
+            continue;
           }
-          else if (event.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
-            AllocationEvent.Deallocation deallocation = event.getFreeData();
-            LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(deallocation.getTag(), tag -> {
-              ClassDb.ClassEntry entry = myClassDb.getEntry(deallocation.getClassTag());
+
+          BatchAllocationSample sampleResponse =
+            myClient.getAllocations(AllocationSnapshotRequest.newBuilder().setProcessId(myProcessId).setSession(mySession)
+                                      .setStartTime(startTimeNs).setEndTime(endTimeNs).build());
+
+          for (AllocationEvent event : sampleResponse.getEventsList()) {
+            if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
+              AllocationEvent.Allocation allocation = event.getAllocData();
+              ClassDb.ClassEntry entry = myClassDb.getEntry(allocation.getClassTag());
               assert myClassMap.containsKey(entry);
-              return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), Long.MIN_VALUE, deallocation.getSize(),
-                                                      null);
-            });
-            instance.setDeallocTime(event.getTimestamp());
-            instancesFreed.add(instance);
-            totalChanged++;
-          }
-          else {
-            assert false;
+              LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(allocation.getTag(), tag -> new LiveAllocationInstanceObject(entry, myClassMap.get(entry), allocation.getSize()));
+              if (insideCurrentRange) {
+                if (allocation.getStackId() != 0) {
+                  assert myCallstackMap.containsKey(allocation.getStackId());
+                  AllocationStack callstack = myCallstackMap.get(allocation.getStackId());
+                  instance.setCallStack(callstack);
+                }
+                instance.setAllocationTime(event.getTimestamp());
+                setAllocationList.add(instance);
+              } else {
+                instance.setAllocationTime(Long.MIN_VALUE);
+                resetAllocationList.add(instance);
+              }
+            }
+            else if (event.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
+              AllocationEvent.Deallocation deallocation = event.getFreeData();
+              LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(deallocation.getTag(), tag -> {
+                ClassDb.ClassEntry entry = myClassDb.getEntry(deallocation.getClassTag());
+                assert myClassMap.containsKey(entry);
+                return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), deallocation.getSize());
+              });
+
+              if (insideCurrentRange) {
+                instance.setDeallocTime(event.getTimestamp());
+                setDeallocationList.add(instance);
+              } else {
+                instance.setDeallocTime(Long.MAX_VALUE);
+                resetDeallocationList.add(instance);
+              }
+            }
+            else {
+              assert false;
+            }
           }
         }
 
-        if (!myListeners.isEmpty() && (totalChanged > 0 || clear)) {
+        myPreviousQueryStartTimeNs = newStartTimeNs;
+        myPreviousQueryEndTimeNs = newEndTimeNs;
+
+        if (!myListeners.isEmpty() &&
+            setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
           joiner.execute(() -> {
-            if (clear) {
-              myDefaultHeapSet.clearClassifierSets();
-            }
 
             ChangedNode changedNode = new ChangedNode(myDefaultHeapSet);
             List<ClassifierSet> path = new ArrayList<>();
-            instancesAdded.forEach(instance -> {
+
+            setAllocationList.forEach(instance -> {
               path.clear();
               myDefaultHeapSet.addInstanceObject(instance, path);
               changedNode.addPath(path);
             });
-            instancesFreed.forEach(instance -> {
+            setDeallocationList.forEach(instance -> {
               path.clear();
               myDefaultHeapSet.freeInstanceObject(instance, path);
               changedNode.addPath(path);
             });
-            myListeners.forEach(listener -> listener.heapChanged(changedNode, clear));
+            resetAllocationList.forEach(instance -> {
+              path.clear();
+              myDefaultHeapSet.removeAddingInstanceObject(instance, path);
+              changedNode.addPath(path);
+            });
+            resetDeallocationList.forEach(instance -> {
+              path.clear();
+              myDefaultHeapSet.removeFreeingInstanceObject(instance, path);
+              changedNode.addPath(path);
+            });
+
+            myListeners.forEach(listener -> listener.heapChanged(changedNode, false));
           });
         }
         return null;
