@@ -225,7 +225,17 @@ public final class SystemImageDescription {
 
     @Override
     public boolean hasPlayStore() {
-      return SystemImage.PLAY_STORE_TAG.equals(myTag);
+      if (SystemImage.PLAY_STORE_TAG.equals(myTag)) {
+        return true;
+      }
+      // A Wear system image has Play Store if it is
+      // a recent API version and is NOT Wear-for-China.
+      if (SystemImage.WEAR_TAG.equals(getTag()) &&
+          myAndroidVersion.getApiLevel() >= AndroidVersion.MIN_RECOMMENDED_WEAR_API &&
+          !myRemotePackage.getPath().contains(WEAR_CN_DIRECTORY)) {
+        return true;
+      }
+      return false;
     }
 
     @Override

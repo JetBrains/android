@@ -36,6 +36,7 @@ public class ChooseSystemImagePanelTest extends TestCase {
     assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, GOOGLE_APIS_TAG));
     assertEquals(OTHER, getClassificationFromParts(Abi.ARM64_V8A, 25, GOOGLE_APIS_TAG));
     assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 25, WEAR_TAG));
+    assertEquals(X86, getClassificationFromParts(Abi.X86, 24, WEAR_TAG));
     assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI, 25, WEAR_TAG));
     assertEquals(X86, getClassificationFromParts(Abi.X86, 25, GLASS_TAG));
     assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 25, TV_TAG));
