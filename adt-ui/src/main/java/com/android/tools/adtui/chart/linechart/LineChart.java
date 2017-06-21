@@ -61,7 +61,7 @@ public class LineChart extends AnimatedComponent {
   private final ArrayList<Path2D> myLinePaths;
 
   @NotNull
-  private final ArrayList<LineConfig> myLinePathConfigs;
+  private final ArrayList<RangedContinuousSeries> myLinePathSeries;
 
   @NotNull
   private final List<LineChartCustomRenderer> myCustomRenderers = new ArrayList<>();
@@ -106,7 +106,7 @@ public class LineChart extends AnimatedComponent {
   @VisibleForTesting
   public LineChart(@NotNull LineChartModel model, @NotNull LineChartReducer reducer) {
     myLinePaths = new ArrayList<>();
-    myLinePathConfigs = new ArrayList<>();
+    myLinePathSeries = new ArrayList<>();
     myReducer = reducer;
     myModel = model;
     myRedraw = true;
@@ -175,7 +175,7 @@ public class LineChart extends AnimatedComponent {
     List<SeriesData<Long>> lastStackedSeries = null;
 
     Deque<Path2D> orderedPaths = new ArrayDeque<>(myLinesConfig.size());
-    Deque<LineConfig> orderedConfigs = new ArrayDeque<>(myLinesConfig.size());
+    Deque<RangedContinuousSeries> orderedSeries = new ArrayDeque<>(myLinesConfig.size());
 
     for (RangedContinuousSeries ranged : myModel.getSeries()) {
       if (ranged.getXRange().isEmpty() || ranged.getXRange().isPoint()
@@ -252,11 +252,11 @@ public class LineChart extends AnimatedComponent {
         // Draw the filled lines first, otherwise other lines won't be visible.
         // Also, to draw stacked and filled lines correctly, they need to be drawn in reverse order to their adding order.
         orderedPaths.addFirst(path);
-        orderedConfigs.addFirst(config);
+        orderedSeries.addFirst(ranged);
       }
       else {
         orderedPaths.addLast(path);
-        orderedConfigs.addLast(config);
+        orderedSeries.addLast(ranged);
       }
 
       if (config.isDash() && config.isAdjustDash()) {
@@ -284,8 +284,8 @@ public class LineChart extends AnimatedComponent {
     myLinePaths.clear();
     myLinePaths.addAll(orderedPaths);
 
-    myLinePathConfigs.clear();
-    myLinePathConfigs.addAll(orderedConfigs);
+    myLinePathSeries.clear();
+    myLinePathSeries.addAll(orderedSeries);
 
     addDebugInfo("postAnimate time: %d ms", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - duration));
   }
@@ -325,9 +325,13 @@ public class LineChart extends AnimatedComponent {
 
     // Cache the transformed line paths for reuse below.
     List<Path2D> transformedPaths = new ArrayList<>(myLinePaths.size());
+    List<LineConfig> configs = new ArrayList<>(myLinePaths.size());
+
     for (int i = 0; i < myLinePaths.size(); ++i) {
       Path2D scaledPath = new Path2D.Float(myLinePaths.get(i), scale);
-      scaledPath = myReducer.reducePath(scaledPath, myLinePathConfigs.get(i));
+      LineConfig config = getLineConfig(myLinePathSeries.get(i));
+      configs.add(config);
+      scaledPath = myReducer.reducePath(scaledPath, config);
       transformedPaths.add(scaledPath);
 
       if (isDrawDebugInfo()) {
@@ -342,15 +346,15 @@ public class LineChart extends AnimatedComponent {
     }
 
     // 1st pass - draw all the lines in the background.
-    drawLines(g2d, transformedPaths, myLinePathConfigs, false);
+    drawLines(g2d, transformedPaths, configs);
 
     // 2nd pass - call each custom renderer instances to redraw any regions/lines as needed.
-    myCustomRenderers.forEach(renderer -> renderer.renderLines(this, g2d, transformedPaths, myLinePathConfigs));
+    myCustomRenderers.forEach(renderer -> renderer.renderLines(this, g2d, transformedPaths, myLinePathSeries));
 
     addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawStartTime) / 1e6);
   }
 
-  public static void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs, boolean grayScale) {
+  public static void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs) {
     assert transformedPaths.size() == configs.size();
 
     for (int i = 0; i < transformedPaths.size(); ++i) {
@@ -358,13 +362,7 @@ public class LineChart extends AnimatedComponent {
       LineConfig config = configs.get(i);
       Color lineColor = config.getColor();
 
-      if (grayScale) {
-        int gray = (lineColor.getBlue() + lineColor.getRed() + lineColor.getGreen()) / 3;
-        g2d.setColor(new Color(gray, gray, gray));
-      }
-      else {
-        g2d.setColor(lineColor);
-      }
+      g2d.setColor(lineColor);
       g2d.setStroke(config.isDash() && config.isAdjustDash() ? config.getAdjustedStroke() : config.getStroke());
       if (config.isStepped()) {
         // In stepped mode, everything is at right angles, and turning off anti-aliasing

@@ -30,9 +30,15 @@ public class ProfilerColors {
 
   public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x386550);
 
+  public static final Color CPU_USAGE_CAPTURED = new JBColor(0x0EA18D, 0x43CAA2);
+
   public static final Color CPU_OTHER_USAGE = new JBColor(0xD8EAF0, 0x363E46);
 
+  public static final Color CPU_OTHER_USAGE_CAPTURED = new JBColor(0xC8E0E8, 0x455B75);
+
   public static final Color THREADS_COUNT = new JBColor(0x6AA78A, 0x5E9A7D);
+
+  public static final Color THREADS_COUNT_CAPTURED = new JBColor(0x5E907A, 0x71D7A6);
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);

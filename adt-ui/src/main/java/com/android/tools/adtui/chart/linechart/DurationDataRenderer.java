@@ -28,7 +28,9 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -47,10 +49,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   @NotNull private DurationDataModel<E> myModel;
 
   @NotNull private final Color myColor;
-  private boolean myIsBlocking = false;
+  @Nullable private final Color myDurationBgColor;
+
   @Nullable private Icon myIcon = null;
   @Nullable private Stroke myStroke = null;
-  @Nullable private Function<E, String> myTooltipProvider = null;
   @Nullable private Function<E, String> myLabelProvider = null;
   @Nullable private Consumer<E> myClickHandler = null;
   @Nullable private Color myLabelBgColor = null;
@@ -61,6 +63,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   @NotNull private final List<Rectangle2D.Float> myPathCache = new ArrayList<>();
   @NotNull private final List<E> myDataCache = new ArrayList<>();
   @NotNull private final List<JLabel> myLabelCache = new ArrayList<>();
+
+  @NotNull private final Map<RangedContinuousSeries, LineConfig> myCustomLineConfigs = new HashMap<>();
 
   /**
    * Cached rectangles calculated during updataData used for detecting if a DurationData label has been clicked on.
@@ -75,10 +79,9 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   public DurationDataRenderer(@NotNull DurationDataModel<E> model, @NotNull Builder builder) {
     myModel = model;
     myColor = builder.myColor;
-    myIsBlocking = builder.myIsBlocking;
+    myDurationBgColor = builder.myDurationBgColor;
     myIcon = builder.myIcon;
     myStroke = builder.myStroke;
-    myTooltipProvider = builder.myTooltipProvider;
     myLabelProvider = builder.myLabelProvider;
     myClickHandler = builder.myClickHandler;
     myLabelBgColor = builder.myLabelBgColor;
@@ -87,6 +90,10 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myLabelTextColor = builder.myLabelTextColor;
 
     myModel.addDependency(this).onChange(DurationDataModel.Aspect.DURATION_DATA, this::modelChanged);
+  }
+
+  public void addCustomLineConfig(@NotNull RangedContinuousSeries series, @NotNull LineConfig config) {
+    myCustomLineConfigs.put(series, config);
   }
 
   private void modelChanged() {
@@ -159,15 +166,27 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   }
 
   @Override
-  public void renderLines(@NotNull Component host,
+  public void renderLines(@NotNull LineChart lineChart,
                           @NotNull Graphics2D g2d,
                           @NotNull List<Path2D> transformedPaths,
-                          @NotNull List<LineConfig> configs) {
-    Shape originalClip = g2d.getClip();
-    Dimension dim = host.getSize();
-    if (myIsBlocking) {
-      // Grey out
+                          @NotNull List<RangedContinuousSeries> series) {
+    if (myDurationBgColor != null || !myCustomLineConfigs.isEmpty()) {
+      Shape originalClip = g2d.getClip();
+      Dimension dim = lineChart.getSize();
+
       Rectangle2D clipRect = new Rectangle2D.Float();
+      List<LineConfig> configs = new ArrayList<>(series.size());
+      for (int i = 0; i < series.size(); ++i) {
+        LineConfig config;
+        if (myCustomLineConfigs.containsKey(series.get(i))) {
+          config = myCustomLineConfigs.get(series.get(i));
+        }
+        else {
+          config = lineChart.getLineConfig(series.get(i));
+        }
+        configs.add(config);
+      }
+
       for (Rectangle2D.Float rect : myPathCache) {
         double scaledXStart = rect.x * dim.getWidth();
         double scaledXDuration = rect.width * dim.getWidth();
@@ -178,13 +197,12 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
                                   originalClip.getBounds().getX() + originalClip.getBounds().getWidth() - newX),
                          dim.getHeight());
 
-        // Clear the region by repainting the background
-        g2d.setColor(host.getBackground());
+        // Paint the background
+        g2d.setColor(myDurationBgColor == null ? lineChart.getBackground() : myDurationBgColor);
         g2d.fill(clipRect);
-
-        // Set clip region and redraw the lines in grayscale.
         g2d.setClip(clipRect);
-        LineChart.drawLines(g2d, transformedPaths, configs, true);
+        // Redraw lines in clipRect.
+        LineChart.drawLines(g2d, transformedPaths, configs);
         g2d.setClip(originalClip);
       }
     }
@@ -196,12 +214,12 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       Line2D eventLine = new Line2D.Float();
       for (int i = 0; i < myPathCache.size(); i++) {
         Rectangle2D.Float rect = myPathCache.get(i);
-        double scaledXStart = rect.x * host.getWidth();
-        double scaledXDuration = rect.width * host.getWidth();
+        double scaledXStart = rect.x * lineChart.getWidth();
+        double scaledXDuration = rect.width * lineChart.getWidth();
         g2d.translate(scaledXStart, 0);
-        eventLine.setLine(0, 0, 0, host.getHeight());
+        eventLine.setLine(0, 0, 0, lineChart.getHeight());
         g2d.draw(eventLine);
-        eventLine.setLine(scaledXDuration, 0, scaledXDuration, host.getHeight());
+        eventLine.setLine(scaledXDuration, 0, scaledXDuration, lineChart.getHeight());
         g2d.draw(eventLine);
         g2d.translate(-scaledXStart, 0);
       }
@@ -210,6 +228,7 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
   public void renderOverlay(@NotNull Component host, @NotNull Graphics2D g2d) {
     assert myClickRegionCache.size() == myDataCache.size();
+
     for (int i = 0; i < myClickRegionCache.size(); i++) {
       Rectangle2D.Float rect = myClickRegionCache.get(i);
       float scaledStartX = rect.x * host.getWidth();
@@ -281,13 +300,9 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     // Required
     @NotNull private final DurationDataModel<E> myModel;
     @NotNull private final Color myColor;
-
-    // Optional
-    // TODO add config to allow changing the colors of line series underneath the DurationData.
-    private boolean myIsBlocking = false;
+    @Nullable private Color myDurationBgColor;
     @Nullable private Icon myIcon = null;
     @Nullable private Stroke myStroke = null;
-    @Nullable private Function<E, String> myTooltipProvider = null;
     @Nullable private Function<E, String> myLabelProvider = null;
     @Nullable private Consumer<E> myClickHandler = null;
     @Nullable private Color myLabelBgColor = null;
@@ -300,11 +315,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       myColor = color;
     }
 
-    /**
-     * If true, the renderer will gray out the line series underneath the DurationData.
-     */
-    public Builder<E> setIsBlocking(boolean value) {
-      myIsBlocking = value;
+    public Builder<E> setDurationBg(@NotNull Color durationBgColor) {
+      myDurationBgColor = durationBgColor;
       return this;
     }
 
@@ -321,14 +333,6 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
      */
     public Builder<E> setStroke(@NotNull Stroke stroke) {
       myStroke = stroke;
-      return this;
-    }
-
-    /**
-     * Sets the tooltip provider.
-     */
-    public Builder<E> setTooltipProvider(@NotNull Function<E, String> provider) {
-      myTooltipProvider = provider;
       return this;
     }
 

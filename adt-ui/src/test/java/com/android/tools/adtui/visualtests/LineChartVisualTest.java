@@ -26,6 +26,7 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -74,6 +75,7 @@ public class LineChartVisualTest extends VisualTest {
     Range timeGlobalRangeUs = new Range(nowUs, nowUs + TimeUnit.SECONDS.toMicros(60));
     LineChartModel model = new LineChartModel();
     mLineChart = new LineChart(model);
+    mLineChart.setBackground(JBColor.background());
     mAnimatedTimeRange = new AnimatedTimeRange(timeGlobalRangeUs, 0);
 
     List<Updatable> componentsList = new ArrayList<>();
@@ -106,17 +108,17 @@ public class LineChartVisualTest extends VisualTest {
     DurationDataModel<DefaultDurationData> model1 = new DurationDataModel<>(series1);
     mDurationRendererBlocking = new DurationDataRenderer.Builder<>(model1, Color.WHITE)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-      .setIsBlocking(true)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Blocking")
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
 
     DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
     model2.setAttachedSeries(mRangedData.get(0));
-    mDurationRendererAttached = new DurationDataRenderer.Builder<>(model2, Color.WHITE)
+    mDurationRendererAttached = new DurationDataRenderer.Builder<>(model2, Color.BLACK)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
       .setLabelProvider(durationdata -> "Attached")
+      .setStroke(new BasicStroke(1))
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
     mLineChart.addCustomRenderer(mDurationRendererBlocking);
     mLineChart.addCustomRenderer(mDurationRendererAttached);
@@ -143,6 +145,7 @@ public class LineChartVisualTest extends VisualTest {
     JPanel layered = new JPanel(new GridBagLayout());
     JPanel controls = VisualTest.createControlledPane(panel, layered);
     mLineChart.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
+    layered.setBackground(JBColor.background());
     layered.add(myOverlayComponent, GBC_FULL);
     layered.add(mySelectionComponent, GBC_FULL);
     layered.add(mLineChart, GBC_FULL);
