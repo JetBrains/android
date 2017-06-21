@@ -19,9 +19,11 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.InfoMessagePanel;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ViewBinder;
@@ -64,8 +66,6 @@ import java.util.function.Function;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
-  private static final String NO_DATA_MESSAGE = "No data for the selected thread.";
-
   private static final Map<String, CaptureModel.Details.Type> TABS = ImmutableMap.of(
     "Top Down", CaptureModel.Details.Type.TOP_DOWN,
     "Bottom Up", CaptureModel.Details.Type.BOTTOM_UP,
@@ -265,12 +265,28 @@ class CpuCaptureView {
     return (CpuTreeNode)node.getUserObject();
   }
 
-  private abstract static class CaptureDetailsView {
-    protected JComponent myComponent;
+  private static abstract class CaptureDetailsView {
+    protected static final String CARD_EMPTY_INFO = "Empty content";
+    protected static final String CARD_CONTENT = "Content";
 
     @NotNull
-    protected JComponent getComponent() {
-      return myComponent;
+    abstract JComponent getComponent();
+
+    protected static void switchCardLayout(@NotNull JPanel panel, boolean isEmpty) {
+      CardLayout cardLayout = (CardLayout)panel.getLayout();
+      cardLayout.show(panel, isEmpty ? CARD_EMPTY_INFO : CARD_CONTENT);
+    }
+
+    protected static JPanel getNoDataForThread() {
+      String message = "No data available for the selected thread.";
+      JPanel panel = new JPanel(new BorderLayout());
+      panel.add(new InfoMessagePanel(message, "", null), BorderLayout.CENTER);
+      return panel;
+    }
+
+    protected static JComponent getNoDataForRange() {
+      String message = "No data available for the selected time frame.";
+      return new InfoMessagePanel(message, "", null);
     }
   }
 
@@ -295,31 +311,55 @@ class CpuCaptureView {
   }
 
   private static class TopDownView extends CaptureDetailsView {
+    @NotNull private final JPanel myPanel;
+
     private TopDownView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TopDown topDown) {
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
-        myComponent = new JLabel(NO_DATA_MESSAGE, SwingConstants.CENTER);
+        myPanel = getNoDataForThread();
         return;
       }
 
+      myPanel = new JPanel(new CardLayout());
       JTree tree = new Tree();
-      myComponent = setUpCpuTree(tree, model, view);
+      myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
+      myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
+
       expandTreeNodes(tree);
+
+      model.addTreeModelListener(new TreeModelAdapter() {
+        @Override
+        protected void process(TreeModelEvent event, EventType type) {
+          switchCardLayout(myPanel, model.isEmpty());
+        }
+      });
+      switchCardLayout(myPanel, model.isEmpty());
+    }
+
+    @NotNull
+    @Override
+    public JComponent getComponent() {
+      return myPanel;
     }
   }
 
   private static class BottomUpView extends CaptureDetailsView {
+    @NotNull private final JPanel myPanel;
+
     private BottomUpView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.BottomUp bottomUp) {
       BottomUpTreeModel model = bottomUp.getModel();
+
       if (model == null) {
-        myComponent = new JLabel(NO_DATA_MESSAGE, SwingConstants.CENTER);
+        myPanel = getNoDataForThread();
         return;
       }
 
+      myPanel = new JPanel(new CardLayout());
       JTree tree = new Tree();
-      myComponent = setUpCpuTree(tree, model, view);
-      tree.setRootVisible(false);
+      myPanel.add(setUpCpuTree(tree, model, view), CARD_CONTENT);
+      myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
+      tree.setRootVisible(false);
       tree.addTreeWillExpandListener(new TreeWillExpandListener() {
         @Override
         public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
@@ -344,19 +384,36 @@ class CpuCaptureView {
               tree.expandPath(new TreePath(root));
             }
           }
+          switchCardLayout(myPanel, model.isEmpty());
         }
       });
+      switchCardLayout(myPanel, model.isEmpty());
+    }
+
+    @NotNull
+    @Override
+    public JComponent getComponent() {
+      return myPanel;
     }
   }
 
   private static class TreeChartView extends CaptureDetailsView {
-    private TreeChartView(@NotNull CpuProfilerStageView view,
+    @NotNull private final JPanel myPanel;
+    @Nullable private final HNode<MethodModel> myNode;
+    @NotNull private final Range mySelectionRange;
+
+    private AspectObserver myObserver;
+
+    private TreeChartView(@NotNull CpuProfilerStageView stageView,
                           @NotNull Range selectionRange,
                           @NotNull Range captureRange,
                           @Nullable HNode<MethodModel> node,
                           @NotNull HTreeChart.Orientation orientation) {
+      myNode = node;
+      mySelectionRange = selectionRange;
+
       if (node == null) {
-        myComponent = new JLabel(NO_DATA_MESSAGE, SwingConstants.CENTER);
+        myPanel = getNoDataForThread();
         return;
       }
 
@@ -389,14 +446,13 @@ class CpuCaptureView {
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
-      JPanel panel = new JPanel(new BorderLayout());
-      panel.add(chart, BorderLayout.CENTER);
-      panel.add(verticalScrollBar, BorderLayout.EAST);
-      panel.add(horizontalScrollBar, BorderLayout.SOUTH);
-      myComponent = panel;
+      JPanel contentPanel = new JPanel(new BorderLayout());
+      contentPanel.add(chart, BorderLayout.CENTER);
+      contentPanel.add(verticalScrollBar, BorderLayout.EAST);
+      contentPanel.add(horizontalScrollBar, BorderLayout.SOUTH);
 
-      view.getIdeComponents()
-        .installNavigationContextMenu(chart, view.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+      stageView.getIdeComponents()
+        .installNavigationContextMenu(chart, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
           HNode<MethodModel> n = chart.getHoveredNode();
           if (n == null || n.getData() == null) {
             return null;
@@ -404,6 +460,26 @@ class CpuCaptureView {
           MethodModel method = n.getData();
           return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
         });
+
+      myPanel = new JPanel(new CardLayout());
+      myPanel.add(contentPanel, CARD_CONTENT);
+      myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
+
+      myObserver = new AspectObserver();
+      selectionRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, this::selectionChanged);
+      selectionChanged();
+    }
+
+    private void selectionChanged() {
+      assert myNode != null;
+      Range intersection = mySelectionRange.getIntersection(new Range(myNode.getStart(), myNode.getEnd()));
+      switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
+    }
+
+    @NotNull
+    @Override
+    public JComponent getComponent() {
+      return myPanel;
     }
   }
 
