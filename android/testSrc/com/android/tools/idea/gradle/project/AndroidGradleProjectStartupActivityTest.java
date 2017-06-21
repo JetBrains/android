@@ -54,7 +54,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
   // http://b/62543184
   public void testRunActivityWithNewCreatedProject() {
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-    when(myGradleProjectInfo.isNewlyCreatedProject()).thenReturn(true);
+    when(myGradleProjectInfo.isNewOrImportedProject()).thenReturn(true);
 
     Project project = getProject();
     myStartupActivity.runActivity(project);

@@ -51,7 +51,7 @@ public class GradleProjectInfo {
   @NotNull private final AndroidStudioGradleProjectSettings myGradleProjectSettings;
   @NotNull private final AtomicReference<String> myProjectCreationErrorRef = new AtomicReference<>();
 
-  private volatile boolean myIsNewlyCreatedProject;
+  private volatile boolean myIsNewOrImportedProject;
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
@@ -70,12 +70,12 @@ public class GradleProjectInfo {
     return !myGradleProjectSettings.DISABLE_EMBEDDED_MAVEN_REPO;
   }
 
-  public boolean isNewlyCreatedProject() {
-    return myIsNewlyCreatedProject;
+  public boolean isNewOrImportedProject() {
+    return myIsNewOrImportedProject;
   }
 
-  public void setNewlyCreatedProject(boolean newlyCreatedProject) {
-    myIsNewlyCreatedProject = newlyCreatedProject;
+  public void setNewOrImportedProject(boolean newOrImportedProject) {
+    myIsNewOrImportedProject = newOrImportedProject;
   }
 
   @Nullable

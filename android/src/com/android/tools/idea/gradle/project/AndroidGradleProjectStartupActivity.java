@@ -29,9 +29,12 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
   @Override
   public void runActivity(@NotNull Project project) {
     GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
-    if (gradleProjectInfo.isBuildWithGradle() && !gradleProjectInfo.isNewlyCreatedProject()) {
+    if (gradleProjectInfo.isBuildWithGradle() && !gradleProjectInfo.isNewOrImportedProject()) {
       // http://b/62543184
-      // If the project was created with the "New Project" wizard, there is no need to sync again.
+      // If the project was created with the "New Project" wizard or imported, there is no need to sync again.
+      // This code path should only be executed when:
+      // 1. Opening an existing project from the list of "recent projects" in the "Welcome" page
+      // 2. Reopening the IDE and automatically reloading the current open project
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setUseCachedGradleModels(true).setTrigger(TRIGGER_PROJECT_LOADED);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
     }
