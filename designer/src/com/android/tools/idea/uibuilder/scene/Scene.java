@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarg
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
+import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Lists;
@@ -920,6 +921,14 @@ public class Scene implements SelectionListener {
     if (myHitTarget instanceof LassoTarget) {
       LassoTarget lassoTarget = (LassoTarget)myHitTarget;
       lassoTarget.fillSelectedComponents(myNewSelectedComponents);
+    }
+    if (myHitTarget instanceof ActionHandleTarget) {
+      // TODO: Refactor this so explicit cast not required
+      SceneComponent closestComponent = myHitListener.getClosestComponent();
+      if (closestComponent != null) {
+        ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
+        actionHandleTarget.createAction(closestComponent);
+      }
     }
     boolean canChangeSelection = true;
     if (myHitTarget != null) {
