@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.idea.ui.ImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -37,7 +36,7 @@ import java.awt.*;
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
 
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
-  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(900, 620);
+  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(900, 650);
 
   private final BindingsManager myBindings = new BindingsManager();
 
