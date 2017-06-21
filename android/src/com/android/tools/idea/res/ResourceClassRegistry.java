@@ -134,22 +134,6 @@ public class ResourceClassRegistry implements ProjectComponent {
 
   // ProjectComponent methods.
 
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
   @NotNull
   @Override
   public String getComponentName() {

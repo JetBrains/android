@@ -68,11 +68,6 @@ public class AndroidSdkUpdaterPlugin implements ApplicationComponent {
     return null;
   }
 
-  @Override
-  public void disposeComponent() {
-    // nothing
-  }
-
   @NotNull
   @Override
   public String getComponentName() {
