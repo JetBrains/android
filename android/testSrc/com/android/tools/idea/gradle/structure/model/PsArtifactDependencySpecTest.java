@@ -174,7 +174,7 @@ public class PsArtifactDependencySpecTest extends IdeaTestCase {
   }
 
   public void testCreate_mavenCoordinates() {
-    MavenCoordinates coordinates = new MavenCoordinatesStub("group", "name", "version");
+    MavenCoordinates coordinates = new MavenCoordinatesStub("group", "name", "version", "aar");
     PsArtifactDependencySpec spec = PsArtifactDependencySpec.create(coordinates);
     assertNotNull(spec);
     assertEquals("group", spec.getGroup());

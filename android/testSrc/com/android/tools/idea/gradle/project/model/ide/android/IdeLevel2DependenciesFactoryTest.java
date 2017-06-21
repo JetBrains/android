@@ -105,12 +105,7 @@ public class IdeLevel2DependenciesFactoryTest {
       @Override
       @NotNull
       public MavenCoordinates getResolvedCoordinates() {
-        return new MavenCoordinatesStub() {
-          @Override
-          public String toString() {
-            return "javaLibraryA";
-          }
-        };
+        return new MavenCoordinatesStub("com", "java", "A", "jar");
       }
     };
     JavaLibrary javaLibraryB = new JavaLibraryStub() {
@@ -129,12 +124,7 @@ public class IdeLevel2DependenciesFactoryTest {
       @Override
       @NotNull
       public MavenCoordinates getResolvedCoordinates() {
-        return new MavenCoordinatesStub() {
-          @Override
-          public String toString() {
-            return "javaLibraryB";
-          }
-        };
+        return new MavenCoordinatesStub("com", "java", "B", "jar");
       }
     };
 
@@ -157,7 +147,7 @@ public class IdeLevel2DependenciesFactoryTest {
 
     assertThat(level2Dependencies.getJavaLibraries()).hasSize(2);
     assertThat(level2Dependencies.getJavaLibraries().stream().map(Library::getArtifactAddress).collect(Collectors.toList()))
-      .containsExactly("javaLibraryA", "javaLibraryB");
+      .containsExactly("com:java:A@jar", "com:java:B@jar");
 
     assertThat(level2Dependencies.getModuleDependencies()).hasSize(2);
     assertThat(level2Dependencies.getModuleDependencies().stream().map(Library::getArtifactAddress).collect(Collectors.toList()))
