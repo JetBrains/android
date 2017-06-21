@@ -38,7 +38,6 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   private final PsiElement myElement;
   private final File myFile;
   private final ResourceResolver myResourceResolver;
-  private Icon myIcon;
 
   public GutterIconRenderer(ResourceResolver resourceResolver, @NotNull PsiElement element, @Nullable File file) {
     myResourceResolver = resourceResolver;
@@ -49,16 +48,15 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @NotNull
   @Override
   public Icon getIcon() {
-    if (myIcon == null) {
-      if (myFile != null) {
-        myIcon = GutterIconCache.getInstance().getIcon(myFile.getPath(), myResourceResolver);
-      }
-      if (myIcon == null) {
-        myIcon = AllIcons.General.Error;
+    if (myFile != null) {
+      Icon icon = GutterIconCache.getInstance().getIcon(myFile.getPath(), myResourceResolver);
+
+      if (icon != null) {
+        return icon;
       }
     }
 
-    return myIcon;
+    return AllIcons.General.Error;
   }
 
   @Nullable

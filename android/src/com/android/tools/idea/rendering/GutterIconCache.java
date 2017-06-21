@@ -26,6 +26,9 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -42,6 +45,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
@@ -54,8 +58,14 @@ public class GutterIconCache {
   @VisibleForTesting static final int MAX_HEIGHT = JBUI.scale(16);
 
   private static final GutterIconCache ourInstance = new GutterIconCache();
-  // TODO: Timestamps?
-  private Map<String,Icon> myThumbnailCache = Maps.newHashMap();
+
+  private Map<String, Icon> myThumbnailCache = Maps.newHashMap();
+
+  /**
+   * Stores timestamps for the last modification time of image files using the
+   * path as a key.
+   */
+  private Map<String, Long> myTimestampCache = Maps.newHashMap();
   private boolean myRetina;
 
   public GutterIconCache() {
@@ -66,6 +76,20 @@ public class GutterIconCache {
     return ourInstance;
   }
 
+  @VisibleForTesting
+  boolean isIconUpToDate(@NotNull String path) {
+    if (myTimestampCache.containsKey(path)) {
+      // Entry is valid if image resource has not been modified since the entry was cached
+      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+      if (file != null) {
+        return myTimestampCache.get(path) == file.getTimeStamp()
+               && !FileDocumentManager.getInstance().isFileModified(file);
+      }
+    }
+
+    return false;
+  }
+
   @Nullable
   public Icon getIcon(@NotNull String path, @Nullable ResourceResolver resolver) {
     boolean isRetina = UIUtil.isRetina();
@@ -74,7 +98,7 @@ public class GutterIconCache {
       myThumbnailCache.clear();
     }
     Icon myIcon = myThumbnailCache.get(path);
-    if (myIcon == null) {
+    if (myIcon == null || !isIconUpToDate(path)) {
       myIcon = createIcon(path, resolver);
 
       if (myIcon == null) {
@@ -82,6 +106,12 @@ public class GutterIconCache {
       }
 
       myThumbnailCache.put(path, myIcon);
+
+      // Record timestamp of image resource at the time of caching
+      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+      if (file != null) {
+        myTimestampCache.put(path, file.getTimeStamp());
+      }
     }
 
     return myIcon != NONE ? myIcon : null;
@@ -92,10 +122,33 @@ public class GutterIconCache {
   private static Icon createIcon(@NotNull String path, @Nullable ResourceResolver resolver) {
     if (path.endsWith(DOT_XML)) {
       return createXmlIcon(path, resolver);
-    } else {
+    }
+    else {
       return createBitmapIcon(path);
     }
   }
+
+  /**
+   * Read XML data from Document when possible (in case there are unsaved changes
+   * for a file open in an editor)
+   */
+  private static String getXmlContent(@NotNull String path) throws IOException {
+    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+
+    if (file == null) {
+      return Files.toString(new File(path), Charsets.UTF_8);
+    }
+
+    com.intellij.openapi.editor.Document document =
+      FileDocumentManager.getInstance().getCachedDocument(file);
+
+    if  (document == null) {
+      return new String(file.contentsToByteArray());
+    }
+
+    return document.getText();
+  }
+
 
   @Nullable
   private static Icon createXmlIcon(@NotNull String path, @Nullable ResourceResolver resolver) {
@@ -103,7 +156,7 @@ public class GutterIconCache {
       VdPreview.TargetSize imageTargetSize =
         VdPreview.TargetSize.createSizeFromWidth(isRetinaEnabled() ? ImageUtils.RETINA_SCALE * MAX_WIDTH : MAX_WIDTH);
 
-      String xml = Files.toString(new File(path), Charsets.UTF_8);
+      String xml = getXmlContent(path);
       // See if this drawable is a vector; we can't render other drawables yet.
       // TODO: Consider resolving selectors to render for example the default image!
       if (xml.contains("<vector")) {
@@ -133,7 +186,8 @@ public class GutterIconCache {
           return new ImageIcon(image);
         }
       }
-    } catch (Throwable e) {
+    }
+    catch (Throwable e) {
       LOG.warn(String.format("Could not read/render icon image %1$s", path), e);
     }
 
@@ -251,10 +305,10 @@ public class GutterIconCache {
   @Nullable
   private static RetinaImageIcon getRetinaIcon(@NonNull BufferedImage image) {
     if (isRetinaEnabled()) {
-        Image hdpiImage = ImageUtils.convertToRetina(image);
-        if (hdpiImage != null) {
-          return new RetinaImageIcon(hdpiImage);
-        }
+      Image hdpiImage = ImageUtils.convertToRetina(image);
+      if (hdpiImage != null) {
+        return new RetinaImageIcon(hdpiImage);
+      }
     }
     return null;
   }
