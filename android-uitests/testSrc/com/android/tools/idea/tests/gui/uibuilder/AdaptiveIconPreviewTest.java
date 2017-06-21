@@ -50,8 +50,8 @@ public class AdaptiveIconPreviewTest {
     toolbar.chooseDensity("xhdpi");
     assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16776961);
     toolbar.chooseDensity("xxhdpi");
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-15794432);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16711936);
     toolbar.chooseDensity("xxxhdpi");
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-15794432);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16711936);
   }
 }
