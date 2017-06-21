@@ -30,6 +30,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import net.jcip.annotations.Immutable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.util.List;
@@ -283,6 +284,10 @@ public final class PathValidator implements Validator<File> {
     return new Builder().withAllRules(Severity.ERROR).build(pathName);
   }
 
+  private static Logger getLogger() {
+    return Logger.getInstance(PathValidator.class);
+  }
+
   /**
    * Validate that the target location passes all tests.
    *
@@ -327,8 +332,14 @@ public final class PathValidator implements Validator<File> {
     return Result.OK;
   }
 
+  @NotNull
+  @TestOnly
+  public Iterable<Rule> getErrors() {
+    return myErrors;
+  }
+
   /**
-   * A single validation rule which tests a target file to see if it violates it.
+   * A single validation ruleModuleValidatorTest which tests a target file to see if it violates it.
    */
   public interface Rule {
     /**
@@ -441,10 +452,6 @@ public final class PathValidator implements Validator<File> {
     }
 
     protected abstract boolean matches(@NotNull FileOp fileOp, @NotNull File file);
-  }
-
-  private static Logger getLogger() {
-    return Logger.getInstance(PathValidator.class);
   }
 }
 

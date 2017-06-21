@@ -17,26 +17,29 @@ package com.android.tools.idea.npw.validator;
 
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@Ignore // Fails with sandbox enabled
 public final class ModuleValidatorTest {
   private ModuleValidator myModuleValidator;
   private File myTmpDir;
 
   @Before
   public void createModuleValidator() {
-    // Test dir needs to writable, but can't be more that 100 chars long. Tmp dir is to long on build bots
-    myTmpDir = new File(System.getProperty("user.home"));
+    myTmpDir = Files.createTempDir();
     myModuleValidator = new ModuleValidator(new StringValueProperty(myTmpDir.getAbsolutePath()));
+
+    // Hack for build bots. The directory used to run the tests in a sand box is very very long
+    ((List<PathValidator.Rule>) myModuleValidator.getPathValidator().getErrors()).remove(PathValidator.PATH_TOO_LONG);
   }
 
   @After

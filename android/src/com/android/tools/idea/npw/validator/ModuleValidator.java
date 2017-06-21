@@ -23,6 +23,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 
@@ -58,5 +59,11 @@ public final class ModuleValidator implements Validator<String> {
     }
 
     return myPathValidator.validate(new File(myProjectPath.get(), name));
+  }
+
+  @NotNull
+  @TestOnly
+  PathValidator getPathValidator() {
+    return myPathValidator;
   }
 }
