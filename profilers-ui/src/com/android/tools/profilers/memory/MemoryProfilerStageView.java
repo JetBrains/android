@@ -33,6 +33,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
@@ -264,16 +265,25 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
       new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), Color.BLACK)
+        .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
         .setStroke(new BasicStroke(2))
-        .setIsBlocking(true)
         .setLabelProvider(
           data -> String.format("Dump (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
         .build();
-    DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
-      .setIcon(ProfilerIcons.GARBAGE_EVENT)
-      .build();
+
+    for (RangedContinuousSeries series : memoryUsage.getSeries()) {
+      LineConfig config = lineChart.getLineConfig(series);
+      int gray = (config.getColor().getBlue() + config.getColor().getRed() + config.getColor().getGreen()) / 3;
+      LineConfig newConfig = LineConfig.copyOf(config).setColor(Gray.get(gray));
+      heapDumpRenderer.addCustomLineConfig(series, newConfig);
+    }
+
+    DurationDataRenderer<GcDurationData> gcRenderer =
+      new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
+        .setIcon(ProfilerIcons.GARBAGE_EVENT)
+        .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
     lineChart.addCustomRenderer(gcRenderer);

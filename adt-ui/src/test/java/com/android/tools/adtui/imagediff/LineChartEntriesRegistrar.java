@@ -22,11 +22,17 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
+import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
@@ -38,7 +44,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerSteppedLineChart();
     registerSimpleEventLineChart();
     registerAttachedEventLineChart();
-    registerBlockingEventLineChart();
+    registerEventWithCustomConfigLineChart();
     // WIP DurationDataRenderer revamp - will re-enable after pixels are finalized.
     //registerFilledEventLineChart();
   }
@@ -140,7 +146,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
 
         // Add a simple event to the line chart
-        addEvent(Color.BLACK, null, false, false);
+        addEvent(Color.BLACK, null, null);
       }
     });
   }
@@ -154,21 +160,26 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
 
         // Add an attached event to the line chart
-        addEvent(Color.BLACK, myLineChartModel.getSeries().get(0), false, false);
+        addEvent(Color.BLACK, myLineChartModel.getSeries().get(0), null);
       }
     });
   }
 
-  private void registerBlockingEventLineChart() {
-    register(new LineChartImageDiffEntry("blocking_event_line_chart_baseline.png") {
+  private void registerEventWithCustomConfigLineChart() {
+    register(new LineChartImageDiffEntry("event_with_custom_config_line_chart_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
-        addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
-        addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
+        RangedContinuousSeries firstLine =
+          addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
+        RangedContinuousSeries secondLine =
+          addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
 
+        Map<RangedContinuousSeries, LineConfig> configs = new HashMap<>();
+        configs.put(firstLine, LineConfig.copyOf(myLineChart.getLineConfig(firstLine)).setColor(Color.GREEN));
+        configs.put(secondLine, LineConfig.copyOf(myLineChart.getLineConfig(secondLine)).setColor(Color.ORANGE));
         // Add a blocking event to the line chart
-        addEvent(Color.BLACK, null, false, true);
+        addEvent(Color.BLACK, null, configs);
       }
     });
   }
@@ -182,7 +193,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
 
         // Add a filled event to the line chart
-        addEvent(Color.GREEN, null, true, false);
+        addEvent(Color.GREEN, null, null);
       }
     });
   }
@@ -257,25 +268,35 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       }
     }
 
-    protected void addLine(double rangeMin, double rangeMax, String seriesLabel, LineConfig lineConfig) {
+    protected RangedContinuousSeries addLine(double rangeMin, double rangeMax, String seriesLabel, LineConfig lineConfig) {
       Range yRange = new Range(rangeMin, rangeMax);
       DefaultDataSeries<Long> series = new DefaultDataSeries<>();
       RangedContinuousSeries rangedSeries = new RangedContinuousSeries(seriesLabel, myXRange, yRange, series);
       myData.add(series);
       myLineChartModel.add(rangedSeries);
       myLineChart.configure(rangedSeries, lineConfig);
+      return rangedSeries;
     }
 
-    protected void addEvent(Color eventColor, RangedContinuousSeries attachedSeries, boolean isFilledEvent, boolean isBlockingEvent) {
+    protected void addEvent(Color eventColor,
+                            RangedContinuousSeries attachedSeries,
+                            @Nullable Map<RangedContinuousSeries, LineConfig> customConfigs) {
       DefaultDataSeries<DefaultDurationData> eventData = new DefaultDataSeries<>();
       RangedSeries<DefaultDurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
       DurationDataModel<DefaultDurationData> durationModel = new DurationDataModel<>(eventSeries);
       durationModel.setAttachedSeries(attachedSeries);
-      DurationDataRenderer<DefaultDurationData> durationRenderer = new DurationDataRenderer.Builder<>(durationModel, eventColor)
-        .setLabelProvider(durationData -> "Test Event")
-        .setStroke(new BasicStroke(5))
-        .setLabelColors(Color.BLACK, Color.GRAY, Color.GRAY, Color.WHITE)
-        .setIsBlocking(isBlockingEvent).build();
+      DurationDataRenderer<DefaultDurationData> durationRenderer =
+        new DurationDataRenderer.Builder<>(durationModel, eventColor)
+          .setLabelProvider(durationData -> "Test Event")
+          .setStroke(new BasicStroke(5))
+          .setLabelColors(Color.BLACK, Color.GRAY, Color.GRAY, Color.WHITE).build();
+
+      if (customConfigs != null) {
+        for (Map.Entry<RangedContinuousSeries, LineConfig> entry : customConfigs.entrySet()) {
+          durationRenderer.addCustomLineConfig(entry.getKey(), entry.getValue());
+        }
+      }
+
       myLineChart.addCustomRenderer(durationRenderer);
       myOverlayComponent.addDurationDataRenderer(durationRenderer);
       myComponents.add(durationModel);

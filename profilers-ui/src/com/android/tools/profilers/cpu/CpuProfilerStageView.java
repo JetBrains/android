@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
@@ -168,11 +169,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     DurationDataRenderer<CpuCapture> traceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
+        .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
         .setLabelProvider(this::formatCaptureLabel)
         .setStroke(new BasicStroke(1))
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
         .setClickHander(getStage()::setAndSelectCapture)
         .build();
+
+    traceRenderer.addCustomLineConfig(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE_CAPTURED)
+      .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
+    traceRenderer.addCustomLineConfig(cpuUsage.getOtherCpuSeries(), new LineConfig(ProfilerColors.CPU_OTHER_USAGE_CAPTURED)
+      .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
+    traceRenderer.addCustomLineConfig(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT_CAPTURED)
+      .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
 
     overlay.addDurationDataRenderer(traceRenderer);
     lineChart.addCustomRenderer(traceRenderer);

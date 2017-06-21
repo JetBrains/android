@@ -105,6 +105,19 @@ public class LineConfig {
     myLegendIconType = LegendConfig.IconType.NONE;
   }
 
+  public static LineConfig copyOf(@NotNull LineConfig otherConfig) {
+    LineConfig config = new LineConfig(otherConfig.getColor());
+
+    config.setStepped(otherConfig.isStepped());
+    config.setFilled(otherConfig.isFilled());
+    config.setStacked(otherConfig.isStacked());
+    config.setAdjustDash(otherConfig.isAdjustDash());
+    config.setLegendIconType(otherConfig.getLegendIconType());
+    config.setStroke(otherConfig.getStroke());
+    config.setAdjustedDashPhase(otherConfig.getAdjustedDashPhase());
+    return config;
+  }
+
   @NotNull
   public LineConfig setStepped(boolean isStepped) {
     myIsStepped = isStepped;
