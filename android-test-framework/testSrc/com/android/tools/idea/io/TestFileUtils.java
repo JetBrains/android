@@ -34,9 +34,17 @@ public final class TestFileUtils {
   }
 
   /**
+   * Creates the directory if it doesn't exist and refreshes the VFS.
+   */
+  public static VirtualFile createDirectoriesAndRefreshVfs(@NotNull Path path) throws IOException {
+    Files.createDirectories(path);
+    return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(path.toFile());
+  }
+
+  /**
    * Creates the file if it doesn't exist, writes the string to it, and refreshes the VFS.
    */
-  public static VirtualFile writeAndRefreshVfs(@NotNull Path path, @NotNull String string) throws IOException {
+  public static VirtualFile writeFileAndRefreshVfs(@NotNull Path path, @NotNull String string) throws IOException {
     Files.createDirectories(path.getParent());
     Files.write(path, string.getBytes(StandardCharsets.UTF_8));
 
