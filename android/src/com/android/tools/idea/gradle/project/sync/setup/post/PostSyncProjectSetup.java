@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
@@ -73,6 +72,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
   @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final DependencySetupIssues myDependencySetupIssues;
@@ -92,7 +92,7 @@ public class PostSyncProjectSetup {
   @SuppressWarnings("unused") // Instantiated by IDEA
   public PostSyncProjectSetup(@NotNull Project project,
                               @NotNull IdeInfo ideInfo,
-                              @NotNull AndroidSdks androidSdks,
+                              @NotNull GradleProjectInfo gradleProjectInfo,
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
                               @NotNull GradleSyncMessages syncMessages,
@@ -100,14 +100,15 @@ public class PostSyncProjectSetup {
                               @NotNull PluginVersionUpgrade pluginVersionUpgrade,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project), new ModuleSetup(project),
-         pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
+    this(project, ideInfo, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
+         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
          RunManagerImpl.getInstanceImpl(project));
   }
 
   @VisibleForTesting
   PostSyncProjectSetup(@NotNull Project project,
                        @NotNull IdeInfo ideInfo,
+                       @NotNull GradleProjectInfo gradleProjectInfo,
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
                        @NotNull DependencySetupIssues dependencySetupIssues,
@@ -120,6 +121,7 @@ public class PostSyncProjectSetup {
                        @NotNull RunManagerImpl runManager) {
     myProject = project;
     myIdeInfo = ideInfo;
+    myGradleProjectInfo = gradleProjectInfo;
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
     myDependencySetupIssues = dependencySetupIssues;
@@ -136,6 +138,7 @@ public class PostSyncProjectSetup {
    * Invoked after a project has been synced with Gradle.
    */
   public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator) {
+    myGradleProjectInfo.setNewOrImportedProject(false);
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
     if (syncFailed && request.isUsingCachedGradleModels()) {
@@ -208,7 +211,7 @@ public class PostSyncProjectSetup {
     if (ApplicationManager.getApplication().isUnitTestMode() && mySyncState.getSummary().hasSyncErrors()) {
       StringBuilder buffer = new StringBuilder();
       buffer.append("Sync issues found!").append('\n');
-      GradleProjectInfo.getInstance(myProject).forEachAndroidModule(facet -> {
+      myGradleProjectInfo.forEachAndroidModule(facet -> {
         AndroidModel androidModel = facet.getAndroidModel();
         if (androidModel instanceof AndroidModuleModel) {
           Collection<SyncIssue> issues = ((AndroidModuleModel)androidModel).getSyncIssues();
