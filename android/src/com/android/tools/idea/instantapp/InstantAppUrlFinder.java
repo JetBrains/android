@@ -26,10 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_LITERAL;
@@ -64,7 +62,8 @@ public final class InstantAppUrlFinder {
       Node node = activity.getFirstChild();
       while (node != null) {
         InstantAppIntentFilterWrapper wrapper = InstantAppIntentFilterWrapper.of(node);
-        for (UrlData urlData : wrapper.getAllUrlData()) {
+        UrlData urlData = wrapper.getUrlData();
+        if (urlData.isValid()) {
           allUrls.put(wrapper.getOrder(), urlData.getUrl());
         }
         node = node.getNextSibling();
@@ -103,7 +102,7 @@ public final class InstantAppUrlFinder {
   }
 
   @VisibleForTesting
-  static final class InstantAppIntentFilterWrapper {
+  static class InstantAppIntentFilterWrapper {
     @Nullable/*No valid element*/ private final Element myElement;
     private final int myOrder;
 
@@ -153,21 +152,17 @@ public final class InstantAppUrlFinder {
     }
 
     @NotNull
-    Collection<UrlData> getAllUrlData() {
-      if (myElement == null) {
-        return Collections.emptyList();
-      }
+    UrlData getUrlData() {
+      UrlData urlData = new UrlData();
 
-      List<UrlData> allUrls = new ArrayList<>();
-      Node node = myElement.getFirstChild();
-      while (node != null) {
-        UrlData data = UrlData.of(node);
-        if (data.isValid()) {
-          allUrls.add(data);
+      if (myElement != null) {
+        Node node = myElement.getFirstChild();
+        while (node != null) {
+          urlData.addFromNode(node);
+          node = node.getNextSibling();
         }
-        node = node.getNextSibling();
       }
-      return allUrls;
+      return urlData;
     }
 
     int getOrder() {
@@ -175,56 +170,46 @@ public final class InstantAppUrlFinder {
     }
 
     boolean matchesUrl(@NotNull String url) {
-      if (myElement != null) {
-        Node node = myElement.getFirstChild();
-        while (node != null) {
-          UrlData data = UrlData.of(node);
-          if (data.matchesUrl(url)) {
-            return true;
-          }
-          node = node.getNextSibling();
-        }
-      }
-      return false;
+      return getUrlData().matchesUrl(url);
     }
   }
 
-
   @VisibleForTesting
-  static final class UrlData {
-    @NotNull private final String myScheme;
-    @NotNull private final String myHost;
-    @NotNull private final String myPath;
-    @NotNull private final String myPathPrefix;
-    @NotNull private final String myPathPattern;
+  static class UrlData {
+    @NotNull private final Collection<String> mySchemes = new HashSet<>();
+    @NotNull private final Collection<String> myHosts = new HashSet<>();
+    @NotNull private final Collection<String> myPaths = new HashSet<>();
+    @NotNull private final Collection<String> myPathPrefixes = new HashSet<>();
+    @NotNull private final Collection<String> myPathPatterns = new HashSet<>();
     // Documentation here: https://developer.android.com/guide/topics/manifest/data-element.html
     // port and mimeType should be ignored.
 
-    @NotNull
-    static UrlData of(@NotNull Node node) {
-      String scheme = "";
-      String host = "";
-      String path = "";
-      String pathPrefix = "";
-      String pathPattern = "";
-      if (node.getNodeType() == Node.ELEMENT_NODE && NODE_DATA.equals(node.getNodeName())) {
-        Element element = (Element)node;
-        scheme = element.getAttributeNS(ANDROID_URI, "scheme");
-        host = element.getAttributeNS(ANDROID_URI, "host");
-        path = element.getAttributeNS(ANDROID_URI, "path");
-        pathPrefix = element.getAttributeNS(ANDROID_URI, "pathPrefix");
-        pathPattern = element.getAttributeNS(ANDROID_URI, "pathPattern");
-      }
-      return new UrlData(scheme, host, path, pathPrefix, pathPattern);
+    @VisibleForTesting
+    // Test only
+    void addFromStrings(@NotNull String scheme, @NotNull String host, @NotNull String path, @NotNull String pathPrefix, @NotNull String pathPattern) {
+      addTo(mySchemes, scheme);
+      addTo(myHosts, host);
+      addTo(myPaths, path);
+      addTo(myPathPrefixes, pathPrefix);
+      addTo(myPathPatterns, pathPattern);
     }
 
     @VisibleForTesting
-    UrlData(@NotNull String scheme, @NotNull String host, @NotNull String path, @NotNull String pathPrefix, @NotNull String pathPattern) {
-      myScheme = scheme;
-      myHost = host;
-      myPath = path;
-      myPathPrefix = pathPrefix;
-      myPathPattern = pathPattern;
+    void addFromNode(@NotNull Node node) {
+      if (node.getNodeType() == Node.ELEMENT_NODE && NODE_DATA.equals(node.getNodeName())) {
+        Element element = (Element)node;
+        addTo(mySchemes, element.getAttributeNS(ANDROID_URI, "scheme"));
+        addTo(myHosts, element.getAttributeNS(ANDROID_URI, "host"));
+        addTo(myPaths, element.getAttributeNS(ANDROID_URI, "path"));
+        addTo(myPathPrefixes, element.getAttributeNS(ANDROID_URI, "pathPrefix"));
+        addTo(myPathPatterns, element.getAttributeNS(ANDROID_URI, "pathPattern"));
+      }
+    }
+
+    private static void addTo(@NotNull Collection<String> collection, @Nullable String string) {
+      if (isNotEmpty(string)) {
+        collection.add(string);
+      }
     }
 
     @NotNull
@@ -233,50 +218,87 @@ public final class InstantAppUrlFinder {
       return pattern.replace(".*", "example");
     }
 
+    @VisibleForTesting
     boolean isValid() {
-      String effectivePath = getEffectivePath();
-      return isNotEmpty(myScheme) && isNotEmpty(myHost) && effectivePath.startsWith("/");
+      return !mySchemes.isEmpty() && !myHosts.isEmpty() && getEffectivePath().startsWith("/");
     }
 
     @NotNull
     private String getEffectivePath() {
-      String path = myPath;
+      String path = myPaths.isEmpty() ? "" : myPaths.iterator().next();
       if (isEmpty(path)) {
-        if (isNotEmpty(myPathPrefix)) {
-          path = myPathPrefix + "/.*";
-        }
-        else {
-          path = myPathPattern;
-        }
+        path = myPathPrefixes.isEmpty() ? "" : myPathPrefixes.iterator().next() + "/.*";
+      }
+      if (isEmpty(path)) {
+        path = myPathPatterns.isEmpty() ? "" : myPathPatterns.iterator().next();
       }
       return isNotEmpty(path) ? path : "/";
     }
 
     @NotNull
+    @VisibleForTesting
     String getUrl() {
-      return String.format("%s://%s%s", myScheme, myHost, convertPatternToExample(getEffectivePath()));
+      if (!isValid()) {
+        return "";
+      }
+      String scheme = mySchemes.iterator().next();
+      String host = myHosts.iterator().next();
+      return String.format("%s://%s%s", scheme, host, convertPatternToExample(getEffectivePath()));
     }
 
+    @VisibleForTesting
     boolean matchesUrl(@NotNull String url) {
-      String beg = String.format("%s://%s", myScheme, myHost);
-      if (!url.startsWith(beg)) {
+      if (!isValid()) {
         return false;
       }
 
-      String path = url.replaceFirst(beg, "");
-      if (isNotEmpty(myPath)) {
-        AndroidPatternMatcher matcher = new AndroidPatternMatcher(myPath, PATTERN_LITERAL);
-        return matcher.match(path);
+      boolean schemeMatched = false;
+      for (String scheme : mySchemes) {
+        if (url.startsWith(scheme + "://")) {
+          url = url.replaceFirst(scheme + "://", "");
+          schemeMatched = true;
+          break;
+        }
       }
-      else if (isNotEmpty(myPathPrefix)) {
-        AndroidPatternMatcher matcher = new AndroidPatternMatcher(myPathPrefix, PATTERN_PREFIX);
-        return matcher.match(path);
+      if (!schemeMatched) {
+        return false;
       }
-      else if (isNotEmpty(myPathPattern)) {
-        AndroidPatternMatcher matcher = new AndroidPatternMatcher(myPathPattern, PATTERN_SIMPLE_GLOB);
-        return matcher.match(path);
+
+      boolean hostMatched = false;
+      for (String host : myHosts) {
+        if (url.startsWith(host)) {
+          url = url.replaceFirst(host, "");
+          hostMatched = true;
+          break;
+        }
       }
-      return path.isEmpty() || path.compareTo("/") == 0;
+      if (!hostMatched) {
+        return false;
+      }
+
+      for (String path : myPaths) {
+        if (isNotEmpty(path) && new AndroidPatternMatcher(path, PATTERN_LITERAL).match(url)) {
+          return true;
+        }
+      }
+
+      for (String pathPrefix : myPathPrefixes) {
+        if (isNotEmpty(pathPrefix) && new AndroidPatternMatcher(pathPrefix, PATTERN_PREFIX).match(url)) {
+          return true;
+        }
+      }
+
+      for (String pathPattern : myPathPatterns) {
+        if (isNotEmpty(pathPattern) && new AndroidPatternMatcher(pathPattern, PATTERN_SIMPLE_GLOB).match(url)) {
+          return true;
+        }
+      }
+
+      if (!myPaths.isEmpty() || !myPathPrefixes.isEmpty() || !myPathPatterns.isEmpty()) {
+        return false;
+      }
+
+      return url.isEmpty() || url.compareTo("/") == 0;
     }
   }
 }
