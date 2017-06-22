@@ -30,6 +30,7 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
@@ -137,7 +138,6 @@ final class ConnectionsView {
     myTableModel = new ConnectionsTableModel(myStage.getHttpDataFetcher());
 
     myConnectionsTable = new HoverRowTable(myTableModel, NETWORK_TABLE_HOVER_COLOR);
-    myConnectionsTable.setFocusable(false);
     customizeConnectionsTable();
 
     myAspectObserver = new AspectObserver();
@@ -253,7 +253,14 @@ final class ConnectionsView {
     }
   }
 
-  private static final class SizeRenderer extends DefaultTableCellRenderer {
+  private static class BorderlessTableCellRenderer extends DefaultTableCellRenderer {
+    @Override
+    public void setBorder(Border border) {
+      super.setBorder(DefaultTableCellRenderer.noFocusBorder);
+    }
+  }
+
+  private static final class SizeRenderer extends BorderlessTableCellRenderer {
     @Override
     protected void setValue(Object value) {
       int bytes = (Integer)value;
@@ -261,7 +268,7 @@ final class ConnectionsView {
     }
   }
 
-  private static final class StatusRenderer extends DefaultTableCellRenderer {
+  private static final class StatusRenderer extends BorderlessTableCellRenderer {
     @Override
     protected void setValue(Object value) {
       Integer status = (Integer)value;
@@ -269,7 +276,7 @@ final class ConnectionsView {
     }
   }
 
-  private static final class TimeRenderer extends DefaultTableCellRenderer {
+  private static final class TimeRenderer extends BorderlessTableCellRenderer {
     @Override
     protected void setValue(Object value) {
       Long durationUs = (Long)value;
