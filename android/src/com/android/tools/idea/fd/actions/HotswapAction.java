@@ -50,7 +50,7 @@ import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.SUPPORTED
 
 public class HotswapAction extends AndroidStudioGradleAction implements AnAction.TransparentUpdate {
   public HotswapAction() {
-    super("Apply Changes", "Apply Changes", AndroidIcons.RunIcons.HotReload, true);
+    super("Apply Changes", "Apply Changes", AndroidIcons.RunIcons.HotReload);
   }
 
   @Override
