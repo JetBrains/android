@@ -37,6 +37,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
@@ -63,15 +65,24 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myThreadsView = new ThreadsView(this);
 
     Splitter leftSplitter = new Splitter(true);
+    leftSplitter.setShowDividerIcon(false);
+    leftSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
     leftSplitter.setFirstComponent(buildMonitorUi());
     myConnectionsPanel = new JPanel(new CardLayout());
     if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkThreadViewEnabled()) {
       JTabbedPane connectionsTab = new FlatTabbedPane();
-      connectionsTab.addTab("Connection View", new JBScrollPane(myConnectionsView.getComponent()));
-      connectionsTab.addTab("Thread View", new JBScrollPane(myThreadsView.getComponent()));
+      JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
+      connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
+      JScrollPane threadsViewScrollPane = new JBScrollPane(myThreadsView.getComponent());
+      threadsViewScrollPane.setBorder(DEFAULT_TOP_BORDER);
+      connectionsTab.addTab("Connection View", connectionScrollPane);
+      connectionsTab.addTab("Thread View", threadsViewScrollPane);
       myConnectionsPanel.add(connectionsTab, CARD_CONNECTIONS);
-    } else {
-      myConnectionsPanel.add(new JBScrollPane(myConnectionsView.getComponent()), CARD_CONNECTIONS);
+    }
+    else {
+      JScrollPane connectionScrollPane = new JBScrollPane(myConnectionsView.getComponent());
+      connectionScrollPane.setBorder(DEFAULT_TOP_BORDER);
+      myConnectionsPanel.add(connectionScrollPane, CARD_CONNECTIONS);
     }
 
     // TODO: Add this help link in as soon as we are notified that it is hooked up
@@ -88,7 +99,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     leftSplitter.setSecondComponent(myConnectionsPanel);
 
     getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
-      CardLayout cardLayout = (CardLayout) myConnectionsPanel.getLayout();
+      CardLayout cardLayout = (CardLayout)myConnectionsPanel.getLayout();
       cardLayout.show(myConnectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
     });
 
@@ -96,6 +107,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     splitter.setFirstComponent(leftSplitter);
     splitter.setSecondComponent(myConnectionDetails);
     splitter.setHonorComponentsMinimumSize(true);
+    splitter.setShowDividerIcon(false);
+    splitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
 
     getComponent().add(splitter, BorderLayout.CENTER);
 
@@ -149,8 +162,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR)
       .setLegendIconType(LegendConfig.IconType.DASHED_LINE).setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE);
     lineChart.configure(usage.getConnectionSeries(), connectionConfig);
-    int yOffset = (int) LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2;
-    lineChart.setRenderOffset(0,  yOffset);
+    lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
 
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
@@ -205,8 +217,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     tooltip.registerListenersOn(selection);
 
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
@@ -249,10 +261,10 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     // list.get(i).x < range.getMin <= range.getMax < list.get(i + 1).x; and values at i and i+1 are positive.
     Function<Long, Integer> getInsertPoint = time -> {
       int index = Collections.binarySearch(list, new SeriesData<>(time, 0L), (o1, o2) -> Long.compare(o1.x, o2.x));
-      return index < 0 ? - (index + 1) : index;
+      return index < 0 ? -(index + 1) : index;
     };
-    int minIndex = getInsertPoint.apply((long) range.getMin());
-    int maxIndex = getInsertPoint.apply((long) range.getMax());
+    int minIndex = getInsertPoint.apply((long)range.getMin());
+    int maxIndex = getInsertPoint.apply((long)range.getMax());
     if (minIndex == maxIndex) {
       return minIndex > 0 && list.get(minIndex - 1).value > 0 && minIndex < list.size() && list.get(minIndex).value > 0;
     }

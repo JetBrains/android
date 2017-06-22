@@ -72,6 +72,7 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
     lineChart.setMaxLineMargin(40);
+    lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));
 
     NetworkMonitor.NetworkLegends legends = getMonitor().getLegends();

@@ -33,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.android.tools.adtui.common.AdtUiUtils.*;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
@@ -72,6 +72,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // capture object if an existing one has not been selected.
     getStage().enableSelectLatestCapture(true, SwingUtilities::invokeLater);
 
+    myMainSplitter.setShowDividerIcon(false);
+    myMainSplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
+    myChartCaptureSplitter.setShowDividerIcon(false);
+    myChartCaptureSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
+    myInstanceDetailsSplitter.setShowDividerIcon(false);
+    myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
+
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     myCapturePanel = buildCaptureUi();
     myInstanceDetailsSplitter.setOpaque(true);
@@ -81,6 +88,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myMainSplitter.setSecondComponent(myInstanceDetailsSplitter);
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
+
 
     myHeapDumpButton = new FlatButton(ProfilerIcons.HEAP_DUMP);
     myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.HEAP_DUMP));
@@ -216,7 +224,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
-    panel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
@@ -252,6 +259,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.DEFAULT_STAGE_BACKGROUND));
     lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
       .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+    lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
 
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
@@ -343,9 +351,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     legendPanel.add(legend, BorderLayout.EAST);
 
     monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
@@ -367,7 +375,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolbar.add(myClassGrouping.getComponent());
 
     JPanel headingPanel = new JPanel(new BorderLayout());
-    headingPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     headingPanel.add(toolbar, BorderLayout.WEST);
     JPanel capturePanel = new JPanel(new BorderLayout());
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);

@@ -44,6 +44,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 
 final class MemoryClassifierView extends AspectObserver {
@@ -252,6 +253,7 @@ final class MemoryClassifierView extends AspectObserver {
     });
 
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    builder.setBorder(DEFAULT_TOP_BORDER);
     myColumnTree = builder.build();
     myPanel.add(myColumnTree, BorderLayout.CENTER);
 

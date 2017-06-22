@@ -40,6 +40,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.function.BiFunction;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
+
 public class StudioProfilersView extends AspectObserver {
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
@@ -102,14 +104,15 @@ public class StudioProfilersView extends AspectObserver {
                                                   myProfiler::getProcess,
                                                   myProfiler::setProcess);
     myProfiler.addDependency(this)
-      .onChange(ProfilerAspect.PROCESSES, () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess(myProfiler.getProcess()));
+      .onChange(ProfilerAspect.PROCESSES,
+                () -> myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess(myProfiler.getProcess()));
     processes.bind();
     processCombo.setRenderer(new ProcessComboBoxRenderer());
 
     JPanel toolbar = new JPanel(new BorderLayout());
     JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
-    toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER));
+    toolbar.setBorder(DEFAULT_BOTTOM_BORDER);
     // There is a border of 5 pixels that is not scaled.
     toolbar.setPreferredSize(new Dimension(15, JBUI.scale(25) + 5));
 
@@ -149,7 +152,7 @@ public class StudioProfilersView extends AspectObserver {
 
     FlatButton close = new FlatButton(ProfilerIcons.CLOSE);
     close.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.CLOSE));
-    close.addActionListener(event -> myProfiler.stop() );
+    close.addActionListener(event -> myProfiler.stop());
     rightToolbar.add(close);
 
     rightToolbar.add(new FlatSeparator());

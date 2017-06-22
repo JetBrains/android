@@ -64,6 +64,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
@@ -176,7 +177,8 @@ class CpuCaptureView {
     // event several times instead of just once after taking a capture. setCaptureDetails should
     // probably have a guard condition.
     FeatureTracker tracker = myView.getStage().getStudioProfilers().getIdeServices().getFeatureTracker();
-    CAPTURE_TRACKERS.getOrDefault(type, featureTracker -> {}).accept(tracker);
+    CAPTURE_TRACKERS.getOrDefault(type, featureTracker -> {
+    }).accept(tracker);
   }
 
   private static Logger getLog() {
@@ -244,6 +246,7 @@ class CpuCaptureView {
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true, SwingConstants.LEFT))
                    .setComparator(DEFAULT_SORT_ORDER))
       .setTreeSorter(sorter)
+      .setBorder(DEFAULT_TOP_BORDER)
       .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
       .build();
   }
