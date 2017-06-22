@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
+
+import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyString;
@@ -38,13 +42,16 @@ public class IdEnumSupportTest {
   @Mock
   private IdAnalyzer myIdAnalyzer;
 
+  private AttributeDefinition myDefinition;
   private IdEnumSupport mySupport;
 
   @Before
   public void setUp() {
     initMocks(this);
+    myDefinition = new AttributeDefinition("property", null, null, Collections.emptyList());
     when(myProperty.getResolver()).thenReturn(myResolver);
     when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
+    when(myProperty.getDefinition()).thenReturn(myDefinition);
     mySupport = new IdEnumSupport(myProperty, myIdAnalyzer);
   }
 
@@ -54,6 +61,27 @@ public class IdEnumSupportTest {
     assertThat(mySupport.getAllValues()).containsExactly(
       new ValueWithDisplayString("id1", "@+id/id1"),
       new ValueWithDisplayString("id2", "@+id/id2")).inOrder();
+  }
+
+  @Test
+  public void testFindPossibleValuesFromConstraintLayoutProperty() {
+    myDefinition.addValue(SdkConstants.ATTR_PARENT);
+    when(myIdAnalyzer.findIds()).thenReturn(ImmutableList.of("id1", "id2"));
+    assertThat(mySupport.getAllValues()).containsExactly(
+      new ValueWithDisplayString("id1", "@+id/id1"),
+      new ValueWithDisplayString("id2", "@+id/id2"),
+      new ValueWithDisplayString("parent", "parent")).inOrder();
+  }
+
+  @Test
+  public void testFindPossibleValuesFromConstraintLayoutPropertyAndExistingParentId() {
+    myDefinition.addValue(SdkConstants.ATTR_PARENT);
+    when(myIdAnalyzer.findIds()).thenReturn(ImmutableList.of("id1", "id2", "parent"));
+    assertThat(mySupport.getAllValues()).containsExactly(
+      new ValueWithDisplayString("id1", "@+id/id1"),
+      new ValueWithDisplayString("id2", "@+id/id2"),
+      new ValueWithDisplayString("@+id/parent", "@+id/parent"),
+      new ValueWithDisplayString("parent", "parent")).inOrder();
   }
 
   @Test
@@ -72,6 +100,20 @@ public class IdEnumSupportTest {
   public void testCreateValueWithNewPrefix() {
     assertThat(mySupport.createValue("@+id/button"))
       .isEqualTo(new ValueWithDisplayString("button", "@+id/button"));
+  }
+
+  @Test
+  public void testCreateValueFromConstraintLayoutProperty() {
+    myDefinition.addValue(SdkConstants.ATTR_PARENT);
+    assertThat(mySupport.createValue("parent"))
+      .isEqualTo(new ValueWithDisplayString("parent", "parent"));
+  }
+
+  @Test
+  public void testCreateValueFromConstraintLayoutPropertyOfExistingParentId() {
+    myDefinition.addValue(SdkConstants.ATTR_PARENT);
+    assertThat(mySupport.createValue("@+id/parent"))
+      .isEqualTo(new ValueWithDisplayString("@+id/parent", "@+id/parent"));
   }
 
   @Test
