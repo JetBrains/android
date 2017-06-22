@@ -77,6 +77,7 @@ public class NavScreenTargetProvider implements TargetProvider {
       result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
     }
     result.add(new ActionHandleTarget(sceneComponent));
+    result.add(new ScreenLabelTarget(sceneComponent));
     NlComponent parentNlComponent = parent.getNlComponent();
     String startDestination = parentNlComponent.getAttribute(SdkConstants.AUTO_URI, ATTR_START_DESTINATION);
     startDestination = NlComponent.stripId(startDestination);
