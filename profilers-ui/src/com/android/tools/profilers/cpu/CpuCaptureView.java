@@ -142,7 +142,7 @@ class CpuCaptureView {
     int currentTabIndex = myTabsPanel.getSelectedIndex();
     if (currentTabIndex < 0 || !myTabsPanel.getTitleAt(currentTabIndex).equals(detailsTypeString)) {
       for (int i = 0; i < myTabsPanel.getTabCount(); ++i) {
-        if (myTabsPanel.getTitleAt(currentTabIndex).equals(detailsTypeString)) {
+        if (myTabsPanel.getTitleAt(i).equals(detailsTypeString)) {
           myTabsPanel.setSelectedIndex(i);
           break;
         }
