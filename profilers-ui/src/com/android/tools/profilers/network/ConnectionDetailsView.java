@@ -55,6 +55,8 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+
 /**
  * View to display a single network request and its response's detailed information.
  */
@@ -113,7 +115,7 @@ public class ConnectionDetailsView extends JPanel {
         layout.layoutContainer(myResponsePanel);
       }
     });
-
+    responseScroll.setBorder(DEFAULT_TOP_BORDER);
     myTabsPanel.addTab(TAB_TITLE_RESPONSE, responseScroll);
 
     myHeadersPanel = new JPanel(new VerticalFlowLayout(0, PAGE_VGAP));
@@ -121,11 +123,14 @@ public class ConnectionDetailsView extends JPanel {
     JBScrollPane headersScroll = new JBScrollPane(myHeadersPanel);
     headersScroll.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
     headersScroll.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT);
+    headersScroll.setBorder(DEFAULT_TOP_BORDER);
     myTabsPanel.addTab(TAB_TITLE_HEADERS, headersScroll);
 
     myStackTraceView = myStageView.getIdeComponents().createStackView(stageView.getStage().getStackTraceModel());
     myStackTraceView.getComponent().setName("StackTrace");
-    myTabsPanel.addTab(TAB_TITLE_STACK, myStackTraceView.getComponent());
+    JComponent stackTraceComponent = myStackTraceView.getComponent();
+    stackTraceComponent.setBorder(DEFAULT_TOP_BORDER);
+    myTabsPanel.addTab(TAB_TITLE_STACK, stackTraceComponent);
 
     myTabsPanel.addChangeListener(this::trackActiveTab);
 
@@ -210,7 +215,7 @@ public class ConnectionDetailsView extends JPanel {
     if (payloadDimension != null) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Dimension"), new TabularLayout.Constraint(row, 0));
-      JLabel dimension = new JLabel(String.format("%d x %d", (int) payloadDimension.getWidth(), (int) payloadDimension.getHeight()));
+      JLabel dimension = new JLabel(String.format("%d x %d", (int)payloadDimension.getWidth(), (int)payloadDimension.getHeight()));
       dimension.setName("Dimension");
       myFieldsPanel.add(dimension, new TabularLayout.Constraint(row, 2));
     }
@@ -233,7 +238,9 @@ public class ConnectionDetailsView extends JPanel {
         JLabel contentLengthLabel = new JLabel(StringUtil.formatFileSize(number));
         contentLengthLabel.setName("Size");
         myFieldsPanel.add(contentLengthLabel, new TabularLayout.Constraint(row, 2));
-      } catch (NumberFormatException ignored) {}
+      }
+      catch (NumberFormatException ignored) {
+      }
     }
 
     row++;
@@ -247,7 +254,7 @@ public class ConnectionDetailsView extends JPanel {
     row++;
     JSeparator separator = new JSeparator();
     separator.setMinimumSize(separator.getPreferredSize());
-    int gap = PAGE_VGAP - SECTION_VGAP - (int) separator.getPreferredSize().getHeight() / 2;
+    int gap = PAGE_VGAP - SECTION_VGAP - (int)separator.getPreferredSize().getHeight() / 2;
     JPanel separatorContainer = new JPanel(new VerticalFlowLayout(0, gap));
     separatorContainer.add(separator);
     myFieldsPanel.add(separatorContainer, new TabularLayout.Constraint(row, 0, 1, 3));
@@ -279,7 +286,8 @@ public class ConnectionDetailsView extends JPanel {
     if (httpData.getDownloadingTimeUs() > 0) {
       sentTime = httpData.getDownloadingTimeUs() - httpData.getStartTimeUs();
       receivedTime = httpData.getEndTimeUs() - httpData.getDownloadingTimeUs();
-    } else if (httpData.getEndTimeUs() > 0) {
+    }
+    else if (httpData.getEndTimeUs() > 0) {
       sentTime = httpData.getEndTimeUs() - httpData.getStartTimeUs();
       receivedTime = 0;
     }
@@ -317,7 +325,8 @@ public class ConnectionDetailsView extends JPanel {
       // TODO: Adjust color.
 
       panel.add(emptyLabel, new TabularLayout.Constraint(1, 0));
-    } else {
+    }
+    else {
       StringBuilder stringBuilder = new StringBuilder();
       stringBuilder.append("<html>");
       Map<String, String> sortedMap = new TreeMap<>(map);

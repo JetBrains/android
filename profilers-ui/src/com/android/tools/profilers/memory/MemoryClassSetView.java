@@ -27,7 +27,6 @@ import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribu
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +43,8 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 
 final class MemoryClassSetView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
@@ -186,7 +187,6 @@ final class MemoryClassSetView extends AspectObserver {
         Comparator.comparingLong(o -> ((ValueObject)o.getAdapter()).getRetainedSize())));
 
     JPanel headingPanel = new JPanel(new BorderLayout());
-    headingPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     JLabel instanceViewLabel = new JLabel("Instance View");
     instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
     headingPanel.add(instanceViewLabel, BorderLayout.WEST);
@@ -331,6 +331,7 @@ final class MemoryClassSetView extends AspectObserver {
     });
 
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    builder.setBorder(DEFAULT_TOP_BORDER);
     myColumnTree = builder.build();
     myInstancesPanel.add(myColumnTree, BorderLayout.CENTER);
   }

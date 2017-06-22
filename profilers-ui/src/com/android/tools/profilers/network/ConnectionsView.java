@@ -63,27 +63,27 @@ final class ConnectionsView {
         return HttpData.getUrlName(data.getUrl());
       }
     },
-    SIZE(0.25/4, Integer.class) {
+    SIZE(0.25 / 4, Integer.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
         String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
         return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
       }
     },
-    TYPE(0.25/4, String.class) {
+    TYPE(0.25 / 4, String.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
         HttpData.ContentType type = data.getContentType();
         return type == null ? "" : type.getMimeType();
       }
     },
-    STATUS(0.25/4, Integer.class) {
+    STATUS(0.25 / 4, Integer.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
         return data.getStatusCode();
       }
     },
-    TIME(0.25/4, Long.class) {
+    TIME(0.25 / 4, Long.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
         return data.getEndTimeUs() - data.getStartTimeUs();
@@ -182,7 +182,8 @@ final class ConnectionsView {
       public void componentResized(ComponentEvent e) {
         for (int i = 0; i < Column.values().length; ++i) {
           Column column = Column.values()[i];
-          myConnectionsTable.getColumnModel().getColumn(i).setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
+          myConnectionsTable.getColumnModel().getColumn(i)
+            .setPreferredWidth((int)(myConnectionsTable.getWidth() * column.getWidthPercentage()));
         }
       }
     });
@@ -204,7 +205,8 @@ final class ConnectionsView {
           return;
         }
       }
-    } else {
+    }
+    else {
       myConnectionsTable.clearSelection();
     }
   }
@@ -301,7 +303,7 @@ final class ConnectionsView {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       ConnectionsStateChart chart = myConnectionsCharts.get(myTable.convertRowIndexToModel(row));
       chart.getColors().setColorIndex(isSelected ? 1 : 0);
-      JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
+      JPanel panel = new JBPanel(new TabularLayout("*", "*"));
       if (row == 0) {
         AxisComponent axis = createAxis();
         axis.setForeground(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);

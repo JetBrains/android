@@ -81,6 +81,9 @@ public class ColumnTreeBuilder {
   private List<ColumnBuilder> myColumnBuilders;
 
   @Nullable
+  private Border myBorder;
+
+  @Nullable
   private Color myBackground;
 
   public ColumnTreeBuilder(@NotNull JTree tree) {
@@ -102,6 +105,11 @@ public class ColumnTreeBuilder {
    */
   public ColumnTreeBuilder setTreeSorter(@NotNull TreeSorter<?> sorter) {
     myTreeSorter = sorter;
+    return this;
+  }
+
+  public ColumnTreeBuilder setBorder(@NotNull Border border) {
+    myBorder = border;
     return this;
   }
 
@@ -190,6 +198,9 @@ public class ColumnTreeBuilder {
     JBScrollPane scrollPane = new JBScrollPane(panel);
     scrollPane.setColumnHeader(viewport);
     scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    if (myBorder != null) {
+      scrollPane.setBorder(myBorder);
+    }
     return scrollPane;
   }
 

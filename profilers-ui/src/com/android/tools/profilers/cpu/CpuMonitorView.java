@@ -71,6 +71,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
     LineConfig config = new LineConfig(ProfilerColors.CPU_USAGE).setFilled(true).setLegendIconType(LegendConfig.IconType.NONE);
     lineChart.configure(cpuUsage.getCpuSeries(), config);
+    lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
     CpuMonitor.Legends legends = getMonitor().getLegends();

@@ -55,6 +55,8 @@ import java.awt.event.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
@@ -70,19 +72,15 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * The action listener of the capture button changes depending on the state of the profiler.
    * It can be either "start capturing" or "stop capturing".
    */
-  private final Splitter mySplitter;
+  @NotNull private final Splitter mySplitter;
 
-  @NotNull
-  private final LoadingPanel myCaptureViewLoading;
+  @NotNull private final LoadingPanel myCaptureViewLoading;
 
-  @Nullable
-  private CpuCaptureView myCaptureView;
+  @Nullable private CpuCaptureView myCaptureView;
 
-  @NotNull
-  private final JComboBox<ProfilingConfiguration> myProfilingConfigurationCombo;
+  @NotNull  private final JComboBox<ProfilingConfiguration> myProfilingConfigurationCombo;
 
-  @NotNull
-  private final CpuStageTooltipView myTooltipView;
+  @NotNull private final CpuStageTooltipView myTooltipView;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     // TODO: decide if the constructor should be split into multiple methods in order to organize the code and improve readability
@@ -128,7 +126,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
-    monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
 
     SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
@@ -136,8 +133,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     final OverlayComponent overlay = new OverlayComponent(selection);
     overlayPanel.add(overlay, BorderLayout.CENTER);
-    monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
-    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -151,10 +146,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
     lineChart.configure(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT)
       .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
-    int yOffset = (int) LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2;
-    lineChart.setRenderOffset(0,  yOffset);
+    lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
-    monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
     CpuProfilerStage.CpuStageLegends legends = getStage().getLegends();
     final LegendComponent legend = new LegendComponent(legends);
@@ -172,7 +165,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     legendPanel.setOpaque(false);
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
-    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
 
     DurationDataRenderer<CpuCapture> traceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
@@ -194,6 +186,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     overlay.addDurationDataRenderer(inProgressTraceRenderer);
     lineChart.addCustomRenderer(inProgressTraceRenderer);
 
+    monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(overlayPanel, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
+    monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
+
     CpuThreadsModel model = myStage.getThreadStates();
     myThreads = new JBList<>(model);
     myThreads.addListSelectionListener((e) -> {
@@ -210,6 +208,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
     });
     JScrollPane scrollingThreads = new MyScrollPane();
+    scrollingThreads.setBorder(MONITOR_BORDER);
     scrollingThreads.setViewportView(myThreads);
     myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
     myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -264,6 +263,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     mySplitter = new Splitter(true);
     mySplitter.setFirstComponent(details);
     mySplitter.setSecondComponent(null);
+    mySplitter.setShowDividerIcon(false);
+    mySplitter.getDivider().setBorder(DEFAULT_TOP_BORDER);
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
     myCaptureButton = new FlatButton();
@@ -427,10 +428,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       if (profilingConfiguration.getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
         if (profilingConfiguration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
           featureTracker.trackTraceArtSampled();
-        } else if (profilingConfiguration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
+        }
+        else if (profilingConfiguration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
           featureTracker.trackTraceArtInstrumented();
         }
-      } else if (profilingConfiguration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
+      }
+      else if (profilingConfiguration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
         // TODO: track simpleperf
       }
     }

@@ -44,9 +44,7 @@ public class ProfilerLayout {
 
   public static final Border MONITOR_LABEL_PADDING = BorderFactory.createEmptyBorder(5, 10, 5, 10);
 
-  public static final Border MONITOR_BORDER = BorderFactory.createCompoundBorder(
-    new MatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER),
-    new EmptyBorder(0, 0, 0, 0));
+  public static final Border MONITOR_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER);
 
   public static final FlowLayout TOOLBAR_LAYOUT = new FlowLayout(FlowLayout.CENTER, 0, 2);
 

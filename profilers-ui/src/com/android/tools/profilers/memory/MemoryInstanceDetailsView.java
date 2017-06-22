@@ -47,6 +47,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
 
 /**
@@ -263,7 +264,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         .map(AllocationStackConverter::getCodeLocation)
         .collect(Collectors.toList());
       myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), stackFrames);
-      myTabsPanel.addTab(TITLE_TAB_CALLSTACK, myStackTraceView.getComponent());
+      JComponent stackTraceView = myStackTraceView.getComponent();
+      stackTraceView.setBorder(DEFAULT_TOP_BORDER);
+      myTabsPanel.addTab(TITLE_TAB_CALLSTACK, stackTraceView);
       hasContent = true;
     }
 
@@ -305,6 +308,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     });
 
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    builder.setBorder(DEFAULT_TOP_BORDER);
     return builder.build();
   }
 
