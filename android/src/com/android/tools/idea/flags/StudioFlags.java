@@ -122,7 +122,7 @@ public final class StudioFlags {
     false);
 
   public static final Flag<Boolean> NELE_LIVE_RENDER = Flag.create(
-    NELE, "mockup.live.render", "Enable the Live Render",
+    NELE, "live.render", "Enable the Live Render",
     "Enable the continuous rendering of the surface when moving/resizing components.",
     false);
 
