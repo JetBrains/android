@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import static com.android.utils.FileUtils.toSystemIndependentPath;
+
 public final class CreateClassActionTest extends AndroidTestCase {
   public void testGetDestinationDirectoryIdeHasOneDirectory() {
     PsiDirectory directory = Mockito.mock(PsiDirectory.class);
@@ -53,7 +55,7 @@ public final class CreateClassActionTest extends AndroidTestCase {
       PsiFileSystemItem directory = CreateClassAction.getDestinationDirectory(ide, myModule);
       assert directory != null;
 
-      assertEquals(path.toString(), directory.getVirtualFile().getPath());
+      assertEquals(toSystemIndependentPath(path.toString()), directory.getVirtualFile().getPath());
     }
     finally {
       myFacet.setAndroidModel(oldModel);
