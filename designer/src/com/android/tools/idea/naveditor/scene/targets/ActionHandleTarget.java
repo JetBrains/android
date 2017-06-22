@@ -27,16 +27,13 @@ import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
 
 import java.awt.*;
 import java.util.List;
@@ -45,12 +42,12 @@ import java.util.List;
  * {@linkplain ActionHandleTarget} is a target for handling drag-creation of actions.
  * It appears as a circular grab handle on the right side of the navigation screen.
  */
-public class ActionHandleTarget extends BaseTarget {
+public class ActionHandleTarget extends NavBaseTarget {
   private int myCurrentRadius = 0;
   private boolean myIsDragging = false;
 
   public ActionHandleTarget(@NotNull SceneComponent component) {
-    setComponent(component);
+    super(component);
   }
 
   @Override
@@ -64,11 +61,7 @@ public class ActionHandleTarget extends BaseTarget {
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    myLeft = r - DrawActionHandle.LARGE_RADIUS;
-    myTop = t + (b - t) / 2 - DrawActionHandle.LARGE_RADIUS;
-    myRight = myLeft + 2 * DrawActionHandle.LARGE_RADIUS;
-    myBottom = myTop + 2 * DrawActionHandle.LARGE_RADIUS;
-
+    layoutCircle(r, t + (b - t) / 2, DrawActionHandle.LARGE_RADIUS);
     return false;
   }
 
@@ -117,7 +110,7 @@ public class ActionHandleTarget extends BaseTarget {
   }
 
   private DrawCommand createDrawActionHandleDrag(@NotNull SceneContext sceneContext) {
-    return new DrawActionHandleDrag(sceneContext.getSwingX(getCenterX()), sceneContext.getSwingY(getCenterY()),
+    return new DrawActionHandleDrag(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext),
                                     sceneContext.getColorSet().getSelectedFrames());
   }
 
@@ -131,28 +124,18 @@ public class ActionHandleTarget extends BaseTarget {
       newRadius = DrawActionHandle.SMALL_RADIUS;
     }
 
-    ColorSet colorSet = sceneContext.getColorSet();
-    Color borderColor = colorSet.getFrames();
-
-    if (getComponent().isSelected()) {
-      borderColor = colorSet.getSelectedFrames();
-    }
-    else if (getComponent().getDrawState() == SceneComponent.DrawState.HOVER) {
-      borderColor = colorSet.getHighlightedFrames();
-    }
-
-    Color fillColor = colorSet.getBackground();
+    Color fillColor = sceneContext.getColorSet().getBackground();
 
     DrawActionHandle drawCommand =
-      new DrawActionHandle(sceneContext.getSwingX(getCenterX()), sceneContext.getSwingY(getCenterY()), myCurrentRadius, newRadius,
-                           borderColor, fillColor);
+      new DrawActionHandle(getSwingCenterX(sceneContext), getSwingCenterY(sceneContext), myCurrentRadius, newRadius,
+                           getFrameColor(sceneContext), fillColor);
     myCurrentRadius = newRadius;
     return drawCommand;
   }
 
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
-    picker.addCircle(this, 0, transform.getSwingX(getCenterX()), transform.getSwingY(getCenterY()), DrawActionHandle.LARGE_RADIUS);
+    picker.addCircle(this, 0, getSwingCenterX(transform), getSwingCenterY(transform), DrawActionHandle.LARGE_RADIUS);
   }
 
   @Override

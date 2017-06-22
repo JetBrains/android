@@ -82,13 +82,16 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawAction,NORMAL,310x50x192x320,570x50x100x25,NORMAL\n" +
                  "DrawAction,NORMAL,310x50x192x320,50x50x192x320,NORMAL\n" +
                  "DrawActionHandle,502,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,310,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "DrawAction,NORMAL,98x50x192x320,310x50x192x320,NORMAL\n" +
                  "DrawTextRegion,570,50,100,25,0,20,true,false,4,4,14,1.0,\"navigation\"\n" +
                  "DrawComponentFrame,570,50,100,25,1,true\n" +
                  "DrawAction,NORMAL,570x50x100x25,50x50x192x320,NORMAL\n" +
                  "DrawActionHandle,670,62,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,570,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],subnav\n" +
                  "DrawComponentFrame,50,50,192,320,1,false\n" +
                  "DrawActionHandle,242,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,50,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],activity\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -128,13 +131,16 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawNavScreen,251,51,191,319\n" +
                  "DrawComponentFrame,250,50,192,320,1,false\n" +
                  "DrawActionHandle,442,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,250,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "DrawAction,NORMAL,38x50x192x320,250x50x192x320,NORMAL\n" +
                  "DrawNavScreen,51,251,191,319\n" +
                  "DrawComponentFrame,50,250,192,320,1,false\n" +
                  "DrawActionHandle,242,410,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,50,244,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment2\n" +
                  "DrawNavScreen,551,451,191,319\n" +
                  "DrawComponentFrame,550,450,192,320,1,false\n" +
                  "DrawActionHandle,742,610,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,550,444,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment3\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -174,13 +180,16 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawNavScreen,251,51,191,319\n" +
                  "DrawComponentFrame,250,50,192,320,1,false\n" +
                  "DrawActionHandle,442,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,250,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "DrawAction,NORMAL,38x50x192x320,250x50x192x320,NORMAL\n" +
                  "DrawNavScreen,51,251,191,319\n" +
                  "DrawComponentFrame,50,250,192,320,1,false\n" +
                  "DrawActionHandle,242,410,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,50,244,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment2\n" +
                  "DrawNavScreen,551,451,191,319\n" +
                  "DrawComponentFrame,550,450,192,320,1,false\n" +
                  "DrawActionHandle,742,610,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,550,444,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment3\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -215,12 +224,15 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentFrame,310,50,192,320,1,false\n" +
                  "DrawAction,NORMAL,310x50x192x320,570x50x192x320,NORMAL\n" +
                  "DrawActionHandle,502,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,310,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "DrawNavScreen,571,51,191,319\n" +
                  "DrawComponentFrame,570,50,192,320,1,false\n" +
                  "DrawActionHandle,762,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,570,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment2\n" +
                  "DrawAction,NORMAL,358x50x192x320,570x50x192x320,NORMAL\n" +
                  "DrawComponentFrame,50,50,192,320,1,false\n" +
                  "DrawActionHandle,242,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,50,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment3\n" +
                  "UNClip\n", list.serialize());
   }
 
@@ -253,6 +265,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawNavScreen,51,51,191,319\n" +
                  "DrawComponentFrame,50,50,192,320,1,false\n" +
                  "DrawActionHandle,242,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,50,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "UNClip\n", list.serialize());
 
     UndoManager undoManager = UndoManager.getInstance(getProject());
@@ -267,9 +280,11 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentFrame,310,50,192,320,1,false\n" +
                  "DrawAction,NORMAL,310x50x192x320,50x50x192x320,NORMAL\n" +
                  "DrawActionHandle,502,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,310,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "DrawNavScreen,51,51,191,319\n" +
                  "DrawComponentFrame,50,50,192,320,1,false\n" +
                  "DrawActionHandle,242,210,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,50,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment2\n" +
                  "DrawAction,NORMAL,-162x50x192x320,50x50x192x320,NORMAL\n" +
                  "UNClip\n", list.serialize());
 
@@ -336,14 +351,17 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentFrame,620,100,384,640,1,false\n" +
                  "DrawAction,NORMAL,620x100x384x640,100x100x384x640,NORMAL\n" +
                  "DrawActionHandle,1004,420,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,620,88,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],fragment1\n" +
                  "DrawNavScreen,101,101,383,639\n" +
                  "DrawComponentFrame,100,100,384,640,1,false\n" +
                  "DrawActionHandle,484,420,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,100,88,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],fragment2\n" +
                  "DrawAction,NORMAL,-304x100x384x640,100x100x384x640,NORMAL\n" +
                  "DrawTextRegion,1140,100,200,50,0,20,true,false,4,4,14,1.0,\"navigation\"\n" +
                  "DrawComponentFrame,1140,100,200,50,1,true\n" +
                  "DrawAction,NORMAL,1140x100x200x50,620x100x384x640,NORMAL\n" +
                  "DrawActionHandle,1340,124,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,1140,88,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],subnav\n" +
                  "UNClip\n", list.serialize());
     list.clear();
     surface.setCurrentNavigation(model.find("subnav"));
@@ -353,8 +371,10 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawComponentFrame,620,100,384,640,1,false\n" +
                  "DrawAction,NORMAL,620x100x384x640,100x100x384x640,NORMAL\n" +
                  "DrawActionHandle,1004,420,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,620,88,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],fragment3\n" +
                  "DrawComponentFrame,100,100,384,640,1,false\n" +
                  "DrawActionHandle,484,420,0,0,ffc0c0c0,fafafa\n" +
+                 "DrawScreenLabel,100,88,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],fragment4\n" +
                  "UNClip\n", list.serialize());
   }
 }
