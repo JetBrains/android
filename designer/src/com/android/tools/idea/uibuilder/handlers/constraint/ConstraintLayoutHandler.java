@@ -105,7 +105,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   // This is used to efficiently test if they are horizontal or vertical.
   static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
   private ArrayList<ViewAction> myActions = new ArrayList<>();
-  private ArrayList<ViewAction> myPopupActions = new ArrayList<>();
 
   /**
    * Utility function to convert from an Icon to an Image
@@ -226,213 +225,21 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     )));
 
     actions.add(new NestedViewActionMenu("Align", AndroidIcons.SherpaIcons.LeftAlignedB, Lists.newArrayList(
-      Lists.newArrayList(
-        new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
-                        AndroidIcons.SherpaIcons.LeftAligned, AndroidIcons.SherpaIcons.LeftAlignedB,
-                        "Align Left Edges"),
-        new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
-                        AndroidIcons.SherpaIcons.CenterAligned, AndroidIcons.SherpaIcons.CenterAlignedB,
-                        "Align Horizontal Centers"),
-        new AlignAction(Scout.Arrange.AlignHorizontallyRight,
-                        AndroidIcons.SherpaIcons.RightAligned, AndroidIcons.SherpaIcons.RightAlignedB,
-                        "Align Right Edges")
-      ),
-      Lists.newArrayList(
-        new AlignAction(Scout.Arrange.AlignVerticallyTop,
-                        AndroidIcons.SherpaIcons.TopAlign, AndroidIcons.SherpaIcons.TopAlignB,
-                        "Align Top Edges"),
-        new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
-                        AndroidIcons.SherpaIcons.MiddleAlign, AndroidIcons.SherpaIcons.MiddleAlignB,
-                        "Align Vertical Centers"),
-        new AlignAction(Scout.Arrange.AlignVerticallyBottom,
-                        AndroidIcons.SherpaIcons.BottomAlign, AndroidIcons.SherpaIcons.BottomAlignB,
-                        "Align Bottom Edges"),
-        new AlignAction(Scout.Arrange.AlignBaseline,
-                        AndroidIcons.SherpaIcons.BaselineAlign, AndroidIcons.SherpaIcons.BaselineAlignB,
-                        "Align Baselines")
-      ),
+      ConstraintViewActions.ALIGN_HORIZONTALLY_ACTIONS,
+      ConstraintViewActions.ALIGN_VERTICALLY_ACTIONS,
       Lists.newArrayList(new ViewActionSeparator()),
-      Lists.newArrayList(
-        new AlignAction(Scout.Arrange.CenterHorizontally,
-                        AndroidIcons.SherpaIcons.HorizontalCenter,
-                        AndroidIcons.SherpaIcons.HorizontalCenterB,
-                        "Center Horizontally"),
-        new AlignAction(Scout.Arrange.CenterVertically,
-                        AndroidIcons.SherpaIcons.VerticalCenter,
-                        AndroidIcons.SherpaIcons.VerticalCenterB,
-                        "Center Vertically"),
-        new AlignAction(Scout.Arrange.CreateHorizontalChain,
-                        AndroidIcons.SherpaIcons.CreateHorizontalChain,
-                        AndroidIcons.SherpaIcons.CreateHorizontalChain,
-                        "Create Horizontal Chain"),
-        new AlignAction(Scout.Arrange.CreateVerticalChain,
-                        AndroidIcons.SherpaIcons.CreateVerticalChain,
-                        AndroidIcons.SherpaIcons.CreateVerticalChain,
-                        "Create Vertical Chain"),
-        new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
-                        AndroidIcons.SherpaIcons.HorizontalCenterParent,
-                        AndroidIcons.SherpaIcons.HorizontalCenterParentB,
-                        "Center Horizontally in Parent"),
-        new AlignAction(Scout.Arrange.CenterVerticallyInParent,
-                        AndroidIcons.SherpaIcons.VerticalCenterParent,
-                        AndroidIcons.SherpaIcons.VerticalCenterParent,
-                        "Center Vertically in Parent")
-      )
-    )));
+      ConstraintViewActions.CENTER_ACTIONS)));
 
     actions.add(new NestedViewActionMenu("Guidelines", AndroidIcons.SherpaIcons.GuidelineVertical, Lists.<List<ViewAction>>newArrayList(
-      Lists.newArrayList(
-        new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
-                             AndroidIcons.SherpaIcons.GuidelineVertical,
-                             "Add Vertical Guideline"),
-        new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
-                             AndroidIcons.SherpaIcons.GuidelineHorizontal,
-                             "Add Horizontal Guideline"),
-        new AddElementAction(AddElementAction.VERTICAL_BARRIER,
-                             AndroidIcons.SherpaIcons.BarrierVertical,
-                             ADD_VERTICAL_BARRIER),
-        new AddElementAction(AddElementAction.HORIZONTAL_BARRIER,
-                             AndroidIcons.SherpaIcons.BarrierHorizontal,
-                             ADD_HORIZONTAL_BARRIER),
-        new AddElementAction(AddElementAction.GROUP,
-                             AndroidIcons.SherpaIcons.Layer,
-                             ADD_GROUP),
-        new AddElementAction(AddElementAction.CONSTRAINT_SET,
-                             AndroidIcons.SherpaIcons.Layer,
-                             ADD_CONSTRAINTS_SET),
-        new AddElementAction(AddElementAction.LAYER,
-                             AndroidIcons.SherpaIcons.Layer,
-                             ADD_LAYER)
-      ))
-    ));
+      ConstraintViewActions.HELPER_ACTIONS)));
   }
 
   @Override
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    // Just dumps all the toolbar actions in the context menu under a menu item called "Constraint Layout"
-    String str;
-    ViewAction action;
-
-    str = "Pack Horizontally";
-    actions.add(action = new AlignAction(Scout.Arrange.HorizontalPack,
-                                         AndroidIcons.SherpaIcons.PackSelectionHorizontally, str));
-    myPopupActions.add(action);
-
-    str = "Pack Vertically";
-    actions.add(action = new AlignAction(Scout.Arrange.VerticalPack,
-                                         AndroidIcons.SherpaIcons.PackSelectionVertically, str));
-    myPopupActions.add(action);
-
-    str = "Expand Horizontally";
-    actions.add(action = new AlignAction(Scout.Arrange.ExpandHorizontally,
-                                         AndroidIcons.SherpaIcons.HorizontalExpand, str));
-    myPopupActions.add(action);
-
-    str = "Expand Vertically";
-    actions.add(action = new AlignAction(Scout.Arrange.ExpandVertically,
-                                         AndroidIcons.SherpaIcons.VerticalExpand, str));
-    myPopupActions.add(action);
-
-    actions.add((new ViewActionSeparator()));
-
-    str = "Align Left Edges";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
-                                         AndroidIcons.SherpaIcons.LeftAligned, AndroidIcons.SherpaIcons.LeftAlignedB, str));
-    myPopupActions.add(action);
-
-    str = "Align Horizontal Centers";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
-                                         AndroidIcons.SherpaIcons.CenterAligned, AndroidIcons.SherpaIcons.CenterAlignedB, str));
-    myPopupActions.add(action);
-
-    str = "Align Right Edges";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignHorizontallyRight,
-                                         AndroidIcons.SherpaIcons.RightAligned, AndroidIcons.SherpaIcons.RightAlignedB, str));
-    myPopupActions.add(action);
-
-    str = "Align Top Edges";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyTop,
-                                         AndroidIcons.SherpaIcons.TopAlign, AndroidIcons.SherpaIcons.TopAlignB, str));
-    myPopupActions.add(action);
-
-    str = "Align Vertical Centers";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
-                                         AndroidIcons.SherpaIcons.MiddleAlign, AndroidIcons.SherpaIcons.MiddleAlignB, str));
-    myPopupActions.add(action);
-
-    str = "Align Bottom Edges";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignVerticallyBottom,
-                                         AndroidIcons.SherpaIcons.BottomAlign, AndroidIcons.SherpaIcons.BottomAlignB, str));
-    myPopupActions.add(action);
-
-    str = "Align Baselines";
-    actions.add(action = new AlignAction(Scout.Arrange.AlignBaseline,
-                                         AndroidIcons.SherpaIcons.BaselineAlign, AndroidIcons.SherpaIcons.BottomAlignB, str));
-    myPopupActions.add(action);
-
-    actions.add((new ViewActionSeparator()));
-
-    str = "Center Horizontally";
-    actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontally,
-                                         AndroidIcons.SherpaIcons.HorizontalCenter, AndroidIcons.SherpaIcons.HorizontalCenterB, str));
-    myPopupActions.add(action);
-
-    str = "Center Vertically";
-    actions.add(action = new AlignAction(Scout.Arrange.CenterVertically,
-                                         AndroidIcons.SherpaIcons.VerticalCenter, AndroidIcons.SherpaIcons.VerticalCenterB, str));
-    myPopupActions.add(action);
-
-    str = "Create Horizontal Chain";
-    actions.add(action = new AlignAction(Scout.Arrange.CreateHorizontalChain,
-                                         AndroidIcons.SherpaIcons.CreateHorizontalChain, AndroidIcons.SherpaIcons.CreateHorizontalChain,
-                                         str));
-    myPopupActions.add(action);
-
-    str = "Create Vertical Chain";
-    actions.add(action = new AlignAction(Scout.Arrange.CreateVerticalChain,
-                                         AndroidIcons.SherpaIcons.CreateVerticalChain, AndroidIcons.SherpaIcons.CreateVerticalChain, str));
-    myPopupActions.add(action);
-
-    str = "Center Horizontally in Parent";
-    actions.add(action = new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
-                                         AndroidIcons.SherpaIcons.HorizontalCenterParent, AndroidIcons.SherpaIcons.HorizontalCenterParentB,
-                                         str));
-    myPopupActions.add(action);
-
-    str = "Center Vertically in Parent";
-    actions.add(action = new AlignAction(Scout.Arrange.CenterVerticallyInParent,
-                                         AndroidIcons.SherpaIcons.VerticalCenterParent, AndroidIcons.SherpaIcons.VerticalCenterParentB,
-                                         str));
-    myPopupActions.add(action);
-    addToolbarActionsToMenu("Constraint Layout", actions);
-
-    str = "Add Vertical Guideline";
-    actions.add(action = new AddElementAction(AddElementAction.VERTICAL_GUIDELINE, AndroidIcons.SherpaIcons.GuidelineVertical, str));
-    myPopupActions.add(action);
-
-    str = "Add Horizontal Guideline";
-    actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE, AndroidIcons.SherpaIcons.GuidelineHorizontal, str));
-    myPopupActions.add(action);
-
-    str = ADD_VERTICAL_BARRIER;
-    actions.add(action = new AddElementAction(AddElementAction.VERTICAL_BARRIER, AndroidIcons.SherpaIcons.BarrierVertical, str));
-    myPopupActions.add(action);
-
-    str = ADD_HORIZONTAL_BARRIER;
-    actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_BARRIER, AndroidIcons.SherpaIcons.BarrierHorizontal, str));
-    myPopupActions.add(action);
-
-    str = ADD_GROUP;
-    actions.add(action = new AddElementAction(AddElementAction.GROUP, AndroidIcons.SherpaIcons.Layer, str));
-    myPopupActions.add(action);
-
-    str = ADD_CONSTRAINTS_SET;
-    actions.add(action = new AddElementAction(AddElementAction.CONSTRAINT_SET, AndroidIcons.SherpaIcons.Layer, str));
-    myPopupActions.add(action);
-
-    str = ADD_LAYER;
-    actions.add(action = new AddElementAction(AddElementAction.LAYER, AndroidIcons.SherpaIcons.Layer, str));
-    myPopupActions.add(action);
+    actions.add(new ViewActionMenu("Organize", AndroidIcons.SherpaIcons.PackSelectionHorizontally, ConstraintViewActions.ORGANIZE_ACTIONS));
+    actions.add(new ViewActionMenu("Align", AndroidIcons.SherpaIcons.LeftAligned, ConstraintViewActions.ALIGN_ACTIONS));
+    actions.add(new ViewActionMenu("Center", AndroidIcons.SherpaIcons.HorizontalCenter, ConstraintViewActions.CENTER_ACTIONS));
+    actions.add(new ViewActionMenu("Helpers", AndroidIcons.SherpaIcons.GuidelineVertical, ConstraintViewActions.HELPER_ACTIONS));
   }
 
   interface Enableable {
@@ -455,7 +262,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     }
 
-    for (ViewAction action : myPopupActions) {
+    for (ViewAction action : ConstraintViewActions.ALL_POPUP_ACTIONS) {
       if (action instanceof Enableable) {
         Enableable e = (Enableable)action;
         e.enable(selection);
@@ -1316,5 +1123,115 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
     }
     return component.getNlComponent();
+  }
+
+  private static class ConstraintViewActions {
+    private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
+      new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
+                      AndroidIcons.SherpaIcons.LeftAligned,
+                      AndroidIcons.SherpaIcons.LeftAlignedB,
+                      "Align Left Edges"),
+      new AlignAction(Scout.Arrange.AlignHorizontallyCenter,
+                      AndroidIcons.SherpaIcons.CenterAligned,
+                      AndroidIcons.SherpaIcons.CenterAlignedB,
+                      "Align Horizontal Centers"),
+      new AlignAction(Scout.Arrange.AlignHorizontallyRight,
+                      AndroidIcons.SherpaIcons.RightAligned,
+                      AndroidIcons.SherpaIcons.RightAlignedB,
+                      "Align Right Edges"));
+
+    private static final ImmutableList<ViewAction> ALIGN_VERTICALLY_ACTIONS = ImmutableList.of(
+      new AlignAction(Scout.Arrange.AlignVerticallyTop,
+                      AndroidIcons.SherpaIcons.TopAlign,
+                      AndroidIcons.SherpaIcons.TopAlignB,
+                      "Align Top Edges"),
+      new AlignAction(Scout.Arrange.AlignVerticallyMiddle,
+                      AndroidIcons.SherpaIcons.MiddleAlign,
+                      AndroidIcons.SherpaIcons.MiddleAlignB,
+                      "Align Vertical Centers"),
+      new AlignAction(Scout.Arrange.AlignVerticallyBottom,
+                      AndroidIcons.SherpaIcons.BottomAlign,
+                      AndroidIcons.SherpaIcons.BottomAlignB,
+                      "Align Bottom Edges"),
+      new AlignAction(Scout.Arrange.AlignBaseline,
+                      AndroidIcons.SherpaIcons.BaselineAlign,
+                      AndroidIcons.SherpaIcons.BottomAlignB, "Align Baselines"));
+
+
+    private static final ImmutableList<ViewAction> ALIGN_ACTIONS = ImmutableList.<ViewAction>builder()
+      .addAll(ALIGN_HORIZONTALLY_ACTIONS)
+      .addAll(ALIGN_VERTICALLY_ACTIONS)
+      .build();
+
+    private static final ImmutableList<ViewAction> CENTER_ACTIONS = ImmutableList.of(
+      new AlignAction(Scout.Arrange.CenterHorizontally,
+                      AndroidIcons.SherpaIcons.HorizontalCenter,
+                      AndroidIcons.SherpaIcons.HorizontalCenterB,
+                      "Center Horizontally"),
+      new AlignAction(Scout.Arrange.CenterVertically,
+                      AndroidIcons.SherpaIcons.VerticalCenter,
+                      AndroidIcons.SherpaIcons.VerticalCenterB,
+                      "Center Vertically"),
+      new AlignAction(Scout.Arrange.CreateHorizontalChain,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      AndroidIcons.SherpaIcons.CreateHorizontalChain,
+                      "Create Horizontal Chain"),
+      new AlignAction(Scout.Arrange.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      AndroidIcons.SherpaIcons.CreateVerticalChain,
+                      "Create Vertical Chain"),
+      new AlignAction(Scout.Arrange.CenterHorizontallyInParent,
+                      AndroidIcons.SherpaIcons.HorizontalCenterParent,
+                      AndroidIcons.SherpaIcons.HorizontalCenterParentB,
+                      "Center Horizontally in Parent"),
+      new AlignAction(Scout.Arrange.CenterVerticallyInParent,
+                      AndroidIcons.SherpaIcons.VerticalCenterParent,
+                      AndroidIcons.SherpaIcons.VerticalCenterParentB,
+                      "Center Vertically in Parent"));
+
+    private static final ImmutableList<ViewAction> ORGANIZE_ACTIONS = ImmutableList.of(
+      new AlignAction(Scout.Arrange.HorizontalPack,
+                      AndroidIcons.SherpaIcons.PackSelectionHorizontally,
+                      "Pack Horizontally"),
+      new AlignAction(Scout.Arrange.VerticalPack,
+                      AndroidIcons.SherpaIcons.PackSelectionVertically,
+                      "Pack Vertically"),
+      new AlignAction(Scout.Arrange.ExpandHorizontally,
+                      AndroidIcons.SherpaIcons.HorizontalExpand,
+                      "Expand Horizontally"),
+      new AlignAction(Scout.Arrange.ExpandVertically,
+                      AndroidIcons.SherpaIcons.VerticalExpand,
+                      "Expand Vertically"));
+
+    private static final ImmutableList<ViewAction> HELPER_ACTIONS = ImmutableList.of(
+      new AddElementAction(AddElementAction.VERTICAL_GUIDELINE,
+                           AndroidIcons.SherpaIcons.GuidelineVertical,
+                           "Add Vertical Guideline"),
+      new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
+                           AndroidIcons.SherpaIcons.GuidelineHorizontal,
+                           "Add Horizontal Guideline"),
+      new AddElementAction(AddElementAction.VERTICAL_BARRIER,
+                           AndroidIcons.SherpaIcons.BarrierVertical,
+                           ADD_VERTICAL_BARRIER),
+      new AddElementAction(AddElementAction.HORIZONTAL_BARRIER,
+                           AndroidIcons.SherpaIcons.BarrierHorizontal,
+                           ADD_HORIZONTAL_BARRIER),
+      new AddElementAction(AddElementAction.GROUP,
+                           AndroidIcons.SherpaIcons.Layer,
+                           ADD_GROUP),
+      new AddElementAction(AddElementAction.CONSTRAINT_SET,
+                           AndroidIcons.SherpaIcons.Layer,
+                           ADD_CONSTRAINTS_SET),
+      new AddElementAction(AddElementAction.LAYER,
+                           AndroidIcons.SherpaIcons.Layer,
+                           ADD_LAYER));
+
+    private static final ImmutableList<ViewAction> ALL_POPUP_ACTIONS = ImmutableList.<ViewAction>builder()
+      .addAll(ALIGN_HORIZONTALLY_ACTIONS)
+      .addAll(ALIGN_VERTICALLY_ACTIONS)
+      .addAll(ORGANIZE_ACTIONS)
+      .addAll(CENTER_ACTIONS)
+      .addAll(HELPER_ACTIONS)
+      .build();
   }
 }
