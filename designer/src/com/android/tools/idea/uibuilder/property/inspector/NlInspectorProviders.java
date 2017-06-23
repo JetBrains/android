@@ -25,15 +25,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class NlInspectorProviders extends InspectorProviders {
-  protected List<InspectorProvider> myProviders;
-  protected InspectorProvider myNullProvider;
+  protected final List<InspectorProvider> myProviders;
+  protected final InspectorProvider myNullProvider;
 
   public NlInspectorProviders(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     super(propertiesManager, parentDisposable);
     myNullProvider = new IdInspectorProvider();
     Project project = myPropertiesManager.getProject();
     myProviders = ImmutableList.of(myNullProvider,
-                                   new ViewInspectorProvider(project),
+                                   new ViewInspectorProvider(),
                                    new ConstraintSetInspectorProvider(),
                                    new ProgressBarInspectorProvider(),
                                    new TextInspectorProvider(),

@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.api.PropertyComponentHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -34,11 +33,9 @@ import static com.android.SdkConstants.*;
 
 public class ViewInspectorProvider implements InspectorProvider {
   private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(TEXT_VIEW, PROGRESS_BAR);
-  private final ViewHandlerManager myViewHandlerManager;
   private final Map<String, InspectorComponent> myInspectors;
 
-  public ViewInspectorProvider(@NotNull Project project) {
-    myViewHandlerManager = ViewHandlerManager.get(project);
+  ViewInspectorProvider() {
     myInspectors = new HashMap<>();
   }
 
@@ -49,14 +46,19 @@ public class ViewInspectorProvider implements InspectorProvider {
     if (components.size() != 1) {
       return false;
     }
-    String tagName = components.get(0).getTagName();
+
+    NlComponent firstComponent = components.get(0);
+    String tagName = firstComponent.getTagName();
+
     if (TAG_EXCEPTIONS.contains(tagName)) {
       return false;
     }
     if (myInspectors.containsKey(tagName)) {
       return true;
     }
-    ViewHandler handler = myViewHandlerManager.getHandler(tagName);
+
+    PropertyComponentHandler handler = NlComponentHelperKt.getViewHandler(firstComponent);
+
     if (handler == null || handler.getInspectorProperties().isEmpty()) {
       return false;
     }

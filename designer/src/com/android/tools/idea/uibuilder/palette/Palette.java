@@ -63,7 +63,8 @@ public class Palette {
    */
   public static Palette parse(@NotNull Reader xmlReader, @NotNull ViewHandlerManager manager) throws JAXBException {
     Palette palette = unMarshal(xmlReader);
-    palette.accept(item -> item.resolve(manager));
+    palette.accept(Item::resolve);
+    palette.accept(item -> item.initHandler(manager));
     palette.accept(item -> item.addGradleCoordinateId(palette.myGradleCoordinateIds));
     palette.setParentGroups();
     return palette;
@@ -72,7 +73,8 @@ public class Palette {
   private void setParentGroups() {
     accept(new Visitor() {
       @Override
-      public void visit(@NotNull Item item) {}
+      public void visit(@NotNull Item item) {
+      }
 
       @Override
       public void visit(@NotNull Group group) {
@@ -109,8 +111,11 @@ public class Palette {
    * Interface for a visitor for {@link Group}s and {@link Item}s.
    */
   public interface Visitor {
+    @SuppressWarnings("EmptyMethod")
     void visit(@NotNull Item item);
-    default void visit(@SuppressWarnings("UnusedParameters") @NotNull Group group) {}
+
+    default void visit(@SuppressWarnings("UnusedParameters") @NotNull Group group) {
+    }
   }
 
   /**
@@ -235,6 +240,10 @@ public class Palette {
     @XmlAttribute(name = "render-separately")
     @Nullable
     private Boolean myPreviewRenderSeparately;
+
+    @XmlAttribute(name = "handler-class")
+    @Nullable
+    private String myHandlerClass;
 
     @XmlElement(name = "xml", type = XmlValuePart.class)
     private XmlValuePart myXmlValuePart;
@@ -378,8 +387,7 @@ public class Palette {
       visitor.visit(this);
     }
 
-    private void resolve(@NotNull ViewHandlerManager manager) {
-      myHandler = manager.getHandlerOrDefault(myTagName);
+    private void resolve() {
       if (myXmlValuePart != null) {
         myXml = myXmlValuePart.getValue();
         if (myPreviewXml == null && myXmlValuePart.reuseForPreview()) {
@@ -389,6 +397,20 @@ public class Palette {
           myDragPreviewXml = myXml;
         }
         myXmlValuePart = null; // No longer used
+      }
+    }
+
+    private void initHandler(@NotNull ViewHandlerManager manager) {
+      if (myHandlerClass != null) {
+        try {
+          myHandler = (PaletteComponentHandler)Class.forName(myHandlerClass).newInstance();
+        }
+        catch (ReflectiveOperationException exception) {
+          myHandler = ViewHandlerManager.NONE;
+        }
+      }
+      else {
+        myHandler = manager.getHandlerOrDefault(myTagName);
       }
     }
 

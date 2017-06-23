@@ -34,8 +34,8 @@ import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.menu.GroupHandler;
-import com.android.tools.idea.uibuilder.menu.ItemHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
+import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.google.common.collect.ImmutableSet;
@@ -88,7 +88,7 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   /**
-   * Returns the {@link ViewHandlerManager} for the current project
+   * Returns the ViewHandlerManager for the current project
    */
   @NotNull
   public static ViewHandlerManager get(@NotNull AndroidFacet facet) {
@@ -107,13 +107,17 @@ public class ViewHandlerManager implements ProjectComponent {
    */
   @Nullable
   public ViewHandler getHandler(@NotNull NlComponent component) {
-    if (component.getTagName().equalsIgnoreCase(VIEW_MERGE)) {
-      String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
-      if (parentTag != null) {
-        return getHandler(parentTag);
-      }
+    String tag = component.getTagName();
+
+    switch (tag) {
+      case TAG_ITEM:
+        return MenuViewHandlerManager.getHandler(component);
+      case VIEW_MERGE:
+        String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
+        return getHandler(parentTag == null ? tag : parentTag);
+      default:
+        return getHandler(tag);
     }
-    return getHandler(component.getTagName());
   }
 
   /**
@@ -364,8 +368,6 @@ public class ViewHandlerManager implements ProjectComponent {
         return new TabLayoutHandler();
       case TAG_GROUP:
         return new GroupHandler();
-      case TAG_ITEM:
-        return new ItemHandler();
       case TAG_MENU:
         return new MenuHandler();
       case TEXT_INPUT_LAYOUT:

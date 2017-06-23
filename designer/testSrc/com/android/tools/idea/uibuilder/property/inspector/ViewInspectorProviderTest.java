@@ -42,7 +42,7 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myProvider = new ViewInspectorProvider(getProject());
+    myProvider = new ViewInspectorProvider();
   }
 
   public void testIsApplicable() {
