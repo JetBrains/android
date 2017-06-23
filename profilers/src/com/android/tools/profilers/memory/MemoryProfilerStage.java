@@ -123,7 +123,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myTooltipLegends = new MemoryStageLegends(profilers, myDetailedMemoryUsage, profilers.getTimeline().getTooltipRange());
 
     myGcStats = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
-    myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
+    myGcStats.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries(), Interpolatable.SegmentInterpolator);
 
     myEventMonitor = new EventMonitor(profilers);
 

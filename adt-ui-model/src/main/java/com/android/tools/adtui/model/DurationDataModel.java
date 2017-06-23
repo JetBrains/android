@@ -27,6 +27,7 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
 
   @NotNull private final RangedSeries<E> mySeries;
   @Nullable private RangedContinuousSeries myAttachedLineSeries = null;
+  @Nullable private Interpolatable<Long, Double> myInterpolatable = null;
 
   public DurationDataModel(@NotNull RangedSeries<E> series) {
     mySeries = series;
@@ -37,12 +38,19 @@ public class DurationDataModel<E extends DurationData> extends AspectModel<Durat
     return mySeries;
   }
 
+  @Nullable
   public RangedContinuousSeries getAttachedSeries() {
     return myAttachedLineSeries;
   }
 
-  public void setAttachedSeries(@Nullable RangedContinuousSeries attached) {
+  @Nullable
+  public Interpolatable<Long, Double> getInterpolatable() {
+    return myInterpolatable;
+  }
+
+  public void setAttachedSeries(@NotNull RangedContinuousSeries attached, @NotNull Interpolatable<Long, Double> interpolatable) {
     myAttachedLineSeries = attached;
+    myInterpolatable = interpolatable;
   }
 
   @Override
