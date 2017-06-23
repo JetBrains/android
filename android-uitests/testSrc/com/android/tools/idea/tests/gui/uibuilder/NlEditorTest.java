@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -25,9 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
-import com.android.tools.idea.uibuilder.actions.MorphDialog;
 import org.fest.swing.core.MouseButton;
-import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,9 +39,6 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-/**
- * UI tests for {@link NlEditor}
- */
 @RunWith(GuiTestRunner.class)
 public class NlEditorTest {
 
@@ -186,22 +182,31 @@ public class NlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void morphComponent() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    EditorFixture editor = ideFrame.getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true)
-      .dragComponentToSurface("Widgets", "Button")
-      .waitForRenderToFinish();
+    boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
 
-    NlComponentFixture button = layout.findView("Button", 0);
-    MorphDialogFixture fixture = layout.openMorphDialogForComponent(button);
-    assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+    try {
+      StudioFlags.NELE_CONVERT_VIEW.override(true);
 
-    ideFrame.robot().enterText("TextView");
-    ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
-    assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
-    fixture.getOkButton().click();
-    assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
+      guiTest.importSimpleApplication();
+      IdeFrameFixture ideFrame = guiTest.ideFrame();
+      EditorFixture editor = ideFrame.getEditor()
+        .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+      NlEditorFixture layout = editor.getLayoutEditor(true)
+        .dragComponentToSurface("Widgets", "Button")
+        .waitForRenderToFinish();
+
+      NlComponentFixture button = layout.findView("Button", 0);
+      MorphDialogFixture fixture = layout.openMorphDialogForComponent(button);
+      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+
+      ideFrame.robot().enterText("TextView");
+      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
+      assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
+      fixture.getOkButton().click();
+      assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
+    }
+    finally {
+      StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
+    }
   }
 }
