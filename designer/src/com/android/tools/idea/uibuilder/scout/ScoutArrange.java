@@ -46,7 +46,9 @@ public class ScoutArrange {
     if (widgetList == null || widgetList.size() == 0) {
       return;
     }
-
+    if (widgetList.get(0).getParent() == null) {
+      return;
+    }
     ScoutWidget parentScoutWidget = new ScoutWidget(widgetList.get(0).getParent(), null);
     ScoutWidget[] scoutWidgets = ScoutWidget.create(widgetList, parentScoutWidget);
 
