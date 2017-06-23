@@ -98,7 +98,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
   private fun createEditor(): EditorEx {
     val factory = EditorFactory.getInstance()
     val document = factory.createDocument(buildRangesAndGetString(myNlComponent, myAttributes))
-    val editor = EditorFactory.getInstance().createEditor(document, myProject, XmlFileType.INSTANCE, false) as EditorEx
+    val editor = factory.createEditor(document, myProject, XmlFileType.INSTANCE, false) as EditorEx
 
     val syntaxHighlighter = SyntaxHighlighterFactory.getSyntaxHighlighter(XmlFileType.INSTANCE, myProject, mySurface.model?.file?.virtualFile)
     syntaxHighlighter?.let {
@@ -167,7 +167,7 @@ class MorphComponentAction(component: NlComponent, designSurface: DesignSurface)
         .setRequestFocus(true)
         .setCancelOnClickOutside(true)
         .setAdText("Set the new type for the selected View")
-        .setCancelCallback { ->
+        .setCancelCallback {
           if (!myEditor.isDisposed) {
             EditorFactory.getInstance().releaseEditor(myEditor)
           }
