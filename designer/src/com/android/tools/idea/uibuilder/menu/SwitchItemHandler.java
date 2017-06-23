@@ -16,16 +16,18 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.resources.ResourceType;
-import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlAttributesHolder;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.xml.XmlBuilder;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.*;
 
-final class SwitchItemHandler {
+public final class SwitchItemHandler extends MenuHandler {
   private static final String SWITCH_ITEM = "switch_item";
 
   // @formatter:off
@@ -45,15 +47,19 @@ final class SwitchItemHandler {
     .toString();
   // @formatter:on
 
-  private SwitchItemHandler() {
-  }
-
   static boolean handles(@NotNull NlAttributesHolder item) {
     return (LAYOUT_RESOURCE_PREFIX + SWITCH_ITEM).equals(item.getAttribute(AUTO_URI, "actionLayout"));
   }
 
-  @SuppressWarnings("SameReturnValue")
-  static boolean onCreate(@NotNull ViewEditor editor, @NotNull InsertType type) {
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
+                          @Nullable NlComponent parent,
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType type) {
+    if (!super.onCreate(editor, parent, newChild, type)) {
+      return false;
+    }
+
     if (type.equals(InsertType.CREATE) && !editor.moduleContainsResource(ResourceType.LAYOUT, SWITCH_ITEM)) {
       editor.copyLayoutToMainModuleSourceSet(SWITCH_ITEM, SWITCH_ITEM_XML);
     }

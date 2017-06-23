@@ -15,22 +15,33 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
-import com.android.tools.idea.uibuilder.model.NlAttributesHolder;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
-import static com.android.SdkConstants.AUTO_URI;
-
-public final class CastButtonHandler extends MenuHandler {
-  static boolean handles(@NotNull NlAttributesHolder button) {
-    return Objects.equals(button.getAttribute(AUTO_URI, "actionProviderClass"), "android.support.v7.app.MediaRouteActionProvider");
+public final class MenuViewHandlerManager {
+  private MenuViewHandlerManager() {
   }
 
-  @NotNull
-  @Override
-  public String getGradleCoordinateId(@NotNull NlComponent button) {
-    return "com.android.support:mediarouter-v7";
+  @Nullable
+  public static ViewHandler getHandler(@NotNull NlComponent component) {
+    if (CastButtonHandler.handles(component)) {
+      return new CastButtonHandler();
+    }
+
+    if (SearchItemHandler.handles(component)) {
+      return new SearchItemHandler();
+    }
+
+    if (SwitchItemHandler.handles(component)) {
+      return new SwitchItemHandler();
+    }
+
+    if (ItemHandler.handles(component)) {
+      return new ItemHandler();
+    }
+
+    return null;
   }
 }

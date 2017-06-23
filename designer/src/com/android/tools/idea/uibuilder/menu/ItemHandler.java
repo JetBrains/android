@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -31,6 +30,10 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 
 public final class ItemHandler extends MenuHandler {
+  static boolean handles(@NotNull NlComponent item) {
+    return item.getTagName().equals("item");
+  }
+
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
@@ -38,25 +41,6 @@ public final class ItemHandler extends MenuHandler {
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return null;
-  }
-
-  @Override
-  public boolean onCreate(@NotNull ViewEditor editor,
-                          @Nullable NlComponent parent,
-                          @NotNull NlComponent newChild,
-                          @NotNull InsertType type) {
-    if (!super.onCreate(editor, parent, newChild, type)) {
-      return false;
-    }
-    else if (SearchItemHandler.handles(newChild)) {
-      return SearchItemHandler.onCreate(editor, newChild, type);
-    }
-    else if (SwitchItemHandler.handles(newChild)) {
-      return SwitchItemHandler.onCreate(editor, type);
-    }
-    else {
-      return true;
-    }
   }
 
   @Override
@@ -81,11 +65,5 @@ public final class ItemHandler extends MenuHandler {
       ATTR_VISIBLE,
       ATTR_ENABLED,
       ATTR_CHECKABLE);
-  }
-
-  @NotNull
-  @Override
-  public String getGradleCoordinateId(@NotNull NlComponent component) {
-    return CastButtonHandler.handles(component) ? CastButtonHandler.getGradleCoordinateId() : IN_PLATFORM;
   }
 }

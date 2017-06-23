@@ -21,28 +21,37 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.ATTR_ICON;
 import static com.android.SdkConstants.DRAWABLE_PREFIX;
 
-final class SearchItemHandler {
+public final class SearchItemHandler extends MenuHandler {
   private static final String SEARCH_ICON = "ic_search_black_24dp";
-
-  private SearchItemHandler() {
-  }
 
   static boolean handles(@NotNull NlAttributesHolder item) {
     return (DRAWABLE_PREFIX + SEARCH_ICON).equals(item.getAndroidAttribute(ATTR_ICON));
   }
 
-  static void onChildInserted(@NotNull ViewEditor editor) {
+  @Override
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent parent,
+                              @NotNull NlComponent newChild,
+                              @NotNull InsertType type) {
     if (!editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
       editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
     }
   }
 
-  @SuppressWarnings("SameReturnValue")
-  static boolean onCreate(@NotNull ViewEditor editor, @NotNull NlComponent newChild, @NotNull InsertType type) {
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
+                          @Nullable NlComponent parent,
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType type) {
+    if (!super.onCreate(editor, parent, newChild, type)) {
+      return false;
+    }
+
     if (!type.equals(InsertType.CREATE)) {
       return true;
     }
