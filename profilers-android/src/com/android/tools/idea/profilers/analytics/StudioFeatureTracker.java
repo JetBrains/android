@@ -60,12 +60,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackProfilingStarted() {
-    track(AndroidProfilerEvent.Type.PROFILING_STARTED);
+    track(AndroidProfilerEvent.Type.PROFILING_STARTED, myActiveDevice);
   }
 
   @Override
   public void trackAdvancedProfilingStarted() {
-    track(AndroidProfilerEvent.Type.ADVANCED_PROFILING_STARTED);
+    track(AndroidProfilerEvent.Type.ADVANCED_PROFILING_STARTED, myActiveDevice);
   }
 
   @Override
@@ -80,7 +80,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   public void trackChangeProcess(@Nullable Profiler.Process process) {
     if (myActiveProcess != process) {
       myActiveProcess = process;
-      track(AndroidProfilerEvent.Type.CHANGE_PROCESS);
+      track(AndroidProfilerEvent.Type.CHANGE_PROCESS, myActiveDevice);
     }
   }
 
