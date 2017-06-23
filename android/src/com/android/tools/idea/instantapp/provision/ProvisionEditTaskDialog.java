@@ -24,21 +24,30 @@ import javax.swing.*;
 
 public class ProvisionEditTaskDialog extends DialogWrapper {
   private JBCheckBox myClearCacheCheckBox;
+  private JBCheckBox myClearProvisionedDevicesCheckBox;
 
-  protected ProvisionEditTaskDialog(@Nullable Project project, boolean clearCache) {
+  protected ProvisionEditTaskDialog(@Nullable Project project, boolean clearCache, boolean clearProvisionedDevices) {
     super(project);
-    setTitle("Clear Cache on Device");
+    setTitle("Provision Specifications");
     myClearCacheCheckBox = new JBCheckBox("Clear cache", clearCache);
+    myClearProvisionedDevicesCheckBox = new JBCheckBox("Clear provisioned devices cache", clearProvisionedDevices);
     init();
   }
 
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
-    return myClearCacheCheckBox;
+    final JPanel panel = new JPanel();
+    panel.add(myClearCacheCheckBox);
+    panel.add(myClearProvisionedDevicesCheckBox);
+    return panel;
   }
 
   public boolean isClearCache() {
     return myClearCacheCheckBox.isSelected();
+  }
+
+  public boolean isClearProvisionedDevices() {
+    return myClearProvisionedDevicesCheckBox.isSelected();
   }
 }

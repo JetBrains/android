@@ -51,6 +51,8 @@ import javax.swing.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -125,11 +127,12 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   @Override
   public boolean configureTask(RunConfiguration runConfiguration, ProvisionBeforeRunTask task) {
-    ProvisionEditTaskDialog dialog = new ProvisionEditTaskDialog(runConfiguration.getProject(), task.isClearCache());
+    ProvisionEditTaskDialog dialog = new ProvisionEditTaskDialog(runConfiguration.getProject(), task.isClearCache(), task.isClearProvisionedDevices());
     if (!dialog.showAndGet()) {
       return false;
     }
     task.setClearCache(dialog.isClearCache());
+    task.setClearProvisionedDevices(dialog.isClearProvisionedDevices());
     return true;
   }
 
@@ -161,7 +164,6 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         AtomicBoolean tryAgain = new AtomicBoolean(true);
-        Set<IDevice> succeededProvisioned = new HashSet<>();
         try {
           ProvisionRunner provisionRunner = new ProvisionRunner(getInstantAppSdk(), new ProvisionListener() {
             @Override
@@ -192,6 +194,10 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
           indicator.setIndeterminate(true);
           indicator.setText("Provisioning device");
 
+          if (task.isClearProvisionedDevices()) {
+            task.clearProvisionedDevices();
+          }
+
           while (tryAgain.get()) {
             try {
               for (ListenableFuture<IDevice> deviceListenableFuture : deviceFutures.get()) {
@@ -201,7 +207,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
                   return;
                 }
 
-                if (!succeededProvisioned.contains(device)) {
+                if (!task.isProvisioned(device)) {
                   indicator.setIndeterminate(false);
                   provisionRunner.runProvision(device);
 
@@ -214,7 +220,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
                       getLogger().warn("Error while clearing supervisor or devman cache on device", e);
                     }
                   }
-                  succeededProvisioned.add(device);
+                  task.addProvisionedDevice(device);
                 }
               }
               tryAgain.set(false);
@@ -264,7 +270,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   }
 
   @Nullable
-  private static IDevice waitForDevice(@NotNull ListenableFuture<IDevice> deviceFuture, ProgressIndicator indicator) {
+  private static IDevice waitForDevice(@NotNull ListenableFuture<IDevice> deviceFuture, @NotNull ProgressIndicator indicator) {
     while (true) {
       try {
         return deviceFuture.get(1, TimeUnit.SECONDS);
@@ -287,30 +293,75 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   public static class ProvisionBeforeRunTask extends BeforeRunTask<ProvisionBeforeRunTask> {
     private boolean myClearCache;
+    private boolean myClearProvisionedDevices;
+    private long myTimestamp;
+
+    @NotNull private final Set<String> myProvisionedDevices;
 
     public ProvisionBeforeRunTask() {
       super(ID);
       myClearCache = false;
+      myTimestamp = 0;
+      myClearProvisionedDevices = false;
+      myProvisionedDevices = new HashSet<>();
     }
 
-    public void setClearCache(boolean clearCache) {
+    private void setClearCache(boolean clearCache) {
       myClearCache = clearCache;
     }
 
-    public boolean isClearCache() {
+    private boolean isClearCache() {
       return myClearCache;
+    }
+
+    public void setClearProvisionedDevices(boolean clearProvisionedDevices) {
+      myClearProvisionedDevices = clearProvisionedDevices;
+    }
+
+    public boolean isClearProvisionedDevices() {
+      return myClearProvisionedDevices;
+    }
+
+    private void addProvisionedDevice(@NotNull String deviceSerial) {
+      myProvisionedDevices.add(deviceSerial);
+    }
+
+    private void addProvisionedDevice(@NotNull IDevice device) {
+      addProvisionedDevice(device.getSerialNumber());
+    }
+
+    private boolean isProvisioned(@NotNull IDevice device) {
+      return myProvisionedDevices.contains(device.getSerialNumber());
+    }
+
+    private void clearProvisionedDevices() {
+      myProvisionedDevices.clear();
     }
 
     @Override
     public void writeExternal(Element element) {
       super.writeExternal(element);
       element.setAttribute("clearCache", String.valueOf(myClearCache));
+      element.setAttribute("clearProvisionedDevices", String.valueOf(myClearProvisionedDevices));
+      for (String deviceId : myProvisionedDevices) {
+        element.addContent(new Element("provisionedDevices").setAttribute("provisionedDevice", deviceId));
+      }
+      element.setAttribute("myTimestamp", Long.toString(System.currentTimeMillis()));
     }
 
     @Override
     public void readExternal(Element element) {
       super.readExternal(element);
       myClearCache = Boolean.valueOf(element.getAttributeValue("clearCache")).booleanValue();
+      myClearProvisionedDevices = Boolean.valueOf(element.getAttributeValue("clearProvisionedDevices")).booleanValue();
+      final List<Element> children = element.getChildren("provisionedDevices");
+      for (Element child : children) {
+        addProvisionedDevice(child.getAttributeValue("provisionedDevice"));
+      }
+      myTimestamp = Long.parseLong(element.getAttributeValue("myTimestamp"));
+      if (myTimestamp != 0 && System.currentTimeMillis() - myTimestamp > 60 * 60 * 1000) {
+        clearProvisionedDevices();
+      }
     }
 
     @Override
@@ -321,16 +372,15 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
       ProvisionBeforeRunTask that = (ProvisionBeforeRunTask)o;
 
-      if (myClearCache != that.myClearCache) return false;
-
-      return true;
+      return myClearCache == that.myClearCache &&
+             myClearProvisionedDevices == that.myClearProvisionedDevices &&
+             myTimestamp == that.myTimestamp &&
+             Objects.equals(myProvisionedDevices, that.myProvisionedDevices);
     }
 
     @Override
     public int hashCode() {
-      int result = super.hashCode();
-      result = 31 * result + (myClearCache ? 1 : 0);
-      return result;
+      return Objects.hash(super.hashCode(), myClearCache, myClearProvisionedDevices, myTimestamp, myProvisionedDevices);
     }
   }
 }
