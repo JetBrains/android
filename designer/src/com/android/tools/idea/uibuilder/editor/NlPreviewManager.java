@@ -392,12 +392,20 @@ public class NlPreviewManager implements ProjectComponent {
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+      if (!file.isValid()) {
+        return;
+      }
+
       PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
       processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
     }
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+      if (!file.isValid()) {
+        return;
+      }
+
       ApplicationManager.getApplication().invokeLater(() -> {
         PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
         processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
