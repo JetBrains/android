@@ -18,7 +18,7 @@ package org.jetbrains.android.actions;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -58,8 +58,8 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     super(module.getProject());
 
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
-    Function<Module, ResourceNameValidator> nameValidatorFactory =
-      selectedModule -> ResourceNameValidator.create(true, AppResourceRepository.getOrCreateInstance(selectedModule), resourceType);
+    Function<Module, IdeResourceNameValidator> nameValidatorFactory =
+      selectedModule -> IdeResourceNameValidator.forResourceName(resourceType, AppResourceRepository.getOrCreateInstance(module));
     myPanel = newResourceHandler.createNewResourceValuePanel(module, resourceType, ResourceFolderType.VALUES,
                                                              predefinedName, predefinedValue, chooseName, true, true, defaultFile,
                                                              contextFile, nameValidatorFactory);

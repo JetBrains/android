@@ -25,7 +25,7 @@ import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -305,13 +305,13 @@ public final class Parameter {
 
       }
     } else if (violations.contains(Constraint.LAYOUT) && value != null) {
-      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.LAYOUT).getErrorText(value);
+      String resourceNameError = IdeResourceNameValidator.forFilename(ResourceFolderType.LAYOUT).getErrorText(value);
       if (resourceNameError != null) {
         return name + " is not set to a valid resource name. " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.DRAWABLE)) {
-      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
+      String resourceNameError = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
         return name + " is not set to a valid resource name: " + resourceNameError;
 
@@ -320,13 +320,13 @@ public final class Parameter {
       return name + " is not set to a valid id.";
 
     } else if (violations.contains(Constraint.STRING)) {
-      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      String resourceNameError = IdeResourceNameValidator.forFilename(ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
         return name + " is not set to a valid resource name: " + resourceNameError;
 
       }
     } else if (violations.contains(Constraint.VALUES)) {
-      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      String resourceNameError = IdeResourceNameValidator.forFilename(ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
         return name + " is not set to a valid resource name: " + resourceNameError;
       }
@@ -418,7 +418,7 @@ public final class Parameter {
       }
     }
     if (constraints.contains(Constraint.LAYOUT)) {
-      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.LAYOUT).getErrorText(value);
+      String resourceNameError = IdeResourceNameValidator.forFilename(ResourceFolderType.LAYOUT).getErrorText(value);
       if (resourceNameError != null) {
         violations.add(Constraint.LAYOUT);
       }
@@ -427,7 +427,7 @@ public final class Parameter {
                : existsResourceFile(module, ResourceType.LAYOUT, value);
     }
     if (constraints.contains(Constraint.DRAWABLE)) {
-      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
+      String resourceNameError = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
         violations.add(Constraint.DRAWABLE);
       }
@@ -439,7 +439,7 @@ public final class Parameter {
       // TODO: validity and existence check
     }
     if (constraints.contains(Constraint.VALUES)) {
-      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      String resourceNameError = IdeResourceNameValidator.forFilename(ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
         violations.add(Constraint.VALUES);
       }
@@ -454,7 +454,7 @@ public final class Parameter {
       }
     }
     if (constraints.contains(Constraint.STRING)) {
-      String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.VALUES).getErrorText(value);
+      String resourceNameError = IdeResourceNameValidator.forFilename(ResourceFolderType.VALUES).getErrorText(value);
       if (resourceNameError != null) {
         violations.add(Constraint.STRING);
       }
