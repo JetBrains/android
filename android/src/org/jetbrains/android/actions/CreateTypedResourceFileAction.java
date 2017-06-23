@@ -16,10 +16,11 @@
 
 package org.jetbrains.android.actions;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.rendering.LayoutPullParserFactory;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.projectView.ProjectView;
@@ -65,7 +66,7 @@ import java.util.List;
  */
 public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
-  protected final ResourceFolderType myResourceType;
+  protected final ResourceFolderType myResourceFolderType;
   protected final String myResourcePresentableName;
   protected final String myDefaultRootTag;
   private final boolean myValuesResourceFile;
@@ -77,7 +78,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
                                        boolean chooseTagName) {
     super(AndroidBundle.message("new.typed.resource.action.title", resourcePresentableName),
           AndroidBundle.message("new.typed.resource.action.description", resourcePresentableName), StdFileTypes.XML.getIcon());
-    myResourceType = resourceFolderType;
+    myResourceFolderType = resourceFolderType;
     myResourcePresentableName = resourcePresentableName;
     myDefaultRootTag = getDefaultRootTagByResourceType(resourceFolderType);
     myValuesResourceFile = valuesResourceFile;
@@ -86,7 +87,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   @NotNull
   public ResourceFolderType getResourceFolderType() {
-    return myResourceType;
+    return myResourceFolderType;
   }
 
   protected InputValidator createValidator(Project project, PsiDirectory directory) {
@@ -125,7 +126,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   PsiElement[] doCreateAndNavigate(String newName, PsiDirectory directory, String rootTagName, boolean chooseTagName, boolean navigate)
     throws Exception {
     final XmlFile file = AndroidResourceUtil
-      .createFileResource(newName, directory, rootTagName, myResourceType.getName(), myValuesResourceFile);
+      .createFileResource(newName, directory, rootTagName, myResourceFolderType.getName(), myValuesResourceFile);
 
     if (navigate) {
       doNavigate(file);
@@ -165,7 +166,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   @Override
   protected boolean isAvailable(DataContext context) {
-    return super.isAvailable(context) && doIsAvailable(context, myResourceType.getName());
+    return super.isAvailable(context) && doIsAvailable(context, myResourceFolderType.getName());
   }
 
   public boolean isChooseTagName() {
@@ -179,7 +180,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   @NotNull
   public final List<String> getSortedAllowedTagNames(@NotNull AndroidFacet facet) {
-    final List<String> result = new ArrayList<String>(getAllowedTagNames(facet));
+    final List<String> result = new ArrayList<>(getAllowedTagNames(facet));
     Collections.sort(result);
     return result;
   }
@@ -194,18 +195,15 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
       return false;
     }
 
-    return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        PsiElement e = element;
-        while (e != null) {
-          if (e instanceof PsiDirectory && AndroidResourceUtil.isResourceSubdirectory((PsiDirectory)e, resourceType)) {
-            return true;
-          }
-          e = e.getParent();
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+      PsiElement e = element;
+      while (e != null) {
+        if (e instanceof PsiDirectory && AndroidResourceUtil.isResourceSubdirectory((PsiDirectory)e, resourceType)) {
+          return true;
         }
-        return false;
+        e = e.getParent();
       }
+      return false;
     });
   }
 
@@ -216,7 +214,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
   @Override
   protected String getCommandName() {
-    return AndroidBundle.message("new.typed.resource.command.name", myResourceType);
+    return AndroidBundle.message("new.typed.resource.command.name", myResourceFolderType);
   }
 
   @Nullable
@@ -259,13 +257,12 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   }
 
   private class MyValidator extends MyInputValidator implements InputValidatorEx {
-    private final ResourceNameValidator myNameValidator;
+    @NotNull
+    private final IdeResourceNameValidator myNameValidator;
+
     public MyValidator(Project project, PsiDirectory directory) {
       super(project, directory);
-
-      // No validator for value files -- you can call them anything you want (e.g. "public.xml" is a valid
-      // name even though public is a Java keyword, etc.)
-      myNameValidator = myResourceType == ResourceFolderType.VALUES ? null : ResourceNameValidator.create(true, myResourceType);
+      myNameValidator = IdeResourceNameValidator.forFilename(myResourceFolderType, SdkConstants.DOT_XML);
     }
 
     @Override
@@ -275,7 +272,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
 
     @Override
     public String getErrorText(String inputString) {
-      return myNameValidator == null ? null : myNameValidator.getErrorText(inputString);
+      return myNameValidator.getErrorText(inputString);
     }
   }
 }

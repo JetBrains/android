@@ -136,8 +136,7 @@ public class ResourceHelper {
   }
 
   /**
-   * Is this a resource that is defined in a file named by the resource plus the XML
-   * extension?
+   * Is this a resource that is defined in a file named by the resource plus the extension?
    * <p/>
    * Some resource types can be defined <b>both</b> as a separate XML file as well as
    * defined within a value XML file along with other properties. This method will
@@ -149,19 +148,17 @@ public class ResourceHelper {
    * @return true if the given resource type is stored in a file named by the resource
    */
   public static boolean isFileBasedResourceType(@NotNull ResourceType type) {
-    List<ResourceFolderType> folderTypes = FolderTypeRelationship.getRelatedFolders(type);
-    for (ResourceFolderType folderType : folderTypes) {
+    if (type == ResourceType.ID) {
+      // The folder types for ID is not only VALUES but also
+      // LAYOUT and MENU. However, unlike resources, they are only defined
+      // inline there so for the purposes of isFileBasedResourceType
+      // (where the intent is to figure out files that are uniquely identified
+      // by a resource's name) this method should return false anyway.
+      return false;
+    }
+
+    for (ResourceFolderType folderType : FolderTypeRelationship.getRelatedFolders(type)) {
       if (folderType != ResourceFolderType.VALUES) {
-
-        if (type == ResourceType.ID) {
-          // The folder types for ID is not only VALUES but also
-          // LAYOUT and MENU. However, unlike resources, they are only defined
-          // inline there so for the purposes of isFileBasedResourceType
-          // (where the intent is to figure out files that are uniquely identified
-          // by a resource's name) this method should return false anyway.
-          return false;
-        }
-
         return true;
       }
     }

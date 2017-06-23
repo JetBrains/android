@@ -16,13 +16,14 @@
 
 package org.jetbrains.android.actions;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -201,7 +202,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   private String getNameError(@NotNull String fileName) {
     ResourceFolderType type = getSelectedFolderType();
     if (type != null) {
-      ResourceNameValidator validator = ResourceNameValidator.create(true, type);
+      IdeResourceNameValidator validator = IdeResourceNameValidator.forFilename(type, SdkConstants.DOT_XML);
       return validator.getErrorText(fileName);
     }
 

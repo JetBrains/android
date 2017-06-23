@@ -19,7 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -65,7 +65,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   private JBLabel myDirectoriesLabel;
   private CreateXmlResourceSubdirPanel mySubdirPanel;
 
-  private ResourceNameValidator myResourceNameValidator;
+  private IdeResourceNameValidator myResourceNameValidator;
 
   public CreateXmlResourcePanelImpl(@NotNull Module module,
                                     @NotNull ResourceType resourceType,
@@ -77,7 +77,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
                                     boolean chooseFilename,
                                     @Nullable VirtualFile defaultFile,
                                     @Nullable VirtualFile contextFile,
-                                    @NotNull final Function<Module, ResourceNameValidator> nameValidatorFactory) {
+                                    @NotNull final Function<Module, IdeResourceNameValidator> nameValidatorFactory) {
     setChangeNameVisible(false);
     setChangeValueVisible(false);
     setChangeFileNameVisible(chooseFilename);
@@ -249,7 +249,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
   @Override
   @NotNull
-  public ResourceNameValidator getResourceNameValidator() {
+  public IdeResourceNameValidator getResourceNameValidator() {
     return myResourceNameValidator;
   }
 

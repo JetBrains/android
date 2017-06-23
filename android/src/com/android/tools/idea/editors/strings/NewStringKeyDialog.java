@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidatorEx;
@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collection;
-import java.util.Set;
 
 public class NewStringKeyDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -52,7 +51,7 @@ public class NewStringKeyDialog extends DialogWrapper {
     super(facet.getModule().getProject(), false);
 
     myFacet = facet;
-    myResourceNameValidator = ResourceNameValidator.create(false, (Set<String>)null, ResourceType.STRING);
+    myResourceNameValidator = IdeResourceNameValidator.forResourceName(ResourceType.STRING);
     myKeys = keys;
 
     init();

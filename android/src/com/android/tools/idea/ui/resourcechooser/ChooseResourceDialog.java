@@ -37,7 +37,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.res.ResourceNameValidator;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.SearchField;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.swing.ui.SwatchComponent;
@@ -744,7 +744,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     myColorPicker.pickARGB();
 
     myColorPickerPanel = new ResourceEditorTab(myModule, "Color", myColorPicker, resourceNameVisibility,
-                                               false, ResourceFolderType.VALUES, true, ResourceType.COLOR) {
+                                               ResourceFolderType.VALUES, true, ResourceType.COLOR) {
       @NotNull
       @Override
       public String doSave() {
@@ -809,7 +809,7 @@ public class ChooseResourceDialog extends DialogWrapper {
 
     myStateListPicker = new StateListPicker(stateList, myModule, configuration);
     myStateListPickerPanel = new ResourceEditorTab(myModule, "Statelist", myStateListPicker, ResourceNameVisibility.FORCE,
-                                                   true, stateListFolderType, false, stateListType) {
+                                                   stateListFolderType, false, stateListType) {
       @Override
       @Nullable
       public ValidationInfo doValidate() {
@@ -1615,7 +1615,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         referenceComponentPanel.add(myReferenceComponent);
         referenceComponentPanel.add(Box.createVerticalGlue());
         myReferencePanel = new ResourceEditorTab(myModule, "Reference", referenceComponentPanel, ResourceNameVisibility.FORCE,
-                                                 false, ResourceFolderType.VALUES, true, myType) {
+                                                 ResourceFolderType.VALUES, true, myType) {
           @Override
           @Nullable
           public ValidationInfo doValidate() {
@@ -1902,7 +1902,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         // if name is hidden, then we allow any value
         if (editor.getResourceNameVisibility() == ResourceNameVisibility.FORCE ||
             (editor.getResourceNameVisibility() == ResourceNameVisibility.SHOW && !myEditorPanel.getResourceName().isEmpty())) {
-          ResourceNameValidator validator = editor.getValidator();
+          IdeResourceNameValidator validator = editor.getValidator();
           String enteredName = myEditorPanel.getResourceName();
           if (validator.doesResourceExist(enteredName)) {
             ResourceType type = getSelectedPanel().getType();
