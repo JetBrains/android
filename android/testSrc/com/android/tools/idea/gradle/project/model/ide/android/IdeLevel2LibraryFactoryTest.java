@@ -77,4 +77,16 @@ public class IdeLevel2LibraryFactoryTest {
     };
     assertThat(computeAddress(library)).isEqualTo("com.android.tools:test:2.1@aar");
   }
+
+  @Test
+  public void computeMavenAddressWithModuleLibrary() {
+    Library library = new LibraryStub() {
+      @Override
+      @NotNull
+      public MavenCoordinates getResolvedCoordinates() {
+        return new MavenCoordinatesStub("myGroup", ":androidLib", "undefined", "aar");
+      }
+    };
+    assertThat(computeAddress(library)).isEqualTo("myGroup:androidLib:undefined@aar");
+  }
 }

@@ -21,6 +21,7 @@ import com.android.builder.model.MavenCoordinates;
 import com.android.builder.model.level2.Library;
 import com.android.utils.FileUtils;
 import com.android.utils.ImmutableCollectors;
+import com.intellij.openapi.util.text.StringUtil;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -155,7 +156,7 @@ class IdeLevel2LibraryFactory {
   @NotNull
   static String computeAddress(@NotNull com.android.builder.model.Library library) {
     MavenCoordinates coordinate = library.getResolvedCoordinates();
-    String address = coordinate.getGroupId() + ":" + coordinate.getArtifactId() + ":" + coordinate.getVersion();
+    String address = coordinate.getGroupId() + ":" + StringUtil.trimStart(coordinate.getArtifactId(), ":") + ":" + coordinate.getVersion();
     String classifier = coordinate.getClassifier();
     if (classifier != null) {
       address = address + ":" + classifier;
