@@ -26,7 +26,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,13 +37,14 @@ import java.util.function.Function;
  * A custom renderer to support drawing {@link DurationData} over line charts
  */
 public final class DurationDataRenderer<E extends DurationData> extends AspectObserver implements LineChartCustomRenderer {
+
+  static final float EPSILON = 1e-6f;
+
   /**
    * Percentage of screen dimension the icon+label for the DurationData will be offset.
    */
-  private static final float DISPLAY_OFFSET_PERCENTAGE = 0.005f;
-  private static final int CLICK_REGION_DRAW_PADDING_Y = 2;
-  private static final int CLICK_REGION_DRAW_PADDING_X = 4;
-  public static final int LABEL_ARCH_LENGTH = 7;
+  private static final int CLICK_REGION_PADDING_Y = 2;
+  private static final int CLICK_REGION_PADDING_X = 4;
 
   @NotNull private DurationDataModel<E> myModel;
 
@@ -59,6 +59,9 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   @Nullable private Color myLabelHoveredBgColor = null;
   @Nullable private Color myLabelClickedBgColor = null;
   @Nullable private Color myLabelTextColor = null;
+  private float myLineStrokeOffset;
+  private float myLabelXOffset;
+  private float myLabelYOffset;
 
   @NotNull private final List<Rectangle2D.Float> myPathCache = new ArrayList<>();
   @NotNull private final List<E> myDataCache = new ArrayList<>();
@@ -88,6 +91,15 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     myLabelHoveredBgColor = builder.myLabelHoveredBgColor;
     myLabelClickedBgColor = builder.myLabelClickedBgColor;
     myLabelTextColor = builder.myLabelTextColor;
+    myLabelXOffset = builder.myLabelXOffset;
+    myLabelYOffset = builder.myLabelYOffset;
+    if (myStroke instanceof BasicStroke) {
+      BasicStroke stroke = (BasicStroke)myStroke;
+      myLineStrokeOffset = stroke.getLineWidth() / 2f;
+    }
+    else {
+      myLineStrokeOffset = 0;
+    }
 
     myModel.addDependency(this).onChange(DurationDataModel.Aspect.DURATION_DATA, this::modelChanged);
   }
@@ -106,15 +118,15 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     RangedSeries<E> series = myModel.getSeries();
     RangedContinuousSeries attached = myModel.getAttachedSeries();
     double xMin = series.getXRange().getMin();
-    double xMax = series.getXRange().getMax();
     double xLength = series.getXRange().getLength();
     List<SeriesData<E>> seriesList = series.getSeries();
     List<SeriesData<Long>> attachedSeriesList = attached != null ? attached.getSeries() : null;
     int j = 0;
-    float attachY = 1;
+    SeriesData<Long> lastFoundData = null;
     for (int i = 0; i < seriesList.size(); i++) {
       Rectangle2D.Float rect = new Rectangle2D.Float();
       SeriesData<E> data = seriesList.get(i);
+      double yStart = 1;
       double xStart = (data.x - xMin) / xLength;
       double xDuration = data.value.getDuration() / xLength;
       rect.setRect(xStart, 0, xDuration, 1);
@@ -123,20 +135,25 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
       Rectangle2D.Float clickRegion = new Rectangle2D.Float();
       myClickRegionCache.add(clickRegion);
-      // If the DurationData series is attached to a line series, finds the Y value on the line series closest to the current DurationData.
+      // If the DurationData series is attached to a line series, finds the Y value on the line series matching the current DurationData.
       // This will be used as the y position to draw the icon +/ label.
       if (attachedSeriesList != null) {
         double yMin = attached.getYRange().getMin();
         double yMax = attached.getYRange().getMax();
         for (; j < attachedSeriesList.size(); j++) {
           SeriesData<Long> seriesData = attachedSeriesList.get(j);
-          double attachXStart = (seriesData.x - xMin) / (xMax - xMin);
-          if (attachXStart > xStart) {
-            // find the data point on the attach series greater than the duration data's start point
-            // use the last found y value.
+          if (seriesData.x - data.x > EPSILON) {
+            // Stop as soon as we found a point on the attached series greater than the duration data's start point.
+            // Interpolate the y value in case the attached series and the duration data series do not match.
+            if (lastFoundData == null) {
+              lastFoundData = seriesData;
+            }
+            assert myModel.getInterpolatable() != null;
+            double adjustedY = myModel.getInterpolatable().interpolate(lastFoundData, seriesData, data.x);
+            yStart = 1 - (adjustedY - yMin) / (yMax - yMin);
             break;
           }
-          attachY = (float)(1 - (seriesData.value - yMin) / (yMax - yMin));
+          lastFoundData = seriesData;
         }
       }
 
@@ -160,7 +177,9 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       }
 
       if (regionWidth > 0) {
-        clickRegion.setRect(xStart + DISPLAY_OFFSET_PERCENTAGE, attachY - DISPLAY_OFFSET_PERCENTAGE, regionWidth, regionHeight);
+        // x and y values are normalized here and not accounting for extra paddings. These will be added back in place where the values are
+        // scaled back to the host's size.
+        clickRegion.setRect(xStart, yStart, regionWidth, regionHeight);
       }
     }
   }
@@ -231,22 +250,24 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
     for (int i = 0; i < myClickRegionCache.size(); i++) {
       Rectangle2D.Float rect = myClickRegionCache.get(i);
-      float scaledStartX = rect.x * host.getWidth();
-      float scaledStartY = rect.y * host.getHeight() - rect.height;
+      float paddedHeight = rect.height + CLICK_REGION_PADDING_Y * 2;
+      float paddedWidth = rect.width + CLICK_REGION_PADDING_X * 2;
+      float scaledStartX = rect.x * host.getWidth() + myLabelXOffset + myLineStrokeOffset;
+      float scaledStartY = getClampedLabelY(rect.y, paddedHeight, host.getHeight());
       if (myLabelBgColor != null) {
         g2d.setColor(myLabelBgColor);
-        RoundRectangle2D scaledRect = new RoundRectangle2D.Float(scaledStartX - CLICK_REGION_DRAW_PADDING_X,
-                                                                 scaledStartY - CLICK_REGION_DRAW_PADDING_Y,
-                                                                 rect.width + CLICK_REGION_DRAW_PADDING_X * 2,
-                                                                 rect.height + CLICK_REGION_DRAW_PADDING_Y * 2,
-                                                                 LABEL_ARCH_LENGTH,
-                                                                 LABEL_ARCH_LENGTH);
+        Rectangle2D scaledRect = new Rectangle2D.Float(scaledStartX,
+                                                       scaledStartY,
+                                                       paddedWidth,
+                                                       paddedHeight);
         if (myMousePosition != null && scaledRect.contains(myMousePosition)) {
           g2d.setColor(myClick && myClickHandler != null ? myLabelClickedBgColor : myLabelHoveredBgColor);
         }
         g2d.fill(scaledRect);
       }
 
+      scaledStartX += CLICK_REGION_PADDING_X;
+      scaledStartY += CLICK_REGION_PADDING_Y;
       g2d.translate(scaledStartX, scaledStartY);
       if (myIcon != null) {
         myIcon.paintIcon(host, g2d, 0, 0);
@@ -277,10 +298,13 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     Dimension dim = event.getComponent().getSize();
     for (int i = 0; i < myClickRegionCache.size(); i++) {
       Rectangle2D.Float rect = myClickRegionCache.get(i);
-      Rectangle2D.Float scaledRect = new Rectangle2D.Float(rect.x * dim.width,
-                                                           rect.y * dim.height - rect.height,
-                                                           rect.width,
-                                                           rect.height);
+      float paddedHeight = rect.height + CLICK_REGION_PADDING_Y * 2;
+      float paddedWidth = rect.width + CLICK_REGION_PADDING_X * 2;
+      float scaledY = getClampedLabelY(rect.y, paddedHeight, dim.height);
+      Rectangle2D.Float scaledRect = new Rectangle2D.Float(rect.x * dim.width + myLabelXOffset + myLineStrokeOffset,
+                                                           scaledY,
+                                                           paddedWidth,
+                                                           paddedWidth);
       if (scaledRect.contains(myMousePosition)) {
         // Return the first hit region.
         hitData = myDataCache.get(i);
@@ -296,6 +320,15 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     return false;
   }
 
+  /**
+   * Clamp and return the y position (accounting for height + custom offsets) of the label so that it is always within bounds of the host.
+   */
+  private float getClampedLabelY(float normalizedY, float height, int hostHeight) {
+    float maxScaledY = hostHeight - height;
+    float scaledY = normalizedY * hostHeight - height + myLabelYOffset;
+    return Math.max(0, Math.min(scaledY, maxScaledY));
+  }
+
   public static class Builder<E extends DurationData> {
     // Required
     @NotNull private final DurationDataModel<E> myModel;
@@ -309,6 +342,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     @Nullable private Color myLabelHoveredBgColor = null;
     @Nullable private Color myLabelClickedBgColor = null;
     @Nullable private Color myLabelTextColor = null;
+    private float myLabelXOffset;
+    private float myLabelYOffset;
 
     public Builder(@NotNull DurationDataModel<E> model, @NotNull Color color) {
       myModel = model;
@@ -363,6 +398,12 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       myLabelHoveredBgColor = hoveredColor;
       myLabelClickedBgColor = clickedColor;
       myLabelTextColor = color;
+      return this;
+    }
+
+    public Builder<E> setLabelOffsets(float xOffset, float yOffset) {
+      myLabelXOffset = xOffset;
+      myLabelYOffset = yOffset;
       return this;
     }
 

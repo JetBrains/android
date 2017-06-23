@@ -42,7 +42,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.adtui.common.AdtUiUtils.*;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
@@ -267,7 +268,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       new DurationDataRenderer.Builder<>(getStage().getHeapDumpSampleDurations(), Color.BLACK)
         .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
         .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-        .setStroke(new BasicStroke(2))
+        .setStroke(new BasicStroke(1))
         .setLabelProvider(
           data -> String.format("Dump (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
@@ -283,6 +284,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     DurationDataRenderer<GcDurationData> gcRenderer =
       new DurationDataRenderer.Builder<>(getStage().getGcStats(), Color.BLACK)
         .setIcon(ProfilerIcons.GARBAGE_EVENT)
+        .setLabelOffsets(-ProfilerIcons.GARBAGE_EVENT.getIconWidth() / 2, ProfilerIcons.GARBAGE_EVENT.getIconHeight() / 2)
         .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
@@ -302,7 +304,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       DurationDataRenderer<CaptureDurationData<CaptureObject>> allocationRenderer =
         new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
           .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
-          .setStroke(new BasicStroke(2))
+          .setStroke(new BasicStroke(1))
           .setLabelProvider(
             data -> String.format("Allocation record (%s)", data.getDuration() == Long.MAX_VALUE ? "in progress" :
                                                             TimeAxisFormatter.DEFAULT

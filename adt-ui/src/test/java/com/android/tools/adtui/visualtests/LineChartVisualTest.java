@@ -113,7 +113,7 @@ public class LineChartVisualTest extends VisualTest {
       .setClickHander(durationData -> mClickDisplayLabel.setText(durationData.toString())).build();
 
     DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
-    model2.setAttachedSeries(mRangedData.get(0));
+    model2.setAttachedSeries(mRangedData.get(0), Interpolatable.SegmentInterpolator);
     mDurationRendererAttached = new DurationDataRenderer.Builder<>(model2, Color.BLACK)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))

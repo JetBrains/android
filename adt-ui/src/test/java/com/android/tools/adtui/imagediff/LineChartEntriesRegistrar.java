@@ -284,7 +284,9 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       DefaultDataSeries<DefaultDurationData> eventData = new DefaultDataSeries<>();
       RangedSeries<DefaultDurationData> eventSeries = new RangedSeries<>(myXRange, eventData);
       DurationDataModel<DefaultDurationData> durationModel = new DurationDataModel<>(eventSeries);
-      durationModel.setAttachedSeries(attachedSeries);
+      if (attachedSeries != null) {
+        durationModel.setAttachedSeries(attachedSeries, Interpolatable.SegmentInterpolator);
+      }
       DurationDataRenderer<DefaultDurationData> durationRenderer =
         new DurationDataRenderer.Builder<>(durationModel, eventColor)
           .setLabelProvider(durationData -> "Test Event")
