@@ -306,19 +306,23 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
       myProvisionedDevices = new HashSet<>();
     }
 
-    private void setClearCache(boolean clearCache) {
+    @VisibleForTesting
+    void setClearCache(boolean clearCache) {
       myClearCache = clearCache;
     }
 
-    private boolean isClearCache() {
+    @VisibleForTesting
+    boolean isClearCache() {
       return myClearCache;
     }
 
-    public void setClearProvisionedDevices(boolean clearProvisionedDevices) {
+    @VisibleForTesting
+    void setClearProvisionedDevices(boolean clearProvisionedDevices) {
       myClearProvisionedDevices = clearProvisionedDevices;
     }
 
-    public boolean isClearProvisionedDevices() {
+    @VisibleForTesting
+    boolean isClearProvisionedDevices() {
       return myClearProvisionedDevices;
     }
 
@@ -326,16 +330,23 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
       myProvisionedDevices.add(deviceSerial);
     }
 
-    private void addProvisionedDevice(@NotNull IDevice device) {
+    @VisibleForTesting
+    void addProvisionedDevice(@NotNull IDevice device) {
       addProvisionedDevice(device.getSerialNumber());
     }
 
-    private boolean isProvisioned(@NotNull IDevice device) {
+    @VisibleForTesting
+    boolean isProvisioned(@NotNull IDevice device) {
       return myProvisionedDevices.contains(device.getSerialNumber());
     }
 
     private void clearProvisionedDevices() {
       myProvisionedDevices.clear();
+    }
+
+    @VisibleForTesting
+    long getTimestamp() {
+      return myTimestamp;
     }
 
     @Override
@@ -358,7 +369,11 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
       for (Element child : children) {
         addProvisionedDevice(child.getAttributeValue("provisionedDevice"));
       }
-      myTimestamp = Long.parseLong(element.getAttributeValue("myTimestamp"));
+      try {
+        myTimestamp = Long.parseLong(element.getAttributeValue("myTimestamp"));
+      } catch (NumberFormatException e) {
+        myTimestamp = 0;
+      }
       if (myTimestamp != 0 && System.currentTimeMillis() - myTimestamp > 60 * 60 * 1000) {
         clearProvisionedDevices();
       }

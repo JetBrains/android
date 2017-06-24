@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.instantapp.provision;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
+
+import java.io.StringReader;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -72,5 +79,45 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
         return false;
       }
     }.executeTask(null, myRunConfiguration, null, null));
+  }
+
+  public void testTaskReadExternalXmlWithNoTimestamp() throws Exception {
+    Element element = createElementFromString("<option name=\"com.android.instantApps.provision.BeforeRunTask\" enabled=\"true\" clearCache=\"false\" clearProvisionedDevices=\"true\" />");
+
+    ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask task = new ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask();
+    task.readExternal(element);
+    assertFalse(task.isClearCache());
+    assertTrue(task.isClearProvisionedDevices());
+    assertEquals(0, task.getTimestamp());
+  }
+
+  public void testWriteAndReadExternal() {
+    IDevice device1 = mock(IDevice.class);
+    IDevice device2 = mock(IDevice.class);
+    when(device1.getSerialNumber()).thenReturn("device1");
+    when(device2.getSerialNumber()).thenReturn("device2");
+
+    ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask task1 = new ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask();
+
+    task1.setClearCache(false);
+    task1.setClearProvisionedDevices(true);
+    task1.addProvisionedDevice(device1);
+
+    Element element = new Element("option");
+    task1.writeExternal(element);
+
+    ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask task2 = new ProvisionBeforeRunTaskProvider.ProvisionBeforeRunTask();
+    task2.readExternal(element);
+
+    assertFalse(task2.isClearCache());
+    assertTrue(task2.isClearProvisionedDevices());
+    assertTrue(task2.isProvisioned(device1));
+    assertFalse(task2.isProvisioned(device2));
+  }
+
+  @NotNull
+  private static Element createElementFromString(@NotNull String xmlString) throws Exception {
+    Document document = new SAXBuilder().build(new StringReader(xmlString));
+    return document.getRootElement();
   }
 }
