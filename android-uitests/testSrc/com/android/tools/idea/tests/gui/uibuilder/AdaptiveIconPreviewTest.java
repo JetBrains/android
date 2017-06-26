@@ -43,15 +43,25 @@ public class AdaptiveIconPreviewTest {
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
         .getLayoutPreview(true);
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
-    toolbar.chooseDensity("mdpi");
+    toolbar.chooseDensity("mdpi")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-65536);
-    toolbar.chooseDensity("hdpi");
+    toolbar.chooseDensity("hdpi")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16776961);
-    toolbar.chooseDensity("xhdpi");
+    toolbar.chooseDensity("xhdpi")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16776961);
-    toolbar.chooseDensity("xxhdpi");
+    toolbar.chooseDensity("xxhdpi")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16711936);
-    toolbar.chooseDensity("xxxhdpi");
+    toolbar.chooseDensity("xxxhdpi")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16711936);
   }
 
@@ -63,16 +73,24 @@ public class AdaptiveIconPreviewTest {
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
         .getLayoutPreview(true);
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
-    toolbar.chooseShape("Circle");
+    toolbar.chooseShape("Circle")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getAdaptiveIconPathDescription())
       .isEqualTo("M50 0C77.6 0 100 22.4 100 50C100 77.6 77.6 100 50 100C22.4 100 0 77.6 0 50C0 22.4 22.4 0 50 0Z");
-    toolbar.chooseShape("Rounded Corners");
+    toolbar.chooseShape("Rounded Corners")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getAdaptiveIconPathDescription()).isEqualTo(
       "M50,0L92,0C96.42,0 100,4.58 100 8L100,92C100, 96.42 96.42 100 92 100L8 100C4.58, 100 0 96.42 0 92L0 8 C 0 4.42 4.42 0 8 0L50 0Z");
-    toolbar.chooseShape("Squircle");
+    toolbar.chooseShape("Squircle")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getAdaptiveIconPathDescription())
       .isEqualTo("M50,0 C10,0 0,10 0,50 0,90 10,100 50,100 90,100 100,90 100,50 100,10 90,0 50,0 Z");
-    toolbar.chooseShape("Square");
+    toolbar.chooseShape("Square")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish();
     assertThat(preview.getAdaptiveIconPathDescription()).isEqualTo("M50,0L100,0 100,100 0,100 0,0z");
   }
 }
