@@ -16,18 +16,24 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profilers.cpu.art.ArtTraceParser;
+import com.android.tools.profilers.cpu.simpleperf.SimplePerfTraceParser;
 import com.google.protobuf3jarjar.ByteString;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 /**
  * Manages the parsing of traces into {@link CpuCapture} objects and provide a way to retrieve them.
- * TODO: move trace parsing from CpuCapture to this class.
  */
 public class CpuCaptureParser {
 
@@ -66,8 +72,36 @@ public class CpuCaptureParser {
       // Trace is being parsed or is already parsed. There is not need to start parsing again.
       return myCaptures.get(traceId);
     }
-    CompletableFuture<CpuCapture> capture = CompletableFuture.supplyAsync(() -> new CpuCapture(traceData, profilerType), myParsingExecutor);
+    CompletableFuture<CpuCapture> capture =
+      CompletableFuture.supplyAsync(() -> traceBytesToCapture(traceData, profilerType), myParsingExecutor);
     myCaptures.put(traceId, capture);
     return capture;
+  }
+
+  private static CpuCapture traceBytesToCapture(@NotNull ByteString traceData, CpuProfiler.CpuProfilerType profilerType) {
+    // TODO: Remove layers, analyze whether we can keep the whole file in memory.
+    try {
+      File trace = FileUtil.createTempFile("cpu_trace", ".trace");
+      try (FileOutputStream out = new FileOutputStream(trace)) {
+        out.write(traceData.toByteArray());
+      }
+
+      TraceParser parser;
+      if (profilerType == CpuProfiler.CpuProfilerType.ART) {
+        parser = new ArtTraceParser();
+      }
+      else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
+        parser = new SimplePerfTraceParser();
+      }
+      else {
+        throw new IllegalStateException("Trace file cannot be parsed. Profiler type (ART or simpleperf) needs to be set.");
+      }
+
+      parser.parse(trace);
+      return new CpuCapture(parser.getRange(), parser.getCaptureTrees());
+    }
+    catch (IOException | BufferUnderflowException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }

@@ -19,9 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
 import com.google.common.collect.ImmutableList;
@@ -69,7 +67,7 @@ public final class StudioProfilersTest {
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
     profilers.setStage(stage);
     assertEquals(ProfilerMode.NORMAL, profilers.getMode());
-    stage.setAndSelectCapture(new CpuCapture(CpuProfilerTestUtils.readValidTrace(), CpuProfiler.CpuProfilerType.ART));
+    stage.setAndSelectCapture(CpuProfilerTestUtils.getValidCapture());
     assertEquals(ProfilerMode.EXPANDED, profilers.getMode());
     profilers.setMonitoringStage();
     assertEquals(ProfilerMode.NORMAL, profilers.getMode());

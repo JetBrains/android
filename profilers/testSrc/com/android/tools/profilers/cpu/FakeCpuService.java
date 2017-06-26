@@ -26,9 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.fail;
 
 /**
  * Dummy implementation of {@link CpuServiceGrpc.CpuServiceImplBase}.
@@ -80,7 +79,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   private CpuProfiler.CpuProfilingAppStartRequest myLastSuccessfulStartRequest;
 
   @Override
-  public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request, StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
+  public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
+                                StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStartResponse.Builder response = CpuProfiler.CpuProfilingAppStartResponse.newBuilder();
     response.setStatus(myStartProfilingStatus);
     if (!myStartProfilingStatus.equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
@@ -95,7 +95,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   }
 
   @Override
-  public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request, StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> responseObserver) {
+  public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
+                               StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStopResponse.Builder response = CpuProfiler.CpuProfilingAppStopResponse.newBuilder();
     response.setStatus(myStopProfilingStatus);
     myProfilerType = request.getProfilerType();
@@ -109,7 +110,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
         try {
           parseTraceFile();
         }
-        catch (IOException ignored) {
+        catch (IOException | InterruptedException | ExecutionException ignored) {
         }
       }
       response.setTrace(myTrace);
@@ -153,17 +154,6 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myValidTrace = validTrace;
   }
 
-  private ByteString getTrace() {
-    try {
-      if (myTrace == null) {
-        myTrace = CpuProfilerTestUtils.readValidTrace();
-      }
-    } catch (IOException e) {
-      fail("Unable to get a response trace file");
-    }
-    return myTrace;
-  }
-
   public void setTrace(@Nullable ByteString trace) {
     myTrace = trace;
   }
@@ -200,7 +190,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
         try {
           parseTraceFile();
         }
-        catch (IOException ignored) {
+        catch (IOException | ExecutionException | InterruptedException ignored) {
         }
       }
       boolean traceWithinRange = !myCapture.getRange().getIntersection(requestRange).isEmpty();
@@ -264,7 +254,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     if (myValidTrace) {
       try {
         threads = buildTraceThreads();
-      } catch (IOException e) {
+      } catch (InterruptedException | ExecutionException | IOException e) {
         threads = buildThreads(request.getStartTimestamp(), request.getEndTimestamp());
       }
     } else {
@@ -327,7 +317,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
    * Create one thread with two activities: RUNNING ({@link myTraceThreadActivityBuffer} seconds before capture start)
    * and SLEEPING.
    */
-  private List<CpuProfiler.GetThreadsResponse.Thread> buildTraceThreads() throws IOException {
+  private List<CpuProfiler.GetThreadsResponse.Thread> buildTraceThreads() throws IOException, ExecutionException, InterruptedException {
     if (myCapture == null) {
       parseTraceFile();
     }
@@ -369,12 +359,12 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myGetTraceResponseStatus = getTraceResponseStatus;
   }
 
-  public CpuCapture parseTraceFile() throws IOException {
+  public CpuCapture parseTraceFile() throws IOException, ExecutionException, InterruptedException {
     if (myTrace == null) {
       myTrace = CpuProfilerTestUtils.readValidTrace();
     }
     if (myCapture == null) {
-      myCapture = new CpuCapture(myTrace, myProfilerType);
+      myCapture = CpuProfilerTestUtils.getCapture(myTrace, myProfilerType);
     }
     return myCapture;
   }

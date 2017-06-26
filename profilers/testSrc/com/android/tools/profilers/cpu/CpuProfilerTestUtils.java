@@ -16,12 +16,14 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Common constants and methods used across CPU profiler tests.
@@ -44,5 +46,15 @@ public class CpuProfilerTestUtils {
 
   public static File getTraceFile(@NotNull String filename) {
     return TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
+  }
+
+  public static CpuCapture getValidCapture() throws IOException, ExecutionException, InterruptedException {
+    return getCapture(readValidTrace(), CpuProfiler.CpuProfilerType.ART);
+  }
+
+  public static CpuCapture getCapture(ByteString traceBytes, CpuProfiler.CpuProfilerType profilerType)
+    throws IOException, ExecutionException, InterruptedException {
+    CpuCaptureParser parser = new CpuCaptureParser(Runnable::run);
+    return parser.parse(FakeCpuService.FAKE_TRACE_ID, traceBytes, profilerType).get();
   }
 }

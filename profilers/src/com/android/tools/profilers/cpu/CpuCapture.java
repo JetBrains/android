@@ -19,18 +19,9 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.simpleperf.SimplePerfTraceParser;
-import com.google.protobuf3jarjar.ByteString;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.BufferUnderflowException;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,38 +40,15 @@ public class CpuCapture implements ConfigurableDurationData {
   @NotNull
   private ClockType myClockType;
 
-  public CpuCapture(@NotNull ByteString bytes, CpuProfiler.CpuProfilerType profilerType) {
-    // TODO: Remove layers, analyze whether we can keep the whole file in memory.
-    try {
-      File trace = FileUtil.createTempFile("cpu_trace", ".trace");
-      try (FileOutputStream out = new FileOutputStream(trace)) {
-        out.write(bytes.toByteArray());
-      }
-
-      TraceParser parser;
-      if (profilerType == CpuProfiler.CpuProfilerType.ART) {
-        parser = new ArtTraceParser();
-      }
-      else if (profilerType == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
-        parser = new SimplePerfTraceParser();
-      }
-      else {
-        throw new IllegalStateException("Trace file cannot be parsed. Profiler type (ART or simpleperf) needs to be set.");
-      }
-
-      parser.parse(trace);
-      myRange = parser.getRange();
-      myCaptureTrees = parser.getCaptureTrees();
-    }
-    catch (IOException | BufferUnderflowException e) {
-      throw new IllegalStateException(e);
-    }
+  public CpuCapture(@NotNull Range captureRange, @NotNull Map<CpuThreadInfo, CaptureNode> captureTrees) {
+    myRange = captureRange;
+    myCaptureTrees = captureTrees;
 
     // Try to find the main thread. The main thread is called "main" but if we fail
     // to find it we will fall back to the thread with the most information.
     Map.Entry<CpuThreadInfo, CaptureNode> main = null;
     boolean foundMainThread = false;
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : captureTrees.entrySet()) {
       if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
         main = entry;
         foundMainThread = true;
