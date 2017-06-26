@@ -41,6 +41,8 @@
     <target name="android-plugin" if="${bundle.gradle.plugin}">
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../.." failonerror="true">
             <env key="JAVA_HOME" value="${java.home}" />
+            <arg value="--init-script" />
+            <arg value="${android.basedir}/../../../buildSrc/base/release.gradle" />
             <arg value="init" />
             <arg value="zipOfflineRepo" />
         </exec>
