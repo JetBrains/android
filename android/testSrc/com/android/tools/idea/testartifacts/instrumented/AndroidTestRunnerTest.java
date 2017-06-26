@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.util.SystemInfo;
 
 import java.util.HashMap;
@@ -25,6 +27,8 @@ import java.util.Map;
 
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_INSTRUMENTATION_RUNNER;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for the Android Test Runner related things
@@ -59,5 +63,15 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
 
     Map<String, String> runnerArguments = AndroidTestRunConfiguration.getRunnerArguments(myAndroidFacet);
     assertEquals(expectedArguments, runnerArguments);
+  }
+
+  public void testRunnerComponentsEmptyForGradleProjects() throws Exception {
+    loadProject(TEST_ARTIFACTS_INSTRUMENTATION_RUNNER);
+
+    AndroidTestRunConfiguration androidTestRunConfiguration =
+      createAndroidTestConfigurationFromClass(getProject(), "google.testapplication.ApplicationTest");
+    assertNotNull(androidTestRunConfiguration);
+
+    assertEmpty(androidTestRunConfiguration.INSTRUMENTATION_RUNNER_CLASS);
   }
 }
