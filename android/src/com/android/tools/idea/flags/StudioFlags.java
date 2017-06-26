@@ -85,8 +85,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_USE_JVMTI = Flag.create(
     PROFILER, "jvmti", "Enable JVMTI profiling",
     "Use JVMTI for profiling devices with Android O or newer. " +
-     "This unlocks even more profiling features for these devices.",
-     true);
+    "This unlocks even more profiling features for these devices.",
+    true);
 
   public static final Flag<Boolean> PROFILER_USE_SIMPLEPERF = Flag.create(
     PROFILER, "simpleperf", "Enable Simpleperf profiling",
@@ -124,7 +124,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_LIVE_RENDER = Flag.create(
     NELE, "live.render", "Enable the Live Render",
     "Enable the continuous rendering of the surface when moving/resizing components.",
-  false);
+    false);
 
   public static final Flag<Boolean> NELE_WIDGET_ASSISTANT = Flag.create(
     NELE, "widget.assistant", "Enable the properties panel Widget Assistant",
@@ -134,6 +134,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
     NELE, "convert.view", "Enable the Convert View Action",
     "Enable the Convert View Action when right clicking on a component",
+    false);
+
+  private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
+  public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
+    ASSISTANT, "connection.enabled", "Enable the connection assistant",
+    "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
     false);
 
   private StudioFlags() {
