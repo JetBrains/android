@@ -87,7 +87,8 @@ public class GradleDependencyManager {
       return Collections.emptyList();
     }
 
-    List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts(COMPILE) : null;
+    String configurationName = GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+    List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts(configurationName) : null;
 
     // Record current version of support library; if used, prefer that for other dependencies
     // (e.g. if you're using appcompat-v7 version 25.3.1, and you drag in a recyclerview-v7
@@ -96,7 +97,7 @@ public class GradleDependencyManager {
     if (compileDependencies != null) {
       for (ArtifactDependencyModel dependency : compileDependencies) {
         if (Objects.equal(SUPPORT_LIB_GROUP_ID, dependency.group().value()) &&
-            Objects.equal("appcompat-v7", dependency.name().value())) {
+            !Objects.equal("multidex", dependency.name().value())) {
           String s = dependency.version().value();
           if (s != null) {
             appCompatVersion = GradleVersion.tryParse(s);
@@ -124,7 +125,6 @@ public class GradleDependencyManager {
       // all consistent.
       if (appCompatVersion != null
           && coordinate.acceptsGreaterRevisions() && SUPPORT_LIB_GROUP_ID.equals(groupId)
-          && !artifactId.equals("appcompat-v7")
           // The only library in groupId=SUPPORT_LIB_GROUP_ID which doesn't follow the normal version numbering scheme
           && !artifactId.equals("multidex")) {
         resolvedCoordinate = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + appCompatVersion.toString());
