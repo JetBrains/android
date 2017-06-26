@@ -106,8 +106,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     return variants;
   }
 
-  // http://b.android.com/230792
-  public void skip_testEditableDependencies() throws Throwable {
+  public void testEditableDependencies() throws Throwable {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
@@ -154,8 +153,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     }
   }
 
-  // http://b.android.com/230792
-  public void skip_testEditableDependenciesWithPlusInVersion() throws Throwable {
+  public void testEditableDependenciesWithPlusInVersion() throws Throwable {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();

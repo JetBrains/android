@@ -34,8 +34,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   private HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
   private static final Pattern LINK_PATTERN = Pattern.compile("\\<a.*? href=\"(.*?)\".*?\\>", Pattern.CASE_INSENSITIVE);
 
-  // http://b.android.com/230792
-  public void skip_testResolveAttributeConflict() throws Exception {
+  public void testResolveAttributeConflict() throws Exception {
     loadProject(MANIFEST_CONFLICT_ATTRIBUTE);
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);
@@ -59,8 +58,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     assertEquals(0, getErrorHtml().length);
   }
 
-  // http://b.android.com/230792
-  public void skip_testResolveMinSdkConflict() throws Exception {
+  public void testResolveMinSdkConflict() throws Exception {
     loadProject(MANIFEST_CONFLICT_MIN_SDK);
     String[] errors = getErrorHtml();
     assertEquals(1, errors.length);

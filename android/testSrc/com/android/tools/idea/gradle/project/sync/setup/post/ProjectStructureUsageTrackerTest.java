@@ -59,8 +59,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     UsageTracker.cleanAfterTesting();
   }
 
-  // http://b.android.com/230792
-  public void skip_testProductStructureUsageTrackingBasic() throws Exception {
+  public void testProductStructureUsageTrackingBasic() throws Exception {
     trackGradleProject(PROJECT_WITH_APPAND_LIB);
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();
@@ -87,7 +86,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
                                         .setIsLibrary(false)
                                         .setBuildTypeCount(2)
                                         .setFlavorCount(2)
-                                        .setFlavorDimension(0)
+                                        .setFlavorDimension(1)
                                         .setSigningConfigCount(1))
                    .addAndroidModules(GradleAndroidModule.newBuilder()
                                         .setModuleName(AndroidStudioUsageTracker.anonymizeUtf8("lib"))

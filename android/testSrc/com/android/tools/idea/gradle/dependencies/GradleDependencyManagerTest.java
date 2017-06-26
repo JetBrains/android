@@ -43,8 +43,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
 
   private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
 
-  // http://b.android.com/230792
-  public void skip_testDependsOn() throws Exception {
+  public void testDependsOn() throws Exception {
     loadSimpleApplication();
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     Module appModule = myModules.getAppModule();
@@ -59,8 +58,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertThat(missingDependencies).containsExactly(DUMMY_DEPENDENCY);
   }
 
-  // http://b.android.com/230792
-  public void skip_testFindMissingDependenciesInProjectWithSplitBuildFiles() throws Exception {
+  public void testFindMissingDependenciesInProjectWithSplitBuildFiles() throws Exception {
     loadProject(SPLIT_BUILD_FILES);
     GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
     List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(myModules.getAppModule(), DEPENDENCIES);

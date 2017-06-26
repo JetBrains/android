@@ -50,14 +50,7 @@ public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
     assertEquals(expectedDoc, provider.generateDoc(docTargetElement, originalElement));
   }
 
-  // Add am empty test function to workaround junit failures
-  // It requires at least one test method in test classes
-  public void testEmpty() {
-    //This function is left blank on purpose
-  }
-
-  // http://b.android.com/230792
-  public void skip_testResource() throws Exception {
+  public void testResource() throws Exception {
     loadProject(DEPENDENT_MODULES);
 
     checkJavadoc("/app/src/main/res/values/colors.xml",

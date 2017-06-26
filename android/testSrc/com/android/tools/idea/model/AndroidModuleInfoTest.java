@@ -148,8 +148,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     myFixture.testHighlighting();
   }
 
-  // http://b.android.com/230792
-  public void skip_testManifestMerger() throws Exception {
+  public void testManifestMerger() throws Exception {
     loadProject(MODULE_INFO_MANIFEST_MERGER);
     assertNotNull(myAndroidFacet);
     assertEquals(1, AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), true).size());
