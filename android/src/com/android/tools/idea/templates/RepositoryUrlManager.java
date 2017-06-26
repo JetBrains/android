@@ -43,6 +43,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,7 +137,7 @@ public class RepositoryUrlManager {
                                    @NotNull File sdkLocation,
                                    @NotNull FileOp fileOp) {
     // First check the Google maven repository, which has most versions
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+    if (!ApplicationManager.getApplication().isUnitTestMode() && !AndroidPlugin.isGuiTestingMode()) {
       GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filterPrefix, includePreviews);
       if (version != null) {
         return version.toString();
@@ -406,7 +407,7 @@ public class RepositoryUrlManager {
     filter = filter.substring(0, filter.length() - 1);
 
     // First check the Google maven repository, which has most versions
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+    if (!ApplicationManager.getApplication().isUnitTestMode() && !AndroidPlugin.isGuiTestingMode()) {
       GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, true);
       if (version != null) {
         GradleVersion stable = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, false);
