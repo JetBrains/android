@@ -38,15 +38,8 @@ import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
  * Integration tests for 'Gradle Sync' and the Gradle build cache.
  */
 public class BuildCacheSyncTest extends AndroidGradleTestCase {
-  // Add am empty test function to workaround junit failures
-  // It requires at least one test method in test classes
-  public void testEmpty() {
-    //This function is left blank on purpose
-  }
-
   // See https://code.google.com/p/android/issues/detail?id=229633
-  // http://b.android.com/230792
-  public void skip_testSyncWithGradleBuildCacheUninitialized() throws Exception {
+  public void testSyncWithGradleBuildCacheUninitialized() throws Exception {
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
     setBuildCachePath(createTempDirectory("build-cache", ""));
 
