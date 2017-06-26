@@ -18,7 +18,7 @@ package com.android.tools.idea.lint;
 import com.android.tools.lint.checks.ReadParcelableDetector;
 import com.intellij.psi.JavaTokenType;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaToken;
+import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
@@ -35,8 +35,7 @@ public class AndroidLintParcelClassLoaderInspection extends AndroidLintInspectio
                                              @NotNull PsiElement endElement,
                                              @NotNull String message) {
     String replace = "null)";
-    if (endElement.getPrevSibling() instanceof PsiJavaToken
-        && ((PsiJavaToken)endElement.getPrevSibling()).getTokenType() == JavaTokenType.LPARENTH) {
+    if (PsiUtil.isJavaToken(endElement.getPrevSibling(), JavaTokenType.LPARENTH)) {
       replace = ")";
     }
     return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Use getClass().getClassLoader()", replace, "getClass().getClassLoader())")};
