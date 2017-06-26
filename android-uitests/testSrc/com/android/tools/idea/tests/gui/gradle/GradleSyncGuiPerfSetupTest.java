@@ -86,7 +86,7 @@ public class GradleSyncGuiPerfSetupTest {
 
 class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
   @Override
-  public void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
+  public File copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = new File(PathManager.getHomePath() + "/../../external/" + projectDirName);
 
     File testProjectPath = new File(System.getenv("SYNC_PERFTEST_PROJECT_DIR"));
@@ -96,6 +96,7 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
     FileUtil.copyDir(masterProjectPath, testProjectPath);
     prepareProjectForImport(testProjectPath);
     System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, testProjectPath.getPath()));
+    return testProjectPath;
   }
 
 

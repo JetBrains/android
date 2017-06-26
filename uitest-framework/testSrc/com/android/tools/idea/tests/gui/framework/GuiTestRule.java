@@ -66,7 +66,6 @@ public class GuiTestRule implements TestRule {
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
 
-  private File myProjectPath;
   private IdeFrameFixture myIdeFrameFixture;
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
@@ -238,8 +237,7 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    setUpProject(projectDirName);
-    VirtualFile toSelect = VfsUtil.findFileByIoFile(myProjectPath, true);
+    VirtualFile toSelect = VfsUtil.findFileByIoFile(setUpProject(projectDirName), true);
     ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().importProject(toSelect));
 
     return ideFrame();
@@ -262,24 +260,26 @@ public class GuiTestRule implements TestRule {
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
    * @throws IOException if an unexpected I/O error occurs.
    */
-  private void setUpProject(@NotNull String projectDirName) throws IOException {
-    copyProjectBeforeOpening(projectDirName);
+  private File setUpProject(@NotNull String projectDirName) throws IOException {
+    File projectPath = copyProjectBeforeOpening(projectDirName);
 
-    createGradleWrapper(myProjectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(myProjectPath);
-    updateLocalProperties(myProjectPath);
-    cleanUpProjectForImport(myProjectPath);
+    createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
+    updateGradleVersions(projectPath);
+    updateLocalProperties(projectPath);
+    cleanUpProjectForImport(projectPath);
+    return projectPath;
   }
 
-  public void copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
+  public File copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
-    myProjectPath = getTestProjectDirPath(projectDirName);
-    if (myProjectPath.isDirectory()) {
-      FileUtilRt.delete(myProjectPath);
+    File projectPath = getTestProjectDirPath(projectDirName);
+    if (projectPath.isDirectory()) {
+      FileUtilRt.delete(projectPath);
     }
-    FileUtil.copyDir(masterProjectPath, myProjectPath);
-    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, myProjectPath.getPath()));
+    FileUtil.copyDir(masterProjectPath, projectPath);
+    System.out.println(String.format("Copied project '%1$s' to path '%2$s'", projectDirName, projectPath.getPath()));
+    return projectPath;
   }
 
   protected boolean createGradleWrapper(@NotNull File projectDirPath, @NotNull String gradleVersion) throws IOException {
