@@ -20,6 +20,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
@@ -169,7 +170,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         errors.addAll(checkTestMethod());
         break;
     }
-    if (INSTRUMENTATION_RUNNER_CLASS.length() > 0) {
+    if (GradleProjectInfo.getInstance(getProject()).isBuildWithGradle() && INSTRUMENTATION_RUNNER_CLASS.length() > 0) {
       if (facade.findClass(INSTRUMENTATION_RUNNER_CLASS, module.getModuleWithDependenciesAndLibrariesScope(true)) == null) {
         errors.add(ValidationError.fatal(AndroidBundle.message("instrumentation.runner.class.not.specified.error")));
       }
@@ -297,7 +298,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                 @NotNull AndroidFacet facet,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
-    String runner = StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) ? findInstrumentationRunner(facet) : INSTRUMENTATION_RUNNER_CLASS;
+    String runner;
+    if (StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) || GradleProjectInfo.getInstance(getProject()).isBuildWithGradle()) {
+      runner = findInstrumentationRunner(facet);
+    }
+    else {
+      runner = INSTRUMENTATION_RUNNER_CLASS;
+    }
     Map<String, String> runnerArguments = getRunnerArguments(facet);
     String testPackage;
     try {

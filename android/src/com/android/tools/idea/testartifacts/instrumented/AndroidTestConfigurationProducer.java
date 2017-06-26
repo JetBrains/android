@@ -206,7 +206,9 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
   }
 
   private static void setupInstrumentationTestRunner(@NotNull AndroidTestRunConfiguration configuration, @NotNull AndroidFacet facet) {
-    configuration.INSTRUMENTATION_RUNNER_CLASS = StringUtil.notNullize(AndroidTestRunConfiguration.findInstrumentationRunner(facet));
+    if (!GradleProjectInfo.getInstance(configuration.getProject()).isBuildWithGradle()) {
+      configuration.INSTRUMENTATION_RUNNER_CLASS = StringUtil.notNullize(AndroidTestRunConfiguration.findInstrumentationRunner(facet));
+    }
   }
 
   @Override
