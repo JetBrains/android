@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -59,7 +60,7 @@ public class CpuTraceDataSeriesTest {
   }
 
   @Test
-  public void validTraceFailureStatus() throws IOException {
+  public void validTraceFailureStatus() throws IOException, ExecutionException, InterruptedException {
     Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
@@ -70,7 +71,7 @@ public class CpuTraceDataSeriesTest {
   }
 
   @Test
-  public void validTraceSuccessStatus() throws IOException {
+  public void validTraceSuccessStatus() throws IOException, ExecutionException, InterruptedException {
     Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
@@ -104,7 +105,7 @@ public class CpuTraceDataSeriesTest {
   }
 
   @Test
-  public void validTraceSuccessStatusNoCaptureWithinRange() throws IOException {
+  public void validTraceSuccessStatusNoCaptureWithinRange() throws IOException, ExecutionException, InterruptedException {
     Range noCapturesRange = new Range(-Double.MAX_VALUE, 0);
     myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);

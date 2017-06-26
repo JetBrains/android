@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -88,7 +89,7 @@ public class ThreadStateDataSeriesTest {
   }
 
   @Test
-  public void nonEmptyRangeWithFakeTraceFailureStatus() throws IOException {
+  public void nonEmptyRangeWithFakeTraceFailureStatus() throws IOException, ExecutionException, InterruptedException {
     CpuCapture capture = myService.parseTraceFile();
     assertNotNull(capture);
     // Create a series with trace file's main thread tid and the capture range
@@ -109,7 +110,7 @@ public class ThreadStateDataSeriesTest {
   }
 
   @Test
-  public void nonEmptyRangeWithFakeTraceSuccessStatus() throws IOException {
+  public void nonEmptyRangeWithFakeTraceSuccessStatus() throws IOException, ExecutionException, InterruptedException {
     CpuCapture capture = myService.parseTraceFile();
     assertNotNull(capture);
     // Create a series with trace file's main thread tid and the capture range
@@ -131,7 +132,7 @@ public class ThreadStateDataSeriesTest {
   }
 
   @Test
-  public void captureBeforeFirstActivity() throws IOException {
+  public void captureBeforeFirstActivity() throws IOException, ExecutionException, InterruptedException {
     CpuCapture capture = myService.parseTraceFile();
     assertNotNull(capture);
     // Create a series with trace file's main thread tid and the capture range
