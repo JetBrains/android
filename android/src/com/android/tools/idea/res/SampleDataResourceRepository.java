@@ -84,7 +84,8 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
                                                    new NumberGenerator("%05d", 20000, 99999)),
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_phones",
                                                    new NumberGenerator("(800) 555-%04d", 0, 9999)),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator()),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator(false)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem/random", new LoremIpsumGenerator(true)),
 
     // TODO: Delegate path parsing to the data source to avoid all these declarations
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/day_of_week",

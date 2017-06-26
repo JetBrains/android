@@ -108,7 +108,7 @@ public class AddSampleDataDialog extends DialogWrapper {
     model.addElement(new SampleDataSource("US Phone numbers", "phones",
                                           new NumberGenerator("555-%04d", 0, 9999)));
     model.addElement(new SampleDataSource("Lorem Ipsum", "lorem",
-                                          new LoremIpsumGenerator()));
+                                          new LoremIpsumGenerator(false)));
     mySourcesList.setModel(model);
 
     setTitle("Add Sample Data File");
