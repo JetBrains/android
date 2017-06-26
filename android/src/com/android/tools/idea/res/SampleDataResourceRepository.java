@@ -72,12 +72,12 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "full_names", new CombinerDataSource(
       SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"),
       SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/surnames.txt"))),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "first_names", new ResourceContent(
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "first_names", ResourceContent.fromInputStream(
       SampleDataResourceRepository.class.getClassLoader().getResourceAsStream("sampleData/names.txt"))),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "last_names", new ResourceContent(
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "last_names", ResourceContent.fromInputStream(
       SampleDataResourceRepository.class.getClassLoader()
         .getResourceAsStream("sampleData/surnames.txt"))),
-    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "cities", new ResourceContent(
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "cities", ResourceContent.fromInputStream(
       SampleDataResourceRepository.class.getClassLoader()
         .getResourceAsStream("sampleData/cities.txt"))),
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "us_zipcodes",
@@ -86,6 +86,9 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
                                                    new NumberGenerator("(800) 555-%04d", 0, 9999)),
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator(false)),
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem/random", new LoremIpsumGenerator(true)),
+    SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "avatars",
+                                                   ResourceContent.fromDirectory(SampleDataResourceRepository.class.getClassLoader()
+                                                                                   .getResource("sampleData/avatars"))),
 
     // TODO: Delegate path parsing to the data source to avoid all these declarations
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/day_of_week",
