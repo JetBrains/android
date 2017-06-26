@@ -52,6 +52,61 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
   private static Logger LOG = Logger.getInstance(RecyclerViewAssistant.class);
 
   @Language("XML")
+  private static String EMAIL_TEMPLATE =
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+    "<android.support.constraint.ConstraintLayout\n" +
+    "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+    "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+    "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+    "    android:layout_width=\"match_parent\"\n" +
+    "    android:layout_height=\"wrap_content\">\n" +
+    "\n" +
+    "    <ImageView\n" +
+    "        android:id=\"@+id/imageView2\"\n" +
+    "        android:layout_width=\"50dp\"\n" +
+    "        android:layout_height=\"50dp\"\n" +
+    "        tools:src=\"@tools:sample/avatars\"\n" +
+    "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+    "        android:layout_marginStart=\"8dp\"\n" +
+    "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
+    "        android:layout_marginTop=\"8dp\" />\n" +
+    "\n" +
+    "    <TextView\n" +
+    "        android:id=\"@+id/textView\"\n" +
+    "        android:layout_width=\"wrap_content\"\n" +
+    "        android:layout_height=\"wrap_content\"\n" +
+    "        tools:text=\"@tools:sample/full_names\"\n" +
+    "        android:textSize=\"20sp\"\n" +
+    "        android:textColor=\"@android:color/black\"\n" +
+    "        app:layout_constraintTop_toTopOf=\"@+id/imageView2\"\n" +
+    "        app:layout_constraintStart_toEndOf=\"@+id/imageView2\"\n" +
+    "        android:layout_marginStart=\"8dp\"\n" +
+    "        android:layout_marginBottom=\"8dp\"\n" +
+    "        app:layout_constraintBottom_toTopOf=\"@+id/textView2\" />\n" +
+    "\n" +
+    "    <TextView\n" +
+    "        android:id=\"@+id/textView2\"\n" +
+    "        android:layout_width=\"285dp\"\n" +
+    "        android:layout_height=\"20dp\"\n" +
+    "        tools:text=\"@tools:sample/lorem[4:10]\"\n" +
+    "        app:layout_constraintBottom_toBottomOf=\"@+id/imageView2\"\n" +
+    "        app:layout_constraintStart_toEndOf=\"@+id/imageView2\"\n" +
+    "        android:layout_marginStart=\"8dp\"\n" +
+    "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+    "        android:layout_marginEnd=\"8dp\"\n" +
+    "        app:layout_constraintHorizontal_bias=\"0.050\" />\n" +
+    "\n" +
+    "    <TextView\n" +
+    "        android:id=\"@+id/textView3\"\n" +
+    "        android:layout_width=\"wrap_content\"\n" +
+    "        android:layout_height=\"wrap_content\"\n" +
+    "        tools:text=\"@tools:sample/date/hhmm\"\n" +
+    "        app:layout_constraintTop_toTopOf=\"@+id/imageView2\"\n" +
+    "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+    "        android:layout_marginEnd=\"8dp\" />\n" +
+    "</android.support.constraint.ConstraintLayout>";
+
+  @Language("XML")
   private static String ONE_LINE_TEMPLATE =
     "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
     "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -109,6 +164,7 @@ public class RecyclerViewAssistant extends JPanel implements ComponentAssistant.
     "</LinearLayout>";
 
   private static final ImmutableList<Template> TEMPLATES = ImmutableList.of(
+    new Template("e-mail client template", EMAIL_TEMPLATE),
     new Template("One line template", ONE_LINE_TEMPLATE),
     new Template("Two lines template", TWO_LINES_TEMPLATE),
     new Template("Three lines template", THREE_LINES_TEMPLATE));
