@@ -51,7 +51,10 @@ import java.util.Map;
  * Displays network connection information of all threads.
  */
 final class ThreadsView {
-  private static final int ROW_HEIGHT = 15 + 10;
+  private static final int STATE_HEIGHT = 15;
+  private static final int SELECTION_OUTLINE_PADDING = 3;
+  private static final int SELECTION_OUTLINE_BORDER = 2;
+  private static final int ROW_HEIGHT = STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING);
 
   @NotNull
   private final JTable myThreadsTable;
@@ -169,13 +172,10 @@ final class ThreadsView {
   private static final class TimelineRenderer implements TableCellRenderer, TableModelListener {
     @NotNull private final JTable myTable;
     @NotNull private final List<JComponent> myRows;
-    @NotNull private final ProfilerTimeline myTimeline;
     @NotNull private final NetworkProfilerStage myStage;
 
     TimelineRenderer(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
       myTable = table;
-      // TODO: remove
-      myTimeline = stage.getStudioProfilers().getTimeline();
       myRows = new ArrayList<>();
       myStage = stage;
       myTable.getModel().addTableModelListener(this);
@@ -212,9 +212,10 @@ final class ThreadsView {
 
     @NotNull
     private AxisComponent createAxis() {
-      AxisComponentModel model = new AxisComponentModel(myTimeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1));
+      ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
+      AxisComponentModel model = new AxisComponentModel(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1));
       model.setClampToMajorTicks(false);
-      model.setGlobalRange(myTimeline.getDataRange());
+      model.setGlobalRange(timeline.getDataRange());
 
       AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
       axis.setShowAxisLine(false);
@@ -231,10 +232,7 @@ final class ThreadsView {
    */
   private static final class ConnectionsInfoComponent extends JComponent {
     private static final int NAME_PADDING = 6;
-    private static final int STATE_HEIGHT = 15;
     private static final int WARNING_SIZE = 10;
-    private static final int SELECTION_PADDING = 3;
-    private static final int SELECTION_BORDER = 2;
 
     @NotNull private final List<HttpData> myDataList;
     @NotNull private final Range myRange;
@@ -262,7 +260,7 @@ final class ThreadsView {
         HttpData data = myDataList.get(i);
         double endLimit = (i + 1 < myDataList.size()) ? rangeToPosition(myDataList.get(i + 1).getStartTimeUs()) : getWidth();
 
-        drawState(g2d,  data, endLimit);
+        drawState(g2d, data, endLimit);
 
         if (data.getJavaThreads().size() > 1) {
           drawWarning(g2d, data, endLimit);
@@ -331,12 +329,12 @@ final class ThreadsView {
     private void drawSelection(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
       double start = rangeToPosition(data.getStartTimeUs());
       double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
-      g2d.setStroke(new BasicStroke(SELECTION_BORDER));
+      g2d.setStroke(new BasicStroke(SELECTION_OUTLINE_BORDER));
       g2d.setColor(myTable.getSelectionBackground());
-      Rectangle2D rect = new Rectangle2D.Double(start - SELECTION_PADDING,
-                                                (getHeight() - STATE_HEIGHT) / 2 - SELECTION_PADDING,
-                                                end - start + 2 * SELECTION_PADDING,
-                                                STATE_HEIGHT + 2 * SELECTION_PADDING);
+      Rectangle2D rect = new Rectangle2D.Double(start - SELECTION_OUTLINE_PADDING,
+                                                (getHeight() - STATE_HEIGHT) / 2 - SELECTION_OUTLINE_PADDING,
+                                                end - start + 2 * SELECTION_OUTLINE_PADDING,
+                                                STATE_HEIGHT + 2 * SELECTION_OUTLINE_PADDING);
       g2d.draw(rect);
     }
 
@@ -412,7 +410,7 @@ final class ThreadsView {
         Rectangle cellBounds = myTable.getCellRect(row, column, false);
         List<HttpData> dataList = (List<HttpData>)myTable.getModel().getValueAt(row, 1);
         double at = positionToRange(p.x - cellBounds.x, cellBounds.getWidth());
-        for (HttpData data: dataList) {
+        for (HttpData data : dataList) {
           if (data.getStartTimeUs() <= at && at <= data.getEndTimeUs()) {
             return data;
           }
