@@ -17,6 +17,7 @@ package com.android.tools.idea.sampledata.datasource;
 
 import com.google.common.base.Charsets;
 import com.intellij.openapi.util.io.StreamUtil;
+import libcore.io.Streams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,10 +26,10 @@ import java.net.URL;
 import java.util.function.Function;
 
 public class ResourceContent implements Function<OutputStream, Exception> {
-  final InputStream myInputStream;
+  byte[] myContent;
 
-  private ResourceContent(@NotNull InputStream content) {
-    myInputStream = content;
+  private ResourceContent(@NotNull byte[] content) {
+    myContent = content;
   }
 
   @NotNull
@@ -44,18 +45,25 @@ public class ResourceContent implements Function<OutputStream, Exception> {
       }
     }
 
-    return new ResourceContent(new ByteArrayInputStream(content.toString().getBytes(Charsets.UTF_8)));
+    return new ResourceContent(content.toString().getBytes(Charsets.UTF_8));
   }
 
   @NotNull
   public static ResourceContent fromInputStream(@NotNull InputStream stream) {
-    return new ResourceContent(stream);
+    byte[] content;
+    try {
+      content = Streams.readFully(stream);
+    }
+    catch (IOException e) {
+      content = new byte[0];
+    }
+    return new ResourceContent(content);
   }
 
   @Override
   public Exception apply(OutputStream stream) {
     try {
-      StreamUtil.copyStreamContent(myInputStream, stream);
+      stream.write(myContent);
     }
     catch (IOException e) {
       return e;
