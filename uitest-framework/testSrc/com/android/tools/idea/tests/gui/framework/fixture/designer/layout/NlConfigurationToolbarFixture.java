@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -115,6 +116,15 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     new JButtonFixture(myRobot, findToolbarButton("Adaptive Icon Shape")).click();
     clickPopupMenuItem(shape, myToolBar.getComponent(), myRobot);
     return this;
+  }
+
+  /**
+   * Clicks on the theme toolbar button and opens the theme selection dialog
+   */
+  @NotNull
+  public ThemeSelectionDialogFixture openThemeSelectionDialog() {
+    new JButtonFixture(myRobot, findToolbarButton("Theme in Editor")).click();
+    return ThemeSelectionDialogFixture.find(myRobot);
   }
 
   /**

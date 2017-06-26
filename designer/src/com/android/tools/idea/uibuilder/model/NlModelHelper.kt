@@ -170,7 +170,7 @@ fun NlModel.overrideConfigurationDensity(density: Density) {
     deviceBuilder.setTagId(original.tagId)
   }
   deviceBuilder.setName("Custom")
-  deviceBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
+  deviceBuilder.setId("Custom Density")
   val device = deviceBuilder.build()
   device.allStates
       .map { it.hardware.screen }

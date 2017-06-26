@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.adaptiveicon;
 
+import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
@@ -40,6 +41,7 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
       group.add(new DensityMenuAction(model));
     }
     group.add(new ShapeMenuAction((NlDesignSurface)mySurface));
+    group.add(new ThemeMenuAction(mySurface::getConfiguration));
     return group;
   }
 

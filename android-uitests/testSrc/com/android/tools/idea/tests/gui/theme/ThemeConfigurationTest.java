@@ -24,9 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.AndroidThemePrev
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
-import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,14 +56,9 @@ public class ThemeConfigurationTest {
     JComboBoxFixture parentComboBox = newStyleDialog.getParentComboBox();
 
     parentComboBox.selectItem("Show all themes");
-    ThemeSelectionDialogFixture themeSelectionDialog = ThemeSelectionDialogFixture.find(guiTest.robot());
-    final JTreeFixture categoriesTree = themeSelectionDialog.getCategoriesTree();
-    JListFixture themeList = themeSelectionDialog.getThemeList();
-
-    categoriesTree.clickPath("Material Dark");
-    guiTest.robot().waitForIdle();
-    themeList.clickItem("android:Theme.Material");
-    themeSelectionDialog.clickOk();
+    ThemeSelectionDialogFixture.find(guiTest.robot())
+      .selectsTheme("Material Dark", "android:Theme.Material")
+      .clickOk();
     parentComboBox.requireSelection("android:Theme.Material");
 
     JTextComponentFixture newNameTextField = newStyleDialog.getNewNameTextField();

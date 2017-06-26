@@ -93,4 +93,26 @@ public class AdaptiveIconPreviewTest {
       .waitForRenderToFinish();
     assertThat(preview.getAdaptiveIconPathDescription()).isEqualTo("M50,0L100,0 100,100 0,100 0,0z");
   }
+
+  @Test
+  public void themeSelector() throws IOException {
+    NlPreviewFixture preview =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
+        .getEditor()
+        .open("app/src/main/res/mipmap-anydpi-v26/ic_theme_adaptive.xml")
+        .getLayoutPreview(true);
+    NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
+    toolbar.openThemeSelectionDialog()
+      .selectsTheme("Material Light", "android:Theme.Material.Light")
+      .clickOk();
+    toolbar.leaveConfigToolbar()
+      .waitForRenderToFinish();
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-657931);
+    toolbar.openThemeSelectionDialog()
+      .selectsTheme("Material Dark", "android:Theme.Material")
+      .clickOk();
+    toolbar.leaveConfigToolbar()
+      .waitForRenderToFinish();
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-14606047);
+  }
 }
