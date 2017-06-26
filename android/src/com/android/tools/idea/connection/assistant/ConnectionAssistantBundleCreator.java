@@ -17,6 +17,7 @@ package com.android.tools.idea.connection.assistant;
 
 import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,6 +49,6 @@ public class ConnectionAssistantBundleCreator implements AssistantBundleCreator 
   }
 
   public static boolean isAssistantEnabled() {
-    return Boolean.getBoolean(BUNDLE_ID + ".enabled");
+    return StudioFlags.CONNECTION_ASSISTANT_ENABLED.get();
   }
 }
