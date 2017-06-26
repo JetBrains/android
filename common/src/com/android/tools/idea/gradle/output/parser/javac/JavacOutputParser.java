@@ -24,7 +24,7 @@ import com.android.ide.common.blame.parser.PatternAwareOutputParser;
 import com.android.ide.common.blame.parser.util.OutputLineReader;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
-import com.intellij.util.StringBuilderSpinAllocator;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
@@ -123,19 +123,9 @@ public class JavacOutputParser implements PatternAwareOutputParser {
 
           if (column >= 0) {
             messageList = convertMessages(messageList);
-            StringBuilder buf = StringBuilderSpinAllocator.alloc();
-            try {
-              for (String m : messageList) {
-                if (buf.length() > 0) {
-                  buf.append(SystemProperties.getLineSeparator()) ;
-                }
-                buf.append(m);
-              }
-              Message msg = new Message(kind, buf.toString(), new SourceFilePosition(file, new SourcePosition(lineNumber - 1, column, -1)));
-              addMessage(msg, messages);
-            } finally {
-              StringBuilderSpinAllocator.dispose(buf);
-            }
+            String msgText = StringUtil.join(messageList, SystemProperties.getLineSeparator());
+            Message msg = new Message(kind, msgText, new SourceFilePosition(file, new SourcePosition(lineNumber - 1, column, -1)));
+            addMessage(msg, messages);
             return true;
           }
 
