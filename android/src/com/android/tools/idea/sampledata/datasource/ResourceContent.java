@@ -15,18 +15,41 @@
  */
 package com.android.tools.idea.sampledata.datasource;
 
+import com.google.common.base.Charsets;
 import com.intellij.openapi.util.io.StreamUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.net.URL;
 import java.util.function.Function;
 
 public class ResourceContent implements Function<OutputStream, Exception> {
   final InputStream myInputStream;
 
-  public ResourceContent(InputStream content) {
+  private ResourceContent(@NotNull InputStream content) {
     myInputStream = content;
+  }
+
+  @NotNull
+  public static ResourceContent fromDirectory(@Nullable URL pathUrl) {
+    StringBuilder content = new StringBuilder();
+
+    File path = pathUrl != null && pathUrl.getFile() != null ? new File(pathUrl.getFile()) : null;
+    File[] files = path != null ? path.listFiles() : null;
+
+    if (files != null) {
+      for (File file : files) {
+        content.append(file.getAbsolutePath()).append('\n');
+      }
+    }
+
+    return new ResourceContent(new ByteArrayInputStream(content.toString().getBytes(Charsets.UTF_8)));
+  }
+
+  @NotNull
+  public static ResourceContent fromInputStream(@NotNull InputStream stream) {
+    return new ResourceContent(stream);
   }
 
   @Override

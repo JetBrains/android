@@ -95,13 +95,13 @@ public class AddSampleDataDialog extends DialogWrapper {
                                             loader.getResourceAsStream("sampleData/names.txt"),
                                             loader.getResourceAsStream("sampleData/surnames.txt"))));
     model.addElement(new SampleDataSource("First names", "names",
-                                          new ResourceContent(
+                                          ResourceContent.fromInputStream(
                                             loader.getResourceAsStream("sampleData/names.txt"))));
     model.addElement(new SampleDataSource("Last names", "surnames",
-                                          new ResourceContent(
-                                            loader.getResourceAsStream("sampleData/surnames.txt"))));
+                                          ResourceContent.fromInputStream((
+                                            loader.getResourceAsStream("sampleData/surnames.txt")))));
     model.addElement(new SampleDataSource("Cities of the world", "cities",
-                                          new ResourceContent(
+                                          ResourceContent.fromInputStream(
                                             loader.getResourceAsStream("sampleData/cities.txt"))));
     model.addElement(new SampleDataSource("US Postcode", "postcodes",
                                           new NumberGenerator("%05d", 20000, 99999)));
