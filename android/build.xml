@@ -38,9 +38,20 @@
             <env key="JAVA_HOME" value="${java.home}"/>
         </exec>
     </target>
-    <target name="android-plugin" if="${bundle.gradle.plugin}">
+
+    <condition property="build.gradle.plugin">
+        <or>
+            <isset property="bundle.gradle.plugin" />
+            <isset property="bundle.gradle.release.plugin" />
+        </or>
+    </condition>
+    <target name="android-plugin" if="${build.gradle.plugin}">
+        <condition property="select.release.args" value="-init-script ${android.basedir}/../../../buildSrc/base/release.gradle" else="">
+            <isset property="bundle.gradle.release.plugin" />
+        </condition>
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../.." failonerror="true">
             <env key="JAVA_HOME" value="${java.home}" />
+            <arg line="${select.release.args}" />
             <arg value="init" />
             <arg value="zipOfflineRepo" />
         </exec>
