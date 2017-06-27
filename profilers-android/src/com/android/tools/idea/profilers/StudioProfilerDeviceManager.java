@@ -188,11 +188,16 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           throw new TimeoutException("Timed out waiting for device to be ready.");
         }
 
+        // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
+        // in AndroidStudioProperties.groovy to package in release.
         String deviceDir = "/data/local/tmp/perfd/";
         copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir,
                          true);
         if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
-          copyFileToDevice("perfa.jar", "plugins/android/resources", "../../bazel-genfiles/tools/base/profiler/app", deviceDir, false);
+          String productionRoot = "plugins/android/resources";
+          String devRoot = "../../bazel-genfiles/tools/base/profiler/app";
+          copyFileToDevice("perfa.jar", productionRoot, devRoot, deviceDir, false);
+          copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, deviceDir, false);
           pushJvmtiAgentNativeLibraries(deviceDir);
         }
         // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
