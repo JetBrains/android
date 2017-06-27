@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dependencies;
 
+import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
@@ -30,6 +31,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 import static com.android.SdkConstants.LEANBACK_V17_ARTIFACT;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -98,5 +100,17 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     boolean found = dependencyManager.ensureLibraryIsIncluded(myModules.getAppModule(), dependencies, null);
     assertFalse(found);
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
+  }
+
+  public void testAddedSupportDependencyIsSameVersionAsExistingSupportDependency() throws Exception {
+    // Load a library with an explicit appcompat-v7 version that is older than the most recent version:
+    loadProject(SIMPLE_APP_WITH_OLDER_SUPPORT_LIB);
+
+    List<GradleCoordinate> dependencies = ImmutableList.of(APP_COMPAT_DEPENDENCY, RECYCLER_VIEW_DEPENDENCY);
+    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
+    List<GradleCoordinate> missing = dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies);
+    assertThat(missing.size()).isEqualTo(1);
+    assertThat(missing.get(0).getId()).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT);
+    assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
   }
 }

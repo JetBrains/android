@@ -53,6 +53,7 @@ public final class TestProjectPaths {
   public static final String SHARED_TEST_FOLDER = "projects/sharedTestFolder";
   public static final String SIGNAPK_MULTIFLAVOR = "projects/signapk/multiflavor";
   public static final String SIGNAPK_NO_FLAVORS = "projects/signapk/no_flavors";
+  public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
