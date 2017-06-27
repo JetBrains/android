@@ -16,13 +16,14 @@
 package com.android.tools.idea.configurations;
 
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ThemeMenuAction extends FlatAction {
+public class ThemeMenuAction extends AnAction {
   private final ConfigurationHolder myRenderContext;
 
   public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
