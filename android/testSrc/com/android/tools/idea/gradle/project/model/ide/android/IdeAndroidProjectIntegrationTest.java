@@ -16,28 +16,30 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
+import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link IdeAndroidProjectImpl}.
  */
 public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
-  public void testDisabled() {
-    // Fails with sandbox enabled
-  }
-
-  public void ignore_testSyncFromCachedModel() throws Exception {
+  public void testSyncFromCachedModel() throws Exception {
     loadSimpleApplication();
 
     AndroidProject androidProject = getAndroidProjectInApp();
@@ -63,7 +65,11 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
   }
 
   private void syncProjectWithGradle2Dot2() throws Exception {
-    loadSimpleApplication();
+    syncProjectWithGradle2Dot2(SIMPLE_APPLICATION);
+  }
+
+  private void syncProjectWithGradle2Dot2(@NotNull String projectName) throws Exception {
+    loadProject(projectName);
     Project project = getProject();
     updateGradleVersions(getBaseDirPath(project), "2.2.0");
     GradleWrapper wrapper = GradleWrapper.find(project);
@@ -80,7 +86,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     verifyIdeLevel2DependenciesPopulated();
   }
 
-  public void ignore_testLevel2DependenciesWithHeadPlugin() throws Exception {
+  public void testLevel2DependenciesWithHeadPlugin() throws Exception {
     loadSimpleApplication();
     verifyIdeLevel2DependenciesPopulated();
   }
@@ -95,6 +101,33 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
       assertThat(level2Dependencies.getJavaLibraries()).isNotEmpty();
+    });
+  }
+
+  // TODO: Enable when plugin 2.2 is added to prebuilts.
+  public void ignore_testLocalAarsAsModulesWithGradle2Dot2() throws Exception {
+    syncProjectWithGradle2Dot2(LOCAL_AARS_AS_MODULES);
+    verifyAarModuleShowsAsAndroidLibrary("testLocalAarsAsModulesWithGradle2Dot2:library-debug:unspecified@aar");
+  }
+
+  public void testLocalAarsAsModulesWithHeadPlugin() throws Exception {
+    loadProject(LOCAL_AARS_AS_MODULES);
+    verifyAarModuleShowsAsAndroidLibrary("artifacts:library-debug:unspecified@jar");
+  }
+
+  private void verifyAarModuleShowsAsAndroidLibrary(String expectedLibraryName) {
+    IdeAndroidProject androidProject = getAndroidProjectInApp();
+    assertNotNull(androidProject);
+
+    // Aar module should show up as android library dependency, not module dependency for app module.
+    androidProject.forEachVariant(variant -> {
+      IdeLevel2Dependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
+      assertThat(level2Dependencies).isNotNull();
+      assertThat(level2Dependencies.getModuleDependencies()).isEmpty();
+      List<String> androidLibraries =
+        level2Dependencies.getAndroidLibraries().stream().map(Library::getArtifactAddress).collect(Collectors.toList());
+      assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
+      assertThat(androidLibraries).contains(expectedLibraryName);
     });
   }
 

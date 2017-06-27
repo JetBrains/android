@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.model.ide.android;
 
+import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.Library;
 import com.android.builder.model.MavenCoordinates;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.*;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.util.Map;
+
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2LibraryFactory.computeAddress;
+import static com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2LibraryFactory.isLocalAarModule;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link IdeLevel2LibraryFactory}.
@@ -88,5 +96,48 @@ public class IdeLevel2LibraryFactoryTest {
       }
     };
     assertThat(computeAddress(library)).isEqualTo("myGroup:androidLib:undefined@aar");
+  }
+
+  @Test
+  public void checkIsLocalAarModule() {
+    AndroidLibrary localAarLibrary = new AndroidLibraryStub() {
+      @Override
+      @NotNull
+      public String getProject() {
+        return ":aarModule";
+      }
+
+      @Override
+      @NotNull
+      public File getBundle() {
+        return new File("/ProjectRoot/aarModule/aarModule.aar");
+      }
+    };
+    AndroidLibrary moduleLibrary = new AndroidLibraryStub() {
+      @Override
+      @NotNull
+      public String getProject() {
+        return ":androidLib";
+      }
+
+      @Override
+      @NotNull
+      public File getBundle() {
+        return new File("/ProjectRoot/androidLib/build/androidLib.aar");
+      }
+    };
+    AndroidLibrary externalLibrary = new AndroidLibraryStub() {
+      @Override
+      @Nullable
+      public String getProject() {
+        return null;
+      }
+    };
+    Map<String, File> projectPathToBuildDir = ImmutableMap.of(":aarModule", new File("/ProjectRoot/aarModule/build/"),
+                                                              ":androidLib", new File("/ProjectRoot/androidLib/build/"));
+    ModuleBuildDirs moduleBuildDirs = new ModuleBuildDirs(projectPathToBuildDir);
+    assertTrue(isLocalAarModule(localAarLibrary, moduleBuildDirs));
+    assertFalse(isLocalAarModule(moduleLibrary, moduleBuildDirs));
+    assertFalse(isLocalAarModule(externalLibrary, moduleBuildDirs));
   }
 }
