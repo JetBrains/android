@@ -21,13 +21,19 @@ import org.jetbrains.annotations.NonNls;
  * Common configuration names used in dependencies.
  */
 public final class CommonConfigurationNames {
+  @NonNls public static final String ANDROID_TEST_API = "androidTestApi";
   @NonNls public static final String ANDROID_TEST_COMPILE = "androidTestCompile";
+  @NonNls public static final String ANDROID_TEST_IMPLEMENTATION = "androidTestImplementation";
+  @NonNls public static final String API = "api";
   @NonNls public static final String APK = "apk";
   @NonNls public static final String CLASSPATH = "classpath";
   @NonNls public static final String COMPILE = "compile";
+  @NonNls public static final String IMPLEMENTATION = "implementation";
   @NonNls public static final String PROVIDED = "provided";
   @NonNls public static final String RUNTIME = "runtime";
+  @NonNls public static final String TEST_API = "testApi";
   @NonNls public static final String TEST_COMPILE = "testCompile";
+  @NonNls public static final String TEST_IMPLEMENTATION = "testImplementation";
 
   private CommonConfigurationNames() {
   }
