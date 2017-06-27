@@ -77,6 +77,8 @@
     </component>
   </project-components>
   <actions>
+    <action id="Project.CallGraph" internal="true" text="Call Graph" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
+    <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.InterproceduralThreadAnnotationChecker"/>
     <group id="Project.Subview" text="Project Subview" class="com.android.tools.idea.gradle.project.subset.ProjectSubsetGroup">
       <separator/>
       <action id="ConfigureSubView" class="com.android.tools.idea.gradle.project.subset.ConfigureProjectSubsetAction"/>

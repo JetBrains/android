@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.experimental.callgraph
 
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassType
 import org.jetbrains.uast.*
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 import org.jetbrains.uast.visitor.UastVisitor
 import java.util.*
+
+// TODO: This may be defunct, as its functionality has currently been subsumed by `CallTargetEvaluator`.
 
 /**
  * Estimates the runtime types of variables.
@@ -34,7 +37,7 @@ interface TypeEvaluator : UastVisitor {
   operator fun get(v: UVariable): TypeEstimate
 }
 
-data class TypeRange(val type: PsiType, val kind: Kind) {
+data class TypeRange(val type: PsiClassType, val kind: Kind) {
 
   enum class Kind { EXACT, SUBTYPE }
 
@@ -43,9 +46,14 @@ data class TypeRange(val type: PsiType, val kind: Kind) {
     Kind.SUBTYPE -> type.isAssignableFrom(other.type)
   }
 
-  infix fun covers(otherType: PsiType) = when (kind) {
+  infix fun covers(otherType: PsiClassType) = when (kind) {
     Kind.EXACT -> type == otherType
     Kind.SUBTYPE -> type.isAssignableFrom(otherType)
+  }
+
+  infix fun covers(otherClass: PsiClass) = when (kind) {
+    Kind.EXACT -> type.resolve() == otherClass
+    Kind.SUBTYPE -> otherClass.isInheritor(otherClass, /*checkDeep*/ true)
   }
 }
 
@@ -54,7 +62,7 @@ data class TypeEstimate(val typeRanges: List<TypeRange> = emptyList()) {
 
   constructor(range: TypeRange) : this(listOf(range))
 
-  constructor(type: PsiType, rangeKind: TypeRange.Kind) : this(TypeRange(type, rangeKind))
+  constructor(type: PsiClassType, rangeKind: TypeRange.Kind) : this(TypeRange(type, rangeKind))
 
   companion object {
     val BOTTOM = TypeEstimate()
@@ -77,12 +85,13 @@ data class TypeEstimate(val typeRanges: List<TypeRange> = emptyList()) {
     }
   }
 
-  infix fun covers(type: PsiType) = typeRanges.any { it covers type }
+  infix fun covers(type: PsiClassType) = typeRanges.any { it covers type }
+  infix fun covers(otherClass: PsiClass) = typeRanges.any { it covers otherClass }
 }
 
 /** Estimates the runtime types of variables using a flow-insensitive traversal of the UAST. */
 class StandardTypeEvaluator : TypeEvaluator, AbstractUastVisitor() {
-  private val typeEstimates: MutableMap<UVariable, TypeEstimate> = HashMap()
+  private val typeEstimates: MutableMap<UVariable, TypeEstimate> = LinkedHashMap()
 
   override fun get(v: UVariable) = typeEstimates[v] ?: TypeEstimate.BOTTOM
 
@@ -103,8 +112,8 @@ class StandardTypeEvaluator : TypeEvaluator, AbstractUastVisitor() {
 
   /** Updates the estimated type of [variable] based on the type of [expr]. */
   private fun handleAssign(variable: UVariable, expr: UExpression) {
-    if (expr is UCallExpression && expr.classReference != null) {
-      val concreteType = expr.returnType ?: throw Error("Constructors should have a return type")
+    if (expr is UCallExpression && expr.kind == UastCallKind.CONSTRUCTOR_CALL) {
+      val concreteType = expr.returnType as? PsiClassType ?: return
       this[variable] += TypeEstimate(concreteType, TypeRange.Kind.EXACT)
     }
   }

@@ -16,108 +16,190 @@
 package com.android.tools.idea.experimental.callgraph
 
 import com.android.tools.idea.experimental.callgraph.CallGraph.Edge
+import com.android.tools.idea.experimental.callgraph.CallGraph.Edge.Kind.*
 import com.intellij.analysis.AnalysisScope
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.psi.*
-import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.LambdaUtil
+import com.intellij.psi.PsiAnonymousClass
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.searches.OverridingMethodsSearch
 import org.jetbrains.uast.*
+import org.jetbrains.uast.util.isConstructorCall
 import org.jetbrains.uast.visitor.AbstractUastVisitor
+import org.jetbrains.uast.visitor.UastVisitor
 import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance("#com.android.tools.idea.experimental.callgraph.CallGraphBuilder")
 
-fun buildCallGraph(project: Project, scope: AnalysisScope, filterLikely: Boolean = true): CallGraph {
+// TODO: Handle unexpected conditions differently.
+fun Logger.debugError(msg: String) = if (ApplicationManager.getApplication().isUnitTestMode) error(msg) else warn(msg)
+
+val defaultCallGraphEdges = Edge.Kind.values().filter { it.isLikely || it == NON_UNIQUE_BASE }.toTypedArray()
+
+fun buildCallGraph(project: Project, scope: AnalysisScope, vararg edgeKinds: Edge.Kind = defaultCallGraphEdges): CallGraph {
   val uastContext = ServiceManager.getService(project, UastContext::class.java)
-  val callGraphVisitor = CallGraphVisitor(project, filterLikely)
+  val callGraphVisitor = CallGraphVisitor(*edgeKinds)
+  fun visitAll(visitor: UastVisitor) = scope.accept { virtualFile ->
+    if (!uastContext.isFileSupported(virtualFile.name)) return@accept true
+    val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@accept true
+    val file = uastContext.convertWithParent<UFile>(psiFile) ?: return@accept true
+    LOG.info("Adding ${psiFile.name} to call graph")
+    file.accept(visitor)
+    true
+  }
   val time = measureTimeMillis {
-    scope.accept { virtualFile ->
-      if (!uastContext.isFileSupported(virtualFile.name)) return@accept true
-      val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@accept true
-      val file = uastContext.convertWithParent<UFile>(psiFile) ?: return@accept true
-      LOG.info("Adding ${psiFile.name} to call graph")
-      LOG.info("${callGraphVisitor.callGraph}")
-      file.accept(callGraphVisitor)
-      true
-    }
+    visitAll(callGraphVisitor)
   }
   LOG.info("Call graph built in ${time}ms")
+  LOG.info("${callGraphVisitor.callGraph}")
   return callGraphVisitor.callGraph
 }
 
-class CallGraphVisitor(val project: Project, val filterLikely: Boolean = true) : AbstractUastVisitor() {
+class CallGraphVisitor(private vararg val edgeKinds: Edge.Kind = defaultCallGraphEdges) : AbstractUastVisitor() {
   private val typeEvaluator = StandardTypeEvaluator()
+  private val targetEvaluator = CallTargetVisitor()
   private val mutableCallGraph: MutableCallGraph = MutableCallGraph()
   val callGraph: CallGraph get() = mutableCallGraph
 
-  override fun visitMethod(node: UMethod): Boolean {
+  override fun visitFile(node: UFile): Boolean {
     node.accept(typeEvaluator)
-    return super.visitMethod(node)
+    node.accept(targetEvaluator)
+    return super.visitFile(node)
+  }
+
+  override fun visitClass(node: UClass): Boolean {
+    // Check for an implicit call to a super constructor.
+    val superClass = node.getSuperClass()
+    if (superClass != null) {
+      val constructors = node.constructors()
+      val thoseWithoutExplicitSuper = constructors.filter {
+        val explicitSuperFinder = ExplicitSuperConstructorCallFinder()
+        it.accept(explicitSuperFinder)
+        !explicitSuperFinder.foundExplicitCall
+      }
+      val callers: Collection<UElement> = if (constructors.isNotEmpty()) thoseWithoutExplicitSuper else listOf(node)
+      val callee: UElement = superClass.constructors().filter { it.uastParameters.isEmpty() }.firstOrNull() ?: superClass
+      with(mutableCallGraph) {
+        val calleeNode = getNode(callee)
+        callers.forEach { getNode(it).edges.add(Edge(calleeNode, /*call*/ null, DIRECT)) }
+      }
+    }
+    return super.visitClass(node)
   }
 
   override fun visitCallExpression(node: UCallExpression): Boolean {
-    // TODO: For field and non-static class initializers, we may want to use each constructor as the implicit caller.
-    val baseCallee = node.resolve() ?: return super.visitCallExpression(node)
-    val caller = node.getParentOfType(/*strict*/ true, UMethod::class.java, ULambdaExpression::class.java)?.psi
-        ?: return super.visitCallExpression(node)
 
-    val callerNode = mutableCallGraph.getNode(caller)
-
-    fun PsiMethod.isCallable() = when {
-      // TODO: Update for Kotlin
-      hasModifierProperty(PsiModifier.ABSTRACT) -> false
-      containingClass?.isInterface == true -> hasModifierProperty(PsiModifier.DEFAULT)
-      else -> true
+    // The code below uses early returns liberally.
+    // TODO: Clean up style, possibly by using ControlFlowException.
+    fun earlyReturn(error: String? = null): Boolean {
+      error?.let { LOG.debugError(error) }
+      return super.visitCallExpression(node)
     }
 
-    fun PsiMethod.canBeOverriden(): Boolean {
-      // TODO: Update for Kotlin
-      val parentClass = containingClass
-      return parentClass != null
-          && !isConstructor
-          && !hasModifierProperty(PsiModifier.STATIC)
-          && !hasModifierProperty(PsiModifier.FINAL)
-          && !hasModifierProperty(PsiModifier.PRIVATE)
-          && parentClass !is PsiAnonymousClass
-          && !parentClass.hasModifierProperty(PsiModifier.FINAL)
-    }
-
-
-    if (!baseCallee.canBeOverriden()) {
-      mutableCallGraph.addEdge(callerNode, baseCallee, Edge.Kind.DIRECT)
-    }
-    else {
-      // TODO: Searching for overriding methods can be slow; may need to add caching.
-      val overrides = OverridingMethodsSearch.search(baseCallee).findAll()
-      if (overrides.isEmpty()) {
-        mutableCallGraph.addEdge(callerNode, baseCallee, Edge.Kind.UNIQUE_OVERRIDE)
+    // Find the caller(s) based on surrounding context.
+    val parent = node.getParentOfType(
+        /*strict*/ true,
+        UMethod::class.java, // Method caller.
+        ULambdaExpression::class.java, // Lambda caller.
+        UClassInitializer::class.java, // Implicit constructor caller due to class initializer.
+        UClass::class.java) // Implicit constructor caller due to field initializer.
+    val callers: Collection<UElement> = when (parent) {
+      is UMethod, is ULambdaExpression -> listOf(parent)
+      is UClassInitializer -> {
+        if (parent.isStatic) return earlyReturn() // Ignore static initializers for now.
+        val containingClass = parent as? UClass ?: parent.getContainingUClass() ?: return earlyReturn("Expected containing class")
+        val constructors = containingClass.constructors()
+        if (constructors.isNotEmpty()) constructors else listOf(containingClass) // Use class if no explicit constructor exists.
       }
-      else if (!baseCallee.isCallable() && overrides.size == 1) {
-        mutableCallGraph.addEdge(callerNode, overrides.first(), Edge.Kind.UNIQUE_OVERRIDE)
+      is UClass -> {
+        val decl = node.getParentOfType<UDeclaration>() ?: return earlyReturn("Expected to be inside field initializer")
+        if (decl.isStatic) return earlyReturn() // Ignore static field initializers for now.
+        val constructors = parent.constructors()
+        if (constructors.isNotEmpty()) constructors else listOf(parent)
       }
-      else {
-        // Use runtime type estimates to try to indicate which overriding methods are likely targets.
-        val receiverVar = (node.receiver as? USimpleNameReferenceExpression)?.resolveToUElement() as? UVariable
-        val estimatedType = receiverVar?.let { typeEvaluator[it] } ?: TypeEstimate.BOTTOM
-        fun PsiMethod.isTypeEvidenced(): Boolean {
-          val parentClass = containingClass ?: return false
-          val parentClassName = parentClass.qualifiedName ?: return false
-          val parentClassType = PsiType.getTypeByName(parentClassName, project, GlobalSearchScope.allScope(project)) ?: return false
-          return estimatedType.covers(parentClassType)
-        }
-        loop@ for (callee in (overrides + baseCallee)) {
-          val edgeKind = when {
-            callee.isTypeEvidenced() -> Edge.Kind.TYPE_EVIDENCED
-            filterLikely -> continue@loop
-            else -> Edge.Kind.NON_UNIQUE_OVERRIDE
-          }
-          mutableCallGraph.addEdge(callerNode, callee, edgeKind)
-        }
+      else -> return earlyReturn("Could not find a caller for call expression")
+    }
+
+    val callerNodes = callers.map { mutableCallGraph.getNode(it) }
+    fun addEdge(callee: UElement, kind: Edge.Kind) {
+      if (kind !in edgeKinds) return // Filter out unwanted edges.
+      val edge = Edge(mutableCallGraph.getNode(callee), node, kind)
+      callerNodes.forEach { it.edges.add(edge) }
+    }
+
+    val baseCallee = node.resolveToUElement() as? UMethod
+    if (baseCallee == null) {
+      if (node.isConstructorCall()) {
+        // Found a call to a default constructor; create an edge to the instantiated class.
+        val constructedClass = node.classReference?.resolveToUElement() as? UClass ?: return earlyReturn("Expected class for constructor")
+        addEdge(constructedClass, DIRECT)
+      }
+      return earlyReturn()
+    }
+
+    // TODO: Searching for overriding methods can be slow; may need to add caching or pre-computation.
+    val overrides = OverridingMethodsSearch.search(baseCallee).findAll().map { it.toUElement() as? UMethod }.filterNotNull()
+
+    // Create an edge based on the type of call.
+    val cannotOverride = !canBeOverriden(baseCallee)
+    val throughSuper = node.receiver is USuperExpression
+    val isFunctionalCall = baseCallee.psi == LambdaUtil.getFunctionalInterfaceMethod(node.receiver?.getExpressionType())
+    val uniqueBase = overrides.isEmpty() && !isFunctionalCall
+    val uniqueOverride = !isCallable(baseCallee) && overrides.size == 1 && !isFunctionalCall
+    when {
+      cannotOverride || throughSuper -> addEdge(baseCallee, DIRECT)
+      uniqueBase -> addEdge(baseCallee, UNIQUE)
+      uniqueOverride -> addEdge(overrides.first(), UNIQUE)
+      else -> {
+        // Use static analyses to try to indicate which overriding methods are likely targets.
+        val evidencedTargets = targetEvaluator[node].map { it.element }
+        evidencedTargets.forEach { addEdge(it, TYPE_EVIDENCED) }
+        if (baseCallee !in evidencedTargets) addEdge(baseCallee, NON_UNIQUE_BASE)
+        overrides.filter { it !in evidencedTargets }.forEach { addEdge(it, NON_UNIQUE_OVERRIDE) }
       }
     }
 
     return super.visitCallExpression(node)
+  }
+
+  private fun UClass.constructors() = getMethods().filter { it.isConstructor() }
+
+  // TODO: Update for Kotlin, and turn into function with receiver when inspection bugs are fixed.
+  private fun isCallable(method: UMethod) = when {
+    method.hasModifierProperty(PsiModifier.ABSTRACT) -> false
+    method.getContainingClass()?.isInterface() == true -> method.hasModifierProperty(PsiModifier.DEFAULT)
+    else -> true
+  }
+
+  // TODO: Update for Kotlin, and turn into function with receiver when inspection bugs are fixed.
+  private fun canBeOverriden(method: UMethod): Boolean {
+    val parentClass = method.getContainingClass()
+    return parentClass != null
+        && !method.isConstructor()
+        && !method.hasModifierProperty(PsiModifier.STATIC)
+        && !method.hasModifierProperty(PsiModifier.FINAL)
+        && !method.hasModifierProperty(PsiModifier.PRIVATE)
+        && parentClass !is PsiAnonymousClass
+        && !parentClass.hasModifierProperty(PsiModifier.FINAL)
+  }
+
+  /** Tries to find an explicit call to a super constructor. Assumes the first element visited is a constructor. */
+  private class ExplicitSuperConstructorCallFinder : AbstractUastVisitor() {
+    var foundExplicitCall: Boolean = false
+
+    override fun visitCallExpression(node: UCallExpression): Boolean {
+      if (node.methodName == "super") {
+        foundExplicitCall = true
+        return true
+      } else {
+        return false
+      }
+    }
+
+    override fun visitClass(node: UClass): Boolean = true // Avoid visiting nested classes.
   }
 }
