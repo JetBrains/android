@@ -38,7 +38,9 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static icons.AndroidIcons.AndroidTestRoot;
 
 public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
+  @NonNls private static final String API_SUFFIX = "Api";
   @NonNls private static final String COMPILE_SUFFIX = "Compile";
+  @NonNls private static final String IMPLEMENTATION_SUFFIX = "Implementation";
 
   @NotNull private final String myName;
   @NotNull private final String myResolvedName;
@@ -135,12 +137,18 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
     switch (myResolvedName) {
       case ARTIFACT_MAIN:
         configurationNames.add(COMPILE);
+        configurationNames.add(API);
+        configurationNames.add(IMPLEMENTATION);
         break;
       case ARTIFACT_UNIT_TEST:
         configurationNames.add(TEST_COMPILE);
+        configurationNames.add(TEST_API);
+        configurationNames.add(TEST_IMPLEMENTATION);
         break;
       case ARTIFACT_ANDROID_TEST:
         configurationNames.add(ANDROID_TEST_COMPILE);
+        configurationNames.add(ANDROID_TEST_API);
+        configurationNames.add(ANDROID_TEST_IMPLEMENTATION);
     }
 
     PsVariant variant = getParent();
@@ -149,9 +157,13 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
     switch (myResolvedName) {
       case ARTIFACT_MAIN:
         configurationNames.add(buildTypeName + COMPILE_SUFFIX);
+        configurationNames.add(buildTypeName + API_SUFFIX);
+        configurationNames.add(buildTypeName + IMPLEMENTATION_SUFFIX);
         break;
       case ARTIFACT_UNIT_TEST:
         configurationNames.add("test" + capitalize(buildTypeName) + COMPILE_SUFFIX);
+        configurationNames.add("test" + capitalize(buildTypeName) + API_SUFFIX);
+        configurationNames.add("test" + capitalize(buildTypeName) + IMPLEMENTATION_SUFFIX);
     }
 
     variant.forEachProductFlavor(productFlavor -> {
@@ -159,12 +171,18 @@ public class PsAndroidArtifact extends PsChildModel implements PsAndroidModel {
       switch (myResolvedName) {
         case ARTIFACT_MAIN:
           configurationNames.add(productFlavorName + COMPILE_SUFFIX);
+          configurationNames.add(productFlavorName + API_SUFFIX);
+          configurationNames.add(productFlavorName + IMPLEMENTATION_SUFFIX);
           break;
         case ARTIFACT_UNIT_TEST:
           configurationNames.add("test" + capitalize(productFlavorName) + COMPILE_SUFFIX);
+          configurationNames.add("test" + capitalize(productFlavorName) + API_SUFFIX);
+          configurationNames.add("test" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX);
           break;
         case ARTIFACT_ANDROID_TEST:
           configurationNames.add("androidTest" + capitalize(productFlavorName) + COMPILE_SUFFIX);
+          configurationNames.add("androidTest" + capitalize(productFlavorName) + API_SUFFIX);
+          configurationNames.add("androidTest" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX);
       }
     });
     return configurationNames;
