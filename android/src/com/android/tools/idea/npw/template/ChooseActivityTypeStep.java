@@ -35,6 +35,7 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
@@ -214,15 +215,16 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     // hashtables.
 
     NewModuleModel moduleModel = getModel();
+    Project project = moduleModel.getProject().getValueOrNull();
     if (myRenderModel.getTemplateHandle() == null) { // "Add No Activity" selected
-      moduleModel.setDefaultRenderTemplateValues(myRenderModel);
+      moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);
     }
     else {
       moduleModel.getRenderTemplateValues().setValue(myRenderModel.getTemplateValues());
     }
 
     new TemplateValueInjector(moduleModel.getTemplateValues())
-      .setProjectDefaults(moduleModel.getProject().getValueOrNull(), moduleModel.applicationName().get(), myRenderModel.instantApp().get());
+      .setProjectDefaults(project, moduleModel.applicationName().get(), myRenderModel.instantApp().get());
   }
 
   private static int getDefaultSelectedTemplateIndex(@NotNull TemplateRenderer[] templateRenderers, boolean isNewModule) {

@@ -185,7 +185,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     myRenderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot));
 
     if (myIsLibrary) {
-      moduleModel.setDefaultRenderTemplateValues(myRenderModel);
+      moduleModel.setDefaultRenderTemplateValues(myRenderModel, project);
 
       new TemplateValueInjector(moduleModel.getTemplateValues())
         .setProjectDefaults(project, moduleModel.applicationName().get(), myIsInstantApp);
