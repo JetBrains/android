@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Result;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -155,5 +157,17 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
         GuidelinePainter.paint(graphics, resizeHandler);
       }
     };
+  }
+
+  @Nullable
+  @Override
+  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent layout) {
+    SelectionModel selectionModel = screenView.getSelectionModel();
+    if (selectionModel.getSelection().size() == 0) {
+      // The interacted component hasn't been selected, select it.
+      // This happened when starting dragging a component without any selection.
+      selectionModel.setSelection(Collections.singletonList(layout));
+    }
+    return super.createInteraction(screenView, layout);
   }
 }
