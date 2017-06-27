@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.testing;
 
+import com.android.testutils.TestUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.PathManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,14 +94,20 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String getLocalRepositories() {
-    return getLocalRepository("prebuilts/tools/common/m2/repository") + getLocalRepository("prebuilts/tools/common/offline-m2");
-  }
+    String path = "prebuilts/tools/common/m2/repository";
 
-  @NotNull
-  protected static String getLocalRepository(@NotNull String dir) {
-    String uri = getWorkspaceFile(dir).toURI().toString();
+    File prebuiltsRepoDir;
+    if (TestUtils.runningFromBazel()) {
+      // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
+      File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
+      prebuiltsRepoDir = new File(tmp, path);
+    } else {
+      prebuiltsRepoDir = getWorkspaceFile(path);
+    }
+    String uri = prebuiltsRepoDir.toURI().toString();
     return "maven { url \"" + uri + "\" }\n";
   }
+
 
   /**
    * Take a regex pattern with a single group in it and replace the contents of that group with a
