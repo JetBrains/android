@@ -23,8 +23,14 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.intellij.mock.MockApplicationEx;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -42,10 +48,21 @@ public class TemplateValueInjectorTest{
 
   @Mock
   private AndroidVersionsInfo myMockAndroidVersionsInfo;
+  private Disposable myDisposable;
 
   @Before
   public void setUp() throws Exception {
     initMocks(this);
+
+    myDisposable = Disposer.newDisposable();
+    MockApplicationEx instance = new MockApplicationEx(myDisposable);
+    instance.registerService(EmbeddedDistributionPaths.class, new EmbeddedDistributionPaths());
+    ApplicationManager.setApplication(instance, myDisposable);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    Disposer.dispose(myDisposable);
   }
 
   @Test
@@ -74,7 +91,7 @@ public class TemplateValueInjectorTest{
 
     Map<String,Object> templateValues = new HashMap<>();
     TemplateValueInjector injector = new TemplateValueInjector(templateValues);
-    injector.setBuildVersion(versionItem);
+    injector.setBuildVersion(versionItem, null);
 
     assertThat(templateValues).isNotEmpty();
     assertThat(templateValues.get(TemplateMetadata.ATTR_BUILD_API)).isEqualTo(PREVIEW_VERSION);

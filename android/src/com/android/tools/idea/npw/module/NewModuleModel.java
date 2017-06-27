@@ -33,6 +33,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -178,10 +179,10 @@ public final class NewModuleModel extends WizardModel {
    * This method should be called if there is no "Activity Render Template" step (For example when creating a Library, or the activity
    * creation is skipped by the user)
    */
-  public void setDefaultRenderTemplateValues(@NotNull RenderTemplateModel renderModel) {
+  public void setDefaultRenderTemplateValues(@NotNull RenderTemplateModel renderModel, @Nullable Project project) {
     Map<String, Object> renderTemplateValues = Maps.newHashMap();
     new TemplateValueInjector(renderTemplateValues)
-      .setBuildVersion(renderModel.androidSdkInfo().getValue())
+      .setBuildVersion(renderModel.androidSdkInfo().getValue(), project)
       .setModuleRoots(renderModel.getSourceSet().get().getPaths(), packageName().get());
 
     getRenderTemplateValues().setValue(renderTemplateValues);
