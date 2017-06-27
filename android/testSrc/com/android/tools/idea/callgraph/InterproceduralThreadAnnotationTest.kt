@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.callgraph
 
+import com.android.tools.idea.experimental.callgraph.buildCallGraph
 import com.android.tools.idea.experimental.callgraph.searchForInterproceduralThreadAnnotationViolations
 import com.intellij.analysis.AnalysisScope
-import com.intellij.psi.PsiMethod
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 
@@ -27,11 +27,13 @@ class InterproceduralThreadAnnotationTest : AndroidTestCase() {
 
   private fun doTest(ext: String) {
     myFixture.copyFileToProject("callgraph/ThreadAnnotations" + ext)
-    val paths = searchForInterproceduralThreadAnnotationViolations(project, AnalysisScope(project))
-    val namedPathSet = paths.map { path -> path.map { method -> (method as PsiMethod).name } }.toSet()
+    val callGraph = buildCallGraph(project, AnalysisScope(project))
+    val paths = searchForInterproceduralThreadAnnotationViolations(callGraph)
+    val namedPathSet = paths.map { (nodes) -> nodes.map { node -> node.shortName } }.toSet()
+    val prefix = "ThreadAnnotations#"
     val expectedPathSet = setOf(
-        arrayListOf("uiThreadStatic", "unannotatedStatic", "workerThreadStatic"),
-        arrayListOf("uiThread", "unannotated", "workerThread")
+        arrayListOf("${prefix}uiThreadStatic", "${prefix}unannotatedStatic", "${prefix}workerThreadStatic"),
+        arrayListOf("${prefix}uiThread", "${prefix}unannotated", "${prefix}workerThread")
     )
     TestCase.assertEquals(namedPathSet, expectedPathSet)
   }

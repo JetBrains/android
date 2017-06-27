@@ -17,56 +17,108 @@ package com.android.tools.idea.experimental.callgraph
 
 import com.android.tools.idea.experimental.callgraph.CallGraph.Edge
 import com.android.tools.idea.experimental.callgraph.CallGraph.Node
-import com.intellij.psi.PsiElement
+import com.android.tools.idea.experimental.callgraph.CallTarget.*
+import org.jetbrains.uast.*
+import java.io.BufferedWriter
+import java.io.FileWriter
+import java.io.PrintWriter
 import java.util.*
 import kotlin.collections.LinkedHashMap
+
+sealed class CallTarget(open val element: UElement) {
+  data class Method(override val element: UMethod): CallTarget(element)
+  data class Lambda(override val element: ULambdaExpression): CallTarget(element)
+  data class DefaultConstructor(override val element: UClass): CallTarget(element)
+}
 
 /** A graph in which nodes represent methods (including lambdas) and edges indicate that one method calls another. */
 interface CallGraph {
   val nodes: Collection<Node>
 
   interface Node {
-    val method: PsiElement
+    val caller: CallTarget
     val edges: Collection<Edge>
     val likelyEdges: Collection<Edge> get() = edges.filter { it.isLikely }
-  }
 
-  data class Edge(val node: Node, val kind: Kind) {
-    val isLikely: Boolean get() = kind.isLikely
+    fun findEdge(other: Node) = edges.find { it.node == other }
 
-    enum class Kind {
-      DIRECT, // A statically dispatched call.
-      UNIQUE_OVERRIDE, // A call that appears to have a single implementation.
-      TYPE_EVIDENCED, // A call evidenced by runtime type estimates.
-      NON_UNIQUE_OVERRIDE; // A call that is one of several overriding implementations.
-
-      val isLikely: Boolean get() = when (this) {
-        DIRECT, UNIQUE_OVERRIDE, TYPE_EVIDENCED -> true
-        NON_UNIQUE_OVERRIDE -> false
+    /** Describes this node in a form like class#method, using "anon" for anonymous classes and lambdas. */
+    val shortName: String get() {
+      val containingClass = caller.element.getContainingUClass()?.name ?: "anon"
+      val containingMethod = caller.element.getContainingUMethod()?.name ?: "anon"
+      val caller = caller // Enables smart casts.
+      return when (caller) {
+        is Method -> "${containingClass}#${caller.element.name}"
+        is Lambda -> "${containingClass}#${containingMethod}#lambda"
+        is DefaultConstructor -> "${caller.element.name}#defaultCtor"
       }
     }
   }
 
-  fun getNode(method: PsiElement): Node
+  /** An edge to [node] of type [kind] due to [call]. Note that [call] can be null for, e.g., implicit calls to super constructors. */
+  data class Edge(val node: Node, val call: UCallExpression?, val kind: Kind) {
+    val isLikely: Boolean get() = kind.isLikely
+
+    enum class Kind {
+      DIRECT, // A statically dispatched call.
+      UNIQUE, // A call that appears to have a single implementation.
+      TYPE_EVIDENCED, // A call evidenced by runtime type estimates.
+      NON_UNIQUE_BASE, // The base method of a call that has several overriding implementations.
+      NON_UNIQUE_OVERRIDE; // A call that is one of several overriding implementations.
+
+      val isLikely: Boolean get() = when (this) {
+        DIRECT, UNIQUE, TYPE_EVIDENCED -> true
+        NON_UNIQUE_BASE, NON_UNIQUE_OVERRIDE -> false
+      }
+    }
+  }
+
+  fun getNode(element: UElement): Node
+
+  /** Describes all contents of the call graph (for debugging). */
+  @Suppress("UNUSED")
+  fun dump(filter: (Edge) -> Boolean = { true }) = buildString {
+    for (node in nodes.sortedBy { it.shortName }) {
+      val callees = node.edges.filter(filter)
+      if (callees.isNotEmpty()) {
+        appendln(node.shortName)
+        callees.forEach { appendln("    ${it.node.shortName} [${it.kind}]") }
+      }
+    }
+  }
+
+  @Suppress("UNUSED")
+  fun outputToDotFile(file: String, filter: (Edge) -> Boolean = { true }) {
+    PrintWriter(BufferedWriter(FileWriter(file))).use { writer ->
+      writer.println("digraph {")
+      for (node in nodes) {
+        for ((callee) in node.likelyEdges) {
+          writer.print("  \"${node.shortName}\" -> \"${callee.shortName}\"")
+        }
+      }
+      writer.println("}")
+    }
+  }
 }
 
 class MutableCallGraph : CallGraph {
-  private val nodeMap = LinkedHashMap<PsiElement, MutableNode>()
+  private val nodeMap = LinkedHashMap<UElement, MutableNode>()
   override val nodes get() = nodeMap.values
 
-  class MutableNode(
-      override val method: PsiElement,
-      override val edges: MutableCollection<Edge> = ArrayList()
-  ) : Node
+  class MutableNode(override val caller: CallTarget,
+                    override val edges: MutableCollection<Edge> = ArrayList()) : Node
 
-  override fun getNode(method: PsiElement): MutableNode = nodeMap.getOrPut(method) { MutableNode(method) }
-
-  // Helper functions for adding edges.
-  fun addEdge(caller: MutableNode, callee: MutableNode, kind: Edge.Kind) {
-    caller.edges.add(Edge(callee, kind))
+  override fun getNode(element: UElement): MutableNode {
+    return nodeMap.getOrPut(element) {
+      val caller = when (element) {
+        is UMethod -> Method(element)
+        is ULambdaExpression -> Lambda(element)
+        is UClass -> DefaultConstructor(element)
+        else -> throw Error("Unexpected UElement type ${element.javaClass}")
+      }
+      MutableNode(caller)
+    }
   }
-  fun addEdge(caller: MutableNode, callee: PsiElement, kind: Edge.Kind) = addEdge(caller, getNode(callee), kind)
-  fun addEdge(caller: PsiElement, callee: PsiElement, kind: Edge.Kind) = addEdge(getNode(caller), getNode(callee), kind)
 
   override fun toString(): String {
     val numEdges = nodes.asSequence().map { it.edges.size }.sum()
