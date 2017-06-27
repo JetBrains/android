@@ -188,6 +188,12 @@ public class NewProjectTest {
 
     assertThat(inspectionResults).isEqualTo(lines(
       "Project '" + guiTest.getProjectPath() + "' TestApplication",
+      // This warning should go away when appcompat-v7:26 is available for ui tests
+      "    Android Lint: Correctness\n" +
+      "        Gradle Dynamic Version\n" +
+      "            build.gradle\n" +
+      "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:26.+)\n" +
+
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android Lint: Performance",
       "        Unused resources",
