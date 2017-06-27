@@ -141,27 +141,28 @@ public class IdeaTestSuite {
 
   private static void setUpOfflineMavenRepos() {
     // Adds embedded Maven repo directory for tests, see EmbeddedDistributionPaths for details.
-    createTmpDir("prebuilts/tools/common/offline-m2");
+    symbolicLinkInTmpDir("prebuilts/tools/common/offline-m2");
 
     // If present, also adds the offline repo we built from the source tree.
-    setUpOfflineRepo("tools/base/bazel/offline_repo_repo.zip");
-    setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo_repo.zip");
+    setUpOfflineRepo("tools/base/bazel/offline_repo_repo.zip", "out/studio/repo");
+
+    // Parts of prebuilts/tools/common that we need.
+    setUpOfflineRepo("tools/adt/idea/android/test_deps_repo.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo_repo.zip", "prebuilts/tools/common/m2/repository");
   }
 
-  private static void setUpOfflineRepo(@NotNull String path) {
-    File offlineRepoZip = TestUtils.getWorkspaceFile(path);
-    if (offlineRepoZip.exists()) {
-      try {
-        InstallerUtil.unzip(
-          offlineRepoZip,
-          createTmpDir("out/studio/repo").toFile(),
-          FileOpUtils.create(),
-          offlineRepoZip.length(),
-          new FakeProgressIndicator());
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+  private static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
+    File offlineRepoZip = TestUtils.getWorkspaceFile(repoZip);
+    try {
+      InstallerUtil.unzip(
+        offlineRepoZip,
+        createTmpDir(outputPath).toFile(),
+        FileOpUtils.create(),
+        offlineRepoZip.length(),
+        new FakeProgressIndicator());
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

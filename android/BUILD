@@ -91,6 +91,7 @@ iml_module(
     tags = ["managed"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_data = [
+        ":test_deps_repo.zip",
         ":android-gradle-1.5.0_repo_repo.zip",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:buildprop",
@@ -110,19 +111,6 @@ iml_module(
         "//prebuilts/studio/sdk:sources",
         "//prebuilts/studio/sdk:typos",
         "//prebuilts/studio/sdk:wearable_latest",
-        "//prebuilts/tools/common/m2/repository/com/google/android/things/androidthings/0.4-devpreview:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/2.0.1:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/18.0:jar",
-        "//prebuilts/tools/common/m2/repository/com/github/bumptech/glide/glide/3.8.0:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/19.0:jar",
-        "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar",
-        "//prebuilts/tools/common/m2/repository/com/squareup/javawriter/2.1.1:jar",
-        "//prebuilts/tools/common/m2/repository/javax/annotation/javax.annotation-api/1.2:jar",
-        "//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:jar",
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-library/1.3:jar",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-integration/1.3:jar",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android:device-art-resources",
@@ -203,7 +191,29 @@ filegroup(
 )
 
 maven_repo(
+    name = "test_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "//prebuilts/tools/common/m2/repository/com/github/bumptech/glide/glide/3.8.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/things/androidthings/0.4-devpreview:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/2.0.1:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/18.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/guava/guava/19.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/squareup/javawriter/2.1.1:jar",
+        "//prebuilts/tools/common/m2/repository/javax/annotation/javax.annotation-api/1.2:jar",
+        "//prebuilts/tools/common/m2/repository/javax/inject/javax.inject/1:jar",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-integration/1.3:jar",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-library/1.3:jar",
+    ],
+)
+
+maven_repo(
     name = "android-gradle-1.5.0_repo",
+    # keep sorted: for buildifier
     artifacts = [
         "//prebuilts/tools/common/m2/repository/com/android/databinding/baseLibrary/1.0-rc5:jar",
         "//prebuilts/tools/common/m2/repository/com/android/databinding/compilerCommon/1.0-rc5:jar",
@@ -233,9 +243,9 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:jar",
         "//prebuilts/tools/common/m2/repository/com/intellij/annotations/12.0:jar",
         "//prebuilts/tools/common/m2/repository/com/squareup/javawriter/2.5.0:jar",
-        "//prebuilts/tools/common/m2/repository/com/tunnelvisionlabs/antlr4/4.5:jar",
-        "//prebuilts/tools/common/m2/repository/com/tunnelvisionlabs/antlr4-runtime/4.5:jar",
         "//prebuilts/tools/common/m2/repository/com/tunnelvisionlabs/antlr4-annotations/4.5:jar",
+        "//prebuilts/tools/common/m2/repository/com/tunnelvisionlabs/antlr4-runtime/4.5:jar",
+        "//prebuilts/tools/common/m2/repository/com/tunnelvisionlabs/antlr4/4.5:jar",
         "//prebuilts/tools/common/m2/repository/commons-io/commons-io/2.4:jar",
         "//prebuilts/tools/common/m2/repository/net/sf/kxml/kxml2/2.3.0:jar",
         "//prebuilts/tools/common/m2/repository/net/sf/proguard/proguard-base/5.2.1:jar",
