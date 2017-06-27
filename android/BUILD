@@ -216,6 +216,7 @@ filegroup(
         "//conditions:default": [
             "//tools/base/profiler:studio-profiler-grpc-1.0-jarjar.jar",
             "//tools/base/profiler/app:perfa.jar",
+            "//tools/base/profiler/app:perfa_okhttp.dex",
             "//tools/base/profiler/native/perfa:android",
             "//tools/base/profiler/native/perfd:android",
             "//tools/base/profiler/transform:profilers-transform.jar",
