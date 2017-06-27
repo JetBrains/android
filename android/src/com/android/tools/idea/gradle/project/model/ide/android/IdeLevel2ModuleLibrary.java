@@ -28,17 +28,15 @@ import java.util.Objects;
  */
 public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final String myArtifactAddress;
-  @NotNull private final File myArtifactFile;
   @Nullable private final String myProjectPath;
   @Nullable private final String myVariant;
   private final int myType;
   private final int myHashCode;
 
   IdeLevel2ModuleLibrary(@NotNull String artifactAddress,
-                         @NotNull File artifactFile,
                          @Nullable String projectPath,
                          @Nullable String variant,
                          @NotNull ModelCache modelCache,
@@ -46,7 +44,6 @@ public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
     super(sourceObject, modelCache);
     myType = LIBRARY_MODULE;
     myArtifactAddress = artifactAddress;
-    myArtifactFile = artifactFile;
     myProjectPath = projectPath;
     myVariant = variant;
     myHashCode = calculateHashCode();
@@ -66,7 +63,7 @@ public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
   @Override
   @NotNull
   public File getArtifact() {
-    return myArtifactFile;
+    throw new UnsupportedOperationException("getArtifact() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
@@ -190,7 +187,6 @@ public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
     IdeLevel2ModuleLibrary that = (IdeLevel2ModuleLibrary)o;
     return myType == that.myType &&
            Objects.equals(myArtifactAddress, that.myArtifactAddress) &&
-           Objects.equals(myArtifactFile, that.myArtifactFile) &&
            Objects.equals(myProjectPath, that.myProjectPath) &&
            Objects.equals(myVariant, that.myVariant);
   }
@@ -201,7 +197,7 @@ public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
   }
 
   private int calculateHashCode() {
-    return Objects.hash(myType, myArtifactAddress, myArtifactFile, myProjectPath, myVariant);
+    return Objects.hash(myType, myArtifactAddress, myProjectPath, myVariant);
   }
 
   @Override
@@ -209,7 +205,6 @@ public final class IdeLevel2ModuleLibrary extends IdeModel implements Library {
     return "IdeLevel2ModuleLibrary{" +
            "myType=" + myType +
            ", myArtifactAddress='" + myArtifactAddress + '\'' +
-           ", myArtifactFile=" + myArtifactFile +
            ", myProjectPath='" + myProjectPath + '\'' +
            ", myVariant='" + myVariant + '\'' +
            '}';

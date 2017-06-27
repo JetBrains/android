@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
@@ -289,8 +290,22 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
+    populateModuleBuildDirs(gradleProject);
     projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     super.populateProjectExtraModels(gradleProject, projectDataNode);
+  }
+
+  /**
+   * Set map from project path to build directory for all modules.
+   * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
+   */
+  private void populateModuleBuildDirs(@NotNull IdeaProject ideaProject) {
+    for (IdeaModule ideaModule : ideaProject.getChildren()) {
+      GradleProject gradleProject = ideaModule.getGradleProject();
+      if (gradleProject != null) {
+        myDependenciesFactory.addModuleBuildDir(gradleProject);
+      }
+    }
   }
 
   @Override

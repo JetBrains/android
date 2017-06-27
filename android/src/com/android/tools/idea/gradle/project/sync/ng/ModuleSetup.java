@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
@@ -143,8 +144,26 @@ abstract class ModuleSetup {
 
     private void createAndSetUpModules(@NotNull SyncAction.ProjectModels projectModels, @NotNull ProgressIndicator indicator) {
       boolean syncSkipped = mySyncState.isSyncSkipped();
+      populateModuleBuildDirs(projectModels);
       for (String gradlePath : projectModels.getProjectPaths()) {
         createAndSetupModule(gradlePath, projectModels, indicator, syncSkipped);
+      }
+    }
+
+    /**
+     * Populate the map from project path to build directory for all modules.
+     * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
+     */
+    private void populateModuleBuildDirs(@NotNull SyncAction.ProjectModels projectModels) {
+      for (String projectPath : projectModels.getProjectPaths()) {
+        SyncAction.ModuleModels moduleModels = projectModels.getModels(projectPath);
+        if (moduleModels == null) {
+          continue;
+        }
+        GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+        if (gradleProject != null) {
+          myDependenciesFactory.addModuleBuildDir(gradleProject);
+        }
       }
     }
 

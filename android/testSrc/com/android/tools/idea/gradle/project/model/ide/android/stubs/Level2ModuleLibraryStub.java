@@ -27,22 +27,19 @@ public class Level2ModuleLibraryStub extends BaseStub implements Library {
   private final int myHashCode;
   private final int myType;
   @NotNull private final String myArtifactAddress;
-  @NotNull private final File myArtifactFile;
   @Nullable private final String myProjectPath;
   @Nullable private final String myVariant;
 
   public Level2ModuleLibraryStub() {
-    this(LIBRARY_MODULE, "artifact:address:1.0", new File("artifactFile"), null, null);
+    this(LIBRARY_MODULE, "artifact:address:1.0", null, null);
   }
 
   public Level2ModuleLibraryStub(int type,
                                  @NotNull String artifactAddress,
-                                 @NotNull File artifactFile,
                                  @Nullable String projectPath,
                                  @Nullable String variant) {
     myType = type;
     myArtifactAddress = artifactAddress;
-    myArtifactFile = artifactFile;
     myProjectPath = projectPath;
     myVariant = variant;
     myHashCode = calculateHashCode();
@@ -63,7 +60,7 @@ public class Level2ModuleLibraryStub extends BaseStub implements Library {
   @Override
   @NotNull
   public File getArtifact() {
-    return myArtifactFile;
+    throw new UnsupportedOperationException("getArtifact() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
@@ -187,7 +184,6 @@ public class Level2ModuleLibraryStub extends BaseStub implements Library {
     Library that = (Library)o;
     return myType == that.getType() &&
            Objects.equals(myArtifactAddress, that.getArtifactAddress()) &&
-           Objects.equals(myArtifactFile, that.getArtifact()) &&
            Objects.equals(myProjectPath, that.getProjectPath()) &&
            Objects.equals(myVariant, that.getVariant());
   }
@@ -198,7 +194,7 @@ public class Level2ModuleLibraryStub extends BaseStub implements Library {
   }
 
   private int calculateHashCode() {
-    return Objects.hash(myType, myArtifactAddress, myArtifactFile, myProjectPath, myVariant);
+    return Objects.hash(myType, myArtifactAddress, myProjectPath, myVariant);
   }
 
   @Override
@@ -206,7 +202,6 @@ public class Level2ModuleLibraryStub extends BaseStub implements Library {
     return "Level2ModuleLibraryStub{" +
            "myType=" + myType +
            ", myArtifactAddress='" + myArtifactAddress + '\'' +
-           ", myArtifactFile=" + myArtifactFile +
            ", myProjectPath='" + myProjectPath + '\'' +
            ", myVariant='" + myVariant + '\'' +
            '}';

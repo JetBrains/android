@@ -27,23 +27,38 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.google.common.collect.ImmutableList;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.builder.model.level2.Library.LIBRARY_ANDROID;
-import static com.android.builder.model.level2.Library.LIBRARY_JAVA;
-import static com.android.builder.model.level2.Library.LIBRARY_MODULE;
+import static com.android.builder.model.level2.Library.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2LibraryFactory.computeAddress;
 
 /**
  * Create {@link IdeLevel2Dependencies} from {@link BaseArtifact}.
  */
 public class IdeLevel2DependenciesFactory {
+  // Map from unique artifact address to level2 library instance. The library instances are supposed to be shared by all artifacts.
+  // When creating IdeLevel2Dependencies, check if current library is available in this map,
+  // if it's available, don't create new one, simple add reference to it.
+  // If it's not available, create new instance and save to this map, so it can be reused the next time when the same library is added.
   @NotNull private final Map<String, Library> myMap = new HashMap<>();
+  // Saves the map from project path to build directory for all modules.
+  @NotNull private final ModuleBuildDirs myModuleBuildDirs = new ModuleBuildDirs();
+
+  /**
+   * Add build directory of the given GradleProject.
+   *
+   * @param gradleProject GradleProject of the module.
+   */
+  public void addModuleBuildDir(@NotNull GradleProject gradleProject) {
+    myModuleBuildDirs.add(gradleProject);
+  }
 
   /**
    * Create {@link IdeLevel2Dependencies} from {@link BaseArtifact}.
@@ -79,6 +94,7 @@ public class IdeLevel2DependenciesFactory {
     Set<String> visited = new HashSet<>();
     populateAndroidLibraries(dependencies.getLibraries(), visited, modelCache);
     populateJavaLibraries(dependencies.getJavaLibraries(), visited, modelCache);
+    //noinspection deprecation
     for (String projectPath : dependencies.getProjects()) {
       if (!visited.contains(projectPath)) {
         visited.add(projectPath);
@@ -95,7 +111,7 @@ public class IdeLevel2DependenciesFactory {
       String address = computeAddress(androidLibrary);
       if (!visited.contains(address)) {
         visited.add(address);
-        myMap.computeIfAbsent(address, k -> IdeLevel2LibraryFactory.create(androidLibrary, modelCache));
+        myMap.computeIfAbsent(address, k -> IdeLevel2LibraryFactory.create(androidLibrary, myModuleBuildDirs, modelCache));
         populateAndroidLibraries(androidLibrary.getLibraryDependencies(), visited, modelCache);
         populateJavaLibraries(getJavaDependencies(androidLibrary), visited, modelCache);
       }
