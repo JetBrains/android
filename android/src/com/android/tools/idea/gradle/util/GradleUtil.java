@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
@@ -568,15 +569,20 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
+    IdeLevel2Dependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
     return dependsOn(dependencies, artifact);
   }
 
+  /**
+   * @param androidModel the Android model to check
+   * @param artifact     the artifact
+   * @return {@link GradleVersion} of the artifact if the project depends on the given artifact, or {@code null} if project doesn't depend on the artifact.
+   */
   @Nullable
   public static GradleVersion getModuleDependencyVersion(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getSelectedMainCompileDependencies();
-    for (AndroidLibrary library : dependencies.getLibraries()) {
-      String version = getDependencyVersion(library, artifact, true);
+    IdeLevel2Dependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
+    for (Library library : dependencies.getAndroidLibraries()) {
+      String version = getDependencyVersion(library, artifact);
       if (version != null) {
         return GradleVersion.tryParse(version);
       }
@@ -593,7 +599,7 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOnAndroidTest(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    Dependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
+    IdeLevel2Dependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
     if (dependencies == null) {
       return false;
     }
@@ -608,9 +614,9 @@ public final class GradleUtil {
    * @param artifact     the artifact
    * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
-  private static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
-    for (AndroidLibrary library : dependencies.getLibraries()) {
-      if (dependsOn(library, artifact, true)) {
+  private static boolean dependsOn(@NonNull IdeLevel2Dependencies dependencies, @NonNull String artifact) {
+    for (Library library : dependencies.getAndroidLibraries()) {
+      if (dependsOn(library, artifact)) {
         return true;
       }
     }
@@ -646,6 +652,28 @@ public final class GradleUtil {
         if (version != null) {
           return version;
         }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns {@code true} if the given library depends on the given artifact, which consists a group id and an artifact id, such as
+   * {@link SdkConstants#APPCOMPAT_LIB_ARTIFACT}.
+   *
+   * @param library  the Gradle library to check
+   * @param artifact the artifact
+   * @return {@code true} if the project depends on the given artifact
+   */
+  public static boolean dependsOn(@NonNull Library library, @NonNull String artifact) {
+    return getDependencyVersion(library, artifact) != null;
+  }
+
+  private static String getDependencyVersion(@NonNull Library library, @NonNull String artifact) {
+    GradleCoordinate resolvedCoordinates = GradleCoordinate.parseCoordinateString(library.getArtifactAddress());
+    if (resolvedCoordinates != null) {
+      if (artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
+        return resolvedCoordinates.getRevision();
       }
     }
     return null;
@@ -697,33 +725,22 @@ public final class GradleUtil {
     }
   }
 
+  /**
+   * Find the Library whose exploded aar folder matches given directory.
+   *
+   * @param bundleDir The directory to search for.
+   * @param variant   The variant.
+   * @return the Library matches contains given bundleDir
+   */
   @Nullable
-  public static AndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull Variant variant) {
-    AndroidArtifact artifact = variant.getMainArtifact();
-    Dependencies dependencies = artifact.getDependencies();
-    for (AndroidLibrary library : dependencies.getLibraries()) {
-      AndroidLibrary result = findLibrary(library, bundleDir);
-      if (result != null) {
-        return result;
+  public static Library findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
+    IdeAndroidArtifact artifact = variant.getMainArtifact();
+    IdeLevel2Dependencies dependencies = artifact.getLevel2Dependencies();
+    for (Library library : dependencies.getAndroidLibraries()) {
+      if (filesEqual(bundleDir, library.getFolder())) {
+        return library;
       }
     }
-
-    return null;
-  }
-
-  @Nullable
-  public static AndroidLibrary findLibrary(@NotNull AndroidLibrary library, @NotNull File bundleDir) {
-    if (filesEqual(bundleDir, library.getFolder())) {
-      return library;
-    }
-
-    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-      AndroidLibrary result = findLibrary(dependency, bundleDir);
-      if (result != null) {
-        return result;
-      }
-    }
-
     return null;
   }
 

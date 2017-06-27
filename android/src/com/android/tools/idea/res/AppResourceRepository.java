@@ -16,9 +16,9 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -50,7 +50,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.SdkConstants.DOT_AAR;
 import static com.android.SdkConstants.FD_RES;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
@@ -206,7 +205,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     // which have been persisted since the most recent sync
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     if (androidModuleModel != null) {
-      List<AndroidLibrary> libraries = Lists.newArrayList();
+      List<Library> libraries = Lists.newArrayList();
       addGradleLibraries(libraries, androidModuleModel);
       for (AndroidFacet dependentFacet : dependentFacets) {
         AndroidModuleModel dependentGradleModel = AndroidModuleModel.get(dependentFacet);
@@ -226,8 +225,8 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   @NotNull
-  public static Collection<AndroidLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<AndroidLibrary> libraries = Lists.newArrayList();
+  public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<Library> libraries = Lists.newArrayList();
     if (facet.requiresAndroidModel()) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
@@ -265,7 +264,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   private static Map<File, String> findAarLibrariesFromGradle(@NotNull GradleVersion modelVersion,
                                                               List<AndroidFacet> dependentFacets,
-                                                              List<AndroidLibrary> libraries) {
+                                                              List<Library> libraries) {
     // Pull out the unique directories, in case multiple modules point to the same .aar folder
     Map<File, String> files = new HashMap<>(libraries.size());
 
@@ -274,39 +273,15 @@ public class AppResourceRepository extends MultiResourceRepository {
       moduleNames.add(f.getModule().getName());
     }
     try {
-      for (AndroidLibrary library : libraries) {
+      for (Library library : libraries) {
         // We should only add .aar dependencies if they aren't already provided as modules.
         // For now, the way we associate them with each other is via the library name;
         // in the future the model will provide this for us
-        String libraryName = null;
-        String projectName = library.getProject();
-        if (projectName != null && !projectName.isEmpty()) {
-          libraryName = projectName.substring(projectName.lastIndexOf(':') + 1);
-          // Since this library has project!=null, it exists in module form; don't
-          // add it here.
-          moduleNames.add(libraryName);
-          continue;
-        }
-        else {
-          File folder = library.getFolder();
-          String name = folder.getName();
-          if (modelVersion.getMajor() > 2 || modelVersion.getMajor() == 2 && modelVersion.getMinor() >= 2) {
-            // TODO: use IdeLibrary.getName()
-            // Library.getName() was added in 2.2
-            libraryName = library.getName();
-          }
-          else if (name.endsWith(DOT_AAR)) {
-            libraryName = name.substring(0, name.length() - DOT_AAR.length());
-          }
-          else if (folder.getPath().contains(AndroidModuleModel.EXPLODED_AAR)) {
-            libraryName = folder.getParentFile().getName();
-          }
-        }
-        if (libraryName != null && !moduleNames.contains(libraryName)) {
-          File resFolder = library.getResFolder();
+        String libraryName = library.getArtifactAddress();
+        if (!moduleNames.contains(libraryName)) {
+          File resFolder = new File(library.getResFolder());
           if (resFolder.exists()) {
             files.put(resFolder, libraryName);
-
             // Don't add it again!
             moduleNames.add(libraryName);
           }
@@ -324,23 +299,8 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   // TODO: b/23032391
-  private static void addGradleLibraries(List<AndroidLibrary> list, AndroidModuleModel androidModuleModel) {
-    Collection<AndroidLibrary> libraries = androidModuleModel.getSelectedMainCompileDependencies().getLibraries();
-    Set<File> unique = Sets.newHashSet();
-    for (AndroidLibrary library : libraries) {
-      addGradleLibrary(list, library, unique);
-    }
-  }
-
-  private static void addGradleLibrary(List<AndroidLibrary> list, AndroidLibrary library, Set<File> unique) {
-    File folder = library.getFolder();
-    if (!unique.add(folder)) {
-      return;
-    }
-    list.add(library);
-    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
-      addGradleLibrary(list, dependency, unique);
-    }
+  private static void addGradleLibraries(List<Library> list, AndroidModuleModel androidModuleModel) {
+    list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
   }
 
   protected AppResourceRepository(@NotNull AndroidFacet facet,
@@ -629,7 +589,8 @@ public class AppResourceRepository extends MultiResourceRepository {
       Integer[] in = null;
       try {
         in = RDotTxtParser.getDeclareStyleableArray(resourceTextFile, attrs, styleableName);
-      } catch (Throwable e) {
+      }
+      catch (Throwable e) {
         // Filter all possible errors while parsing the R.txt file
         assert false : e.getLocalizedMessage();
         LOG.warn("Error while parsing R.txt", e);
@@ -679,10 +640,8 @@ public class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static final class TypedResourceName {
-    @Nullable
-    final ResourceType myType;
-    @NotNull
-    final String myName;
+    @Nullable final ResourceType myType;
+    @NotNull final String myName;
     @SuppressWarnings("deprecation") Pair<ResourceType, String> myPair;
 
     public TypedResourceName(@Nullable ResourceType type, @NotNull String name) {

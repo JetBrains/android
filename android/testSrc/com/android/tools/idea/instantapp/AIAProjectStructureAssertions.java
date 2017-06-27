@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.Dependencies;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependencies;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -81,9 +81,9 @@ public class AIAProjectStructureAssertions {
     int projectType = model.getAndroidProject().getProjectType();
     assertEquals(moduleType, projectType);
 
-    Dependencies dependencies = model.getMainArtifact().getDependencies();
+    IdeLevel2Dependencies dependencies = model.getSelectedMainCompileLevel2Dependencies();
     List<String> libraries =
-      dependencies.getLibraries().stream().map(AndroidLibrary::getProject).filter(Objects::nonNull).collect(Collectors.toList());
+      dependencies.getModuleDependencies().stream().map(Library::getProjectPath).filter(Objects::nonNull).collect(Collectors.toList());
 
     assertEquals(expectedDependencies.size(), libraries.size());
     assertTrue(libraries.stream().allMatch(expectedDependencies::contains));
