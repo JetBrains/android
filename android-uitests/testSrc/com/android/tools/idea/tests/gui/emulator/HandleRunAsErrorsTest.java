@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -89,7 +90,13 @@ public class HandleRunAsErrorsTest {
         .select(REG_EXP)
         .enterText(TEXT_REVERSE);
 
-    ideFrame.stopApp();
+    try {
+      ideFrame.stopApp();
+    } catch (ComponentLookupException e) {
+      // Emulator went offline.
+      // Here we don't test emulator, but just to stop app.
+      // If "Stop" button is not enabled, that means the app has stopped.
+    }
 
     ideFrame.runApp(APP_NAME)
         .selectDevice(emulator.getDefaultAvdName())
