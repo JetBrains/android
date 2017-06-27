@@ -132,10 +132,10 @@ public class UnresolvedDependenciesReporter extends BaseSyncIssuesReporter {
       quickFixes.add(new InstallArtifactHyperlink(constraintPackage.getPath()));
     }
     else if (dependency.startsWith("com.android.support")) {
-      quickFixes.add(new InstallRepositoryHyperlink(ANDROID));
+      quickFixes.add(new InstallRepositoryHyperlink(ANDROID, dependency));
     }
     else if (dependency.startsWith("com.google.android")) {
-      quickFixes.add(new InstallRepositoryHyperlink(GOOGLE));
+      quickFixes.add(new InstallRepositoryHyperlink(GOOGLE, dependency));
     }
     else {
       group = "Unresolved dependencies";
