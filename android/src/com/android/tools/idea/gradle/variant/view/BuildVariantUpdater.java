@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
+import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -143,12 +143,12 @@ class BuildVariantUpdater {
     androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
     Module module = setUpModule(androidFacet.getModule(), androidModel);
 
-    for (AndroidLibrary library : androidModel.getSelectedMainCompileDependencies().getLibraries()) {
-      String gradlePath = library.getProject();
+    for (Library library : androidModel.getSelectedMainCompileLevel2Dependencies().getModuleDependencies()) {
+      String gradlePath = library.getProjectPath();
       if (isEmpty(gradlePath)) {
         continue;
       }
-      String projectVariant = library.getProjectVariant();
+      String projectVariant = library.getVariant();
       if (isNotEmpty(projectVariant)) {
         ensureVariantIsSelected(module.getProject(), gradlePath, projectVariant, affectedFacets);
       }

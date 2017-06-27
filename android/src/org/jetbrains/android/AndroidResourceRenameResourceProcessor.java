@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android;
 
-import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.FolderTypeRelationship;
@@ -685,7 +685,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
                                                 @NotNull List<ResourceItem> local,
                                                 @NotNull HtmlBuilder builder) {
     File root = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-    Collection<AndroidLibrary> libraries = null;
+    Collection<Library> libraries = null;
     // Write a set of descriptions to library references. Put them in a list first such that we can
     // sort the (to for example make test output stable.)
     List<String> descriptions = Lists.newArrayList();

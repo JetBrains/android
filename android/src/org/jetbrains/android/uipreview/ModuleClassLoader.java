@@ -1,12 +1,11 @@
 package org.jetbrains.android.uipreview;
 
-import com.android.builder.model.AndroidBundle;
-import com.android.builder.model.JavaLibrary;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.builder.model.level2.Library;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.rendering.RenderClassLoader;
@@ -40,9 +39,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 
 /**
  * Render class loader responsible for loading classes in custom views
@@ -354,8 +353,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
       if (androidModuleModel != null) {
         return Stream.concat(
-          androidModuleModel.getSelectedMainCompileDependencies().getLibraries().stream().map(AndroidBundle::getJarFile),
-          androidModuleModel.getSelectedMainCompileDependencies().getJavaLibraries().stream().map(JavaLibrary::getJarFile));
+          androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries().stream()
+            .map(lib -> new File(lib.getJarFile())),
+          androidModuleModel.getSelectedMainCompileLevel2Dependencies().getJavaLibraries().stream().map(Library::getArtifact));
       }
     }
 

@@ -57,7 +57,8 @@ import java.util.*;
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.detector.api.LintUtils.convertVersion;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -154,20 +155,36 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
   }
 
+  /**
+   * @deprecated Use {@link #getSelectedMainCompileLevel2Dependencies()}
+   */
+  @Deprecated
   @NotNull
   public Dependencies getSelectedMainCompileDependencies() {
     AndroidArtifact mainArtifact = getMainArtifact();
     return mainArtifact.getDependencies();
   }
 
+  /**
+   * @return Instance of {@link IdeLevel2Dependencies} from main artifact.
+   */
+  @NotNull
+  public IdeLevel2Dependencies getSelectedMainCompileLevel2Dependencies() {
+    IdeAndroidArtifact mainArtifact = getMainArtifact();
+    return mainArtifact.getLevel2Dependencies();
+  }
+
+  /**
+   * @return Instance of {@link IdeLevel2Dependencies} from test artifact, or {@code null} if current module has no test artifact.
+   */
   @Nullable
-  public Dependencies getSelectedAndroidTestCompileDependencies() {
-    AndroidArtifact androidTestArtifact = getSelectedVariant().getAndroidTestArtifact();
+  public IdeLevel2Dependencies getSelectedAndroidTestCompileDependencies() {
+    IdeAndroidArtifact androidTestArtifact = getSelectedVariant().getAndroidTestArtifact();
     if (androidTestArtifact == null) {
       // Only variants in the debug build type have an androidTest artifact.
       return null;
     }
-    return androidTestArtifact.getDependencies();
+    return androidTestArtifact.getLevel2Dependencies();
   }
 
   @NotNull

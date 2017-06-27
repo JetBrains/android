@@ -16,8 +16,7 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.MavenCoordinates;
+import com.android.builder.model.level2.Library;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
@@ -92,6 +91,7 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyName;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 // TODO for permission if not from main file
@@ -969,22 +969,10 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     String source = null;
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      AndroidLibrary library =
+      Library library =
         GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
       if (library != null) {
-        if (library.getProject() != null) {
-          Module libraryModule = GradleUtil.findModuleByGradlePath(facet.getModule().getProject(), library.getProject());
-          if (libraryModule != null) {
-            source = module.getName();
-          } else {
-            source = library.getProject();
-            source = StringUtil.trimStart(source, ":");
-          }
-        }
-        else {
-          MavenCoordinates coordinates = library.getResolvedCoordinates();
-          source = /*coordinates.getGroupId() + ":" +*/  coordinates.getArtifactId() + ":" + coordinates.getVersion();
-        }
+        source = getDependencyName(library, ":");
       }
     }
     return source;

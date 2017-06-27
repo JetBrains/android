@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependen
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.PathType.BINARY;
@@ -96,7 +97,7 @@ public class DependenciesExtractor {
   private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull Library library,
                                                                              @NotNull DependencyScope scope) {
     LibraryDependency dependency =
-      new LibraryDependency(library.getArtifact(), getDependencyName(library.getArtifactAddress()), scope);
+      new LibraryDependency(library.getArtifact(), getDependencyName(library, "-"), scope);
     dependency.addPath(BINARY, library.getJarFile());
     dependency.addPath(BINARY, library.getResFolder());
 
@@ -106,10 +107,25 @@ public class DependenciesExtractor {
     return dependency;
   }
 
+  /**
+   * Get user friendly name of a level2 library dependency.
+   *
+   * @param library   Level 2 library instance.
+   * @param separator String to connect artifact id and version, for example, "-" or ":".
+   * @return User friendly name of the dependency.
+   * For example, artifactId[:/-]version for external library dependency, and moduleName::variant for module dependency.
+   */
   @NotNull
-  private static String getDependencyName(@NotNull String artifactAddress) {
+  public static String getDependencyName(@NotNull Library library, @NotNull String separator) {
+    String artifactAddress = library.getArtifactAddress();
     GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
-    assert coordinates != null : String.format("'%1$s' is not a valid maven coordinate.", artifactAddress);
-    return coordinates.getArtifactId() + "-" + coordinates.getVersion();
+    // Artifact address for external libraries are in the format of groupId:artifactId:version@packing, thus can be converted to GradleCoordinate.
+    // But artifact address for module dependency is in the format of :moduleName::variant, trim the leading : for module dependency.
+    if (coordinates != null) {
+      return coordinates.getArtifactId() + separator + coordinates.getVersion();
+    }
+    else {
+      return StringUtil.trimLeading(artifactAddress, ':');
+    }
   }
 }
