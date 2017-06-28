@@ -225,6 +225,19 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     assertEquals(1, onlyProjectSources(repo,"users.json/users/name").size());
   }
 
+  public void testCsvSampleData() {
+    myFixture.addFileToProject("sampledata/users.csv",
+                               "name,surname,phone\n" +
+                               "Name1,Surname1\n" +
+                               "Name2,Surname2\n" +
+                               "Name3,Surname3,555-00000");
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+
+    // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
+    assertEquals(3, onlyProjectSources(repo).size());
+    assertEquals(1, onlyProjectSources(repo,"users.csv/name").size());
+  }
+
   public void testResolverCacheInvalidation() {
     @Language("XML")
     String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +

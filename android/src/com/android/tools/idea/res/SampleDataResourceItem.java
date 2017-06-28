@@ -20,10 +20,13 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.res2.SourcelessResourceItem;
+import com.android.ide.common.resources.sampledata.SampleDataCsvParser;
 import com.android.ide.common.resources.sampledata.SampleDataHolder;
 import com.android.ide.common.resources.sampledata.SampleDataJsonParser;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.sampledata.datasource.HardcodedContent;
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -42,7 +45,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.EXT_CSV;
+import static com.android.SdkConstants.EXT_JSON;
 
 /**
  * This class defines a sample data source. It also handles the caching and invalidation according
@@ -189,27 +193,51 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
    */
   @NonNull
   public static List<SampleDataResourceItem> getFromPsiFileSystemItem(@NonNull PsiFileSystemItem sampleDataSource) throws IOException {
-    if (!EXT_JSON.equals(sampleDataSource.getVirtualFile().getExtension())) {
-      return ImmutableList.of(sampleDataSource instanceof PsiDirectory ?
-                              getFromDirectory((PsiDirectory)sampleDataSource) : getFromPlainFile(
-        (PsiFile)sampleDataSource));
+    String extension = sampleDataSource.getVirtualFile().getExtension();
+    if (extension == null) {
+      extension = "";
     }
 
-    SampleDataJsonParser parser = null;
-    try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(sampleDataSource.getVirtualFile()))) {
-      parser = SampleDataJsonParser.parse(reader);
-    }
-    if (parser == null) {
-      // Failed to parse the JSON file
-      return Collections.emptyList();
-    }
+    switch (extension) {
+      case EXT_JSON: {
+        SampleDataJsonParser parser = null;
+        try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(sampleDataSource.getVirtualFile()))) {
+          parser = SampleDataJsonParser.parse(reader);
+        }
+        if (parser == null) {
+          // Failed to parse the JSON file
+          return Collections.emptyList();
+        }
 
-    Set<String> possiblePaths = parser.getPossiblePaths();
-    ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
-    for (String path : possiblePaths) {
-      items.add(getFromJsonFile((PsiFile)sampleDataSource, path));
+        Set<String> possiblePaths = parser.getPossiblePaths();
+        ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
+        for (String path : possiblePaths) {
+          items.add(getFromJsonFile((PsiFile)sampleDataSource, path));
+        }
+        return items.build();
+      }
+
+      case EXT_CSV: {
+        SampleDataCsvParser parser = null;
+        try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(sampleDataSource.getVirtualFile()))) {
+          parser = SampleDataCsvParser.parse(reader);
+        }
+        Set<String> possiblePaths = parser.getPossiblePaths();
+        ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
+        PsiFile psiFile = (PsiFile)sampleDataSource;
+        for (String path : possiblePaths) {
+          items.add(new SampleDataResourceItem(sampleDataSource.getName() + path,
+                                               new HardcodedContent(Joiner.on('\n').join(parser.getPossiblePaths())),
+                                               () -> psiFile.getModificationStamp() + 1, psiFile));
+        }
+        return items.build();
+      }
+
+      default:
+        return ImmutableList.of(sampleDataSource instanceof PsiDirectory ?
+                                getFromDirectory((PsiDirectory)sampleDataSource) : getFromPlainFile(
+          (PsiFile)sampleDataSource));
     }
-    return items.build();
   }
 
   @Nullable
