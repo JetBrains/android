@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
+import com.intellij.ide.ui.UISettings;
 import org.fest.swing.core.MouseButton;
 import org.junit.Rule;
 import org.junit.Test;
@@ -208,5 +209,36 @@ public class NlEditorTest {
     finally {
       StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
     }
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testNavigateEditorsWithoutTabs() throws Exception {
+    // Regression test for b/37138939
+    // When the tabs are turned off, a switch using ctrl-E (or cmd-E on Mac) to a layout/menu would
+    // cause the editor to switch to design mode.
+
+    // First turn off tabs.
+    UISettings.getInstance().setEditorTabPlacement(UISettings.TABS_NONE);
+
+    // Open up 2 layout files in design and switch them both to text editor mode.
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor().open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+    editor.getLayoutEditor(true).waitForRenderToFinish();
+    editor.switchToTab("Text");
+    ideFrame.getEditor().open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
+    editor.getLayoutEditor(true).waitForRenderToFinish();
+    editor.switchToTab("Text");
+
+    // Switch to the previous layout and verify we are still editing the text.
+    ideFrame.selectPreviousEditor();
+    assertThat(editor.getCurrentFileName()).isEqualTo("activity_my.xml");
+    assertThat(editor.getCurrentTab()).isEqualTo(EditorFixture.Tab.EDITOR);
+
+    // Again switch to the previous layout and verify we are still editing the text.
+    ideFrame.selectPreviousEditor();
+    assertThat(editor.getCurrentFileName()).isEqualTo("absolute.xml");
+    assertThat(editor.getCurrentTab()).isEqualTo(EditorFixture.Tab.EDITOR);
   }
 }
