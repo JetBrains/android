@@ -78,12 +78,21 @@ public class ActionTarget extends BaseTarget {
       myLeft = l;
     }
     else {
-      myLeft = myPreviousActionTarget.myRight + (myGap * ratio);
+      if (!myPreviousActionTarget.myIsVisible) {
+        myLeft = myPreviousActionTarget.myRight;
+      }
+      else {
+        myLeft = myPreviousActionTarget.myRight + (myGap * ratio);
+      }
     }
     float size = (mySize * ratio);
     myTop = b + (myGap * ratio);
     myRight = myLeft + size;
     myBottom = myTop + size;
+    if (!myIsVisible) {
+      myLeft = (myPreviousActionTarget == null) ? myLeft : myPreviousActionTarget.myRight;
+      myRight = myLeft;
+    }
     return false;
   }
 
