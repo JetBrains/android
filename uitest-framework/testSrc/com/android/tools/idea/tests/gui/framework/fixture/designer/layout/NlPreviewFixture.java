@@ -137,7 +137,11 @@ public class NlPreviewFixture extends ToolWindowFixture {
     return this;
   }
 
-  public int getCenterLeftPixelColor() {
+  /**
+   * Returns an HEX string corresponding to the value of the color of the center left pixel of the scene view
+   */
+  @NotNull
+  public String getCenterLeftPixelColor() {
     NlDesignSurface surface = myDesignSurfaceFixture.target();
     Point centerLeftPoint = translate(surface, surface.getCurrentSceneView().getX(), surface.getHeight() / 2);
     if (myAwtRobot == null) {
@@ -148,7 +152,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
         e.printStackTrace();
       }
     }
-    return myAwtRobot.getPixelColor(centerLeftPoint.x, centerLeftPoint.y).getRGB();
+    return Integer.toHexString(myAwtRobot.getPixelColor(centerLeftPoint.x, centerLeftPoint.y).getRGB());
 
   }
 
