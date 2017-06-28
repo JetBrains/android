@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,14 +28,19 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   private long myDeallocTime = Long.MAX_VALUE;
   private final long mySize;
   @Nullable private MemoryProfiler.AllocationStack myCallstack;
+  @Nullable private MemoryProfiler.ThreadInfo myThreadInfo;
+  @NotNull private final ThreadId myThreadId;
 
   public LiveAllocationInstanceObject(@NotNull ClassDb.ClassEntry classEntry,
                                       @Nullable LiveAllocationInstanceObject classObject,
+                                      @Nullable MemoryProfiler.ThreadInfo threadInfo,
                                       @Nullable MemoryProfiler.AllocationStack callstack,
                                       long size) {
     myClassEntry = classEntry;
     myClassObject = classObject;
     mySize = size;
+    myThreadInfo = threadInfo;
+    myThreadId = myThreadInfo == null ? ThreadId.INVALID_THREAD_ID : new ThreadId(myThreadInfo.getThreadName());
     myCallstack = callstack;
     if ("java.lang.String".equals(classEntry.getClassName())) {
       myValueType = ValueType.STRING;
@@ -103,6 +109,12 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public MemoryProfiler.AllocationStack getCallStack() {
     return myCallstack;
+  }
+
+  @NotNull
+  @Override
+  public ThreadId getAllocationThreadId() {
+    return myThreadId;
   }
 
   @NotNull

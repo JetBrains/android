@@ -69,6 +69,12 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     .setLegacy(true)
     .build();
 
+  private static final AllocationsInfo IN_PROGRESS_LIVE_ALLOCATION_INFO = AllocationsInfo.newBuilder()
+    .setStartTime(delayTimeFromBase(1))
+    .setEndTime(Long.MAX_VALUE)
+    .setLegacy(false)
+    .build();
+
   private static final AllocationsInfo FINISHED_LIVE_ALLOCATION_INFO = AllocationsInfo.newBuilder()
     .setStartTime(BASE_TIME_NS)
     .setEndTime(delayTimeFromBase(1))
@@ -420,11 +426,29 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testOnGoingAllocationTrackingStopped() throws Exception {
+  public void testOnGoingLegacyAllocationTrackingStopped() throws Exception {
     myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LEGACY_ALLOCATION_INFO);
     getPollTicker().run();
     StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
     myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), stopObserver);
+
+    MemoryRequest request = MemoryRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTime(0)
+      .setEndTime(Long.MAX_VALUE)
+      .build();
+    AllocationsInfo expectedFailedInfo = AllocationsInfo.newBuilder()
+      .setStartTime(delayTimeFromBase(1))
+      .setEndTime(delayTimeFromBase(1) + 1)
+      .setLegacy(true)
+      .setStatus(AllocationsInfo.Status.FAILURE_UNKNOWN)
+      .build();
+    MemoryData expected = MemoryData.newBuilder()
+      .addAllocationsInfo(expectedFailedInfo)
+      .build();
+    StreamObserver<MemoryData> observer = mock(StreamObserver.class);
+    myMemoryService.getData(request, observer);
+    validateResponse(observer, expected);
 
     LegacyAllocationEventsRequest eventsRequest = LegacyAllocationEventsRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
@@ -448,6 +472,27 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myMemoryService.getLegacyAllocationDump(dumpRequest, dumpObserver);
     validateResponse(dumpObserver, dumpExpected);
   }
+
+  @Test
+  public void testOnGoingLiveAllocationTrackingNotStopped() throws Exception {
+    myFakeMemoryService.addAllocationInfo(IN_PROGRESS_LIVE_ALLOCATION_INFO);
+    getPollTicker().run();
+    StreamObserver<MemoryStopResponse> stopObserver = mock(StreamObserver.class);
+    myMemoryService.stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), stopObserver);
+
+    MemoryRequest request = MemoryRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTime(0)
+      .setEndTime(Long.MAX_VALUE)
+      .build();
+    MemoryData expected = MemoryData.newBuilder()
+      .addAllocationsInfo(IN_PROGRESS_LIVE_ALLOCATION_INFO)
+      .build();
+    StreamObserver<MemoryData> observer = mock(StreamObserver.class);
+    myMemoryService.getData(request, observer);
+    validateResponse(observer, expected);
+  }
+
 
   @Test
   public void testGetLegacyAllocationDumpOnLiveAllocation() {

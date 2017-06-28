@@ -51,8 +51,14 @@ public class MemoryLiveAllocationTableTest {
   private final long METHOD1 = 10;
   private final long METHOD2 = 11;
   private final long METHOD3 = 12;
-  private final long CLASS1 = 1000;
-  private final long CLASS2 = 1001;
+  private final int THREAD1 = 100;
+  private final int THREAD2 = 101;
+  private final int CLASS1 = 1000;
+  private final int CLASS2 = 1001;
+  private final int KLASS1_INSTANCE1_TAG = 1002;
+  private final int KLASS1_INSTANCE2_TAG = 1003;
+  private final int KLASS2_INSTANCE1_TAG = 1004;
+  private final int KLASS2_INSTANCE2_TAG = 1005;
   private final int LINE1 = 10000;
   private final int LINE2 = 10001;
   private final int LINE3 = 10002;
@@ -60,6 +66,8 @@ public class MemoryLiveAllocationTableTest {
   private final List<Long> STACK_METHODS2 = Arrays.asList(METHOD2, METHOD3);
   private final List<Integer> STACK_LINES1 = Arrays.asList(LINE1, LINE2);
   private final List<Integer> STACK_LINES2 = Arrays.asList(LINE2, LINE3);
+  private final String THREAD1_NAME = "Thread1";
+  private final String THREAD2_NAME = "Thread2";
   private final String METHOD1_NAME = "Method1";
   private final String METHOD2_NAME = "Method2";
   private final String METHOD3_NAME = "Method3";
@@ -73,12 +81,8 @@ public class MemoryLiveAllocationTableTest {
   private final long CLASS2_TIME = 15;
   private final long STACK1_TIME = 12;
   private final long STACK2_TIME = 17;
-  private final int KLASS1_TAG = 100;
-  private final int KLASS2_TAG = 101;
-  private final int KLASS1_INSTANCE1_TAG = 102;
-  private final int KLASS1_INSTANCE2_TAG = 103;
-  private final int KLASS2_INSTANCE1_TAG = 104;
-  private final int KLASS2_INSTANCE2_TAG = 105;
+  private final long THREAD1_TIME = 13;
+  private final long THREAD2_TIME = 18;
 
   private File myDbFile;
   private MemoryLiveAllocationTable myAllocationTable;
@@ -104,9 +108,9 @@ public class MemoryLiveAllocationTableTest {
   @Test
   public void testIgnoreDuplicatedAllocationData() throws Exception {
     AllocationEvent alloc1 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG)).setTimestamp(0).build();
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1)).setTimestamp(0).build();
     AllocationEvent dupAlloc1 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS2_TAG)).setTimestamp(6).build();
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS2)).setTimestamp(6).build();
 
     BatchAllocationSample insertSample = BatchAllocationSample.newBuilder().addEvents(alloc1).addEvents(dupAlloc1).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
@@ -121,15 +125,17 @@ public class MemoryLiveAllocationTableTest {
   public void testInsertAndQueryAllocationData() throws Exception {
     // A klass1 instance allocation event (t = 0)
     AllocationEvent alloc1 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).setStackId(STACK1))
+      .setAllocData(
+        AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1))
       .setTimestamp(0).build();
     // A klass1 instance deallocation event (t = 7)
     AllocationEvent dealloc1 = AllocationEvent.newBuilder()
-      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).setStackId(STACK1))
+      .setFreeData(
+        AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1).setThreadId(THREAD1).setStackId(STACK1))
       .setTimestamp(7).build();
     // A klass2 instance allocation event (t = 6)
     AllocationEvent alloc2 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG)).setTimestamp(6).build();
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2)).setTimestamp(6).build();
 
     BatchAllocationSample insertSample = BatchAllocationSample.newBuilder()
       .addEvents(alloc1)
@@ -204,8 +210,8 @@ public class MemoryLiveAllocationTableTest {
     AllocationContextsResponse contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(0, contextSample.getAllocatedClassesCount());
 
-    AllocatedClass expectedKlass1 = AllocatedClass.newBuilder().setClassName(JAVA_KLASS1_NAME).setClassId(KLASS1_TAG).build();
-    AllocatedClass expectedKlass2 = AllocatedClass.newBuilder().setClassName(JAVA_KLASS2_NAME).setClassId(KLASS2_TAG).build();
+    AllocatedClass expectedKlass1 = AllocatedClass.newBuilder().setClassName(JAVA_KLASS1_NAME).setClassId(CLASS1).build();
+    AllocatedClass expectedKlass2 = AllocatedClass.newBuilder().setClassName(JAVA_KLASS2_NAME).setClassId(CLASS2).build();
 
     // A class that is loaded since the beginning (t = 0)
     AllocationEvent klass1 = AllocationEvent.newBuilder().setClassData(expectedKlass1).setTimestamp(0).build();
@@ -217,7 +223,7 @@ public class MemoryLiveAllocationTableTest {
 
     // A klass1 instance allocation event (t = 0)
     AllocationEvent alloc1 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG)).setTimestamp(0).build();
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(CLASS1)).setTimestamp(0).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc1).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
@@ -242,7 +248,7 @@ public class MemoryLiveAllocationTableTest {
 
     // A klass2 instance allocation event (t = 2, tag = 101)
     AllocationEvent alloc2 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG)).setTimestamp(2).build();
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2)).setTimestamp(2).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc2).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
@@ -256,7 +262,7 @@ public class MemoryLiveAllocationTableTest {
 
     // A klass1 instance allocation event (t = 3, tag = 102)
     AllocationEvent alloc3 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE2_TAG).setClassTag(KLASS1_TAG)).setTimestamp(3).build();
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS1_INSTANCE2_TAG).setClassTag(CLASS1)).setTimestamp(3).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc3).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
@@ -285,7 +291,7 @@ public class MemoryLiveAllocationTableTest {
 
     // A alloc2 instance deallocation event (t = 6, tag = 101)
     AllocationEvent dealloc2 = AllocationEvent.newBuilder()
-      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG)).setTimestamp(6).build();
+      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(CLASS2)).setTimestamp(6).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(dealloc2).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
@@ -300,7 +306,7 @@ public class MemoryLiveAllocationTableTest {
 
     // A klass2 instance allocation event (t = 2, tag = 103)
     AllocationEvent alloc4 = AllocationEvent.newBuilder()
-      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE2_TAG).setClassTag(KLASS2_TAG)).setTimestamp(7).build();
+      .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE2_TAG).setClassTag(CLASS2)).setTimestamp(7).build();
     insertSample = BatchAllocationSample.newBuilder().addEvents(alloc4).build();
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, insertSample);
     contextSample = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
@@ -331,6 +337,12 @@ public class MemoryLiveAllocationTableTest {
     stacksToInsert.add(stack1);
     stacksToInsert.add(dupStack1);
 
+    List<ThreadInfo> threadsToInsert = new ArrayList<>();
+    ThreadInfo thread1 = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).setTimestamp(THREAD1_TIME).build();
+    ThreadInfo dupThread1 = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD2_NAME).setTimestamp(THREAD2_TIME).build();
+    threadsToInsert.add(thread1);
+    threadsToInsert.add(dupThread1);
+
     BatchAllocationSample.Builder classesBuilder = BatchAllocationSample.newBuilder();
     AllocatedClass class1 = AllocatedClass.newBuilder().setClassId(CLASS1).setClassName(JNI_KLASS1_NAME).build();
     AllocatedClass dupClass1 = AllocatedClass.newBuilder().setClassId(CLASS1).setClassName(JNI_KLASS2_NAME).build();
@@ -340,6 +352,7 @@ public class MemoryLiveAllocationTableTest {
     // Insert handcrafted data.
     myAllocationTable.insertMethodInfo(VALID_PID, VALID_SESSION, methodsToInsert);
     myAllocationTable.insertStackInfo(VALID_PID, VALID_SESSION, stacksToInsert);
+    myAllocationTable.insertThreadInfo(VALID_PID, VALID_SESSION, threadsToInsert);
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, classesBuilder.build());
 
     AllocatedClass expectedKlass1 = class1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
@@ -349,12 +362,15 @@ public class MemoryLiveAllocationTableTest {
       .addStackFrames(
         StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setLineNumber(LINE2).setClassName(JAVA_KLASS2_NAME))
       .build();
+    ThreadInfo expectedThread = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).build();
 
     AllocationContextsResponse contexts = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(1, contexts.getAllocatedClassesCount());
     assertEquals(expectedKlass1, contexts.getAllocatedClasses(0));
     assertEquals(1, contexts.getAllocationStacksCount());
     assertEquals(expectedStack1, contexts.getAllocationStacks(0));
+    assertEquals(1, contexts.getAllocationThreadsCount());
+    assertEquals(expectedThread, contexts.getAllocationThreads(0));
   }
 
   @Test
@@ -377,6 +393,12 @@ public class MemoryLiveAllocationTableTest {
     stacksToInsert.add(stack1);
     stacksToInsert.add(stack2);
 
+    List<ThreadInfo> threadsToInsert = new ArrayList<>();
+    ThreadInfo thread1 = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).setTimestamp(THREAD1_TIME).build();
+    ThreadInfo thread2 = ThreadInfo.newBuilder().setThreadId(THREAD2).setThreadName(THREAD2_NAME).setTimestamp(THREAD2_TIME).build();
+    threadsToInsert.add(thread1);
+    threadsToInsert.add(thread2);
+
     BatchAllocationSample.Builder classesBuilder = BatchAllocationSample.newBuilder();
     AllocatedClass class1 = AllocatedClass.newBuilder().setClassId(CLASS1).setClassName(JNI_KLASS1_NAME).build();
     AllocatedClass class2 = AllocatedClass.newBuilder().setClassId(CLASS2).setClassName(JNI_KLASS2_NAME).build();
@@ -386,6 +408,7 @@ public class MemoryLiveAllocationTableTest {
     // Insert handcrafted data.
     myAllocationTable.insertMethodInfo(VALID_PID, VALID_SESSION, methodsToInsert);
     myAllocationTable.insertStackInfo(VALID_PID, VALID_SESSION, stacksToInsert);
+    myAllocationTable.insertThreadInfo(VALID_PID, VALID_SESSION, threadsToInsert);
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, classesBuilder.build());
 
     AllocatedClass expectedKlass1 = class1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
@@ -402,6 +425,8 @@ public class MemoryLiveAllocationTableTest {
       .addStackFrames(
         StackFrame.newBuilder().setMethodId(METHOD3).setMethodName(METHOD3_NAME).setLineNumber(LINE3).setClassName(JAVA_KLASS3_NAME))
       .build();
+    ThreadInfo expectedThread1 = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).build();
+    ThreadInfo expectedThread2 = ThreadInfo.newBuilder().setThreadId(THREAD2).setThreadName(THREAD2_NAME).build();
 
     AllocationContextsResponse contexts = myAllocationTable.getAllocationContexts(VALID_PID, VALID_SESSION, 0, Long.MAX_VALUE);
     assertEquals(2, contexts.getAllocatedClassesCount());
@@ -410,8 +435,13 @@ public class MemoryLiveAllocationTableTest {
     assertEquals(2, contexts.getAllocationStacksCount());
     assertEquals(expectedStack1, contexts.getAllocationStacks(0));
     assertEquals(expectedStack2, contexts.getAllocationStacks(1));
+    assertEquals(2, contexts.getAllocationThreadsCount());
+    assertEquals(expectedThread1, contexts.getAllocationThreads(0));
+    assertEquals(expectedThread2, contexts.getAllocationThreads(1));
 
-    // Timestamp should be set to the latest AllocatedClass's.
+    // Timestamp should be set to the latest AllocatedClass's. This is because Stacks/Methods/Threads are inserted first, and their
+    // timestamps can be ahead of classes that are going to be inserted after. If we use those timestamps as the start point of subsequent
+    // context queries, we might miss some classes.
     assertEquals(CLASS2_TIME, contexts.getTimestamp());
   }
 }

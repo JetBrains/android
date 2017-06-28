@@ -88,9 +88,9 @@ public class LegacyAllocationCaptureObjectTest {
     myService.addExplicitAllocationStack("test.klass0", "testMethod0", 3, stackId1);
     myService.addExplicitAllocationStack("test.klass1", "testMethod1", 7, stackId2);
     LegacyAllocationEvent event1 =
-      LegacyAllocationEvent.newBuilder().setCaptureTime(startTimeNs).setClassId(0L).setStackId(stackId2).build();
+      LegacyAllocationEvent.newBuilder().setCaptureTime(startTimeNs).setClassId(0).setStackId(stackId2).build();
     LegacyAllocationEvent event2 =
-      LegacyAllocationEvent.newBuilder().setCaptureTime(startTimeNs).setClassId(1L).setStackId(stackId1).build();
+      LegacyAllocationEvent.newBuilder().setCaptureTime(startTimeNs).setClassId(1).setStackId(stackId1).build();
     myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Arrays.asList(event1, event2));
     doneLatch.await();
 

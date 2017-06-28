@@ -158,7 +158,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
     MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.getLegacyAllocationContexts(contextRequest);
 
     // TODO remove this map, since we have built-in functionality in ClassDb now.
-    Map<Long, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
+    Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
     Map<Integer, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
     contextsResponse.getAllocatedClassesList().forEach(
       className -> classEntryMap.put(className.getClassId(), myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, className.getClassName())));

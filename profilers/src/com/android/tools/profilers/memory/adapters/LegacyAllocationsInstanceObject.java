@@ -41,6 +41,7 @@ final class LegacyAllocationsInstanceObject implements InstanceObject {
   @NotNull private final ClassEntry myAllocationClassEntry;
   @NotNull private final AllocationStack myCallStack;
   @NotNull private final ValueObject.ValueType myValueType;
+  @NotNull private final ThreadId myThreadId;
 
   public LegacyAllocationsInstanceObject(@NotNull LegacyAllocationEvent event,
                                          @NotNull ClassEntry allocationClassEntry,
@@ -48,6 +49,7 @@ final class LegacyAllocationsInstanceObject implements InstanceObject {
     myEvent = event;
     myAllocationClassEntry = allocationClassEntry;
     myCallStack = callStack;
+    myThreadId = new ThreadId(event.getThreadId());
 
     String className = myAllocationClassEntry.getClassName();
     if (className.contains(".")) {
@@ -99,7 +101,7 @@ final class LegacyAllocationsInstanceObject implements InstanceObject {
   @Override
   @NotNull
   public ThreadId getAllocationThreadId() {
-    return new ThreadId(myEvent.getThreadId());
+    return myThreadId;
   }
 
   @NotNull

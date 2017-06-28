@@ -15,27 +15,38 @@
  */
 package com.android.tools.profilers.stacktrace;
 
+import com.android.annotations.VisibleForTesting;
+import org.jetbrains.annotations.NotNull;
+
 public class ThreadId {
   public static final ThreadId INVALID_THREAD_ID = new ThreadId(-1);
+  @VisibleForTesting static final String DISPLAY_FORMAT = "<Thread %s>";
+  private static final String UNKNOWN_THREAD_NAME = "Unknown";
 
-  private final int myThreadId;
+  private final String myThreadName;
+  private final String myDisplayName;
 
   public ThreadId(int threadId) {
-    myThreadId = threadId;
+    this(threadId == -1 ? UNKNOWN_THREAD_NAME : Integer.toString(threadId));
+  }
+
+  public ThreadId(@NotNull String threadName) {
+    myThreadName = threadName.isEmpty() ? UNKNOWN_THREAD_NAME : threadName;
+    myDisplayName = String.format(DISPLAY_FORMAT, myThreadName);
   }
 
   @Override
   public int hashCode() {
-    return Integer.hashCode(myThreadId);
+    return myThreadName.hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof ThreadId && ((ThreadId)obj).myThreadId == myThreadId;
+    return obj instanceof ThreadId && ((ThreadId)obj).myThreadName.equals(myThreadName);
   }
 
   @Override
   public String toString() {
-    return "<Thread " + myThreadId + ">";
+    return myDisplayName;
   }
 }
