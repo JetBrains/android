@@ -46,23 +46,23 @@ public class AdaptiveIconPreviewTest {
     toolbar.chooseDensity("mdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-65536);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ffff0000");
     toolbar.chooseDensity("hdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16776961);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff0000ff");
     toolbar.chooseDensity("xhdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16776961);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff0000ff");
     toolbar.chooseDensity("xxhdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16711936);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff00ff00");
     toolbar.chooseDensity("xxxhdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-16711936);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff00ff00");
   }
 
   @Test
@@ -107,12 +107,12 @@ public class AdaptiveIconPreviewTest {
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-983041);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("fff0ffff");
     toolbar.openThemeSelectionDialog()
       .selectsTheme("Material Dark", "android:Theme.Material")
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-14606047);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff1f1f1f");
   }
 }
