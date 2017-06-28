@@ -85,7 +85,7 @@ public class EmbeddedDistributionPaths {
     }
 
     // Development build
-    String relativePath = toSystemDependentName("/../../out/studio/transform/libs/profilers-transform.jar");
+    String relativePath = toSystemDependentName("/../../out/studio/transform/jarjar/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
   }
 
