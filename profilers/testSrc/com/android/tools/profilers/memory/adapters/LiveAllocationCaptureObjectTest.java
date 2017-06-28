@@ -46,15 +46,14 @@ public class LiveAllocationCaptureObjectTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest", myService);
 
-
   static final int STACK1 = 1;
   static final int STACK2 = 2;
-  static final long CLASS1 = 1000;
-  static final long CLASS2 = 1001;
-  static final long CLASS3 = 1002;
-  static final long CLASS1_INSTANCE1 = 10000;
-  static final long CLASS2_INSTANCE1 = 10001;
-  static final long CLASS3_INSTANCE1 = 10002;
+  static final int CLASS1 = 1000;
+  static final int CLASS2 = 1001;
+  static final int CLASS3 = 1002;
+  static final int CLASS1_INSTANCE1 = 10000;
+  static final int CLASS2_INSTANCE1 = 10001;
+  static final int CLASS3_INSTANCE1 = 10002;
   static final String METHOD1_NAME = "Method1";
   static final String METHOD2_NAME = "Method2";
   static final String CLASS1_NAME = "java.lang.Klass1";

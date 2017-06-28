@@ -69,7 +69,8 @@ public class MemoryDataPoller extends PollRunner {
       myPendingHeapDumpSample = null;
     }
 
-    if (myPendingAllocationSample != null) {
+    // O+ live allocation tracking sample is always ongoing for the during of the app, so we don't mark its end time here.
+    if (myPendingAllocationSample != null && myPendingAllocationSample.getLegacy()) {
       myMemoryStatsTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, myPendingAllocationSample.toBuilder()
         .setEndTime(myPendingAllocationSample.getStartTime() + 1).setStatus(
           AllocationsInfo.Status.FAILURE_UNKNOWN).build());
@@ -99,6 +100,7 @@ public class MemoryDataPoller extends PollRunner {
     for (BatchAllocationSample sample : response.getAllocationSamplesList()) {
       myLiveAllocationTable.insertMethodInfo(myProcessId, mySession, sample.getMethodsList());
       myLiveAllocationTable.insertStackInfo(myProcessId, mySession, sample.getStacksList());
+      myLiveAllocationTable.insertThreadInfo(myProcessId, mySession, sample.getThreadInfosList());
       myLiveAllocationTable.insertAllocationData(myProcessId, mySession, sample);
     }
 
@@ -174,7 +176,7 @@ public class MemoryDataPoller extends PollRunner {
     }
 
     Runnable query = () -> {
-      HashSet<Long> classesToFetch = new HashSet<>();
+      HashSet<Integer> classesToFetch = new HashSet<>();
       HashSet<Integer> stacksToFetch = new HashSet<>();
       HashMap<Long, LegacyAllocationEventsResponse> eventsToSave = new HashMap<>();
       for (AllocationsInfo sample : dumpsToFetch) {

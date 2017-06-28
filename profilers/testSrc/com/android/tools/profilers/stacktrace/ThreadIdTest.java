@@ -17,6 +17,7 @@ package com.android.tools.profilers.stacktrace;
 
 import org.junit.Test;
 
+import static com.android.tools.profilers.stacktrace.ThreadId.DISPLAY_FORMAT;
 import static com.android.tools.profilers.stacktrace.ThreadId.INVALID_THREAD_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -37,5 +38,12 @@ public class ThreadIdTest {
     assertNotEquals(threadId0, threadId2);
     assertNotEquals(threadId0, INVALID_THREAD_ID);
     assertNotEquals(threadId2, INVALID_THREAD_ID);
+  }
+
+  @Test
+  public void displayNameTest() {
+    assertEquals(String.format(DISPLAY_FORMAT, "Unknown"), INVALID_THREAD_ID.toString());
+    assertEquals(String.format(DISPLAY_FORMAT, "1"), new ThreadId(1).toString());
+    assertEquals(String.format(DISPLAY_FORMAT, "TestThread"), new ThreadId("TestThread").toString());
   }
 }

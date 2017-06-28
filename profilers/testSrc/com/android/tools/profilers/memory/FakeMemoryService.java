@@ -212,7 +212,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
-  public FakeMemoryService addExplicitAllocationClass(long id, String name) {
+  public FakeMemoryService addExplicitAllocationClass(int id, String name) {
     myAllocationContextBuilder.addAllocatedClasses(AllocatedClass.newBuilder().setClassId(id).setClassName(name).build());
     return this;
   }
