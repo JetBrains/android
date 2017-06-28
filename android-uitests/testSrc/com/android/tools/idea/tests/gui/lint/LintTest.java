@@ -21,12 +21,12 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.openapi.wm.impl.status.TextPanel;
-import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 @RunWith(GuiTestRunner.class)
 public class LintTest {
@@ -53,19 +53,13 @@ public class LintTest {
   public void obsoleteSdkIntLintCheck() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProject("LintTest");
 
-    ideFrameFixture
+    EditorFixture editor = ideFrameFixture
       .waitForGradleProjectSyncToFinish()
       .getEditor()
-      .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java", EditorFixture.Tab.EDITOR)
-      .select("(Build\\.VERSION\\.SDK_INT)");
+      .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java", EditorFixture.Tab.EDITOR);
 
-    Wait.seconds(5).expecting("Unnecessary conditional statements are detected").until(() -> {
-      try {
-        guiTest.robot().finder().find((c) -> c instanceof TextPanel && "Unnecessary; SDK_INT is always >= 21".equals(((TextPanel) c).getText()));
-        return true;
-      } catch (ComponentLookupException e) {
-        return false;
-      }
-    });
+    Wait.seconds(5)
+      .expecting("Unnecessary conditional statements are detected")
+      .until(() -> editor.getHighlights(WARNING).contains("Unnecessary; SDK_INT is always >= 21"));
   }
 }
