@@ -337,7 +337,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     SceneComponent[] connectionTo = new SceneComponent[ourDirections.length];
     for (int i = 0; i < ourDirections.length; i++) {
       connectionTypes[i] = (ConnectionType)child.myCache.get(ourDirectionsType[i]);
-      connectionTo[i] = (SceneComponent)child.myCache.get(ourDirections[i]);
+      Object obj = child.myCache.get(ourDirections[i]);
+      connectionTo[i] = (obj instanceof SceneComponent) ? (SceneComponent)obj : null;
     }
 
     for (int i = 0; i < ourDirections.length; i++) { // For each direction (not including baseline
