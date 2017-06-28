@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
 import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -39,7 +40,7 @@ import java.util.List;
 /**
  * Implements the guideline cycle
  */
-public class GuidelineCycleTarget extends BaseTarget {
+public class GuidelineCycleTarget extends ConstraintDragTarget {
 
   private final boolean myIsHorizontal;
   private int mySize = 16;
@@ -69,7 +70,8 @@ public class GuidelineCycleTarget extends BaseTarget {
       myTop = t - mySize / 2;
       myRight = l;
       myBottom = t + mySize / 2;
-    } else {
+    }
+    else {
       myLeft = l - mySize / 2;
       myTop = t - mySize;
       myRight = l + mySize / 2;
@@ -86,16 +88,16 @@ public class GuidelineCycleTarget extends BaseTarget {
 
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-
-  }
-
-  @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
-
+    super.mouseDown(x, y);
+    myComponent.setSelected(true);
   }
 
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+    super.mouseRelease(x, y, closestTargets);
+    if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
+      return;
+    }
     AttributesTransaction attributes = myComponent.getAuthoritativeNlComponent().startAttributeTransaction();
     String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
@@ -109,9 +111,11 @@ public class GuidelineCycleTarget extends BaseTarget {
     }
     if (begin != null) {
       setEnd(attributes, dimension - value);
-    } else if (end != null) {
-      setPercent(attributes, value / (float) dimension);
-    } else if (percent != null) {
+    }
+    else if (end != null) {
+      setPercent(attributes, value / (float)dimension);
+    }
+    else if (percent != null) {
       setBegin(attributes, value);
     }
 
@@ -131,6 +135,44 @@ public class GuidelineCycleTarget extends BaseTarget {
     action.execute();
   }
 
+  @Override
+  protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
+    String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
+    String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
+    String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
+    SceneComponent parent = myComponent.getParent();
+    int value = y - parent.getDrawY();
+    float dimension = parent.getDrawHeight();
+    if (!myIsHorizontal) {
+      value = x - parent.getDrawX();
+      dimension = parent.getDrawWidth();
+    }
+    if (begin != null) {
+      String position = String.format(SdkConstants.VALUE_N_DP, value);
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
+    }
+    else if (end != null) {
+      String position = String.format(SdkConstants.VALUE_N_DP, (int)dimension - value);
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
+    }
+    else if (percent != null) {
+      String percentStringValue = null;
+      float percentValue = value / dimension;
+      if (percentValue > 1) {
+        percentValue = 1;
+      }
+      if (percentValue < 0) {
+        percentValue = 0;
+      }
+      percentValue = Math.round(percentValue * 100) / 100f;
+      percentStringValue = String.valueOf(percentValue);
+      if (percentStringValue.equalsIgnoreCase("NaN")) {
+        percentStringValue = "0.5";
+      }
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentStringValue);
+    }
+    ConstraintComponentUtilities.cleanup(attributes, myComponent);
+  }
   private void setBegin(AttributesTransaction transaction, @AndroidDpCoordinate int value) {
     String position = String.format(SdkConstants.VALUE_N_DP, value);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
@@ -151,8 +193,9 @@ public class GuidelineCycleTarget extends BaseTarget {
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, null);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, position);
   }
+
   @Override
-  public String getToolTipText(){
+  public String getToolTipText() {
     return "Cycle Guideline";
   }
 }
