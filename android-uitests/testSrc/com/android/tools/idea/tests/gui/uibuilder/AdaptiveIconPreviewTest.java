@@ -107,7 +107,7 @@ public class AdaptiveIconPreviewTest {
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-657931);
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo(-983041);
     toolbar.openThemeSelectionDialog()
       .selectsTheme("Material Dark", "android:Theme.Material")
       .clickOk();
