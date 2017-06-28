@@ -17,7 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.structure.DelegatedTreeEvent;
+import com.android.tools.idea.uibuilder.structure.DelegatedTreeEventHandler;
 import com.android.tools.idea.uibuilder.structure.NlDropListener;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -26,21 +31,22 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.tree.TreePath;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTargetDropEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
 
 /**
  * Handler for ConstraintHelper objects
  */
-public class ConstraintHelperHandler extends ViewGroupHandler {
+public class ConstraintHelperHandler extends ViewGroupHandler implements DelegatedTreeEventHandler {
 
   public static final boolean USE_HELPER_TAGS = false;
 
@@ -67,24 +73,11 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
               tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));
               component = model.createComponent(tag);
             }
-            model.addTags(Arrays.asList(component), receiver, before, insert);
+            model.addTags(Collections.singletonList(component), receiver, before, insert);
           }
         }
         else {
-          final AttributesTransaction transaction = receiver.startAttributeTransaction();
-          String originalIdsList = transaction.getAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
-          List<String> draggedIds = new ArrayList<>();
-          for (NlComponent component : dragged) {
-            draggedIds.add(NlComponentHelperKt.ensureLiveId(component));
-          }
-          String idList = flatIdList(originalIdsList, draggedIds, false);
-          transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, idList);
-          new WriteCommandAction(model.getProject(), model.getFile()) {
-            @Override
-            protected void run(@NotNull Result result) throws Throwable {
-              transaction.commit();
-            }
-          }.execute();
+          addComponentsIds(receiver, dragged);
         }
         event.acceptDrop(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
         event.dropComplete(true);
@@ -97,52 +90,69 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
     }
   }
 
+  private static void addComponentsIds(@NotNull NlComponent receiver, @NotNull List<NlComponent> dragged) {
+    List<String> draggedIds = new ArrayList<>();
+    for (NlComponent component : dragged) {
+      draggedIds.add(NlComponentHelperKt.ensureLiveId(component));
+    }
+    addReferencesIds(receiver, draggedIds, null);
+  }
+
+  private static void addReferencesIds(@NotNull NlComponent receiver,
+                                       @NotNull List<String> draggedIds,
+                                       @Nullable String before) {
+    AttributesTransaction transaction = receiver.startAttributeTransaction();
+    String originalIdsList = transaction.getAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
+    String idList = addIds(originalIdsList, draggedIds, before);
+    writeIds(receiver, transaction, idList);
+  }
+
+  @Nullable
+  private static String removeIds(@NotNull String originalIds, @NotNull List<String> toRemove) {
+    String[] splitIds = originalIds.split(",");
+    List<String> strings = new ArrayList<>(splitIds.length);
+    Collections.addAll(strings, splitIds);
+    strings.removeAll(toRemove);
+    return strings.isEmpty() ? null : String.join(",", strings);
+  }
+
   /**
    * Utility function to add or remove a list of id to an existing flat list (represented as a string)
    *
    * @param ids    the original flat list
-   * @param list   the list of ids
-   * @param remove if true, the ids will be removed
-   * @return an updated flat list
+   * @param newIds the list of ids
+   * @param before The id to insert ids before. If null, ids will be inserted at the end
    */
-  static
   @Nullable
-  String flatIdList(@Nullable String ids, @NotNull List<String> list, boolean remove) {
-    HashSet<String> idsSet = new HashSet();
+  private static String addIds(@Nullable String ids, @NotNull List<String> newIds, @Nullable String before) {
+    if (newIds.isEmpty()) {
+      return ids;
+    }
+
+    ArrayList<String> idsList;
     if (ids != null) {
-      String[] originalList = ids.split(",");
-      for (int i = 0; i < originalList.length; i++) {
-        idsSet.add(originalList[i]);
-      }
+      String[] splitIds = ids.split(",");
+      idsList = new ArrayList<>(splitIds.length);
+      Collections.addAll(idsList, splitIds);
+      idsList.removeAll(newIds);
     }
-    for (String id : list) {
-      if (remove) {
-        idsSet.remove(id);
-      }
-      else {
-        idsSet.add(id);
-      }
+    else {
+      idsList = new ArrayList<>();
     }
-    if (idsSet.size() == 0) {
-      return null;
+
+    int insertionIndex = before == null ? -1 : idsList.indexOf(before);
+    if (insertionIndex >= 0) {
+      idsList.addAll(insertionIndex, newIds);
     }
-    StringBuilder builder = new StringBuilder();
-    boolean first = true;
-    for (String id : idsSet) {
-      if (!first) {
-        builder.append(",");
-      }
-      builder.append(id);
-      first = false;
+    else {
+      idsList.addAll(newIds);
     }
-    return builder.toString();
+
+    return String.join(",", new LinkedHashSet<>(idsList));
   }
 
   /**
    * Allows us to remove reference of components about to be deleted
-   *
-   * @param parent
-   * @param id
    */
   public static void willDelete(@NotNull NlComponent parent, @NotNull String id) {
     if (USE_HELPER_TAGS) {
@@ -169,16 +179,9 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
         if (NlComponentHelperKt.isOrHasSuperclass(child, CLASS_CONSTRAINT_LAYOUT_HELPER)) {
           String ids = child.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
           if (ids != null) {
-            ids = flatIdList(ids, Arrays.asList(id), true);
-            final AttributesTransaction transaction = child.startAttributeTransaction();
-            transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, ids);
-            NlModel model = child.getModel();
-            new WriteCommandAction(model.getProject(), model.getFile()) {
-              @Override
-              protected void run(@NotNull Result result) throws Throwable {
-                transaction.commit();
-              }
-            }.execute();
+            ids = removeIds(ids, Collections.singletonList(id));
+            AttributesTransaction transaction = child.startAttributeTransaction();
+            writeIds(child, transaction, ids);
           }
         }
       }
@@ -225,16 +228,108 @@ public class ConstraintHelperHandler extends ViewGroupHandler {
   public void deleteReference(@NotNull NlComponent component, @NotNull String id) {
     String ids = component.getLiveAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS);
     if (ids != null) {
-      ids = flatIdList(ids, Arrays.asList(id), true);
-      final AttributesTransaction transaction = component.startAttributeTransaction();
-      transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, ids);
-      NlModel model = component.getModel();
-      new WriteCommandAction(model.getProject(), model.getFile()) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          transaction.commit();
-        }
-      }.execute();
+      ids = removeIds(ids, Collections.singletonList(id));
+      AttributesTransaction transaction = component.startAttributeTransaction();
+      writeIds(component, transaction, ids);
+    }
+  }
+
+  /**
+   * Execute a {@link WriteCommandAction} to write idList into the
+   * {@link com.android.SdkConstants#CONSTRAINT_REFERENCED_IDS} attribute using the provided transaction
+   *
+   * @param component   The Constraint Helper component to modify
+   * @param transaction A started {@link AttributesTransaction} from component
+   * @param idList      The id list to write or null to remove the attribute
+   */
+  private static void writeIds(@NotNull NlComponent component,
+                               @NotNull AttributesTransaction transaction,
+                               @Nullable String idList) {
+    transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, idList);
+    NlModel model = component.getModel();
+    new WriteCommandAction(model.getProject(), model.getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        transaction.commit();
+      }
+    }.execute();
+  }
+
+  @Override
+  public boolean handleTreeEvent(@NotNull DelegatedTreeEvent event, @NotNull NlComponent constraintHelper) {
+    if (event.getType() == DelegatedTreeEvent.Type.DELETE) {
+      handleDeletion(event, constraintHelper);
+    }
+    else if (event.getType() == DelegatedTreeEvent.Type.DROP) {
+      handleHelperIdDrop(event, constraintHelper);
+    }
+    return true;
+  }
+
+  private void handleDeletion(@NotNull DelegatedTreeEvent event, @NotNull NlComponent constraintHelper) {
+    for (Object last : event.getSelected()) {
+      if (last instanceof String) {
+        deleteReference(constraintHelper, (String)last);
+      }
+    }
+  }
+
+  private static void handleHelperIdDrop(@NotNull DelegatedTreeEvent event, @NotNull NlComponent component) {
+    List<Object> selected = event.getSelected();
+    List<String> ids = selected.stream()
+      .filter(o -> o instanceof String)
+      .map(o -> ((String)o))
+      .collect(Collectors.toList());
+
+    Object sibling = event.getNextSibling();
+    String nextSibling = sibling instanceof String ? ((String)sibling) : null;
+    addReferencesIds(component, ids, nextSibling);
+  }
+
+  @SuppressWarnings("ForLoopReplaceableByForEach")
+  @Override
+  public Transferable getTransferable(TreePath[] paths) {
+    List<String> barriersList = new ArrayList<>();
+    for (int i = 0; i < paths.length; i++) {
+      Object component = paths[i].getLastPathComponent();
+      if (component instanceof String) {
+        barriersList.add((String)component);
+      }
+    }
+    if (barriersList.isEmpty()) {
+      return null;
+    }
+
+    return new BarrierTransferable(barriersList);
+  }
+
+  /**
+   * {@link Transferable} for barrier references
+   */
+  private static class BarrierTransferable implements Transferable {
+    public static final DataFlavor BARRIER_FLAVOR = new DataFlavor(BarrierTransferable.class, "Barrier Item");
+    private final List<String> myBarrierReferences;
+
+    public BarrierTransferable(List<String> barrierReferences) {
+      myBarrierReferences = barrierReferences;
+    }
+
+    @Override
+    public DataFlavor[] getTransferDataFlavors() {
+      return new DataFlavor[]{BARRIER_FLAVOR};
+    }
+
+    @Override
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+      return BARRIER_FLAVOR.equals(flavor);
+    }
+
+    @Override
+    public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+      if (BARRIER_FLAVOR.equals(flavor)) {
+        return myBarrierReferences;
+      }
+      throw new UnsupportedFlavorException(flavor);
     }
   }
 }

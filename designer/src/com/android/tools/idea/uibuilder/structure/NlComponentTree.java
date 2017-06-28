@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.*;
 import com.google.common.collect.Sets;
@@ -39,7 +38,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.IJSwingUtilities;
@@ -123,7 +121,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     TreeUtil.installActions(this);
     addTreeSelectionListener(new StructurePaneSelectionListener());
     new StructureSpeedSearch(this);
+
+
     enableDnD();
+
     addMouseListener(new StructurePaneMouseListener());
     addMouseListener(myBadgeHandler.getBadgeMouseAdapter());
     addMouseMotionListener(myBadgeHandler.getBadgeMouseAdapter());
@@ -189,7 +190,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private ColoredTreeCellRenderer createCellRenderer() {
-    ColoredTreeCellRenderer renderer = new ColoredTreeCellRenderer() {
+    return new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
@@ -198,16 +199,16 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
                                         boolean leaf,
                                         int row,
                                         boolean hasFocus) {
+        setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 10));
+
         if (value instanceof NlComponent) {
           StructureTreeDecorator.decorate(this, (NlComponent)value);
-        } else if (value instanceof String){
-          String text = (String) value;
-          this.append(text, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
+        }
+        else if (value instanceof String) {
+          StructureTreeDecorator.decorate(this, (String)value);
         }
       }
     };
-    renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 10));
-    return renderer;
   }
 
   private void invalidateUI() {
@@ -451,7 +452,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       for (TreePath path : paths) {
         Object last = path.getLastPathComponent();
         if (last instanceof NlComponent) {
-          selected.add((NlComponent) last);
+          selected.add((NlComponent)last);
         }
       }
     }
@@ -551,7 +552,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       if (!(component instanceof NlComponent)) {
         return;
       }
-
       myScreenView.getSurface().notifyComponentActivate((NlComponent)component);
     }
   }
@@ -651,28 +651,31 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   public void deleteElement(@NotNull DataContext dataContext) {
     SelectionModel selectionModel = myScreenView.getSelectionModel();
     if (selectionModel.isEmpty()) {
-      // we could be currently on an non-NlComponent leaf
-      if (!getSelectionModel().isSelectionEmpty()) {
-        TreePath[] paths = getSelectionModel().getSelectionPaths();
-        for (int i = 0; i < paths.length; i++) {
-          Object parent = paths[i].getParentPath().getLastPathComponent();
-          if (parent instanceof NlComponent) {
-            NlComponent component = (NlComponent)parent;
-            ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
-            if (handler != null && handler instanceof ConstraintHelperHandler) {
-              ConstraintHelperHandler helperHandler = (ConstraintHelperHandler)handler;
-              Object last = paths[i].getLastPathComponent();
-              if (last instanceof String) {
-                helperHandler.deleteReference(component, (String)last);
-              }
-            }
-          }
-        }
+      TreePath[] selectedPath = getSelectionModel().getSelectionPaths();
+      if (selectedPath.length != 0) {
+        deleteNonNlComponent(selectedPath);
       }
     }
-    NlModel model = myScreenView.getModel();
-    skipNextUpdateDelay();
-    model.delete(selectionModel.getSelection());
+    else {
+      NlModel model = myScreenView.getModel();
+      skipNextUpdateDelay();
+      model.delete(selectionModel.getSelection());
+    }
+  }
+
+  /**
+   * Handle a selection of non-NlComponent (like barrier/group)
+   *
+   * @param selectedPath
+   */
+  private void deleteNonNlComponent(TreePath[] selectedPath) {
+    TreePath parent = NlTreeUtil.getUniqueParent(selectedPath);
+    if (parent != null) {
+      Object component = parent.getLastPathComponent();
+      if (component instanceof NlComponent) {
+        NlTreeUtil.delegateEvent(DelegatedTreeEvent.Type.DELETE, this, ((NlComponent)component), -1);
+      }
+    }
   }
 
   // ---- Implements PasteProvider ----

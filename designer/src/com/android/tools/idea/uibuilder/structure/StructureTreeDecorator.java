@@ -44,6 +44,10 @@ public class StructureTreeDecorator {
     container.setIcon(getViewHandler(component).getIcon(component));
   }
 
+  static void decorate(@NotNull ColoredTextContainer container, @NotNull String text) {
+    container.append(text, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
+  }
+
   @NotNull
   public static String toString(@NotNull NlComponent component) {
     ColoredTextContainer container = new StringBuilderContainer();
