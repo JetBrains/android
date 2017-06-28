@@ -33,11 +33,11 @@ import java.util.List;
 class NlDropInsertionPicker {
 
   private final JTree myTree;
-  private List<NlComponent> myDragged;
 
   /**
    * Construct a new {@link NlDropInsertionPicker} that will pick the insertion point from
    * the provided tree
+   *
    * @param tree The tree used to find the insertion point
    */
   public NlDropInsertionPicker(@NotNull NlComponentTree tree) {
@@ -76,7 +76,9 @@ class NlDropInsertionPicker {
   @Nullable
   public Result findInsertionPointAt(@NotNull Point location,
                                      @NotNull List<NlComponent> dragged) {
-    myDragged = dragged;
+    if (dragged.isEmpty()) {
+      return findInsertionPointAt(location);
+    }
     Result result = new Result();
     result.receiver = null;
     result.nextComponent = null;
@@ -122,7 +124,7 @@ class NlDropInsertionPicker {
       receiverComponent = (NlComponent)referencePath.getLastPathComponent();
     }
 
-    if (canAddComponent(receiverComponent.getModel(), receiverComponent)) {
+    if (canAddComponent(receiverComponent.getModel(), receiverComponent, dragged)) {
       // The receiver is a ViewGroup and can accept component
       result.receiver = receiverComponent;
       if (receiverComponent.getChildCount() != 0) {
@@ -144,13 +146,41 @@ class NlDropInsertionPicker {
 
       // Now that we should be able to add the component, we do a final check.
       // It should almost never fall in this case.
-      if (!canAddComponent(result.receiver.getModel(), result.receiver)) {
+      if (!canAddComponent(result.receiver.getModel(), result.receiver, dragged)) {
         result.receiver = null;
         result.nextComponent = null;
         return null;
       }
     }
     return result;
+  }
+
+  /**
+   * Find the insertion point for a drag happening on non-NlComponent.
+   * <p>
+   * The insertion point will only be searched inside the parent of the selected path.
+   *
+   * @param location The location of the drop
+   * @return The {@link Result} or null if the insertion cannot happen at the provided location
+   */
+  public Result findInsertionPointAt(@NotNull Point location) {
+    TreePath path = myTree.getSelectionPath();
+    TreePath parent = path.getParentPath();
+    TreePath referencePath = myTree.getClosestPathForLocation(location.x, location.y);
+    Result result = new Result();
+    result.shouldDelegate = true;
+    result.receiver = (NlComponent)parent.getLastPathComponent();
+    if (referencePath == parent) {
+      result.depth = 1;
+      result.row = myTree.getRowForPath(referencePath);
+      return result;
+    }
+    else if (referencePath.getParentPath() == parent) {
+      result.depth = 0;
+      result.row = myTree.getRowForPath(referencePath);
+      return result;
+    }
+    return null;
   }
 
   /**
@@ -165,10 +195,10 @@ class NlDropInsertionPicker {
     return component.getNextSibling() == null && myTree.getExpandedDescendants(path) == null;
   }
 
-  protected boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver) {
-    return model.canAddComponents(myDragged, receiver, receiver.getChild(0))
+  protected boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver, @NotNull List<NlComponent> dragged) {
+    return model.canAddComponents(dragged, receiver, receiver.getChild(0))
            || (NlComponentHelperKt.isMorphableToViewGroup(receiver)
-               && !NlModel.isDescendant(receiver, myDragged));
+               && !NlModel.isDescendant(receiver, dragged));
   }
 
   private boolean canSelectLowerDepth(int row, int relativeDepth) {
@@ -176,9 +206,35 @@ class NlDropInsertionPicker {
   }
 
   public static class Result {
+
+    /**
+     * Receiver of the dragged element
+     */
     NlComponent receiver;
+
+    /**
+     * Next sibling of the dragged element
+     */
     NlComponent nextComponent;
+
+    /**
+     * The depth relative the path represented by the first int.
+     * <ul>
+     * <li>if the depth == 0, the insertion point will be inside the parent of the selected row</li>
+     * <li>if the depth > 0, the insertion point will be inside the component on the selected row.</li>
+     * <li>if the depth < 0, the insertion point will in one of the parent's ancestor. The level of the ancestor is defined by depth.</li>
+     * <ul>
+     */
     int depth;
+
+    /**
+     * The row after which the new element will be inserted
+     */
     int row;
+
+    /**
+     * If true, that means the insertion should be delegated to a {@link DelegatedTreeEventHandler}
+     */
+    boolean shouldDelegate = false;
   }
 }

@@ -16,8 +16,11 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -37,7 +40,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
@@ -548,6 +553,99 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
                  "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
                  "    NlComponent{tag=<android.support.constraint.Chain>, bounds=[0,0:200x200}",
+                 NlTreeDumper.dumpTree(model.getComponents()));
+    return model;
+  }
+
+  public void testNonNlComponentDrop() {
+    assertNull(myTree.getSelectionPaths());
+    myModel = createModelWithBarriers();
+    myScreen = createScreen(myModel);
+    when(mySurface.getCurrentSceneView()).thenReturn(myScreen);
+    when(mySurface.getProject()).thenReturn(getProject());
+    myTree = new NlComponentTree(getProject(), mySurface, myCopyPasteManager);
+
+    // Check initial state
+    myTree.expandRow(3);
+    TreePath pathForRow4 = myTree.getPathForRow(4);
+    TreePath pathForRow5 = myTree.getPathForRow(5);
+    assertThat(pathForRow4.getLastPathComponent()).isEqualTo("button2");
+    assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button3");
+
+    myTree.setSelectionPath(pathForRow4);
+    Rectangle bounds1 = myTree.getPathBounds(pathForRow4);
+    Rectangle bounds2 = myTree.getPathBounds(pathForRow5);
+    assertNotNull(bounds1);
+    assertNotNull(bounds2);
+
+    // Perform the drop
+    DelegatedTreeEventHandler handler = NlTreeUtil.getSelectionTreeHandler(myTree);
+    assertNotNull(handler);
+    DropTargetDropEvent dropEvent =
+      new DropTargetDropEventBuilder(LayoutTestUtilities.createDropTargetContext(), bounds2.x, (int)bounds2.getCenterY(),
+                                     handler.getTransferable(myTree.getSelectionPaths())).build();
+
+    // We directly crate and call the listener because we cannot setup the
+    // drag and drop in BuildBot since there is no X11 server
+    NlDropListener listener = new NlDropListener(myTree);
+    listener.drop(dropEvent);
+
+    // Check that the model is changed
+    Object child1 = ((ConstraintHelperHandler)handler).getComponentTreeChild(myTree.getPathForRow(3).getLastPathComponent(), 0);
+    Object child2 = ((ConstraintHelperHandler)handler).getComponentTreeChild(myTree.getPathForRow(3).getLastPathComponent(), 1);
+    assertThat(child1).isEqualTo("button3");
+    assertThat(child2).isEqualTo("button2");
+
+    // We manually notify the model changed event to ensure that the paths are updated
+    myTree.modelDerivedDataChanged(myModel);
+    myTree.expandRow(3); // Ensure that the the barrier's children path are not collapsed
+
+    // Check that button2 and button3 are swapped
+    pathForRow4 = myTree.getPathForRow(4);
+    pathForRow5 = myTree.getPathForRow(5);
+    assertThat(pathForRow4.getLastPathComponent()).isEqualTo("button3");
+    assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button2");
+  }
+
+  @NotNull
+  private SyncNlModel createModelWithBarriers() {
+    ModelBuilder builder = model("constraint.xml",
+                                 component(CONSTRAINT_LAYOUT)
+                                   .withBounds(0, 0, 1000, 1000)
+                                   .matchParentWidth()
+                                   .matchParentHeight()
+                                   .children(
+                                     component(BUTTON)
+                                       .withBounds(0, 0, 200, 200)
+                                       .id("@+id/button2")
+                                       .wrapContentWidth()
+                                       .wrapContentHeight(),
+                                     component(BUTTON)
+                                       .withBounds(0, 0, 200, 200)
+                                       .id("@+id/button3")
+                                       .wrapContentWidth()
+                                       .wrapContentHeight(),
+                                     component(CLASS_CONSTRAINT_LAYOUT_HELPER)
+                                       .withBounds(0, 0, 200, 200)
+                                       .id("@+id/barrier")
+                                       .wrapContentWidth()
+                                       .wrapContentHeight()
+                                       .withAttribute(AUTO_URI, ATTR_BARRIER_DIRECTION, CONSTRAINT_BARRIER_END)
+                                       .withAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS, "button2,button3"),
+                                     component(TEXT_VIEW)
+                                       .withBounds(0, 0, 200, 200)
+                                       .id("@+id/chain")
+                                       .wrapContentWidth()
+                                       .wrapContentHeight()
+                                       .withAttribute(AUTO_URI, ATTR_LAYOUT_START_TO_END_OF, "@id/barrier")
+                                   ));
+    final SyncNlModel model = builder.build();
+    assertEquals(1, model.getComponents().size());
+    assertEquals("NlComponent{tag=<android.support.constraint.ConstraintLayout>, bounds=[0,0:1000x1000}\n" +
+                 "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
+                 "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
+                 "    NlComponent{tag=<android.support.constraint.ConstraintHelper>, bounds=[0,0:200x200}\n" +
+                 "    NlComponent{tag=<TextView>, bounds=[0,0:200x200}",
                  NlTreeDumper.dumpTree(model.getComponents()));
     return model;
   }

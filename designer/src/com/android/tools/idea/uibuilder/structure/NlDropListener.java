@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
@@ -22,7 +23,6 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -63,9 +63,14 @@ public class NlDropListener extends DropTargetAdapter {
   private final NlDropInsertionPicker myInsertionPicker;
 
   public NlDropListener(@NotNull NlComponentTree tree) {
+    this(tree, new NlDropInsertionPicker(tree));
+  }
+
+  @VisibleForTesting
+  NlDropListener(@NotNull NlComponentTree tree, @NotNull NlDropInsertionPicker insertionPicker) {
     myDragged = new ArrayList<>();
     myTree = tree;
-    myInsertionPicker = new NlDropInsertionPicker(tree);
+    myInsertionPicker = insertionPicker;
   }
 
   @Override
@@ -89,14 +94,23 @@ public class NlDropListener extends DropTargetAdapter {
 
   @Override
   public void drop(@NotNull DropTargetDropEvent dropEvent) {
-    NlDropEvent event = new NlDropEvent(dropEvent);
-    InsertType insertType = captureDraggedComponents(event, false /* not as preview */);
-    NlDropInsertionPicker.Result finderResult = myInsertionPicker.findInsertionPointAt(event.getLocation(), myDragged);
-
+    NlDropInsertionPicker.Result finderResult = myInsertionPicker.findInsertionPointAt(dropEvent.getLocation(), myDragged);
     if (finderResult != null) {
-      myDragReceiver = finderResult.receiver;
-      myNextDragSibling = finderResult.nextComponent;
-      performDrop(dropEvent, insertType);
+      if (finderResult.shouldDelegate) {
+        DelegatedTreeEvent.Type type = DelegatedTreeEvent.Type.DROP;
+        boolean eventHandled = NlTreeUtil.delegateEvent(type, myTree, finderResult.receiver, finderResult.row);
+        if (eventHandled) {
+          dropEvent.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+          dropEvent.dropComplete(true);
+        }
+      }
+      else {
+        NlDropEvent event = new NlDropEvent(dropEvent);
+        InsertType insertType = captureDraggedComponents(event, false /* not as preview */);
+        myDragReceiver = finderResult.receiver;
+        myNextDragSibling = finderResult.nextComponent;
+        performDrop(dropEvent, insertType);
+      }
     }
     myTree.clearInsertionPoint();
     clearDraggedComponents();
@@ -115,7 +129,7 @@ public class NlDropListener extends DropTargetAdapter {
         myTransferItem = (DnDTransferItem)event.getTransferable().getTransferData(ItemTransferable.DESIGNER_FLAVOR);
         InsertType insertType = determineInsertType(event, isPreview);
         if (insertType.isMove()) {
-          myDragged.addAll(keepOnlyAncestors(model.getSelectionModel().getSelection()));
+          myDragged.addAll(NlTreeUtil.keepOnlyAncestors(model.getSelectionModel().getSelection()));
         }
         else {
           // TODO: support nav editor
@@ -124,7 +138,7 @@ public class NlDropListener extends DropTargetAdapter {
               (Computable<Collection<NlComponent>>)() -> NlModelHelperKt.createComponents(model, screenView, myTransferItem, insertType));
 
           if (captured != null) {
-            myDragged.addAll(keepOnlyAncestors(captured));
+            myDragged.addAll(NlTreeUtil.keepOnlyAncestors(captured));
           }
         }
         return insertType;
@@ -185,11 +199,12 @@ public class NlDropListener extends DropTargetAdapter {
              && NlComponentHelperKt.isMorphableToViewGroup(myDragReceiver)) {
       morphReceiverIntoViewGroup(model);
       performNormalDrop(event, insertType, model);
-    } else {
+    }
+    else {
       // Not a viewgroup, but let's give a chance to the handler to do something with the drop event
       ViewHandler handler = NlComponentHelperKt.getViewHandler(myDragReceiver);
       if (handler instanceof ViewGroupHandler) {
-        ViewGroupHandler groupHandler = (ViewGroupHandler) handler;
+        ViewGroupHandler groupHandler = (ViewGroupHandler)handler;
         groupHandler.performDrop(model, event, myDragReceiver, myDragged, myNextDragSibling, insertType);
       }
     }
@@ -244,30 +259,5 @@ public class NlDropListener extends DropTargetAdapter {
         transaction.commit();
       }
     }.execute();
-  }
-
-  /**
-   * Modified dragged to keep only the elements that have no ancestor in the selection
-   *
-   * @param dragged the dragged element
-   */
-  private static Collection<NlComponent> keepOnlyAncestors(@NotNull Collection<NlComponent> dragged) {
-    final Set<NlComponent> selection = Sets.newIdentityHashSet();
-    selection.addAll(dragged);
-    Stack<NlComponent> toTraverse = new Stack<>();
-    for (NlComponent selectedElement : dragged) {
-      final List<NlComponent> children = selectedElement.getChildren();
-      // recursively delete children from the selection
-      toTraverse.addAll(children);
-      while (!toTraverse.isEmpty()) {
-        // Traverse the subtree for each children
-        NlComponent child = toTraverse.pop();
-        toTraverse.addAll(child.getChildren());
-        if (selection.contains(child)) {
-          selection.remove(child);
-        }
-      }
-    }
-    return selection;
   }
 }
