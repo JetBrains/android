@@ -222,17 +222,15 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       myToBeFlattened = Lists.newArrayList();
       processComponent(myLayout);
 
-      // TODO: If the old layout had attributes that don't apply anymore (such as "android:orientation" when converting
-      // from a LinearLayout), remove these
+      String[] toDelete =
+        {ATTR_PADDING, ATTR_PADDING_LEFT, ATTR_PADDING_RIGHT, ATTR_PADDING_START, ATTR_PADDING_END, ATTR_PADDING_TOP, ATTR_PADDING_BOTTOM,
+          ATTR_ORIENTATION};
+      // TODO: This should walk the attributes and remove ones that do not apply but it may have unintended side effects
 
       // We should also remove padding attributes on the root element - these confuse the constraint layout handler (issue #209905)
-      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING, null);
-      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_LEFT, null);
-      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_RIGHT, null);
-      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_START, null);
-      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_END, null);
-      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_TOP, null);
-      myLayout.setAttribute(ANDROID_URI, ATTR_PADDING_BOTTOM, null);
+      for (int i = 0; i < toDelete.length; i++) {
+        myLayout.setAttribute(ANDROID_URI, toDelete[i], null);
+      }
 
       flatten();
       PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);

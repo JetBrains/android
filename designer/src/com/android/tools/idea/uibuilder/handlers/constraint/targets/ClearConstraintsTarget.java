@@ -16,18 +16,43 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.SHERPA_URI;
 
 public class ClearConstraintsTarget extends ActionTarget implements ActionTarget.Action {
   private static final NlIcon CLEAR_ICON =
     new NlIcon(AndroidIcons.SherpaIcons.DeleteConstraint, AndroidIcons.SherpaIcons.DeleteConstraintB);
 
   public ClearConstraintsTarget(ActionTarget previous) {
-    super(previous, CLEAR_ICON,null);
+    super(previous, CLEAR_ICON, null);
     setAction(this);
+  }
+
+  @Override
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
+    NlComponent component = myComponent.getNlComponent();
+    myIsVisible = false;
+    for (int i = 0; i < ConstraintComponentUtilities.ourConstraintLayoutAttributesToClear.length; i++) {
+      String attr = ConstraintComponentUtilities.ourConstraintLayoutAttributesToClear[i];
+      String val = component.getAttribute(SHERPA_URI, attr);
+      if (val != null) {
+        myIsVisible = true;
+      }
+    }
+    super.layout(sceneTransform, l, t, r, b);
+    return false;
   }
 
   @Override
