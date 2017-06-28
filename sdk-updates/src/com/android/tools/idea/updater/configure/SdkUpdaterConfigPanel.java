@@ -556,8 +556,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
         mySdkErrorLabel.setText(result.getFormattedMessage());
         mySdkErrorLabel.setVisible(true);
 
-        myPlatformComponentsPanel.setEnabled(false);
-        myTabPane.setEnabled(false);
+        myPlatformComponentsPanel.setEnabled(true);
+        myTabPane.setEnabled(true);
 
         break;
       case ERROR:
