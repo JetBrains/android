@@ -168,6 +168,22 @@ public class EditorFixture {
       });
   }
 
+  @NotNull
+  public Tab getCurrentTab() {
+    Wait.seconds(5)
+      .expecting("Selected editor")
+      .until(() -> getFirstEditor() != null);
+    return getFirstEditor() instanceof NlEditor ? Tab.DESIGN : Tab.EDITOR;
+  }
+
+  @Nullable
+  private FileEditor getFirstEditor() {
+    return GuiQuery.get(() -> {
+      FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
+      return editors.length > 0 ? editors[0] : null;
+    });
+  }
+
   /**
    * Type the given text into the editor
    *
