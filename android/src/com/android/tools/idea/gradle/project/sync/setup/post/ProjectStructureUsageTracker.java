@@ -16,15 +16,18 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeLibrary;
+import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependencies;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,14 +35,13 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
@@ -50,11 +52,7 @@ import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPO
 import static com.android.tools.idea.stats.AndroidStudioUsageTracker.anonymizeUtf8;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
-import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.GRADLE_EXPERIMENTAL;
-import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE;
-import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.*;
 
 /**
  * Tracks, using {@link UsageTracker}, the structure of a project.
@@ -200,9 +198,9 @@ public class ProjectStructureUsageTracker {
   static NativeBuildSystemType stringToBuildSystemType(@NotNull String buildSystem) {
     switch (buildSystem) {
       case "ndkBuild":
-        return NativeBuildSystemType.NDK_BUILD;
+        return NDK_BUILD;
       case "cmake":
-        return NativeBuildSystemType.CMAKE;
+        return CMAKE;
       case "ndkCompile":
         return NDK_COMPILE;
       case "gradle":
@@ -228,84 +226,27 @@ public class ProjectStructureUsageTracker {
   }
 
   private static GradleLibrary trackExternalDependenciesInAndroidApp(@NotNull AndroidModuleModel model) {
-    Collection<Variant> variants = model.getAndroidProject().getVariants();
-    if (variants.isEmpty()) {
-      return null;
-    }
-
-    Variant chosen = null;
+    IdeAndroidProject androidProject = model.getAndroidProject();
+    // Use Ref because lambda function argument to forEachVariant only works with final variables.
+    Ref<IdeVariant> chosenVariant = new Ref<>();
     // We want to track the "release" variants.
-    for (Variant variant : variants) {
+    androidProject.forEachVariant(variant -> {
       if ("release".equals(variant.getBuildType())) {
-        chosen = variant;
-        break;
+        chosenVariant.set(variant);
       }
+    });
+
+    // If we could not find a "release" variant, pick the selected one.
+    if (chosenVariant.get() == null) {
+      chosenVariant.set(model.getSelectedVariant());
     }
 
-    // If we could not find a "release" variant, pick the first one.
-    if (chosen == null) {
-      chosen = getFirstItem(variants);
-    }
-
-    if (chosen != null) {
-      return trackLibraryCount(chosen);
-    }
-    return null;
-  }
-
-  @NotNull
-  private static GradleLibrary trackLibraryCount(@NotNull Variant variant) {
-    DependencyFiles files = new DependencyFiles();
-
-    AndroidArtifact artifact = variant.getMainArtifact();
-
-    Dependencies dependencies = artifact.getDependencies();
-    for (JavaLibrary javaLibrary : dependencies.getJavaLibraries()) {
-      addJarLibraryAndDependencies(javaLibrary, files);
-    }
-
-    for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
-      addAarLibraryAndDependencies(androidLibrary, files);
-    }
-
+    IdeLevel2Dependencies dependencies = chosenVariant.get().getMainArtifact().getLevel2Dependencies();
     // @formatter:off
-    return GradleLibrary.newBuilder().setAarDependencyCount(files.aars.size())
-                                     .setJarDependencyCount(files.jars.size())
+    return GradleLibrary.newBuilder().setAarDependencyCount(dependencies.getAndroidLibraries().size())
+                                     .setJarDependencyCount(dependencies.getJavaLibraries().size())
                                      .build();
     // @formatter:on
-  }
-
-  private static void addJarLibraryAndDependencies(@NotNull JavaLibrary javaLibrary, @NotNull DependencyFiles files) {
-    File jarFile = javaLibrary.getJarFile();
-    if (files.jars.contains(jarFile)) {
-      return;
-    }
-    files.jars.add(jarFile);
-    for (JavaLibrary dependency : javaLibrary.getDependencies()) {
-      addJarLibraryAndDependencies(dependency, files);
-    }
-  }
-
-  private static void addAarLibraryAndDependencies(@NotNull AndroidLibrary androidLibrary, @NotNull DependencyFiles files) {
-    String gradlePath = androidLibrary.getProject();
-    if (isEmpty(gradlePath)) {
-      // This is an external dependency (i.e. no Gradle path).
-      File file = androidLibrary.getJarFile();
-      if (files.aars.contains(file)) {
-        return;
-      }
-
-      files.aars.add(file);
-
-      for (AndroidLibrary library : androidLibrary.getLibraryDependencies()) {
-        addAarLibraryAndDependencies(library, files);
-      }
-    }
-  }
-
-  private static class DependencyFiles {
-    final Set<File> aars = Sets.newHashSet();
-    final Set<File> jars = Sets.newHashSet();
   }
 
   @Nullable
