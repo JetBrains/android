@@ -163,9 +163,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (SystemInfo.isWindows) {
       KNOWN_BROKEN.add("AidlFile");
     }
-
-    // b/63123437
-    KNOWN_BROKEN.add("AndroidAutoMediaService");
   }
 
   /**
