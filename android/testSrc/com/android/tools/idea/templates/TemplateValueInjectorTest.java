@@ -23,8 +23,11 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.template.ConvertJavaToKotlinDefaultImpl;
+import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.intellij.mock.MockApplicationEx;
 import com.intellij.openapi.Disposable;
@@ -40,6 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.extensions.Extensions.getRootArea;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class TemplateValueInjectorTest{
@@ -58,6 +62,12 @@ public class TemplateValueInjectorTest{
     MockApplicationEx instance = new MockApplicationEx(myDisposable);
     instance.registerService(EmbeddedDistributionPaths.class, new EmbeddedDistributionPaths());
     ApplicationManager.setApplication(instance, myDisposable);
+
+    String kotlinEpName = ConvertJavaToKotlinProvider.EP_NAME.getName();
+    if (!getRootArea().hasExtensionPoint(kotlinEpName)) {
+      getRootArea().registerExtensionPoint(kotlinEpName, ConvertJavaToKotlinDefaultImpl.class.getName());
+      Disposer.register(myDisposable, () -> getRootArea().unregisterExtensionPoint(kotlinEpName));
+    }
   }
 
   @After
@@ -96,6 +106,7 @@ public class TemplateValueInjectorTest{
     assertThat(templateValues).isNotEmpty();
     assertThat(templateValues.get(TemplateMetadata.ATTR_BUILD_API)).isEqualTo(PREVIEW_VERSION);
     assertThat(templateValues.get(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION)).isEqualTo("26.0.0 rc1");
+    assertThat(templateValues.get(TemplateMetadata.ATTR_KOTLIN_VERSION)).isEqualTo(TestUtils.KOTLIN_VERSION_FOR_TESTS);
   }
 
   private static void recordBuildTool26rc1(MockFileOp fop) {
