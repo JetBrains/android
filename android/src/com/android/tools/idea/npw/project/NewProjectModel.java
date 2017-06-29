@@ -275,11 +275,7 @@ public class NewProjectModel extends WizardModel {
       myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
       myTemplateValues.put(ATTR_KOTLIN_SUPPORT, myEnableKotlinSupport.get());
-      if (StudioFlags.NPW_KOTLIN.get()) {
-        // Always add the kotlin version attribute.
-        final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
-        myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
-      }
+
 
       Map<String, Object> params = Maps.newHashMap(myTemplateValues);
       for (NewModuleModel newModuleModel : getNewModuleModels()) {

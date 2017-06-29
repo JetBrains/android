@@ -24,6 +24,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -64,6 +65,7 @@ import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
+import static com.android.tools.idea.npw.template.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -120,6 +122,7 @@ public final class TemplateValueInjector {
 
     Project project = facet.getModule().getProject();
     addGradleVersions(project);
+    addKotlinVersion();
 
     if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
       setInstantAppSupport();
@@ -167,6 +170,7 @@ public final class TemplateValueInjector {
       }
     }
     addGradleVersions(project);
+    addKotlinVersion();
     return this;
   }
 
@@ -266,6 +270,8 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_IS_LOW_MEMORY, SystemInfo.is32Bit);
 
     addGradleVersions(project);
+    addKotlinVersion();
+
     myTemplateValues.put(ATTR_IS_GRADLE, true);
 
     // TODO: Check if this is used at all by the templates
@@ -309,6 +315,14 @@ public final class TemplateValueInjector {
   private void addGradleVersions(@Nullable Project project) {
     myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project));
     myTemplateValues.put(ATTR_GRADLE_VERSION, SdkConstants.GRADLE_LATEST_VERSION);
+  }
+
+  private void addKotlinVersion() {
+    if (StudioFlags.NPW_KOTLIN.get()) {
+      // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
+      final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
+      myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
+    }
   }
 
   private static void addDebugKeyStore(@NotNull Map<String, Object> templateValues, @Nullable AndroidFacet facet) {

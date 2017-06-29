@@ -47,6 +47,7 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrAssignmentExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
@@ -137,6 +138,11 @@ public class GradleFilePsiMerger {
       if (destination == null) {
         if (destinationChildren.isEmpty()) {
           toRoot.add(child);
+        }
+        else if (child instanceof GrAssignmentExpression && child.getChildren().length == 2 &&
+                 child.getChildren()[1] instanceof GrLiteral && child.getText().startsWith("ext.")) {
+          // Put assignment expressions like, ext.kotlin_version = 'x.x.x', at the top, as they may be used later on the file
+          toRoot.addAfter(child, toRoot.getFirstChild());
         }
         else {
           toRoot.addBefore(child, toRoot.getLastChild());

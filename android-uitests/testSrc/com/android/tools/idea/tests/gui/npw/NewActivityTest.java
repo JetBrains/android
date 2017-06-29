@@ -166,15 +166,18 @@ public class NewActivityTest {
     myConfigActivity.setSourceLanguage("Kotlin");
     myDialog.clickFinish();
 
-    // importSimpleApplication() imports a non kotlin project, sync is expected to fail
-    guiTest.ideFrame().waitForGradleProjectSyncToFail();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     myEditor
       .open("app/src/main/java/google/simpleapplication/MainActivity.kt")
       .moveBetween("override fun onCreate", "")
       .open("app/build.gradle")
       .moveBetween("apply plugin: 'kotlin-android'", "")
-      .moveBetween("apply plugin: 'kotlin-android-extensions'", "");
+      .moveBetween("apply plugin: 'kotlin-android-extensions'", "")
+      .open("build.gradle")
+      .moveBetween("ext.kotlin_version", "")
+      .moveBetween("classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version\"", "")
+      .moveBetween("mavenCentral()", "");
 
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
     assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
