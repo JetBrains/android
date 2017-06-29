@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.*;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,6 +73,7 @@ public class HandleRunAsErrorsTest {
    */
   @RunIn(TestGroup.QA_UNRELIABLE) // b/38376451
   @Test
+  @Ignore("b/38376451")
   public void testHandleRunAsErrors() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
