@@ -293,7 +293,7 @@ public class NewProjectTest {
     editor.open("app/src/main/res/layout/activity_a.xml", EditorFixture.Tab.EDITOR);
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    layoutEditor.waitForRenderToFinish(Wait.seconds(10));
+    layoutEditor.waitForRenderToFinish();
 
     if (layoutEditor.hasRenderErrors()) {
       layoutEditor.waitForErrorPanelToContain("still building");

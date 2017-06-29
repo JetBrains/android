@@ -42,7 +42,6 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JTreeFixture;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -74,11 +73,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   public NlEditorFixture waitForRenderToFinish() {
-    return waitForRenderToFinish(Wait.seconds(9));
-  }
-
-  public NlEditorFixture waitForRenderToFinish(@NotNull Wait waitForRender) {
-    myDesignSurfaceFixture.waitForRenderToFinish(waitForRender);
+    myDesignSurfaceFixture.waitForRenderToFinish();
     return this;
   }
 
