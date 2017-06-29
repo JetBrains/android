@@ -63,8 +63,10 @@ public class NlPropertyRenderers implements PTableCellRendererProvider {
     if (item instanceof PTableGroupItem) {
       return myGroupRenderer;
     }
-    assert item instanceof NlProperty;
-    return get((NlProperty)item);
+    if (item instanceof NlProperty) {
+      return get((NlProperty)item);
+    }
+    throw new IllegalArgumentException("Unrecognized table item " + item);
   }
 
   @NotNull

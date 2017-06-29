@@ -74,7 +74,9 @@ public class NlMarginPropertyAccumulator extends NlPropertyAccumulator {
       @Override
       protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
                                            boolean selected, boolean hasFocus, int row, int column) {
-        assert value instanceof MarginGroupNode;
+        if (!(value instanceof MarginGroupNode)) {
+          return;
+        }
         MarginGroupNode node = (MarginGroupNode)value;
         NlMarginPropertyAccumulator accumulator = node.getAccumulator();
         append("[");

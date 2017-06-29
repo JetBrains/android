@@ -29,8 +29,9 @@ public abstract class PTableCellRenderer extends SimpleColoredRenderer implement
   @Override
   public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value,
                                                  boolean isSelected, boolean hasFocus, int row, int col) {
-    assert table instanceof PTable;
-    assert value instanceof PTableItem;
+    if (!(table instanceof PTable && value instanceof PTableItem)) {
+      return this;
+    }
 
     // PTable shows focus for the entire row. Not per cell.
     boolean rowIsLead = table.getSelectionModel().getLeadSelectionIndex() == row;

@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperties;
@@ -43,6 +45,7 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     assertEquals(1, subTags.length);
 
     NlPropertiesManager manager = mock(NlPropertiesManager.class);
+    PTable table = mock(PTable.class);
 
     Table<String, String, NlPropertyItem> properties =
       NlProperties.getInstance().getProperties(manager, ImmutableList.of(MockNlComponent.create(subTags[0])));
@@ -50,25 +53,29 @@ public class NlDefaultRendererTest extends LayoutTestCase {
     NlDefaultRenderer renderer = new NlDefaultRenderer();
 
     NlPropertyItem property = properties.get(SdkConstants.ANDROID_URI, "id");
-    validateRendering(renderer, property, "id", "textView");
+    validateRendering(renderer, table, property, "id", "textView");
 
     property = properties.get(SdkConstants.ANDROID_URI, "text");
-    validateRendering(renderer, property, "text", "");
+    validateRendering(renderer, table, property, "text", "");
 
     property = properties.get(SdkConstants.ANDROID_URI, "focusable");
-    validateRendering(renderer, property, "focusable", "");
+    validateRendering(renderer, table, property, "focusable", "");
+
+    PTableItem item = mock(PTableItem.class);
+    validateRendering(renderer, table, item, "", "");
   }
 
   private static void validateRendering(@NotNull NlDefaultRenderer renderer,
-                                        @NotNull NlPropertyItem property,
+                                        @NotNull PTable table,
+                                        @NotNull PTableItem item,
                                         @NotNull String name,
                                         @NotNull String value) {
     renderer.getLabel().clear();
-    renderer.customize(property, 0, false);
+    renderer.customizeCellRenderer(table, item, false, false, 10, 0);
     assertEquals(name, renderer.getLabel().getCharSequence(true));
 
     renderer.getLabel().clear();
-    renderer.customize(property, 1, false);
+    renderer.customizeCellRenderer(table, item, false, false, 10, 1);
     assertEquals(value, renderer.getLabel().getCharSequence(true));
   }
 }

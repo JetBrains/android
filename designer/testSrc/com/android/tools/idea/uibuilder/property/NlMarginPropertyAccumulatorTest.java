@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.adtui.ptable.*;
 import com.google.common.collect.Table;
 
 import javax.swing.*;
@@ -88,9 +85,39 @@ public class NlMarginPropertyAccumulatorTest extends PropertyTestCase {
       myAccumulator.process(property);
     }
 
-    PTableGroupItem group = myAccumulator.getGroupNode();
     JTable table = new PTable(new PTableModel());
+    PTableGroupItem group = myAccumulator.getGroupNode();
+    PTableCellRenderer renderer = (PTableCellRenderer)group.getCellRenderer();
+    assert renderer != null;
+
+    renderer.clear();
     Component component = group.getCellRenderer().getTableCellRendererComponent(table, group, false, false, 10, 1);
     assertThat(component.toString()).isEqualTo("[?, 20dp, ?, ?, 30dp]");
+  }
+
+  public void testValueOfGroupRendererForNonGroup() {
+    myTable.get(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT).setValue("20dp");
+    myTable.get(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM).setValue("30dp");
+
+    for (NlPropertyItem property : myTable.values()) {
+      myAccumulator.process(property);
+    }
+
+    JTable table = new PTable(new PTableModel());
+    PTableGroupItem group = myAccumulator.getGroupNode();
+    PTableCellRenderer renderer = (PTableCellRenderer)group.getCellRenderer();
+    assert renderer != null;
+
+    renderer.clear();
+    Component component = renderer.getTableCellRendererComponent(table, group, false, false, 10, 1);
+    assertThat(component.toString()).isEqualTo("[?, 20dp, ?, ?, 30dp]");
+
+    renderer.clear();
+    Component component1 = renderer.getTableCellRendererComponent(table, new Object(), false, false, 10, 1);
+    assertThat(component1.toString()).isEqualTo("");
+
+    NlProperty property = myTable.get(ANDROID_URI, ATTR_TEXT);
+    Component component2 = renderer.getTableCellRendererComponent(table, property, false, false, 10, 1);
+    assertThat(component2.toString()).isEqualTo("");
   }
 }

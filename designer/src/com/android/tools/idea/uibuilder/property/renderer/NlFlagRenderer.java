@@ -29,7 +29,10 @@ public class NlFlagRenderer extends NlAttributeRenderer {
   @Override
   protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem item,
                                        boolean selected, boolean hasFocus, int row, int col) {
-    assert item instanceof NlFlagPropertyItem;
+    if (!(item instanceof NlFlagPropertyItem)) {
+      return;
+    }
+
     NlFlagPropertyItem property = (NlFlagPropertyItem)item;
 
     if (col != 1) {

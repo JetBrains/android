@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.renderer;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.ptable.PTable;
+import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.PTableModel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
@@ -103,6 +104,12 @@ public class NlBooleanRendererTest extends PropertyTestCase {
     when(property.getResolver()).thenReturn(resolver);
 
     myRenderer.customizeCellRenderer(myTable, property, false, false, 10, 1);
+    assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.DONT_CARE);
+  }
+
+  public void testWithNonProperty() {
+    PTableItem item = mock(PTableItem.class);
+    myRenderer.customizeCellRenderer(myTable, item, false, false, 10, 1);
     assertThat(myCheckbox.getState()).isEqualTo(ThreeStateCheckBox.State.DONT_CARE);
   }
 
