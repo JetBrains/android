@@ -86,6 +86,7 @@ import static java.awt.event.InputEvent.CTRL_MASK;
 import static java.awt.event.InputEvent.META_MASK;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
+import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -511,10 +512,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public AvdManagerDialogFixture invokeAvdManager() {
-    ActionButtonFixture button = findActionButtonByActionId("Android.RunAndroidAvdManager");
-    button.requireVisible();
-    button.requireEnabled();
-    button.click();
+    // The action button is prone to move during rendering so that robot.click() could miss.
+    // So, we use component's click here directly.
+    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.RunAndroidAvdManager");
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() {
+        actionButtonFixture.target().click();
+      }
+    });
     return AvdManagerDialogFixture.find(robot(), this);
   }
 
