@@ -188,11 +188,11 @@ public class NewProjectTest {
 
     assertThat(inspectionResults).isEqualTo(lines(
       "Project '" + guiTest.getProjectPath() + "' TestApplication",
-      // This warning should go away when appcompat-v7:26 is available for ui tests
+      // For now our offline index is not up-to-date, because 26.0.0-beta2 breaks the UI editor.
       "    Android Lint: Correctness\n" +
-      "        Gradle Dynamic Version\n" +
+      "        Obsolete Gradle Dependency\n" +
       "            build.gradle\n" +
-      "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:26.+)\n" +
+      "                A newer version of com.android.support:appcompat-v7 than 26.0.0-beta1 is available: 26.0.0-beta2\n" +
 
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android Lint: Performance",
