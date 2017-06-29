@@ -39,7 +39,10 @@ public class NlFlagItemRenderer extends NlAttributeRenderer {
   @Override
   protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
                                        boolean selected, boolean hasFocus, int row, int col) {
-    assert value instanceof NlFlagPropertyItemValue;
+    if (!(value instanceof NlFlagPropertyItemValue)) {
+      return;
+    }
+
     NlFlagPropertyItemValue flag = (NlFlagPropertyItemValue)value;
 
     myCheckbox.setEnabled(true);

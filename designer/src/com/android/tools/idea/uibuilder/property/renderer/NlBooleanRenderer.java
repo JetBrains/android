@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
@@ -45,7 +44,9 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
 
   @Override
   protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem item, boolean selected, boolean focus, int row, int col) {
-    assert item instanceof NlProperty;
+    if (!(item instanceof NlProperty)) {
+      return;
+    }
 
     NlProperty property = (NlProperty)item;
     myCheckbox.setEnabled(true);

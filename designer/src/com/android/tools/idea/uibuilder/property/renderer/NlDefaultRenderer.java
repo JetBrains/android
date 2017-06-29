@@ -49,8 +49,9 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   @Override
   protected void customizeCellRenderer(@NotNull PTable table, @NotNull PTableItem value,
                                        boolean selected, boolean hasFocus, int row, int col) {
-    assert value instanceof NlProperty;
-    customize((NlProperty)value, col, selected);
+    if (value instanceof NlProperty) {
+      customize((NlProperty)value, col, selected);
+    }
   }
 
   @VisibleForTesting

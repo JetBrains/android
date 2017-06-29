@@ -47,7 +47,9 @@ public abstract class NlAttributeRenderer extends PTableCellRenderer {
   @Override
   public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value,
                                                  boolean isSelected, boolean hasFocus, int row, int col) {
-    assert table instanceof PTable;
+    if (!(table instanceof PTable)) {
+      return myPanel;
+    }
 
     super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 

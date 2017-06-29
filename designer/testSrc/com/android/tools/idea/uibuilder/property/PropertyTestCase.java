@@ -437,7 +437,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlProperty getPropertyWithDefaultValue(@NotNull NlComponent component,
                                                    @NotNull String propertyName,
                                                    @NotNull String resource) {
-    NlPropertyItem property = (NlPropertyItem)getProperty(component, propertyName);
+    NlPropertyItem property = getProperty(component, propertyName);
     property.setDefaultValue(new PropertiesMap.Property(resource, null));
     return property;
   }
