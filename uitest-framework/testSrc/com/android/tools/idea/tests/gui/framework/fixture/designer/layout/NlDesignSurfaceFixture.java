@@ -113,5 +113,4 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
   public boolean isInScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     return target().getScreenMode() == mode;
   }
-
 }

@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
@@ -46,7 +47,7 @@ import static org.fest.swing.awt.AWT.translate;
  */
 public class NlPreviewFixture extends ToolWindowFixture {
   private final NlDesignSurfaceFixture myDesignSurfaceFixture;
-  private ComponentDragAndDrop myDragAndDrop;
+  private final ComponentDragAndDrop myDragAndDrop;
   private java.awt.Robot myAwtRobot;
 
   public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
@@ -60,7 +61,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
   public NlConfigurationToolbarFixture<NlPreviewFixture> getConfigToolbar() {
     ActionToolbar toolbar = myRobot.finder().findByName("NlConfigToolbar", ActionToolbarImpl.class, false);
     Wait.seconds(1).expecting("Configuration toolbar to be showing").until(() -> toolbar.getComponent().isShowing());
-    return new NlConfigurationToolbarFixture<>(this, myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(NlDesignSurface.class)), toolbar);
+    return new NlConfigurationToolbarFixture<>(this, myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(NlDesignSurface.class)),
+                                               toolbar);
   }
 
   @NotNull
@@ -68,7 +70,8 @@ public class NlPreviewFixture extends ToolWindowFixture {
     // Check if the palette is already open
     try {
       myRobot.finder().findByType(NlPaletteTreeGrid.class, true);
-    } catch (ComponentLookupException e) {
+    }
+    catch (ComponentLookupException e) {
       new JToggleButtonFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byText(AnchoredButton.class, "Palette "))).click();
     }
 
@@ -125,7 +128,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
    * Switch to showing only the blueprint view.
    */
   public NlPreviewFixture showOnlyBlueprintView() {
-    NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
       getConfigToolbar().showBlueprint();
     }
@@ -143,7 +146,13 @@ public class NlPreviewFixture extends ToolWindowFixture {
   @NotNull
   public String getCenterLeftPixelColor() {
     NlDesignSurface surface = myDesignSurfaceFixture.target();
-    Point centerLeftPoint = translate(surface, surface.getCurrentSceneView().getX(), surface.getHeight() / 2);
+
+    SceneView view = surface.getCurrentSceneView();
+    assert view != null;
+
+    Point centerLeftPoint = translate(surface, view.getX(), surface.getHeight() / 2);
+    assert centerLeftPoint != null;
+
     if (myAwtRobot == null) {
       try {
         myAwtRobot = new java.awt.Robot();
@@ -153,7 +162,6 @@ public class NlPreviewFixture extends ToolWindowFixture {
       }
     }
     return Integer.toHexString(myAwtRobot.getPixelColor(centerLeftPoint.x, centerLeftPoint.y).getRGB());
-
   }
 
   @NotNull

@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.TextEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -61,7 +62,9 @@ public class NlPreviewTest {
     preview.getConfigToolbar().chooseDevice("Nexus 5");
     preview.waitForRenderToFinish();
     preview.getConfigToolbar().requireDevice("Nexus 5");
-    assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
+    VirtualFile file = editor.getCurrentFile();
+    assert file != null;
+    assertThat(file.getParent().getName()).isEqualTo("layout");
     preview.getConfigToolbar().requireOrientation("Portrait");
 
     preview.getConfigToolbar().chooseDevice("Nexus 7");
