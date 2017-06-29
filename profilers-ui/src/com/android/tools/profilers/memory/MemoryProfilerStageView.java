@@ -248,7 +248,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
-    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
 
     DetailedMemoryUsage memoryUsage = getStage().getDetailedMemoryUsage();
     final LineChart lineChart = new LineChart(memoryUsage);
@@ -262,6 +261,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
       .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
+    lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
 
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<CaptureObject>> heapDumpRenderer =
