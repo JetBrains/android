@@ -199,6 +199,13 @@ public class LineChartVisualTest extends VisualTest {
         return variance.get();
       }
     }));
+    controls.add(VisualTest.createVariableSlider("Top padding", 0, 200, new VisualTests.ValueAdapter() {
+      @Override
+      protected void onSet(int v) {
+        mLineChart.setTopPadding(v);
+      }
+    }));
+
     controls.add(VisualTest.createVariableSlider("Line width", 1, 10, new VisualTests.Value() {
       @Override
       public void set(int v) {

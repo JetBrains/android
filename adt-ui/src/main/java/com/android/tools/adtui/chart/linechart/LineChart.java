@@ -83,6 +83,8 @@ public class LineChart extends AnimatedComponent {
    */
   private int myYOffset = 0;
 
+  private int myTopPadding = 0;
+
   /**
    * The color of the next line to be inserted, if not specified, is picked from {@code COLORS}
    * array of {@link LineConfig}. This field holds the color index.
@@ -315,7 +317,7 @@ public class LineChart extends AnimatedComponent {
     addDebugInfo("Redraws in the last second %d", myLastRedraws);
 
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    AffineTransform scale = new AffineTransform(dim.getWidth(), 0, 0, dim.getHeight(), myXOffset, myYOffset);
+    AffineTransform scale = new AffineTransform(dim.getWidth(), 0, 0, dim.getHeight() - myTopPadding, myXOffset, myYOffset + myTopPadding);
 
     if (myShowMaxLine) {
       g2d.setColor(myMaxLineColor);
@@ -498,5 +500,9 @@ public class LineChart extends AnimatedComponent {
   public void setRenderOffset(int xOffset, int yOffset) {
     myXOffset = xOffset;
     myYOffset = yOffset;
+  }
+
+  public void setTopPadding(int padding) {
+    myTopPadding = padding;
   }
 }

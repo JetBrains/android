@@ -39,7 +39,6 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
@@ -56,7 +55,6 @@ import java.awt.event.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -148,7 +146,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
-    lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
 
     DetailedCpuUsage cpuUsage = getStage().getCpuUsage();
     LineChart lineChart = new LineChart(cpuUsage);
@@ -160,6 +157,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
+    lineChart.setTopPadding(Y_AXIS_TOP_MARGIN);
 
     CpuProfilerStage.CpuStageLegends legends = getStage().getLegends();
     final LegendComponent legend = new LegendComponent(legends);
