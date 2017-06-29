@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.fest.swing.core.Robot;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfaceFixture, NavDesignSurface> {
@@ -38,7 +37,7 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
    */
   @NotNull
   public NlComponentFixture findDestination(@NotNull final String id) {
-    waitForRenderToFinish(Wait.seconds(5));
+    waitForRenderToFinish();
 
     SceneView view = target().getCurrentSceneView();
     assert view != null;

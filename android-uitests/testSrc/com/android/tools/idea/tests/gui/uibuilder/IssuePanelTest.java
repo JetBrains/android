@@ -17,12 +17,11 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +73,7 @@ public class IssuePanelTest {
     propertyPanel.pressKeyInUnknownProperty(KeyEvent.VK_B);
     textView.click();
 
-    layoutEditor.waitForRenderToFinish(Wait.seconds(5));
+    layoutEditor.waitForRenderToFinish();
     layoutEditor.getRhsToolbar().openIssuePanel();
     assertEquals("1 Warning", panelFixture.getTitle().trim());
 

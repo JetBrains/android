@@ -16,15 +16,18 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ColorPickerFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SlideFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPropertyInspectorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
@@ -281,7 +284,7 @@ public class ChooseResourceDialogTest {
     editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    layout.waitForRenderToFinish(Wait.seconds(10));
+    layout.waitForRenderToFinish();
 
     // Find and click the first text view
     NlComponentFixture imageView = layout.findView("ImageView", 0);
@@ -345,7 +348,7 @@ public class ChooseResourceDialogTest {
     editor.open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    layout.waitForRenderToFinish(Wait.seconds(10));
+    layout.waitForRenderToFinish();
 
     // Find and click the first text view
     NlComponentFixture textView = layout.findView("Button", 0);
@@ -376,7 +379,7 @@ public class ChooseResourceDialogTest {
     editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    layout.waitForRenderToFinish(Wait.seconds(10));
+    layout.waitForRenderToFinish();
 
     // Find and click the first text view
     NlComponentFixture imageView = layout.findView("ImageView", 0);

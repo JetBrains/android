@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssueP
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
@@ -45,8 +44,8 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
     myIssuePanelFixture = new IssuePanelFixture(robot, designSurface.getIssuePanel());
   }
 
-  public void waitForRenderToFinish(@NotNull Wait waitForRender) {
-    waitForRender.expecting("render to finish").until(() -> !myProgressPanel.isVisible());
+  public void waitForRenderToFinish() {
+    Wait.seconds(10).expecting("render to finish").until(() -> !myProgressPanel.isVisible());
   }
 
   public boolean hasRenderErrors() {

@@ -111,7 +111,7 @@ public class NlPreviewTest {
       .getEditor()
       .open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = editor.getLayoutPreview(false);
-    preview.waitForRenderToFinish(Wait.seconds(10));
+    preview.waitForRenderToFinish();
 
     assertTrue(preview.hasRenderErrors());
     preview.waitForErrorPanelToContain("The following classes could not be found");

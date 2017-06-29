@@ -41,9 +41,10 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
   }
 
   @Override
-  public void waitForRenderToFinish(@NotNull Wait waitForRender) {
-    super.waitForRenderToFinish(waitForRender);
-    waitForRender.expecting("render to finish").until(() -> {
+  public void waitForRenderToFinish() {
+    super.waitForRenderToFinish();
+
+    Wait.seconds(10).expecting("render to finish").until(() -> {
       ScreenView screenView = target().getCurrentSceneView();
       if (screenView == null) {
         return false;
@@ -71,7 +72,7 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
    */
   @NotNull
   public NlComponentFixture findView(@NotNull final String tag, int occurrence) {
-    waitForRenderToFinish(Wait.seconds(5));
+    waitForRenderToFinish();
 
     ScreenView view = target().getCurrentSceneView();
     assert view != null;
