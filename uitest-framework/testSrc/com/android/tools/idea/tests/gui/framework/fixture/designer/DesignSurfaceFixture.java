@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
-import com.android.tools.idea.uibuilder.error.IssueView;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
@@ -27,7 +26,6 @@ import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,15 +57,6 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
     Wait.seconds(1)
       .expecting("the error panel to contain: " + errorText)
       .until(() -> myIssuePanelFixture.containsText(errorText));
-  }
-
-  @Nullable
-  public String getErrorText() {
-    IssueView view = myIssuePanelFixture.getSelectedIssueView();
-    if (view == null) {
-      return null;
-    }
-    return view.getIssueDescription();
   }
 
   public IssuePanelFixture getIssuePanelFixture() {

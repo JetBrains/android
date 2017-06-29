@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.SdkConstants;
+import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -76,7 +77,7 @@ public class NewProjectTest {
   @RunIn(TestGroup.QA)
   @Test
   public void createNewProjectNameWithSpace() {
-    EditorFixture editor = newProject("Test Application").withMinSdk("23").create()
+    EditorFixture editor = newProject("Test Application").withMinSdk("23").create(guiTest)
       .getEditor()
       .open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
     String text = editor.getCurrentFileContents();
@@ -103,7 +104,7 @@ public class NewProjectTest {
   @RunIn(TestGroup.QA)
   @Test
   public void testCreateNewMobileProject() {
-    IdeFrameFixture ideFrame = newProject("Test Application").create();
+    IdeFrameFixture ideFrame = newProject("Test Application").create(guiTest);
     assertThat(ideFrame.getModuleNames()).containsExactly("app", "TestApplication");
 
     // Make sure that the activity registration uses the relative syntax
@@ -134,8 +135,8 @@ public class NewProjectTest {
    */
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  public void changeLibraryModuleSettings() throws  Exception {
-    String gradleFileContents = newProject("MyTestApp").withMinSdk("24").create()
+  public void changeLibraryModuleSettings() throws Exception {
+    String gradleFileContents = newProject("MyTestApp").withMinSdk("24").create(guiTest)
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Android Library")
       .clickNextToStep("Android Library")
@@ -169,7 +170,7 @@ public class NewProjectTest {
     // This checks that our (default) project templates are warnings-clean.
     // The test then proceeds to make a couple of edits and checks that these do not generate additional
     // warnings either.
-    newProject("Test Application").create();
+    newProject("Test Application").create(guiTest);
 
     // Insert resValue statements which should not add warnings (since they are generated files; see
     // https://code.google.com/p/android/issues/detail?id=76715
@@ -217,7 +218,7 @@ public class NewProjectTest {
   public void testInferNullity() throws IOException {
     // Creates a new default project, adds a nullable API and then invokes Infer Nullity and
     // confirms that it adds nullability annotations.
-    newProject("Test Infer Nullity Application").withPackageName("my.pkg").create();
+    newProject("Test Infer Nullity Application").withPackageName("my.pkg").create(guiTest);
 
     // Insert resValue statements which should not add warnings (since they are generated files; see
     // https://code.google.com/p/android/issues/detail?id=76715
@@ -251,12 +252,14 @@ public class NewProjectTest {
 
   @Test
   public void testLanguageLevelForApi21() {
-    newProject("Test Application").withBriefNames().withMinSdk("21").create();
+    newProject("Test Application").withBriefNames().withMinSdk("21").create(guiTest);
 
     AndroidModuleModel appAndroidModel = guiTest.ideFrame().getAndroidProjectForModule("app");
 
-    assertThat(appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion().getApiString())
-      .named("minSdkVersion API").isEqualTo("21");
+    ApiVersion version = appAndroidModel.getAndroidProject().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+    assert version != null;
+
+    assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
     assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
@@ -270,7 +273,7 @@ public class NewProjectTest {
   @Test
   public void testGradleWrapperIsExecutable() throws Exception {
     Assume.assumeTrue("Is Unix", SystemInfo.isUnix);
-    newProject("Test Application").withBriefNames().create();
+    newProject("Test Application").withBriefNames().create(guiTest);
 
     File gradleFile = new File(guiTest.getProjectPath(), SdkConstants.FN_GRADLE_WRAPPER_UNIX);
     assertTrue(gradleFile.canExecute());
@@ -282,7 +285,7 @@ public class NewProjectTest {
     // Create a new project and open a layout file.
     // If the first build is still going on when the rendering happens, simply show a message that a build is going on,
     // and check that the message disappears at the end of the build.
-    newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create();
+    newProject("Test Application").withBriefNames().withMinSdk("15").withoutSync().create(guiTest);
     final EditorFixture editor = guiTest.ideFrame().getEditor();
 
     Wait.seconds(5).expecting("file to open").until(() -> "A.java".equals(editor.getCurrentFileName()));
@@ -328,7 +331,7 @@ public class NewProjectTest {
 
   @Test
   public void androidXmlFormatting() {
-    String actualXml = newProject("P").create()
+    String actualXml = newProject("P").create(guiTest)
       .getEditor()
       .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
@@ -358,14 +361,14 @@ public class NewProjectTest {
   }
 
   @NotNull
-  private NewProjectDescriptor newProject(@NotNull String name) {
+  private static NewProjectDescriptor newProject(@NotNull String name) {
     return new NewProjectDescriptor(name);
   }
 
   /**
    * Describes a new test project to be created.
    */
-  private class NewProjectDescriptor {
+  private static final class NewProjectDescriptor {
     private String myActivity = "MainActivity";
     private String myPkg = "com.android.test.app";
     private String myMinSdk = "15";
@@ -425,7 +428,9 @@ public class NewProjectTest {
       return this;
     }
 
-    /** Turns off the automatic wait-for-sync that normally happens on {@link #create} */
+    /**
+     * Turns off the automatic wait-for-sync that normally happens on {@link #create}
+     */
     NewProjectDescriptor withoutSync() {
       myWaitForSync = false;
       return this;
@@ -434,7 +439,8 @@ public class NewProjectTest {
     /**
      * Creates a project fixture for this description
      */
-    IdeFrameFixture create() {
+    @NotNull
+    private IdeFrameFixture create(@NotNull GuiTestRule guiTest) {
       NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
         .createNewProject();
 

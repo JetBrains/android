@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.fest.swing.core.Robot;
@@ -44,6 +45,9 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
 
     final NlModel model = view.getModel();
 
-    return createComponentFixture(model.find(id));
+    NlComponent component = model.find(id);
+    assert component != null;
+
+    return createComponentFixture(component);
   }
 }

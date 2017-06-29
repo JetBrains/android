@@ -174,7 +174,7 @@ public class ChooseResourceDialogTest {
   }
 
   /**
-   * Test that the alpha slider and the textfield are hidden when we are not in ARGB.
+   * Test that the alpha slider and the text field are hidden when we are not in ARGB.
    */
   @Test
   public void testColorPickerAlpha() throws IOException {
@@ -231,7 +231,10 @@ public class ChooseResourceDialogTest {
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
 
     // Get property sheet, find text property, open customizer
-    ChooseResourceDialogFixture dialog = layout.getPropertiesPanel().openAsInspector().findProperty("text").clickCustomizer();
+    NlPropertyFixture property = layout.getPropertiesPanel().openAsInspector().findProperty("text");
+    assert property != null;
+
+    ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTableFixture nameTable = dialog.getResourceNameTable();
 
     assertEquals("Project                                                     \n" +
@@ -287,7 +290,10 @@ public class ChooseResourceDialogTest {
 
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+
     NlPropertyFixture property = fixture.findProperty("srcCompat");
+    assert property != null;
+
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
     tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
@@ -348,7 +354,10 @@ public class ChooseResourceDialogTest {
 
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+
     NlPropertyFixture property = fixture.findProperty("backgroundTint");
+    assert property != null;
+
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
     tabs.requireTabTitles("Drawable", "Color");
@@ -376,7 +385,10 @@ public class ChooseResourceDialogTest {
 
     // Get property sheet, find srcCompat property, open customizer
     NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
+
     NlPropertyFixture property = fixture.findProperty("srcCompat");
+    assert property != null;
+
     ChooseResourceDialogFixture dialog = property.clickCustomizer();
     JTabbedPaneFixture tabs = dialog.getTabs();
     tabs.requireTabTitles("Drawable", "Color", "ID", "String", "Style");
