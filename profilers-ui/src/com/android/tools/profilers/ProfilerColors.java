@@ -90,6 +90,8 @@ public class ProfilerColors {
 
   public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
 
+  public static final Color CPU_THREADS_TOOLTIP_TIME_COLOR = new JBColor(0xACACAC, 0x838485);
+
   public static final Color SELECTED_THREAD_LABEL_TEXT = Gray.xFF;
 
   public static final Color THREAD_LABEL_BACKGROUND = new JBColor(new Color(0xBFFFFFFF, true), new Color(0xBF2B2D2E, true));
