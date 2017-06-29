@@ -175,9 +175,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
 
         String deviceDir = "/data/local/tmp/perfd/";
-        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../out/studio/native/out/release", deviceDir, true);
-        copyFileToDevice("libperfa.so", "plugins/android/resources/perfd", "../../out/studio/native/out/release", deviceDir, true);
-        copyFileToDevice("perfa.jar", "plugins/android/resources", "../../out/studio/perfa/libs", deviceDir, false);
+        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir, true);
+        copyFileToDevice("libperfa.so", "plugins/android/resources/perfa", "../../bazel-bin/tools/base/profiler/native/perfa/android", deviceDir, true);
+        copyFileToDevice("perfa.jar", "plugins/android/resources", "../../bazel-genfiles/tools/base/profiler/app", deviceDir, false);
         // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
         pushSimpleperfIfSupported(deviceDir);
         pushAgentConfig("agent.config", deviceDir);
