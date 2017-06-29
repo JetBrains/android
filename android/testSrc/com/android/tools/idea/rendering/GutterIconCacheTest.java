@@ -15,25 +15,16 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.io.TestFileUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import org.jetbrains.android.AndroidResourceRenameResourceProcessor;
 import org.jetbrains.android.AndroidTestCase;
-import org.junit.Before;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -51,32 +42,6 @@ public class GutterIconCacheTest extends AndroidTestCase {
 
     String contents = "<svg viewBox=\"0 0 50 50\"><rect width=\"50\" height=\"50\" fill=\"blue\"/></svg>";
     mySampleSvgFile = TestFileUtils.writeFileAndRefreshVfs(mySampleSvgPath, contents);
-  }
-
-  public void testCreateBitmapIcon_bigEnough() throws Exception {
-    BufferedImage input = ImageIO.read(new File(getTestDataPath(), "render/imageutils/actual.png"));
-    // Sanity check.
-    assertThat(input.getHeight()).isGreaterThan(GutterIconCache.MAX_HEIGHT);
-    assertThat(input.getWidth()).isGreaterThan(GutterIconCache.MAX_WIDTH);
-
-    Icon icon = GutterIconCache.createBitmapIcon(input);
-    assertThat(icon).isNotNull();
-    assertThat(icon.getIconWidth()).isAtMost(GutterIconCache.MAX_WIDTH);
-    assertThat(icon.getIconHeight()).isAtMost(GutterIconCache.MAX_HEIGHT);
-  }
-
-  public void testCreateBitmapIcon_smallAlready() throws Exception {
-    BufferedImage input = ImageIO.read(new File(getTestDataPath(), "annotator/ic_tick_thumbnail.png"));
-    // Sanity check.
-    assertThat(input.getHeight()).isAtMost(GutterIconCache.MAX_HEIGHT);
-    assertThat(input.getWidth()).isAtMost(GutterIconCache.MAX_WIDTH);
-
-    Icon icon = GutterIconCache.createBitmapIcon(input);
-    assertThat(icon).isNotNull();
-    BufferedImage output = TestRenderingUtils.getImageFromIcon(icon);
-
-    // Input and output should be identical.
-    ImageDiffUtil.assertImageSimilar(getName(), input, output, 0);
   }
 
   public void testIsIconUpToDate_entryInvalidNotCached() {
