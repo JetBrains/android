@@ -20,15 +20,12 @@ import com.android.ide.common.res2.FileResourceNameValidator
 import com.android.ide.common.res2.ValueResourceNameValidator
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.InputValidatorEx
 
 private sealed class InputType {
   data class ValueName(val type: ResourceType) : InputType()
   data class FileName(val type: ResourceFolderType, val implicitExtension: String?) : InputType()
 }
-
-private val LOG = Logger.getInstance(IdeResourceNameValidator::class.java)
 
 /**
  * Implementation of [InputValidatorEx] that delegates to validation code in sdk-common. On top of that it can also check that the given
