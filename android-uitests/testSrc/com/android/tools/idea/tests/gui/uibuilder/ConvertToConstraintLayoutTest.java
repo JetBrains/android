@@ -199,8 +199,7 @@ public class ConvertToConstraintLayoutTest {
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                  "    android:layout_width=\"match_parent\"\n" +
-                 "    android:layout_height=\"wrap_content\"\n" +
-                 "    android:orientation=\"vertical\">\n" +
+                 "    android:layout_height=\"wrap_content\">\n" +
                  "\n" +
                  "    <TextView\n" +
                  "        android:id=\"@+id/title\"\n" +
