@@ -43,7 +43,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -405,7 +404,7 @@ public class RepositoryUrlManager {
     filter = filter.substring(0, filter.length() - 1);
 
     // First check the Google maven repository, which has most versions
-    if (!ApplicationManager.getApplication().isUnitTestMode() && !AndroidPlugin.isGuiTestingMode()) {
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
       GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, true);
       if (version != null) {
         GradleVersion stable = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, false);
