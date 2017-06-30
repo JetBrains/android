@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.template;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
@@ -38,7 +39,7 @@ public class ConvertJavaToKotlinDefaultImpl implements ConvertJavaToKotlinProvid
   @NonNull
   @Override
   public String getKotlinVersion() {
-    return "1.1.2-3";
+    return SdkConstants.KOTLIN_LATEST_VERSION;
   }
 
   @Override
