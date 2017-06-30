@@ -107,12 +107,12 @@ public class AdaptiveIconPreviewTest {
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("fff0ffff");
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("fff5f5f5");
     toolbar.openThemeSelectionDialog()
       .selectsTheme("Material Dark", "android:Theme.Material")
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
-    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff1f1f1f");
+    assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ff212121");
   }
 }
