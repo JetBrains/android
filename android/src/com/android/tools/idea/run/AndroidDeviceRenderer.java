@@ -15,20 +15,30 @@
  */
 package com.android.tools.idea.run;
 
+import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.SpeedSearchBase;
 import com.intellij.ui.TitledSeparator;
+import com.intellij.ui.components.JBList;
 import com.intellij.util.ThreeState;
+import com.intellij.util.ui.EdtInvocationManager;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerEntry> {
+  private static final Logger LOG = Logger.getInstance(AndroidDeviceRenderer.class);
   private final LaunchCompatibilityChecker myCompatibilityChecker;
   private final SpeedSearchBase mySpeedSearch;
+  private final Map<AndroidDevice, SettableFuture<LaunchCompatibility>> myCompatibilityCache = new IdentityHashMap<>();
 
   public AndroidDeviceRenderer(@NotNull LaunchCompatibilityChecker checker, @NotNull SpeedSearchBase speedSearch) {
     myCompatibilityChecker = checker;
@@ -36,7 +46,11 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
   }
 
   @Override
-  public Component getListCellRendererComponent(JList<? extends DevicePickerEntry> list, DevicePickerEntry value, int index, boolean selected, boolean hasFocus) {
+  public Component getListCellRendererComponent(JList<? extends DevicePickerEntry> list,
+                                                DevicePickerEntry value,
+                                                int index,
+                                                boolean selected,
+                                                boolean hasFocus) {
     if (value != null && value.isMarker()) {
       String marker = value.getMarker();
       assert marker != null : "device picker marker entry doesn't have a descriptive string";
@@ -57,16 +71,57 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
     AndroidDevice device = entry.getAndroidDevice();
     assert device != null;
 
-    LaunchCompatibility launchCompatibility = myCompatibilityChecker.validate(device);
-    boolean compatible = launchCompatibility.isCompatible() != ThreeState.NO;
+    SettableFuture<LaunchCompatibility> compatibilityFuture = getCachedCompatibilityFuture(device);
 
+    clear();
     if (shouldShowSerialNumbers(list, device)) {
       append("[" + device.getSerial() + "] ", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
-    device.renderName(this, compatible, mySpeedSearch.getEnteredPrefix());
+    boolean compatibilityIsKnown = compatibilityFuture.isDone();
+    LaunchCompatibility launchCompatibility = LaunchCompatibility.YES;
+    if (compatibilityIsKnown) {
+      try {
+        launchCompatibility = compatibilityFuture.get();
+      } catch (ExecutionException e) {
+        LOG.warn(e.getCause());
+      } catch (InterruptedException e) {
+        assert false;  // Not possible since the feature is complete.
+      }
+    }
 
-    if (launchCompatibility.getReason() != null) {
-      append(" (" + launchCompatibility.getReason() + ")", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
+    boolean compatible = launchCompatibility.isCompatible() != ThreeState.NO;
+    if (device.renderLabel(this, compatible, mySpeedSearch.getEnteredPrefix()) && compatibilityIsKnown) {
+      if (launchCompatibility.getReason() != null) {
+        append(" (" + launchCompatibility.getReason() + ")", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
+      }
+    }
+    else {
+      setPaintBusy(list, true);
+      // Obtaining device information is potentially a long running operation. Execute it on a background thread.
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        device.prepareToRenderLabel();
+        if (!compatibilityFuture.isDone()) {
+          try {
+            compatibilityFuture.set(myCompatibilityChecker.validate(device));
+          } catch (Throwable t) {
+            compatibilityFuture.setException(t);
+          }
+        }
+
+        EdtInvocationManager.getInstance().invokeLater(() -> {
+          ListModel model = list.getModel();
+          if (model instanceof DevicePickerListModel) {
+            ((DevicePickerListModel)model).entryContentChanged(entry);
+            setPaintBusy(list, false);
+          }
+        });
+      });
+    }
+  }
+
+  private static void setPaintBusy(JList list, boolean busy) {
+    if (list instanceof JBList) {
+      ((JBList)list).setPaintBusy(busy);
     }
   }
 
@@ -79,9 +134,7 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
     if (model instanceof DevicePickerListModel) {
       return ((DevicePickerListModel)model).shouldShowSerialNumbers();
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
   private static Component renderTitledSeparator(@NotNull String title) {
@@ -93,5 +146,22 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
 
   private static Component renderEmptyMarker(@NotNull String title) {
     return new JLabel(title);
+  }
+
+  private SettableFuture<LaunchCompatibility> getCachedCompatibilityFuture(AndroidDevice device) {
+    SettableFuture<LaunchCompatibility> cachedCompatibility = myCompatibilityCache.get(device);
+    if (cachedCompatibility == null) {
+      cachedCompatibility = SettableFuture.create();
+      myCompatibilityCache.put(device, cachedCompatibility);
+    }
+    return cachedCompatibility;
+  }
+
+  /**
+   * Clears the cached data contained in the renderer.
+   */
+  public void clearCache() {
+    assert ApplicationManager.getApplication().isDispatchThread();
+    myCompatibilityCache.clear();
   }
 }
