@@ -23,9 +23,8 @@ import com.intellij.psi.impl.JavaConstantExpressionEvaluator
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
 
-private val QUERY_ANNOTATION_NAME = "android.arch.persistence.room.Query"
-private val QUERY_ANNOTATION_ATTRIBUTE = "value"
-private val SQLITE_DATABASE_CLASS_NAME = "android.database.sqlite.SQLiteDatabase"
+private const val QUERY_ANNOTATION_NAME = "android.arch.persistence.room.Query"
+private const val SQLITE_DATABASE_CLASS_NAME = "android.database.sqlite.SQLiteDatabase"
 
 /** Maps methods in SQLiteDatabase that take a query string to the index of the argument that is the query. */
 private val SQLITE_DATABASE_METHODS =
@@ -84,6 +83,7 @@ class RoomSqlLanguageInjector : ConcatenationAwareInjector {
 
   private fun insideRoomQuery(element: PsiElement): Boolean {
     val annotation = PsiTreeUtil.getParentOfType(element, PsiAnnotation::class.java) ?: return false
-    return annotation.qualifiedName == QUERY_ANNOTATION_NAME && annotation.findDeclaredAttributeValue(QUERY_ANNOTATION_ATTRIBUTE) != null
+    return annotation.qualifiedName == QUERY_ANNOTATION_NAME
+        && annotation.findDeclaredAttributeValue(PsiAnnotation.DEFAULT_REFERENCED_METHOD_NAME) != null
   }
 }
