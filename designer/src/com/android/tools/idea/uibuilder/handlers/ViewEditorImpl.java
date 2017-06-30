@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.assetstudiolib.MaterialDesignIcons;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -38,6 +39,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.lint.checks.SupportAnnotationDetector;
 import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.intellij.openapi.diagnostic.Logger;
@@ -51,7 +53,9 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
@@ -282,18 +286,36 @@ public class ViewEditorImpl extends ViewEditor {
     Module module = mySceneView.getModel().getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
-    Condition<PsiClass> psiFilter = null;
-    if (filter != null) {
-      psiFilter = psiClass -> {
+    Condition<PsiClass> psiFilter = psiClass -> {
+      if (isRestricted(psiClass)) {
+        // All restriction scopes are currently filtered out
+        return false;
+      }
+      if (filter != null) {
         String qualifiedName = psiClass.getQualifiedName();
         if (qualifiedName == null) {
           return false;
         }
         return filter.test(qualifiedName);
-      };
-    }
+      }
+      return true;
+    };
 
     return ChooseClassDialog.openDialog(module, "Classes", true, psiFilter, superTypesArray);
+  }
+
+  @VisibleForTesting
+  static boolean isRestricted(@NotNull PsiClass psiClass) {
+    PsiModifierList modifiers = psiClass.getModifierList();
+    if (modifiers == null) {
+      return false;
+    }
+    for (PsiAnnotation annotation : modifiers.getAnnotations()) {
+      if (Objects.equals(annotation.getQualifiedName(), SupportAnnotationDetector.RESTRICT_TO_ANNOTATION)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @NotNull
