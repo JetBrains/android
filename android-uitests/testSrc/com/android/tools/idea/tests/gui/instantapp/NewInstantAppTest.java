@@ -107,10 +107,11 @@ public class NewInstantAppTest {
       .getResults();
 
     verifyOnlyExpectedWarnings(inspectionResults,
+                               // For now our offline index is not up-to-date, because 26.0.0-beta2 breaks the UI editor.
                                "    Android Lint: Correctness\n" +
-                               "        Gradle Dynamic Version\n" +
+                               "        Obsolete Gradle Dependency\n" +
                                "            build.gradle\n" +
-                               "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:26.+)\n" +
+                               "                A newer version of com.android.support:appcompat-v7 than 26.0.0-beta1 is available: 26.0.0-beta2\n" +
                                "    Android Lint: Security\n" +
                                "        AllowBackup/FullBackupContent Problems\n" +
                                "            AndroidManifest.xml\n" +
