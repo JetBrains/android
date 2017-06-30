@@ -30,11 +30,12 @@ public class LiveAllocationInstanceObject implements InstanceObject {
 
   public LiveAllocationInstanceObject(@NotNull ClassDb.ClassEntry classEntry,
                                       @Nullable LiveAllocationInstanceObject classObject,
+                                      @Nullable MemoryProfiler.AllocationStack callstack,
                                       long size) {
     myClassEntry = classEntry;
     myClassObject = classObject;
     mySize = size;
-    myCallstack = null;
+    myCallstack = callstack;
     if ("java.lang.String".equals(classEntry.getClassName())) {
       myValueType = ValueType.STRING;
     }
@@ -66,6 +67,21 @@ public class LiveAllocationInstanceObject implements InstanceObject {
     return myDeallocTime;
   }
 
+  @Override
+  public boolean hasTimeData() {
+    return hasAllocData() || hasDeallocData();
+  }
+
+  @Override
+  public boolean hasAllocData() {
+    return myAllocTime != Long.MIN_VALUE;
+  }
+
+  @Override
+  public boolean hasDeallocData() {
+    return myDeallocTime != Long.MAX_VALUE;
+  }
+
   @NotNull
   @Override
   public String getName() {
@@ -87,15 +103,6 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public MemoryProfiler.AllocationStack getCallStack() {
     return myCallstack;
-  }
-
-  public void setCallStack(MemoryProfiler.AllocationStack callstack) {
-    myCallstack = callstack;
-  }
-
-  @Override
-  public void removeCallstack() {
-    myCallstack = null;
   }
 
   @NotNull

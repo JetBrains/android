@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Classifies {@link InstanceObject}s based on their {@link Class}.
@@ -62,7 +63,7 @@ public class ClassSet extends ClassifierSet {
     @NotNull
     @Override
     public List<ClassifierSet> getClassifierSets() {
-      return new ArrayList<>(myClassMap.values());
+      return myClassMap.values().stream().filter(child -> !child.isEmpty()).collect(Collectors.toList());
     }
   }
 }

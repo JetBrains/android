@@ -101,7 +101,7 @@ public class MethodSet extends ClassifierSet {
     @NotNull
     @Override
     public List<ClassifierSet> getClassifierSets() {
-      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).collect(Collectors.toList());
+      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).filter(child -> !child.isEmpty()).collect(Collectors.toList());
     }
   }
 }

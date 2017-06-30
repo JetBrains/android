@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener.ChangedNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -216,7 +217,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
         // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
         LiveAllocationInstanceObject instance =
-          new LiveAllocationInstanceObject(entry, null, MemoryObject.INVALID_VALUE);
+          new LiveAllocationInstanceObject(entry, null, null, MemoryObject.INVALID_VALUE);
         instance.setAllocationTime(myCaptureStartTime);
         myClassMap.put(entry, instance);
         // TODO figure out what to do with java.lang.Class instance objects
@@ -292,15 +293,17 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           for (AllocationEvent event : sampleResponse.getEventsList()) {
             if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
               AllocationEvent.Allocation allocation = event.getAllocData();
-              ClassDb.ClassEntry entry = myClassDb.getEntry(allocation.getClassTag());
-              assert myClassMap.containsKey(entry);
-              LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(allocation.getTag(), tag -> new LiveAllocationInstanceObject(entry, myClassMap.get(entry), allocation.getSize()));
-              if (insideCurrentRange) {
+              LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(allocation.getTag(), tag -> {
+                ClassDb.ClassEntry entry = myClassDb.getEntry(allocation.getClassTag());
+                assert myClassMap.containsKey(entry);
+                AllocationStack callstack = null;
                 if (allocation.getStackId() != 0) {
                   assert myCallstackMap.containsKey(allocation.getStackId());
-                  AllocationStack callstack = myCallstackMap.get(allocation.getStackId());
-                  instance.setCallStack(callstack);
+                  callstack = myCallstackMap.get(allocation.getStackId());
                 }
+                return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), callstack, allocation.getSize());
+              });
+              if (insideCurrentRange) {
                 instance.setAllocationTime(event.getTimestamp());
                 setAllocationList.add(instance);
               } else {
@@ -313,7 +316,12 @@ public class LiveAllocationCaptureObject implements CaptureObject {
               LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(deallocation.getTag(), tag -> {
                 ClassDb.ClassEntry entry = myClassDb.getEntry(deallocation.getClassTag());
                 assert myClassMap.containsKey(entry);
-                return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), deallocation.getSize());
+                AllocationStack callstack = null;
+                if (deallocation.getStackId() != 0) {
+                  assert myCallstackMap.containsKey(deallocation.getStackId());
+                  callstack = myCallstackMap.get(deallocation.getStackId());
+                }
+                return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), callstack, deallocation.getSize());
               });
 
               if (insideCurrentRange) {
@@ -362,7 +370,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             });
 
             myListeners.forEach(listener -> listener.heapChanged(changedNode, false));
-          });
+            });
         }
         return null;
       });

@@ -74,5 +74,15 @@ public interface InstanceObject extends ValueObject {
     return false;
   }
 
-  default void removeCallstack() {};
+  default boolean hasTimeData() {
+    return false;
+  }
+
+  default boolean hasAllocData() {
+    return false;
+  }
+
+  default boolean hasDeallocData() {
+    return false;
+  }
 }
