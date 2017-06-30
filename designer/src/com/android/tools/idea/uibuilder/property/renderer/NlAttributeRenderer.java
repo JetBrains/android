@@ -73,4 +73,8 @@ public abstract class NlAttributeRenderer extends PTableCellRenderer {
   public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
     myBrowsePanel.mousePressed(event, rectRightColumn);
   }
+
+  public void mouseMoved(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    myBrowsePanel.mouseMoved(table, event, rectRightColumn);
+  }
 }

@@ -585,8 +585,8 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
   // Expand/Collapse group items on mouse click
   private class MouseTableListener extends MouseAdapter {
     @Override
-    public void mousePressed(MouseEvent e) {
-      int row = rowAtPoint(e.getPoint());
+    public void mousePressed(@NotNull MouseEvent event) {
+      int row = rowAtPoint(event.getPoint());
       if (row == -1) {
         return;
       }
@@ -594,9 +594,9 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
       PTableItem item = (PTableItem)getValueAt(row, 0);
 
       Rectangle rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false);
-      if (rectLeftColumn.contains(e.getX(), e.getY())) {
-        int x = e.getX() - rectLeftColumn.x;
-        int y = e.getY() - rectLeftColumn.y;
+      if (rectLeftColumn.contains(event.getX(), event.getY())) {
+        int x = event.getX() - rectLeftColumn.x;
+        int y = event.getY() - rectLeftColumn.y;
         PNameRenderer nameRenderer = myRendererProvider.getNameCellRenderer(item);
 
         if (nameRenderer.hitTestTreeNodeIcon(item, x, y) && item.hasChildren()) {
@@ -610,8 +610,8 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
       }
 
       Rectangle rectRightColumn = getCellRect(row, convertColumnIndexToView(1), false);
-      if (rectRightColumn.contains(e.getX(), e.getY())) {
-        item.mousePressed(e, rectRightColumn);
+      if (rectRightColumn.contains(event.getX(), event.getY())) {
+        item.mousePressed(PTable.this, event, rectRightColumn);
       }
     }
   }
@@ -622,11 +622,11 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     private int myPreviousHoverCol = -1;
 
     @Override
-    public void mouseMoved(MouseEvent e) {
-      myMouseHoverPoint = e.getPoint();
-      myMouseHoverRow = rowAtPoint(e.getPoint());
+    public void mouseMoved(@NotNull MouseEvent event) {
+      myMouseHoverPoint = event.getPoint();
+      myMouseHoverRow = rowAtPoint(event.getPoint());
       if (myMouseHoverRow >= 0) {
-        myMouseHoverCol = columnAtPoint(e.getPoint());
+        myMouseHoverCol = columnAtPoint(event.getPoint());
       }
 
       // remove hover from the previous cell
@@ -641,6 +641,12 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
 
       // repaint cell that has the hover
       repaint(getCellRect(myMouseHoverRow, myMouseHoverCol, true));
+
+      Rectangle rectRightColumn = getCellRect(myMouseHoverRow, convertColumnIndexToView(1), false);
+      if (rectRightColumn.contains(event.getX(), event.getY())) {
+        PTableItem item = (PTableItem)getValueAt(myMouseHoverRow, 0);
+        item.mouseMoved(PTable.this, event, rectRightColumn);
+      }
 
       myPreviousHoverRow = myMouseHoverRow;
       myPreviousHoverCol = myMouseHoverCol;

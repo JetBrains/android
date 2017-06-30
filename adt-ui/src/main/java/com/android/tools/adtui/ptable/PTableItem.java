@@ -116,7 +116,11 @@ public abstract class PTableItem {
   }
 
   @SuppressWarnings("UnusedParameters")
-  public void mousePressed(@NotNull MouseEvent event, Rectangle rectRightColumn) {
+  public void mousePressed(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+  }
+
+  @SuppressWarnings("UnusedParameters")
+  public void mouseMoved(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
   }
 
   public int getColumnToEdit() {

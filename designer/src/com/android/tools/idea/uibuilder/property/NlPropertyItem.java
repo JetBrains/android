@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -27,6 +28,8 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
+import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.android.util.PropertiesMap;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -42,6 +45,8 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -213,6 +218,12 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
       return myDefaultValue.value;
     }
     return value != null ? resolveValueUsingResolver(value) : null;
+  }
+
+  @Override
+  public void mouseMoved(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    NlAttributeRenderer renderer = NlPropertyRenderers.getInstance().get(this);
+    renderer.mouseMoved(table, event, rectRightColumn);
   }
 
   public void delete() {

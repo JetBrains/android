@@ -16,13 +16,18 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 
+import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class BrowsePanelTest extends PropertyTestCase {
 
@@ -32,5 +37,29 @@ public class BrowsePanelTest extends PropertyTestCase {
     assertThat(BrowsePanel.hasResourceChooser(props.get(SdkConstants.ATTR_TEXT))).isTrue();
     assertThat(BrowsePanel.hasResourceChooser(props.get(SdkConstants.ATTR_BACKGROUND))).isTrue();
     assertThat(BrowsePanel.hasResourceChooser(props.get(SdkConstants.ATTR_TYPEFACE))).isFalse();
+  }
+
+  public void testMouseMovedLeftOfButtons() {
+    PTable table = mock(PTable.class);
+    BrowsePanel panel = new BrowsePanel(null, true);
+    panel.doLayout();
+
+    Rectangle rect = new Rectangle(0, 0, 200, 100);
+    MouseEvent event = new MouseEvent(panel, 0, 0, 0, 10, 20, 1, false);
+    panel.mouseMoved(table, event, rect);
+
+    verify(table).setExpandableItemsEnabled(true);
+  }
+
+  public void testMouseMovedOverButtons() {
+    PTable table = mock(PTable.class);
+    BrowsePanel panel = new BrowsePanel(null, true);
+    panel.doLayout();
+
+    Rectangle rect = new Rectangle(0, 0, 200, 100);
+    MouseEvent event = new MouseEvent(panel, 0, 0, 0, 180, 20, 1, false);
+    panel.mouseMoved(table, event, rect);
+
+    verify(table).setExpandableItemsEnabled(false);
   }
 }
