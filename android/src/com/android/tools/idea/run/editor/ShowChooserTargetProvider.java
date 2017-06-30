@@ -17,7 +17,6 @@ package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.*;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.Executor;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -92,11 +91,11 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
       }
     }
 
-    List<DeployTargetProvider> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);
+    List<DeployTargetProvider<DeployTargetState>> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);
 
     // show the dialog and get the state
     DeployTargetPickerDialog dialog =
-      new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates, compatibilityChecker);
+        new DeployTargetPickerDialog(runConfigId, facet, deviceCount, applicableTargets, deployTargetStates, compatibilityChecker);
     if (dialog.showAndGet()) {
       DeployTarget result = dialog.getSelectedDeployTarget();
       if (result == null) {
@@ -137,8 +136,9 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
   }
 
   @NotNull
-  private static List<DeployTargetProvider> getTargetsProvidingRunProfileState(@NotNull Executor executor, boolean androidTests) {
-    List<DeployTargetProvider> targets = Lists.newArrayList();
+  private static List<DeployTargetProvider<DeployTargetState>> getTargetsProvidingRunProfileState(@NotNull Executor executor,
+                                                                                                  boolean androidTests) {
+    List<DeployTargetProvider<DeployTargetState>> targets = new ArrayList<>();
 
     for (DeployTargetProvider target : DeployTargetProvider.getProviders()) {
       if (target.showInDevicePicker(executor) && target.isApplicable(androidTests)) {

@@ -63,9 +63,9 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   private final int myContextId;
   @NotNull private final AndroidFacet myFacet;
 
-  @Nullable private final DeployTargetProvider myDeployTargetProvider;
+  @Nullable private final DeployTargetProvider<DeployTargetState> myDeployTargetProvider;
   @Nullable private final DeployTargetState myDeployTargetState;
-  @Nullable private final DeployTargetConfigurable myDeployTargetConfigurable;
+  @Nullable private final DeployTargetConfigurable<DeployTargetState> myDeployTargetConfigurable;
 
   private final DevicePicker myDevicePicker;
   private final ListenableFuture<AndroidDebugBridge> myAdbFuture;
@@ -80,7 +80,7 @@ public class DeployTargetPickerDialog extends DialogWrapper {
   public DeployTargetPickerDialog(int runContextId,
                                   @NotNull final AndroidFacet facet,
                                   @NotNull DeviceCount deviceCount,
-                                  @NotNull List<DeployTargetProvider> deployTargetProviders,
+                                  @NotNull List<DeployTargetProvider<DeployTargetState>> deployTargetProviders,
                                   @NotNull Map<String, DeployTargetState> deployTargetStates,
                                   @NotNull LaunchCompatibilityChecker compatibilityChecker) {
     super(facet.getModule().getProject(), true);

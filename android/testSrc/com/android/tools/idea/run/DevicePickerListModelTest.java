@@ -15,37 +15,27 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.Nullable;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DevicePickerListModelTest {
-  private DevicePickerListModel myModel;
-
-  @Before
-  public void setUp() {
-    myModel = new DevicePickerListModel();
-  }
-
   @Test
   public void testEmptyList() {
-    myModel.reset(Collections.<IDevice>emptyList(), Collections.<AvdInfo>emptyList());
-    List<DevicePickerEntry> items = myModel.getItems();
+    DevicePickerListModel model = new DevicePickerListModel();
+    List<DevicePickerEntry> items = model.getItems();
     assertEquals("When there are no devices, an info message and an empty message should be shown", 2, items.size());
     assertTrue(items.get(0).isMarker());
     assertTrue(items.get(1).isMarker());
@@ -53,9 +43,10 @@ public class DevicePickerListModelTest {
 
   @Test
   public void testAvds() {
-    myModel.reset(Collections.<IDevice>emptyList(), Arrays.asList(createMockAvd("avd1"), createMockAvd("avd2")));
+    DevicePickerListModel model =
+        new DevicePickerListModel(Collections.emptyList(), ImmutableList.of(createMockAvd("avd1"), createMockAvd("avd2")));
 
-    List<DevicePickerEntry> items = myModel.getItems();
+    List<DevicePickerEntry> items = model.getItems();
     assertEquals("Expected 5 items (separator, troubleshoot info, separator, avd1, avd2)", 5, items.size());
 
     // Note: ordering established by AndroidDeviceComparator
@@ -66,9 +57,9 @@ public class DevicePickerListModelTest {
   @Test
   public void testConnectedDevice() {
     IDevice device1 = createMockDevice(false, null, 23, "6.0");
-    myModel.reset(Collections.singletonList(device1), Collections.<AvdInfo>emptyList());
+    DevicePickerListModel model = new DevicePickerListModel(ImmutableList.of(device1), Collections.emptyList());
 
-    List<DevicePickerEntry> items = myModel.getItems();
+    List<DevicePickerEntry> items = model.getItems();
     assertEquals("Expected 2 items (separator, device1)", 2, items.size());
 
     assertTrue(items.get(0).isMarker());
@@ -82,9 +73,9 @@ public class DevicePickerListModelTest {
     AvdInfo emu1Info = createMockAvd("emu1");
     AvdInfo emu2Info = createMockAvd("emu2");
 
-    myModel.reset(Arrays.asList(device, runningAvd), Arrays.asList(emu1Info, emu2Info));
+    DevicePickerListModel model = new DevicePickerListModel(ImmutableList.of(device, runningAvd), ImmutableList.of(emu1Info, emu2Info));
 
-    List<DevicePickerEntry> items = myModel.getItems();
+    List<DevicePickerEntry> items = model.getItems();
     assertEquals("Expected 5 items (marker, 2 devices, marker, 1 avd info)", 5, items.size());
 
     assertEquals("emu2", items.get(4).getAndroidDevice().getName());
@@ -101,7 +92,6 @@ public class DevicePickerListModelTest {
 
   @NotNull
   private static AvdInfo createMockAvd(@NotNull String avdName) {
-    Map<String, String> properties = Maps.newHashMap();
-    return new AvdInfo(avdName, new File("ini"), "folder", null, properties);
+    return new AvdInfo(avdName, new File("ini"), "folder", null, Collections.emptyMap());
   }
 }
