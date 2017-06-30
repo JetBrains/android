@@ -194,6 +194,7 @@
       <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction"/>
       <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction"/>
       <action internal="true" id="Android.EditFlags" class="com.android.tools.idea.flags.ShowStudioFlagsDialogAction"/>
+      <action internal="true" id="Android.ShowRoomSchema" class="com.android.tools.idea.lang.roomSql.ShowRoomSchemaAction"/>
       <add-to-group group-id="Internal"/>
     </group>
     <action id="Android.RunLayoutInspector" class="org.jetbrains.android.actions.AndroidRunLayoutInspectorAction">
@@ -445,7 +446,6 @@
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
     <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.lang.databinding.DbFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
@@ -454,19 +454,16 @@
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
     <lang.parserDefinition language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbParserDefinition" />
-    <lang.parserDefinition language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition" />
 
     <lang.syntaxHighlighterFactory language="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
     <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbSyntaxHighlighterFactory" />
-    <lang.syntaxHighlighterFactory language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory" />
 
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
 
     <lang.braceMatcher language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.DbPairedBraceMatcher"/>
 
     <languageInjector implementation="com.android.tools.idea.lang.databinding.DbLanguageInjector" />
-    <concatenationAwareInjector implementation="com.android.tools.idea.lang.roomSql.RoomSqlLanguageInjector" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.theme.ThemeEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
@@ -1375,6 +1372,15 @@
     <assistantBundleCreator implementation="com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator"/>
     <actionHandler implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbAction"/>
     <actionStateManager implementation="com.android.tools.idea.connection.assistant.actions.RestartAdbActionStateManager"/>
+  </extensions>
+
+  <!-- Room SQL support. -->
+  <extensions defaultExtensionNs="com.intellij">
+    <fileTypeFactory implementation="com.android.tools.idea.lang.roomSql.RoomSqlFileTypeFactory" />
+    <lang.parserDefinition language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.parser.RoomSqlParserDefinition" />
+    <lang.syntaxHighlighterFactory language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory" />
+    <concatenationAwareInjector implementation="com.android.tools.idea.lang.roomSql.RoomSqlLanguageInjector" />
+    <moduleService serviceImplementation="com.android.tools.idea.lang.roomSql.RoomSchemaManager"/>
   </extensions>
 
 </idea-plugin>
