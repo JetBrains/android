@@ -46,6 +46,7 @@ public class AdaptiveIconPreviewTest {
     toolbar.chooseDensity("mdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
+    // noinspection SpellCheckingInspection
     assertThat(preview.getCenterLeftPixelColor()).isEqualTo("ffff0000");
     toolbar.chooseDensity("hdpi")
       .leaveConfigToolbar()
