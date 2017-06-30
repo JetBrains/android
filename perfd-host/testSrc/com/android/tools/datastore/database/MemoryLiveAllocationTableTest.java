@@ -125,7 +125,8 @@ public class MemoryLiveAllocationTableTest {
       .setTimestamp(0).build();
     // A klass1 instance deallocation event (t = 7)
     AllocationEvent dealloc1 = AllocationEvent.newBuilder()
-      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG)).setTimestamp(7).build();
+      .setFreeData(AllocationEvent.Deallocation.newBuilder().setTag(KLASS1_INSTANCE1_TAG).setClassTag(KLASS1_TAG).setStackId(STACK1))
+      .setTimestamp(7).build();
     // A klass2 instance allocation event (t = 6)
     AllocationEvent alloc2 = AllocationEvent.newBuilder()
       .setAllocData(AllocationEvent.Allocation.newBuilder().setTag(KLASS2_INSTANCE1_TAG).setClassTag(KLASS2_TAG)).setTimestamp(6).build();

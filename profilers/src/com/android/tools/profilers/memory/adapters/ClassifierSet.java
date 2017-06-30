@@ -73,90 +73,101 @@ public abstract class ClassifierSet implements MemoryObject {
     return myTotalShallowSize;
   }
 
-  public void addInstanceObject(@NotNull InstanceObject instanceObject) {
-    addInstanceObject(instanceObject, null);
+  public boolean addInstanceObject(@NotNull InstanceObject instanceObject) {
+    return addInstanceObject(instanceObject, null);
   }
 
-  public void addInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+  // Add alloc information into the ClassifierSet
+  // Return true if the set did not contains the instance before
+  public boolean addInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+    return addInstanceObjectInformation(instanceObject, pathResult, true);
+  }
+
+  // Add dealloc information into the ClassifierSet
+  // Return true if the set did not contains the instance before
+  public boolean freeInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+    return addInstanceObjectInformation(instanceObject, pathResult, false);
+  }
+
+  // Remove instance alloc information
+  // Remove instance when it neither has alloc nor dealloc information
+  // Return true if the instance is removed
+  public boolean removeAddingInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+    return removeInstanceObjectInformation(instanceObject, pathResult, true);
+  }
+
+  // Remove instance dealloc information
+  // Remove instance when it neither has alloc nor dealloc information
+  // Return true if the instance is removed
+  public boolean removeFreeingInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+    return removeInstanceObjectInformation(instanceObject, pathResult, false);
+  }
+
+  // Add information into the ClassifierSet when correspondent alloc event is inside selection range
+  // Return true if the set did not contains the instance before
+  private boolean addInstanceObjectInformation(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult, boolean isAllocation) {
     if (pathResult != null) {
       pathResult.add(this);
     }
 
-    if (myClassifier != null) {
-      if (!myClassifier.classify(instanceObject, pathResult)) {
+    boolean instanceAdded = false;
+
+    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
+      instanceAdded = myClassifier.getOrCreateClassifierSet(instanceObject).addInstanceObjectInformation(instanceObject, pathResult, isAllocation);
+    }
+    else {
+      if (!myInstances.contains(instanceObject)) {
+        instanceAdded = true;
         myInstances.add(instanceObject);
       }
     }
-    else {
-      myInstances.add(instanceObject);
-    }
-    myAllocatedCount++;
-    myTotalShallowSize += instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
-    myTotalRetainedSize += instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
-    myInstancesWithStackInfoCount +=
-      (instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) ? 1 : 0;
-  }
 
-  // Remove instance allocation information when correspondent alloc event is out of selection range
-  // Remove instance when it neither has alloc nor dealloc information
-  public void removeAddingInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
-    if (pathResult != null) {
-      pathResult.add(this);
-    }
-
-    myAllocatedCount--;
-    myTotalShallowSize -= instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
-    myTotalRetainedSize -= instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
-    myInstancesWithStackInfoCount -=
-      (instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) ? 1 : 0;
-
-    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      myClassifier.getOrCreateClassifierSet(instanceObject).removeAddingInstanceObject(instanceObject, pathResult);
+    if (isAllocation) {
+      myAllocatedCount++;
     }
     else {
-      instanceObject.removeCallstack();
-      if (instanceObject.getAllocTime() == Long.MIN_VALUE && instanceObject.getDeallocTime() == Long.MAX_VALUE) {
-        myInstances.remove(instanceObject);
-      }
+      myDeallocatedCount++;
     }
+
+    myTotalShallowSize +=  (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
+    myTotalRetainedSize += (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
+
+    if (instanceAdded && instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) {
+      myInstancesWithStackInfoCount++;
+    }
+    return instanceAdded;
   }
 
-  public void freeInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
+  // Remove information from the ClassifierSet
+  // Return true if the instance is removed
+  private boolean removeInstanceObjectInformation(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult, boolean isAllocation) {
     if (pathResult != null) {
       pathResult.add(this);
     }
 
+    boolean instanceRemoved = false;
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      // TODO2: In cases where we are adding to myInstances, it should also update myInstancesWithStackInfoCount
-      myClassifier.getOrCreateClassifierSet(instanceObject).freeInstanceObject(instanceObject, pathResult);
-    } else {
-      myInstances.add(instanceObject);
+      instanceRemoved = myClassifier.getOrCreateClassifierSet(instanceObject).removeInstanceObjectInformation(instanceObject, pathResult, isAllocation);
     }
-
-    myDeallocatedCount++;
-    myTotalShallowSize -= instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
-    myTotalRetainedSize -= instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
-  }
-
-  // Remove instance deallocation information when correspondent dealloc event is out of selection range
-  // Remove instance when it neither has alloc nor dealloc information
-  public void removeFreeingInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
-    if (pathResult != null) {
-      pathResult.add(this);
-    }
-
-    if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      // TODO2: In cases where we are adding to myInstances, it should also update myInstancesWithStackInfoCount
-      myClassifier.getOrCreateClassifierSet(instanceObject).removeFreeingInstanceObject(instanceObject, pathResult);
-    } else {
-      if (instanceObject.getAllocTime() == Long.MIN_VALUE && instanceObject.getDeallocTime() == Long.MAX_VALUE) {
+    else {
+      if (!instanceObject.hasTimeData() && myInstances.contains(instanceObject)) {
         myInstances.remove(instanceObject);
+        instanceRemoved = true;
       }
     }
 
-    myDeallocatedCount--;
-    myTotalShallowSize += instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize();
-    myTotalRetainedSize += instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize();
+    if (isAllocation) {
+      myAllocatedCount--;
+    }
+    else {
+      myDeallocatedCount--;
+    }
+    myTotalShallowSize -= (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
+    myTotalRetainedSize -= (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
+    if (instanceRemoved && instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) {
+      myInstancesWithStackInfoCount--;
+    }
+    return instanceRemoved;
   }
 
   public int getInstancesCount() {
@@ -275,11 +286,6 @@ public abstract class ClassifierSet implements MemoryObject {
         throw new NotImplementedException(); // not used
       }
 
-      @Override
-      public boolean classify(@NotNull InstanceObject instance, @Nullable List<ClassifierSet> path) {
-        return false;
-      }
-
       @NotNull
       @Override
       public List<ClassifierSet> getClassifierSets() {
@@ -307,27 +313,29 @@ public abstract class ClassifierSet implements MemoryObject {
     public abstract List<ClassifierSet> getClassifierSets();
 
     /**
-     * Classifies a single instance for this Classifier.
-     */
-    // TODO if sorting is specified, we need to sort again
-    public boolean classify(@NotNull InstanceObject instance, @Nullable List<ClassifierSet> path) {
-      getOrCreateClassifierSet(instance).addInstanceObject(instance, path);
-      return true;
-    }
-
-    /**
      * Partitions {@link InstanceObject}s in {@code myInstances} according to the current {@link ClassifierSet}'s strategy.
      * This will consume the instance from the input.
      */
     public final void partition(@NotNull Set<InstanceObject> instances) {
       List<InstanceObject> partitionedInstances = new ArrayList<>(instances.size());
 
-      instances.forEach(instance -> {
-        if (classify(instance, null)) {
-          partitionedInstances.add(instance);
-        }
-      });
-
+      if (!isTerminalClassifier()) {
+        instances.forEach(instance -> {
+          if (instance.hasTimeData()) {
+            if (instance.hasAllocData()) {
+              getOrCreateClassifierSet(instance).addInstanceObject(instance, null);
+            }
+            if (instance.hasDeallocData()) {
+              getOrCreateClassifierSet(instance).freeInstanceObject(instance, null);
+            }
+            partitionedInstances.add(instance);
+          }
+          else {
+            getOrCreateClassifierSet(instance).addInstanceObject(instance, null);
+            partitionedInstances.add(instance);
+          }
+        });
+      }
       if (partitionedInstances.size() == instances.size()) {
         instances.clear();
       }

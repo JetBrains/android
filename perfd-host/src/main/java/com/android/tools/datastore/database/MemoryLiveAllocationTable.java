@@ -47,7 +47,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       "SELECT Tag, AllocTime, Name FROM Memory_AllocatedClass where Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
     QUERY_ALLOC_BY_ALLOC_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
                               "WHERE Pid = ? AND Session = ? AND AllocTime >= ? AND AllocTime < ?"),
-    QUERY_ALLOC_BY_FREE_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length FROM Memory_AllocationEvents " +
+    QUERY_ALLOC_BY_FREE_TIME("SELECT Tag, ClassTag, AllocTime, FreeTime, Size, Length, StackId FROM Memory_AllocationEvents " +
                              "WHERE Pid = ? AND Session = ? AND FreeTime >= ? AND FreeTime < ?"),
     QUERY_METHOD_INFO("Select MethodName, ClassName FROM Memory_MethodInfos WHERE Pid = ? AND Session = ? AND MethodId = ?"),
     QUERY_ENCODED_STACK_INFO_BY_TIME(
@@ -152,7 +152,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
           MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
             .setFreeData(
               MemoryProfiler.AllocationEvent.Deallocation.newBuilder().setTag(freeResult.getLong(1)).setClassTag(freeResult.getLong(2))
-                .setSize(freeResult.getLong(5)).setLength(freeResult.getInt(6)).build())
+                .setSize(freeResult.getLong(5)).setLength(freeResult.getInt(6)).setStackId(freeResult.getInt(7)).build())
             .setTimestamp(freeTime).build();
           sampleBuilder.addEvents(event);
           timestamp = Math.max(timestamp, freeTime);

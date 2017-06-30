@@ -274,8 +274,7 @@ final class MemoryClassifierView extends AspectObserver {
           myTreeModel.nodeStructureChanged(myTreeRoot);
         }
 
-        updateNodes(myTreeRoot, changedNode);
-
+        updateNodes(myTreeRoot, changedNode, false);
         Comparator<MemoryObjectTreeNode<ClassifierSet>> comparator = myTreeRoot.getComparator();
         if (comparator != null) {
           myTreeRoot.sort(comparator);
@@ -284,20 +283,17 @@ final class MemoryClassifierView extends AspectObserver {
     });
   }
 
-  private void updateNodes(@NotNull MemoryObjectTreeNode<ClassifierSet> memoryNode, @NotNull ChangedNode changedNode) {
+  private void updateNodes(@NotNull MemoryObjectTreeNode<ClassifierSet> memoryNode, @NotNull ChangedNode changedNode, boolean parentNodeStructureShouldChange) {
     assert memoryNode.getAdapter() == changedNode.getClassifierSet();
     boolean nodeStructureShouldChange = false;
+    boolean nodeShouldChange = false;
 
-    // Recursively update for nodes that already exists.
     ArrayList<MemoryObjectTreeNode<ClassifierSet>> childMemoryNodeList = new ArrayList<>(memoryNode.getChildren());
     for (MemoryObjectTreeNode<ClassifierSet> childMemoryNode : childMemoryNodeList) {
       if (changedNode.containsChild(childMemoryNode.getAdapter())) {
         if (childMemoryNode.getAdapter().isEmpty()) {
           memoryNode.remove(childMemoryNode);
           nodeStructureShouldChange = true;
-        }
-        else {
-          updateNodes(childMemoryNode, changedNode.getChild(childMemoryNode.getAdapter()));
         }
       }
     }
@@ -311,17 +307,30 @@ final class MemoryClassifierView extends AspectObserver {
         newClassifierSets.forEach(classifierSet -> {
           memoryNode.add(new MemoryClassifierTreeNode(classifierSet));
         });
-        assert myTreeModel != null;
         nodeStructureShouldChange = true;
       }
       else {
-        assert myTreeModel != null;
-        myTreeModel.nodeChanged(memoryNode);
+        nodeShouldChange = true;
       }
     }
 
-    if (nodeStructureShouldChange) {
-      myTreeModel.nodeStructureChanged(memoryNode);
+    for (MemoryObjectTreeNode<ClassifierSet> childMemoryNode : childMemoryNodeList) {
+      if (changedNode.containsChild(childMemoryNode.getAdapter())) {
+        if (!childMemoryNode.getAdapter().isEmpty()) {
+          updateNodes(childMemoryNode, changedNode.getChild(childMemoryNode.getAdapter()), parentNodeStructureShouldChange || nodeStructureShouldChange);
+        }
+      }
+    }
+
+    if (!parentNodeStructureShouldChange) {
+      if (nodeStructureShouldChange) {
+        assert myTreeModel != null;
+        myTreeModel.nodeStructureChanged(memoryNode);
+      }
+      else if (nodeShouldChange) {
+        assert myTreeModel != null;
+        myTreeModel.nodeChanged(memoryNode);
+      }
     }
   }
 
