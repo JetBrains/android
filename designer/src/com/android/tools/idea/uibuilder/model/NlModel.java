@@ -98,7 +98,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private List<NlComponent> myComponents = Lists.newArrayList();
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
-  private boolean myActive;
+  private final Set<Object> myActivations = Collections.newSetFromMap(new WeakHashMap<>());
   private final ModelVersion myModelVersion = new ModelVersion();
   private final NlLayoutType myType;
   private long myConfigurationModificationCount;
@@ -133,11 +133,19 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Notify model that it's active. A model is active by default.
+   * @param source caller used to keep track of the references to this model. See {@link #deactivate(Object)}
    */
-  public void activate() {
-    if (!myActive) {
-      myActive = true;
-
+  public void activate(@NotNull Object source) {
+    // TODO: Tracking the source is just a workaround for the model being shared so the activations and deactivations are
+    // handled correctly. This should be solved by moving the removing this responsibility from the model. The model shouldn't
+    // need to keep track of activations/deactivation and they should be handled by the caller.
+    boolean wasActive;
+    synchronized (myActivations) {
+      wasActive = !myActivations.isEmpty();
+      myActivations.add(source);
+    }
+    if (!wasActive) {
+      // This was the first activation so enable listeners
       myConfiguration.addListener(myConfigurationListener);
 
       // If the resources have changed or the configuration has been modified, request a model update
@@ -162,17 +170,28 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
+  private void deactivate() {
+    listenersCopy().forEach(listener -> listener.modelDeactivated(this));
+    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
+    manager.removeListener(this, myFacet, myFile, myConfiguration);
+    myConfigurationModificationCount = myConfiguration.getModificationCount();
+    myConfiguration.removeListener(myConfigurationListener);
+  }
+
   /**
    * Notify model that it's not active. This means it can stop watching for events etc. It may be activated again in the future.
+   * @param source the source is used to keep track of the references that are using this model. Only when all the sources have called
+   *               {@link #deactivate(Object)}, the model will be really deactivated.
    */
-  public void deactivate() {
-    if (myActive) {
-      listenersCopy().forEach(listener -> listener.modelDeactivated(this));
-      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
-      manager.removeListener(this, myFacet, myFile, myConfiguration);
-      myConfigurationModificationCount = myConfiguration.getModificationCount();
-      myConfiguration.removeListener(myConfigurationListener);
-      myActive = false;
+  public void deactivate(@NotNull Object source) {
+    boolean shouldDeactivate;
+    synchronized (myActivations) {
+      boolean removed = myActivations.remove(source);
+      // If there are no more activations, call the private #deactivate()
+      shouldDeactivate = removed && myActivations.isEmpty();
+    }
+    if (shouldDeactivate) {
+      deactivate();
     }
   }
 
@@ -1213,7 +1232,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @Override
   public void dispose() {
-    deactivate(); // ensure listeners are unregistered if necessary
+    boolean shouldDeactivate;
+    synchronized (myActivations) {
+      // If there are no activations left, make sure we deactivate the model correctly
+      shouldDeactivate = !myActivations.isEmpty();
+      myActivations.clear();
+    }
+    if (shouldDeactivate) {
+      deactivate(); // ensure listeners are unregistered if necessary
+    }
 
     synchronized (myListeners) {
       myListeners.clear();
