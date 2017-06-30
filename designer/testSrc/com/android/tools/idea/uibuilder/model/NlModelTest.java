@@ -553,24 +553,24 @@ public class NlModelTest extends LayoutTestCase {
 
     // Set a valid theme
     configuration.setTheme("@style/Theme.MyTheme");
-    model.deactivate();
-    model.activate();
+    model.deactivate(this);
+    model.activate(this);
     assertEquals("@style/Theme.MyTheme", configuration.getTheme());
 
     // Set a valid framework theme
     configuration.setTheme("@android:style/Theme.Material");
-    model.deactivate();
-    model.activate();
+    model.deactivate(this);
+    model.activate(this);
     assertEquals("@android:style/Theme.Material", configuration.getTheme());
 
     // Check that if we try to select an invalid theme, NlModel will set back the default theme
     configuration.setTheme("@style/InvalidTheme");
-    model.deactivate();
-    model.activate();
+    model.deactivate(this);
+    model.activate(this);
     assertEquals(defaultTheme, configuration.getTheme());
     configuration.setTheme("@android:style/InvalidTheme");
-    model.deactivate();
-    model.activate();
+    model.deactivate(this);
+    model.activate(this);
     assertEquals(defaultTheme, configuration.getTheme());
   }
 
@@ -727,7 +727,8 @@ public class NlModelTest extends LayoutTestCase {
     model.addListener(listener1);
     model.addListener(remove1);
     model.addListener(listener2);
-    model.activate();
+
+    model.activate(this);
     verify(listener1).modelActivated(any());
     verify(remove1).modelActivated(any());
     verify(listener2).modelActivated(any());
@@ -736,11 +737,39 @@ public class NlModelTest extends LayoutTestCase {
       return null;
     });
     model.addListener(remove2);
-    model.deactivate();
+    model.deactivate(this);
     verify(listener1).modelDeactivated(any());
-    verifyNoMoreInteractions(remove1);
     verify(listener2).modelDeactivated(any());
     verify(remove2).modelDeactivated(any());
+
+    verifyNoMoreInteractions(remove1);
+  }
+
+  public void testMultiActivateDeactivateListeners() throws Exception {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
+                                                           "<LinearLayout" +
+                                                           "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                           "         android:layout_width=\"match_parent\"" +
+                                                           "         android:layout_height=\"match_parent\">" +
+                                                           "</LinearLayout>");
+    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
+    ModelListener listener1 = mock(ModelListener.class);
+    model.addListener(listener1);
+
+    Object sourceA = new Object();
+    Object sourceB = new Object();
+    model.activate(sourceA);
+    model.activate(sourceB);
+    verify(listener1).modelActivated(any());
+
+    model.deactivate(sourceB);
+    model.deactivate(sourceB);
+    // Only one of the two sources was deactivated so do not expect any deactivate calls to the listeners
+    verifyZeroInteractions(listener1);
+
+    model.deactivate(sourceA);
+    verify(listener1).modelDeactivated(any());
+    verifyNoMoreInteractions(listener1);
   }
 
   @Override

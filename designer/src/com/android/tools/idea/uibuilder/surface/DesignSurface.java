@@ -102,6 +102,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final JBSplitter myErrorPanelSplitter;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
+  private boolean myIsActive = false;
 
   public DesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
@@ -721,15 +722,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The editor has been activated
    */
   public void activate() {
-    if (getCurrentSceneView() != null) {
-      getCurrentSceneView().getModel().activate();
+    if (!myIsActive && getCurrentSceneView() != null) {
+      getCurrentSceneView().getModel().activate(this);
     }
+    myIsActive = true;
+
   }
 
   public void deactivate() {
-    if (getCurrentSceneView() != null) {
-      getCurrentSceneView().getModel().deactivate();
+    if (myIsActive && getCurrentSceneView() != null) {
+      getCurrentSceneView().getModel().deactivate(this);
     }
+    myIsActive = false;
 
     myInteractionManager.cancelInteraction();
   }

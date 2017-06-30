@@ -114,7 +114,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
     init(myContentPanel, mySurface, tools);
     if (myIsActive) {
-      model.activate();
+      model.activate(this);
     }
   }
 

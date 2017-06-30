@@ -317,7 +317,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     if (currentScreenView != null) {
       NlModel oldModel = currentScreenView.getModel();
       if (model != oldModel) {
-        oldModel.deactivate();
+        oldModel.deactivate(this);
         Disposer.dispose(oldModel);
       }
     }
@@ -339,7 +339,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
         mySurface.updateScrolledAreaSize();
       }
       setEditor(myManager.getActiveLayoutXmlEditor(myFile));
-      model.activate();
+      model.activate(this);
       myWorkBench.setToolContext(mySurface);
       myWorkBench.setFileEditor(myEditor);
 
