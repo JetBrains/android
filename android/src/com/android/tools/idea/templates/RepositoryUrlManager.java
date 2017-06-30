@@ -404,18 +404,16 @@ public class RepositoryUrlManager {
     filter = filter.substring(0, filter.length() - 1);
 
     // First check the Google maven repository, which has most versions
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, true);
-      if (version != null) {
-        GradleVersion stable = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, false);
-        if (stable == null) {
-          // Only had preview version; use that (for example, artifacts that haven't been released as stable yet),
-          // otherwise default to stable versions
-          return version.toString();
-        }
-        else {
-          return stable.toString();
-        }
+    GradleVersion version = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, true);
+    if (version != null) {
+      GradleVersion stable = GoogleMavenVersionLookup.INSTANCE.findVersion(groupId, artifactId, filter, false);
+      if (stable == null) {
+        // Only had preview version; use that (for example, artifacts that haven't been released as stable yet),
+        // otherwise default to stable versions
+        return version.toString();
+      }
+      else {
+        return stable.toString();
       }
     }
 
