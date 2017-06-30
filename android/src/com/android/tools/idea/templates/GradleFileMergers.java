@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import org.jetbrains.annotations.NotNull;
@@ -32,32 +32,19 @@ public class GradleFileMergers {
    */
   static final String DEPENDENCIES = "dependencies";
 
+  private static final ImmutableList<String> KNOWN_CONFIGURATIONS_IN_ORDER =
+    ImmutableList.of("feature", "api", "implementation", "compile", "testImplementation", "testCompile",
+                     "androidTestImplementation", "androidTestCompile");
+
   /**
    * Defined an ordering on gradle configuration names.
-   *
-   * <p>The order is:
-   * <ol>
-   *   <li>compile
-   *   <li>testCompile
-   *   <li>androidTestCompile
-   *   <li>everything else, in alphabetical order
-   * </ol>
-   * @return
    */
   static final Ordering<String> CONFIGURATION_ORDERING =
     Ordering
       .natural()
       .onResultOf((@NotNull String input) -> {
-        switch (input) {
-          case SdkConstants.GRADLE_COMPILE_CONFIGURATION:
-            return 1;
-          case SdkConstants.GRADLE_TEST_COMPILE_CONFIGURATION:
-            return 2;
-          case SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION:
-            return 3;
-          default:
-            return 4;
-        }
+        int result = KNOWN_CONFIGURATIONS_IN_ORDER.indexOf(input);
+        return result != -1 ? result : KNOWN_CONFIGURATIONS_IN_ORDER.size();
       })
       .compound(Ordering.natural());
 
