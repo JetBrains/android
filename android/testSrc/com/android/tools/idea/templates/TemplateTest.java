@@ -29,6 +29,7 @@ import com.android.tools.idea.npw.AssetStudioAssetGenerator;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.NewModuleWizardState;
 import com.android.tools.idea.npw.NewProjectWizardState;
+import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -84,6 +85,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -301,11 +304,23 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
+  private final ProjectStateCustomizer withKotlin = ((templateMap, projectMap) -> {
+    projectMap.put(ATTR_KOTLIN_SUPPORT, true);
+    projectMap.put(ATTR_KOTLIN_VERSION, KOTLIN_LATEST_VERSION);
+    projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
+    templateMap.put(ATTR_KOTLIN_SUPPORT, true);
+    templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
+  });
   //--- Activity templates ---
 
   @TemplateCheck
   public void testNewBasicActivity() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewBasicActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", false, withKotlin);
   }
 
   @TemplateCheck
@@ -324,8 +339,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewProjectWithThingsActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "AndroidThingsActivity", true, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewEmptyActivity() throws Exception {
     checkCreateTemplate("activities", "EmptyActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewEmptyActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "EmptyActivity", false, withKotlin);
   }
 
   @TemplateCheck
@@ -354,6 +379,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewProjectWithBlankWearActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "BlankWearActivity", true, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", false);
   }
@@ -361,6 +391,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   @TemplateCheck
   public void testNewProjectWithNavigationDrawerActivity() throws Exception {
     checkCreateTemplate("activities", "NavigationDrawerActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewNavigationDrawerActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "NavigationDrawerActivity", false, withKotlin);
   }
 
   @TemplateCheck
@@ -384,6 +419,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewProjectWithFullscreenActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "FullscreenActivity", true, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewLoginActivity() throws Exception {
     checkCreateTemplate("activities", "LoginActivity", false);
   }
@@ -391,6 +431,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   @TemplateCheck
   public void testNewProjectWithLoginActivity() throws Exception {
     checkCreateTemplate("activities", "LoginActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithLoginActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "LoginActivity", true, withKotlin);
   }
 
   @TemplateCheck
@@ -404,6 +449,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewProjectWithScrollActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "ScrollActivity", true, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewSettingsActivity() throws Exception {
     checkCreateTemplate("activities", "SettingsActivity", false);
   }
@@ -414,6 +464,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewProjectWithSettingsActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "SettingsActivity", true, withKotlin);
+  }
+
+  @TemplateCheck
   public void testBottomNavigationActivity() throws Exception {
     checkCreateTemplate("activities", "BottomNavigationActivity", false);
   }
@@ -421,6 +476,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   @TemplateCheck
   public void testNewProjectWithBottomNavigationActivity() throws Exception {
     checkCreateTemplate("activities", "BottomNavigationActivity", true);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithBottomNavigationActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "BottomNavigationActivity", true, withKotlin);
   }
 
   @TemplateCheck
@@ -1135,7 +1195,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                @NotNull NewProjectWizardState projectValues,
                                @Nullable TemplateWizardState templateValues) throws Exception {
     // Do not add non-unicode characters on Windows
-    String modifiedProjectName = SystemInfo.isWindows ? "app" : (projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们");
+    String modifiedProjectName = getModifiedProjectName(projectName, templateValues);
     projectValues.put(ATTR_RES_OUT, null);
     projectValues.put(ATTR_SRC_OUT, null);
     projectValues.put(ATTR_MANIFEST_OUT, null);
@@ -1194,6 +1254,14 @@ public class TemplateTest extends AndroidGradleTestCase {
 
       assertNotNull(project);
 
+      // Verify that a newly created kotlin project does not have any java files
+      // and has only kotlin files.
+      if (getTestName(false).endsWith("WithKotlin")) {
+        Path rootPath = projectDir.toPath();
+        assertFalse(Files.walk(rootPath).anyMatch(path -> path.toString().endsWith(".java")));
+        assertTrue(Files.walk(rootPath).anyMatch(path -> path.toString().endsWith(".kt")));
+      }
+
       GradleConnector connector = GradleConnector.newConnector();
       connector.forProjectDirectory(projectRoot);
       ((DefaultGradleConnector)connector).daemonMaxIdleTime(10000, TimeUnit.MILLISECONDS);
@@ -1209,12 +1277,12 @@ public class TemplateTest extends AndroidGradleTestCase {
         buildLauncher.run();
       }
       //// Use the following commented out code to debug the generated project in case of a failure.
-      //catch (Exception e) {
-      //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-      //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
-      //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
-      //  throw e
-      //}
+      catch (Exception e) {
+        File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
+        FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
+        System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
+        throw e;
+      }
       finally {
         connection.close();
       }
@@ -1238,6 +1306,19 @@ public class TemplateTest extends AndroidGradleTestCase {
         FileUtil.delete(projectDir);
         LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir);
       }
+    }
+  }
+
+  private static String getModifiedProjectName(@NotNull String projectName, @Nullable TemplateWizardState templateValues) {
+    if (SystemInfo.isWindows) {
+      return "app";
+    } else if (templateValues != null && templateValues.hasAttr(ATTR_KOTLIN_SUPPORT) && templateValues.getBoolean(ATTR_KOTLIN_SUPPORT)) {
+      // Filed: https://youtrack.jetbrains.com/issue/KT-18767
+      // Note: kotlin plugin fails when running `:compileDebugKotin` with a project name containing a comma => ","
+      // So the projectName contains characters other than a comma
+      return projectName + "!@#$^&()_+=-.`~你所有的基地都属于我们";
+    } else {
+      return (projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们");
     }
   }
 
