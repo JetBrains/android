@@ -119,9 +119,7 @@ public class ConvertToConstraintLayoutTest {
                  "\n" +
                  "\n" +
                  "    <Button\n" +
-                 // NOTE: THIS IS THE WRONG ID. It should not have set linearLayout on
-                 // this child widget. This is bug 62298167.
-                 "        android:id=\"@+id/linearLayout\"\n" +
+                 "        android:id=\"@+id/button3\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:layout_marginStart=\"<test>\"\n" +
@@ -135,20 +133,20 @@ public class ConvertToConstraintLayoutTest {
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:text=\"Button\"\n" +
-                 "        tools:layout_conversion_absoluteHeight=\"<test>\"\n" +
-                 "        tools:layout_conversion_absoluteWidth=\"<test>\"\n" +
-                 "        tools:layout_conversion_absoluteX=\"<test>\"\n" +
-                 "        tools:layout_conversion_absoluteY=\"<test>\" />\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"parent\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
                  "    <Button\n" +
                  "        android:id=\"@+id/button6\"\n" +
                  "        android:layout_width=\"wrap_content\"\n" +
                  "        android:layout_height=\"wrap_content\"\n" +
                  "        android:text=\"Button\"\n" +
-                 "        tools:layout_conversion_absoluteHeight=\"<test>\"\n" +
-                 "        tools:layout_conversion_absoluteWidth=\"<test>\"\n" +
-                 "        tools:layout_conversion_absoluteX=\"<test>\"\n" +
-                 "        tools:layout_conversion_absoluteY=\"<test>\" />\n" +
+                 "        app:layout_constraintBottom_toTopOf=\"parent\"\n" +
+                 "        app:layout_constraintEnd_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>\n" +
                  "\n";

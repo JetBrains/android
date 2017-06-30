@@ -753,7 +753,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  private NlComponent findViewByTag(@NotNull XmlTag tag) {
+  public NlComponent findViewByTag(@NotNull XmlTag tag) {
     // TODO: Consider using lookup map
     for (NlComponent component : myComponents) {
       NlComponent match = component.findViewByTag(tag);

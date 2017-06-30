@@ -20,7 +20,10 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -38,7 +41,6 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.*;
 import com.intellij.refactoring.rename.RenameProcessor;
@@ -194,8 +196,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     private final boolean myIncludeCustomViews;
     private ViewEditorImpl myEditor;
     private List<NlComponent> myToBeFlattened;
-    private final NlComponent myRoot;
-    private final NlComponent myLayout;
+    private NlComponent myRoot;
+    private NlComponent myLayout;
 
     public ConstraintLayoutConverter(@NotNull ScreenView screenView,
                                      @NotNull NlComponent target,
@@ -233,12 +235,18 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       }
 
       flatten();
-      PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
-      tag = CodeStyleManager.getInstance(getProject()).reformat(tag);
+      myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
+
       //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
-      ViewInfo info = NlComponentHelperKt.getViewInfo(myLayout);
-      List<ViewInfo> ts = Collections.singletonList(info);
-      myLayout.getModel().syncWithPsi((XmlTag)tag, Collections.emptyList());
+
+      NlModel model = myLayout.getModel();
+      XmlTag layoutTag = myLayout.getTag();
+      XmlTag rootTag = myRoot.getTag();
+      myScreenView.getSurface().getSceneManager().layout(false);
+
+      // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
+      myRoot = model.findViewByTag(rootTag);
+      myLayout = model.findViewByTag(layoutTag);
       inferConstraints(myLayout);
     }
 
