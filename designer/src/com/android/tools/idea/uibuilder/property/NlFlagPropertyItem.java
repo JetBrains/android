@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
@@ -219,7 +220,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   @Override
-  public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+  public void mousePressed(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
     NlAttributeRenderer renderer = NlPropertyRenderers.getInstance().get(this);
     renderer.mousePressed(event, rectRightColumn);
   }

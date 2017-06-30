@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.icons.AllIcons;
@@ -104,23 +105,33 @@ public class BrowsePanel extends JPanel {
     myDesignState = designState;
   }
 
-  public PropertyDesignState getDesignState() {
-    return myDesignState;
-  }
-
   public void setProperty(@NotNull NlProperty property) {
     myBrowseButton.setVisible(hasResourceChooser(property));
   }
 
   public void mousePressed(@NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
-    if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - myDesignButton.getWidth()) {
+    if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - getDesignButtonWidth()) {
       myDesignButton.click();
     }
-    else if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - myDesignButton.getWidth() - myBrowseButton.getWidth()) {
+    else if (event.getX() > rectRightColumn.getX() + rectRightColumn.getWidth() - getDesignButtonWidth() - getBrowseButtonWidth()) {
       myBrowseButton.click();
     }
   }
 
+  public void mouseMoved(@NotNull PTable table, @NotNull MouseEvent event, @NotNull Rectangle rectRightColumn) {
+    table.setExpandableItemsEnabled(
+      event.getX() < rectRightColumn.getX() + rectRightColumn.getWidth() - getDesignButtonWidth() - getBrowseButtonWidth());
+  }
+
+  private int getDesignButtonWidth() {
+    return myDesignButton != null ? myDesignButton.getWidth() : 0;
+  }
+
+  private int getBrowseButtonWidth() {
+    return myBrowseButton.isVisible() ? myBrowseButton.getWidth() : 0;
+  }
+
+  @NotNull
   private static ActionButton createActionButton(@NotNull AnAction action) {
     return new ActionButton(action,
                             action.getTemplatePresentation().clone(),
