@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.lookup.LookupAdapter;
 import com.intellij.codeInsight.lookup.LookupEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
@@ -45,6 +46,7 @@ import java.awt.event.*;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 
 import static com.android.SdkConstants.TOOLS_URI;
@@ -181,9 +183,15 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   protected void editorFocusGain(@NotNull FocusEvent event) {
     if (event.getOppositeComponent() != mySlider) {
       if (!myCompletionsUpdated && myProperty != EmptyProperty.INSTANCE) {
-        AndroidFacet facet = myProperty.getModel().getFacet();
-        myTextEditorWithAutoCompletion.updateCompletionsFromTypes(facet, getResourceTypes(myProperty), myProperty);
-        myCompletionsUpdated = true;
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          NlProperty property = myProperty;
+          AndroidFacet facet = myProperty.getModel().getFacet();
+          List<String> completions = TextEditorWithAutoCompletion.loadCompletions(facet, getResourceTypes(myProperty), myProperty);
+          if (property == myProperty) {
+            myTextEditorWithAutoCompletion.updateCompletions(completions);
+            myCompletionsUpdated = true;
+          }
+        });
       }
     }
     myTextEditorWithAutoCompletion.selectAll();

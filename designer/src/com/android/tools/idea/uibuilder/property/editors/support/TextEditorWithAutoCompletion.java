@@ -25,6 +25,7 @@ import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupListener;
 import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.HighlighterColors;
@@ -32,6 +33,7 @@ import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
 import icons.AndroidIcons;
@@ -121,8 +123,45 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     myLookupListeners.add(listener);
   }
 
-  public void updateCompletionsFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> types, @Nullable NlProperty property) {
-    myCompletionProvider.updateCompletionsFromTypes(facet, types, property);
+  public static List<String> loadCompletions(@NotNull AndroidFacet facet,
+                                             @NotNull EnumSet<ResourceType> types,
+                                             @Nullable NlProperty property) {
+    List<String> items = new ArrayList<>();
+
+    if (property != null) {
+      AttributeDefinition definition = property.getDefinition();
+      if (definition != null && definition.getValues().length > 0) {
+        items.addAll(Arrays.asList(definition.getValues()));
+      }
+
+      if (types.contains(ResourceType.ID)) {
+        types = types.clone();
+        types.remove(ResourceType.ID);
+
+        Set<String> ids = ApplicationManager.getApplication().runReadAction(
+          (Computable<Set<String>>)() -> ResourceHelper.findIdsInFile(property.getModel().getFile())
+        );
+        for (String id : ids) {
+          items.add("@id/" + id);
+        }
+      }
+    }
+
+    // No point sorting: TextFieldWithAutoCompletionListProvider performs its
+    // own sorting afterwards (by calling compare() above)
+    if (!types.isEmpty()) {
+
+      // We include mipmap directly in the drawable maps
+      if (types.contains(ResourceType.MIPMAP)) {
+        types = types.clone();
+        types.remove(ResourceType.MIPMAP);
+        types.add(ResourceType.DRAWABLE);
+      }
+
+      items.addAll(ResourceHelper.getCompletionFromTypes(facet, types, false));
+    }
+
+    return items;
   }
 
   public void updateCompletions(@NotNull List<String> items) {
@@ -188,43 +227,6 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     @Override
     public int compare(String item1, String item2) {
       return ResourceHelper.compareResourceReferences(item1, item2);
-    }
-
-    private void updateCompletionsFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> types,
-                                            @Nullable NlProperty property) {
-      Collection<String> items = new ArrayList<>();
-
-      if (property != null) {
-        AttributeDefinition definition = property.getDefinition();
-        if (definition != null && definition.getValues().length > 0) {
-          items.addAll(Arrays.asList(definition.getValues()));
-        }
-
-        if (types.contains(ResourceType.ID)) {
-          types = types.clone();
-          types.remove(ResourceType.ID);
-
-          for (String id : ResourceHelper.findIdsInFile(property.getModel().getFile())) {
-            items.add("@id/" + id);
-          }
-        }
-      }
-
-      // No point sorting: TextFieldWithAutoCompletionListProvider performs its
-      // own sorting afterwards (by calling compare() above)
-      if (!types.isEmpty()) {
-
-        // We include mipmap directly in the drawable maps
-        if (types.contains(ResourceType.MIPMAP)) {
-          types = types.clone();
-          types.remove(ResourceType.MIPMAP);
-          types.add(ResourceType.DRAWABLE);
-        }
-
-        items.addAll(ResourceHelper.getCompletionFromTypes(facet, types, false));
-      }
-
-      setItems(items);
     }
   }
 }

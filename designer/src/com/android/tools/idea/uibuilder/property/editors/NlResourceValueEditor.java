@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.idea.uibuilder.property.renderer.NlXmlValueRenderer;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -32,6 +33,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.util.EnumSet;
+import java.util.List;
 
 import static com.android.tools.idea.uibuilder.property.editors.NlBaseComponentEditor.*;
 
@@ -63,8 +65,7 @@ public class NlResourceValueEditor extends PTableCellEditor {
       @Override
       public void focusGained(@NotNull FocusEvent event) {
         if (!myCompletionsUpdated) {
-          myTextEditorWithAutoCompletion.updateCompletionsFromTypes(myItem.getFacet(), getResourceTypes(), null);
-          myCompletionsUpdated = true;
+          editorFocusGained();
         }
         myTextEditorWithAutoCompletion.selectAll();
       }
@@ -117,5 +118,16 @@ public class NlResourceValueEditor extends PTableCellEditor {
     }
     String text = myTextEditorWithAutoCompletion.getDocument().getText();
     return Quantity.addUnit(myItem.getResourceItem().getType(), text);
+  }
+
+  private void editorFocusGained() {
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      NlResourceItem item = myItem;
+      List<String> completions = TextEditorWithAutoCompletion.loadCompletions(item.getFacet(), getResourceTypes(), null);
+      if (item == myItem) {
+        myTextEditorWithAutoCompletion.updateCompletions(completions);
+        myCompletionsUpdated = true;
+      }
+    });
   }
 }
