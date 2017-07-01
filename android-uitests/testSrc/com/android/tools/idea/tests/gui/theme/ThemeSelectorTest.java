@@ -221,7 +221,7 @@ public class ThemeSelectorTest {
    * Tests that we can remove AppCompat and the themes update correctly.
    * Test that we can open the simple application and the theme editor opens correctly.
    */
-  @RunIn(TestGroup.UNRELIABLE)
+  @RunIn(TestGroup.UNRELIABLE)  // b/63048046
   @Test
   public void testRemoveAppCompat() throws IOException {
     guiTest.importSimpleApplication();
