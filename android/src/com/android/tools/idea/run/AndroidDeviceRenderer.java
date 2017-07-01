@@ -71,31 +71,32 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
     AndroidDevice device = entry.getAndroidDevice();
     assert device != null;
 
-    SettableFuture<LaunchCompatibility> compatibilityFuture = getCachedCompatibilityFuture(device);
-
     clear();
+
     if (shouldShowSerialNumbers(list, device)) {
       append("[" + device.getSerial() + "] ", SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
-    boolean compatibilityIsKnown = compatibilityFuture.isDone();
+
+    SettableFuture<LaunchCompatibility> compatibilityFuture = getCachedCompatibilityFuture(device);
+    boolean compatibilityIsKnown = compatibilityFuture != null && compatibilityFuture.isDone();
     LaunchCompatibility launchCompatibility = LaunchCompatibility.YES;
     if (compatibilityIsKnown) {
       try {
         launchCompatibility = compatibilityFuture.get();
       } catch (ExecutionException e) {
-        LOG.warn(e.getCause());
+        // The exception has been logged already.
       } catch (InterruptedException e) {
-        assert false;  // Not possible since the feature is complete.
+        assert false;  // Not possible since the future is complete.
       }
     }
 
     boolean compatible = launchCompatibility.isCompatible() != ThreeState.NO;
-    if (device.renderLabel(this, compatible, mySpeedSearch.getEnteredPrefix()) && compatibilityIsKnown) {
-      if (launchCompatibility.getReason() != null) {
-        append(" (" + launchCompatibility.getReason() + ")", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
-      }
+    device.renderLabel(this, compatible, mySpeedSearch.getEnteredPrefix());
+    if (launchCompatibility.getReason() != null) {
+      append(" (" + launchCompatibility.getReason() + ")", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
     }
-    else {
+
+    if (!compatibilityIsKnown && compatibilityFuture != null) {
       setPaintBusy(list, true);
       // Obtaining device information is potentially a long running operation. Execute it on a background thread.
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
@@ -105,6 +106,7 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
             compatibilityFuture.set(myCompatibilityChecker.validate(device));
           } catch (Throwable t) {
             compatibilityFuture.setException(t);
+            LOG.warn(t);
           }
         }
 
@@ -148,13 +150,19 @@ public class AndroidDeviceRenderer extends ColoredListCellRenderer<DevicePickerE
     return new JLabel(title);
   }
 
+  /**
+   * Returns either a completed cached compatibility future for the given device, or a brand new future for which no attempt to set its
+   * value has been made. If a cached future for the given device exists prior to calling this method, but the future is not complete,
+   * the method returns null.
+   */
   private SettableFuture<LaunchCompatibility> getCachedCompatibilityFuture(AndroidDevice device) {
-    SettableFuture<LaunchCompatibility> cachedCompatibility = myCompatibilityCache.get(device);
-    if (cachedCompatibility == null) {
-      cachedCompatibility = SettableFuture.create();
-      myCompatibilityCache.put(device, cachedCompatibility);
+    SettableFuture<LaunchCompatibility> compatibilityFuture = myCompatibilityCache.get(device);
+    if (compatibilityFuture == null) {
+      compatibilityFuture = SettableFuture.create();
+      myCompatibilityCache.put(device, compatibilityFuture);
+      return compatibilityFuture;
     }
-    return cachedCompatibility;
+    return compatibilityFuture.isDone() ? compatibilityFuture : null;
   }
 
   /**
