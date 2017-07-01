@@ -21,6 +21,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.ide.android.*;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.google.common.collect.ImmutableList;
@@ -116,13 +118,13 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @param rootDirPath         the root directory of the imported Android-Gradle project.
    * @param androidProject      imported Android-Gradle project.
    * @param selectedVariantName the name of selected variant.
-   * @param dependenciesFactory the factory instance to create {@link IdeLevel2Dependencies}.
+   * @param dependenciesFactory the factory instance to create {@link IdeDependencies}.
    */
   public AndroidModuleModel(@NotNull String moduleName,
                             @NotNull File rootDirPath,
                             @NotNull AndroidProject androidProject,
                             @NotNull String selectedVariantName,
-                            @NotNull IdeLevel2DependenciesFactory dependenciesFactory) {
+                            @NotNull IdeDependenciesFactory dependenciesFactory) {
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
@@ -166,19 +168,19 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   /**
-   * @return Instance of {@link IdeLevel2Dependencies} from main artifact.
+   * @return Instance of {@link IdeDependencies} from main artifact.
    */
   @NotNull
-  public IdeLevel2Dependencies getSelectedMainCompileLevel2Dependencies() {
+  public IdeDependencies getSelectedMainCompileLevel2Dependencies() {
     IdeAndroidArtifact mainArtifact = getMainArtifact();
     return mainArtifact.getLevel2Dependencies();
   }
 
   /**
-   * @return Instance of {@link IdeLevel2Dependencies} from test artifact, or {@code null} if current module has no test artifact.
+   * @return Instance of {@link IdeDependencies} from test artifact, or {@code null} if current module has no test artifact.
    */
   @Nullable
-  public IdeLevel2Dependencies getSelectedAndroidTestCompileDependencies() {
+  public IdeDependencies getSelectedAndroidTestCompileDependencies() {
     IdeAndroidArtifact androidTestArtifact = getSelectedVariant().getAndroidTestArtifact();
     if (androidTestArtifact == null) {
       // Only variants in the debug build type have an androidTest artifact.

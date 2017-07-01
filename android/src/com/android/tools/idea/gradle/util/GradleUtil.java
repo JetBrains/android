@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.*;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -239,7 +240,7 @@ public final class GradleUtil {
     List<Library> libraries = Lists.newArrayList();
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    IdeLevel2Dependencies dependencies = mainArtifact.getLevel2Dependencies();
+    IdeDependencies dependencies = mainArtifact.getLevel2Dependencies();
     libraries.addAll(dependencies.getModuleDependencies());
 
     for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
@@ -569,7 +570,7 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOn(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeLevel2Dependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
+    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
     return dependsOn(dependencies, artifact);
   }
 
@@ -580,7 +581,7 @@ public final class GradleUtil {
    */
   @Nullable
   public static GradleVersion getModuleDependencyVersion(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeLevel2Dependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
+    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
     for (Library library : dependencies.getAndroidLibraries()) {
       String version = getDependencyVersion(library, artifact);
       if (version != null) {
@@ -599,7 +600,7 @@ public final class GradleUtil {
    * @return {@code true} if the project depends on the given artifact (including transitively)
    */
   public static boolean dependsOnAndroidTest(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
-    IdeLevel2Dependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
+    IdeDependencies dependencies = androidModel.getSelectedAndroidTestCompileDependencies();
     if (dependencies == null) {
       return false;
     }
@@ -614,7 +615,7 @@ public final class GradleUtil {
    * @param artifact     the artifact
    * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
-  private static boolean dependsOn(@NonNull IdeLevel2Dependencies dependencies, @NonNull String artifact) {
+  private static boolean dependsOn(@NonNull IdeDependencies dependencies, @NonNull String artifact) {
     for (Library library : dependencies.getAndroidLibraries()) {
       if (dependsOn(library, artifact)) {
         return true;
@@ -735,7 +736,7 @@ public final class GradleUtil {
   @Nullable
   public static Library findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
     IdeAndroidArtifact artifact = variant.getMainArtifact();
-    IdeLevel2Dependencies dependencies = artifact.getLevel2Dependencies();
+    IdeDependencies dependencies = artifact.getLevel2Dependencies();
     for (Library library : dependencies.getAndroidLibraries()) {
       if (filesEqual(bundleDir, library.getFolder())) {
         return library;

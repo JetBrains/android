@@ -19,6 +19,7 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseArtifactStub;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
@@ -33,11 +34,11 @@ import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTe
  * Tests for {@link IdeBaseArtifactImpl}.
  */
 public class IdeBaseArtifactImplTest {
-  private IdeLevel2DependenciesFactory myDependenciesFactory;
+  private IdeDependenciesFactory myDependenciesFactory;
 
   @Before
   public void setup() {
-    myDependenciesFactory = new IdeLevel2DependenciesFactory();
+    myDependenciesFactory = new IdeDependenciesFactory();
   }
 
   @Test

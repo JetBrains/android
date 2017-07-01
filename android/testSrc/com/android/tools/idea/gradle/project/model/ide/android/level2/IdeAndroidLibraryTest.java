@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
 import com.android.builder.model.level2.Library;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2AndroidLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.ModelCache;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.AndroidLibraryStub;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,24 +32,26 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeLevel2AndroidLibrary}.
+ * Tests for {@link IdeAndroidLibrary}.
  */
-public class IdeLevel2AndroidLibraryTest {
+public class IdeAndroidLibraryTest {
+  private IdeLibraryFactory myLibraryFactory;
   private ModelCache myModelCache;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
+    myLibraryFactory = new IdeLibraryFactory();
     myModelCache = new ModelCache();
   }
 
   @Test
   public void serializable() {
-    assertThat(IdeLevel2AndroidLibrary.class).isAssignableTo(Serializable.class);
+    assertThat(IdeAndroidLibrary.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    Library androidLibrary = IdeLevel2LibraryFactory.create(new Level2AndroidLibraryStub(), myModelCache);
+    Library androidLibrary = myLibraryFactory.create(new AndroidLibraryStub(), myModelCache);
     byte[] bytes = serialize(androidLibrary);
     Object o = deserialize(bytes);
     assertEquals(androidLibrary, o);
@@ -56,8 +59,8 @@ public class IdeLevel2AndroidLibraryTest {
 
   @Test
   public void constructor() throws Throwable {
-    Library original = new Level2AndroidLibraryStub();
-    Library copy = IdeLevel2LibraryFactory.create(original, myModelCache);
+    Library original = new AndroidLibraryStub();
+    Library copy = myLibraryFactory.create(original, myModelCache);
     assertThat(copy.getAidlFolder()).isEqualTo(join(original.getFolder(), original.getAidlFolder()).getPath());
     assertThat(copy.getRenderscriptFolder()).isEqualTo(join(original.getFolder(), original.getRenderscriptFolder()).getPath());
     assertThat(copy.getResFolder()).isEqualTo(join(original.getFolder(), original.getResFolder()).getPath());
@@ -69,6 +72,6 @@ public class IdeLevel2AndroidLibraryTest {
 
   @Test
   public void equalsAndHashCode() {
-    createEqualsVerifier(IdeLevel2AndroidLibrary.class).verify();
+    createEqualsVerifier(IdeAndroidLibrary.class).verify();
   }
 }

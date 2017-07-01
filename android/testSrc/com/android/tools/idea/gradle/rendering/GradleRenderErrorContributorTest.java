@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.rendering;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -45,12 +45,12 @@ import static org.mockito.Mockito.when;
 public class GradleRenderErrorContributorTest extends IdeaTestCase {
   private GradleRenderErrorContributor.GradleProvider myProvider;
   private RenderErrorModel myRenderErrorModel;
-  private IdeLevel2DependenciesFactory myDependenciesFactory;
+  private IdeDependenciesFactory myDependenciesFactory;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myDependenciesFactory = new IdeLevel2DependenciesFactory();
+    myDependenciesFactory = new IdeDependenciesFactory();
     IdeComponents.replaceService(myProject, GradleProjectInfo.class, mock(GradleProjectInfo.class));
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
 

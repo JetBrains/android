@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.JavaArtifact;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +36,7 @@ public final class IdeJavaArtifact extends IdeBaseArtifactImpl implements JavaAr
 
   public IdeJavaArtifact(@NotNull JavaArtifact artifact,
                          @NotNull ModelCache seen,
-                         @NotNull IdeLevel2DependenciesFactory dependenciesFactory,
+                         @NotNull IdeDependenciesFactory dependenciesFactory,
                          @Nullable GradleVersion gradleVersion) {
     super(artifact, seen, dependenciesFactory, gradleVersion);
     myMockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar, null);

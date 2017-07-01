@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
@@ -140,7 +140,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
     myFacet.setAndroidModel(
-      new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeLevel2DependenciesFactory()));
+      new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertThat(myFacet.requiresAndroidModel()).isTrue();
 

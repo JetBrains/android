@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
 import com.android.builder.model.level2.Library;
 import com.google.common.collect.ImmutableList;
@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Objects;
 
-public class IdeLevel2DependenciesImpl implements IdeLevel2Dependencies, Serializable {
+public class IdeDependenciesImpl implements IdeDependencies, Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -32,9 +32,9 @@ public class IdeLevel2DependenciesImpl implements IdeLevel2Dependencies, Seriali
   @NotNull private final Collection<Library> myModuleDependencies;
   private final int myHashCode;
 
-  IdeLevel2DependenciesImpl(@NotNull ImmutableList<Library> androidLibraries,
-                            @NotNull ImmutableList<Library> javaLibraries,
-                            @NotNull ImmutableList<Library> moduleDependencies) {
+  IdeDependenciesImpl(@NotNull ImmutableList<Library> androidLibraries,
+                      @NotNull ImmutableList<Library> javaLibraries,
+                      @NotNull ImmutableList<Library> moduleDependencies) {
     myAndroidLibraries = androidLibraries;
     myJavaLibraries = javaLibraries;
     myModuleDependencies = moduleDependencies;
@@ -64,10 +64,10 @@ public class IdeLevel2DependenciesImpl implements IdeLevel2Dependencies, Seriali
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeLevel2DependenciesImpl)) {
+    if (!(o instanceof IdeDependenciesImpl)) {
       return false;
     }
-    IdeLevel2DependenciesImpl item = (IdeLevel2DependenciesImpl)o;
+    IdeDependenciesImpl item = (IdeDependenciesImpl)o;
     return Objects.equals(myAndroidLibraries, item.myAndroidLibraries) &&
            Objects.equals(myJavaLibraries, item.myJavaLibraries) &&
            Objects.equals(myModuleDependencies, item.myModuleDependencies);
@@ -84,7 +84,7 @@ public class IdeLevel2DependenciesImpl implements IdeLevel2Dependencies, Seriali
 
   @Override
   public String toString() {
-    return "IdeLevel2DependenciesImpl{" +
+    return "IdeDependenciesImpl{" +
            "myAndroidLibraries=" + myAndroidLibraries +
            ", myJavaLibraries=" + myJavaLibraries +
            ", myModuleDependencies=" + myModuleDependencies +

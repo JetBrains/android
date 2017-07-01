@@ -22,12 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-class ModelCache {
+public class ModelCache {
   @NotNull private final Map<Object, Object> myData = new HashMap<>();
 
   @SuppressWarnings("unchecked")
   @NotNull
-  <K, V> V computeIfAbsent(@NotNull K key, @NotNull Function<K, V> mappingFunction) {
+  public <K, V> V computeIfAbsent(@NotNull K key, @NotNull Function<K, V> mappingFunction) {
     Object result = myData.computeIfAbsent(key, o -> mappingFunction.apply((K)o));
     return (V)result;
   }

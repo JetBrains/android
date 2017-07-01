@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
 import com.android.builder.model.level2.Library;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeModel;
+import com.android.tools.idea.gradle.project.model.ide.android.ModelCache;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +29,7 @@ import java.util.Objects;
 /**
  * Creates a deep copy of {@link Library} of type LIBRARY_ANDROID.
  */
-public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
+public final class IdeAndroidLibrary extends IdeModel implements Library {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
   private static final long serialVersionUID = 1L;
 
@@ -51,24 +53,24 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   private final int myType;
   private final int myHashCode;
 
-  IdeLevel2AndroidLibrary(@NotNull Object original,
-                          @NotNull ModelCache modelCache,
-                          @NotNull String artifactAddress,
-                          @NotNull File folder,
-                          @NotNull String manifest,
-                          @NotNull String jarFile,
-                          @NotNull String resFolder,
-                          @NotNull String assetsFolder,
-                          @NotNull Collection<String> localJars,
-                          @NotNull String jniFolder,
-                          @NotNull String aidlFolder,
-                          @NotNull String renderscriptFolder,
-                          @NotNull String proguardRules,
-                          @NotNull String lintJar,
-                          @NotNull String externalAnnotations,
-                          @NotNull String publicResources,
-                          @NotNull File artifactFile,
-                          @Nullable String symbolFile) {
+  IdeAndroidLibrary(@NotNull Object original,
+                    @NotNull ModelCache modelCache,
+                    @NotNull String artifactAddress,
+                    @NotNull File folder,
+                    @NotNull String manifest,
+                    @NotNull String jarFile,
+                    @NotNull String resFolder,
+                    @NotNull String assetsFolder,
+                    @NotNull Collection<String> localJars,
+                    @NotNull String jniFolder,
+                    @NotNull String aidlFolder,
+                    @NotNull String renderscriptFolder,
+                    @NotNull String proguardRules,
+                    @NotNull String lintJar,
+                    @NotNull String externalAnnotations,
+                    @NotNull String publicResources,
+                    @NotNull File artifactFile,
+                    @Nullable String symbolFile) {
     super(original, modelCache);
     myType = LIBRARY_ANDROID;
     myArtifactAddress = artifactAddress;
@@ -197,15 +199,18 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
   @Override
   @Nullable
   public String getVariant() {
-    throw new UnsupportedOperationException(
-      "getVariant() cannot be called when getType() returns ANDROID_LIBRARY");
+    throw unsupportedMethodForAndroidLibrary("getVariant");
   }
 
   @Override
   @NotNull
   public String getProjectPath() {
-    throw new UnsupportedOperationException(
-      "getProjectPath() cannot be called when getType() returns ANDROID_LIBRARY");
+    throw unsupportedMethodForAndroidLibrary("getProjectPath");
+  }
+
+  @NotNull
+  private static UnsupportedOperationException unsupportedMethodForAndroidLibrary(@NotNull String methodName) {
+    return new UnsupportedOperationException(methodName + "() cannot be called when getType() returns ANDROID_LIBRARY");
   }
 
   @Override
@@ -213,10 +218,10 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeLevel2AndroidLibrary)) {
+    if (!(o instanceof IdeAndroidLibrary)) {
       return false;
     }
-    IdeLevel2AndroidLibrary that = (IdeLevel2AndroidLibrary)o;
+    IdeAndroidLibrary that = (IdeAndroidLibrary)o;
     return myType == that.myType &&
            Objects.equals(myArtifactAddress, that.myArtifactAddress) &&
            Objects.equals(myFolder, that.myFolder) &&
@@ -249,7 +254,7 @@ public final class IdeLevel2AndroidLibrary extends IdeModel implements Library {
 
   @Override
   public String toString() {
-    return "IdeLevel2AndroidLibrary{" +
+    return "IdeAndroidLibrary{" +
            "myType=" + myType +
            ", myArtifactAddress='" + myArtifactAddress + '\'' +
            ", myFolder=" + myFolder +

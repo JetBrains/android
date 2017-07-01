@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidLibrary;
@@ -25,6 +25,7 @@ import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.builder.model.level2.GraphItem;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.ModelCache;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.model.GradleProject;
@@ -32,42 +33,42 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.level2.Library.*;
-import static com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2LibraryFactory.computeAddress;
+import static com.android.tools.idea.gradle.project.model.ide.android.level2.IdeLibraries.computeAddress;
 
 /**
- * Create {@link IdeLevel2Dependencies} from {@link BaseArtifact}.
+ * Creates {@link IdeDependencies} from {@link BaseArtifact}.
  */
-public class IdeLevel2DependenciesFactory {
+public class IdeDependenciesFactory {
   // Map from unique artifact address to level2 library instance. The library instances are supposed to be shared by all artifacts.
   // When creating IdeLevel2Dependencies, check if current library is available in this map,
   // if it's available, don't create new one, simple add reference to it.
   // If it's not available, create new instance and save to this map, so it can be reused the next time when the same library is added.
-  @NotNull private final Map<String, Library> myMap = new HashMap<>();
-  // Saves the map from project path to build directory for all modules.
-  @NotNull private final ModuleBuildDirs myModuleBuildDirs = new ModuleBuildDirs();
+  @NotNull private final Map<String, Library> myLibrariesById = new HashMap<>();
+
+  @NotNull private final IdeLibraryFactory myLibraryFactory = new IdeLibraryFactory();
+  @NotNull private final BuildFolderPaths myBuildFolderPaths = new BuildFolderPaths();
 
   /**
-   * Add build directory of the given GradleProject.
+   * Finds and stores the path of the module's "build" folder.
    *
-   * @param gradleProject GradleProject of the module.
+   * @param gradleProject contains the path of the module's "build" folder.
    */
-  public void addModuleBuildDir(@NotNull GradleProject gradleProject) {
-    myModuleBuildDirs.add(gradleProject);
+  public void findAndAddBuildFolderPath(@NotNull GradleProject gradleProject) {
+    myBuildFolderPaths.add(gradleProject);
   }
 
   /**
-   * Create {@link IdeLevel2Dependencies} from {@link BaseArtifact}.
+   * Create {@link IdeDependencies} from {@link BaseArtifact}.
    *
    * @param artifact     Instance of {@link BaseArtifact} returned from Android plugin.
    * @param modelVersion Version of Android plugin.
-   * @return New instance of {@link IdeLevel2Dependencies}.
+   * @return New instance of {@link IdeDependencies}.
    */
-  public IdeLevel2Dependencies create(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
+  public IdeDependencies create(@NotNull BaseArtifact artifact, @Nullable GradleVersion modelVersion) {
     // Create a fresh model cache for this class, since current instance is based on dependencyGraphs or dependencies, which
     // have been copied in the constructor of IdeBaseArtifact.
     ModelCache modelCache = new ModelCache();
@@ -82,7 +83,7 @@ public class IdeLevel2DependenciesFactory {
    */
   @VisibleForTesting
   @NotNull
-  IdeLevel2DependenciesImpl createFromDependencyGraphs(@NotNull DependencyGraphs graphs) {
+  IdeDependencies createFromDependencyGraphs(@NotNull DependencyGraphs graphs) {
     return createInstance(graphs.getCompileDependencies().stream().map(GraphItem::getArtifactAddress).collect(Collectors.toList()));
   }
 
@@ -90,15 +91,14 @@ public class IdeLevel2DependenciesFactory {
    * Call this method on pre-3.0 models.
    */
   @NotNull
-  private IdeLevel2DependenciesImpl createFromDependencies(@NotNull Dependencies dependencies, @NotNull ModelCache modelCache) {
+  private IdeDependencies createFromDependencies(@NotNull Dependencies dependencies, @NotNull ModelCache modelCache) {
     Set<String> visited = new HashSet<>();
     populateAndroidLibraries(dependencies.getLibraries(), visited, modelCache);
     populateJavaLibraries(dependencies.getJavaLibraries(), visited, modelCache);
-    //noinspection deprecation
     for (String projectPath : dependencies.getProjects()) {
       if (!visited.contains(projectPath)) {
         visited.add(projectPath);
-        myMap.computeIfAbsent(projectPath, k -> IdeLevel2LibraryFactory.create(projectPath, modelCache));
+        myLibrariesById.computeIfAbsent(projectPath, id -> IdeLibraryFactory.create(projectPath, modelCache));
       }
     }
     return createInstance(visited);
@@ -111,7 +111,7 @@ public class IdeLevel2DependenciesFactory {
       String address = computeAddress(androidLibrary);
       if (!visited.contains(address)) {
         visited.add(address);
-        myMap.computeIfAbsent(address, k -> IdeLevel2LibraryFactory.create(androidLibrary, myModuleBuildDirs, modelCache));
+        myLibrariesById.computeIfAbsent(address, id -> myLibraryFactory.create(androidLibrary, myBuildFolderPaths, modelCache));
         populateAndroidLibraries(androidLibrary.getLibraryDependencies(), visited, modelCache);
         populateJavaLibraries(getJavaDependencies(androidLibrary), visited, modelCache);
       }
@@ -128,7 +128,6 @@ public class IdeLevel2DependenciesFactory {
     }
   }
 
-
   private void populateJavaLibraries(@NotNull Collection<? extends JavaLibrary> javaLibraries,
                                      @NotNull Set<String> visited,
                                      @NotNull ModelCache modelCache) {
@@ -136,20 +135,20 @@ public class IdeLevel2DependenciesFactory {
       String address = computeAddress(javaLibrary);
       if (!visited.contains(address)) {
         visited.add(address);
-        myMap.computeIfAbsent(address, k -> IdeLevel2LibraryFactory.create(javaLibrary, modelCache));
+        myLibrariesById.computeIfAbsent(address, k -> myLibraryFactory.create(javaLibrary, modelCache));
         populateJavaLibraries(javaLibrary.getDependencies(), visited, modelCache);
       }
     }
   }
 
   @NotNull
-  private IdeLevel2DependenciesImpl createInstance(@NotNull Collection<String> artifactAddresses) {
+  private IdeDependencies createInstance(@NotNull Collection<String> artifactAddresses) {
     ImmutableList.Builder<Library> androidLibraries = ImmutableList.builder();
     ImmutableList.Builder<Library> javaLibraries = ImmutableList.builder();
     ImmutableList.Builder<Library> moduleDependencies = ImmutableList.builder();
 
     for (String address : artifactAddresses) {
-      Library library = myMap.get(address);
+      Library library = myLibrariesById.get(address);
       assert library != null;
       switch (library.getType()) {
         case LIBRARY_ANDROID:
@@ -165,7 +164,7 @@ public class IdeLevel2DependenciesFactory {
           throw new UnsupportedOperationException("Unknown library type " + library.getType());
       }
     }
-    return new IdeLevel2DependenciesImpl(androidLibraries.build(), javaLibraries.build(), moduleDependencies.build());
+    return new IdeDependenciesImpl(androidLibraries.build(), javaLibraries.build(), moduleDependencies.build());
   }
 
   /**
@@ -176,7 +175,7 @@ public class IdeLevel2DependenciesFactory {
   public void setupGlobalLibraryMap(@NotNull GlobalLibraryMap globalLibraryMap) {
     ModelCache modelCache = new ModelCache();
     for (Library library : globalLibraryMap.getLibraries().values()) {
-      myMap.computeIfAbsent(library.getArtifactAddress(), k -> IdeLevel2LibraryFactory.create(library, modelCache));
+      myLibrariesById.computeIfAbsent(library.getArtifactAddress(), k -> myLibraryFactory.create(library, modelCache));
     }
   }
 }

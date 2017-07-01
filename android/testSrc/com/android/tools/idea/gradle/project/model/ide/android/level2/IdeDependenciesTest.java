@@ -13,54 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
-import com.android.builder.model.level2.GlobalLibraryMap;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.GlobalLibraryMapStub;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseArtifactStub;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
 
-import static com.android.tools.idea.gradle.project.model.ide.android.IdeModelTestUtils.*;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.deserialize;
 import static com.android.tools.idea.gradle.project.model.ide.android.Serialization.serialize;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link IdeGlobalLibraryMap}.
+ * Tests for {@link IdeDependencies}.
  */
-public class IdeGlobalLibraryMapTest {
-  private ModelCache myModelCache;
+public class IdeDependenciesTest {
+  IdeDependenciesFactory myDependenciesFactory;
 
   @Before
-  public void setUp() throws Exception {
-    myModelCache = new ModelCache();
+  public void setup() {
+    myDependenciesFactory = new IdeDependenciesFactory();
   }
 
   @Test
   public void serializable() {
-    assertThat(IdeGlobalLibraryMap.class).isAssignableTo(Serializable.class);
+    assertThat(IdeDependenciesImpl.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    IdeGlobalLibraryMap globalLibraryMap = new IdeGlobalLibraryMap(new GlobalLibraryMapStub(), myModelCache);
-    byte[] bytes = serialize(globalLibraryMap);
+    IdeDependencies graphs = myDependenciesFactory.create(new BaseArtifactStub(), GradleVersion.parse("2.3.0"));
+    byte[] bytes = serialize(graphs);
     Object o = deserialize(bytes);
-    assertEquals(globalLibraryMap, o);
-  }
-
-  @Test
-  public void constructor() throws Throwable {
-    GlobalLibraryMap original = new GlobalLibraryMapStub();
-    IdeGlobalLibraryMap copy = new IdeGlobalLibraryMap(original, myModelCache);
-    verifyUsageOfImmutableCollections(copy);
-  }
-
-  @Test
-  public void equalsAndHashCode() {
-    createEqualsVerifier(IdeGlobalLibraryMap.class).withRedefinedSuperclass().verify();
+    assertEquals(graphs, o);
   }
 }
