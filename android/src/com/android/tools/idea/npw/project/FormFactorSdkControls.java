@@ -35,7 +35,6 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.List;
-import java.util.Locale;
 
 import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
@@ -164,8 +163,10 @@ final class FormFactorSdkControls {
 
   private static String getApiHelpText(int selectedApi, @NotNull String selectedApiName) {
     double percentage = DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100;
-    String percentageStr = percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage);
-    return String.format(Locale.getDefault(), "<html>By targeting <b>API %1$s and later</b>, your app will run on %2$s of devices.</html>",
+    String percentageStr = percentage < 1 ?
+                           "&lt; 1%" :
+                           String.format("approximately <b>" + (percentage >= 10 ? "%.3g%%" : "%.2g%%") + "</b>", percentage);
+    return String.format("<html>By targeting <b>API %1$s and later</b>, your app will run on %2$s of devices.</html>",
                          selectedApiName, percentageStr);
   }
 

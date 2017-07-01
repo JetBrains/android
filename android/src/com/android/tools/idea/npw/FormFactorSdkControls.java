@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
-import java.util.Locale;
 import java.util.Set;
 
 import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
@@ -206,11 +205,13 @@ final class FormFactorSdkControls {
   }
 
   private static String getApiHelpText(int selectedApi, String selectedApiName) {
-    float percentage = (float)(DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100);
-    return String.format(Locale.getDefault(), "<html>By targeting API %1$s and later, your app will run on %2$s of the devices<br>that are " +
+    double percentage = DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100;
+    String percentageStr = percentage < 1 ?
+                           "&lt; 1%" :
+                           String.format("approximately <b>" + (percentage >= 10 ? "%.3g%%" : "%.2g%%") + "</b>", percentage);
+    return String.format("<html>By targeting API %1$s and later, your app will run on %2$s of the devices<br>that are " +
                                               "active on the Google Play Store.</html>",
-                         selectedApiName,
-                         percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage));
+                         selectedApiName, percentageStr);
   }
 
   private void createUIComponents() {
