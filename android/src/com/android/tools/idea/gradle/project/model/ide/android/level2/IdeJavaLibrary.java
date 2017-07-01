@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android.stubs;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
+
 
 import com.android.builder.model.level2.Library;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeModel;
+import com.android.tools.idea.gradle.project.model.ide.android.ModelCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,18 +26,24 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Objects;
 
-public class Level2JavaLibraryStub extends BaseStub implements Library {
-  private final int myHashCode;
-  private final int myType;
+/**
+ * Creates a deep copy of {@link Library} of type LIBRARY_JAVA.
+ */
+public final class IdeJavaLibrary extends IdeModel implements Library {
+  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
+  private static final long serialVersionUID = 2L;
+
   @NotNull private final String myArtifactAddress;
   @NotNull private final File myArtifactFile;
+  private final int myType;
+  private final int myHashCode;
 
-  public Level2JavaLibraryStub() {
-    this(LIBRARY_JAVA, "artifact:address:1.0", new File("artifactFile"));
-  }
-
-  public Level2JavaLibraryStub(int type, @NotNull String artifactAddress, @NotNull File artifactFile) {
-    myType = type;
+  IdeJavaLibrary(@NotNull String artifactAddress,
+                 @NotNull File artifactFile,
+                 @NotNull ModelCache modelCache,
+                 @NotNull Object sourceObject) {
+    super(sourceObject, modelCache);
+    myType = LIBRARY_JAVA;
     myArtifactAddress = artifactAddress;
     myArtifactFile = artifactFile;
     myHashCode = calculateHashCode();
@@ -60,113 +69,102 @@ public class Level2JavaLibraryStub extends BaseStub implements Library {
   @Override
   @Nullable
   public String getVariant() {
-    throw new UnsupportedOperationException(
-      "getVariant() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getVariant");
   }
 
   @Override
   @NotNull
   public String getProjectPath() {
-    throw new UnsupportedOperationException(
-      "getProjectPath() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getProjectPath");
   }
 
   @Override
   @NotNull
   public File getFolder() {
-    throw new UnsupportedOperationException(
-      "getFolder() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getFolder");
   }
 
   @Override
   @NotNull
   public String getManifest() {
-    throw new UnsupportedOperationException(
-      "getManifest() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getManifest");
   }
 
   @Override
   @NotNull
   public String getJarFile() {
-    throw new UnsupportedOperationException(
-      "getJarFile() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getJarFile");
   }
 
   @Override
   @NotNull
   public String getResFolder() {
-    throw new UnsupportedOperationException(
-      "getResFolder() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getResFolder");
   }
 
   @Override
   @NotNull
   public String getAssetsFolder() {
-    throw new UnsupportedOperationException(
-      "getAssetsFolder() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getAssetsFolder");
   }
 
   @Override
   @NotNull
   public Collection<String> getLocalJars() {
-    throw new UnsupportedOperationException(
-      "getLocalJars() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getLocalJars");
   }
 
   @Override
   @NotNull
   public String getJniFolder() {
-    throw new UnsupportedOperationException(
-      "getJniFolder() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getJniFolder");
   }
 
   @Override
   @NotNull
   public String getAidlFolder() {
-    throw new UnsupportedOperationException(
-      "getAidlFolder() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getAidlFolder");
   }
 
   @Override
   @NotNull
   public String getRenderscriptFolder() {
-    throw new UnsupportedOperationException(
-      "getRenderscriptFolder() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getRenderscriptFolder");
   }
 
   @Override
   @NotNull
   public String getProguardRules() {
-    throw new UnsupportedOperationException(
-      "getProguardRules() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getProguardRules");
   }
 
   @Override
   @NotNull
   public String getLintJar() {
-    throw new UnsupportedOperationException(
-      "getLintJar() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getLintJar");
   }
 
   @Override
   @NotNull
   public String getExternalAnnotations() {
-    throw new UnsupportedOperationException(
-      "getExternalAnnotations() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getExternalAnnotations");
   }
 
   @Override
   @NotNull
   public String getPublicResources() {
-    throw new UnsupportedOperationException(
-      "getPublicResources() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary( "getPublicResources");
   }
 
   @Override
   @NotNull
   public String getSymbolFile() {
-    throw new UnsupportedOperationException(
-      "getSymbolFile() cannot be called when getType() returns LIBRARY_JAVA");
+    throw unsupportedMethodForJavaLibrary("getSymbolFile");
+  }
+
+  @NotNull
+  private static UnsupportedOperationException unsupportedMethodForJavaLibrary(@NotNull String methodName) {
+    return new UnsupportedOperationException(methodName + "() cannot be called when getType() returns LIBRARY_JAVA");
   }
 
   @Override
@@ -174,13 +172,13 @@ public class Level2JavaLibraryStub extends BaseStub implements Library {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof Library)) {
+    if (!(o instanceof IdeJavaLibrary)) {
       return false;
     }
-    Library that = (Library)o;
-    return myType == that.getType() &&
-           Objects.equals(myArtifactAddress, that.getArtifactAddress()) &&
-           Objects.equals(myArtifactFile, that.getArtifact());
+    IdeJavaLibrary that = (IdeJavaLibrary)o;
+    return myType == that.myType &&
+           Objects.equals(myArtifactAddress, that.myArtifactAddress) &&
+           Objects.equals(myArtifactFile, that.myArtifactFile);
   }
 
   @Override
@@ -194,7 +192,7 @@ public class Level2JavaLibraryStub extends BaseStub implements Library {
 
   @Override
   public String toString() {
-    return "Level2JavaLibraryStub{" +
+    return "IdeJavaLibrary{" +
            "myType=" + myType +
            ", myArtifactAddress='" + myArtifactAddress + '\'' +
            ", myArtifactFile=" + myArtifactFile +

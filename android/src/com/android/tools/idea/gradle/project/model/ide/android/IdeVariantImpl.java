@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.util.Consumer;
@@ -50,7 +51,7 @@ public final class IdeVariantImpl extends IdeModel implements IdeVariant {
 
   public IdeVariantImpl(@NotNull Variant variant,
                         @NotNull ModelCache modelCache,
-                        @NotNull IdeLevel2DependenciesFactory dependenciesFactory,
+                        @NotNull IdeDependenciesFactory dependenciesFactory,
                         @Nullable GradleVersion modelVersion) {
     super(variant, modelCache);
     myName = variant.getName();

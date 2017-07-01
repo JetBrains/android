@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeNativeAndroidProject;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
@@ -110,7 +110,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myErrorHandler, myProjectFinder, myVariantSelector,
                                                          myNativeAndroidProjectFactory, myIdeaJavaModuleModelFactory,
-                                                         new IdeLevel2DependenciesFactory());
+                                                         new IdeDependenciesFactory());
     myProjectResolver.setProjectResolverContext(myResolverCtx);
 
     GradleProjectResolverExtension next = new BaseGradleProjectResolverExtension();

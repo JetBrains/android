@@ -21,7 +21,7 @@ import com.android.builder.model.ClassField;
 import com.android.builder.model.InstantRun;
 import com.android.builder.model.NativeLibrary;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.IdeLevel2DependenciesStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.IdeDependenciesStub;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
@@ -38,7 +38,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
   @NotNull private final Collection<AndroidArtifactOutput> myOutputs;
   @NotNull private final Collection<NativeLibrary> myNativeLibraries = Lists.newArrayList();
-  @NotNull private final IdeLevel2DependenciesStub myIdeLevel2DependenciesStub;
+  @NotNull private final IdeDependenciesStub myIdeLevel2DependenciesStub;
   @NotNull private String myApplicationId;
 
   private InstantRun myInstantRun;
@@ -51,7 +51,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
     myApplicationId = "app." + buildType.toLowerCase();
     AndroidArtifactOutputStub output = new AndroidArtifactOutputStub(new OutputFileStub(new File(name + "-" + buildType + ".apk")));
     myOutputs = Collections.singletonList(output);
-    myIdeLevel2DependenciesStub = new IdeLevel2DependenciesStub();
+    myIdeLevel2DependenciesStub = new IdeDependenciesStub();
   }
 
   @Override
@@ -152,7 +152,7 @@ public class AndroidArtifactStub extends BaseArtifactStub implements IdeAndroidA
 
   @Override
   @NotNull
-  public IdeLevel2DependenciesStub getLevel2Dependencies() {
+  public IdeDependenciesStub getLevel2Dependencies() {
     return myIdeLevel2DependenciesStub;
   }
 }

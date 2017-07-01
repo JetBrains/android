@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android.stubs;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs.level2;
 
 import com.android.builder.model.level2.Library;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependencies;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class IdeLevel2DependenciesStub implements IdeLevel2Dependencies {
+public class IdeDependenciesStub implements IdeDependencies {
   @NotNull private final Collection<Library> myAndroidLibraries;
   @NotNull private final Collection<Library> myJavaLibraries;
   @NotNull private final Collection<Library> myModuleDependencies;
 
-  public IdeLevel2DependenciesStub() {
+  public IdeDependenciesStub() {
     this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
   }
 
-  IdeLevel2DependenciesStub(@NotNull Collection<Library> androidLibraries,
-                            @NotNull Collection<Library> javaLibraries,
-                            @NotNull Collection<Library> moduleDependencies) {
+  IdeDependenciesStub(@NotNull Collection<Library> androidLibraries,
+                      @NotNull Collection<Library> javaLibraries,
+                      @NotNull Collection<Library> moduleDependencies) {
     myAndroidLibraries = androidLibraries;
     myJavaLibraries = javaLibraries;
     myModuleDependencies = moduleDependencies;

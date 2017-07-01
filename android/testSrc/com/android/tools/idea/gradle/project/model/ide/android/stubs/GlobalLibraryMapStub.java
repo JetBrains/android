@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model.ide.android.stubs;
 
 import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.builder.model.level2.Library;
-import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -26,12 +25,6 @@ import java.util.Objects;
 public final class GlobalLibraryMapStub extends BaseStub implements GlobalLibraryMap {
   private final int myHashCode;
   @NotNull private final Map<String, Library> myMap;
-
-  public GlobalLibraryMapStub() {
-    this(ImmutableMap.of("javaLibrary", new Level2JavaLibraryStub(),
-                         "androidLibrary", new Level2AndroidLibraryStub(),
-                         "moduleLibrary", new Level2ModuleLibraryStub()));
-  }
 
   public GlobalLibraryMapStub(@NotNull Map<String, Library> map) {
     myMap = map;

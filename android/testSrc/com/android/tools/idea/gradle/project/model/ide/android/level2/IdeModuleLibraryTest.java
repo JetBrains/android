@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
 import com.android.builder.model.level2.Library;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2JavaLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.ModelCache;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.ModuleLibraryStub;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,39 +30,41 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for class {@link IdeLevel2JavaLibrary}.
+ * Tests for {@link IdeModuleLibrary}.
  */
-public class IdeLevel2JavaLibraryTest {
+public class IdeModuleLibraryTest {
+  private IdeLibraryFactory myLibraryFactory;
   private ModelCache myModelCache;
 
   @Before
   public void setUp() throws Exception {
+    myLibraryFactory = new IdeLibraryFactory();
     myModelCache = new ModelCache();
   }
 
   @Test
   public void serializable() {
-    assertThat(IdeLevel2JavaLibrary.class).isAssignableTo(Serializable.class);
+    assertThat(IdeModuleLibrary.class).isAssignableTo(Serializable.class);
   }
 
   @Test
   public void serialization() throws Exception {
-    Library javaLibrary = IdeLevel2LibraryFactory.create(new Level2JavaLibraryStub(), myModelCache);
-    byte[] bytes = serialize(javaLibrary);
+    Library moduleLibrary = myLibraryFactory.create(new ModuleLibraryStub(), myModelCache);
+    byte[] bytes = serialize(moduleLibrary);
     Object o = deserialize(bytes);
-    assertEquals(javaLibrary, o);
+    assertEquals(moduleLibrary, o);
   }
 
   @Test
   public void constructor() throws Throwable {
-    Library original = new Level2JavaLibraryStub();
-    Library copy = IdeLevel2LibraryFactory.create(new Level2JavaLibraryStub(), myModelCache);
+    Library original = new ModuleLibraryStub();
+    Library copy = myLibraryFactory.create(new ModuleLibraryStub(), myModelCache);
     assertEqualsOrSimilar(original, copy);
     verifyUsageOfImmutableCollections(copy);
   }
 
   @Test
   public void equalsAndHashCode() {
-    createEqualsVerifier(IdeLevel2JavaLibrary.class).verify();
+    createEqualsVerifier(IdeModuleLibrary.class).verify();
   }
 }

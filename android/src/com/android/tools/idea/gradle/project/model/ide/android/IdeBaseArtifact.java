@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.BaseArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -24,9 +25,10 @@ public interface IdeBaseArtifact extends Serializable, BaseArtifact {
   boolean isTestArtifact();
 
   @NotNull
-  IdeLevel2Dependencies getLevel2Dependencies();
+  IdeDependencies getLevel2Dependencies();
 
   @Override
+  @Deprecated
   @NotNull
-  IdeDependencies getDependencies();
+  com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies getDependencies();
 }

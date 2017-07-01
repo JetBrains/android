@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependencies;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.wireless.android.sdk.stats.*;
@@ -241,7 +241,7 @@ public class ProjectStructureUsageTracker {
       chosenVariant.set(model.getSelectedVariant());
     }
 
-    IdeLevel2Dependencies dependencies = chosenVariant.get().getMainArtifact().getLevel2Dependencies();
+    IdeDependencies dependencies = chosenVariant.get().getMainArtifact().getLevel2Dependencies();
     // @formatter:off
     return GradleLibrary.newBuilder().setAarDependencyCount(dependencies.getAndroidLibraries().size())
                                      .setJarDependencyCount(dependencies.getJavaLibraries().size())

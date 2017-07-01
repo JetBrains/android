@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidProjectStub;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
@@ -36,12 +37,12 @@ import static org.junit.Assert.assertEquals;
  */
 public class IdeAndroidProjectImplTest {
   private ModelCache myModelCache;
-  private IdeLevel2DependenciesFactory myDependenciesFactory;
+  private IdeDependenciesFactory myDependenciesFactory;
 
   @Before
   public void setUp() throws Exception {
     myModelCache = new ModelCache();
-    myDependenciesFactory = new IdeLevel2DependenciesFactory();
+    myDependenciesFactory = new IdeDependenciesFactory();
   }
 
   @Test

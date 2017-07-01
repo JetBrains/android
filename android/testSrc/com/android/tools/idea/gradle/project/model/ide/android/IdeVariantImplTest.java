@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.VariantStub;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,14 +36,14 @@ import static org.junit.Assert.assertEquals;
 public class IdeVariantImplTest {
   private ModelCache myModelCache;
   private GradleVersion myGradleVersion;
-  private IdeLevel2DependenciesFactory myDependenciesFactory;
+  private IdeDependenciesFactory myDependenciesFactory;
 
 
   @Before
   public void setUp() throws Exception {
     myModelCache = new ModelCache();
     myGradleVersion = GradleVersion.parse("3.2");
-    myDependenciesFactory = new IdeLevel2DependenciesFactory();
+    myDependenciesFactory = new IdeDependenciesFactory();
   }
 
   @Test

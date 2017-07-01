@@ -13,41 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
-import com.android.annotations.VisibleForTesting;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Holds a map from project path to build directory for all modules.
+ * The "build" folder paths per module.
  */
-public class ModuleBuildDirs {
-  @NotNull private final Map<String, File> myProjectPathToBuildDir;
-
-  public ModuleBuildDirs() {
-    this(new HashMap<>());
-  }
-
-  @VisibleForTesting
-  ModuleBuildDirs(@NotNull Map<String, File> projectPathToBuildDir) {
-    myProjectPathToBuildDir = projectPathToBuildDir;
-  }
+public class BuildFolderPaths {
+  // Key: Module's Gradle path. Value: Path of the module's 'build' folder.
+  @NotNull private final Map<String, File> myBuildFolderPathsByModule = new HashMap<>();
 
   /**
-   * Add build directory of the given GradleProject.
+   * Extracts and stores the "build" folder path from the given {@link GradleProject}.
    *
-   * @param gradleProject GradleProject of the module.
+   * @param gradleProject the given {@code GradleProject}.
    */
   public void add(@NotNull GradleProject gradleProject) {
     try {
-      myProjectPathToBuildDir.put(gradleProject.getPath(), gradleProject.getBuildDirectory());
+      myBuildFolderPathsByModule.put(gradleProject.getPath(), gradleProject.getBuildDirectory());
     }
     catch (UnsupportedMethodException exception) {
       // getBuildDirectory is available for Gradle versions older than 2.0.
@@ -55,14 +47,20 @@ public class ModuleBuildDirs {
     }
   }
 
+  @TestOnly
+  void addBuildFolderMapping(@NotNull String moduleGradlePath, @NotNull String buildFolderPath) {
+    myBuildFolderPathsByModule.put(moduleGradlePath, new File(buildFolderPath));
+  }
+
   /**
-   * Get build directory of the given module.
+   * Finds the path of the "build" folder for the given module path.
    *
-   * @param projectPath Path of the module.
-   * @return Build directory. Returns null if the module doesn't exist.
+   * @param moduleGradlePath the given module path.
+   * @return the path of the "build" folder for the given module path; or {@code null} if the path is not found or haven't been registered
+   * yet.
    */
   @Nullable
-  public File getBuildDir(@NotNull String projectPath) {
-    return myProjectPathToBuildDir.get(projectPath);
+  public File findBuildFolderPath(@NotNull String moduleGradlePath) {
+    return myBuildFolderPathsByModule.get(moduleGradlePath);
   }
 }

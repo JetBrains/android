@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +50,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
 
   public IdeAndroidArtifactImpl(@NotNull AndroidArtifact artifact,
                                 @NotNull ModelCache modelCache,
-                                @NotNull IdeLevel2DependenciesFactory dependenciesFactory,
+                                @NotNull IdeDependenciesFactory dependenciesFactory,
                                 @Nullable GradleVersion gradleVersion) {
     super(artifact, modelCache, dependenciesFactory, gradleVersion);
     myOutputs = copy(artifact.getOutputs(), modelCache, output -> new IdeAndroidArtifactOutput(output, modelCache));

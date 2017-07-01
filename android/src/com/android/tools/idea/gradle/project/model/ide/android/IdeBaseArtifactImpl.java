@@ -21,6 +21,8 @@ import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -44,18 +46,18 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
 
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 3L;
+  private static final long serialVersionUID = 4L;
 
   @NotNull private final String myName;
   @NotNull private final String myCompileTaskName;
   @NotNull private final String myAssembleTaskName;
   @NotNull private final File myClassesFolder;
-  @NotNull private final IdeDependencies myDependencies;
+  @NotNull private final com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies myDependencies;
   @NotNull private final Set<String> myIdeSetupTaskNames;
   @NotNull private final Collection<File> myGeneratedSourceFolders;
   @NotNull private final Set<File> myAdditionalClassFolders;
-  @NotNull private final IdeLevel2Dependencies myLevel2Dependencies;
-  @Nullable private final IdeDependencies myCompileDependencies;
+  @NotNull private final IdeDependencies myLevel2Dependencies;
+  @Nullable private final com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies myCompileDependencies;
   @Nullable private final File myJavaResourcesFolder;
   @Nullable private final DependencyGraphs myDependencyGraphs;
   @Nullable private final IdeSourceProvider myVariantSourceProvider;
@@ -64,7 +66,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
 
   protected IdeBaseArtifactImpl(@NotNull BaseArtifact artifact,
                                 @NotNull ModelCache modelCache,
-                                @NotNull IdeLevel2DependenciesFactory dependenciesFactory,
+                                @NotNull IdeDependenciesFactory dependenciesFactory,
                                 @Nullable GradleVersion modelVersion) {
     super(artifact, modelCache);
     myName = artifact.getName();
@@ -94,9 +96,9 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
   }
 
   @NotNull
-  private static IdeDependencies copy(@NotNull Dependencies original,
-                                      @NotNull ModelCache modelCache,
-                                      @Nullable GradleVersion modelVersion) {
+  private static com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies copy(@NotNull Dependencies original,
+                                                                                              @NotNull ModelCache modelCache,
+                                                                                              @Nullable GradleVersion modelVersion) {
     return modelCache.computeIfAbsent(original, dependencies -> new IdeDependenciesImpl(dependencies, modelCache, modelVersion));
   }
 
@@ -169,7 +171,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
 
   @Override
   @NotNull
-  public IdeDependencies getDependencies() {
+  public com.android.tools.idea.gradle.project.model.ide.android.IdeDependencies getDependencies() {
     return myDependencies;
   }
 
@@ -201,7 +203,7 @@ public abstract class IdeBaseArtifactImpl extends IdeModel implements IdeBaseArt
 
   @Override
   @NotNull
-  public IdeLevel2Dependencies getLevel2Dependencies() {
+  public IdeDependencies getLevel2Dependencies() {
     return myLevel2Dependencies;
   }
 

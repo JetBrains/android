@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android.stubs;
+package com.android.tools.idea.gradle.project.model.ide.android.stubs.level2;
 
 import com.android.builder.model.level2.Library;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseStub;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
-public class Level2AndroidLibraryStub extends BaseStub implements Library {
+public class AndroidLibraryStub extends BaseStub implements Library {
   private final int myHashCode;
   private final int myType;
   @NotNull private final String myArtifactAddress;
@@ -44,29 +45,29 @@ public class Level2AndroidLibraryStub extends BaseStub implements Library {
   @NotNull private final String mySymbolFile;
   @NotNull private final File myArtifactFile;
 
-  public Level2AndroidLibraryStub() {
+  public AndroidLibraryStub() {
     this(LIBRARY_ANDROID, "artifact:address:1.0", new File("libraryFolder"), "manifest.xml", "file.jar", "res", "assets",
          Collections.emptyList(), "jni", "aidl", "renderscriptFolder", "proguardRules", "lint.jar", "externalAnnotations",
          "publicResources", "symbolFile", new File("artifactFile"));
   }
 
-  public Level2AndroidLibraryStub(int type,
-                                  @NotNull String artifactAddress,
-                                  @NotNull File folder,
-                                  @NotNull String manifest,
-                                  @NotNull String jarFile,
-                                  @NotNull String resFolder,
-                                  @NotNull String assetsFolder,
-                                  @NotNull Collection<String> localJars,
-                                  @NotNull String jniFolder,
-                                  @NotNull String aidlFolder,
-                                  @NotNull String renderscriptFolder,
-                                  @NotNull String proguardRules,
-                                  @NotNull String lintJar,
-                                  @NotNull String externalAnnotations,
-                                  @NotNull String publicResources,
-                                  @NotNull String symbolFile,
-                                  @NotNull File artifactFile) {
+  public AndroidLibraryStub(int type,
+                            @NotNull String artifactAddress,
+                            @NotNull File folder,
+                            @NotNull String manifest,
+                            @NotNull String jarFile,
+                            @NotNull String resFolder,
+                            @NotNull String assetsFolder,
+                            @NotNull Collection<String> localJars,
+                            @NotNull String jniFolder,
+                            @NotNull String aidlFolder,
+                            @NotNull String renderscriptFolder,
+                            @NotNull String proguardRules,
+                            @NotNull String lintJar,
+                            @NotNull String externalAnnotations,
+                            @NotNull String publicResources,
+                            @NotNull String symbolFile,
+                            @NotNull File artifactFile) {
     myType = type;
     myArtifactAddress = artifactAddress;
     myFolder = folder;

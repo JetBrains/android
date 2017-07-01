@@ -19,7 +19,7 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.JavaArtifact;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2DependenciesFactory;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.JavaArtifactStub;
@@ -227,7 +227,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     mySelectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(mySelectedVariant);
     AndroidModuleModel model = new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject,
-                                                      mySelectedVariant.getName(), new IdeLevel2DependenciesFactory());
+                                                      mySelectedVariant.getName(), new IdeDependenciesFactory());
     myFacet.setAndroidModel(model);
   }
 }

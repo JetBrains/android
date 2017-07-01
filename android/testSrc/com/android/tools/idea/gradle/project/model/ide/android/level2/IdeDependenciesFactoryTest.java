@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
@@ -21,6 +21,9 @@ import com.android.builder.model.MavenCoordinates;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.*;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.AndroidLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.JavaLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.ModuleLibraryStub;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -36,14 +39,14 @@ import java.util.stream.Collectors;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
- * Tests for {@link IdeLevel2DependenciesFactory}.
+ * Tests for {@link IdeDependenciesFactory}.
  */
-public class IdeLevel2DependenciesFactoryTest {
-  private IdeLevel2DependenciesFactory myDependenciesFactory;
+public class IdeDependenciesFactoryTest {
+  private IdeDependenciesFactory myDependenciesFactory;
 
   @Before
   public void setUp() throws Exception {
-    myDependenciesFactory = new IdeLevel2DependenciesFactory();
+    myDependenciesFactory = new IdeDependenciesFactory();
   }
 
   @Test
@@ -52,21 +55,21 @@ public class IdeLevel2DependenciesFactoryTest {
     GraphItemStub androidGraphItem = new GraphItemStub("androidLibrary", Collections.emptyList(), "");
     GraphItemStub moduleGraphItem = new GraphItemStub("module", Collections.emptyList(), "");
 
-    Library level2JavaLibrary = new Level2JavaLibraryStub() {
+    Library level2JavaLibrary = new JavaLibraryStub() {
       @Override
       @NotNull
       public String getArtifactAddress() {
         return "javaLibrary";
       }
     };
-    Library level2AndroidLibrary = new Level2AndroidLibraryStub() {
+    Library level2AndroidLibrary = new AndroidLibraryStub() {
       @Override
       @NotNull
       public String getArtifactAddress() {
         return "androidLibrary";
       }
     };
-    Library level2ModuleLibrary = new Level2ModuleLibraryStub() {
+    Library level2ModuleLibrary = new ModuleLibraryStub() {
       @Override
       @NotNull
       public String getArtifactAddress() {
@@ -81,7 +84,7 @@ public class IdeLevel2DependenciesFactoryTest {
     myDependenciesFactory.setupGlobalLibraryMap(new GlobalLibraryMapStub(ImmutableMap.of("javaLibrary", level2JavaLibrary,
                                                                                          "androidLibrary", level2AndroidLibrary,
                                                                                          "moduleLibrary", level2ModuleLibrary)));
-    IdeLevel2Dependencies level2Dependencies = myDependenciesFactory.createFromDependencyGraphs(dependencyGraphsStub);
+    IdeDependencies level2Dependencies = myDependenciesFactory.createFromDependencyGraphs(dependencyGraphsStub);
 
     assertThat(level2Dependencies.getAndroidLibraries()).hasSize(1);
     assertThat(level2Dependencies.getAndroidLibraries().iterator().next().getArtifactAddress()).isEqualTo("androidLibrary");
@@ -95,7 +98,7 @@ public class IdeLevel2DependenciesFactoryTest {
 
   @Test
   public void createFromDependencies() {
-    JavaLibrary javaLibraryA = new JavaLibraryStub() {
+    JavaLibrary javaLibraryA = new com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaLibraryStub() {
       @Override
       @Nullable
       public String getProject() {
@@ -108,7 +111,7 @@ public class IdeLevel2DependenciesFactoryTest {
         return new MavenCoordinatesStub("com", "java", "A", "jar");
       }
     };
-    JavaLibrary javaLibraryB = new JavaLibraryStub() {
+    JavaLibrary javaLibraryB = new com.android.tools.idea.gradle.project.model.ide.android.stubs.JavaLibraryStub() {
       @Override
       @Nullable
       public String getProject() {
@@ -141,7 +144,7 @@ public class IdeLevel2DependenciesFactoryTest {
       }
     };
 
-    IdeLevel2Dependencies level2Dependencies = myDependenciesFactory.create(baseArtifactStub, GradleVersion.parse("2.3.0"));
+    IdeDependencies level2Dependencies = myDependenciesFactory.create(baseArtifactStub, GradleVersion.parse("2.3.0"));
 
     assertThat(level2Dependencies.getAndroidLibraries()).hasSize(0);
 

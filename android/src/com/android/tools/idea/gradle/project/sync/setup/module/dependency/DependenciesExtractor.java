@@ -19,7 +19,7 @@ import com.android.builder.model.level2.Library;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
-import com.android.tools.idea.gradle.project.model.ide.android.IdeLevel2Dependencies;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.roots.DependencyScope;
@@ -74,7 +74,7 @@ public class DependenciesExtractor {
   private static void populate(@NotNull DependencySet dependencies,
                                @NotNull IdeBaseArtifact artifact,
                                @NotNull DependencyScope scope) {
-    IdeLevel2Dependencies artifactDependencies = artifact.getLevel2Dependencies();
+    IdeDependencies artifactDependencies = artifact.getLevel2Dependencies();
 
     for (Library library : artifactDependencies.getJavaLibraries()) {
       dependencies.add(new LibraryDependency(library.getArtifact(), scope));

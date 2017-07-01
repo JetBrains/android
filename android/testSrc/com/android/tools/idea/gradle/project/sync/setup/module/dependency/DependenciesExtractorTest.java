@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2AndroidLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2JavaLibraryStub;
-import com.android.tools.idea.gradle.project.model.ide.android.stubs.Level2ModuleLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.AndroidLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.JavaLibraryStub;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.level2.ModuleLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
@@ -71,7 +71,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
   public void testExtractFromJavaLibrary() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
-    Library javaLibrary = new Level2JavaLibraryStub(LIBRARY_JAVA, "guava", jarFile);
+    Library javaLibrary = new JavaLibraryStub(LIBRARY_JAVA, "guava", jarFile);
 
     myVariant.getMainArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
     myVariant.getInstrumentTestArtifact().getLevel2Dependencies().addJavaLibrary(javaLibrary);
@@ -96,7 +96,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");
 
-    Level2AndroidLibraryStub library = new Level2AndroidLibraryStub() {
+    AndroidLibraryStub library = new AndroidLibraryStub() {
       @Override
       @NotNull
       public String getJarFile() {
@@ -139,7 +139,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
   public void testExtractFromModuleDependency() {
     String gradlePath = "abc:xyz:library";
-    Level2ModuleLibraryStub library = new Level2ModuleLibraryStub() {
+    ModuleLibraryStub library = new ModuleLibraryStub() {
       @Override
       @NotNull
       public String getProjectPath() {

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.InstantRun;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidArtifactStub;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
@@ -39,13 +40,13 @@ import static org.junit.Assert.assertEquals;
 public class IdeAndroidArtifactImplTest {
   private ModelCache myModelCache;
   private GradleVersion myGradleVersion;
-  private IdeLevel2DependenciesFactory myDependenciesFactory;
+  private IdeDependenciesFactory myDependenciesFactory;
 
   @Before
   public void setUp() throws Exception {
     myModelCache = new ModelCache();
     myGradleVersion = GradleVersion.parse("3.2");
-    myDependenciesFactory = new IdeLevel2DependenciesFactory();
+    myDependenciesFactory = new IdeDependenciesFactory();
   }
 
   @Test

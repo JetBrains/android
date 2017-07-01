@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -97,7 +98,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
 
     // Verify IdeLevel2Dependencies are populated for each variant.
     androidProject.forEachVariant(variant -> {
-      IdeLevel2Dependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
+      IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
       assertThat(level2Dependencies.getJavaLibraries()).isNotEmpty();
@@ -121,7 +122,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
 
     // Aar module should show up as android library dependency, not module dependency for app module.
     androidProject.forEachVariant(variant -> {
-      IdeLevel2Dependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
+      IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getModuleDependencies()).isEmpty();
       List<String> androidLibraries =

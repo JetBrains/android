@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
-
+package com.android.tools.idea.gradle.project.model.ide.android.stubs.level2;
 
 import com.android.builder.model.level2.Library;
+import com.android.tools.idea.gradle.project.model.ide.android.stubs.BaseStub;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,28 +24,28 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Objects;
 
-/**
- * Creates a deep copy of {@link Library} of type LIBRARY_JAVA.
- */
-public final class IdeLevel2JavaLibrary extends IdeModel implements Library {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
-
-  @NotNull private final String myArtifactAddress;
-  @NotNull private final File myArtifactFile;
-  private final int myType;
+public class ModuleLibraryStub extends BaseStub implements Library {
   private final int myHashCode;
+  private final int myType;
+  @NotNull private final String myArtifactAddress;
+  @Nullable private final String myProjectPath;
+  @Nullable private final String myVariant;
 
-  IdeLevel2JavaLibrary(@NotNull String artifactAddress,
-                       @NotNull File artifactFile,
-                       @NotNull ModelCache modelCache,
-                       @NotNull Object sourceObject) {
-    super(sourceObject, modelCache);
-    myType = LIBRARY_JAVA;
+  public ModuleLibraryStub() {
+    this(LIBRARY_MODULE, "artifact:address:1.0", null, null);
+  }
+
+  public ModuleLibraryStub(int type,
+                           @NotNull String artifactAddress,
+                           @Nullable String projectPath,
+                           @Nullable String variant) {
+    myType = type;
     myArtifactAddress = artifactAddress;
-    myArtifactFile = artifactFile;
+    myProjectPath = projectPath;
+    myVariant = variant;
     myHashCode = calculateHashCode();
   }
+
 
   @Override
   public int getType() {
@@ -61,119 +61,117 @@ public final class IdeLevel2JavaLibrary extends IdeModel implements Library {
   @Override
   @NotNull
   public File getArtifact() {
-    return myArtifactFile;
+    throw new UnsupportedOperationException("getArtifact() cannot be called when getType() returns LIBRARY_MODULE");
+  }
+
+  @Override
+  @Nullable
+  public String getProjectPath() {
+    return myProjectPath;
   }
 
   @Override
   @Nullable
   public String getVariant() {
-    throw new UnsupportedOperationException(
-      "getVariant() cannot be called when getType() returns LIBRARY_JAVA");
-  }
-
-  @Override
-  @NotNull
-  public String getProjectPath() {
-    throw new UnsupportedOperationException(
-      "getProjectPath() cannot be called when getType() returns LIBRARY_JAVA");
+    return myVariant;
   }
 
   @Override
   @NotNull
   public File getFolder() {
     throw new UnsupportedOperationException(
-      "getFolder() cannot be called when getType() returns LIBRARY_JAVA");
+      "getFolder() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getManifest() {
     throw new UnsupportedOperationException(
-      "getManifest() cannot be called when getType() returns LIBRARY_JAVA");
+      "getManifest() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getJarFile() {
     throw new UnsupportedOperationException(
-      "getJarFile() cannot be called when getType() returns LIBRARY_JAVA");
+      "getJarFile() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getResFolder() {
     throw new UnsupportedOperationException(
-      "getResFolder() cannot be called when getType() returns LIBRARY_JAVA");
+      "getResFolder() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getAssetsFolder() {
     throw new UnsupportedOperationException(
-      "getAssetsFolder() cannot be called when getType() returns LIBRARY_JAVA");
+      "getAssetsFolder() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public Collection<String> getLocalJars() {
     throw new UnsupportedOperationException(
-      "getLocalJars() cannot be called when getType() returns LIBRARY_JAVA");
+      "getLocalJars() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getJniFolder() {
     throw new UnsupportedOperationException(
-      "getJniFolder() cannot be called when getType() returns LIBRARY_JAVA");
+      "getJniFolder() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getAidlFolder() {
     throw new UnsupportedOperationException(
-      "getAidlFolder() cannot be called when getType() returns LIBRARY_JAVA");
+      "getAidlFolder() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getRenderscriptFolder() {
     throw new UnsupportedOperationException(
-      "getRenderscriptFolder() cannot be called when getType() returns LIBRARY_JAVA");
+      "getRenderscriptFolder() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getProguardRules() {
     throw new UnsupportedOperationException(
-      "getProguardRules() cannot be called when getType() returns LIBRARY_JAVA");
+      "getProguardRules() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getLintJar() {
     throw new UnsupportedOperationException(
-      "getLintJar() cannot be called when getType() returns LIBRARY_JAVA");
+      "getLintJar() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getExternalAnnotations() {
     throw new UnsupportedOperationException(
-      "getExternalAnnotations() cannot be called when getType() returns LIBRARY_JAVA");
+      "getExternalAnnotations() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getPublicResources() {
     throw new UnsupportedOperationException(
-      "getPublicResources() cannot be called when getType() returns LIBRARY_JAVA");
+      "getPublicResources() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
   @NotNull
   public String getSymbolFile() {
     throw new UnsupportedOperationException(
-      "getSymbolFile() cannot be called when getType() returns LIBRARY_JAVA");
+      "getSymbolFile() cannot be called when getType() returns LIBRARY_MODULE");
   }
 
   @Override
@@ -181,13 +179,14 @@ public final class IdeLevel2JavaLibrary extends IdeModel implements Library {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IdeLevel2JavaLibrary)) {
+    if (!(o instanceof Library)) {
       return false;
     }
-    IdeLevel2JavaLibrary that = (IdeLevel2JavaLibrary)o;
-    return myType == that.myType &&
-           Objects.equals(myArtifactAddress, that.myArtifactAddress) &&
-           Objects.equals(myArtifactFile, that.myArtifactFile);
+    Library that = (Library)o;
+    return myType == that.getType() &&
+           Objects.equals(myArtifactAddress, that.getArtifactAddress()) &&
+           Objects.equals(myProjectPath, that.getProjectPath()) &&
+           Objects.equals(myVariant, that.getVariant());
   }
 
   @Override
@@ -196,15 +195,16 @@ public final class IdeLevel2JavaLibrary extends IdeModel implements Library {
   }
 
   private int calculateHashCode() {
-    return Objects.hash(myType, myArtifactAddress, myArtifactFile);
+    return Objects.hash(myType, myArtifactAddress, myProjectPath, myVariant);
   }
 
   @Override
   public String toString() {
-    return "IdeLevel2JavaLibrary{" +
+    return "Level2ModuleLibraryStub{" +
            "myType=" + myType +
            ", myArtifactAddress='" + myArtifactAddress + '\'' +
-           ", myArtifactFile=" + myArtifactFile +
+           ", myProjectPath='" + myProjectPath + '\'' +
+           ", myVariant='" + myVariant + '\'' +
            '}';
   }
 }

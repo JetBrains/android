@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model.ide.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.project.model.ide.android.level2.IdeDependenciesFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -63,14 +64,14 @@ public final class IdeAndroidProjectImpl extends IdeModel implements IdeAndroidP
   private final boolean myBaseSplit;
   private final int myHashCode;
 
-  public IdeAndroidProjectImpl(@NotNull AndroidProject project, @NotNull IdeLevel2DependenciesFactory dependenciesFactory) {
+  public IdeAndroidProjectImpl(@NotNull AndroidProject project, @NotNull IdeDependenciesFactory dependenciesFactory) {
     this(project, new ModelCache(), dependenciesFactory);
   }
 
   @VisibleForTesting
   IdeAndroidProjectImpl(@NotNull AndroidProject project,
                         @NotNull ModelCache modelCache,
-                        @NotNull IdeLevel2DependenciesFactory dependenciesFactory) {
+                        @NotNull IdeDependenciesFactory dependenciesFactory) {
     super(project, modelCache);
     myModelVersion = project.getModelVersion();
     // Old plugin versions do not return model version.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.model.ide.android;
+package com.android.tools.idea.gradle.project.model.ide.android.level2;
 
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.level2.DependencyGraphs;
@@ -23,15 +23,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 /**
- * The unified dependency interface that should be used in IDE.
- * Both of {@link DependencyGraphs} in 3.0+ models and {@link Dependencies} in pre-3.0 models
- * should be converted to instance implementing this new interface.
+ * Unified API for L1 ( {@link Dependencies} in pre-3.0 models) and L4 ({@link DependencyGraphs} in 3.0+ models) dependencies.
  */
-public interface IdeLevel2Dependencies {
+public interface IdeDependencies {
   /**
-   * The list of Android dependencies.
-   *
-   * This is a flat list that contains direct and transitive dependencies.
+   * Returns the Android library dependencies, both direct and transitive.
    *
    * @return the list of libraries of type LIBRARY_ANDROID.
    */
@@ -39,9 +35,7 @@ public interface IdeLevel2Dependencies {
   Collection<Library> getAndroidLibraries();
 
   /**
-   * The list of Java dependencies.
-   *
-   * This is a flat list that contains direct and transitive dependencies.
+   * Returns the Java library dependencies, both direct and transitive dependencies.
    *
    * @return the list of libraries of type LIBRARY_JAVA.
    */
@@ -49,9 +43,7 @@ public interface IdeLevel2Dependencies {
   Collection<Library> getJavaLibraries();
 
   /**
-   * The list of Module dependencies.
-   *
-   * This is a flat list that contains module dependencies.
+   * Returns the Module dependencies.
    *
    * @return the list of libraries of type LIBRARY_MODULE.
    */
