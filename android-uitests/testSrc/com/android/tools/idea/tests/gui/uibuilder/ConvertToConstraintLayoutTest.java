@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 
+@RunIn(TestGroup.UNRELIABLE)  // b/63164506
 @RunWith(GuiTestRunner.class)
 public class ConvertToConstraintLayoutTest {
   private static final Pattern TOOLS_DIMENSION = Pattern.compile("tools:(.*)=\"(.*)dp\"");
@@ -164,7 +165,6 @@ public class ConvertToConstraintLayoutTest {
     return xml;
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63164506
   @Test
   public void testConvert2() throws Exception {
     guiTest.importSimpleApplication();
