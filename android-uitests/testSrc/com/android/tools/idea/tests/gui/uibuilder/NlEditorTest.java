@@ -180,7 +180,6 @@ public class NlEditorTest {
       .waitForGradleProjectSyncToFinish();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void morphComponent() throws IOException {
     boolean morphViewActionEnabled = StudioFlags.NELE_CONVERT_VIEW.get();
@@ -211,7 +210,6 @@ public class NlEditorTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testNavigateEditorsWithoutTabs() throws Exception {
     // Regression test for b/37138939
