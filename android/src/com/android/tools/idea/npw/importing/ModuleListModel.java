@@ -69,9 +69,9 @@ public final class ModuleListModel {
       return false;
     }
     int previousSegmentStart = 0;
-    for (int segmentSeparator = moduleName.indexOf(":", previousSegmentStart);
+    for (int segmentSeparator = moduleName.indexOf(':', previousSegmentStart);
          segmentSeparator >= 0;
-         segmentSeparator = moduleName.indexOf(":", previousSegmentStart)) {
+         segmentSeparator = moduleName.indexOf(':', previousSegmentStart)) {
       if (!isValidPathSegment(moduleName, previousSegmentStart, segmentSeparator)) {
         return false;
       }

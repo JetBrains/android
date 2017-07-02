@@ -210,7 +210,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
               ClassObj clazz = ((HeapClassObjNode)value).getClassObj();
               String name = clazz.getClassName();
               String pkg = null;
-              int i = name.lastIndexOf(".");
+              int i = name.lastIndexOf('.');
               if (i != -1) {
                 pkg = name.substring(0, i);
                 name = name.substring(i + 1);
@@ -529,7 +529,7 @@ public final class ClassesTreeView implements DataProvider, Disposable {
       ClassObj classObj = ((HeapClassObjNode)node).getClassObj();
       String className = classObj.getClassName();
 
-      int arrayIndex = className.indexOf("[");
+      int arrayIndex = className.indexOf('[');
       if (arrayIndex >= 0) {
         className = className.substring(0, arrayIndex);
       }

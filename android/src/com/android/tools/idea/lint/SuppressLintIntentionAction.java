@@ -271,7 +271,7 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
         }
       }
       else {
-        final int curlyBraceIndex = annotationText.lastIndexOf("}");
+        final int curlyBraceIndex = annotationText.lastIndexOf('}');
         if (curlyBraceIndex > 0) {
           final String oldSuppressWarning = annotationText.substring(0, curlyBraceIndex);
           if (oldSuppressWarning.contains(currentSuppressedId)) return null;

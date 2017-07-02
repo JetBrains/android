@@ -576,8 +576,8 @@ public class DisplayList {
       String s = sp[i];
       String cmd, args;
       if (s.indexOf(',') > 0) {
-        cmd = s.substring(0, s.indexOf(","));
-        args = s.substring(s.indexOf(",") + 1);
+        cmd = s.substring(0, s.indexOf(','));
+        args = s.substring(s.indexOf(',') + 1);
       }
       else {
         cmd = s;

@@ -136,7 +136,7 @@ public class AdbFileListingEntry {
     }
 
     // For character devices, size is of the form "xxx, yyy".
-    int index = size.indexOf(",");
+    int index = size.indexOf(',');
     if (index >= 0) {
       return -1;
     }

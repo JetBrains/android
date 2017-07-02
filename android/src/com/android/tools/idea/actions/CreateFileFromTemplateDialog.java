@@ -532,7 +532,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
         throw new IllegalArgumentException("className is empty.");
       }
 
-      int lastDotIndex = className.lastIndexOf(".");
+      int lastDotIndex = className.lastIndexOf('.');
       if (lastDotIndex != -1) {
         myPackage = className.substring(0, lastDotIndex);
         myClass = className.substring(lastDotIndex + 1);

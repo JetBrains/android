@@ -71,7 +71,7 @@ public class StudioDownloader implements Downloader {
                             @NotNull ProgressIndicator indicator) throws IOException {
     // TODO: caching
     String suffix = url.getPath();
-    suffix = suffix.substring(suffix.lastIndexOf("/") + 1);
+    suffix = suffix.substring(suffix.lastIndexOf('/') + 1);
     File tempFile = FileUtil.createTempFile("StudioDownloader", suffix, true);
     tempFile.deleteOnExit();
     downloadFully(url, tempFile, null, indicator);

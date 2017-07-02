@@ -160,7 +160,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   @Override
   public DataViewer createFileViewer(@NotNull File file) {
     String fileName = file.getName();
-    int dot = fileName.lastIndexOf(".");
+    int dot = fileName.lastIndexOf('.');
     String extension = dot >= 0 && dot < fileName.length() ? fileName.substring(dot) : "";
 
     if (IMAGE_EXTENSIONS.contains(extension)) {
