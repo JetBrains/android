@@ -147,7 +147,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasAppCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
 
     String javaPackage = MergedManifest.get(myModule).getPackage();
-    if (javaPackage != null && javaPackage.length() > 0) {
+    if (javaPackage != null && !javaPackage.isEmpty()) {
       myNamespace = URI_PREFIX + javaPackage;
     } else {
       myNamespace = AUTO_URI;
@@ -512,7 +512,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     // Perform DFS on the include graph and look for a cycle; if we find one, produce
     // a chain of includes on the way back to show to the user
-    if (includeMap.size() > 0) {
+    if (!includeMap.isEmpty()) {
       for (String from : includeMap.keySet()) {
         Set<String> visiting = Sets.newHashSetWithExpectedSize(includeMap.size());
         List<String> chain = dfs(from, visiting, includeMap);
@@ -555,7 +555,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static List<String> dfs(String from, Set<String> visiting, Multimap<String,String> includeMap) {
     visiting.add(from);
     Collection<String> includes = includeMap.get(from);
-    if (includes != null && includes.size() > 0) {
+    if (includes != null && !includes.isEmpty()) {
       for (String include : includes) {
         if (visiting.contains(include)) {
           List<String> list = Lists.newLinkedList();
@@ -612,7 +612,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
     }
 
-    if (viewAttribute == ViewAttribute.TEXT && ((String)defaultValue).length() == 0) {
+    if (viewAttribute == ViewAttribute.TEXT && ((String)defaultValue).isEmpty()) {
       return "Item " + (fullPosition + 1);
     }
 

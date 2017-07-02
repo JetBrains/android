@@ -92,7 +92,7 @@ public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
     }
 
     // Try: t...
-    if (name.length() > 0 && fontMetrics.stringWidth(name.charAt(0) + "...") < maxWidth) {
+    if (!name.isEmpty() && fontMetrics.stringWidth(name.charAt(0) + "...") < maxWidth) {
       return name.charAt(0) + "...";
     }
 

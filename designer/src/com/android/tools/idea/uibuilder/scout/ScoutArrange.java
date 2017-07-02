@@ -43,7 +43,7 @@ public class ScoutArrange {
    */
   public static void align(Scout.Arrange type, List<NlComponent> widgetList,
                            boolean applyConstraints) {
-    if (widgetList == null || widgetList.size() == 0) {
+    if (widgetList == null || widgetList.isEmpty()) {
       return;
     }
     if (widgetList.get(0).getParent() == null) {

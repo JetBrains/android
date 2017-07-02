@@ -249,7 +249,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
 
   @Override
   protected boolean shouldShow() {
-    return myVisibleLicenses.size() > 0 && !getModel().getLicenses().isEmpty();
+    return !myVisibleLicenses.isEmpty() && !getModel().getLicenses().isEmpty();
   }
 
   @Nullable

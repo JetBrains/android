@@ -203,7 +203,7 @@ public class AndroidCommonUtils {
       messages.get(AndroidCompilerMessageKind.WARNING).addAll(errors);
       errors.clear();
     }
-    else if (errors.size() == 0 && !multiDex) {
+    else if (errors.isEmpty() && !multiDex) {
       errors.add("Cannot create classes.dex file");
     }
   }
@@ -227,7 +227,7 @@ public class AndroidCommonUtils {
       }
     }
 
-    if (files.size() > 0) {
+    if (!files.isEmpty()) {
       final JarOutputStream jos = new JarOutputStream(new FileOutputStream(jarFile));
       try {
         for (Pair<File, String> pair : files) {
@@ -346,7 +346,7 @@ public class AndroidCommonUtils {
     final List<String> commands = new ArrayList<String>();
     commands.add(javaExecutablePath);
 
-    if (proguardVmOptions.length() > 0) {
+    if (!proguardVmOptions.isEmpty()) {
       commands.addAll(ParametersListUtil.parse(proguardVmOptions));
     }
     commands.add("-jar");

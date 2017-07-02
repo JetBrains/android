@@ -272,7 +272,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       protected void canRun() throws ConfigurationException {
         final String name = getNewName();
 
-        if (name.length() == 0) {
+        if (name.isEmpty()) {
           throw new ConfigurationException(AndroidBundle.message("specify.package.name.error"));
         }
         if (!AndroidUtils.isValidAndroidPackageName(name)) {

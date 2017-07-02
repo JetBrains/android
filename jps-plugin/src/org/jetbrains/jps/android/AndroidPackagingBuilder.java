@@ -185,7 +185,7 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
                nativeLibDirs, additionalNativeLibs, outputPath, release, sdkPath, platform.getTarget(),
                customKeyStorePath, new MyExcludedSourcesFilter(context.getProjectDescriptor().getProject()));
 
-    if (messages.get(AndroidCompilerMessageKind.ERROR).size() == 0) {
+    if (messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
       final List<String> srcFiles = new ArrayList<String>();
       srcFiles.add(resPackagePath);
       srcFiles.add(classesDexFilePath);

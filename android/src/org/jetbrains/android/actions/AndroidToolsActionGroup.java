@@ -30,6 +30,6 @@ public class AndroidToolsActionGroup extends DefaultActionGroup {
   public void update(AnActionEvent e) {
     final Project project = e.getData(CommonDataKeys.PROJECT);
     e.getPresentation().setVisible(project != null && !project.isDisposed()
-                                   && ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0);
+                                   && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
   }
 }

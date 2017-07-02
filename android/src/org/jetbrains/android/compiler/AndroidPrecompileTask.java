@@ -121,7 +121,7 @@ public class AndroidPrecompileTask implements CompileTask {
       }
     }
 
-    if (addedEntries.size() > 0) {
+    if (!addedEntries.isEmpty()) {
       LOG.debug("Files excluded by Android: " + addedEntries.size());
       CompilerManager.getInstance(project).addCompilationStatusListener(new MyCompilationStatusListener(project, addedEntries), project);
     }
@@ -139,7 +139,7 @@ public class AndroidPrecompileTask implements CompileTask {
       }
     }
 
-    if (facets.size() > 0) {
+    if (!facets.isEmpty()) {
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
@@ -196,7 +196,7 @@ public class AndroidPrecompileTask implements CompileTask {
     }
     boolean success = true;
 
-    if (debugArtifacts.size() > 0 && releaseArtifacts.size() > 0) {
+    if (!debugArtifacts.isEmpty() && !releaseArtifacts.isEmpty()) {
       final String message = "Cannot build debug and release Android artifacts in the same session\n" +
                              "Debug artifacts: " + toString(debugArtifacts) + "\n" +
                              "Release artifacts: " + toString(releaseArtifacts);
@@ -204,7 +204,7 @@ public class AndroidPrecompileTask implements CompileTask {
       success = false;
     }
 
-    if (releaseArtifacts.size() > 0 &&
+    if (!releaseArtifacts.isEmpty() &&
         CompileStepBeforeRun.getRunConfiguration(context) != null) {
       final String message = "Cannot build release Android artifacts in the 'make before run' session\n" +
                              "Release artifacts: " + toString(releaseArtifacts);

@@ -419,7 +419,7 @@ public final class GradleUtil {
    */
   @NotNull
   public static File getModuleDefaultPath(@NotNull VirtualFile parentDir, @NotNull String gradlePath) {
-    assert gradlePath.length() > 0;
+    assert !gradlePath.isEmpty();
     String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
     return new File(virtualToIoFile(parentDir), relativePath);
   }

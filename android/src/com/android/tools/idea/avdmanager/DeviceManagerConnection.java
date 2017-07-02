@@ -231,7 +231,7 @@ public class DeviceManagerConnection {
   }
 
   public static void writeDevicesToFile(@NotNull List<Device> devices, @NotNull File file) {
-    if (devices.size() > 0) {
+    if (!devices.isEmpty()) {
       FileOutputStream stream = null;
       try {
         stream = new FileOutputStream(file);

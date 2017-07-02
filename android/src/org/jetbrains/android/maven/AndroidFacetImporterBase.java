@@ -630,7 +630,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
     String s = AndroidRootUtil.getPathRelativeToModuleDir(apklibModule, vApklibDir.getPath());
     if (s != null) {
-      s = s.length() > 0 ? '/' + s + '/' : "/";
+      s = !s.isEmpty() ? '/' + s + '/' : "/";
       configuration.getState().RES_FOLDER_RELATIVE_PATH = s + AndroidMavenUtil.APK_LIB_ARTIFACT_RES_DIR;
       configuration.getState().LIBS_FOLDER_RELATIVE_PATH = s + AndroidMavenUtil.APK_LIB_ARTIFACT_NATIVE_LIBS_DIR;
       configuration.getState().MANIFEST_FILE_RELATIVE_PATH = s + AndroidMavenUtil.APK_LIB_ARTIFACT_MANIFEST_FILE;
@@ -1016,7 +1016,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     if (sdkPath != null) {
       AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
       if (sdkData != null) {
-        IAndroidTarget target = apiLevel != null && apiLevel.length() > 0
+        IAndroidTarget target = apiLevel != null && !apiLevel.isEmpty()
                                 ? sdkData.findTargetByApiLevel(apiLevel)
                                 : findNewestPlatformTarget(sdkData);
         if (target != null) {
@@ -1145,14 +1145,14 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       List<String> dirs = new ArrayList<>();
       for (Object child : resourceOverlayDirectories.getChildren()) {
         String dir = ((Element)child).getTextTrim();
-        if (dir != null && dir.length() > 0) {
+        if (dir != null && !dir.isEmpty()) {
           String relativePath = getRelativePath(moduleDirPath, makePath(project, dir));
-          if (relativePath != null && relativePath.length() > 0) {
+          if (relativePath != null && !relativePath.isEmpty()) {
             dirs.add('/' + relativePath);
           }
         }
       }
-      if (dirs.size() > 0) {
+      if (!dirs.isEmpty()) {
         configuration.getState().RES_OVERLAY_FOLDERS = dirs;
       }
     }

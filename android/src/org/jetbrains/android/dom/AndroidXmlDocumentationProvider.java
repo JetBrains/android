@@ -388,7 +388,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     final StringBuilder builder = new StringBuilder("<html><body>");
     final Set<AttributeFormat> formats = definition.getFormats();
 
-    if (formats.size() > 0) {
+    if (!formats.isEmpty()) {
       builder.append("Formats: ");
       final List<String> formatLabels = new ArrayList<>(formats.size());
 
@@ -426,7 +426,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
     final String docValue = definition.getDocValue(parentStyleable);
 
-    if (docValue != null && docValue.length() > 0) {
+    if (docValue != null && !docValue.isEmpty()) {
       if (builder.length() > 0) {
         builder.append("<br><br>");
       }

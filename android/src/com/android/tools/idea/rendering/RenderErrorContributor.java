@@ -402,7 +402,7 @@ public class RenderErrorContributor {
           assert missingWidth || missingHeight;
 
           String id = tag.getAttributeValue(ATTR_ID);
-          if (id == null || id.length() == 0) {
+          if (id == null || id.isEmpty()) {
             id = '<' + tag.getName() + '>';
           }
           else {
@@ -898,7 +898,7 @@ public class RenderErrorContributor {
     String match = compareWithPackage ? actual : actualBase;
     int maxDistance = actualBase.length() >= 4 ? 2 : 1;
 
-    if (views.size() > 0) {
+    if (!views.isEmpty()) {
       for (String suggested : views) {
         String suggestedBase = suggested.substring(suggested.lastIndexOf('.') + 1);
         String matchWith = compareWithPackage ? suggested : suggestedBase;
@@ -1446,7 +1446,7 @@ public class RenderErrorContributor {
     @Override
     public void run() {
       final JpsJavaCompilerOptions settings = JavacConfiguration.getOptions(myProject, JavacConfiguration.class);
-      if (settings.ADDITIONAL_OPTIONS_STRING.length() > 0) {
+      if (!settings.ADDITIONAL_OPTIONS_STRING.isEmpty()) {
         settings.ADDITIONAL_OPTIONS_STRING += ' ';
       }
       settings.ADDITIONAL_OPTIONS_STRING += "-target 1.6";
@@ -1477,7 +1477,7 @@ public class RenderErrorContributor {
         }
       }
 
-      final String moduleToSelect = myProblemModules.size() > 0
+      final String moduleToSelect = !myProblemModules.isEmpty()
                                     ? myProblemModules.iterator().next().getName()
                                     : null;
       if (ModulesConfigurator.showDialog(myProject, moduleToSelect, ClasspathEditor.NAME)) {

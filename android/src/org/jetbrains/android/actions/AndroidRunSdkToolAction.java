@@ -36,7 +36,7 @@ public abstract class AndroidRunSdkToolAction extends DumbAwareAction {
   @Override
   public void update(AnActionEvent e) {
     Project project = e.getData(CommonDataKeys.PROJECT);
-    e.getPresentation().setEnabled(project != null && ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0);
+    e.getPresentation().setEnabled(project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
   }
 
   @Override
@@ -70,7 +70,7 @@ public abstract class AndroidRunSdkToolAction extends DumbAwareAction {
     }
 
     List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-    assert facets.size() > 0;
+    assert !facets.isEmpty();
     Set<String> sdkSet = new HashSet<>();
     for (AndroidFacet facet : facets) {
       AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
@@ -78,7 +78,7 @@ public abstract class AndroidRunSdkToolAction extends DumbAwareAction {
         sdkSet.add(sdkData.getLocation().getPath());
       }
     }
-    if (sdkSet.size() == 0) {
+    if (sdkSet.isEmpty()) {
       Messages.showErrorDialog(project, AndroidBundle.message("specify.platform.error"), CommonBundle.getErrorTitle());
       return;
     }

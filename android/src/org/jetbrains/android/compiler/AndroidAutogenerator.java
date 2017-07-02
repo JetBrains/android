@@ -366,7 +366,7 @@ public class AndroidAutogenerator {
 
   private static void generateStubClasses(@NotNull String aPackage, @NotNull File outputDir, @NotNull String... classNames)
     throws IOException {
-    assert aPackage.length() > 0;
+    assert !aPackage.isEmpty();
 
     for (String className : classNames) {
       generateStubClass(aPackage, outputDir, className, "");
@@ -433,7 +433,7 @@ public class AndroidAutogenerator {
         filesToDelete.add(f);
       }
     }
-    if (filesToDelete.size() == 0) {
+    if (filesToDelete.isEmpty()) {
       return;
     }
 
@@ -636,7 +636,7 @@ public class AndroidAutogenerator {
             .execute(item.mySdkLocation, item.myTarget, file.getPath(), tempOutDir.getPath(), depFolderPath,
                      item.myRawDirPath));
 
-        if (messages.get(CompilerMessageCategory.ERROR).size() == 0) {
+        if (messages.get(CompilerMessageCategory.ERROR).isEmpty()) {
           final List<File> newFiles = new ArrayList<File>();
           AndroidCommonUtils.moveAllFiles(tempOutDir, new File(item.myGenDirPath), newFiles);
 
@@ -696,7 +696,7 @@ public class AndroidAutogenerator {
   }
 
   private static boolean ensureFilesWritable(@NotNull final Project project, @NotNull final Collection<VirtualFile> filesToCheck) {
-    if (filesToCheck.size() == 0) {
+    if (filesToCheck.isEmpty()) {
       return true;
     }
     final boolean[] run = {false};

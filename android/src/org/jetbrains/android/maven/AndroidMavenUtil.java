@@ -65,11 +65,11 @@ public class AndroidMavenUtil {
     for (MavenProject p : allProjects) {
       List<MavenArtifact> dependencies = p.findDependencies(mavenId);
 
-      if (dependencies.size() == 0) {
+      if (dependencies.isEmpty()) {
         dependencies = p.findDependencies(mavenId.getGroupId(), mavenId.getArtifactId());
       }
 
-      if (dependencies.size() > 0 && containsCompileDependency(dependencies)) {
+      if (!dependencies.isEmpty() && containsCompileDependency(dependencies)) {
         final VirtualFile projectDir = p.getDirectoryFile();
         final boolean app = APK_PACKAGING_TYPE.equals(p.getPackaging());
         if (path == null || !resultUnderApp && app) {

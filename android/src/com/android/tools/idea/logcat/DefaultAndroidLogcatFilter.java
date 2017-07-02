@@ -116,7 +116,7 @@ public final class DefaultAndroidLogcatFilter implements AndroidLogcatFilter {
     }
 
     // TODO: If we're always checking against an int pid anyway, why let myPid be a string?
-    if ((myPid != null && myPid.length() > 0) && !myPid.equals(Integer.toString(pid))) {
+    if ((myPid != null && !myPid.isEmpty()) && !myPid.equals(Integer.toString(pid))) {
       return false;
     }
 
@@ -140,7 +140,7 @@ public final class DefaultAndroidLogcatFilter implements AndroidLogcatFilter {
 
     Log.LogLevel logLevel = null;
     final String logLevelStr = filterData.getLogLevel();
-    if (logLevelStr != null && logLevelStr.length() > 0) {
+    if (logLevelStr != null && !logLevelStr.isEmpty()) {
       logLevel = Log.LogLevel.getByString(logLevelStr);
     }
 

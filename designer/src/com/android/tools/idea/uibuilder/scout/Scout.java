@@ -183,7 +183,7 @@ public class Scout {
   }
 
   private static void commit(@NotNull List<NlComponent> list, String label) {
-    if (list.size() == 0) {
+    if (list.isEmpty()) {
       return;
     }
     NlModel nlModel = list.get(0).getModel();

@@ -302,7 +302,7 @@ public class CFGUtil {
     Deque<GraphNode> workList = Queues.newArrayDeque();
     workList.add(entry);
 
-    while (workList.size() != 0) {
+    while (!workList.isEmpty()) {
       GraphNode node = workList.removeFirst();
       if (vistedNode.contains(node)) {
         continue;

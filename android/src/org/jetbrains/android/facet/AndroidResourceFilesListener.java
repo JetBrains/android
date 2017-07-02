@@ -65,7 +65,7 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
   public void after(@NotNull List<? extends VFileEvent> events) {
     final Set<VirtualFile> filesToProcess = getFilesToProcess(events);
 
-    if (filesToProcess.size() > 0) {
+    if (!filesToProcess.isEmpty()) {
       myQueue.queue(new MyUpdate(filesToProcess));
     }
   }
@@ -178,7 +178,7 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
         }
         final List<AndroidAutogeneratorMode> modes = computeCompilersToRunAndInvalidateLocalAttributesMap(facet, file);
 
-        if (modes.size() > 0) {
+        if (!modes.isEmpty()) {
           result.putValues(module, modes);
         }
       }

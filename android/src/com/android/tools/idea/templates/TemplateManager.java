@@ -490,7 +490,7 @@ public class TemplateManager {
             assert facet != null && facet.getAndroidModel() != null;
 
             List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
-            assert (sourceSets.size() > 0);
+            assert (!sourceSets.isEmpty());
 
             String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
             Project project = facet.getModule().getProject();

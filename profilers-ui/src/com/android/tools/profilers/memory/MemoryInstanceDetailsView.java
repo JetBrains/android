@@ -243,7 +243,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myTabsPanel.removeAll();
     boolean hasContent = false;
 
-    if (fieldPath.size() > 0) {
+    if (!fieldPath.isEmpty()) {
       InstanceObject fieldInstance = fieldPath.get(fieldPath.size() - 1).getAsInstance();
       if (fieldInstance != null) {
         instance = fieldInstance;

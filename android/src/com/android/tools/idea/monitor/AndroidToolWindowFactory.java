@@ -260,7 +260,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
   private static void checkFacetAndSdk(Project project, @NotNull final ConsoleView console) {
     final List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
 
-    if (facets.size() == 0) {
+    if (facets.isEmpty()) {
       console.clear();
       console.print(AndroidBundle.message("android.logcat.no.android.facets.error"), ConsoleViewContentType.ERROR_OUTPUT);
       return;
@@ -337,7 +337,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     private AndroidPlatform getPlatform() {
       AndroidPlatform newPlatform = null;
       final List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
-      if (facets.size() > 0) {
+      if (!facets.isEmpty()) {
         final AndroidFacet facet = facets.get(0);
         newPlatform = facet.getConfiguration().getAndroidPlatform();
       }

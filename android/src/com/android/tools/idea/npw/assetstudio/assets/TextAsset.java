@@ -39,7 +39,7 @@ public final class TextAsset extends BaseAsset {
 
   public TextAsset() {
     List<String> fontFamilies = getAllFontFamilies();
-    assert fontFamilies.size() > 0;
+    assert !fontFamilies.isEmpty();
 
     if (fontFamilies.contains(PREFERRED_FONT)) {
       myFontFamily.set(PREFERRED_FONT);

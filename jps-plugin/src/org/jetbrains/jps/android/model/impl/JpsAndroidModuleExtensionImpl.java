@@ -237,7 +237,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Nullable
   private File findFileByRelativeModulePath(String relativePath, boolean checkExistence) {
-    if (relativePath == null || relativePath.length() == 0) {
+    if (relativePath == null || relativePath.isEmpty()) {
       return null;
     }
 

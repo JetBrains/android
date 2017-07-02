@@ -111,7 +111,7 @@ public class ResourceValue {
 
     ResourceValue result = new ResourceValue();
     if (withPrefix) {
-      assert value.length() > 0;
+      assert !value.isEmpty();
       result.myPrefix = value.charAt(0);
     }
     final int startIndex = withPrefix ? 1 : 0;
@@ -144,7 +144,7 @@ public class ResourceValue {
       colonIndex = suffix.indexOf(':');
       if (colonIndex > 0) {
         String aPackage = suffix.substring(0, colonIndex);
-        if (result.myNamespace == null || result.myNamespace.length() == 0 || aPackage.equals(result.myNamespace)) {
+        if (result.myNamespace == null || result.myNamespace.isEmpty() || aPackage.equals(result.myNamespace)) {
           result.myNamespace = aPackage;
           result.myResourceName = suffix.substring(colonIndex + 1);
         } else {

@@ -94,7 +94,7 @@ public class AndroidLaunchTasksProviderFactory implements LaunchTasksProviderFac
   private Collection<ApkInfo> getApks() {
     try {
       List<IDevice> devices = myDeviceFutures.getIfReady();
-      if (devices != null && devices.size() > 0) {
+      if (devices != null && !devices.isEmpty()) {
         return myApkProvider.getApks(devices.get(0));
       }
     }

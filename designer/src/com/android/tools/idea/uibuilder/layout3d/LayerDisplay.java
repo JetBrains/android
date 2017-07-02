@@ -83,7 +83,7 @@ public class LayerDisplay {
       }
       if (bridge == null || !bridge.isConnected()) {
         String adbLocation = System.getProperty("hierarchyviewer.adb");
-        if (adbLocation != null && adbLocation.length() != 0) {
+        if (adbLocation != null && !adbLocation.isEmpty()) {
           adbLocation += File.separator + "adb";
         }
         else {

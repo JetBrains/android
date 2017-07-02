@@ -192,7 +192,7 @@ public class ResizePolicy {
    */
   @Nullable
   public static ResizePolicy get(@Nullable String resize) {
-    if (resize != null && resize.length() > 0) {
+    if (resize != null && !resize.isEmpty()) {
       if ("full".equals(resize)) {
         return full();
       } else if ("none".equals(resize)) {

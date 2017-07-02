@@ -639,7 +639,7 @@ public class AndroidCompileUtil {
     final String renderscriptGenRootPath = AndroidRootUtil.getRenderscriptGenSourceRootPath(facet);
 
     if (renderscriptGenRootPath != null) {
-      final boolean createIfNotExist = FileTypeIndex.getFiles(AndroidRenderscriptFileType.INSTANCE, moduleScope).size() > 0;
+      final boolean createIfNotExist = !FileTypeIndex.getFiles(AndroidRenderscriptFileType.INSTANCE, moduleScope).isEmpty();
       (createIfNotExist ? genRootsToCreate : genRootsToInit).add(renderscriptGenRootPath);
     }
 
@@ -651,7 +651,7 @@ public class AndroidCompileUtil {
     final String aidlGenRootPath = AndroidRootUtil.getAidlGenSourceRootPath(facet);
 
     if (aidlGenRootPath != null) {
-      final boolean createIfNotExist = FileTypeIndex.getFiles(AidlFileType.INSTANCE, moduleScope).size() > 0;
+      final boolean createIfNotExist = !FileTypeIndex.getFiles(AidlFileType.INSTANCE, moduleScope).isEmpty();
       (createIfNotExist ? genRootsToCreate : genRootsToInit).add(aidlGenRootPath);
     }
     genRootsToInit.addAll(genRootsToCreate);
@@ -886,7 +886,7 @@ public class AndroidCompileUtil {
     }
 
     final String aPackage = manifest.getPackage().getValue();
-    if (aPackage == null || aPackage.length() == 0) {
+    if (aPackage == null || aPackage.isEmpty()) {
       return false;
     }
 
@@ -953,7 +953,7 @@ public class AndroidCompileUtil {
             model.dispose();
           }
         }
-        if (modelsToCommit.size() == 0) {
+        if (modelsToCommit.isEmpty()) {
           return;
         }
 

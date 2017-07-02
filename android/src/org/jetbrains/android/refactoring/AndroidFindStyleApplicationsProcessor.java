@@ -214,7 +214,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       }
     }
 
-    if (filesToProcess.size() == 0) {
+    if (filesToProcess.isEmpty()) {
       return Collections.emptyList();
     }
     final Set<PsiFile> psiFilesToProcess = new HashSet<PsiFile>();
@@ -240,7 +240,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   @NotNull
   private List<UsageInfo> findAllStyleApplications() {
     Collection<PsiFile> psiFilesToProcess = collectFilesToProcess();
-    if (psiFilesToProcess.size() == 0) {
+    if (psiFilesToProcess.isEmpty()) {
       return Collections.emptyList();
     }
     final int n = psiFilesToProcess.size();

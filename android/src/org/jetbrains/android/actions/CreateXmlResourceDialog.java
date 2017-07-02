@@ -80,16 +80,16 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     final Module module = myPanel.getModule();
     final JComponent panel = myPanel.getPanel();
 
-    if (resourceName.length() == 0) {
+    if (resourceName.isEmpty()) {
       Messages.showErrorDialog(panel, "Resource name is not specified", CommonBundle.getErrorTitle());
     }
     else if (!AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
       Messages.showErrorDialog(panel, resourceName + " is not correct resource name", CommonBundle.getErrorTitle());
     }
-    else if (fileName.length() == 0) {
+    else if (fileName.isEmpty()) {
       Messages.showErrorDialog(panel, "File name is not specified", CommonBundle.getErrorTitle());
     }
-    else if (dirNames.size() == 0) {
+    else if (dirNames.isEmpty()) {
       Messages.showErrorDialog(panel, "Directories are not selected", CommonBundle.getErrorTitle());
     }
     else if (module == null) {
@@ -144,9 +144,9 @@ public class CreateXmlResourceDialog extends DialogWrapper {
                                                             @NotNull ResourceType resourceType,
                                                             @NotNull List<String> dirNames,
                                                             @NotNull String fileName) {
-    if (resourceName.length() == 0 ||
-        dirNames.size() == 0 ||
-        fileName.length() == 0) {
+    if (resourceName.isEmpty() ||
+        dirNames.isEmpty() ||
+        fileName.isEmpty()) {
       return null;
     }
 

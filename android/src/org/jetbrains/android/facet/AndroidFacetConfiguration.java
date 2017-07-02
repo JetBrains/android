@@ -54,7 +54,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   public void init(@NotNull Module module, @NotNull String baseDirectoryPath) {
     final String s = AndroidRootUtil.getPathRelativeToModuleDir(module, baseDirectoryPath);
-    if (s == null || s.length() == 0) {
+    if (s == null || s.isEmpty()) {
       return;
     }
     myProperties.GEN_FOLDER_RELATIVE_PATH_APT = '/' + s + myProperties.GEN_FOLDER_RELATIVE_PATH_APT;

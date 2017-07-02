@@ -62,7 +62,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     }
     final String packageName = p.getQualifiedName();
     setupConfiguration(configuration, p, context, sourceElement);
-    configuration.TESTING_TYPE = packageName.length() > 0
+    configuration.TESTING_TYPE = !packageName.isEmpty()
                                  ? AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
                                  : AndroidTestRunConfiguration.TEST_ALL_IN_MODULE;
     configuration.PACKAGE_NAME = packageName;

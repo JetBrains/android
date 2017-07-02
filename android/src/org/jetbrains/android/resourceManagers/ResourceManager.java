@@ -493,7 +493,7 @@ public abstract class ResourceManager {
     if (resType.equals("id")) {
       elements.addAll(findIdDeclarations(resName));
     }
-    if (elements.size() == 0) {
+    if (elements.isEmpty()) {
       ResourceFolderType folderType = ResourceFolderType.getTypeByName(resType);
       if (folderType != null) {
         for (PsiFile file : findResourceFiles(folderType, resName, false)) {

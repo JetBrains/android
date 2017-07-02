@@ -326,7 +326,7 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   private static float parseFloat(String string, float defaultValue) {
-    if (string != null && string.length() > 0) {
+    if (string != null && !string.isEmpty()) {
       try {
         return Float.parseFloat(string);
       }

@@ -435,7 +435,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
   private void initializeModulesCombo(@Nullable String defaultModuleName) {
     final ImmutableList<Module> modules = ThemeEditorUtils.findAndroidModules(myProject);
-    assert modules.size() > 0 : "Theme Editor shouldn't be launched in a project with no Android modules";
+    assert !modules.isEmpty() : "Theme Editor shouldn't be launched in a project with no Android modules";
 
     Module defaultModule = null;
     for (Module module : modules) {

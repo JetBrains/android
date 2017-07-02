@@ -128,7 +128,7 @@ public class AttributeProcessingUtil {
       Manifest manifest = facet.getManifest();
       if (manifest != null) {
         String aPackage = manifest.getPackage().getValue();
-        if (aPackage != null && aPackage.length() > 0) {
+        if (aPackage != null && !aPackage.isEmpty()) {
           return URI_PREFIX + aPackage;
         }
       }
@@ -713,7 +713,7 @@ public class AttributeProcessingUtil {
           if (attrDef != null) {
             String namespace = attr.getNamespace();
             result.add(new XmlName(attr.getLocalName(), attr.getNamespace()));
-            registerAttribute(attrDef, null, namespace.length() > 0 ? namespace : null, element, callback);
+            registerAttribute(attrDef, null, !namespace.isEmpty() ? namespace : null, element, callback);
           }
         }
       }

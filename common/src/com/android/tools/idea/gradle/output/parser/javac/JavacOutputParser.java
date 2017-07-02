@@ -166,7 +166,7 @@ public class JavacOutputParser implements PatternAwareOutputParser {
 
   @Contract("null -> false")
   private static boolean isMessageEnd(@Nullable String line) {
-    return line != null && line.length() > 0 && Character.isWhitespace(line.charAt(0));
+    return line != null && !line.isEmpty() && Character.isWhitespace(line.charAt(0));
   }
 
   @NotNull

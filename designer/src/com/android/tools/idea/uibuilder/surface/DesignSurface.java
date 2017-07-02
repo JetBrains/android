@@ -981,7 +981,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     synchronized (myProgressIndicators) {
       myProgressIndicators.remove(indicator);
 
-      if (myProgressIndicators.size() == 0) {
+      if (myProgressIndicators.isEmpty()) {
         myProgressPanel.hideProgressIcon();
       }
     }

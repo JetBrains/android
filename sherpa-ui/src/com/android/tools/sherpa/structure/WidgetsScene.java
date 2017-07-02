@@ -181,7 +181,7 @@ public class WidgetsScene {
      */
     public void flattenHierarchy(ConstraintWidgetContainer root) {
         ArrayList<ConstraintWidgetContainer> containers = gatherContainers(root);
-        while (containers.size() > 0) {
+        while (!containers.isEmpty()) {
             for (ConstraintWidgetContainer container : containers) {
                 removeContainer(container);
             }
@@ -573,7 +573,7 @@ public class WidgetsScene {
             return Integer.compare(o1.getX(), o2.getX());
         });
 
-        if (widgets.size() == 0) {
+        if (widgets.isEmpty()) {
             return;
         }
         for (ConstraintWidget w : mWidgets.values()) {

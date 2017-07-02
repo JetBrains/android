@@ -190,7 +190,7 @@ public class ClassMaps extends AndroidFacetScopedService {
         return false;
       }
     }
-    return map.size() > 0;
+    return !map.isEmpty();
   }
 
   @NotNull

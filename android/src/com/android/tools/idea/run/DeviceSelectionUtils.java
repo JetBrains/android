@@ -58,7 +58,7 @@ public class DeviceSelectionUtils {
                                                         @NotNull final DeviceCount deviceCount) {
     final Collection<IDevice> compatibleDevices = getAllCompatibleDevices(deviceFilter);
 
-    if (compatibleDevices.size() == 0) {
+    if (compatibleDevices.isEmpty()) {
       return ImmutableList.of();
     }
     else if (compatibleDevices.size() == 1) {

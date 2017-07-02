@@ -114,7 +114,7 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     PsiReferenceExpression exp = (PsiReferenceExpression)value;
     String refName = exp.getReferenceName();
 
-    if (refName == null || refName.length() == 0) {
+    if (refName == null || refName.isEmpty()) {
       return false;
     }
     PsiExpression qExp = exp.getQualifierExpression();
@@ -125,7 +125,7 @@ public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
     exp = (PsiReferenceExpression)qExp;
     refName = exp.getReferenceName();
 
-    if (refName == null || refName.length() == 0) {
+    if (refName == null || refName.isEmpty()) {
       return false;
     }
     qExp = exp.getQualifierExpression();

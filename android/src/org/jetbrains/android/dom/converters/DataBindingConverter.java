@@ -123,7 +123,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
     GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
-    if (qualifiedName.length() > 0 && qualifiedName.indexOf('.') < 0) {
+    if (!qualifiedName.isEmpty() && qualifiedName.indexOf('.') < 0) {
       if (Character.isLowerCase(qualifiedName.charAt(0))) {
         PsiPrimitiveType primitiveType = PsiJavaParserFacadeImpl.getPrimitiveType(qualifiedName);
         if (primitiveType != null) {
@@ -276,7 +276,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
 
     for (; idx < nameParts.size(); idx++, offset++) {
       String packageName = nameParts.get(idx);
-      if (packageName.length() > 0) {
+      if (!packageName.isEmpty()) {
         TextRange range = new TextRange(offset, offset += packageName.length());
         result.add(new AliasedReference(element, range, String.join(".", nameParts.subList(0, idx + 1)), module));
       }

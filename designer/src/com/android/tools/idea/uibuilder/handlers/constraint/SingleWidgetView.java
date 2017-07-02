@@ -823,7 +823,7 @@ public class SingleWidgetView extends JPanel {
   private void parseDimensionRatio(String ratio) {
     mRatioHeight = (int)-1;
     mRatioWidth = (int)-1;
-    if (ratio == null || ratio.length() == 0) {
+    if (ratio == null || ratio.isEmpty()) {
       mDimensionRatio = 0;
       mDimensionRatioSide = ConstraintWidget.UNKNOWN;
 
@@ -851,7 +851,7 @@ public class SingleWidgetView extends JPanel {
     if (colonIndex >= 0 && colonIndex < len - 1) {
       String nominator = ratio.substring(commaIndex, colonIndex);
       String denominator = ratio.substring(colonIndex + 1);
-      if (nominator.length() > 0 && denominator.length() > 0) {
+      if (!nominator.isEmpty() && !denominator.isEmpty()) {
         try {
           float nominatorValue = Float.parseFloat(nominator);
           float denominatorValue = Float.parseFloat(denominator);
@@ -866,7 +866,7 @@ public class SingleWidgetView extends JPanel {
     }
     else {
       String r = ratio.substring(commaIndex);
-      if (r.length() > 0) {
+      if (!r.isEmpty()) {
         try {
           dimensionRatio = Float.parseFloat(r);
         }

@@ -96,7 +96,7 @@ public class DataBindingOutputParser implements PatternAwareOutputParser {
     }
     List<SourceFilePosition> sourceFilePositions = new ArrayList<SourceFilePosition>();
     File sourceFile = new File(file);
-    if (locations.size() == 0) {
+    if (locations.isEmpty()) {
       messages.add(new Message(Message.Kind.ERROR, message, SourceFilePosition.UNKNOWN));
     }
     else {

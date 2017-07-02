@@ -70,7 +70,7 @@ public class LocaleMenuAction extends FlatComboAction {
     List<Locale> locales = getRelevantLocales();
 
     Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration != null && locales.size() > 0) {
+    if (configuration != null && !locales.isEmpty()) {
       group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false, myClassicStyle), Locale.ANY));
       group.addSeparator();
 

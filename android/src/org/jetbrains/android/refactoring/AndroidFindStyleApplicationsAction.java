@@ -48,7 +48,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
       return false;
     }
     final MyStyleData data = getStyleData(tags[0]);
-    return data != null && data.getStyle().getItems().size() > 0;
+    return data != null && !data.getStyle().getItems().isEmpty();
   }
 
   @Override
@@ -102,7 +102,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
       AndroidRefactoringUtil.computeAttributeMap(style, new ProjectBasedErrorReporter(tag.getProject()),
                                                  AndroidBundle.message("android.find.style.applications.title"));
 
-    if (attrMap == null || attrMap.size() == 0) {
+    if (attrMap == null || attrMap.isEmpty()) {
       return null;
     }
     final AndroidFacet facet = styleData.getFacet();
@@ -146,7 +146,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
     final XmlAttributeValue styleNameAttrValue = styleNameDomAttr.getXmlAttributeValue();
 
     if (styleName == null ||
-        styleName.length() == 0 ||
+        styleName.isEmpty() ||
         styleNameAttrValue == null) {
       return null;
     }

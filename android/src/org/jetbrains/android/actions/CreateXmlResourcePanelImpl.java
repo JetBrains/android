@@ -105,7 +105,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
       modulesSet.add(depFacet.getModule());
     }
 
-    assert modulesSet.size() > 0;
+    assert !modulesSet.isEmpty();
 
     if (modulesSet.size() == 1) {
       myModule = module;

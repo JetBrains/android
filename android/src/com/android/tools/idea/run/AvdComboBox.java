@@ -118,7 +118,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
         if (debugBridge != null) {
           for (IDevice device : debugBridge.getDevices()) {
             final String avdName = device.getAvdName();
-            if (avdName != null && avdName.length() > 0) {
+            if (avdName != null && !avdName.isEmpty()) {
               filteringSet.add(avdName);
             }
           }

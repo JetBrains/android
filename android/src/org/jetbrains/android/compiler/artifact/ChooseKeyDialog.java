@@ -60,7 +60,7 @@ public class ChooseKeyDialog extends DialogWrapper {
     myCreateNewKeyRadioButton.addActionListener(listener);
     myUseExistingKeyRadioButton.addActionListener(listener);
 
-    final boolean useExisting = existingKeys.size() > 0;
+    final boolean useExisting = !existingKeys.isEmpty();
     myUseExistingKeyRadioButton.setSelected(useExisting);
     myCreateNewKeyRadioButton.setSelected(!useExisting);
     UIUtil.setEnabled(myNewKeyPanel, !useExisting, true);

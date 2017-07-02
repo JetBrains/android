@@ -188,7 +188,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
 
   @Override
   protected void updateOkAction() {
-    boolean enabled = myDirectoryNameTextField.getText().length() > 0;
+    boolean enabled = !myDirectoryNameTextField.getText().isEmpty();
     enabled = enabled && getNameError(myFileNameField.getText()) == null;
     setOKActionEnabled(enabled);
   }
@@ -244,19 +244,19 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     final CreateTypedResourceFileAction action = getSelectedAction(myResourceTypeCombo);
     assert action != null;
 
-    if (fileName.length() == 0) {
+    if (fileName.isEmpty()) {
       Messages.showErrorDialog(myPanel, AndroidBundle.message("file.name.not.specified.error"), CommonBundle.getErrorTitle());
       return;
     }
 
     String rootElement = getRootElement();
-    if (!action.isChooseTagName() && rootElement.length() == 0) {
+    if (!action.isChooseTagName() && rootElement.isEmpty()) {
       Messages.showErrorDialog(myPanel, AndroidBundle.message("root.element.not.specified.error"), CommonBundle.getErrorTitle());
       return;
     }
 
     final String subdirName = getSubdirName();
-    if (subdirName.length() == 0) {
+    if (subdirName.isEmpty()) {
       Messages.showErrorDialog(myPanel, AndroidBundle.message("directory.not.specified.error"), CommonBundle.getErrorTitle());
       return;
     }
@@ -331,7 +331,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   @Override
   public JComponent getPreferredFocusedComponent() {
     String name = myFileNameField.getText();
-    if (name.length() == 0
+    if (name.isEmpty()
         || name.equals(ResourceHelper.prependResourcePrefix(getSelectedModule(), null, getSelectedFolderType()))
         || getNameError(name) != null) {
       return myFileNameField;

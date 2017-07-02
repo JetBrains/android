@@ -44,7 +44,7 @@ public class Display {
       myScale = sceneContext.getScale();
       needsRebuild = true;
     }
-    needsRebuild |= myDisplayList.getCommands().size() == 0;
+    needsRebuild |= myDisplayList.getCommands().isEmpty();
     needsRebuild |= scene.layout(mTime, sceneContext);
     if (needsRebuild) {
       myDisplayList.clear();

@@ -298,12 +298,12 @@ final class MemoryClassifierView extends AspectObserver {
       }
     }
 
-    if (changedNode.getChildClassifierSets().size() > 0) {
+    if (!changedNode.getChildClassifierSets().isEmpty()) {
       // Add all nodes that are not present in the tree view.
       Set<ClassifierSet> newClassifierSets = new HashSet<>(changedNode.getChildClassifierSets());
       newClassifierSets.removeIf(child -> child.isEmpty());
       memoryNode.getChildren().forEach(child -> newClassifierSets.remove(child.getAdapter()));
-      if (newClassifierSets.size() > 0) {
+      if (!newClassifierSets.isEmpty()) {
         newClassifierSets.forEach(classifierSet -> {
           memoryNode.add(new MemoryClassifierTreeNode(classifierSet));
         });

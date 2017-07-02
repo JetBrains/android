@@ -104,7 +104,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
 
         DumbService service = DumbService.getInstance(myProject);
         Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = service.runReadActionInSmartMode(() -> checkGenerate());
-        if (facetsToProcess.size() > 0) {
+        if (!facetsToProcess.isEmpty()) {
           generate(facetsToProcess);
         }
         if (!alarm.isDisposed()) {
@@ -132,7 +132,7 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
           }
         }
 
-        if (modes.size() > 0) {
+        if (!modes.isEmpty()) {
           facetsToProcess.put(facet, modes);
         }
       }

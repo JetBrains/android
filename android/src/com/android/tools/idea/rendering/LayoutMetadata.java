@@ -201,7 +201,7 @@ public class LayoutMetadata {
       if (xmlNode.tagName.endsWith(GRID_VIEW)) {
         String columns = xmlNode.getAttribute(ATTR_NUM_COLUMNS, ANDROID_URI);
         int multiplier = 2;
-        if (columns != null && columns.length() > 0 &&
+        if (columns != null && !columns.isEmpty() &&
             !columns.equals(VALUE_AUTO_FIT)) {
           try {
             int c = Integer.parseInt(columns);

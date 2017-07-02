@@ -52,7 +52,7 @@ public final class GuidelinePainter {
     Set<NlComponent> deps = new HashSet<NlComponent>(horizontalDeps.size() + verticalDeps.size());
     deps.addAll(horizontalDeps);
     deps.addAll(verticalDeps);
-    if (deps.size() > 0) {
+    if (!deps.isEmpty()) {
       g.useStyle(DEPENDENCY);
       for (NlComponent n : deps) {
         // Don't highlight the selected nodes themselves
@@ -129,7 +129,7 @@ public final class GuidelinePainter {
    * Paints a constraint cycle
    */
   private static void paintCycle(GuidelineHandler myState, NlGraphics g, List<Constraint> cycle) {
-    assert cycle.size() > 0;
+    assert !cycle.isEmpty();
 
     NlComponent from = cycle.get(0).from.node;
     assert from != null;

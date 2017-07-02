@@ -112,7 +112,7 @@ public class SceneDecorator {
                                    @NotNull SceneContext sceneContext,
                                    @NotNull SceneComponent component) {
     ArrayList<SceneComponent> children = component.getChildren();
-    if (children.size() > 0) {
+    if (!children.isEmpty()) {
       Rectangle rect = new Rectangle();
       component.fillRect(rect);
       DisplayList.UNClip unClip = list.addClip(sceneContext, rect);

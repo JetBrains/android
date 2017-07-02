@@ -328,7 +328,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
           assert moduleModel != null;
           baseModuleRoot = moduleModel.getRootDirPath();
           Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
-          assert resDirectories.size() > 0;
+          assert !resDirectories.isEmpty();
           baseModuleResourceRoot = resDirectories.iterator().next();
         }
 
