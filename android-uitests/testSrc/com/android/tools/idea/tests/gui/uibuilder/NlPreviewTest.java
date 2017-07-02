@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -276,7 +274,6 @@ public class NlPreviewTest {
       .waitForScreenMode(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
