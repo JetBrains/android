@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 
 /** Tests creating new resources */
-@RunIn(TestGroup.UNRELIABLE)
+@RunIn(TestGroup.EDITING)
 @RunWith(GuiTestRunner.class)
 public class CreateResourceTest {
 
