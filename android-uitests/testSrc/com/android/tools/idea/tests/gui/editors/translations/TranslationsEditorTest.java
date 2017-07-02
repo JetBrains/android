@@ -116,7 +116,6 @@ public final class TranslationsEditorTest {
     assertEquals(-1, cancel.font().target().canDisplayUpTo("取消")); // requires DroidSansFallbackFull.ttf
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void dialogAddsKeyInDifferentFolder() throws IOException {
     importSimpleApplication();
@@ -132,7 +131,6 @@ public final class TranslationsEditorTest {
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void dialogDoesntAddKeyInSameFolder() throws IOException {
     importSimpleApplication();
@@ -347,7 +345,6 @@ public final class TranslationsEditorTest {
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void keyColumnWidthDoesntResetWhenAddingKey() throws IOException {
     importSimpleApplication();
@@ -412,7 +409,7 @@ public final class TranslationsEditorTest {
     assertEquals("Invalid XML", component.myTooltipText);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @RunIn(TestGroup.UNRELIABLE)  // b/63177330
   @Test
   public void enteringTextInDefaultValueTextFieldUpdatesTableCell() throws IOException {
     importSimpleApplication();
