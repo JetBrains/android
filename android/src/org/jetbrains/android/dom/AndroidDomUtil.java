@@ -164,11 +164,11 @@ public class AndroidDomUtil {
       if (resourceTypes.contains(ResourceType.DRAWABLE)) {
         resourceTypes.add(ResourceType.MIPMAP);
       }
-      if (resourceTypes.size() == 0) {
+      if (resourceTypes.isEmpty()) {
         resourceTypes.addAll(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES);
       }
     }
-    if (resourceTypes.size() > 0) {
+    if (!resourceTypes.isEmpty()) {
       final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes, attr);
       converter.setAllowLiterals(containsNotReference);
       return converter;

@@ -125,7 +125,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
       return PsiClass.EMPTY_ARRAY;
     }
     List<DataBindingInfo> infoList = myNameCache.getValue().get(name);
-    if (infoList == null || infoList.size() == 0) {
+    if (infoList == null || infoList.isEmpty()) {
       return PsiClass.EMPTY_ARRAY;
     }
     List<PsiClass> selected = Lists.newArrayList();

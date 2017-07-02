@@ -76,7 +76,7 @@ public abstract class AssistActionStateManager {
    */
   public void refreshDependencyState(@NotNull Project project) {
     List<Module> modules = GradleProjectInfo.getInstance(project).getAndroidModules();
-    if (modules.size() > 0) {
+    if (!modules.isEmpty()) {
       for (Module module : modules) {
         MessageBus bus = module.getMessageBus();
         StatefulButtonNotifier publisher = bus.syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC);

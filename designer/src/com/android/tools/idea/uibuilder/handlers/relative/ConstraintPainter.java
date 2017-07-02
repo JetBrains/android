@@ -127,7 +127,7 @@ public class ConstraintPainter {
     Set<NlComponent> deps = new HashSet<NlComponent>(horizontalDeps.size() + verticalDeps.size());
     deps.addAll(horizontalDeps);
     deps.addAll(verticalDeps);
-    if (deps.size() > 0) {
+    if (!deps.isEmpty()) {
       for (NlComponent node : deps) {
         // Don't highlight the selected nodes themselves
         if (childNodes.contains(node)) {

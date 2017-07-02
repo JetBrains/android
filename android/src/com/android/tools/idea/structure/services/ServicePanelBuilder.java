@@ -154,7 +154,7 @@ public final class ServicePanelBuilder {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {
         model.update();
-        if (backingList.size() > 0 && comboBox.getSelectedIndex() < 0) {
+        if (!backingList.isEmpty() && comboBox.getSelectedIndex() < 0) {
           comboBox.setSelectedIndex(0);
         }
       }

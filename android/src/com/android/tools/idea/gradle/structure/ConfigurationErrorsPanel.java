@@ -562,7 +562,7 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
       }
 
       List<ProjectConfigurationError> errors = myModel.getErrors();
-      if (errors.size() > 0) {
+      if (!errors.isEmpty()) {
         if (errors.size() == 1) {
           mySingleErrorLabel.setText(myModel.getErrors().get(0).getPlainTextTitle());
         }
@@ -572,7 +572,7 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
       }
 
       removeAll();
-      if (errors.size() > 0) {
+      if (!errors.isEmpty()) {
         if (errors.size() == 1) {
           add(wrapLabel(mySingleErrorLabel, errors.get(0)), BorderLayout.CENTER);
           mySingleErrorLabel.setToolTipText(errors.get(0).getDescription());

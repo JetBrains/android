@@ -796,7 +796,7 @@ public class Configuration implements Disposable, ModificationTracker {
       // if the list is empty, then all the new states failed. It is considered ok, and
       // we move to the next qualifier anyway. This way, if a qualifier is different for
       // all new states it is simply ignored.
-      if (list2.size() != 0) {
+      if (!list2.isEmpty()) {
         // move the candidates back into list1.
         list1.clear();
         list1.addAll(list2);
@@ -807,7 +807,7 @@ public class Configuration implements Disposable, ModificationTracker {
     // the only way to reach this point is if there's an exact match.
     // (if there are more than one, then there's a duplicate state and it doesn't matter,
     // we take the first one).
-    if (list1.size() > 0) {
+    if (!list1.isEmpty()) {
       return list1.get(0).getName();
     }
 

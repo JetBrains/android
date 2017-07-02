@@ -130,7 +130,7 @@ public class LayoutlibSceneManager extends SceneManager {
     Disposer.register(model, () -> model.getConfiguration().removeListener(listener));
 
     List<NlComponent> components = model.getComponents();
-    if (components.size() != 0) {
+    if (!components.isEmpty()) {
       NlComponent rootComponent = components.get(0).getRoot();
       boolean previous = getScene().isAnimated();
       scene.setAnimated(false);

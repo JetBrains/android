@@ -221,7 +221,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       Object oldValue = myTemplateState.get(paramName);
       JComponent component = myParamFields.get(paramName);
       if (component == focusedComponent || component.isAncestorOf(focusedComponent)) {
-        String help = param != null && param.help != null && param.help.length() > 0 ? param.help : getHelpText(paramName);
+        String help = param != null && param.help != null && !param.help.isEmpty() ? param.help : getHelpText(paramName);
         setDescriptionHtml(help);
       }
       Object newValue = getComponentValue(param, component);

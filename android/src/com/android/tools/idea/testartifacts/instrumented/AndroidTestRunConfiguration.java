@@ -115,11 +115,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     final String name = getName();
 
     if ((TESTING_TYPE == TEST_CLASS || TESTING_TYPE == TEST_METHOD) &&
-        (CLASS_NAME == null || CLASS_NAME.length() == 0)) {
+        (CLASS_NAME == null || CLASS_NAME.isEmpty())) {
       return JavaExecutionUtil.isNewName(name);
     }
     if (TESTING_TYPE == TEST_METHOD &&
-        (METHOD_NAME == null || METHOD_NAME.length() == 0)) {
+        (METHOD_NAME == null || METHOD_NAME.isEmpty())) {
       return JavaExecutionUtil.isNewName(name);
     }
     return Comparing.equal(name, suggestedName());
@@ -170,7 +170,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
         errors.addAll(checkTestMethod());
         break;
     }
-    if (GradleProjectInfo.getInstance(getProject()).isBuildWithGradle() && INSTRUMENTATION_RUNNER_CLASS.length() > 0) {
+    if (GradleProjectInfo.getInstance(getProject()).isBuildWithGradle() && !INSTRUMENTATION_RUNNER_CLASS.isEmpty()) {
       if (facade.findClass(INSTRUMENTATION_RUNNER_CLASS, module.getModuleWithDependenciesAndLibrariesScope(true)) == null) {
         errors.add(ValidationError.fatal(AndroidBundle.message("instrumentation.runner.class.not.specified.error")));
       }
@@ -226,7 +226,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     if (!JUnitUtil.isTestClass(testClass)) {
       errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
     }
-    if (METHOD_NAME == null || METHOD_NAME.trim().length() == 0) {
+    if (METHOD_NAME == null || METHOD_NAME.trim().isEmpty()) {
       errors.add(ValidationError.fatal(ExecutionBundle.message("method.name.not.specified.error.message")));
     }
     final JUnitUtil.TestMethodFilter filter = new JUnitUtil.TestMethodFilter(testClass);

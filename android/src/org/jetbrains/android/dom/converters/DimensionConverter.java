@@ -105,7 +105,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
   @VisibleForTesting
   @NotNull
   static String getIntegerPrefix(@NotNull String s) {
-    if (s.length() == 0) {
+    if (s.isEmpty()) {
       return "";
     }
     final StringBuilder intPrefixBuilder = new StringBuilder();
@@ -130,7 +130,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
     }
     final String description = ourUnits.get(unit);
 
-    if (description == null || description.length() == 0) {
+    if (description == null || description.isEmpty()) {
       return null;
     }
     return "<html><body>" + description + "</body></html>";

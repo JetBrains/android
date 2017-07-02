@@ -447,7 +447,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
           CaptureObject loadedCaptureObject = future.get();
           if (mySelection.finishSelectingCaptureObject(loadedCaptureObject)) {
             Collection<HeapSet> heaps = loadedCaptureObject.getHeapSets();
-            if (heaps.size() == 0) {
+            if (heaps.isEmpty()) {
               return;
             }
 

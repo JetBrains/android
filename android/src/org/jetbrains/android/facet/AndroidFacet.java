@@ -351,7 +351,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     List<VirtualFile> newFiles = new ArrayList<>(files);
     newFiles.removeAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
 
-    if (newFiles.size() > 0) {
+    if (!newFiles.isEmpty()) {
       SdkModificator modificator = sdk.getSdkModificator();
 
       for (VirtualFile file : newFiles) {

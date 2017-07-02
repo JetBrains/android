@@ -49,7 +49,7 @@ public class EmulatorTargetChooser {
 
   public EmulatorTargetChooser(@NotNull AndroidFacet facet, @Nullable String avd) {
     myFacet = facet;
-    assert avd == null || avd.length() > 0;
+    assert avd == null || !avd.isEmpty();
     myAvd = avd;
   }
 

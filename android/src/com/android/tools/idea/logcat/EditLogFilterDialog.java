@@ -388,7 +388,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     boolean validPid = false;
     try {
       final String pidStr = myPidField.getText().trim();
-      final Integer pid = pidStr.length() > 0 ? Integer.parseInt(pidStr) : null;
+      final Integer pid = !pidStr.isEmpty() ? Integer.parseInt(pidStr) : null;
 
       if (pid == null || pid.intValue() >= 0) {
         validPid = true;
@@ -409,7 +409,7 @@ final class EditLogFilterDialog extends DialogWrapper {
   }
 
   private void updateFilters() {
-    myFiltersList.setEnabled(myFilters.size() > 0);
+    myFiltersList.setEnabled(!myFilters.isEmpty());
     if (myActiveFilter != null) {
       myFiltersList.setSelectedValue(myActiveFilter.getName(), true);
     } else if (!myFilters.isEmpty()) {
@@ -484,7 +484,7 @@ final class EditLogFilterDialog extends DialogWrapper {
 
       // select another filter
       myActiveFilter = null;
-      if (myFilters.size() > 0) {
+      if (!myFilters.isEmpty()) {
         if (i >= myFilters.size()) {
           i = myFilters.size() - 1;
         }

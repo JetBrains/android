@@ -115,7 +115,7 @@ public class WrapArchiveWizardPath implements WizardPath {
     if (string == null) {
       return null;
     }
-    else if (string.trim().length() == 0) {
+    else if (string.trim().isEmpty()) {
       return SdkConstants.GRADLE_PATH_SEPARATOR;
     }
     else if (!string.startsWith(SdkConstants.GRADLE_PATH_SEPARATOR)) {

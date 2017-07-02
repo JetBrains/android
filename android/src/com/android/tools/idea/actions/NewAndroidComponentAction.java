@@ -121,7 +121,7 @@ public class NewAndroidComponentAction extends AnAction {
 
     String activityDescription = e.getPresentation().getText(); // e.g. "Empty Activity", "Tabbed Activity"
     List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
-    assert sourceSets.size() > 0;
+    assert !sourceSets.isEmpty();
 
     String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
     Project project = module.getProject();

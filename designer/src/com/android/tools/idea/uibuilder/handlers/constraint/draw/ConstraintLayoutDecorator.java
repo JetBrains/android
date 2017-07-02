@@ -187,7 +187,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
                                    @NotNull SceneContext sceneContext,
                                    @NotNull SceneComponent component) {
     ArrayList<SceneComponent> children = component.getChildren();
-    if (children.size() > 0) {
+    if (!children.isEmpty()) {
       // Cache connections between children
       for (SceneComponent child : component.getChildren()) {
         gatherProperties(component, child);
@@ -317,7 +317,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
 
     boolean fade =  ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.FADE_UNSELECTED_VIEWS);
 
-    if (fade && selection.size() == 0) { // nothing selected do not fade
+    if (fade && selection.isEmpty()) { // nothing selected do not fade
       fade = false;
     }
 

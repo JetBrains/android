@@ -161,7 +161,7 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
       }
       paths.mySrcRoot = Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
       List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
-      if (testsRoot.size() > 0) {
+      if (!testsRoot.isEmpty()) {
         paths.myTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
       }
       paths.myResDirectory = Iterables.getFirst(sourceProvider.getResDirectories(), null);

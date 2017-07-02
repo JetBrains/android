@@ -623,7 +623,7 @@ public class MergedManifest {
 
       // Get activity name.
       String name = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_NAME);
-      if (name == null || name.length() == 0) {
+      if (name == null || name.isEmpty()) {
         throw new RuntimeException("Activity name cannot be empty.");
       }
       int index = name.indexOf('.');
@@ -634,7 +634,7 @@ public class MergedManifest {
 
       // Get activity icon.
       String value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_ICON);
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myIcon = value;
       }
       else {
@@ -643,7 +643,7 @@ public class MergedManifest {
 
       // Get activity label.
       value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_LABEL);
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myLabel = value;
       }
       else {
@@ -652,7 +652,7 @@ public class MergedManifest {
 
       // Get activity parent. Also search the meta-data for parent info.
       value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_PARENT_ACTIVITY_NAME);
-      if (value == null || value.length() == 0) {
+      if (value == null || value.isEmpty()) {
         Node child = activity.getFirstChild();
         // TODO: Not sure if meta data can be used for API Level > 16
         while (child != null) {
@@ -673,7 +673,7 @@ public class MergedManifest {
           child = child.getNextSibling();
         }
       }
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myParentActivity = value;
       }
       else {
@@ -682,7 +682,7 @@ public class MergedManifest {
 
       // Get activity theme.
       value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_THEME);
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myTheme = value;
       }
       else {
@@ -691,7 +691,7 @@ public class MergedManifest {
 
       // Get UI options.
       value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_UI_OPTIONS);
-      if (value != null && value.length() > 0) {
+      if (value != null && !value.isEmpty()) {
         myUiOptions = value;
       }
       else {

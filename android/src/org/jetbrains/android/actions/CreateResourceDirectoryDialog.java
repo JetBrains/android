@@ -89,7 +89,7 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, facet);
 
     myDeviceConfiguratorPanel.updateAll();
-    setOKActionEnabled(myDirectoryNameTextField.getText().length() > 0);
+    setOKActionEnabled(!myDirectoryNameTextField.getText().isEmpty());
     init();
   }
 

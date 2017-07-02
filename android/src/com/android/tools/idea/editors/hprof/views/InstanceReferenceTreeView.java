@@ -85,7 +85,7 @@ public final class InstanceReferenceTreeView implements DataProvider {
         }
         else {
           Instance instance = (Instance)node.getUserObject();
-          return instance.getHardReverseReferences().size() > 0 || instance.getSoftReverseReferences() != null;
+          return !instance.getHardReverseReferences().isEmpty() || instance.getSoftReverseReferences() != null;
         }
       }
     };

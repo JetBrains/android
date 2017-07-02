@@ -62,7 +62,7 @@ public class SupportedModuleChecker {
       }
     }
 
-    if (unsupportedModules.size() == 0) {
+    if (unsupportedModules.isEmpty()) {
       return;
     }
     String moduleNames = join(unsupportedModules, Module::getName, ", ");

@@ -1526,7 +1526,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       }
       else if (myTable != null) {
         List<ResourceChooserItem> first = myGroups[0].getItems();
-        if (first.size() > 0) {
+        if (!first.isEmpty()) {
           setSelectedItem(first.get(0));
           myTable.requestFocus();
         }

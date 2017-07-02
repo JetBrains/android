@@ -153,7 +153,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
         continue;
       }
       String weight = target.getAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT);
-      if (weight == null || weight.length() == 0) {
+      if (weight == null || weight.isEmpty()) {
         duplicateWeight = false;
         break;
       }
@@ -183,7 +183,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    */
   static float getWeight(@NotNull NlComponent linearLayoutChild) {
     String weight = linearLayoutChild.getAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT);
-    if (weight != null && weight.length() > 0) {
+    if (weight != null && !weight.isEmpty()) {
       try {
         return Float.parseFloat(weight);
       }

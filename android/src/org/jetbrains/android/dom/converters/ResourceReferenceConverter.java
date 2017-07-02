@@ -298,7 +298,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         }
       }
     }
-    if (types.size() == 0) {
+    if (types.isEmpty()) {
       return VALUE_RESOURCE_TYPES;
     }
     else if (types.contains(ResourceType.DRAWABLE)) {

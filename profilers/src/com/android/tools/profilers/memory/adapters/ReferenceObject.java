@@ -34,7 +34,7 @@ public class ReferenceObject implements ValueObject {
     myReferencingInstance = referencingInstance;
 
     StringBuilder builder = new StringBuilder();
-    if (myReferencingFieldNames.size() > 0) {
+    if (!myReferencingFieldNames.isEmpty()) {
       if (getValueType() == ValueObject.ValueType.ARRAY) {
         builder.append("Index ");
       }

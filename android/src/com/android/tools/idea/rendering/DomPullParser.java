@@ -74,7 +74,7 @@ public class DomPullParser extends LayoutPullParser {
 
   @Nullable
   protected Element getCurrentElement() {
-    if (myNodeStack.size() > 0) {
+    if (!myNodeStack.isEmpty()) {
       return myNodeStack.get(myNodeStack.size() - 1);
     }
 

@@ -166,7 +166,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    */
   @Override
   public void onPathStarted(boolean fromBeginning) {
-    if (mySteps.size() == 0 || getVisibleStepCount() == 0) {
+    if (mySteps.isEmpty() || getVisibleStepCount() == 0) {
       return;
     }
     myCurrentStep = null;

@@ -297,7 +297,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     if (attribute.getName().contains(":")) {
       final String nsPrefix = attribute.getNamespacePrefix();
 
-      if (nsPrefix.length() == 0) {
+      if (nsPrefix.isEmpty()) {
         return;
       }
       if (!SdkConstants.NS_RESOURCES.equals(tag.getNamespaceByPrefix(nsPrefix))) {
@@ -375,7 +375,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     final String localSuffix = localName.substring(LAYOUT_ATTRIBUTE_PREFIX.length());
 
-    if (localSuffix.length() > 0) {
+    if (!localSuffix.isEmpty()) {
       final HashSet<String> lookupStrings = new HashSet<>(lookupElement.getAllLookupStrings());
       lookupStrings.add(localSuffix);
 
@@ -446,7 +446,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
                                                    XmlAttributeValue parent) {
     final String currentValue = parent.getValue();
 
-    if (currentValue == null || currentValue.length() == 0 || currentValue.endsWith("|")) {
+    if (currentValue == null || currentValue.isEmpty() || currentValue.endsWith("|")) {
       return;
     }
     final PsiElement grandparent = parent.getParent();
@@ -465,7 +465,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     if (valueRange != null && valueRange.getEndOffset() == parameters.getOffset()) {
       final Set<String> valueSet = ((FlagConverter)converter).getValues();
 
-      if (valueSet.size() > 0) {
+      if (!valueSet.isEmpty()) {
         final String prefix = resultSet.getPrefixMatcher().getPrefix();
 
         if (valueSet.contains(prefix)) {

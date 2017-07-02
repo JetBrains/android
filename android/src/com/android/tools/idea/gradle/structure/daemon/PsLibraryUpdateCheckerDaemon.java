@@ -193,7 +193,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
         }
       });
 
-      if (repositories.size() > 0 && ids.size() > 0) {
+      if (!repositories.isEmpty() && !ids.isEmpty()) {
         search(repositories, ids);
       }
     }

@@ -128,7 +128,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   @Nullable
   private static File findTestDirectory(@NotNull Module module) {
     List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
-    return testsRoot.size() == 0 ? null : VfsUtilCore.virtualToIoFile(testsRoot.get(0));
+    return testsRoot.isEmpty() ? null : VfsUtilCore.virtualToIoFile(testsRoot.get(0));
   }
 
 
@@ -383,7 +383,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       List<SourceProvider> sourceProviders =
         IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceProvider());
       File targetDirectoryFile = VfsUtilCore.virtualToIoFile(myTargetFolder);
-      if (sourceProviders.size() > 0 && IdeaSourceProvider.containsFile(sourceProviders.get(0), targetDirectoryFile)) {
+      if (!sourceProviders.isEmpty() && IdeaSourceProvider.containsFile(sourceProviders.get(0), targetDirectoryFile)) {
         File srcDirectory = findSrcDirectory(sourceProviders.get(0));
         if (srcDirectory != null) {
           String packageName = ProjectRootManager.getInstance(module.getProject())

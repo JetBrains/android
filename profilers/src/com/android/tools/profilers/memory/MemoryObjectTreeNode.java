@@ -73,7 +73,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
 
   @Override
   public boolean isLeaf() {
-    return myChildren.size() == 0;
+    return myChildren.isEmpty();
   }
 
   @Override

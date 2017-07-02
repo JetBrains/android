@@ -81,7 +81,7 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
               !modifierList.hasModifierProperty(PsiModifier.ABSTRACT)) {
             final String qName = psiClass.getQualifiedName();
 
-            if (qName != null && qName.length() > 0) {
+            if (qName != null && !qName.isEmpty()) {
               finalResult.addElement(JavaLookupElementBuilder.forClass(psiClass, qName));
             }
           }
@@ -91,7 +91,7 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
     }
     final Set<String> aliases = collectActivityAliases(facet);
 
-    if (aliases.size() > 0) {
+    if (!aliases.isEmpty()) {
       for (String alias : aliases) {
         LookupElementBuilder element = LookupElementBuilder.create(alias);
         final String shortName = StringUtilRt.getShortName(alias);
@@ -132,14 +132,14 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
     for (ActivityAlias activityAlias : application.getActivityAliases()) {
       String alias = activityAlias.getName().getStringValue();
 
-      if (alias != null && alias.length() > 0) {
+      if (alias != null && !alias.isEmpty()) {
         if (!alias.startsWith(".")) {
           if (alias.indexOf('.') > 0) {
             result.add(alias);
           }
           alias = "." + alias;
         }
-        if (aPackage != null && aPackage.length() > 0 && StringUtil.commonPrefixLength(aPackage, alias) == 0) {
+        if (aPackage != null && !aPackage.isEmpty() && StringUtil.commonPrefixLength(aPackage, alias) == 0) {
           result.add(aPackage + alias);
         }
       }

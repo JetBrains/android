@@ -391,7 +391,7 @@ public class ConfigurationMatcher {
       }
     }
 
-    if (bestMatches.size() == 0) {
+    if (bestMatches.isEmpty()) {
       if (favorCurrentConfig) {
         // quick check
         if (!editedConfig.isMatchFor(currentConfig)) {
@@ -403,7 +403,7 @@ public class ConfigurationMatcher {
                                "Displaying it with '%3$s'.",
                                editedConfig.toDisplayString(), myConfiguration.getFile(), currentConfig.toDisplayString()));
       }
-      else if (anyMatches.size() > 0) {
+      else if (!anyMatches.isEmpty()) {
         // select the best device anyway.
         ConfigMatch match = selectConfigMatch(anyMatches);
 

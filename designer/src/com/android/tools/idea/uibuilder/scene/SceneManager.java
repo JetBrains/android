@@ -72,7 +72,7 @@ abstract public class SceneManager implements Disposable {
   public void update() {
     List<NlComponent> components = getModel().getComponents();
     Scene scene = getScene();
-    if (components.size() == 0) {
+    if (components.isEmpty()) {
       scene.removeAllComponents();
       scene.setRoot(null);
       return;

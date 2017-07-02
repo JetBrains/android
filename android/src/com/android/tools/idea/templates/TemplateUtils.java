@@ -370,7 +370,7 @@ public class TemplateUtils {
    * @return true if all files were opened
    */
   public static boolean openEditors(@NotNull Project project, @NotNull Collection<File> files, boolean select) {
-    if (files.size() > 0) {
+    if (!files.isEmpty()) {
       boolean result = true;
       VirtualFile last = null;
       for (File file : files) {

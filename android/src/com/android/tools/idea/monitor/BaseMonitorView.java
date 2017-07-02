@@ -282,7 +282,7 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
     }
     else {
       myVisibleOverlays.remove(orderedText);
-      if (myVisibleOverlays.size() > 0) {
+      if (!myVisibleOverlays.isEmpty()) {
         updateOverlayText(myVisibleOverlays.peek().myText);
       }
       else {

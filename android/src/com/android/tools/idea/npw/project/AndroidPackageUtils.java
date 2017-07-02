@@ -53,7 +53,7 @@ public final class AndroidPackageUtils {
   public static String getPackageForPath(@NotNull AndroidFacet androidFacet,
                                          @NotNull List<AndroidSourceSet> sourceSets,
                                          @NotNull VirtualFile targetDirectory) {
-    if (sourceSets.size() > 0) {
+    if (!sourceSets.isEmpty()) {
       Module module = androidFacet.getModule();
       File srcDirectory = sourceSets.get(0).getPaths().getSrcDirectory(null);
       if (srcDirectory != null) {

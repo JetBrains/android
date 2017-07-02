@@ -75,7 +75,7 @@ public class ConstraintsLayer extends Layer {
       return;
     }
 
-    if (myModel.getComponents().size() == 0) {
+    if (myModel.getComponents().isEmpty()) {
       return;
     }
     NlComponent component = myModel.getComponents().get(0);

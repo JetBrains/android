@@ -162,7 +162,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     else if (e instanceof PsiField) {
       PsiField field = (PsiField)e;
       List<PsiElement> resources = AndroidResourceUtil.findResourcesByField(field);
-      if (resources.size() == 0) {
+      if (resources.isEmpty()) {
         return new MyFindUsagesHandler(e);
       }
 

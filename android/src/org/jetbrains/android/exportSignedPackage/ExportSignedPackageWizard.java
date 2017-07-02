@@ -97,7 +97,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     super(AndroidBundle.message("android.export.package.wizard.title"), project);
     myProject = project;
     mySigned = signed;
-    assert facets.size() > 0;
+    assert !facets.isEmpty();
     if (facets.size() > 1 || SystemInfo.isMac /* wizards with only step are shown incorrectly on mac */) {
       addStep(new ChooseModuleStep(this, facets));
     }

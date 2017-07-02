@@ -134,7 +134,7 @@ public class ImportDependenciesUtil {
       }
     }
 
-    if (tasks.size() > 0) {
+    if (!tasks.isEmpty()) {
       doImportDependencies(project, tasks);
     }
   }
@@ -178,14 +178,14 @@ public class ImportDependenciesUtil {
       }
     }
 
-    if (createNewModuleTasks.size() > 0) {
+    if (!createNewModuleTasks.isEmpty()) {
       final List<JavaModuleSourceRoot> sourceRoots = new ArrayList<JavaModuleSourceRoot>();
       for (CreateNewModuleTask task : createNewModuleTasks) {
         final String contentRootPath = task.getContentRoot().getPath();
         sourceRoots.addAll(SourcePathsStep.calculateSourceRoots(contentRootPath));
       }
 
-      if (sourceRoots.size() > 0) {
+      if (!sourceRoots.isEmpty()) {
         final ImportSourceRootsDialog sourceRootsDialog = new ImportSourceRootsDialog(project, sourceRoots);
         sourceRootsDialog.show();
 

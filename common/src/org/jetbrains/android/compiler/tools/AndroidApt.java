@@ -199,7 +199,7 @@ public final class AndroidApt {
     for (Pair<String, String> pair : libRTxtFilesAndPackages) {
       extraPackages.add(pair.getSecond());
     }
-    if (extraPackages.size() > 0) {
+    if (!extraPackages.isEmpty()) {
       args.add("--extra-packages");
       args.add(toPackagesString(ArrayUtil.toStringArray(extraPackages)));
     }
@@ -233,7 +233,7 @@ public final class AndroidApt {
     final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
     LOG.info(AndroidCommonUtils.command2string(args));
 
-    if (messages.get(AndroidCompilerMessageKind.ERROR).size() > 0) {
+    if (!messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
       return messages;
     }
 
@@ -298,7 +298,7 @@ public final class AndroidApt {
     args.add(COMMAND_CRUNCH);
     File tempDir = null;
     try {
-      if (resPaths.size() > 0) {
+      if (!resPaths.isEmpty()) {
         if (resPaths.size() == 1) {
           args.add("-S");
           args.add(resPaths.get(0));
@@ -433,7 +433,7 @@ public final class AndroidApt {
         args.add("--rename-manifest-package");
         args.add(customManifestPackage);
       }
-      if (additionalParameters != null && additionalParameters.length() > 0) {
+      if (additionalParameters != null && !additionalParameters.isEmpty()) {
         args.addAll(ParametersListUtil.parse(additionalParameters));
       }
       args.add("-F");

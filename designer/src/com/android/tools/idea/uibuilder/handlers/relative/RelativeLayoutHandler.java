@@ -163,7 +163,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent layout) {
     SelectionModel selectionModel = screenView.getSelectionModel();
-    if (selectionModel.getSelection().size() == 0) {
+    if (selectionModel.getSelection().isEmpty()) {
       // The interacted component hasn't been selected, select it.
       // This happened when starting dragging a component without any selection.
       selectionModel.setSelection(Collections.singletonList(layout));

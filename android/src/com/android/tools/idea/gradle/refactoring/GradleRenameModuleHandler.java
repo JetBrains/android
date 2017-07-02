@@ -122,7 +122,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
     @Override
     public boolean checkInput(@Nullable String inputString) {
-      return inputString != null && inputString.length() > 0 && !inputString.equals(myModule.getName()) && !inputString.contains(":");
+      return inputString != null && !inputString.isEmpty() && !inputString.equals(myModule.getName()) && !inputString.contains(":");
     }
 
     @Override

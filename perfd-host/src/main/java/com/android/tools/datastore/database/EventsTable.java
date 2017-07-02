@@ -79,7 +79,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
     try {
       ResultSet results = executeQuery(EventStatements.FIND_ACTIVITY, id, appId, session);
       List<EventProfiler.ActivityData> datas = getActivityDataFromResultSet(results);
-      if (datas.size() != 0) {
+      if (!datas.isEmpty()) {
         return datas.get(0);
       }
     } catch (SQLException ex) {

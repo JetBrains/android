@@ -559,7 +559,7 @@ final class MemoryClassSetView extends AspectObserver {
   @NotNull
   private static List<MemoryObjectTreeNode<MemoryObject>> findLeafNodesForFieldPath(@NotNull MemoryObjectTreeNode<MemoryObject> parentNode,
                                                                                     @NotNull List<FieldObject> fieldPath) {
-    assert fieldPath.size() > 0;
+    assert !fieldPath.isEmpty();
     FieldObject currentField = fieldPath.get(0);
 
     List<MemoryObjectTreeNode<MemoryObject>> results = new ArrayList<>(1);

@@ -88,7 +88,7 @@ public class AvdSummaryAction extends AvdUiAction {
       copy.remove(AvdManager.AVD_INI_SDCARD_PATH);
       copy.remove(AvdManager.AVD_INI_IMAGES_2);
 
-      if (copy.size() > 0) {
+      if (!copy.isEmpty()) {
         for (Map.Entry<String, String> entry : copy.entrySet()) {
           htmlBuilder.addHtml("<br>").add(entry.getKey()).add(": ").add(entry.getValue());
         }

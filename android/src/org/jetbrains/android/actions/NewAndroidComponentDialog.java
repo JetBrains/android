@@ -164,7 +164,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
           final Manifest manifest = facet.getManifest();
           final String appPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
-          if (appPackage != null && appPackage.length() > 0) {
+          if (appPackage != null && !appPackage.isEmpty()) {
             ApplicationManager.getApplication().invokeLater(new Runnable() {
               @Override
               public void run() {
@@ -277,13 +277,13 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     }
 
     String packageName = manifest.getPackage().getValue();
-    if (packageName == null || packageName.length() == 0) {
+    if (packageName == null || packageName.isEmpty()) {
       manifest.getPackage().setValue(aPackage.getQualifiedName());
     }
     Application application = manifest.getApplication();
     if (application == null) return;
     ApplicationComponent component = addToManifest(templateName, aClass, application, startupActivity);
-    if (component != null && label.length() > 0) {
+    if (component != null && !label.isEmpty()) {
       component.getLabel().setValue(ResourceValue.literal(label));
     }
   }

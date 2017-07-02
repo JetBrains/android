@@ -183,7 +183,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
         selected.add(DataBindingUtil.getOrCreateBrClassFor(facet));
       }
     }
-    if (selected.size() == 0) {
+    if (selected.isEmpty()) {
       return PsiClass.EMPTY_ARRAY;
     }
     return selected.toArray(new PsiClass[selected.size()]);

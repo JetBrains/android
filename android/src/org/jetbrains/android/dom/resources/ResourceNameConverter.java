@@ -149,7 +149,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     List<ValueResourceInfoImpl> styles = resourceManager.findValueResourceInfos(ResourceType.STYLE.getName(), localStyleName, true, false);
 
-    if (styles.size() == 0) {
+    if (styles.isEmpty()) {
       return false;
     }
     // all resolved styles have explicit parents
@@ -176,7 +176,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     public LocalQuickFix[] getQuickFixes() {
       final String resourceName = getValue();
 
-      if (resourceName.length() == 0) {
+      if (resourceName.isEmpty()) {
         return LocalQuickFix.EMPTY_ARRAY;
       }
       final PsiFile psiFile = getElement().getContainingFile();

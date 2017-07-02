@@ -110,7 +110,7 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
       }
     }
 
-    if (pairs.size() == 0) {
+    if (pairs.isEmpty()) {
       return true;
     }
 
@@ -132,6 +132,6 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
   public void update(AnActionEvent e) {
     super.update(e);
     final Project project = e.getData(CommonDataKeys.PROJECT);
-    e.getPresentation().setEnabled(project != null && ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).size() > 0);
+    e.getPresentation().setEnabled(project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
   }
 }

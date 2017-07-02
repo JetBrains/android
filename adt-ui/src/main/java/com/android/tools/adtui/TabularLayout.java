@@ -541,7 +541,7 @@ public final class TabularLayout implements LayoutManager2 {
      */
     public List<PosSize> getBounds(int start, int totalSpace) {
       List<PosSize> bounds = Stream.generate(PosSize::new).limit(mySizes.size()).collect(Collectors.toList());
-      if (bounds.size() == 0) {
+      if (bounds.isEmpty()) {
         return bounds;
       }
 

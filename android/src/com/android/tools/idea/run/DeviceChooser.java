@@ -269,7 +269,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
 
     myProcessSelectionFlag = false;
     myDeviceTable.setModel(new MyDeviceTableModel(devices));
-    if (selectedRows.size() == 0 && devices.length > 0) {
+    if (selectedRows.isEmpty() && devices.length > 0) {
       myDeviceTable.getSelectionModel().setSelectionInterval(0, 0);
     }
     for (int selectedRow : selectedRows.toNativeArray()) {

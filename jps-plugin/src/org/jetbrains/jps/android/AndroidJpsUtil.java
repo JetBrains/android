@@ -95,7 +95,7 @@ public class AndroidJpsUtil {
 
     final List<String> contentRoots = module.getContentRootsList().getUrls();
 
-    if (contentRoots.size() == 0) {
+    if (contentRoots.isEmpty()) {
       return null;
     }
     final File manifestFile = extension.getManifestFile();
@@ -152,7 +152,7 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static List<String> toPaths(@NotNull Collection<File> files) {
-    if (files.size() == 0) {
+    if (files.isEmpty()) {
       return Collections.emptyList();
     }
 
@@ -659,7 +659,7 @@ public class AndroidJpsUtil {
     final String apkRelativePath = extension.getApkRelativePath();
     final JpsModule module = extension.getModule();
 
-    if (apkRelativePath == null || apkRelativePath.length() == 0) {
+    if (apkRelativePath == null || apkRelativePath.isEmpty()) {
       return new File(outputDirForPackagedArtifacts, getApkName(module)).getPath();
     }
 
@@ -832,7 +832,7 @@ public class AndroidJpsUtil {
     }
 
     final String cfgPathsStrFromContext = context.getBuilderParameter(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION);
-    if (cfgPathsStrFromContext != null && cfgPathsStrFromContext.length() > 0) {
+    if (cfgPathsStrFromContext != null && !cfgPathsStrFromContext.isEmpty()) {
       final String[] paths = cfgPathsStrFromContext.split(File.pathSeparator);
 
       if (paths.length > 0) {
@@ -922,7 +922,7 @@ public class AndroidJpsUtil {
         try {
           final String packageName = parsePackageNameFromManifestFile(manifestFile);
 
-          if (packageName != null && packageName.length() > 0) {
+          if (packageName != null && !packageName.isEmpty()) {
             result.add(Pair.create(rTxt.getPath(), packageName));
           }
         }

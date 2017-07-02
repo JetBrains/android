@@ -68,7 +68,7 @@ public class HeapPackageNode implements HeapNode {
 
     int dotIndex = remainder.indexOf('.');
     if (dotIndex > 0) {
-      assert remainder.length() > 0;
+      assert !remainder.isEmpty();
       String subPackageName = remainder.substring(0, dotIndex);
       HeapPackageNode heapPackageNode = mySubPackages.get(subPackageName);
       if (heapPackageNode == null) {
@@ -195,7 +195,7 @@ public class HeapPackageNode implements HeapNode {
 
   @Override
   public boolean isLeaf() {
-    return myChildren.size() == 0;
+    return myChildren.isEmpty();
   }
 
   @Override

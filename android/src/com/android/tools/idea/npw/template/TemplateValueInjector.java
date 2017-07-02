@@ -125,7 +125,7 @@ public final class TemplateValueInjector {
       AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
       assert moduleModel != null;
       Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
-      assert resDirectories.size() > 0;
+      assert !resDirectories.isEmpty();
       File baseModuleResourceRoot = resDirectories.iterator().next();
 
       myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());

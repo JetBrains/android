@@ -188,7 +188,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       }
     }
 
-    assert newModuleModels.size() > 0;
+    assert !newModuleModels.isEmpty();
 
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();

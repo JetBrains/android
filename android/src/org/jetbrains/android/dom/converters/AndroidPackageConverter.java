@@ -131,7 +131,7 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
       final String oldPackageName = myElement.getText().substring(myReferenceSet.myStartInElement, myTextRange.getEndOffset());
       final PsiFile file = myElement.getContainingFile();
 
-      if (basePackage.length() > 0 && file instanceof XmlFile) {
+      if (!basePackage.isEmpty() && file instanceof XmlFile) {
         AndroidApplicationPackageRenameProcessor.processAllAttributesToUpdate(
           (XmlFile)file, basePackage, oldPackageName, newPackageName, new Processor<Pair<GenericAttributeValue, String>>() {
           @Override

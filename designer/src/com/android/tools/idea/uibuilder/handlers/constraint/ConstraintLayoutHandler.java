@@ -739,7 +739,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
-              if (selectedChildren.size() > 0) {
+              if (!selectedChildren.isEmpty()) {
                 NlComponent tag = NlComponentHelperKt.createChild(barrier, editor, TAG, null, InsertType.CREATE);
                 tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                 tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
@@ -797,7 +797,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
 
             if (ConstraintHelperHandler.USE_HELPER_TAGS) {
-              if (selectedChildren.size() > 0) {
+              if (!selectedChildren.isEmpty()) {
 
                 for (NlComponent child : selectedChildren) {
                   if (ConstraintComponentUtilities.isLine(child)) {

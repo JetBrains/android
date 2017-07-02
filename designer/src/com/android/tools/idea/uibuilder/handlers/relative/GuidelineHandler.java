@@ -451,7 +451,7 @@ public class GuidelineHandler {
 
   protected void addClosest(Segment draggedEdge, List<Segment> edges, List<Match> closest) {
     int at = draggedEdge.at;
-    int closestDelta = closest.size() > 0 ? closest.get(0).delta : Integer.MAX_VALUE;
+    int closestDelta = !closest.isEmpty() ? closest.get(0).delta : Integer.MAX_VALUE;
     int closestDistance = Math.abs(closestDelta);
     for (Segment edge : edges) {
       assert draggedEdge.edgeType.isHorizontal() == edge.edgeType.isHorizontal();

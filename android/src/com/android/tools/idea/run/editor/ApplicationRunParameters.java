@@ -278,7 +278,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       }
     }
     if (add) {
-      if (makeTasks.size() == 0) {
+      if (makeTasks.isEmpty()) {
         editor.addBeforeLaunchStep(new CompileStepBeforeRun.MakeBeforeRunTask());
       }
       else {

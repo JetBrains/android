@@ -113,7 +113,7 @@ public class CaptureService {
     String suggestedName = null;
     if (client != null) {
       String name = client.getClientData().getClientDescription();
-      if (name != null && name.length() > 0) {
+      if (name != null && !name.isEmpty()) {
         suggestedName = name + "_" + timestamp;
       }
     }

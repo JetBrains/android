@@ -145,11 +145,11 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
       final String fileName = myFileNameField.getText().trim();
       myLastRootComponentName = myRootElementField.getText().trim();
 
-      if (fileName.length() == 0) {
+      if (fileName.isEmpty()) {
         Messages.showErrorDialog(myPanel, AndroidBundle.message("file.name.not.specified.error"), CommonBundle.getErrorTitle());
         return;
       }
-      if (myLastRootComponentName.length() == 0) {
+      if (myLastRootComponentName.isEmpty()) {
         Messages.showErrorDialog(myPanel, AndroidBundle.message("root.element.not.specified.error"), CommonBundle.getErrorTitle());
         return;
       }

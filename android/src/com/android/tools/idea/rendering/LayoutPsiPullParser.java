@@ -272,7 +272,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
 
   @Nullable
   protected final TagSnapshot getCurrentNode() {
-    if (myNodeStack.size() > 0) {
+    if (!myNodeStack.isEmpty()) {
       return myNodeStack.get(myNodeStack.size() - 1);
     }
 

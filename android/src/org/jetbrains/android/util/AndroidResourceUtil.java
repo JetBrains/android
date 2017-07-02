@@ -359,7 +359,7 @@ public class AndroidResourceUtil {
 
   public static boolean isCorrectAndroidResourceName(@NotNull String resourceName) {
     // TODO: No, we need to check per resource folder type here. There is a validator for this!
-    if (resourceName.length() == 0) {
+    if (resourceName.isEmpty()) {
       return false;
     }
     if (resourceName.startsWith(".") || resourceName.endsWith(".")) {
@@ -748,7 +748,7 @@ public class AndroidResourceUtil {
   }
 
   public static List<String> getNames(@NotNull Collection<ResourceType> resourceTypes) {
-    if (resourceTypes.size() == 0) {
+    if (resourceTypes.isEmpty()) {
       return Collections.emptyList();
     }
     final List<String> result = new ArrayList<>();
@@ -779,7 +779,7 @@ public class AndroidResourceUtil {
     catch (Exception e) {
       final String message = CreateElementActionBase.filterMessage(e.getMessage());
 
-      if (message == null || message.length() == 0) {
+      if (message == null || message.isEmpty()) {
         LOG.error(e);
       }
       else {
@@ -809,7 +809,7 @@ public class AndroidResourceUtil {
                                             @NotNull final String value,
                                             @Nullable final List<ResourceElement> outTags) {
     return createValueResource(project, resDir, resourceName, value, resourceType, fileName, dirNames, element -> {
-      if (value.length() > 0) {
+      if (!value.isEmpty()) {
         final String s = resourceType == ResourceType.STRING ? normalizeXmlResourceValue(value) : value;
         element.setStringValue(s);
       }
@@ -833,7 +833,7 @@ public class AndroidResourceUtil {
                                           @NotNull List<String> dirNames,
                                           @Nullable final String resourceValue,
                                           @NotNull final Processor<ResourceElement> afterAddedProcessor) throws Exception {
-    if (dirNames.size() == 0) {
+    if (dirNames.isEmpty()) {
       return false;
     }
     final VirtualFile[] resFiles = new VirtualFile[dirNames.size()];
@@ -1013,7 +1013,7 @@ public class AndroidResourceUtil {
                                                                                @Nullable String className,
                                                                                boolean localOnly) {
     final String resFieldName = exp.getReferenceName();
-    if (resFieldName == null || resFieldName.length() == 0) {
+    if (resFieldName == null || resFieldName.isEmpty()) {
       return null;
     }
 
@@ -1024,7 +1024,7 @@ public class AndroidResourceUtil {
     final PsiReferenceExpression resClassReference = (PsiReferenceExpression)qExp;
 
     final String resClassName = resClassReference.getReferenceName();
-    if (resClassName == null || resClassName.length() == 0 ||
+    if (resClassName == null || resClassName.isEmpty() ||
         className != null && !className.equals(resClassName)) {
       return null;
     }

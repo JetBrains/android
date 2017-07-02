@@ -320,7 +320,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
         return false;
       }
 
-      if (end.length() > 0 && end.charAt(0) != ' ') {
+      if (!end.isEmpty() && end.charAt(0) != ' ') {
         // We only support dimension-type values, so try to parse the unit for dimension
         DimensionEntry dimension = parseDimension(end);
         if (dimension != null) {

@@ -77,7 +77,7 @@ public class AndroidAarDepsBuilder extends AndroidTargetBuilder<BuildRootDescrip
         srcJarFiles.add(file.getPath());
       }
     }
-    if (srcJarFiles.size() == 0) {
+    if (srcJarFiles.isEmpty()) {
       return true;
     }
     context.processMessage(new ProgressMessage(AndroidJpsBundle.message(

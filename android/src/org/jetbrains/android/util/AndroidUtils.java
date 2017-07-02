@@ -489,7 +489,7 @@ public class AndroidUtils {
 
     TargetSelectionMode alternative = null;
 
-    if (configurations.size() > 0) {
+    if (!configurations.isEmpty()) {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
           final AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
@@ -511,7 +511,7 @@ public class AndroidUtils {
     }
     configurations = runManager.getConfigurationsList(alternativeType);
 
-    if (configurations.size() > 0) {
+    if (!configurations.isEmpty()) {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
           return ((AndroidRunConfigurationBase)configuration).getDeployTargetContext().getTargetSelectionMode();

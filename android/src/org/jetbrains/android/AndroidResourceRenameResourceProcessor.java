@@ -119,7 +119,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       else if (element1 instanceof PsiField) {
         PsiField field = (PsiField)element1;
         if (AndroidResourceUtil.isResourceField(field)) {
-          return AndroidResourceUtil.findResourcesByField(field).size() > 0;
+          return !AndroidResourceUtil.findResourcesByField(field).isEmpty();
         }
       }
       else if (element1 instanceof XmlAttributeValue) {
@@ -454,7 +454,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         alternativeResources.add(resourceFile);
       }
     }
-    if (alternativeResources.size() > 0) {
+    if (!alternativeResources.isEmpty()) {
       int r = 0;
       if (ASK) {
         r = Messages.showDialog(project, message("rename.alternate.resources.question"), message("rename.dialog.title"),
@@ -573,7 +573,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
         local = Collections.emptyList();
       }
       HtmlBuilder builder = null;
-      if (local.size() == 0 && all.size() > 0) {
+      if (local.isEmpty() && !all.isEmpty()) {
         builder = new HtmlBuilder(new StringBuilder(300));
         builder.add("Resource is also only defined in external libraries and cannot be renamed.");
       }

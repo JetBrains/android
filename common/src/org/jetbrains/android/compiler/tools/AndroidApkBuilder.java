@@ -149,7 +149,7 @@ public class AndroidApkBuilder {
     }
     File additionalLibsDir = null;
     try {
-      if (additionalNativeLibs.size() > 0) {
+      if (!additionalNativeLibs.isEmpty()) {
         additionalLibsDir = FileUtil.createTempDirectory("android_additional_libs", "tmp");
 
         if (!copyNativeLibs(additionalNativeLibs, additionalLibsDir, map)) {
@@ -172,7 +172,7 @@ public class AndroidApkBuilder {
                      customKeystorePath, true, resourceFilter));
       map.putAll(map2);
 
-      if (withAlignment && map.get(ERROR).size() == 0) {
+      if (withAlignment && map.get(ERROR).isEmpty()) {
         map2 = AndroidExecutionUtil.doExecute(zipAlignPath, "-f", "4", unalignedApk, finalApk);
         map.putAll(map2);
       }
@@ -209,7 +209,7 @@ public class AndroidApkBuilder {
       }
       FileUtil.copy(srcFile, dstFile);
     }
-    return map.get(ERROR).size() == 0;
+    return map.get(ERROR).isEmpty();
   }
 
   private static Map<AndroidCompilerMessageKind, List<String>> finalPackage(@NotNull String dexPath,
@@ -230,7 +230,7 @@ public class AndroidApkBuilder {
     SignedJarBuilder builder = null;
     try {
 
-      String keyStoreOsPath = customKeystorePath != null && customKeystorePath.length() > 0
+      String keyStoreOsPath = customKeystorePath != null && !customKeystorePath.isEmpty()
                               ? customKeystorePath 
                               : DebugKeyProvider.getDefaultKeyStoreOsPath();
       
@@ -279,7 +279,7 @@ public class AndroidApkBuilder {
         }
       }
 
-      if (result.get(ERROR).size() > 0) {
+      if (!result.get(ERROR).isEmpty()) {
         return result;
       }
 
@@ -495,7 +495,7 @@ public class AndroidApkBuilder {
 
   public static boolean checkFileForPackaging(@NotNull File file) {
     String fileName = FileUtil.getNameWithoutExtension(file);
-    if (fileName.length() > 0) {
+    if (!fileName.isEmpty()) {
       final String extension = FileUtilRt.getExtension(file.getName());
 
       if (SdkConstants.EXT_ANDROID_PACKAGE.equals(extension)) {
