@@ -48,7 +48,7 @@ public class PackageRootNode extends PackageNode implements MainTreeNode {
       }
       // TODO don't use the last trace, but use a user defined filter.
       String name = trace[match].getClassName();
-      int ix = name.indexOf("$");
+      int ix = name.indexOf('$');
       name = ix >= 0 ? name.substring(0, ix) : name;
       packages = name.split("\\.");
     } else {
@@ -59,12 +59,12 @@ public class PackageRootNode extends PackageNode implements MainTreeNode {
 
   static Pattern globToRegex(@NotNull String glob) {
     String regex = "";
-    int ix = glob.indexOf("*");
+    int ix = glob.indexOf('*');
     while (ix != -1) {
       regex += Pattern.quote(glob.substring(0, ix));
       regex += ".*";
       glob = glob.substring(ix + 1);
-      ix = glob.indexOf("*");
+      ix = glob.indexOf('*');
     }
     regex += Pattern.quote(glob);
     return Pattern.compile(".*" + regex + ".*");

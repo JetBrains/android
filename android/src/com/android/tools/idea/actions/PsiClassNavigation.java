@@ -180,7 +180,7 @@ public class PsiClassNavigation implements NavigationItem {
 
   @Nullable
   private static String getOuterClassName(@NotNull String className) {
-    int innerClassSymbolIndex = className.indexOf("$");
+    int innerClassSymbolIndex = className.indexOf('$');
     if (innerClassSymbolIndex > 0) {
       return className.substring(0, innerClassSymbolIndex);
     }

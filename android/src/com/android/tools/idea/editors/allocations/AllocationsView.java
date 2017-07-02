@@ -490,7 +490,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       StackTraceElement element = ((StackNode)value).getStackTraceElement();
       String name = element.getClassName();
       String pkg = null;
-      int ix = name.lastIndexOf(".");
+      int ix = name.lastIndexOf('.');
       if (ix != -1) {
         pkg = name.substring(0, ix);
         name = name.substring(ix + 1);
@@ -553,7 +553,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       if (element != null) {
         lineNumber = element.getLineNumber() - 1; // Line numbers are shown as 1-based, but are 0-based in the psi.
         className = element.getClassName();
-        int ix = className.indexOf("$");
+        int ix = className.indexOf('$');
         if (ix >= 0) {
           className = className.substring(0, ix);
         }

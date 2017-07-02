@@ -242,7 +242,7 @@ public class SingleWidgetView extends JPanel {
     if (str == null) {
       return "1:1";
     }
-    int index = str.indexOf(",");
+    int index = str.indexOf(',');
     if (index == -1) {
       return str;
     }

@@ -44,7 +44,7 @@ final class GradleModelVersionCheck {
     if (isNullOrEmpty(modelVersion)) {
       return null;
     }
-    int snapshotIndex = modelVersion.indexOf("-");
+    int snapshotIndex = modelVersion.indexOf('-');
     if (snapshotIndex != -1) {
       modelVersion = modelVersion.substring(0, snapshotIndex);
     }
