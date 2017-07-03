@@ -222,7 +222,6 @@ public final class NewModuleModel extends WizardModel {
         myTemplateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, myProjectPackageName.get());
 
         if (renderTemplateValues != null) {
-          renderTemplateValues.put(ATTR_IS_INSTANT_APP, true);
           renderTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
 
           String projectPath = project.getBasePath();
@@ -252,6 +251,9 @@ public final class NewModuleModel extends WizardModel {
             }
           }
 
+          new TemplateValueInjector(renderTemplateValues)
+            .setInstantAppSupport();
+          // TODO: Figure out a way to put more of the IAPP ATTRS inside TemplateValueInjector
           renderTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
           renderTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
           renderTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
