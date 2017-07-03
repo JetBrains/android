@@ -119,7 +119,7 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
 
     if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
-      myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
+      setInstantAppSupport();
 
       Module baseFeature = InstantApps.findBaseFeature(facet.getModule().getProject());
       AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
@@ -293,6 +293,12 @@ public final class TemplateValueInjector {
       }
     }
 
+    return this;
+  }
+
+  public TemplateValueInjector setInstantAppSupport() {
+    myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
+    myTemplateValues.put(ATTR_INSTANT_APP_API_MIN_VERSION, InstantApps.getMinTargetSdk());
     return this;
   }
 

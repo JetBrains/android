@@ -151,7 +151,9 @@ public class NewInstantAppTest {
       .moveBetween("implementation project(':base')", "")
       .open("app/build.gradle") // Check "app" dependencies
       .moveBetween("implementation project(':feature')", "")
-      .moveBetween("implementation project(':base')", "");
+      .moveBetween("implementation project(':base')", "")
+      .open("base/src/main/AndroidManifest.xml")
+      .moveBetween("android:name=\"aia-compat-api-min-version\"", "");
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
