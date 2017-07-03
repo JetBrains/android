@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockViewWithBaseline;
@@ -27,6 +32,8 @@ import static com.android.tools.idea.uibuilder.model.SegmentType.*;
 import static java.awt.event.InputEvent.SHIFT_MASK;
 
 public class RelativeLayoutHandlerTest extends LayoutTestCase {
+
+  @Nullable private AndroidModel myMockAndroidModel;
 
   public void testResizeToNowhereWithModifierKeepsPosition() {
     screen(createModel())
@@ -291,6 +298,82 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_centerHorizontal=\"true\" />");
   }
 
+  public void testMoveLeft() {
+    // This should have both start and left attributes
+    setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START - 1);
+    setTargetSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    screen(createRtlLeftModel())
+      .get("@id/textView")
+      .drag()
+      .drag(-70, -100)
+      .release()
+      .primary()
+      .expectXml("<TextView\n" +
+                 "        android:id=\"@id/textView\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_marginLeft=\"15dp\"\n" +
+                 "        android:layout_marginStart=\"15dp\"\n" +
+                 "        android:layout_alignParentTop=\"true\"\n" +
+                 "        android:layout_alignParentLeft=\"true\"\n" +
+                 "        android:layout_alignParentStart=\"true\" />");
+
+    // This should have start attributes and no left attributes
+    setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    setTargetSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    screen(createRtlLeftModel())
+      .get("@id/textView")
+      .drag()
+      .drag(-70, -100)
+      .release()
+      .primary()
+      .expectXml("<TextView\n" +
+                 "        android:id=\"@id/textView\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_marginStart=\"15dp\"\n" +
+                 "        android:layout_alignParentTop=\"true\"\n" +
+                 "        android:layout_alignParentStart=\"true\" />");
+  }
+
+  public void testMoveRight() {
+    // This should have both start and left attributes
+    setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START - 1);
+    setTargetSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    screen(createRtlRightModel())
+      .get("@id/textView")
+      .drag()
+      .drag(770, -100)
+      .release()
+      .primary()
+      .expectXml("<TextView\n" +
+                 "        android:id=\"@id/textView\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_marginRight=\"15dp\"\n" +
+                 "        android:layout_marginEnd=\"15dp\"\n" +
+                 "        android:layout_alignParentTop=\"true\"\n" +
+                 "        android:layout_alignParentRight=\"true\"\n" +
+                 "        android:layout_alignParentEnd=\"true\" />");
+
+    // This should have start attributes and no left attributes
+    setMinimumSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    setTargetSdkVersion(RtlSupportProcessor.RTL_TARGET_SDK_START);
+    screen(createRtlRightModel())
+      .get("@id/textView")
+      .drag()
+      .drag(770, -100)
+      .release()
+      .primary()
+      .expectXml("<TextView\n" +
+                 "        android:id=\"@id/textView\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_marginEnd=\"15dp\"\n" +
+                 "        android:layout_alignParentTop=\"true\"\n" +
+                 "        android:layout_alignParentEnd=\"true\" />");
+  }
+
   public void testMoveWithModifier() {
     screen(createModel())
       .get("@id/checkbox")
@@ -382,6 +465,24 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
     }
   }
 
+  private void setMinimumSdkVersion(int version) {
+    if (myMockAndroidModel == null) {
+      myMockAndroidModel = Mockito.mock(AndroidModel.class);
+      myFacet.setAndroidModel(myMockAndroidModel);
+    }
+    //noinspection ConstantConditions
+    Mockito.when(myMockAndroidModel.getMinSdkVersion()).thenReturn(new AndroidVersion(version));
+  }
+
+  private void setTargetSdkVersion(int version) {
+    if (myMockAndroidModel == null) {
+      myMockAndroidModel = Mockito.mock(AndroidModel.class);
+      myFacet.setAndroidModel(myMockAndroidModel);
+    }
+    //noinspection ConstantConditions
+    Mockito.when(myMockAndroidModel.getTargetSdkVersion()).thenReturn(new AndroidVersion(version));
+  }
+
   @NotNull
   private SyncNlModel createModel() {
     ModelBuilder builder = model("relative.xml",
@@ -465,6 +566,82 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_toRightOf=\"@id/checkbox\"\n" +
                  "        android:layout_marginLeft=\"80dp\"\n" +
                  "        android:layout_marginTop=\"80dp\" />\n" +
+                 "\n" +
+                 "</RelativeLayout>\n", model.getFile().getText());
+    return model;
+  }
+
+  @NotNull
+  private SyncNlModel createRtlLeftModel() {
+    ModelBuilder builder = model("relative.xml",
+                                 component(RELATIVE_LAYOUT)
+                                   .withBounds(0, 0, 1000, 1000)
+                                   .matchParentWidth()
+                                   .matchParentHeight()
+                                   .children(
+                                     component(TEXT_VIEW)
+                                       .withBounds(100, 100, 100, 100)
+                                       .id("@id/textView")
+                                       .width("100dp")
+                                       .height("100dp")
+                                       .withAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, "30dp")
+                                       .withAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, "30dp")
+                                   ));
+    SyncNlModel model = builder.build();
+    assertEquals(1, model.getComponents().size());
+    assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
+                 "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}",
+                 NlTreeDumper.dumpTree(model.getComponents()));
+
+    format(model.getFile());
+    assertEquals("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    android:layout_width=\"match_parent\"\n" +
+                 "    android:layout_height=\"match_parent\">\n" +
+                 "\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@id/textView\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_marginLeft=\"30dp\"\n" +
+                 "        android:layout_marginStart=\"30dp\" />\n" +
+                 "\n" +
+                 "</RelativeLayout>\n", model.getFile().getText());
+    return model;
+  }
+
+  @NotNull
+  private SyncNlModel createRtlRightModel() {
+    ModelBuilder builder = model("relative.xml",
+                                 component(RELATIVE_LAYOUT)
+                                   .withBounds(0, 0, 1000, 1000)
+                                   .matchParentWidth()
+                                   .matchParentHeight()
+                                   .children(
+                                     component(TEXT_VIEW)
+                                       .withBounds(100, 100, 100, 100)
+                                       .id("@id/textView")
+                                       .width("100dp")
+                                       .height("100dp")
+                                       .withAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, "30dp")
+                                       .withAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, "30dp")
+                                   ));
+    SyncNlModel model = builder.build();
+    assertEquals(1, model.getComponents().size());
+    assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
+                 "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}",
+                 NlTreeDumper.dumpTree(model.getComponents()));
+
+    format(model.getFile());
+    assertEquals("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                 "    android:layout_width=\"match_parent\"\n" +
+                 "    android:layout_height=\"match_parent\">\n" +
+                 "\n" +
+                 "    <TextView\n" +
+                 "        android:id=\"@id/textView\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_marginRight=\"30dp\"\n" +
+                 "        android:layout_marginEnd=\"30dp\" />\n" +
                  "\n" +
                  "</RelativeLayout>\n", model.getFile().getText());
     return model;

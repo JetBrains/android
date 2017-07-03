@@ -629,6 +629,10 @@ public class GuidelineHandler {
         if (requiresRightLeft()) {
           applyMargin(n, ATTR_LAYOUT_MARGIN_LEFT, getLeftMarginDp());
         }
+        else {
+          // don't need margin left, clean it if exist.
+          clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
+        }
         applyMargin(n, myTextDirection.getAttrMarginLeft(), getLeftMarginDp());
       }
       else {
@@ -639,6 +643,10 @@ public class GuidelineHandler {
       if (supportsStartEnd()) {
         if (requiresRightLeft()) {
           applyMargin(n, ATTR_LAYOUT_MARGIN_RIGHT, getRightMarginDp());
+        }
+        else {
+          // don't need margin right, clean it if exist.
+          clearAttribute(n, ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
         }
         applyMargin(n, myTextDirection.getAttrMarginRight(), getRightMarginDp());
       }
