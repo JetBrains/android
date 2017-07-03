@@ -53,6 +53,7 @@ public class DeployInstantAppTaskTest {
   public void initMocks() throws Exception {
     MockitoAnnotations.initMocks(this);
     when(myLaunchStatus.isLaunchTerminated()).thenReturn(false);
+    when(myDevice.isOnline()).thenReturn(true);
   }
 
   @Test
