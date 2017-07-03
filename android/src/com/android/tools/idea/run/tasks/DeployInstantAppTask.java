@@ -21,6 +21,7 @@ import com.android.instantapp.run.InstantAppSideLoader;
 import com.android.instantapp.run.RunListener;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.DeviceSelectionUtils;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -86,7 +87,14 @@ public class DeployInstantAppTask implements LaunchTask {
       return false;
     }
 
-    return install(device, launchStatus, printer, appId, zipFile);
+    IDevice onlineDevice = getCorrespondingOnlineDevice(device);
+
+    if (onlineDevice == null) {
+      printer.stderr("Device \"" + device.getSerialNumber() + "\" is offline.");
+      return false;
+    }
+
+    return install(onlineDevice, launchStatus, printer, appId, zipFile);
   }
 
   @VisibleForTesting
@@ -156,6 +164,22 @@ public class DeployInstantAppTask implements LaunchTask {
 
     File[] apks = tempDir.listFiles();
     return apks == null ? Collections.emptyList() : Arrays.asList(apks);
+  }
+
+  @Nullable
+  private static IDevice getCorrespondingOnlineDevice(@NotNull IDevice device) {
+    // This is needed because of bug http://b/63257876
+    // While provisioning for the first time a device, it's necessary to run some commands as root and because of the bug, the instance
+    // of the IDevice becomes offline. To get a new instance (IDevice) of the same device, we use this method.
+
+    if (device.isOnline()) {
+      return device;
+    }
+
+    List<IDevice> devices = DeviceSelectionUtils.getAllCompatibleDevices(
+      input -> input != null && input.getSerialNumber().compareTo(device.getSerialNumber()) == 0);
+
+    return devices.size() == 1 ? devices.get(0) : null;
   }
 
   @NotNull
