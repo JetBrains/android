@@ -306,7 +306,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   private final ProjectStateCustomizer withKotlin = ((templateMap, projectMap) -> {
     projectMap.put(ATTR_KOTLIN_SUPPORT, true);
-    projectMap.put(ATTR_KOTLIN_VERSION, KOTLIN_LATEST_VERSION);
+    projectMap.put(ATTR_KOTLIN_VERSION, TestUtils.KOTLIN_VERSION_FOR_TESTS);
     projectMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
     templateMap.put(ATTR_KOTLIN_SUPPORT, true);
     templateMap.put(ATTR_LANGUAGE, Language.KOTLIN.getName());
