@@ -259,7 +259,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     captureSuccessfully();
 
     assertThat(myStage.getCapture()).isNotNull();
-    assertThat(myStage.getCapture()).isEqualTo(myStage.getCapture(1));
+    assertThat(myStage.getCapture()).isEqualTo(myStage.getCaptureFuture(1).get());
     assertThat(myCaptureDetailsCalled).isTrue();
   }
 
@@ -768,25 +768,27 @@ public class CpuProfilerStageTest extends AspectObserver {
    * Simulate the scenario of calling {@link CpuProfilerStage#getCapture(int)} before calling {@link CpuProfilerStage#stopCapturing()}.
    */
   @Test
-  public void captureShouldBeParsedOnlyOnceSyncGetCaptureBefore() throws InterruptedException, IOException {
+  public void captureShouldBeParsedOnlyOnceSyncGetCaptureBefore() throws InterruptedException, IOException, ExecutionException {
     assertThat(myStage.getCapture()).isNull();
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString("valid_trace.trace"));
     // Capture with FAKE_TRACE_ID doesn't exist yet. myStage.getCapture(...) will parse it.
-    CpuCapture capture = myStage.getCapture(FakeCpuService.FAKE_TRACE_ID);
+    CpuCapture capture = myStage.getCaptureFuture(FakeCpuService.FAKE_TRACE_ID).get();
     assertThat(capture).isNotNull();
 
     captureSuccessfully();
     // Capture should be the same as the one obtained by myStage.getCapture(...),
     // because we should not parse the trace into another CpuCapture object.
     assertThat(myStage.getCapture()).isEqualTo(capture);
+
   }
 
   /**
    * Simulate the scenario of calling {@link CpuProfilerStage#stopCapturing()} before calling {@link CpuProfilerStage#getCapture(int)}.
    */
   @Test
-  public void captureShouldBeParsedOnlyOnceStopCapturingBefore() throws InterruptedException, IOException {
+  public void captureShouldBeParsedOnlyOnceStopCapturingBefore() throws InterruptedException, IOException, ExecutionException {
+
     assertThat(myStage.getCapture()).isNull();
     // stopCapturing() should create a capture with FAKE_TRACE_ID
     captureSuccessfully();
@@ -795,7 +797,8 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Capture should be the same as the one created by stopCapturing(),
     // because we should not parse the trace into another CpuCapture object.
-    assertThat(myStage.getCapture(FakeCpuService.FAKE_TRACE_ID)).isEqualTo(capture);
+    assertThat(myStage.getCaptureFuture(FakeCpuService.FAKE_TRACE_ID).get()).isEqualTo(capture);
+
   }
 
   @Test

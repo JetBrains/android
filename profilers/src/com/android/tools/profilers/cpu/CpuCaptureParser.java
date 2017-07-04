@@ -67,6 +67,7 @@ public class CpuCaptureParser {
    * Uses {@link #myParsingExecutor} to create the actual {@link CpuCapture} object. Adds it to the captures map using the trace id as key.
    * Finally, returns the {@link CompletableFuture<CpuCapture>} created.
    */
+  @NotNull
   public CompletableFuture<CpuCapture> parse(int traceId, @NotNull ByteString traceData, CpuProfiler.CpuProfilerType profilerType) {
     if (myCaptures.containsKey(traceId)) {
       // Trace is being parsed or is already parsed. There is not need to start parsing again.

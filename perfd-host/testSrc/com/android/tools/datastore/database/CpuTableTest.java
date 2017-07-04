@@ -117,10 +117,13 @@ public class CpuTableTest {
     for (int i = 0; i < TEST_DATA; i++) {
       CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo.newBuilder()
         .setTraceId(SESSION_ONE_OFFSET + i)
+        .setProfilerType(CpuProfiler.CpuProfilerType.ART)
         .setFromTimestamp(SESSION_ONE_OFFSET + i)
         .setToTimestamp(SESSION_ONE_OFFSET + 1 + i)
         .build();
-      myTable.insertTrace(trace, SESSION_HUNDREDS, ByteString.copyFromUtf8("100s club: " + i));
+
+      myTable.insertTrace(trace.getTraceId(), SESSION_HUNDREDS, trace.getProfilerType(), ByteString.copyFromUtf8("100s club: " + i));
+      myTable.insertTraceInfo(trace, SESSION_HUNDREDS);
     }
   }
 
@@ -254,14 +257,14 @@ public class CpuTableTest {
   }
 
   @Test
-  public void testGetTraceByRequest() throws Exception {
+  public void testGetTraceInfo() throws Exception {
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
       .setSession(SESSION_HUNDREDS)
       .setFromTimestamp(0)
       .setToTimestamp(Long.MAX_VALUE)
       .setProcessId(PROCESS_ID)
       .build();
-    List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceByRequest(request);
+    List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceInfo(request);
     assertEquals(TEST_DATA, traceInfo.size());
     for (int i = 0; i < traceInfo.size(); i++) {
       assertEquals(SESSION_ONE_OFFSET + i, traceInfo.get(i).getFromTimestamp());
@@ -284,7 +287,7 @@ public class CpuTableTest {
       .setToTimestamp(Long.MAX_VALUE)
       .setProcessId(PROCESS_ID)
       .build();
-    List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceByRequest(request);
+    List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceInfo(request);
     assertEquals(0, traceInfo.size());
   }
 
@@ -298,7 +301,7 @@ public class CpuTableTest {
       .setToTimestamp(Long.MAX_VALUE)
       .setProcessId(PROCESS_ID_INVALID)
       .build();
-    List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceByRequest(request);
+    List<CpuProfiler.TraceInfo> traceInfo = myTable.getTraceInfo(request);
     assertEquals(0, traceInfo.size());
   }
 }
