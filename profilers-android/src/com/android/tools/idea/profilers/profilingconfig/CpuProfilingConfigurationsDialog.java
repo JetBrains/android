@@ -51,11 +51,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
   private Consumer<ProfilingConfiguration> myOnCloseCallback;
 
   public CpuProfilingConfigurationsDialog(final Project project,
-                                          int deviceApi,
+                                          boolean isDeviceAtLeastO,
                                           ProfilingConfiguration preSelectedConfiguration,
                                           Consumer<ProfilingConfiguration> onCloseCallback,
                                           FeatureTracker featureTracker) {
-    super(project, new ProfilingConfigurable(project, preSelectedConfiguration, deviceApi, featureTracker), IdeModalityType.IDE);
+    super(project, new ProfilingConfigurable(project, preSelectedConfiguration, isDeviceAtLeastO, featureTracker), IdeModalityType.IDE);
     myPreSelectedConfiguration = preSelectedConfiguration;
     myOnCloseCallback = onCloseCallback;
     setHorizontalStretch(1.3F);
@@ -123,11 +123,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     public ProfilingConfigurable(Project project,
                                  ProfilingConfiguration preSelectedConfiguration,
-                                 int deviceApi,
+                                 boolean isDeviceAtLeastO,
                                  FeatureTracker featureTracker) {
       myProject = project;
       myFeatureTracker = featureTracker;
-      myProfilersPanel = new CpuProfilingConfigPanel(deviceApi >= AndroidVersion.VersionCodes.O);
+      myProfilersPanel = new CpuProfilingConfigPanel(isDeviceAtLeastO);
 
       myConfigurationsModel = new DefaultListModel<>();
       myConfigurations = new JBList<>(myConfigurationsModel);

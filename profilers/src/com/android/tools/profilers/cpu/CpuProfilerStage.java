@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -61,6 +62,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   static final ProfilingConfiguration CONFIG_SEPARATOR_ENTRY = new ProfilingConfiguration();
   private static final long INVALID_CAPTURE_START_TIME = Long.MAX_VALUE;
+
+  private static final int O_API_LEVEL = 26;
 
   /**
    * Default capture details to be set after stopping a capture.
@@ -602,8 +605,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         setProfilingConfiguration(configuration);
       }
     };
-    int selectedDeviceApi = getStudioProfilers().getDevice().getFeatureLevel();
-    getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilingConfiguration, selectedDeviceApi, dialogCallback);
+    Profiler.Device selectedDevice = getStudioProfilers().getDevice();
+    boolean isDeviceAtLeastO =  selectedDevice != null && selectedDevice.getFeatureLevel() >= O_API_LEVEL;
+    getStudioProfilers().getIdeServices().openCpuProfilingConfigurationsDialog(myProfilingConfiguration, isDeviceAtLeastO, dialogCallback);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
   }
 
@@ -616,8 +620,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     List<ProfilingConfiguration> savedConfigs = getStudioProfilers().getIdeServices().getCpuProfilingConfigurations();
     List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
 
-    // Simpleperf profiling is not supported by devices older than O (API level 26)
-    boolean selectedDeviceSupportsSimpleperf = getStudioProfilers().getDevice().getFeatureLevel() >= 26;
+    // Simpleperf profiling is not supported by devices older than O
+    Profiler.Device selectedDevice = getStudioProfilers().getDevice();
+    boolean selectedDeviceSupportsSimpleperf = selectedDevice != null && selectedDevice.getFeatureLevel() >= O_API_LEVEL;
     if (!selectedDeviceSupportsSimpleperf || !getStudioProfilers().getIdeServices().getFeatureConfig().isSimplePerfEnabled()) {
       Predicate<ProfilingConfiguration> simpleperfFilter = pref -> pref.getProfilerType() != CpuProfiler.CpuProfilerType.SIMPLE_PERF;
       savedConfigs = savedConfigs.stream().filter(simpleperfFilter).collect(Collectors.toList());
