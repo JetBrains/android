@@ -798,6 +798,17 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCapture(FakeCpuService.FAKE_TRACE_ID)).isEqualTo(capture);
   }
 
+  @Test
+  public void nullProcessShouldNotThrowException() {
+    // Set a device to null (e.g. when stop profiling) should not crash the CpuProfilerStage
+    myStage.getStudioProfilers().setDevice(null);
+    assertThat(myStage.getStudioProfilers().getDevice()).isNull();
+
+    // Open the profiling configurations dialog with null device shouldn't crash CpuProfilerStage.
+    // Dialog is expected to be open so the user can edit configurations to be used by other devices later.
+    myStage.openProfilingConfigurationsDialog();
+  }
+
   private void addAndSetDevice(int featureLevel, String serial) {
     Profiler.Device device =
       Profiler.Device.newBuilder().setFeatureLevel(featureLevel).setSerial(serial).setState(Profiler.Device.State.ONLINE).build();
