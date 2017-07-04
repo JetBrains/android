@@ -22,10 +22,7 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profiler.proto.*;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 
@@ -242,7 +239,9 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .build();
     StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
     myCpuService.startProfilingApp(startRequest, startObserver);
-    CpuProfiler.CpuProfilingAppStopRequest stopRequest = CpuProfiler.CpuProfilingAppStopRequest.getDefaultInstance();
+    CpuProfiler.CpuProfilingAppStopRequest stopRequest = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
+      .setProfilerType(traceType)
+      .build();
     StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
     myCpuService.stopProfilingApp(stopRequest, stopObserver);
 
@@ -412,12 +411,14 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetTraceInfo() {
-    CpuProfiler.CpuProfilingAppStartRequest startRequest = CpuProfiler.CpuProfilingAppStartRequest.getDefaultInstance();
-    StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> startObserver = mock(StreamObserver.class);
-    myCpuService.startProfilingApp(startRequest, startObserver);
-    CpuProfiler.CpuProfilingAppStopRequest stopRequest = CpuProfiler.CpuProfilingAppStopRequest.getDefaultInstance();
-    StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> stopObserver = mock(StreamObserver.class);
-    myCpuService.stopProfilingApp(stopRequest, stopObserver);
+    CpuProfiler.SaveTraceInfoRequest saveRequest = CpuProfiler.SaveTraceInfoRequest.newBuilder()
+      .setTraceInfo(CpuProfiler.TraceInfo.newBuilder()
+                      .setFromTimestamp(BASE_TIME_NS)
+                      .setToTimestamp(BASE_TIME_NS)
+                      .setTraceId(TRACE_ID))
+      .build();
+    myCpuService.saveTraceInfo(saveRequest, mock(StreamObserver.class));
+
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
       .setFromTimestamp(BASE_TIME_NS)

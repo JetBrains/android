@@ -23,7 +23,6 @@ import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,8 +40,6 @@ import java.util.function.Consumer;
 public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements ServicePassThrough {
   private final Map<Integer, PollRunner> myRunners = new HashMap<>();
   private final Consumer<Runnable> myFetchExecutor;
-  private long myStartTraceTimestamp = -1;
-  private CpuProfiler.CpuProfilerType myProfilerType;
 
   @NotNull
   private final CpuTable myCpuTable;
@@ -105,7 +102,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     if (!myLastTraceInfoResponse.matches(
       request.getProcessId(), request.getSession(), request.getFromTimestamp(), request.getToTimestamp())) {
       CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
-      List<CpuProfiler.TraceInfo> responses = myCpuTable.getTraceByRequest(request);
+      List<CpuProfiler.TraceInfo> responses = myCpuTable.getTraceInfo(request);
       response.addAllTraceInfo(responses);
       myLastTraceInfoResponse = new ResponseData<>(request.getProcessId(),
                                                    request.getSession(),
@@ -115,6 +112,13 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     }
 
     responseObserver.onNext(myLastTraceInfoResponse.getResponse());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void saveTraceInfo(CpuProfiler.SaveTraceInfoRequest request, StreamObserver<CpuProfiler.EmptyCpuReply> responseObserver) {
+    myCpuTable.insertTraceInfo(request.getTraceInfo(), request.getSession());
+    responseObserver.onNext(CpuProfiler.EmptyCpuReply.getDefaultInstance());
     responseObserver.onCompleted();
   }
 
@@ -163,8 +167,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     // TODO: start time shouldn't be keep in a variable here, but passed through request/response instead.
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
     if (client != null) {
-      myStartTraceTimestamp = getCurrentDeviceTimeNs(request.getSession());
-      myProfilerType = request.getProfilerType();
       observer.onNext(client.startProfilingApp(request));
     }
     else {
@@ -180,15 +182,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuProfiler.CpuProfilingAppStopResponse response = CpuProfiler.CpuProfilingAppStopResponse.getDefaultInstance();
     if (client != null) {
       response = client.stopProfilingApp(request);
-      CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo.newBuilder()
-        .setTraceId(response.getTraceId())
-        .setFromTimestamp(myStartTraceTimestamp)
-        .setToTimestamp(getCurrentDeviceTimeNs(request.getSession()))
-        .setProfilerType(myProfilerType)
-        .build();
-      myCpuTable.insertTrace(trace, request.getSession(), response.getTrace());
-      myStartTraceTimestamp = -1;
-      myProfilerType = null;
+      myCpuTable.insertTrace(response.getTraceId(), request.getSession(), request.getProfilerType(), response.getTrace());
     }
     observer.onNext(response);
     observer.onCompleted();
@@ -220,11 +214,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
     observer.onNext(builder.build());
     observer.onCompleted();
-  }
-
-  private long getCurrentDeviceTimeNs(Common.Session session) {
-    return myService.getProfilerClient(session).getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build())
-      .getTimestampNs();
   }
 
   @NotNull

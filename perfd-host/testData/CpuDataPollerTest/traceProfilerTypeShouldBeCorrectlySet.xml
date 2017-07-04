@@ -137,24 +137,6 @@ threads {
 }
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
-        <Message>session {
-}
-</Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>session {
-}
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
-        <Message>timestamp_ns: 86400000000000
-</Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>timestamp_ns: 86400000000000
-</message>
-    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest">
         <Message>profiler_type: SIMPLE_PERF
 </Message>
@@ -170,10 +152,12 @@ threads {
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest">
-        <Message></Message>
+        <Message>profiler_type: SIMPLE_PERF
+</Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopRequest</clazz>
         <functionCalled>profiler.proto.CpuService/StopProfilingApp</functionCalled>
-        <message></message>
+        <message>profiler_type: SIMPLE_PERF
+</message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStopResponse">
         <Message>trace_id: 1111
@@ -183,24 +167,6 @@ trace: "Test Data"
         <functionCalled>profiler.proto.CpuService/StopProfilingApp</functionCalled>
         <message>trace_id: 1111
 trace: "Test Data"
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
-        <Message>session {
-}
-</Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>session {
-}
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
-        <Message>timestamp_ns: 86400000000000
-</Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>timestamp_ns: 86400000000000
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest">

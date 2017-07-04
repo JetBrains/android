@@ -60,48 +60,25 @@ public class CpuTraceDataSeriesTest {
   }
 
   @Test
-  public void validTraceFailureStatus() throws IOException, ExecutionException, InterruptedException {
-    Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    myService.setValidTrace(true);
-    myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
-    myService.parseTraceFile();
-    // Even if a valid trace is returned from GetTrace, a SUCCESS status is required
-    // for the trace to be added to the series.
-    assertThat(mySeries.getDataForXRange(maxRange)).isEmpty();
-  }
-
-  @Test
   public void validTraceSuccessStatus() throws IOException, ExecutionException, InterruptedException {
     Range maxRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     CpuCapture expectedCapture = myService.parseTraceFile();
 
-    List<SeriesData<CpuCapture>> seriesData = mySeries.getDataForXRange(maxRange);
+    List<SeriesData<CpuTraceInfo>> seriesData = mySeries.getDataForXRange(maxRange);
     assertThat(seriesData).hasSize(1);
-    SeriesData data = seriesData.get(0);
+    SeriesData<CpuTraceInfo> data = seriesData.get(0);
     assertThat(data).isNotNull();
     assertThat(data.x).isEqualTo((long)expectedCapture.getRange().getMin());
-
-    assertThat(data.value instanceof CpuCapture).isTrue();
-    CpuCapture capture = (CpuCapture)data.value;
-
-    // As CpuCapture doesn't have an equals method, compare its values.
-    // Check main thread is the same
-    assertThat(capture.getMainThreadId()).isEqualTo(expectedCapture.getMainThreadId());
-    // Check that capture has the same threads of expected capture
-    assertThat(capture.getThreads()).isNotEmpty();
-    assertThat(capture.getThreads().size()).isEqualTo(expectedCapture.getThreads().size());
-    for (CpuThreadInfo thread : expectedCapture.getThreads()) {
-      assertThat(capture.containsThread(thread.getId())).isTrue();
-    }
+    CpuTraceInfo traceInfo = data.value;
     // Verify duration is also equal
-    assertThat(capture.getDuration()).isEqualTo(expectedCapture.getDuration());
+    assertThat(traceInfo.getDuration()).isEqualTo(expectedCapture.getDuration());
     // As Range also doesn't have an equals method, compare max and min
-    assertThat(capture.getRange()).isNotNull();
+    assertThat(traceInfo.getRange()).isNotNull();
     assertThat(expectedCapture.getRange()).isNotNull();
-    assertThat(capture.getRange().getMin()).isWithin(0).of(expectedCapture.getRange().getMin());
-    assertThat(capture.getRange().getMax()).isWithin(0).of(expectedCapture.getRange().getMax());
+    assertThat(traceInfo.getRange().getMin()).isWithin(0).of(expectedCapture.getRange().getMin());
+    assertThat(traceInfo.getRange().getMax()).isWithin(0).of(expectedCapture.getRange().getMax());
   }
 
   @Test

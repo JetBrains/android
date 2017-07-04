@@ -89,27 +89,6 @@ public class ThreadStateDataSeriesTest {
   }
 
   @Test
-  public void nonEmptyRangeWithFakeTraceFailureStatus() throws IOException, ExecutionException, InterruptedException {
-    CpuCapture capture = myService.parseTraceFile();
-    assertNotNull(capture);
-    // Create a series with trace file's main thread tid and the capture range
-    ThreadStateDataSeries series = createThreadSeries(capture.getRange(), FakeCpuService.TRACE_TID);
-    // We want the data series to consider the trace.
-    myService.setValidTrace(true);
-    myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
-
-    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
-    assertNotNull(dataSeries);
-
-    // Even if getTrace() grpc call returns a valid trace, the response status should be SUCCESS
-    // in order to the data series get the "captured" values from the trace. With a FAILURE status,
-    // we should expect the series to have the original values of the thread status (i.e. RUNNING and SLEEPING)
-    assertEquals(2, dataSeries.size());
-    assertEquals(CpuProfilerStage.ThreadState.RUNNING, dataSeries.get(0).value);
-    assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(1).value);
-  }
-
-  @Test
   public void nonEmptyRangeWithFakeTraceSuccessStatus() throws IOException, ExecutionException, InterruptedException {
     CpuCapture capture = myService.parseTraceFile();
     assertNotNull(capture);

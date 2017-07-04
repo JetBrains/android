@@ -176,13 +176,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    DurationDataRenderer<CpuCapture> traceRenderer =
+    DurationDataRenderer<CpuTraceInfo> traceRenderer =
       new DurationDataRenderer.Builder<>(getStage().getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
         .setDurationBg(ProfilerColors.DEFAULT_BACKGROUND)
         .setLabelProvider(this::formatCaptureLabel)
         .setStroke(new BasicStroke(1))
         .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
-        .setClickHander(getStage()::setAndSelectCapture)
+        .setClickHander(traceInfo -> getStage().setAndSelectCapture(traceInfo.getTraceId()))
         .build();
 
     traceRenderer.addCustomLineConfig(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE_CAPTURED)
@@ -437,11 +437,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return panel;
   }
 
-  private String formatCaptureLabel(CpuCapture capture) {
+  private String formatCaptureLabel(CpuTraceInfo info) {
     Range range = getStage().getStudioProfilers().getTimeline().getDataRange();
 
-    long min = (long)(capture.getRange().getMin() - range.getMin());
-    long max = (long)(capture.getRange().getMax() - range.getMin());
+    long min = (long)(info.getRange().getMin() - range.getMin());
+    long max = (long)(info.getRange().getMax() - range.getMin());
     return formatTime(min) + " - " + formatTime(max);
   }
 

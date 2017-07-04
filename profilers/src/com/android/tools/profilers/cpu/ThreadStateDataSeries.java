@@ -73,10 +73,9 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
         // Merges information from traces and samples:
         ArrayList<Double> captureTimes = new ArrayList<>(traces.getTraceInfoCount() * 2);
         for (CpuProfiler.TraceInfo traceInfo : traces.getTraceInfoList()) {
-          CpuCapture capture = myStage.getCapture(traceInfo.getTraceId());
-          if (capture != null && capture.containsThread(myThreadId)) {
-            captureTimes.add(capture.getRange().getMin());
-            captureTimes.add(capture.getRange().getMax());
+          if (traceInfo.getThreadsList().stream().anyMatch(t -> t.getTid() == myThreadId)) {
+            captureTimes.add((double)TimeUnit.NANOSECONDS.toMicros(traceInfo.getFromTimestamp()));
+            captureTimes.add((double)TimeUnit.NANOSECONDS.toMicros(traceInfo.getToTimestamp()));
           }
         }
 

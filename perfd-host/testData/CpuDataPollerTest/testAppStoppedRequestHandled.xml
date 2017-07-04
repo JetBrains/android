@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!-- Auto generated with perfd-host test via flag -Dtest.export.grpx=True -->
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
 <GrpcList>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStartRequest">
         <Message>process_id: 1234
@@ -158,24 +158,6 @@ session {
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuStopResponse</clazz>
         <functionCalled>profiler.proto.CpuService/StopMonitoringApp</functionCalled>
         <message></message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
-        <Message>session {
-}
-</Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>session {
-}
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
-        <Message>timestamp_ns: 86400000000000
-</Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
-        <message>timestamp_ns: 86400000000000
-</message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartProfilingApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuProfilingAppStartRequest">
         <Message></Message>

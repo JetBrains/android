@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Dummy implementation of {@link CpuServiceGrpc.CpuServiceImplBase}.
@@ -195,10 +196,18 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       }
       boolean traceWithinRange = !myCapture.getRange().getIntersection(requestRange).isEmpty();
       if (traceWithinRange) {
+        List<CpuProfiler.Thread> threads = new ArrayList<>();
+        for (CpuThreadInfo threadInfo : myCapture.getThreads()) {
+          threads.add(CpuProfiler.Thread.newBuilder()
+                        .setTid(threadInfo.getId())
+                        .setName(threadInfo.getName()).build());
+        }
+
         CpuProfiler.TraceInfo traceInfo = CpuProfiler.TraceInfo.newBuilder()
           .setTraceId(myTraceId)
-          .setFromTimestamp((long)myCapture.getRange().getMin())
-          .setToTimestamp((long)myCapture.getRange().getMax())
+          .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMin()))
+          .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMax()))
+          .addAllThreads(threads)
           .build();
         response.addTraceInfo(traceInfo);
       }

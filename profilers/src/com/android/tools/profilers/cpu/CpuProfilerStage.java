@@ -41,8 +41,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -67,7 +65,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   /**
    * Default capture details to be set after stopping a capture.
-   * {@link CaptureModel.Details.Type.CALL_CHART} is used by default because it's useful and fast to compute.
+   * {@link CaptureModel.Details.Type#CALL_CHART} is used by default because it's useful and fast to compute.
    */
   private static final CaptureModel.Details.Type DEFAULT_CAPTURE_DETAILS = CaptureModel.Details.Type.CALL_CHART;
 
@@ -77,7 +75,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final AxisComponentModel myTimeAxisGuide;
   private final DetailedCpuUsage myCpuUsage;
   private final CpuStageLegends myLegends;
-  private final DurationDataModel<CpuCapture> myTraceDurations;
+  private final DurationDataModel<CpuTraceInfo> myTraceDurations;
   private final EventMonitor myEventMonitor;
   private final SelectionModel mySelectionModel;
 
@@ -267,7 +265,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myTooltip;
   }
 
-  public DurationDataModel<CpuCapture> getTraceDurations() {
+  public DurationDataModel<CpuTraceInfo> getTraceDurations() {
     return myTraceDurations;
   }
 
@@ -413,7 +411,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       // Parser doesn't have any information regarding the capture. It needs to be parsed.
       capture = myCaptureParser.parse(traceId, traceBytes, myProfilerType);
     }
-    assert capture != null;
 
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
       // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
@@ -421,6 +418,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       if (parsedCapture != null) {
         setAndSelectCapture(parsedCapture);
         setCaptureDetails(DEFAULT_CAPTURE_DETAILS);
+        saveTraceInfo(traceId, parsedCapture);
       }
       else {
         setCapture(null);
@@ -438,23 +436,33 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }, getStudioProfilers().getIdeServices().getMainExecutor());
   }
 
-  /**
-   * Gets and returns {@link CpuCapture} from a {@link Future<CpuCapture>} logging exceptions that might occur.
-   * Returns null if capture's computation throws an exception.
-   */
-  @Nullable
-  private static CpuCapture getCaptureFromFuture(Future<CpuCapture> futureCapture) {
-    try {
-      return futureCapture.get();
+  private void saveTraceInfo(int traceId, @NotNull CpuCapture capture) {
+    long captureFrom = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin());
+    long captureTo = TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax());
+
+    List<CpuProfiler.Thread> threads = new ArrayList<>();
+    for (CpuThreadInfo thread : capture.getThreads()) {
+      threads.add(CpuProfiler.Thread.newBuilder()
+                          .setTid(thread.getId())
+                          .setName(thread.getName())
+                          .build());
     }
-    catch (ExecutionException e) {
-      getLogger().warn("Unable to parse capture: " + e.getMessage());
-      getLogger().warn(e.getCause());
-    }
-    catch (InterruptedException e) {
-      getLogger().error("Unexpected InterruptedException when parsing capture");
-    }
-    return null;
+
+    CpuProfiler.TraceInfo traceInfo = CpuProfiler.TraceInfo.newBuilder()
+      .setTraceId(traceId)
+      .setFromTimestamp(captureFrom)
+      .setToTimestamp(captureTo)
+      .setProfilerType(myProfilerType)
+      .addAllThreads(threads).build();
+
+    CpuProfiler.SaveTraceInfoRequest request = CpuProfiler.SaveTraceInfoRequest.newBuilder()
+      .setSession(getStudioProfilers().getSession())
+      .setProcessId(getStudioProfilers().getProcessId())
+      .setTraceInfo(traceInfo)
+      .build();
+
+    CpuServiceGrpc.CpuServiceBlockingStub service = getStudioProfilers().getClient().getCpuClient();
+    service.saveTraceInfo(request);
   }
 
   /**
@@ -497,12 +505,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     }
 
     boolean selectionIntersectsWithCapture = false;
-    List<SeriesData<CpuCapture>> captures = getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
-    for (SeriesData<CpuCapture> capture : captures) {
-      Range captureRange = capture.value.getRange();
+    List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
+    for (SeriesData<CpuTraceInfo> info : infoList) {
+      Range captureRange = info.value.getRange();
       if (!captureRange.getIntersection(range).isEmpty()) {
         selectionIntersectsWithCapture = true;
-        setCapture(capture.value);
+        setCapture(info.value.getTraceId());
         break; // No need to check other captures if one is already selected
       }
     }
@@ -517,9 +525,29 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
            TimeUnit.SECONDS.toNanos(StudioProfilers.TIMELINE_BUFFER);
   }
 
-  public void setCapture(@Nullable CpuCapture capture) {
+  void setCapture(@Nullable CpuCapture capture) {
     myCaptureModel.setCapture(capture);
     setProfilerMode(capture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
+  }
+
+  private void setCapture(int traceId) {
+    CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
+    if (future != null) {
+      future.handleAsync((capture, exception) -> {
+        setCapture(capture);
+        return capture;
+      }, getStudioProfilers().getIdeServices().getMainExecutor());
+    }
+  }
+
+  public void setAndSelectCapture(int traceId) {
+    CompletableFuture<CpuCapture> future = getCaptureFuture(traceId);
+    if (future != null) {
+      future.handleAsync((capture, exception) -> {
+        setAndSelectCapture(capture);
+        return capture;
+      }, getStudioProfilers().getIdeServices().getMainExecutor());
+    }
   }
 
   public void setAndSelectCapture(@NotNull CpuCapture capture) {
@@ -653,13 +681,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   /**
-   * Returns a {@link CpuCapture} corresponding to a trace id if there is one already parsed.
-   * Returns null otherwise. Also, starts the trace parsing if it's not in progress or done.
-   *
+   * @return completableFuture from {@link CpuCaptureParser}.
+   * If {@link CpuCaptureParser} doesn't manage the trace, this method will start parsing it.
    */
   @Nullable
-  public CpuCapture getCapture(int traceId) {
-    Future<CpuCapture> capture = myCaptureParser.getCapture(traceId);
+  public CompletableFuture<CpuCapture> getCaptureFuture(int traceId) {
+    CompletableFuture<CpuCapture> capture = myCaptureParser.getCapture(traceId);
     if (capture == null) {
       // Parser doesn't have any information regarding the capture. We need to request
       // trace data from CPU service and tell the parser to start parsing it.
@@ -675,14 +702,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
         capture = myCaptureParser.parse(traceId, trace.getData(), trace.getProfilerType());
       }
     }
-    if (capture != null && capture.isDone()) {
-      // Parsing is done. Return the capture.
-      return getCaptureFromFuture(capture);
-    }
-
-    // Parsing has not started, is still in progress or an exception has occurred when parsing the capture.
-    // In all cases, there is no parsed capture corresponding to the given trace id, so return null.
-    return null;
+    return capture;
   }
 
   public void setCaptureDetails(@Nullable CaptureModel.Details.Type type) {
@@ -709,9 +729,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   @VisibleForTesting
-  class CpuTraceDataSeries implements DataSeries<CpuCapture> {
+  class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
     @Override
-    public List<SeriesData<CpuCapture>> getDataForXRange(Range xRange) {
+    public List<SeriesData<CpuTraceInfo>> getDataForXRange(Range xRange) {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
 
@@ -722,13 +742,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
           setSession(getStudioProfilers().getSession()).
           setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
 
-      List<SeriesData<CpuCapture>> seriesData = new ArrayList<>();
-      for (CpuProfiler.TraceInfo traceInfo : response.getTraceInfoList()) {
-        CpuCapture capture = getCapture(traceInfo.getTraceId());
-        if (capture != null) {
-          Range range = capture.getRange();
-          seriesData.add(new SeriesData<>((long)range.getMin(), capture));
-        }
+      List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
+      for (CpuProfiler.TraceInfo protoTraceInfo : response.getTraceInfoList()) {
+        CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
+        seriesData.add(new SeriesData<>((long)info.getRange().getMin(), info));
       }
       return seriesData;
     }
