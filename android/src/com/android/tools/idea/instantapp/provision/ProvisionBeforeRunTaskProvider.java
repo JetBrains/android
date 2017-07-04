@@ -16,10 +16,7 @@
 package com.android.tools.idea.instantapp.provision;
 
 import com.android.annotations.NonNull;
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.*;
 import com.android.instantapp.provision.ProvisionException;
 import com.android.instantapp.provision.ProvisionListener;
 import com.android.instantapp.provision.ProvisionRunner;
@@ -28,6 +25,7 @@ import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
@@ -292,6 +290,9 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   }
 
   public static class ProvisionBeforeRunTask extends BeforeRunTask<ProvisionBeforeRunTask> {
+    @NonNull private static final ImmutableList<String> INSTANT_APP_PACKAGES =
+      ImmutableList.of("com.google.android.instantapps.supervisor", "com.google.android.instantapps.devman");
+
     private boolean myClearCache;
     private boolean myClearProvisionedDevices;
     private long myTimestamp;
@@ -332,12 +333,48 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
     @VisibleForTesting
     void addProvisionedDevice(@NotNull IDevice device) {
-      addProvisionedDevice(device.getSerialNumber());
+      addProvisionedDevice(getHash(device));
     }
 
     @VisibleForTesting
     boolean isProvisioned(@NotNull IDevice device) {
-      return myProvisionedDevices.contains(device.getSerialNumber());
+      if (!myProvisionedDevices.contains(getHash(device))) {
+        return false;
+      }
+
+      for (String pkgName : INSTANT_APP_PACKAGES) {
+        if (!isPackageInstalled(device, pkgName)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    @NotNull
+    private static String getHash(@NotNull IDevice device) {
+      if (device.getAvdName() != null) {
+        return device.getSerialNumber() + device.getAvdName();
+      }
+      return device.getSerialNumber();
+    }
+
+    @VisibleForTesting
+    boolean isPackageInstalled(@NonNull IDevice device, @NonNull String pkgName) {
+      CountDownLatch latch = new CountDownLatch(1);
+      CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
+
+      try {
+        device.executeShellCommand("pm path " + pkgName, receiver);
+        if (!latch.await(500, TimeUnit.MILLISECONDS)) {
+          // In case of doubt we reprovision
+          return false;
+        }
+      } catch (Exception e) {
+        // In case of doubt we reprovision
+        return false;
+      }
+
+      return !receiver.getOutput().isEmpty();
     }
 
     private void clearProvisionedDevices() {
@@ -374,7 +411,8 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
       } catch (NumberFormatException e) {
         myTimestamp = 0;
       }
-      if (myTimestamp != 0 && System.currentTimeMillis() - myTimestamp > 60 * 60 * 1000) {
+      long timeDiff = System.currentTimeMillis() - myTimestamp;
+      if (myTimestamp != 0 && (timeDiff < 0 || timeDiff > 60 * 60 * 1000)) {
         clearProvisionedDevices();
       }
     }
