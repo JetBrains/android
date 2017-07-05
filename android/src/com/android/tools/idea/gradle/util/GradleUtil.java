@@ -571,9 +571,21 @@ public final class GradleUtil {
    */
   public static boolean dependsOn(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
     IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
-    return dependsOn(dependencies, artifact);
+    return dependsOnAndroidLibrary(dependencies, artifact);
   }
 
+  /**
+   * Same as {@link #dependsOn(AndroidModuleModel, String)} but searches the list of Java Libraries
+   */
+  public static boolean dependsOnJavaLibrary(@NonNull AndroidModuleModel androidModel, @NonNull String artifact) {
+    IdeDependencies dependencies = androidModel.getSelectedMainCompileLevel2Dependencies();
+    for (Library library : dependencies.getJavaLibraries()) {
+      if (dependsOn(library, artifact)) {
+        return true;
+      }
+    }
+    return false;
+  }
   /**
    * @param androidModel the Android model to check
    * @param artifact     the artifact
@@ -604,7 +616,7 @@ public final class GradleUtil {
     if (dependencies == null) {
       return false;
     }
-    return dependsOn(dependencies, artifact);
+    return dependsOnAndroidLibrary(dependencies, artifact);
   }
 
   /**
@@ -615,7 +627,7 @@ public final class GradleUtil {
    * @param artifact     the artifact
    * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
-  private static boolean dependsOn(@NonNull IdeDependencies dependencies, @NonNull String artifact) {
+  private static boolean dependsOnAndroidLibrary(@NonNull IdeDependencies dependencies, @NonNull String artifact) {
     for (Library library : dependencies.getAndroidLibraries()) {
       if (dependsOn(library, artifact)) {
         return true;
