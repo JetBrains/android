@@ -233,6 +233,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.2.4:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/18.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/19.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/linkedin/testbutler/test-butler-app/1.3.1:apk",
         "//prebuilts/tools/common/m2/repository/com/squareup/javawriter/2.1.1:jar",
         "//prebuilts/tools/common/m2/repository/commons-lang/commons-lang/2.4:jar",
         "//prebuilts/tools/common/m2/repository/javax/annotation/javax.annotation-api/1.2:jar",
