@@ -65,6 +65,7 @@ public class IssueNotificationAction extends AnAction {
       myCount = markerCount;
       updateCountIcon(markerCount);
       presentation.setText(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
+      presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
     }
     presentation.setIcon(myIcon);
   }
