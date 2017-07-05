@@ -17,6 +17,7 @@ package com.android.tools.profilers.analytics;
 
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,14 +102,9 @@ public interface FeatureTracker {
   void trackSelectRange();
 
   /**
-   * Track the user taking a method trace using ART with a "Sampled" strategy.
+   * Track the user taking a method trace using some configuration.
    */
-  void trackTraceArtSampled();
-
-  /**
-   * Track the user taking a method trace using ART with an "Instrumented" strategy.
-   */
-  void trackTraceArtInstrumented();
+  void trackTraceCpu(@NotNull ProfilingConfiguration config);
 
   /**
    * Track the user clicking on one of the threads in the thread list.

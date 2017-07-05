@@ -506,17 +506,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
       ProfilingConfiguration profilingConfiguration = myStage.getProfilingConfiguration();
 
-      if (profilingConfiguration.getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
-        if (profilingConfiguration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
-          featureTracker.trackTraceArtSampled();
-        }
-        else if (profilingConfiguration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
-          featureTracker.trackTraceArtInstrumented();
-        }
-      }
-      else if (profilingConfiguration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLE_PERF) {
-        // TODO: track simpleperf
-      }
+      featureTracker.trackTraceCpu(profilingConfiguration);
     }
     else {
       myStage.startCapturing();
