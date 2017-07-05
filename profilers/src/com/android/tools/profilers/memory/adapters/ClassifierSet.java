@@ -73,47 +73,39 @@ public abstract class ClassifierSet implements MemoryObject {
     return myTotalShallowSize;
   }
 
-  public boolean addInstanceObject(@NotNull InstanceObject instanceObject) {
-    return addInstanceObject(instanceObject, null);
-  }
-
   // Add alloc information into the ClassifierSet
   // Return true if the set did not contains the instance before
-  public boolean addInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
-    return addInstanceObjectInformation(instanceObject, pathResult, true);
+  public boolean addInstanceObject(@NotNull InstanceObject instanceObject) {
+    return addInstanceObjectInformation(instanceObject, true);
   }
 
   // Add dealloc information into the ClassifierSet
   // Return true if the set did not contains the instance before
-  public boolean freeInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
-    return addInstanceObjectInformation(instanceObject, pathResult, false);
+  public boolean freeInstanceObject(@NotNull InstanceObject instanceObject) {
+    return addInstanceObjectInformation(instanceObject, false);
   }
 
   // Remove instance alloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
-  public boolean removeAddingInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
-    return removeInstanceObjectInformation(instanceObject, pathResult, true);
+  public boolean removeAddingInstanceObject(@NotNull InstanceObject instanceObject) {
+    return removeInstanceObjectInformation(instanceObject, true);
   }
 
   // Remove instance dealloc information
   // Remove instance when it neither has alloc nor dealloc information
   // Return true if the instance is removed
-  public boolean removeFreeingInstanceObject(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult) {
-    return removeInstanceObjectInformation(instanceObject, pathResult, false);
+  public boolean removeFreeingInstanceObject(@NotNull InstanceObject instanceObject) {
+    return removeInstanceObjectInformation(instanceObject, false);
   }
 
   // Add information into the ClassifierSet when correspondent alloc event is inside selection range
   // Return true if the set did not contains the instance before
-  private boolean addInstanceObjectInformation(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult, boolean isAllocation) {
-    if (pathResult != null) {
-      pathResult.add(this);
-    }
-
+  private boolean addInstanceObjectInformation(@NotNull InstanceObject instanceObject, boolean isAllocation) {
     boolean instanceAdded = false;
 
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      instanceAdded = myClassifier.getOrCreateClassifierSet(instanceObject).addInstanceObjectInformation(instanceObject, pathResult, isAllocation);
+      instanceAdded = myClassifier.getOrCreateClassifierSet(instanceObject).addInstanceObjectInformation(instanceObject, isAllocation);
     }
     else {
       if (!myInstances.contains(instanceObject)) {
@@ -140,14 +132,10 @@ public abstract class ClassifierSet implements MemoryObject {
 
   // Remove information from the ClassifierSet
   // Return true if the instance is removed
-  private boolean removeInstanceObjectInformation(@NotNull InstanceObject instanceObject, @Nullable List<ClassifierSet> pathResult, boolean isAllocation) {
-    if (pathResult != null) {
-      pathResult.add(this);
-    }
-
+  private boolean removeInstanceObjectInformation(@NotNull InstanceObject instanceObject, boolean isAllocation) {
     boolean instanceRemoved = false;
     if (myClassifier != null && !myClassifier.isTerminalClassifier()) {
-      instanceRemoved = myClassifier.getOrCreateClassifierSet(instanceObject).removeInstanceObjectInformation(instanceObject, pathResult, isAllocation);
+      instanceRemoved = myClassifier.getOrCreateClassifierSet(instanceObject).removeInstanceObjectInformation(instanceObject, isAllocation);
     }
     else {
       if (!instanceObject.hasTimeData() && myInstances.contains(instanceObject)) {
@@ -323,15 +311,15 @@ public abstract class ClassifierSet implements MemoryObject {
         instances.forEach(instance -> {
           if (instance.hasTimeData()) {
             if (instance.hasAllocData()) {
-              getOrCreateClassifierSet(instance).addInstanceObject(instance, null);
+              getOrCreateClassifierSet(instance).addInstanceObject(instance);
             }
             if (instance.hasDeallocData()) {
-              getOrCreateClassifierSet(instance).freeInstanceObject(instance, null);
+              getOrCreateClassifierSet(instance).freeInstanceObject(instance);
             }
             partitionedInstances.add(instance);
           }
           else {
-            getOrCreateClassifierSet(instance).addInstanceObject(instance, null);
+            getOrCreateClassifierSet(instance).addInstanceObject(instance);
             partitionedInstances.add(instance);
           }
         });

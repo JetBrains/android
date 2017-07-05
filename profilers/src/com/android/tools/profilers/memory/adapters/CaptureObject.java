@@ -95,44 +95,7 @@ public interface CaptureObject extends MemoryObject {
   }
 
   interface CaptureChangedListener {
-    final class ChangedNode {
-      @NotNull private final Map<ClassifierSet, ChangedNode> myChildChangedNodes = new HashMap<>();
-      @NotNull private final ClassifierSet myClassifierSet;
-
-      public ChangedNode(@NotNull ClassifierSet classifierSet) {
-        myClassifierSet = classifierSet;
-      }
-
-      public boolean containsChild(@NotNull ClassifierSet childClassifierSet) {
-        return myChildChangedNodes.containsKey(childClassifierSet);
-      }
-
-      public ChangedNode getChild(@NotNull ClassifierSet childClassifierSet) {
-        return myChildChangedNodes.get(childClassifierSet);
-      }
-
-      public void addPath(@NotNull List<ClassifierSet> path) {
-        assert path.get(0) == myClassifierSet;
-        if (path.size() > 1) {
-          ChangedNode child = myChildChangedNodes.computeIfAbsent(path.get(1), ChangedNode::new);
-          if (path.size() > 2) {
-            child.addPath(path.subList(1, path.size()));
-          }
-        }
-      }
-
-      @NotNull
-      public ClassifierSet getClassifierSet() {
-        return myClassifierSet;
-      }
-
-      @NotNull
-      public Set<ClassifierSet> getChildClassifierSets() {
-        return myChildChangedNodes.keySet();
-      }
-    }
-
-    void heapChanged(@NotNull ChangedNode changedNode, boolean clear);
+    void heapChanged();
   }
 
   @Nullable

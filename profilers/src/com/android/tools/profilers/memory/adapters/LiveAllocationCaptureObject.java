@@ -22,7 +22,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener.ChangedNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,9 +35,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
-import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.ALLOC_COUNT;
-import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.DEALLOC_COUNT;
-import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.*;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.ALLOCATION_TIME;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.DEALLOCATION_TIME;
 
@@ -358,32 +355,19 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         if (!myListeners.isEmpty() &&
             setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
           joiner.execute(() -> {
-
-            ChangedNode changedNode = new ChangedNode(myDefaultHeapSet);
-            List<ClassifierSet> path = new ArrayList<>();
-
             setAllocationList.forEach(instance -> {
-              path.clear();
-              myDefaultHeapSet.addInstanceObject(instance, path);
-              changedNode.addPath(path);
+              myDefaultHeapSet.addInstanceObject(instance);
             });
             setDeallocationList.forEach(instance -> {
-              path.clear();
-              myDefaultHeapSet.freeInstanceObject(instance, path);
-              changedNode.addPath(path);
+              myDefaultHeapSet.freeInstanceObject(instance);
             });
             resetAllocationList.forEach(instance -> {
-              path.clear();
-              myDefaultHeapSet.removeAddingInstanceObject(instance, path);
-              changedNode.addPath(path);
+              myDefaultHeapSet.removeAddingInstanceObject(instance);
             });
             resetDeallocationList.forEach(instance -> {
-              path.clear();
-              myDefaultHeapSet.removeFreeingInstanceObject(instance, path);
-              changedNode.addPath(path);
+              myDefaultHeapSet.removeFreeingInstanceObject(instance);
             });
-
-            myListeners.forEach(listener -> listener.heapChanged(changedNode, false));
+            myListeners.forEach(listener -> listener.heapChanged());
           });
         }
         return null;
