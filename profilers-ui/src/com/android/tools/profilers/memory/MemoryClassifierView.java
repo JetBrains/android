@@ -22,7 +22,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerIcons;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener;
-import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener.ChangedNode;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.annotations.VisibleForTesting;
@@ -262,76 +261,18 @@ final class MemoryClassifierView extends AspectObserver {
     //noinspection Convert2Lambda
     myCaptureObject.addCaptureChangedListener(new CaptureChangedListener() {
       @Override
-      public void heapChanged(@NotNull ChangedNode changedNode, boolean clear) {
+      public void heapChanged() {
         // TODO handle multiple heaps other than default heap
         if (myHeapSet == null) {
           return;
         }
 
-        assert myTreeRoot != null && myHeapSet == changedNode.getClassifierSet();
-        if (clear) {
-          myTreeRoot.reset();
-          myTreeModel.nodeStructureChanged(myTreeRoot);
-        }
-
-        updateNodes(myTreeRoot, changedNode, false);
-        Comparator<MemoryObjectTreeNode<ClassifierSet>> comparator = myTreeRoot.getComparator();
-        if (comparator != null) {
-          myTreeRoot.sort(comparator);
-        }
+        assert myTreeRoot != null;
+        myTreeRoot.reset();
+        myTreeRoot.expandNode();
+        myTreeModel.nodeStructureChanged(myTreeRoot);
       }
     });
-  }
-
-  private void updateNodes(@NotNull MemoryObjectTreeNode<ClassifierSet> memoryNode, @NotNull ChangedNode changedNode, boolean parentNodeStructureShouldChange) {
-    assert memoryNode.getAdapter() == changedNode.getClassifierSet();
-    boolean nodeStructureShouldChange = false;
-    boolean nodeShouldChange = false;
-
-    ArrayList<MemoryObjectTreeNode<ClassifierSet>> childMemoryNodeList = new ArrayList<>(memoryNode.getChildren());
-    for (MemoryObjectTreeNode<ClassifierSet> childMemoryNode : childMemoryNodeList) {
-      if (changedNode.containsChild(childMemoryNode.getAdapter())) {
-        if (childMemoryNode.getAdapter().isEmpty()) {
-          memoryNode.remove(childMemoryNode);
-          nodeStructureShouldChange = true;
-        }
-      }
-    }
-
-    if (!changedNode.getChildClassifierSets().isEmpty()) {
-      // Add all nodes that are not present in the tree view.
-      Set<ClassifierSet> newClassifierSets = new HashSet<>(changedNode.getChildClassifierSets());
-      newClassifierSets.removeIf(child -> child.isEmpty());
-      memoryNode.getChildren().forEach(child -> newClassifierSets.remove(child.getAdapter()));
-      if (!newClassifierSets.isEmpty()) {
-        newClassifierSets.forEach(classifierSet -> {
-          memoryNode.add(new MemoryClassifierTreeNode(classifierSet));
-        });
-        nodeStructureShouldChange = true;
-      }
-      else {
-        nodeShouldChange = true;
-      }
-    }
-
-    for (MemoryObjectTreeNode<ClassifierSet> childMemoryNode : childMemoryNodeList) {
-      if (changedNode.containsChild(childMemoryNode.getAdapter())) {
-        if (!childMemoryNode.getAdapter().isEmpty()) {
-          updateNodes(childMemoryNode, changedNode.getChild(childMemoryNode.getAdapter()), parentNodeStructureShouldChange || nodeStructureShouldChange);
-        }
-      }
-    }
-
-    if (!parentNodeStructureShouldChange) {
-      if (nodeStructureShouldChange) {
-        assert myTreeModel != null;
-        myTreeModel.nodeStructureChanged(memoryNode);
-      }
-      else if (nodeShouldChange) {
-        assert myTreeModel != null;
-        myTreeModel.nodeChanged(memoryNode);
-      }
-    }
   }
 
   private void refreshHeapSet() {

@@ -104,7 +104,7 @@ public class LiveAllocationCaptureObjectTest {
       // Assertions running in other threads do not work properly
       // We commented out the entire block and will resume it after test refactoring
       @Override
-      public void heapChanged(@NotNull ChangedNode changedNode, boolean clear) {
+      public void heapChanged() {
         //if (eventCount == 0) {
         //  // The first event triggered by load.
         //  assertEquals(heapSet, changedNode.getClassifierSet());
@@ -201,7 +201,7 @@ public class LiveAllocationCaptureObjectTest {
       // Assertions running in other threads do not work properly
       // We commented out the entire block and will resume it after test refactoring
       @Override
-      public void heapChanged(@NotNull ChangedNode changedNode, boolean clear) {
+      public void heapChanged() {
         //if (eventCount == 0) {
         //  // The first event triggered by load.
         //  assertTrue(clear);
