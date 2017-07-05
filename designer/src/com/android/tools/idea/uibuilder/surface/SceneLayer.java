@@ -72,8 +72,7 @@ public class SceneLayer extends Layer {
       }
 
       if (myShowAlways) {
-        g.setColor(getSceneView().getBgColor());
-        g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
+        paintBackground(g, sceneContext);
       }
 
       // Draw the components
@@ -81,6 +80,23 @@ public class SceneLayer extends Layer {
     }
     finally {
       g.dispose();
+    }
+  }
+
+  private void paintBackground(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+    Shape shape = mySceneView.getScreenShape();
+    if (shape == null) {
+      g.setColor(sceneContext.getColorSet().getBackground());
+      g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
+    }
+    else {
+      g.setColor(sceneContext.getColorSet().getBackground().darker());
+      g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
+      Shape clip = g.getClip();
+      g.setColor(sceneContext.getColorSet().getBackground());
+      g.setClip(shape);
+      g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
+      g.setClip(clip);
     }
   }
 

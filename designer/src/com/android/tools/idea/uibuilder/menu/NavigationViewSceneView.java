@@ -82,8 +82,8 @@ public final class NavigationViewSceneView extends ScreenView {
 
   @NotNull
   @Override
-  public Shape getScreenShape(int x, int y) {
+  public Shape getScreenShape() {
     Dimension size = getSize();
-    return new Rectangle(x, y, size.width, size.height);
+    return new Rectangle(getX(), getY(), size.width, size.height);
   }
 }

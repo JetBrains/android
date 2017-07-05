@@ -22,6 +22,7 @@ import com.android.resources.LayoutDirection;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -31,7 +32,6 @@ import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarg
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
-import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Lists;
@@ -57,7 +57,7 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * A Scene contains a hierarchy of SceneComponent representing the bounds
  * of the widgets being layed out. Multiple NlModel can be used to populate
  * a Scene.
- * <p/>
+ * <p>
  * Methods in this class must be called in the dispatch thread.
  */
 public class Scene implements SelectionListener {
@@ -108,11 +108,6 @@ public class Scene implements SelectionListener {
 
   private FilterType myFilterTarget = FilterType.NONE;
 
-  /**
-   * Default constructor
-   *
-   * @param sceneView
-   */
   public Scene(@NotNull DesignSurface surface) {
     myDesignSurface = surface;
     mySceneManager = myDesignSurface.getSceneManager();
@@ -140,8 +135,6 @@ public class Scene implements SelectionListener {
     return qualifier.getValue() == LayoutDirection.RTL;
   }
 
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
 
