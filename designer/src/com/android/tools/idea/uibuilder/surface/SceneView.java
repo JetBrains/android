@@ -28,7 +28,6 @@ import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -143,7 +142,7 @@ public abstract class SceneView {
 
   /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */
   @Nullable
-  public Shape getScreenShape(int originX, int originY) {
+  public Shape getScreenShape() {
     Device device = getConfiguration().getDevice();
     if (device == null) {
       return null;
@@ -157,6 +156,8 @@ public abstract class SceneView {
     Dimension size = getSize();
 
     int chin = screen.getChin();
+    int originX = getX();
+    int originY = getY();
     if (chin == 0) {
       // Plain circle
       return new Ellipse2D.Double(originX, originY, size.width, size.height);

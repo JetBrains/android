@@ -113,10 +113,6 @@ public class ScreenView extends SceneView {
     return y;
   }
 
-  @Nullable
-  public Shape getScreenShape() {
-    return getScreenShape(getX(), getY());
-  }
 
   @Override
   public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {

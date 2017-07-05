@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
@@ -26,7 +27,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.idea.naveditor.scene.NavColorSet;
 import com.intellij.reference.SoftReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
