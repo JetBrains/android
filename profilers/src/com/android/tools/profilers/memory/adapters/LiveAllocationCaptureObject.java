@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.ALLOC_COUNT;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.DEALLOC_COUNT;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.ALLOCATION_TIME;
 import static com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute.DEALLOCATION_TIME;
 
@@ -122,7 +123,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @NotNull
   @Override
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return ImmutableList.of(ClassifierAttribute.LABEL, ALLOC_COUNT, DEALLOC_COUNT);
+    return ImmutableList.of(ClassifierAttribute.LABEL, ALLOC_COUNT, DEALLOC_COUNT, SHALLOW_SIZE);
   }
 
   @NotNull
