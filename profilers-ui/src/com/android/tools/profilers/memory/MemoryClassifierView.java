@@ -99,7 +99,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Alloc Count",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> value.getAdapter().getAllocatedCount() >= 0 ? Integer.toString(value.getAdapter().getAllocatedCount()) : "",
+          value -> Integer.toString(value.getAdapter().getAllocatedCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -111,7 +111,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Dealloc Count",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> value.getAdapter().getDeallocatedCount() >= 0 ? Integer.toString(value.getAdapter().getDeallocatedCount()) : "",
+          value -> Integer.toString(value.getAdapter().getDeallocatedCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -123,7 +123,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Shallow Size",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> value.getAdapter().getTotalShallowSize() >= 0 ? Long.toString(value.getAdapter().getTotalShallowSize()) : "",
+          value -> Long.toString(value.getAdapter().getTotalShallowSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -133,7 +133,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Retained Size",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> value.getAdapter().getTotalRetainedSize() >= 0 ? Long.toString(value.getAdapter().getTotalRetainedSize()) : "",
+          value -> Long.toString(value.getAdapter().getTotalRetainedSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
