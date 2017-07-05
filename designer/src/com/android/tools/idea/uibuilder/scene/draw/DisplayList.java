@@ -23,12 +23,14 @@ import com.android.tools.idea.uibuilder.scene.decorator.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor; // TODO: remove
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection; // TODO: remove
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.function.Function;
 
@@ -37,9 +39,10 @@ import java.util.function.Function;
  * DisplayList implementation for Scene
  * Also contains some primitive display elements.
  */
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class DisplayList {
   private final static boolean DEBUG = false;
-  private ArrayList<DrawCommand> myCommands = new ArrayList<DrawCommand>();
+  private ArrayList<DrawCommand> myCommands = new ArrayList<>();
 
   public void clear() {
     myCommands.clear();
@@ -83,7 +86,7 @@ public class DisplayList {
       y1 = Integer.parseInt(sp[c++]);
       x2 = Integer.parseInt(sp[c++]);
       y2 = Integer.parseInt(sp[c++]);
-      myDirection = Integer.parseInt(sp[c++]);
+      myDirection = Integer.parseInt(sp[c]);
     }
 
     public Connection(@SwingCoordinate int x1, @SwingCoordinate int y1, @SwingCoordinate int x2, @SwingCoordinate int y2, int direction) {
@@ -164,7 +167,8 @@ public class DisplayList {
       y = Integer.parseInt(sp[c++]);
       width = Integer.parseInt(sp[c++]);
       height = Integer.parseInt(sp[c++]);
-      color = new Color((int)Long.parseLong(sp[c++], 16));
+      //noinspection UseJBColor
+      color = new Color((int)Long.parseLong(sp[c], 16));
     }
 
     public Rect(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height, Color c) {
@@ -203,7 +207,7 @@ public class DisplayList {
       x = Integer.parseInt(sp[c++]);
       y = Integer.parseInt(sp[c++]);
       width = Integer.parseInt(sp[c++]);
-      height = Integer.parseInt(sp[c++]);
+      height = Integer.parseInt(sp[c]);
     }
 
     public Clip(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
@@ -234,7 +238,9 @@ public class DisplayList {
       return UNCLIP_LEVEL;
     }
 
+    @SuppressWarnings("unused")
     public UNClip(String s) {
+      // Used by addListElementConstructor
     }
 
     public UNClip(Clip s) {
@@ -275,7 +281,8 @@ public class DisplayList {
       y1 = Integer.parseInt(sp[c++]);
       x2 = Integer.parseInt(sp[c++]);
       y2 = Integer.parseInt(sp[c++]);
-      color = new Color((int)Long.parseLong(sp[c++], 16));
+      //noinspection UseJBColor
+      color = new Color((int)Long.parseLong(sp[c], 16));
     }
 
     public Line(SceneContext transform,
@@ -299,8 +306,9 @@ public class DisplayList {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Public methods to add elements to the display list
+  //region Public methods to add elements to the display list
   /////////////////////////////////////////////////////////////////////////////
+
   public void add(DrawCommand cmd) {
     myCommands.add(cmd);
   }
@@ -358,12 +366,15 @@ public class DisplayList {
     add(new Line(context, x1, y1, x2, y2, color));
   }
 
+  //endregion
   /////////////////////////////////////////////////////////////////////////////
-  // Painting
+  //region Painting
   /////////////////////////////////////////////////////////////////////////////
-  static class CommandSet implements DrawCommand {
-    private ArrayList<DrawCommand> myCommands = new ArrayList<DrawCommand>();
 
+  static class CommandSet implements DrawCommand {
+    private ArrayList<DrawCommand> myCommands = new ArrayList<>();
+
+    @SuppressWarnings("ManualArrayToCollectionCopy")
     public CommandSet(DrawCommand[] commands, int start, int end) {
       if (commands.length == 0) {
         return;
@@ -377,6 +388,7 @@ public class DisplayList {
           if (cmd instanceof Clip) {
             int n = findNextUnClip(commands, i + 1, end - 1);
             cmd = new CommandSet(commands, i, n);
+            //noinspection AssignmentToForLoopParameter
             i = Math.max(n, i);
           }
           myCommands.add(cmd);
@@ -399,7 +411,7 @@ public class DisplayList {
       }
     }
 
-    private int findFirstClip(DrawCommand[] commands, int start, int end) {
+    private static int findFirstClip(DrawCommand[] commands, int start, int end) {
       for (int i = start; i < end; i++) {
         if (commands[i] instanceof Clip) {
           return i;
@@ -408,7 +420,7 @@ public class DisplayList {
       return -1;
     }
 
-    private int findLastUnClip(DrawCommand[] commands, int start, int end) {
+    private static int findLastUnClip(DrawCommand[] commands, int start, int end) {
       for (int i = end; i > start; i--) {
         if (commands[i] instanceof UNClip) {
           return i;
@@ -417,7 +429,7 @@ public class DisplayList {
       return -1;
     }
 
-    private int findNextUnClip(DrawCommand[] commands, int start, int end) {
+    private static int findNextUnClip(DrawCommand[] commands, int start, int end) {
       int count = 0;
       for (int i = start; i <= end; i++) {
         if (commands[i] instanceof Clip) {
@@ -426,7 +438,8 @@ public class DisplayList {
         if (commands[i] instanceof UNClip) {
           if (count == 0) {
             return i;
-          } else {
+          }
+          else {
             count--;
           }
         }
@@ -435,7 +448,7 @@ public class DisplayList {
     }
 
     public void sort() {
-      myCommands.sort((o1, o2) -> Integer.compare(o1.getLevel(), o2.getLevel()));
+      myCommands.sort(Comparator.comparingInt(DrawCommand::getLevel));
       myCommands.forEach(command -> {
         if (command instanceof CommandSet) ((CommandSet)command).sort();
       });
@@ -446,9 +459,12 @@ public class DisplayList {
       return COMPONENT_LEVEL;
     }
 
+    @SuppressWarnings("ForLoopReplaceableByForEach")
     @Override
     public void paint(Graphics2D g2, SceneContext sceneContext) {
-      myCommands.forEach(command -> command.paint(g2, sceneContext));
+      for (int i = 0; i < myCommands.size(); i++) {
+        myCommands.get(i).paint(g2, sceneContext);
+      }
     }
 
     public void print(String s) {
@@ -462,6 +478,7 @@ public class DisplayList {
       });
     }
 
+    @SuppressWarnings("StringConcatenationInLoop")
     @Override
     public String serialize() {
       String str = "";
@@ -510,6 +527,7 @@ public class DisplayList {
    *
    * @return
    */
+  @SuppressWarnings({"ForLoopReplaceableByForEach", "StringConcatenationInLoop"})
   public String serialize() {
     String str = "";
     int count = myCommands.size();
@@ -551,7 +569,7 @@ public class DisplayList {
         return c.getConstructor(String.class).newInstance(s);
       }
       catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-        e.printStackTrace();
+        Logger.getInstance(DisplayList.class).error(e);
       }
 
       return null;
@@ -567,10 +585,11 @@ public class DisplayList {
     return ourBuildMap.get(cmd).apply(args);
   }
 
+  @SuppressWarnings("ForLoopReplaceableByForEach")
   public static DisplayList getDisplayList(String str) {
     DisplayList list = new DisplayList();
     String[] sp = str.split("\n");
-    DrawCommand drawCommand = null;
+    DrawCommand drawCommand;
     Clip lastClip = null;
     for (int i = 0; i < sp.length; i++) {
       String s = sp[i];
