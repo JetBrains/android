@@ -103,7 +103,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   private void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
-    if (!myProjectIsNew && ApplicationManager.getApplication().isUnitTestMode()) {
+    if (!myProjectIsNew) {
       doPopulateProject(projectInfo);
       return;
     }
