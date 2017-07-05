@@ -86,7 +86,7 @@ public class ApkParser {
   }
 
   @NotNull
-  private static AndroidApplicationInfo getAppInfo(@Nullable Archive archive) {
+  public static AndroidApplicationInfo getAppInfo(@Nullable Archive archive) {
     if (archive == null){
       return AndroidApplicationInfo.UNKNOWN;
     }

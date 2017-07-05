@@ -18,25 +18,34 @@ package com.android.tools.idea.run;
 import com.android.build.OutputFile;
 import com.android.builder.model.*;
 import com.android.ddmlib.IDevice;
+import com.android.tools.apk.analyzer.AndroidApplicationInfo;
+import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.apk.analyzer.Archives;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -103,6 +112,8 @@ public class GradleApkProvider implements ApkProvider {
       apkList.add(new ApkInfo(apk, myApplicationIdProvider.getPackageName()));
     }
 
+    apkList.addAll(getAdditionalApks(selectedVariant.getMainArtifact()));
+
     if (myTest) {
       if (projectType == PROJECT_TYPE_TEST) {
         if (androidModel.getFeatures().isTestedTargetVariantsSupported()) {
@@ -116,10 +127,49 @@ public class GradleApkProvider implements ApkProvider {
           String testPackageName = myApplicationIdProvider.getTestPackageName();
           assert testPackageName != null; // Cannot be null if initialized.
           apkList.add(new ApkInfo(testApk, testPackageName));
+          apkList.addAll(getAdditionalApks(testArtifactInfo));
         }
       }
     }
     return apkList;
+  }
+
+  /**
+   * Returns ApkInfo objects for all runtime apks.
+   * <p>
+   * For each of the additional runtime apks it finds its package id and creates ApkInfo object it.
+   * Thus it returns information for all runtime apks.
+   *
+   * @param testArtifactInfo test android artifact
+   * @return a list of ApkInfo objects for each additional runtime Apk
+   */
+  @NotNull
+  private static List<ApkInfo> getAdditionalApks(AndroidArtifact testArtifactInfo) {
+    List<ApkInfo> result = new ArrayList<>();
+    for (File fileApk : testArtifactInfo.getAdditionalRuntimeApks()) {
+      try {
+        String packageId = getPackageId(fileApk);
+        result.add(new ApkInfo(fileApk, packageId));
+      }
+      catch (ApkProvisionException e) {
+        getLogger().error("Failed to get the package name from the given file. Therefore, we are not be able to install it. Please install it manually: " + fileApk.getName() + " error: " + e.getMessage(), e);
+      }
+    }
+    return result;
+  }
+
+  private static String getPackageId(File fileApk) throws ApkProvisionException {
+    try {
+      AndroidApplicationInfo applicationInfo = ApkParser.getAppInfo(Archives.open(fileApk.toPath()));
+      if(applicationInfo == AndroidApplicationInfo.UNKNOWN) {
+        throw new ApkProvisionException("Could not determine manifest package for apk: " + fileApk.getName());
+      } else {
+        return applicationInfo.packageId;
+      }
+    }
+    catch (IOException e) {
+      throw new ApkProvisionException("Could not determine manifest package for apk: " + fileApk.getName(), e.getCause());
+    }
   }
 
   @VisibleForTesting
@@ -201,6 +251,7 @@ public class GradleApkProvider implements ApkProvider {
       throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
     }
     List<OutputFile> apkFiles = myBestOutputFinder.findBestOutput(variant, device, outputs);
+    // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
     return apkFiles.get(0).getOutputFile();
   }
 
@@ -266,7 +317,7 @@ public class GradleApkProvider implements ApkProvider {
       return ImmutableList.of();
     }
 
-    AndroidArtifactOutput output = getOutput(androidModuleModel.getMainArtifact());
+    AndroidArtifactOutput output = GradleUtil.getOutput(androidModuleModel.getMainArtifact());
     final String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName(),
                                                  androidModuleModel.getSelectedVariant().getDisplayName());
 
