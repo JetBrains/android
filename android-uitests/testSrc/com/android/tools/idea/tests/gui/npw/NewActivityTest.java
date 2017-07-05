@@ -71,10 +71,7 @@ public class NewActivityTest {
       PROVIDED_MANIFEST
     );
 
-    guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
-    myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
-
-    myConfigActivity = myDialog.getConfigureActivityStep();
+    invokeNewActivityMenu();
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME, DEFAULT_ACTIVITY_TITLE);
     assertThat(getSavedKotlinSupport()).isFalse();
     assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
@@ -164,23 +161,35 @@ public class NewActivityTest {
   @Test
   public void createActivityWithKotlin() throws Exception {
     myConfigActivity.setSourceLanguage("Kotlin");
-    myDialog.clickFinish();
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
+    assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
 
+    myDialog.clickFinish();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     myEditor
-      .open("app/src/main/java/google/simpleapplication/MainActivity.kt")
-      .moveBetween("override fun onCreate", "")
       .open("app/build.gradle")
       .moveBetween("apply plugin: 'kotlin-android'", "")
       .moveBetween("apply plugin: 'kotlin-android-extensions'", "")
+      .moveBetween("implementation \"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_", "version")
+      .enterText("my_")
       .open("build.gradle")
-      .moveBetween("ext.kotlin_version", "")
-      .moveBetween("classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version\"", "")
-      .moveBetween("mavenCentral()", "");
+      .moveBetween("ext.kotlin_", "version")
+      .enterText("my_")
+      .moveBetween("classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_", "version")
+      .enterText("my_")
+      .moveBetween("mavenCentral()", "")
+      .open("app/src/main/java/google/simpleapplication/MainActivity.kt")
+      .moveBetween("override fun onCreate", "");
 
-    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
-    assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
+    // Add second Kotlin Activity and check it shouldn't add dependencies again (renamed $kotlin_version -> $kotlin_my_version)
+    invokeNewActivityMenu();
+    myConfigActivity.setSourceLanguage("Kotlin");
+    myDialog.clickFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    assertThat(myEditor.open("build.gradle").getCurrentFileContents()).doesNotContain("$kotlin_version");
+    assertThat(myEditor.open("app/build.gradle").getCurrentFileContents()).doesNotContain("$kotlin_version");
   }
 
   @Test
@@ -294,6 +303,14 @@ public class NewActivityTest {
     // Now when new activity is cancelled
     verifyNewActivityProjectPane(ProjectViewPane.ID, "Project", false);
     verifyNewActivityProjectPane(AndroidProjectViewPane.ID, "Android", false);
+  }
+
+  // Note: This should be called only when the last open file was a Java/Kotlin file
+  private void invokeNewActivityMenu() {
+    guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
+    myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
+
+    myConfigActivity = myDialog.getConfigureActivityStep();
   }
 
   private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName, @NotNull String title) {
