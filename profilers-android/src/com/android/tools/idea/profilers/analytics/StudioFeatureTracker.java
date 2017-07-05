@@ -23,11 +23,13 @@ import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.CpuProfilingConfig;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,19 +62,19 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackProfilingStarted() {
-    track(AndroidProfilerEvent.Type.PROFILING_STARTED, myActiveDevice);
+    newTracker(AndroidProfilerEvent.Type.PROFILING_STARTED).setDevice(myActiveDevice).track();
   }
 
   @Override
   public void trackAdvancedProfilingStarted() {
-    track(AndroidProfilerEvent.Type.ADVANCED_PROFILING_STARTED, myActiveDevice);
+    newTracker(AndroidProfilerEvent.Type.ADVANCED_PROFILING_STARTED).setDevice(myActiveDevice).track();
   }
 
   @Override
   public void trackChangeDevice(@Nullable Profiler.Device device) {
     if (myActiveDevice != device) {
       myActiveDevice = device;
-      track(AndroidProfilerEvent.Type.CHANGE_DEVICE, myActiveDevice);
+      newTracker(AndroidProfilerEvent.Type.CHANGE_DEVICE).setDevice(myActiveDevice);
     }
   }
 
@@ -80,7 +82,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   public void trackChangeProcess(@Nullable Profiler.Process process) {
     if (myActiveProcess != process) {
       myActiveProcess = process;
-      track(AndroidProfilerEvent.Type.CHANGE_PROCESS, myActiveDevice);
+      newTracker(AndroidProfilerEvent.Type.CHANGE_PROCESS).setDevice(myActiveDevice);
     }
   }
 
@@ -125,15 +127,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTraceArtSampled() {
-    // TODO: rename event type to TRACE_ART_SAMPLED
-    track(AndroidProfilerEvent.Type.TRACE_SAMPLED);
-  }
-
-  @Override
-  public void trackTraceArtInstrumented() {
-    // TODO: rename event type to TRACE_ART_INSTRUMENTED
-    track(AndroidProfilerEvent.Type.TRACE_INSTRUMENTED);
+  public void trackTraceCpu(@NotNull ProfilingConfiguration cpuConfig) {
+    newTracker(AndroidProfilerEvent.Type.TRACE_CPU).setCpuConfig(cpuConfig).track();
   }
 
   @Override
@@ -231,29 +226,94 @@ public final class StudioFeatureTracker implements FeatureTracker {
     track(AndroidProfilerEvent.Type.CREATE_CPU_CONFIG);
   }
 
-  private void track(AndroidProfilerEvent.Type eventType) {
-    track(eventType, null);
+  /**
+   * Convenience method for creating a new tracker with all the minimum data supplied.
+   */
+  @NotNull
+  private Tracker newTracker(AndroidProfilerEvent.Type eventType) {
+    return new Tracker(eventType, myCurrStage);
   }
 
+  /**
+   * Convenience method for the most common tracking scenario (just an event with no extra data).
+   * If other data should be sent with this message, explicitly create a {@link Tracker} and use
+   * {@link Tracker#track()} instead.
+   */
+  private void track(AndroidProfilerEvent.Type eventType) {
+    newTracker(eventType).track();
+  }
 
-  private void track(AndroidProfilerEvent.Type eventType, @Nullable Profiler.Device device) {
-    AndroidProfilerEvent profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(eventType).build();
+  private static final class Tracker {
+    @NotNull private final AndroidProfilerEvent.Type myEventType;
+    @NotNull private final AndroidProfilerEvent.Stage myCurrStage;
+    @Nullable private Profiler.Device myDevice;
+    @Nullable private ProfilingConfiguration myCpuConfig;
 
-    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-      .setAndroidProfilerEvent(profilerEvent);
-
-    if (device != null) {
-      event.setDeviceInfo(
-        DeviceInfo.newBuilder()
-          .setManufacturer(device.getManufacturer())
-          .setModel(device.getModel())
-          .setBuildVersionRelease(device.getVersion())
-          .setBuildApiLevelFull(new AndroidVersion(device.getApiLevel(), device.getCodename()).getApiString())
-          .setDeviceType(device.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
-          .build());
+    public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
+      myEventType = eventType;
+      myCurrStage = stage;
     }
 
-    UsageTracker.getInstance().log(event);
+    @NotNull
+    public Tracker setDevice(@Nullable Profiler.Device device) {
+      myDevice = device;
+      return this;
+    }
+
+    @NotNull Tracker setCpuConfig(@Nullable ProfilingConfiguration cpuConfig) {
+      this.myCpuConfig = cpuConfig;
+      return this;
+    }
+
+    public void track() {
+      AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
+      if (myCpuConfig != null) {
+        CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
+          .setSampleInterval(myCpuConfig.getProfilingSamplingIntervalUs())
+          .setSizeLimit(myCpuConfig.getProfilingBufferSizeInMb());
+        switch (myCpuConfig.getProfilerType()) {
+          case ART:
+            cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
+            break;
+          case SIMPLE_PERF:
+            cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
+            break;
+          case UNSPECIFIED_PROFILER:
+          case UNRECOGNIZED:
+            break;
+        }
+
+        switch (myCpuConfig.getMode()) {
+          case SAMPLED:
+            cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
+            break;
+          case INSTRUMENTED:
+            cpuConfigInfo.setMode(CpuProfilingConfig.Mode.INSTRUMENTED);
+            break;
+          case UNSTATED:
+          case UNRECOGNIZED:
+            break;
+        }
+
+        profilerEvent.setCpuConfig(cpuConfigInfo.build());
+      }
+
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+        .setAndroidProfilerEvent(profilerEvent);
+
+      if (myDevice != null) {
+        event.setDeviceInfo(
+          DeviceInfo.newBuilder()
+            .setManufacturer(myDevice.getManufacturer())
+            .setModel(myDevice.getModel())
+            .setBuildVersionRelease(myDevice.getVersion())
+            .setBuildApiLevelFull(new AndroidVersion(myDevice.getApiLevel(), myDevice.getCodename()).getApiString())
+            .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+            .build());
+      }
+
+      UsageTracker.getInstance().log(event);
+    }
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,12 +88,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackTraceArtSampled() {
-
-  }
-
-  @Override
-  public void trackTraceArtInstrumented() {
+  public void trackTraceCpu(@NotNull ProfilingConfiguration config) {
 
   }
 
