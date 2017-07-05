@@ -16,40 +16,41 @@
 package com.android.tools.idea.run;
 
 import com.android.build.OutputFile;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.run.ProjectBuildOutputProvider;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeVariant;
+import com.android.tools.idea.gradle.run.PostBuildModel;
+import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.google.common.collect.Lists;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 /**
- * Tests for {@link GradleApkProvider#getApk(Variant, IDevice, AndroidModuleModel)}.
+ * Test methods of {@link GradleApkProvider}.
  */
 public class GradleApkProviderGetApkTest extends IdeaTestCase {
-  @Mock private AndroidModuleModel myAndroidModel;
+  @Mock private AndroidFacet myAndroidFacet;
   @Mock private AndroidModelFeatures myModelFeatures;
-  @Mock private Variant myVariant;
-  @Mock private BestOutputFinder myBestOutputFinder;
-  @Mock private ProjectBuildOutputProvider myOutputModelProvider;
+  @Mock private IdeVariant myVariant;
+  @Mock private PostBuildModelProvider myOutputModelProvider;
+  @Mock private PostBuildModel myPostBuildModel;
   @Mock private IDevice myDevice;
-  @Mock private OutputFile myOutputFile1;
-  @Mock private OutputFile myOutputFile2;
+  @Mock private File myApkFile;
+  @Mock private File myTestApkFile;
 
-  private List<OutputFile> myBestFoundOutput;
-  private File myApkFile;
   private GradleApkProvider myApkProvider;
 
   @Override
@@ -57,33 +58,107 @@ public class GradleApkProviderGetApkTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    when(myAndroidModel.getFeatures()).thenReturn(myModelFeatures);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
+    BestOutputFinder bestOutputFinder = mock(BestOutputFinder.class);
+    OutputFile outputFile1 = mock(OutputFile.class);
+    OutputFile outputFile2 = mock(OutputFile.class);
+    OutputFile testOutputFile1 = mock(OutputFile.class);
+    OutputFile testOutputFile2 = mock(OutputFile.class);
 
-    myApkFile = createTempFile("test", "apk");
-    when(myOutputFile1.getOutputFile()).thenReturn(myApkFile);
-    myBestFoundOutput = Arrays.asList(myOutputFile1, myOutputFile2);
+    when(myVariant.getName()).thenReturn("myVariant");
 
-    AndroidFacet facet = createAndAddAndroidFacet(getModule());
-    myApkProvider = new GradleApkProvider(facet, new GradleApplicationIdProvider(facet), myOutputModelProvider,
-                                          myBestOutputFinder, true);
-  }
+    when(outputFile1.getOutputFile()).thenReturn(myApkFile);
+    when(testOutputFile1.getOutputFile()).thenReturn(myTestApkFile);
 
-  public void testGetApk() throws Exception {
-    when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(false);
+    List<OutputFile> bestFoundOutput = Arrays.asList(outputFile1, outputFile2);
+    List<OutputFile> testBestFoundOutput = Arrays.asList(testOutputFile1, testOutputFile2);
 
-    AndroidArtifactOutput output = mock(AndroidArtifactOutput.class);
-    List<AndroidArtifactOutput> outputs = Collections.singletonList(output);
+    when(androidModel.getFeatures()).thenReturn(myModelFeatures);
+    when(myAndroidFacet.getAndroidModel()).thenReturn(androidModel);
 
-    AndroidArtifact mainArtifact = mock(AndroidArtifact.class);
-    when(mainArtifact.getOutputs()).thenReturn(outputs);
+    List<AndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
+    List<AndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
+    List<OutputFile> mainOutputs2 = Lists.transform(mainOutputs, input -> (OutputFile)input);
+    List<OutputFile> testOutputs2 = Lists.transform(testOutputs, input -> (OutputFile)input);
+
+    IdeAndroidArtifact mainArtifact = mock(IdeAndroidArtifact.class);
+    IdeAndroidArtifact testArtifact = mock(IdeAndroidArtifact.class);
+    when(mainArtifact.getOutputs()).thenReturn(mainOutputs);
+    when(testArtifact.getOutputs()).thenReturn(testOutputs);
 
     when(myVariant.getMainArtifact()).thenReturn(mainArtifact);
-    when(myBestOutputFinder.findBestOutput(myVariant, myDevice, outputs)).thenReturn(myBestFoundOutput);
+    when(myVariant.getAndroidTestArtifact()).thenReturn(testArtifact);
 
-    File apk = myApkProvider.getApk(myVariant, myDevice, myAndroidModel);
-    assertEquals(myApkFile.getPath(), apk.getPath());
+    when(bestOutputFinder.findBestOutput(myVariant, myDevice, mainOutputs)).thenReturn(bestFoundOutput);
+    when(bestOutputFinder.findBestOutput(myVariant, myDevice, mainOutputs2)).thenReturn(bestFoundOutput);
+    when(bestOutputFinder.findBestOutput(myVariant, myDevice, testOutputs)).thenReturn(testBestFoundOutput);
+    when(bestOutputFinder.findBestOutput(myVariant, myDevice, testOutputs2)).thenReturn(testBestFoundOutput);
+
+    myApkProvider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
+                                          bestOutputFinder, true);
+
+    when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
+
+    setUpProjectBuildOutputProvider(myAndroidFacet, myVariant.getName(), mainOutputs2, testOutputs2);
+  }
+
+  public void testGetApkWithoutModelProvider() throws Exception {
+    when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(false);
+
+    File apk = myApkProvider.getApk(myVariant, myDevice, myAndroidFacet, false);
+    assertEquals(myApkFile, apk);
 
     // Pre 3.0 plugins should not use this.
-    verify(myOutputModelProvider, never()).getOutputModel();
+    verify(myOutputModelProvider, never()).getPostBuildModel();
+  }
+
+  public void testGetApkWithModelProvider() throws Exception {
+    when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(true);
+
+    File apk = myApkProvider.getApk(myVariant, myDevice, myAndroidFacet, false);
+    assertEquals(myApkFile, apk);
+
+    // Post 3.0 plugins should use this.
+    verify(myOutputModelProvider, atLeastOnce()).getPostBuildModel();
+  }
+
+  public void testGetApkFromPreSyncBuild() throws Exception {
+    File apk = myApkProvider.getApkFromPreBuildSync(myVariant, myDevice, false);
+    assertEquals(myApkFile, apk);
+  }
+
+  public void testGetApkFromPreSyncBuildForTests() throws Exception {
+    File apk = myApkProvider.getApkFromPreBuildSync(myVariant, myDevice, true);
+    assertEquals(myTestApkFile, apk);
+  }
+
+  public void testGetApkFromPostBuild() throws Exception {
+    File apk = myApkProvider.getApkFromPostBuildSync(myVariant, myDevice, myAndroidFacet, false);
+    assertEquals(myApkFile, apk);
+  }
+
+  public void testGetApkFromPostBuildForTests() throws Exception {
+    File apk = myApkProvider.getApkFromPostBuildSync(myVariant, myDevice, myAndroidFacet, true);
+    assertEquals(myTestApkFile, apk);
+  }
+
+  private void setUpProjectBuildOutputProvider(@NotNull AndroidFacet facet,
+                                               @NotNull String variantName,
+                                               @NotNull Collection<OutputFile> mainOutputs,
+                                               @NotNull Collection<OutputFile> testOutputs) {
+
+    TestVariantBuildOutput testVariantBuildOutput = mock(TestVariantBuildOutput.class);
+    when(testVariantBuildOutput.getType()).thenReturn(TestVariantBuildOutput.ANDROID_TEST);
+    when(testVariantBuildOutput.getOutputs()).thenReturn(testOutputs);
+
+    VariantBuildOutput variantBuildOutput = mock(VariantBuildOutput.class);
+    when(variantBuildOutput.getTestingVariants()).thenReturn(Collections.singleton(testVariantBuildOutput));
+    when(variantBuildOutput.getName()).thenReturn(variantName);
+    when(variantBuildOutput.getOutputs()).thenReturn(mainOutputs);
+
+    ProjectBuildOutput projectBuildOutput = mock(ProjectBuildOutput.class);
+    when(projectBuildOutput.getVariantsBuildOutput()).thenReturn(Collections.singleton(variantBuildOutput));
+
+    when(myPostBuildModel.getOutputModelForFacet(facet)).thenReturn(projectBuildOutput);
   }
 }

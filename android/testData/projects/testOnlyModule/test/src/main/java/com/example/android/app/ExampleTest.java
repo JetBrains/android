@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.run;
+package com.example.android.app;
 
-import com.android.builder.model.ProjectBuildOutput;
-import org.jetbrains.annotations.Nullable;
+import android.app.Application;
+import android.test.ApplicationTestCase;
 
 /**
- * Provides a {@link ProjectBuildOutput}.
+ * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
  */
-public interface ProjectBuildOutputProvider {
-  @Nullable ProjectBuildOutput getOutputModel();
+public class ExampleTest extends ApplicationTestCase<Application> {
+    public ExampleTest() {
+        super(Application.class);
+    }
 }

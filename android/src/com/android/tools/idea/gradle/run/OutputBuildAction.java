@@ -16,31 +16,45 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.ProjectBuildOutput;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * {@link BuildAction} to be run when building project pre deploy. It returns the {@link ProjectBuildOutput}
- * model with the just built apks.
+ * model for each one of the needed modules.
+ *
+ * <p> These models are used for obtaining information not known in sync time. e.g. built apks when using config splits.
  */
-public class OutputBuildAction implements BuildAction<ProjectBuildOutput>, Serializable {
-  @Nullable private final String myGradlePath;
+public class OutputBuildAction implements BuildAction<ImmutableMap<String, ProjectBuildOutput>>, Serializable {
+  @NotNull private final ImmutableCollection<String> myGradlePaths;
 
-  public OutputBuildAction(@Nullable String moduleGradlePath) {
-    myGradlePath = moduleGradlePath;
+  public OutputBuildAction(@NotNull Collection<String> moduleGradlePaths) {
+    myGradlePaths = ImmutableSet.copyOf(moduleGradlePaths);
   }
 
   @Override
-  public ProjectBuildOutput execute(BuildController controller) {
-    BasicGradleProject rootProject = controller.getBuildModel().getRootProject();
-    GradleProject root = controller.findModel(rootProject, GradleProject.class);
-    GradleProject module = root.findByPath(myGradlePath);
+  public ImmutableMap<String, ProjectBuildOutput> execute(BuildController controller) {
+    ImmutableMap.Builder<String, ProjectBuildOutput> outputsBuilder = ImmutableMap.builder();
 
-    return controller.findModel(module, ProjectBuildOutput.class);
+    if (!myGradlePaths.isEmpty()) {
+      BasicGradleProject rootProject = controller.getBuildModel().getRootProject();
+      GradleProject root = controller.findModel(rootProject, GradleProject.class);
+
+      for (String path : myGradlePaths) {
+        GradleProject module = root.findByPath(path);
+        outputsBuilder.put(path, controller.findModel(module, ProjectBuildOutput.class));
+      }
+    }
+
+    return outputsBuilder.build();
   }
 }
