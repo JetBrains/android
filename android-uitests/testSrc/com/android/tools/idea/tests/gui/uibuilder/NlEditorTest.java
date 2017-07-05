@@ -216,27 +216,35 @@ public class NlEditorTest {
     // When the tabs are turned off, a switch using ctrl-E (or cmd-E on Mac) to a layout/menu would
     // cause the editor to switch to design mode.
 
-    // First turn off tabs.
-    UISettings.getInstance().setEditorTabPlacement(UISettings.TABS_NONE);
+    UISettings settings = UISettings.getInstance();
+    int placement = settings.getEditorTabPlacement();
 
-    // Open up 2 layout files in design and switch them both to text editor mode.
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    EditorFixture editor = ideFrame.getEditor().open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-    editor.getLayoutEditor(true).waitForRenderToFinish();
-    editor.switchToTab("Text");
-    ideFrame.getEditor().open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
-    editor.getLayoutEditor(true).waitForRenderToFinish();
-    editor.switchToTab("Text");
+    try {
+      // First turn off tabs.
+      settings.setEditorTabPlacement(UISettings.TABS_NONE);
 
-    // Switch to the previous layout and verify we are still editing the text.
-    ideFrame.selectPreviousEditor();
-    assertThat(editor.getCurrentFileName()).isEqualTo("activity_my.xml");
-    assertThat(editor.getCurrentTab()).isEqualTo(EditorFixture.Tab.EDITOR);
+      // Open up 2 layout files in design and switch them both to text editor mode.
+      guiTest.importSimpleApplication();
+      IdeFrameFixture ideFrame = guiTest.ideFrame();
+      EditorFixture editor = ideFrame.getEditor().open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+      editor.getLayoutEditor(true).waitForRenderToFinish();
+      editor.switchToTab("Text");
+      ideFrame.getEditor().open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
+      editor.getLayoutEditor(true).waitForRenderToFinish();
+      editor.switchToTab("Text");
 
-    // Again switch to the previous layout and verify we are still editing the text.
-    ideFrame.selectPreviousEditor();
-    assertThat(editor.getCurrentFileName()).isEqualTo("absolute.xml");
-    assertThat(editor.getCurrentTab()).isEqualTo(EditorFixture.Tab.EDITOR);
+      // Switch to the previous layout and verify we are still editing the text.
+      ideFrame.selectPreviousEditor();
+      assertThat(editor.getCurrentFileName()).isEqualTo("activity_my.xml");
+      assertThat(editor.getCurrentTab()).isEqualTo(EditorFixture.Tab.EDITOR);
+
+      // Again switch to the previous layout and verify we are still editing the text.
+      ideFrame.selectPreviousEditor();
+      assertThat(editor.getCurrentFileName()).isEqualTo("absolute.xml");
+      assertThat(editor.getCurrentTab()).isEqualTo(EditorFixture.Tab.EDITOR);
+    }
+    finally {
+      settings.setEditorTabPlacement(placement);
+    }
   }
 }
