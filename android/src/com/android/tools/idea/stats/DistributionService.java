@@ -50,8 +50,6 @@ public class DistributionService extends DownloadService {
   private static final URL FALLBACK_URL = ResourceUtil.getResource(DistributionService.class, "wizardData", STATS_FILENAME);
   private static final File CACHE_PATH = new File(PathManager.getSystemPath(), "stats");
 
-  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-  @GuardedBy("myLock")
   private List<Distribution> myDistributions;
 
   private static DistributionService ourInstance;
@@ -66,7 +64,6 @@ public class DistributionService extends DownloadService {
 
   @Nullable
   public List<Distribution> getDistributions() {
-    // No lock is required here since this read must be atomic according to the Java language spec
     return myDistributions;
   }
 
