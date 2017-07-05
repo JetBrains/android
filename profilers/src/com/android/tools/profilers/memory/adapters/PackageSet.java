@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory.adapters;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,8 +49,8 @@ public class PackageSet extends ClassifierSet {
   }
 
   private static final class PackageClassifier extends Classifier {
-    @NotNull private final Map<String, PackageSet> myPackageElements = new HashMap<>();
-    @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new HashMap<>();
+    @NotNull private final Map<String, PackageSet> myPackageElements = new LinkedHashMap<>();
+    @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new LinkedHashMap<>();
     @NotNull private final CaptureObject myCaptureObject;
     private final int myPackageNameIndex;
 

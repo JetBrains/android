@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 public abstract class ClassifierSet implements MemoryObject {
   @NotNull private final String myName;
 
-  @NotNull protected final HashSet<InstanceObject> myInstances;
+  @NotNull protected final Set<InstanceObject> myInstances;
 
   // Lazily create the Classifier, as it is configurable and isn't necessary until nodes under this node needs to be classified.
   @Nullable protected Classifier myClassifier = null;
@@ -43,7 +43,7 @@ public abstract class ClassifierSet implements MemoryObject {
 
   public ClassifierSet(@NotNull String name) {
     myName = name;
-    myInstances = new HashSet<>(0);
+    myInstances = new LinkedHashSet<>(0);
     resetDescendants();
   }
 

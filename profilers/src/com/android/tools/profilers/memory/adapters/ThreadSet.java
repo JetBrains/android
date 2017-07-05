@@ -55,7 +55,7 @@ public class ThreadSet extends ClassifierSet {
 
   private static final class ThreadClassifier extends Classifier {
     @NotNull private final CaptureObject myCaptureObject;
-    @NotNull private final Map<ThreadId, ThreadSet> myThreadSets = new HashMap<>();
+    @NotNull private final Map<ThreadId, ThreadSet> myThreadSets = new LinkedHashMap<>();
     @NotNull private final Classifier myMethodSetClassifier;
 
     private ThreadClassifier(@NotNull CaptureObject captureObject) {

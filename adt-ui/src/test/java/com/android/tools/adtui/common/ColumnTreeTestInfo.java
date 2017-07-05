@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * A wrapper object that holds info related to testing a {@link ColumnTreeBuilder}.
@@ -66,9 +66,9 @@ public final class ColumnTreeTestInfo {
    * @param headerValues the length of this should match the column count of the tree.
    */
   public void verifyColumnHeaders(Object... headerValues) {
-    assertEquals(headerValues.length, myTable.getColumnModel().getColumnCount());
+    assertThat(myTable.getColumnModel().getColumnCount()).isEqualTo(headerValues.length);
     for (int i = 0; i < myTable.getColumnModel().getColumnCount(); i++) {
-      assertEquals(headerValues[i], myTable.getColumnModel().getColumn(i).getHeaderValue());
+      assertThat(myTable.getColumnModel().getColumn(i).getHeaderValue()).isEqualTo(headerValues[i]);
     }
   }
 
@@ -84,13 +84,19 @@ public final class ColumnTreeTestInfo {
    */
   public void verifyRendererValues(@NotNull Object value, String[]... rendererValues) {
     Container container = (Container)myTree.getCellRenderer().getTreeCellRendererComponent(myTree, value, false, false, true, 0, false);
-    assertNotNull(container);
-    assertEquals(rendererValues.length, container.getComponentCount());
+    assertThat(container).isNotNull();
+    assertThat(container.getComponentCount()).isEqualTo(rendererValues.length);
     for (int i = 0; i < container.getComponentCount(); i++) {
-      assertTrue(container.getComponent(i) instanceof ColoredTreeCellRenderer);
+      assertThat(container.getComponent(i) instanceof ColoredTreeCellRenderer).isTrue();
       ColoredTreeCellRenderer renderer = (ColoredTreeCellRenderer)container.getComponent(i);
       for (int j = 0; j < rendererValues[i].length; j++) {
-        assertEquals(rendererValues[i][j], renderer.getFragmentTag(j));
+        String expected = rendererValues[i][j];
+        if (expected == null || expected.isEmpty()) {
+          assertThat(renderer.getFragmentTag(j)).isAnyOf(null, "");
+        }
+        else {
+          assertThat(renderer.getFragmentTag(j)).isEqualTo(expected);
+        }
       }
     }
   }

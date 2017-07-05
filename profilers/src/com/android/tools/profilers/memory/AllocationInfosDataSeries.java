@@ -73,7 +73,7 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
                 return new LegacyAllocationCaptureObject(myClient, mySession, myProcessId, info, myConverter, myFeatureTracker);
               }
               else {
-                return new LiveAllocationCaptureObject(myClient, mySession, myProcessId, startTimeNs, myFeatureTracker);
+                return new LiveAllocationCaptureObject(myClient, mySession, myProcessId, startTimeNs, null);
               }
             }))));
     }
