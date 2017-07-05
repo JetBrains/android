@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.run;
 
-import com.android.builder.model.ProjectBuildOutput;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -27,7 +26,8 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.run.ProjectBuildOutputProvider;
+import com.android.tools.idea.gradle.run.PostBuildModel;
+import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
@@ -71,13 +71,12 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
@@ -108,7 +107,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   @Transient
   // This is needed instead of having the output model directly because the apk providers can be created before getting the model.
-  protected final DefaultProjectBuildOutputProvider myOutputProvider = new DefaultProjectBuildOutputProvider();
+  protected transient final DefaultPostBuildModelProvider myOutputProvider = new DefaultPostBuildModelProvider();
 
   public AndroidRunConfigurationBase(final Project project, final ConfigurationFactory factory, boolean androidTests) {
     super(new JavaRunConfigurationModule(project, false), factory);
@@ -165,7 +164,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Can't proceed.
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
-    if (!facet.isAppProject()) {
+    if (!facet.isAppProject() && facet.getProjectType() != PROJECT_TYPE_TEST) {
       if (facet.isLibraryProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE) {
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {
@@ -625,7 +624,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return TARGET_PLATFORM_NOT_INSTALLED;
   }
 
-  public void setOutputModel(@NotNull ProjectBuildOutput outputModel) {
+  public void setOutputModel(@NotNull PostBuildModel outputModel) {
     myOutputProvider.setOutputModel(outputModel);
   }
 
@@ -716,19 +715,19 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
   }
 
-  private static class DefaultProjectBuildOutputProvider implements ProjectBuildOutputProvider {
+  private static class DefaultPostBuildModelProvider implements PostBuildModelProvider {
     @Nullable
     @Transient
-    private ProjectBuildOutput myBuildOutput = null;
+    private transient PostBuildModel myBuildOutputs = null;
 
-    public void setOutputModel(@Nullable ProjectBuildOutput buildOutput) {
-      myBuildOutput = buildOutput;
+    public void setOutputModel(@NotNull PostBuildModel postBuildModel) {
+      myBuildOutputs = postBuildModel;
     }
 
     @Nullable
     @Override
-    public ProjectBuildOutput getOutputModel() {
-      return myBuildOutput;
+    public PostBuildModel getPostBuildModel() {
+      return myBuildOutputs;
     }
   }
 }

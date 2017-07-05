@@ -41,6 +41,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.intellij.psi.util.PsiTreeUtil.getParentOfType;
 
 /**
@@ -170,7 +171,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
 
     if (androidModel != null) {
       // Only suggest the android test run configuration if it makes sense for the selected test artifact.
-      if (androidModel.getSelectedVariant().getAndroidTestArtifact() == null) {
+      if (facet.getProjectType() != PROJECT_TYPE_TEST && androidModel.getSelectedVariant().getAndroidTestArtifact() == null) {
         return false;
       }
 

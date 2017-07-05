@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.ProjectBuildOutput;
+import com.android.builder.model.TestedTargetVariant;
 import com.android.ddmlib.IDevice;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
@@ -27,7 +28,9 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -41,6 +44,7 @@ import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
@@ -267,8 +271,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     GradleTaskRunner.DefaultGradleTaskRunner runner;
     if (configuration instanceof AndroidRunConfigurationBase) {
       Module selectedModule = ((AndroidRunConfigurationBase)configuration).getConfigurationModule().getModule();
-      String gradlePath = selectedModule == null ? null : getGradlePath(selectedModule);
-      runner = GradleTaskRunner.newBuildActionRunner(myProject, new OutputBuildAction(gradlePath));
+      runner = GradleTaskRunner.newBuildActionRunner(myProject, new OutputBuildAction(getConcernedGradlePaths(selectedModule)));
     }
     else {
       runner = GradleTaskRunner.newRunner(myProject);
@@ -278,9 +281,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       boolean success = builder.build(runner, cmdLineArgs);
 
       if (configuration instanceof AndroidRunConfigurationBase) {
-        ProjectBuildOutput outputModel = (ProjectBuildOutput)runner.getModel();
-        if (outputModel != null) {
-          ((AndroidRunConfigurationBase)configuration).setOutputModel(outputModel);
+        ImmutableMap<String, ProjectBuildOutput> model = (ImmutableMap<String, ProjectBuildOutput>)runner.getModel();
+        if (model != null) {
+          ((AndroidRunConfigurationBase)configuration).setOutputModel(new PostBuildModel(model));
         }
         else {
           getLog().info("Couldn't get ProjectBuildOutput.");
@@ -299,6 +302,32 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       Thread.currentThread().interrupt();
       return false;
     }
+  }
+
+  /**
+   * Get the gradle paths for the given module and all the tested projects (if it is a test app).
+   * These paths will be used by the BuildAction run after build to know all the needed models.
+   */
+  @NotNull
+  private static Collection<String> getConcernedGradlePaths(@Nullable Module module) {
+    Collection<String> gradlePaths = new HashSet<>();
+
+    if (module == null) {
+      return gradlePaths;
+    }
+
+    gradlePaths.add(getGradlePath(module));
+    AndroidModuleModel moduleModel = AndroidModuleModel.get(module);
+    if (moduleModel != null) {
+      IdeAndroidProject androidProject = moduleModel.getAndroidProject();
+      if (androidProject.getProjectType() == PROJECT_TYPE_TEST) {
+        for (TestedTargetVariant testedVariant : moduleModel.getSelectedVariant().getTestedTargetVariants()) {
+          gradlePaths.add(testedVariant.getTargetProjectPath());
+        }
+      }
+    }
+
+    return gradlePaths;
   }
 
   @NotNull

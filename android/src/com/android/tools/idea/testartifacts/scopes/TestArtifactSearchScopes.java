@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.ide.android.IdeBaseArtifact;
@@ -42,6 +41,7 @@ import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static org.jetbrains.android.facet.IdeaSourceProvider.getAllSourceFolders;
@@ -141,9 +141,18 @@ public final class TestArtifactSearchScopes implements Disposable {
     AndroidModuleModel androidModel = getAndroidModel();
     if (androidModel != null) {
       roots = new HashSet<>();
-      // TODO consider generated source
-      for (SourceProvider sourceProvider : androidModel.getTestSourceProviders(artifactName)) {
-        roots.addAll(getAllSourceFolders(sourceProvider));
+
+      if (artifactName.equals(ARTIFACT_ANDROID_TEST) && androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_TEST) {
+        // Special case where android tests correspond actually to the _main_ artifact
+        for (SourceProvider sourceProvider : androidModel.getActiveSourceProviders()) {
+          roots.addAll(getAllSourceFolders(sourceProvider));
+        }
+      }
+      else {
+        // TODO consider generated source
+        for (SourceProvider sourceProvider : androidModel.getTestSourceProviders(artifactName)) {
+          roots.addAll(getAllSourceFolders(sourceProvider));
+        }
       }
     }
     return new FileRootSearchScope(myModule.getProject(), roots);
