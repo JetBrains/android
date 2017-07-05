@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.analytics.FeatureTracker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -61,7 +60,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private final Common.Session mySession;
   private final int myProcessId;
   private final long myCaptureStartTime;
-  private final FeatureTracker myFeatureTracker;
   private final HeapSet myDefaultHeapSet;
   private final AspectObserver myAspectObserver;
 
@@ -78,8 +76,14 @@ public class LiveAllocationCaptureObject implements CaptureObject {
                                      @Nullable Common.Session session,
                                      int processId,
                                      long captureStartTime,
-                                     @NotNull FeatureTracker featureTracker) {
-    myExecutorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("profiler-live-allocation").build());
+                                     @Nullable ExecutorService loadService) {
+    if (loadService == null) {
+      myExecutorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("profiler-live-allocation").build());
+    }
+    else {
+      myExecutorService = loadService;
+    }
+
     myClassDb = new ClassDb();
     myClassMap = new HashMap<>();
     myInstanceMap = new HashMap<>();
@@ -90,7 +94,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     mySession = session;
     myProcessId = processId;
     myCaptureStartTime = captureStartTime;
-    myFeatureTracker = featureTracker;
     myDefaultHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
     myAspectObserver = new AspectObserver();
 
@@ -352,8 +355,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         myPreviousQueryStartTimeNs = newStartTimeNs;
         myPreviousQueryEndTimeNs = newEndTimeNs;
 
-        if (!myListeners.isEmpty() &&
-            setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
+        if (setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
           joiner.execute(() -> {
             setAllocationList.forEach(instance -> {
               myDefaultHeapSet.addInstanceObject(instance);

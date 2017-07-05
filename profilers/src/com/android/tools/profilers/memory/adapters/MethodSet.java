@@ -76,8 +76,8 @@ public class MethodSet extends ClassifierSet {
 
   private static final class MethodClassifier extends Classifier {
     @NotNull private final CaptureObject myCaptureObject;
-    @NotNull private final Map<CodeLocation, MethodSet> myStackLineMap = new HashMap<>();
-    @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new HashMap<>();
+    @NotNull private final Map<CodeLocation, MethodSet> myStackLineMap = new LinkedHashMap<>();
+    @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new LinkedHashMap<>();
     private final int myDepth;
 
     private MethodClassifier(@NotNull CaptureObject captureObject, int depth) {
