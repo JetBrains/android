@@ -31,6 +31,10 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.sampledata.CsvEditorProvider"/>
+  </extensions>
+
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.util.JavaDocViewer</implementation-class>
