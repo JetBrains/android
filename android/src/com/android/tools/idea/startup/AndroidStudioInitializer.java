@@ -48,7 +48,6 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.openapi.roots.OrderEnumerationHandler;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ToolWindow;
@@ -57,7 +56,6 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import icons.AndroidIcons;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 
 import java.io.File;
 import java.util.List;
@@ -97,7 +95,6 @@ public class AndroidStudioInitializer implements Runnable {
     setUpNewProjectActions();
     setUpExperimentalFeatures();
     setupAnalytics();
-    disableGradleOrderEnumeratorHandler();
     disableIdeaJUnitConfigurations();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
@@ -270,18 +267,6 @@ public class AndroidStudioInitializer implements Runnable {
     for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
-    }
-  }
-
-  // GradleOrderEnumeratorHandler turns off the "exported" dependency mechanism in IDE for Gradle projects.
-  private static void disableGradleOrderEnumeratorHandler() {
-    ExtensionPoint<OrderEnumerationHandler.Factory> extensionPoint =
-      Extensions.getRootArea().getExtensionPoint(OrderEnumerationHandler.EP_NAME);
-    for (OrderEnumerationHandler.Factory factory : extensionPoint.getExtensions()) {
-      if (factory instanceof GradleOrderEnumeratorHandler.FactoryImpl) {
-        extensionPoint.unregisterExtension(factory);
-        return;
-      }
     }
   }
 
