@@ -73,7 +73,8 @@ public class DrawTextRegion extends DrawRegion {
   protected final String mText;
   protected final Font mFont;
   protected boolean mSingleLine = false;
-  final JTextPane mTextPane;
+  /** {@link JTextPane} used to layout multi-line text */
+  final static JTextPane sTextPane = new JTextPane();
 
   /**
    * Set the behavior to do a text wrap content or not
@@ -181,8 +182,6 @@ public class DrawTextRegion extends DrawRegion {
 
     mFont = getFont(mFontSize, mScale);
 
-    mTextPane = new JTextPane();
-    mTextPane.setBackground(TEXT_PANE_BACKGROUND);
     switch (mMode) {
       case DecoratorUtilities.ViewStates.SELECTED_VALUE:
         mLevel = COMPONENT_SELECTED_LEVEL;
@@ -225,11 +224,12 @@ public class DrawTextRegion extends DrawRegion {
     int fty = 0;
     int stringWidth = fontMetrics.stringWidth(string);
     if (stringWidth > (w + 10) && !mSingleLine) { // if it is multi lined text use a swing text pane to do the wrap
-      mTextPane.setText(string);
-      mTextPane.setForeground(color);
-      mTextPane.setSize(w, h);
-      mTextPane.setFont(mFont);
-      StyledDocument doc = mTextPane.getStyledDocument();
+      sTextPane.setBackground(TEXT_PANE_BACKGROUND);
+      sTextPane.setText(string);
+      sTextPane.setForeground(color);
+      sTextPane.setSize(w, h);
+      sTextPane.setFont(mFont);
+      StyledDocument doc = sTextPane.getStyledDocument();
       SimpleAttributeSet attributeSet = new SimpleAttributeSet();
       switch (mAlignmentX) {
         case TEXT_ALIGNMENT_VIEW_START:
@@ -244,20 +244,20 @@ public class DrawTextRegion extends DrawRegion {
       }
       switch (mAlignmentY) {
         case TEXT_ALIGNMENT_VIEW_START:
-          mTextPane.setAlignmentY(Component.TOP_ALIGNMENT);
+          sTextPane.setAlignmentY(Component.TOP_ALIGNMENT);
           break;
         case TEXT_ALIGNMENT_CENTER:
-          mTextPane.setAlignmentY(Component.CENTER_ALIGNMENT);
+          sTextPane.setAlignmentY(Component.CENTER_ALIGNMENT);
           break;
         case TEXT_ALIGNMENT_VIEW_END:
-          mTextPane.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+          sTextPane.setAlignmentY(Component.BOTTOM_ALIGNMENT);
           break;
       }
       doc.setParagraphAttributes(0, doc.getLength(), attributeSet, false);
       g2d.translate(tx, ty);
       Shape clip = g2d.getClip();
       g2d.clipRect(0, 0, w, h);
-      mTextPane.paint(g2d);
+      sTextPane.paint(g2d);
       g2d.setClip(clip);
       g2d.translate(-tx, -ty);
     }
