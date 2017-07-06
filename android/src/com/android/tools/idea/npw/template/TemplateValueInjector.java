@@ -118,13 +118,10 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
     myTemplateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
 
-    Project project = facet.getModule().getProject();
-    addGradleVersions(project);
-
     if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
       setInstantAppSupport();
 
-      Module baseFeature = InstantApps.findBaseFeature(project);
+      Module baseFeature = InstantApps.findBaseFeature(facet.getModule().getProject());
       AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
       assert moduleModel != null;
       Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
@@ -165,7 +162,6 @@ public final class TemplateValueInjector {
         myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, info.getRevision().toString());
       }
     }
-    addGradleVersions(null);
     return this;
   }
 
@@ -264,7 +260,8 @@ public final class TemplateValueInjector {
     // request for the Gradle build.
     myTemplateValues.put(ATTR_IS_LOW_MEMORY, SystemInfo.is32Bit);
 
-    addGradleVersions(project);
+    myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project));
+    myTemplateValues.put(ATTR_GRADLE_VERSION, SdkConstants.GRADLE_LATEST_VERSION);
     myTemplateValues.put(ATTR_IS_GRADLE, true);
 
     // TODO: Check if this is used at all by the templates
@@ -303,11 +300,6 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
     myTemplateValues.put(ATTR_INSTANT_APP_API_MIN_VERSION, InstantApps.getMinTargetSdk());
     return this;
-  }
-
-  private void addGradleVersions(@Nullable Project project) {
-    myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project));
-    myTemplateValues.put(ATTR_GRADLE_VERSION, SdkConstants.GRADLE_LATEST_VERSION);
   }
 
   private static void addDebugKeyStore(@NotNull Map<String, Object> templateValues, @Nullable AndroidFacet facet) {
