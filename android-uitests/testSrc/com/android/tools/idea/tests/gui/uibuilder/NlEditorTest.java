@@ -236,12 +236,12 @@ public class NlEditorTest {
       // Switch to the previous layout and verify we are still editing the text.
       ideFrame.selectPreviousEditor();
       assertThat(editor.getCurrentFileName()).isEqualTo("activity_my.xml");
-      assertThat(editor.getCurrentTab()).isEqualTo(EditorFixture.Tab.EDITOR);
+      assertThat(editor.getSelectedTab()).isEqualTo("Text");  // not "Design"
 
       // Again switch to the previous layout and verify we are still editing the text.
       ideFrame.selectPreviousEditor();
       assertThat(editor.getCurrentFileName()).isEqualTo("absolute.xml");
-      assertThat(editor.getCurrentTab()).isEqualTo(EditorFixture.Tab.EDITOR);
+      assertThat(editor.getSelectedTab()).isEqualTo("Text");  // not "Design"
     }
     finally {
       settings.setEditorTabPlacement(placement);
