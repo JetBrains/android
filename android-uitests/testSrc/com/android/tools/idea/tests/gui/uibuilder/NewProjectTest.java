@@ -282,6 +282,7 @@ public class NewProjectTest {
     assertTrue(gradleFile.canExecute());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63317962
   @Test // http://b.android.com/227918
   public void scrollingActivityFollowedByBasicActivity() throws Exception {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
