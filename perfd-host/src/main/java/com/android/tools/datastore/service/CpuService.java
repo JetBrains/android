@@ -117,7 +117,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void saveTraceInfo(CpuProfiler.SaveTraceInfoRequest request, StreamObserver<CpuProfiler.EmptyCpuReply> responseObserver) {
-    myCpuTable.insertTraceInfo(request.getTraceInfo(), request.getSession());
+    myCpuTable.insertTraceInfo(request.getProcessId(), request.getTraceInfo(), request.getSession());
     responseObserver.onNext(CpuProfiler.EmptyCpuReply.getDefaultInstance());
     responseObserver.onCompleted();
   }
@@ -182,7 +182,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuProfiler.CpuProfilingAppStopResponse response = CpuProfiler.CpuProfilingAppStopResponse.getDefaultInstance();
     if (client != null) {
       response = client.stopProfilingApp(request);
-      myCpuTable.insertTrace(response.getTraceId(), request.getSession(), request.getProfilerType(), response.getTrace());
+      myCpuTable.insertTrace(
+        request.getProcessId(), response.getTraceId(), request.getSession(), request.getProfilerType(), response.getTrace());
     }
     observer.onNext(response);
     observer.onCompleted();
@@ -203,7 +204,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> observer) {
-    CpuTable.TraceData data = myCpuTable.getTraceData(request.getTraceId(), request.getSession());
+    CpuTable.TraceData data = myCpuTable.getTraceData(request.getProcessId(), request.getTraceId(), request.getSession());
     CpuProfiler.GetTraceResponse.Builder builder = CpuProfiler.GetTraceResponse.newBuilder();
     if (data == null) {
       builder.setStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);

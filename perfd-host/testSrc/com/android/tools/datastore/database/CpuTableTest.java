@@ -122,8 +122,8 @@ public class CpuTableTest {
         .setToTimestamp(SESSION_ONE_OFFSET + 1 + i)
         .build();
 
-      myTable.insertTrace(trace.getTraceId(), SESSION_HUNDREDS, trace.getProfilerType(), ByteString.copyFromUtf8("100s club: " + i));
-      myTable.insertTraceInfo(trace, SESSION_HUNDREDS);
+      myTable.insertTrace(PROCESS_ID, trace.getTraceId(), SESSION_HUNDREDS, trace.getProfilerType(), ByteString.copyFromUtf8("100s club: " + i));
+      myTable.insertTraceInfo(PROCESS_ID, trace, SESSION_HUNDREDS);
     }
   }
 
@@ -275,7 +275,7 @@ public class CpuTableTest {
 
   @Test
   public void testGetInvalidTraceByRequest() throws Exception {
-    CpuTable.TraceData traceData = myTable.getTraceData(-1, SESSION_HUNDREDS);
+    CpuTable.TraceData traceData = myTable.getTraceData(PROCESS_ID, -1, SESSION_HUNDREDS);
     assertNull(traceData);
   }
 

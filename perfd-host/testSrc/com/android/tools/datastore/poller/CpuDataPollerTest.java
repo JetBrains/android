@@ -416,11 +416,14 @@ public class CpuDataPollerTest extends DataStorePollerTest {
                       .setFromTimestamp(BASE_TIME_NS)
                       .setToTimestamp(BASE_TIME_NS)
                       .setTraceId(TRACE_ID))
+      .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .build();
     myCpuService.saveTraceInfo(saveRequest, mock(StreamObserver.class));
 
     CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
+      .setSession(SESSION)
       .setFromTimestamp(BASE_TIME_NS)
       .setToTimestamp(Long.MAX_VALUE)
       .build();
