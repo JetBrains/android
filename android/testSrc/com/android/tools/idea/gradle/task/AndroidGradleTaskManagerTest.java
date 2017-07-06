@@ -69,6 +69,6 @@ public class AndroidGradleTaskManagerTest {
                                               .setJvmArguments(new ArrayList<>())
                                               .setCommandLineArguments(new ArrayList<>())
                                               .setTaskListener(listener)
-                                              .setWaitForCompletion(true));
+                                              .waitForCompletion());
   }
 }

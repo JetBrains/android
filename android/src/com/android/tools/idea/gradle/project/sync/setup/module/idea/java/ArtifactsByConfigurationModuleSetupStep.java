@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -27,6 +26,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.libraries.Library;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.Map;
@@ -67,7 +67,10 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             // This is the jar obtained by compiling the module, no need to add it as dependency.
             continue;
           }
-          String libraryName = module.getName() + "." + artifactName;
+          // let's use the same format for libraries imported from Gradle, to be compatible with API like ExternalSystemApiUtil.isExternalSystemLibrary()
+          // and be able to reuse common cleanup service, see LibraryDataService.postProcess()
+          String prefix = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
+          String libraryName = prefix + module.getName() + "." + artifactName;
           Library library = ideModelsProvider.getLibraryByName(libraryName);
           if (library == null) {
             // Create library.
@@ -75,9 +78,6 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
             Library.ModifiableModel libraryModel = ideModelsProvider.getModifiableLibraryModel(library);
             String url = pathToIdeaUrl(artifact);
             libraryModel.addRoot(url, CLASSES);
-          }
-          else {
-            SyncLibraryRegistry.getInstance(module.getProject()).markAsUsed(library, artifact);
           }
           LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
           orderEntry.setScope(COMPILE);

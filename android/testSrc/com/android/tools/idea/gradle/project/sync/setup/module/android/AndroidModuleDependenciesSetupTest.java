@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.tools.idea.gradle.LibraryFilePaths;
-import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -51,7 +50,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
   @Mock private LibraryFilePaths myLibraryFilePaths;
-  @Mock private SyncLibraryRegistry myLibraryRegistry;
 
   private AndroidModuleDependenciesSetup myDependenciesSetup;
 
@@ -60,18 +58,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    SyncLibraryRegistry.replaceForTesting(getProject(), myLibraryRegistry);
     myDependenciesSetup = new AndroidModuleDependenciesSetup(myLibraryFilePaths);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      SyncLibraryRegistry.replaceForTesting(getProject(), null);
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testSetUpLibraryWithExistingLibrary() throws IOException {
@@ -95,7 +82,6 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
     assertSame(newLibrary, libraryOrderEntry.getLibrary()); // The existing library should not have been changed.
 
-    verify(myLibraryRegistry).markAsUsed(newLibrary, binaryPaths);
     // Should not attempt to look up sources and documentation for existing libraries.
     verify(myLibraryFilePaths, never()).findSourceJarPath(binaryPath);
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
@@ -159,7 +145,6 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     assertThat(javadocUrls).hasLength(1);
     assertEquals(pathToIdeaUrl(javadocPath), javadocUrls[0]);
 
-    verify(myLibraryRegistry, never()).markAsUsed(library, binaryPaths); // Should not mark new libraries as "used"
     verify(myLibraryFilePaths).findSourceJarPath(binaryPath);
     // Documentation paths are populated at the LibraryDependency level - no look-up to be done during setup itself
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);

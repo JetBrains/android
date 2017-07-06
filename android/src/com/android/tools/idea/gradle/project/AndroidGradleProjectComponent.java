@@ -112,7 +112,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       }
     }
 
-    SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     if (syncState.isSyncInProgress()) {
       // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar

@@ -23,10 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
