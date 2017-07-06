@@ -21,6 +21,7 @@ import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -372,6 +373,35 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_marginEnd=\"15dp\"\n" +
                  "        android:layout_alignParentTop=\"true\"\n" +
                  "        android:layout_alignParentEnd=\"true\" />");
+  }
+
+  public void testSnapCheckBoxToTopLeftOfLayoutThenMoveButtonToSnapWithCheckBox() {
+    ScreenFixture screen = screen(createModel());
+    screen
+      .get("@id/checkbox")
+      .drag()
+      .dragTo(0, 0)
+      .release()
+      .primary()
+      .expectXml("<CheckBox\n" +
+                 "        android:id=\"@id/checkbox\"\n" +
+                 "        android:layout_width=\"20dp\"\n" +
+                 "        android:layout_height=\"20dp\"\n" +
+                 "        android:layout_alignParentTop=\"true\"\n" +
+                 "        android:layout_alignParentLeft=\"true\" />");
+    screen
+      .get("@id/button")
+      .drag()
+      .drag(-150, -150)
+      .release()
+      .primary()
+      .expectXml("<Button\n" +
+                 "        android:id=\"@id/button\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\"\n" +
+                 "        android:layout_marginStart=\"100dp\"\n" +
+                 "        android:layout_below=\"@+id/checkbox\"\n" +
+                 "        android:layout_toRightOf=\"@+id/checkbox\" />");
   }
 
   public void testMoveWithModifier() {

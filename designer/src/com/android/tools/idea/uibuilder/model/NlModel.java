@@ -1175,6 +1175,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     private final AtomicLong myVersion = new AtomicLong();
     @SuppressWarnings("unused") ChangeType mLastReason;
 
+    public void increase(ChangeType reason) {
+      myVersion.incrementAndGet();
+      mLastReason = reason;
+    }
+
     public long getVersion() {
       return myVersion.get();
     }
@@ -1190,6 +1195,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   public void notifyModified(ChangeType reason) {
+    myModelVersion.increase(reason);
     updateTheme();
     myModificationTrigger = reason;
     listenersCopy().forEach(listener -> listener.modelChanged(this));
