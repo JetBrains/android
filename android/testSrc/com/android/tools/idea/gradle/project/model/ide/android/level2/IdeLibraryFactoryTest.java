@@ -112,6 +112,18 @@ public class IdeLibraryFactoryTest {
   }
 
   @Test
+  public void computeMavenAddressWithNestedModuleLibrary() {
+    Library library = new LibraryStub() {
+      @Override
+      @NotNull
+      public MavenCoordinates getResolvedCoordinates() {
+        return new MavenCoordinatesStub("myGroup", ":androidLib:subModule", "undefined", "aar");
+      }
+    };
+    assertThat(computeAddress(library)).isEqualTo("myGroup:androidLib.subModule:undefined@aar");
+  }
+
+  @Test
   public void checkIsLocalAarModule() {
     AndroidLibrary localAarLibrary = new com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidLibraryStub() {
       @Override
