@@ -52,6 +52,7 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.RowIcon;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.tabs.impl.JBTabsImpl;
 import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -166,22 +167,6 @@ public class EditorFixture {
         checkState(editor != null, "no currently selected text editor");
         return editor.getDocument().getImmutableCharSequence().toString();
       });
-  }
-
-  @NotNull
-  public Tab getCurrentTab() {
-    Wait.seconds(5)
-      .expecting("Selected editor")
-      .until(() -> getFirstEditor() != null);
-    return getFirstEditor() instanceof NlEditor ? Tab.DESIGN : Tab.EDITOR;
-  }
-
-  @Nullable
-  private FileEditor getFirstEditor() {
-    return GuiQuery.get(() -> {
-      FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
-      return editors.length > 0 ? editors[0] : null;
-    });
   }
 
   /**
@@ -653,6 +638,11 @@ public class EditorFixture {
     // Wait for it to be fully opened
     robot.waitForIdle();
     return new ThemePreviewFixture(robot, myFrame.getProject());
+  }
+
+  @NotNull
+  public String getSelectedTab() {
+    return robot.finder().find(Matchers.byType(JBTabsImpl.class)).getSelectedInfo().getText();
   }
 
   /**
