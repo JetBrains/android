@@ -77,7 +77,7 @@ public class ProfilerScrollbarTest {
   public void testZoom() {
     // Zoom in
     double delta = myScrollbar.getWheelDelta();
-    myUi.keyboard.press(FakeKeyboard.Key.ALT); // Alt+wheel == zoom
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
 
     myUi.mouse.wheel(50, 50, -1);
     assertEquals(0 + delta * 0.5, myTimeline.getViewRange().getMin(), EPSILON);

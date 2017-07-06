@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.swing;
 
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.SwingUtilities;
@@ -30,6 +31,7 @@ import java.util.List;
  * Do not instantiate directly - use {@link FakeUi#keyboard} instead.
  */
 public final class FakeKeyboard {
+  public static final Key MENU_KEY = SystemInfo.isMac ? Key.META : Key.CTRL;
 
   private final List<Key> myPressedKeys = new ArrayList<>();
   @Nullable private Component myFocus;
@@ -86,6 +88,9 @@ public final class FakeKeyboard {
     if (myPressedKeys.contains(Key.ESC)) {
       modifiers |= InputEvent.SHIFT_DOWN_MASK;
     }
+    if (myPressedKeys.contains(Key.META)) {
+      modifiers |= InputEvent.META_DOWN_MASK;
+    }
     return modifiers;
   }
 
@@ -107,6 +112,7 @@ public final class FakeKeyboard {
     ALT(KeyEvent.VK_ALT),
     CTRL(KeyEvent.VK_CONTROL),
     ESC(KeyEvent.VK_ESCAPE),
+    META(KeyEvent.VK_META),
     SHIFT(KeyEvent.VK_SHIFT);
     // Add more keys here as necessary
 
