@@ -29,10 +29,7 @@ public class AndroidIcons {
   public static final Icon ZoomIn = load("/icons/zoomIn.png"); // 16x16
   public static final Icon ZoomOut = load("/icons/zoomOut.png"); // 16x16
   public static final Icon ZoomReal = load("/icons/zoomReal.png"); // 16x16
-  public static final Icon Renderscript = load("/icons/renderscript.png"); // 16x16
-  public static final Icon ErrorBadge = load("/icons/error-badge.png"); // 16x16
-  public static final Icon WarningBadge = load("/icons/warning-badge.png"); // 16x16
-  public static final Icon RefreshPreview = load("/icons/refreshPreview.png"); // 16x16
+  public static final Icon Renderscript = load("/icons/render-script.png"); // 16x16
   public static final Icon ArrowDown = load("/icons/comboArrow.png"); // 16x16
   public static final Icon GreyArrowDown = load("/icons/dropArrow.png"); // 20x20
   public static final Icon NotMatch = load("/icons/notMatch.png");
@@ -60,7 +57,7 @@ public class AndroidIcons {
   public static final Icon GradleSync = load("/icons/gradlesync.png"); // 16x16
   public static final Icon GradleConsole = load("/icons/gradle_console.png"); // 16x16
   public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
-  public static final Icon MavenLogo = load("/icons/mavenLogo.png"); // 16x16
+  public static final Icon MavenLogo = load("/icons/maven.png"); // 16x16
 
   public static final Icon CapturesToolWindow = load("/icons/captures.png"); // 13x13
   public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
@@ -581,10 +578,12 @@ public class AndroidIcons {
   }
 
   public static class Issue {
+    public static final Icon ErrorBadge = load("/icons/nele/issue/error-badge.png"); // 8x8
     public static final Icon ErrorSelected = IconLoader.getIcon("/icons/nele/issue/error-inline.png"); // 16x16
     public static final Icon Error = IconLoader.getIcon("/icons/nele/issue/error.png"); // 16x16
     public static final Icon InfoSelected = IconLoader.getIcon("/icons/nele/issue/info-inline.png"); // 16x16
     public static final Icon Info = IconLoader.getIcon("/icons/nele/issue/info.png"); // 16x16
+    public static final Icon WarningBadge = load("/icons/nele/issue/warning-badge.png"); // 8x8
     public static final Icon WarningSelected = IconLoader.getIcon("/icons/nele/issue/warning-inline-selected.png"); // 16x16
     public static final Icon Warning = IconLoader.getIcon("/icons/nele/issue/warning.png"); // 16x16
   }

@@ -24,7 +24,6 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.icons.AllIcons;
 import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -76,7 +75,7 @@ public class LintAnnotationsModel {
     IssueData max = findHighestSeverityIssue(issueData);
     boolean isError = HighlightDisplayLevel.ERROR.equals(max.level);
     if (smallSize) {
-      return isError ? AndroidIcons.ErrorBadge : AndroidIcons.WarningBadge;
+      return isError ? AndroidIcons.Issue.ErrorBadge : AndroidIcons.Issue.WarningBadge;
     }
 
     if (selected) {
