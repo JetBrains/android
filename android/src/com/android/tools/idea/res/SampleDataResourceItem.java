@@ -37,11 +37,13 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileSystemItem;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -246,8 +248,12 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
     throw new UnsupportedOperationException("SampleDataResourceItem does not support getValue");
   }
 
+  /**
+   * Retrieves the content from the Sample Data cache. If the data was out of date and needed to be refreshed, the passed callback will
+   * be called.
+   */
   @Nullable
-  private byte[] getContent() {
+  private byte[] getContent(@Nullable Runnable onCachedOutOfDate) {
     SampleDataHolder value = sSampleDataCache.getIfPresent(getName());
     if (value == null
         || value.getLastModification() == 0
@@ -264,6 +270,10 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       } catch (Exception e) {
         LOG.warn(e);
       }
+
+      if (onCachedOutOfDate != null) {
+        onCachedOutOfDate.run();
+      }
     }
 
     return value != null ? value.getContents() : null;
@@ -272,7 +282,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   @Nullable
   @Override
   public String getValueText() {
-    byte[] content = getContent();
+    byte[] content = getContent(null);
     return content != null ? new String(content, Charsets.UTF_8) : null;
   }
 
@@ -285,7 +295,11 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   @Nullable
   @Override
   public ResourceValue getResourceValue(boolean isFrameworks) {
-    return new SampleDataResourceValue(getResourceUrl(isFrameworks), getContent());
+    byte[] content = getContent(this::wasTouched);
+    if (mResourceValue == null) {
+      mResourceValue = new SampleDataResourceValue(getResourceUrl(isFrameworks), content);
+    }
+    return mResourceValue;
   }
 
   @Nullable
