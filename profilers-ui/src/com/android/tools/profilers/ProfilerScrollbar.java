@@ -19,8 +19,8 @@ import com.android.tools.adtui.RangeScrollBarUI;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBScrollBar;
-import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -77,7 +77,8 @@ public final class ProfilerScrollbar extends JBScrollBar {
       if (isScrollable()) {
         int count = e.getWheelRotation();
         double deltaUs = getWheelDelta() * count;
-        if (e.isAltDown()) {
+        boolean isMenuKeyDown = SystemInfo.isMac ? e.isMetaDown() : e.isControlDown();
+        if (isMenuKeyDown) {
           double anchor = ((float)e.getX() / e.getComponent().getWidth());
           myTimeline.zoom(deltaUs, anchor);
           myCheckStream = deltaUs > 0;
