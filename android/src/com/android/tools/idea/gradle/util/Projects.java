@@ -189,6 +189,17 @@ public final class Projects {
     return GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 
+  public static boolean isIdeaAndroidModule(@NotNull Module module) {
+    if (GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null) {
+      return true;
+    }
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Indicates whether the given module is the one that represents the project.
    * <p>

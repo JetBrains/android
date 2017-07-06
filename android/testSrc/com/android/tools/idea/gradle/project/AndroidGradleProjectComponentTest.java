@@ -36,7 +36,6 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
   @Mock LegacyAndroidProjects myLegacyAndroidProjects;
 
   private IdeComponents myIdeComponents;
-  private SupportedModuleChecker mySupportedModuleChecker;
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectComponent myProjectComponent;
 
@@ -47,7 +46,6 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
 
     Project project = getProject();
     myIdeComponents = new IdeComponents(project);
-    mySupportedModuleChecker = myIdeComponents.mockService(SupportedModuleChecker.class);
     myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
 
     myProjectComponent = new AndroidGradleProjectComponent(project, myLegacyAndroidProjects);
@@ -80,7 +78,6 @@ public class AndroidGradleProjectComponentTest extends IdeaTestCase {
     assertSame(GradleConstants.SYSTEM_ID, notificationManager.externalSystemId);
 
     verify(myGradleProjectInfo, times(1)).setProjectCreationError(null);
-    verify(mySupportedModuleChecker, times(1)).checkForSupportedModules(project);
     verify(myLegacyAndroidProjects, never()).trackProject();
   }
 

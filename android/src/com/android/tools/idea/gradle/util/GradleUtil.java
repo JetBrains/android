@@ -75,7 +75,6 @@ import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.startup.GradleSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -95,6 +94,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static icons.StudioIcons.Shell.Filetree.*;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 /**
@@ -350,7 +350,7 @@ public final class GradleUtil {
     return new File(dirPath, FN_SETTINGS_GRADLE);
   }
 
-  @Nullable
+  @NotNull
   public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
     if (IdeInfo.getInstance().isAndroidStudio()) {
@@ -363,6 +363,9 @@ public final class GradleUtil {
           executionSettings.setJavaHome(jdkPath.getPath());
         }
       }
+    }
+    if(executionSettings == null) {
+      executionSettings = new GradleExecutionSettings(null, null, BUNDLED, null, false);
     }
     return executionSettings;
   }

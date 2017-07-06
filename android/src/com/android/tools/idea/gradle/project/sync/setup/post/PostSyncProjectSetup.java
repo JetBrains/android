@@ -20,7 +20,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
-import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -57,8 +56,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
-import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -181,7 +178,6 @@ public class PostSyncProjectSetup {
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
-    SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
 
     findAndShowVariantConflicts();
     myProjectSetup.setUpProject(progressIndicator, false /* sync successful */);

@@ -333,7 +333,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
     throws InterruptedException {
     assertThat(tasks).named("Gradle tasks").isNotEmpty();
-    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(Lists.newArrayList(tasks)));
+    File projectDir = getBaseDirPath(project);
+    return invokeGradle(project, gradleInvoker -> gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks)));
   }
 
   @NotNull

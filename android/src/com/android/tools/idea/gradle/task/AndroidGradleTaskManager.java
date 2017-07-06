@@ -35,7 +35,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
 import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.appendInitScriptArgument;
 
 /**
@@ -106,7 +105,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
   @Nullable
   private static GradleBuildInvoker findGradleInvoker(ExternalSystemTaskId id, String projectPath) {
     Project project = id.findProject();
-    if (project != null && isDirectGradleInvocationEnabled(project)) {
+    if (project != null && GradleProjectInfo.getInstance(project).isDirectGradleBuildEnabled()) {
       ModuleManager moduleManager = ModuleManager.getInstance(project);
       for (Module module : moduleManager.getModules()) {
         if (projectPath.equals(ExternalSystemApiUtil.getExternalProjectPath(module)) && Projects.isIdeaAndroidModule(module)) {

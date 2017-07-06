@@ -14,19 +14,41 @@
  * limitations under the License.
  */
 package com.android.tools.idea.gradle.project.build.invoker;
+
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.intellij.build.BuildViewManager;
+import com.intellij.build.DefaultBuildDescriptor;
+import com.intellij.build.events.BuildEvent;
+import com.intellij.build.events.impl.*;
+import com.intellij.build.output.BuildOutputInstantReaderImpl;
+import com.intellij.build.output.BuildOutputParser;
+import com.intellij.build.output.JavacOutputParser;
+import com.intellij.build.output.KotlincOutputParser;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
+import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -35,15 +57,21 @@ import com.intellij.openapi.project.Project;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
+
 import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
+
 /**
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
  * tool window.
@@ -52,17 +80,21 @@ public class GradleBuildInvoker {
   @NotNull private final Project myProject;
   @NotNull private final FileDocumentManager myDocumentManager;
   @NotNull private final GradleTasksExecutorFactory myTaskExecutorFactory;
+
   @NotNull private final Set<AfterGradleInvocationTask> myAfterTasks = new LinkedHashSet<>();
   @NotNull private final List<String> myOneTimeGradleOptions = new ArrayList<>();
-  @NotNull private final List<String> myLastBuildTasks = new ArrayList<>();
+  @NotNull private final Multimap<String, String> myLastBuildTasks = ArrayListMultimap.create();
   @NotNull private final BuildStopper myBuildStopper = new BuildStopper();
+
   @NotNull
   public static GradleBuildInvoker getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleBuildInvoker.class);
   }
+
   public GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
     this(project, documentManager, new GradleTasksExecutorFactory());
   }
+
   @VisibleForTesting
   protected GradleBuildInvoker(@NotNull Project project,
                                @NotNull FileDocumentManager documentManager,
@@ -71,37 +103,50 @@ public class GradleBuildInvoker {
     myDocumentManager = documentManager;
     myTaskExecutorFactory = tasksExecutorFactory;
   }
+
   public void cleanProject() {
     setProjectBuildMode(CLEAN);
+
     // "Clean" also generates sources.
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    List<String> tasks = new ArrayList<>(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.ALL));
-    addCleanTask(tasks);
-    executeTasks(tasks, Collections.singletonList(createGenerateSourcesOnlyProperty()));
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.ALL);
+    tasks.keys().elementSet().forEach(key -> addCleanTask(tasks.get(key)));
+    for (Path rootPath : tasks.keySet()) {
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.singletonList(createGenerateSourcesOnlyProperty()));
+    }
   }
+
   public void cleanAndGenerateSources() {
     generateSources(true /* clean project */);
   }
+
   public void generateSources() {
     generateSources(false /* do not clean project */);
   }
+
   private void generateSources(boolean cleanProject) {
     BuildMode buildMode = SOURCE_GEN;
     setProjectBuildMode(buildMode);
+
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    List<String> tasks = new ArrayList<>(GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.ALL));
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.ALL);
     if (cleanProject) {
-      addCleanTask(tasks);
+      tasks.keys().elementSet().forEach(key -> addCleanTask(tasks.get(key)));
     }
-    executeTasks(tasks, Collections.singletonList(createGenerateSourcesOnlyProperty()));
+    for (Path rootPath : tasks.keySet()) {
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.singletonList(createGenerateSourcesOnlyProperty()));
+    }
   }
+
   private static void addCleanTask(@NotNull List<String> tasks) {
     tasks.add(0, CLEAN_TASK_NAME);
   }
+
   @NotNull
   private static String createGenerateSourcesOnlyProperty() {
     return createProjectProperty(PROPERTY_GENERATE_SOURCES_ONLY, true);
   }
+
   /**
    * Execute Gradle tasks that compile the relevant Java sources.
    *
@@ -112,41 +157,54 @@ public class GradleBuildInvoker {
   public void compileJava(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
     BuildMode buildMode = COMPILE_JAVA;
     setProjectBuildMode(buildMode);
-    List<String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
-    executeTasks(tasks);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
+    for (Path rootPath : tasks.keySet()) {
+      executeTasks(rootPath.toFile(), tasks.get(rootPath));
+    }
   }
+
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
     assemble(modules, testCompileType, Collections.emptyList());
   }
+
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType, @Nullable BuildAction<?> buildAction) {
     assemble(modules, testCompileType, Collections.emptyList(), buildAction);
   }
+
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType, @NotNull List<String> arguments) {
     assemble(modules, testCompileType, arguments, null);
   }
+
   public void assemble(@NotNull Module[] modules,
                        @NotNull TestCompileType testCompileType,
                        @NotNull List<String> arguments,
                        @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = ASSEMBLE;
     setProjectBuildMode(buildMode);
-    List<String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
-    executeTasks(tasks, arguments, buildAction);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
+    for (Path rootPath : tasks.keySet()) {
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
+    }
   }
+
   public void rebuild() {
     BuildMode buildMode = REBUILD;
     setProjectBuildMode(buildMode);
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.ALL);
-    executeTasks(tasks);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.ALL);
+    for (Path rootPath : tasks.keySet()) {
+      executeTasks(rootPath.toFile(), tasks.get(rootPath));
+    }
   }
+
   /**
    * Execute the last run set of Gradle tasks, with the specified gradle options prepended before the tasks to run.
    */
-  public void rebuildWithTempOptions(@NotNull List<String> options) {
+  public void rebuildWithTempOptions(@NotNull File buildFilePath, @NotNull List<String> options) {
     myOneTimeGradleOptions.addAll(options);
     try {
-      if (myLastBuildTasks.isEmpty()) {
+      Collection<String> tasks = myLastBuildTasks.get(buildFilePath.getPath());
+      if (tasks.isEmpty()) {
         // For some reason the IDE lost the Gradle tasks executed during the last build.
         rebuild();
       }
@@ -156,9 +214,8 @@ public class GradleBuildInvoker {
         // 2. the user clicks the hyperlink
         // 3. the IDE re-runs the build, with the Gradle tasks that were executed when the build failed, and it adds "--stacktrace"
         //    to the command line arguments.
-        List<String> tasksFromLastBuild = new ArrayList<>();
-        tasksFromLastBuild.addAll(myLastBuildTasks);
-        executeTasks(tasksFromLastBuild);
+        List<String> tasksFromLastBuild = new ArrayList<>(tasks);
+        executeTasks(buildFilePath, tasksFromLastBuild);
       }
     }
     finally {
@@ -166,28 +223,44 @@ public class GradleBuildInvoker {
       myOneTimeGradleOptions.clear();
     }
   }
+
   private void setProjectBuildMode(@NotNull BuildMode buildMode) {
     BuildSettings.getInstance(myProject).setBuildMode(buildMode);
   }
+
+  /**
+   * @deprecated use {@link GradleBuildInvoker#executeTasks(File, List)}
+   */
   public void executeTasks(@NotNull List<String> gradleTasks) {
-    executeTasks(gradleTasks, myOneTimeGradleOptions);
+    File path = getBaseDirPath(myProject);
+    executeTasks(path, gradleTasks, myOneTimeGradleOptions);
   }
-  public void executeTasks(@NotNull List<String> tasks,
+
+  public void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks) {
+    executeTasks(buildFilePath, gradleTasks, myOneTimeGradleOptions);
+  }
+
+  public void executeTasks(@NotNull ListMultimap<Path, String> tasks,
                            @Nullable BuildMode buildMode,
                            @NotNull List<String> commandLineArguments,
                            @Nullable BuildAction buildAction) {
     if (buildMode != null) {
       setProjectBuildMode(buildMode);
     }
-    executeTasks(tasks, commandLineArguments, buildAction);
+
+    tasks.keys().elementSet().forEach(path -> executeTasks(path.toFile(), tasks.get(path), commandLineArguments, buildAction));
   }
-  public void executeTasks(@NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
-    executeTasks(gradleTasks, commandLineArguments, null);
+
+  public void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
+    executeTasks(buildFilePath, gradleTasks, commandLineArguments, null);
   }
-  private void executeTasks(@NotNull List<String> gradleTasks,
+
+  private void executeTasks(@NotNull File buildFilePath,
+                            @NotNull List<String> gradleTasks,
                             @NotNull List<String> commandLineArguments,
                             @Nullable BuildAction buildAction) {
     List<String> jvmArguments = new ArrayList<>();
+
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       // Projects in tests may not have a local.properties, set ANDROID_HOME JVM argument if that's the case.
       LocalProperties localProperties;
@@ -205,19 +278,93 @@ public class GradleBuildInvoker {
         }
       }
     }
-    Request request = new Request(myProject, gradleTasks);
+
+    Request request = new Request(myProject, buildFilePath, gradleTasks);
+    ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, "Build");
     // @formatter:off
     request.setJvmArguments(jvmArguments)
            .setCommandLineArguments(commandLineArguments)
+           .setTaskListener(buildTaskListener)
            .setBuildAction(buildAction);
     // @formatter:on
     executeTasks(request);
   }
+
+  @NotNull
+  public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
+    BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
+    List<BuildOutputParser> buildOutputParsers = Lists.newArrayList(new JavacOutputParser(), new KotlincOutputParser());
+    //noinspection IOResourceOpenedButNotSafelyClosed
+    final BuildOutputInstantReaderImpl buildOutputInstantReader =
+      new BuildOutputInstantReaderImpl(request.myTaskId, buildViewManager, buildOutputParsers);
+    return new ExternalSystemTaskNotificationListenerAdapter() {
+      @Override
+      public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
+        AnAction restartAction = new AnAction() {
+          @Override
+          public void update(@NotNull AnActionEvent e) {
+            super.update(e);
+            Presentation p = e.getPresentation();
+            p.setEnabled(!myBuildStopper.contains(id));
+          }
+
+          @Override
+          public void actionPerformed(AnActionEvent e) {
+            executeTasks(request);
+          }
+        };
+        restartAction.getTemplatePresentation().setText("Restart");
+        restartAction.getTemplatePresentation().setDescription("Restart");
+        restartAction.getTemplatePresentation().setIcon(AllIcons.Actions.Compile);
+        long eventTime = System.currentTimeMillis();
+        buildViewManager.onEvent(new StartBuildEventImpl(new DefaultBuildDescriptor(id, executionName, workingDir, eventTime), "running...")
+                                   .withRestartAction(restartAction)
+                                   .withExecutionFilter(new AndroidReRunBuildFilter(workingDir)));
+      }
+
+      @Override
+      public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
+        if (event instanceof ExternalSystemTaskExecutionEvent) {
+          BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
+          buildViewManager.onEvent(buildEvent);
+        }
+      }
+
+      @Override
+      public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
+        buildViewManager.onEvent(new OutputBuildEventImpl(id, text, stdOut));
+        buildOutputInstantReader.append(text);
+      }
+
+      @Override
+      public void onEnd(@NotNull ExternalSystemTaskId id) {
+        buildOutputInstantReader.close();
+      }
+
+      @Override
+      public void onSuccess(@NotNull ExternalSystemTaskId id) {
+        buildViewManager.onEvent(new FinishBuildEventImpl(
+          id, null, System.currentTimeMillis(), "completed successfully", new SuccessResultImpl()));
+      }
+
+      @Override
+      public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
+        File projectDirPath = getBaseDirPath(myProject);
+        String projectName = projectDirPath.getName();
+        FailureResultImpl failureResult = ExternalSystemUtil.createFailureResult(e, projectName, GRADLE_SYSTEM_ID, myProject);
+        buildViewManager.onEvent(
+          new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
+      }
+    };
+  }
+
   public void executeTasks(@NotNull Request request) {
+    String buildFilePath = request.myBuildFilePath.getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
-    myLastBuildTasks.clear();
+    myLastBuildTasks.removeAll(buildFilePath);
     List<String> gradleTasks = request.getGradleTasks();
-    myLastBuildTasks.addAll(gradleTasks);
+    myLastBuildTasks.putAll(buildFilePath, gradleTasks);
+
     getLogger().info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
@@ -232,6 +379,7 @@ public class GradleBuildInvoker {
         executor.queue();
       }
     };
+
     if (ApplicationManager.getApplication().isDispatchThread()) {
       executeTasksTask.run();
     }
@@ -242,125 +390,178 @@ public class GradleBuildInvoker {
       TransactionGuard.getInstance().submitTransactionAndWait(executeTasksTask);
     }
   }
+
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(GradleBuildInvoker.class);
   }
-  public void stopBuild(@NotNull ExternalSystemTaskId id) {
-    myBuildStopper.attemptToStopBuild(id, null);
+
+  public boolean stopBuild(@NotNull ExternalSystemTaskId id) {
+    if (myBuildStopper.contains(id)) {
+      myBuildStopper.attemptToStopBuild(id, null);
+      return true;
+    }
+    return false;
   }
+
   public void add(@NotNull AfterGradleInvocationTask task) {
     myAfterTasks.add(task);
   }
+
   @VisibleForTesting
   @NotNull
   protected AfterGradleInvocationTask[] getAfterInvocationTasks() {
     return myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
   }
+
   public void remove(@NotNull AfterGradleInvocationTask task) {
     myAfterTasks.remove(task);
   }
+
   @NotNull
   public Project getProject() {
     return myProject;
   }
+
   public interface AfterGradleInvocationTask {
     void execute(@NotNull GradleInvocationResult result);
   }
+
   public static class Request {
     @NotNull private final Project myProject;
+    @NotNull private final File myBuildFilePath;
     @NotNull private final List<String> myGradleTasks;
     @NotNull private final List<String> myJvmArguments;
     @NotNull private final List<String> myCommandLineArguments;
+    @NotNull
+    private final Map<String, String> myEnv;
+    private boolean myPassParentEnvs = true;
     @NotNull private final ExternalSystemTaskId myTaskId;
+
     @Nullable private ExternalSystemTaskNotificationListener myTaskListener;
-    @Nullable private File myBuildFilePath;
     @Nullable private BuildAction myBuildAction;
     private boolean myWaitForCompletion;
-    public Request(@NotNull Project project, @NotNull String... gradleTasks) {
-      this(project, Arrays.asList(gradleTasks));
+
+    public Request(@NotNull Project project, @NotNull File buildFilePath, @NotNull String... gradleTasks) {
+      this(project, buildFilePath, Arrays.asList(gradleTasks));
     }
-    public Request(@NotNull Project project, @NotNull List<String> gradleTasks) {
-      this(project, gradleTasks, ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, project));
+
+    public Request(@NotNull Project project, @NotNull File buildFilePath, @NotNull List<String> gradleTasks) {
+      this(project, buildFilePath, gradleTasks, ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, project));
     }
-    public Request(@NotNull Project project, @NotNull List<String> gradleTasks, @NotNull ExternalSystemTaskId taskId) {
+
+    public Request(@NotNull Project project,
+                   @NotNull File buildFilePath,
+                   @NotNull List<String> gradleTasks,
+                   @NotNull ExternalSystemTaskId taskId) {
       myProject = project;
+      myBuildFilePath = buildFilePath;
       myGradleTasks = new ArrayList<>(gradleTasks);
       myJvmArguments = new ArrayList<>();
       myCommandLineArguments = new ArrayList<>();
       myTaskId = taskId;
+      myEnv = new LinkedHashMap<>();
     }
+
     @NotNull
     Project getProject() {
       return myProject;
     }
+
     @NotNull
     List<String> getGradleTasks() {
       return myGradleTasks;
     }
+
     @NotNull
     List<String> getJvmArguments() {
       return myJvmArguments;
     }
+
     @NotNull
     public Request setJvmArguments(@NotNull List<String> jvmArguments) {
       myJvmArguments.clear();
       myJvmArguments.addAll(jvmArguments);
       return this;
     }
+
     @NotNull
     List<String> getCommandLineArguments() {
       return myCommandLineArguments;
     }
+
     @NotNull
     public Request setCommandLineArguments(@NotNull List<String> commandLineArguments) {
       myCommandLineArguments.clear();
       myCommandLineArguments.addAll(commandLineArguments);
       return this;
     }
+
+    public Request withEnvironmentVariables(Map<String, String> envs) {
+      myEnv.putAll(envs);
+      return this;
+    }
+
+    public Map<String, String> getEnv() {
+      return Collections.unmodifiableMap(myEnv);
+    }
+
+    public Request passParentEnvs(boolean passParentEnvs) {
+      myPassParentEnvs = passParentEnvs;
+      return this;
+    }
+
+    public boolean isPassParentEnvs() {
+      return myPassParentEnvs;
+    }
+
     @Nullable
     public ExternalSystemTaskNotificationListener getTaskListener() {
       return myTaskListener;
     }
+
     @NotNull
     public Request setTaskListener(@Nullable ExternalSystemTaskNotificationListener taskListener) {
       myTaskListener = taskListener;
       return this;
     }
+
     @NotNull
     ExternalSystemTaskId getTaskId() {
       return myTaskId;
     }
-    @Nullable
+
+    @NotNull
     File getBuildFilePath() {
       return myBuildFilePath;
     }
-    @NotNull
-    public Request setBuildFilePath(@Nullable File buildFilePath) {
-      myBuildFilePath = buildFilePath;
-      return this;
-    }
+
     boolean isWaitForCompletion() {
       return myWaitForCompletion;
     }
+
     @NotNull
     public Request waitForCompletion() {
       myWaitForCompletion = true;
       return this;
     }
+
     @Nullable
     public BuildAction getBuildAction() {
       return myBuildAction;
     }
+
     @NotNull
     public Request setBuildAction(@Nullable BuildAction buildAction) {
       myBuildAction = buildAction;
       return this;
     }
+
     @Override
     public String toString() {
       return "RequestSettings{" +
-             "myGradleTasks=" + myGradleTasks +
+             "myBuildFilePath=" + myBuildFilePath +
+             ", myGradleTasks=" + myGradleTasks +
              ", myJvmArguments=" + myJvmArguments +
              ", myCommandLineArguments=" + myCommandLineArguments +
              ", myBuildAction=" + myBuildAction +
