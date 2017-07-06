@@ -182,7 +182,7 @@ public class AndroidIcons {
     public static final Icon Api = load("/icons/nele/api.png");
     public static final Icon Language = load("/icons/nele/language.png");
     public static final Icon Preview = load("/icons/nele/preview.png");
-    public static final Icon Rotate = load("/icons/nele/rotate.png");
+    public static final Icon Rotate = load("/icons/nele/rotate-button.png");
     public static final Icon Size = load("/icons/nele/size.png");
     public static final Icon Phone = load("/icons/nele/phone.png");
     public static final Icon Tablet = load("/icons/nele/tablet.png");
@@ -195,9 +195,10 @@ public class AndroidIcons {
     public static final Icon ZoomIn = load("/icons/nele/zoom-in.png");
     public static final Icon ZoomOut = load("/icons/nele/zoom-out.png");
     public static final Icon ExpandToFit = load("/icons/nele/expand-to-fit.png");
-    public static final Icon Blueprint = load("/icons/nele/blueprint.png"); // 16x16
+    public static final Icon Blueprint = load("/icons/nele/blueprint-mode.png"); // 16x16
+    public static final Icon BlueprintInactive = load("/icons/nele/blueprint-mode-inactive.png"); // 16x16
     public static final Icon BothMode = load("/icons/nele/both-mode.png"); // 16x16
-    public static final Icon DesignView = load("/icons/nele/designview.png"); // 16x16
+    public static final Icon DesignView = load("/icons/nele/design-mode.png"); // 16x16
     public static final Icon Elevation = load("/icons/nele/elevation.png"); // 16x16
     public static final Icon VirtualDevice = load("/icons/nele/virtualdevice.png"); // 16x16
     public static final Icon UiMode = load("/icons/nele/uimode.png"); // 16x16
