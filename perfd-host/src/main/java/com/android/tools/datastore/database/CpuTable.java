@@ -70,20 +70,24 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   "AppId INTEGER NOT NULL", "Session INTEGER NOT NULL", "ThreadId INTEGER NOT NULL", "Timestamp INTEGER",
                   "State TEXT, Name TEXT");
       createTable("Cpu_Trace",
+                  // TraceId is unique within an app, so just traceId is not enough
+                  "AppId INTEGER NOT NULL",
                   "TraceId INTEGER NOT NULL",
                   "Session INTEGER NOT NULL",
                   // We need profilerType to choose parser
                   "ProfilerType TEXT",
                   "Data BLOB");
+
       createTable("Cpu_Trace_Info",
+                  // TraceId is unique within an app, so just traceId is not enough
+                  "AppId INTEGER NOT NULL",
                   "TraceId INTEGER NOT NULL",
                   "Session INTEGER NOT NULL",
                   "StartTime INTEGER",
                   "EndTime INTEGER",
                   "TraceInfo BLOB");
       createUniqueIndex("Cpu_Data", "AppId", "Timestamp", "Session");
-      createUniqueIndex("Cpu_Trace", "TraceId", "Session");
-      createUniqueIndex("Cpu_Trace_Info", "TraceId", "Session");
+      createUniqueIndex("Cpu_Trace", "AppId", "TraceId", "Session");
       createUniqueIndex("Thread_Activities", "AppId", "Session", "ThreadId", "Timestamp");
     }
     catch (SQLException ex) {
@@ -100,12 +104,14 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                       "SELECT Data from Cpu_Data WHERE AppId = ? AND Session = ? AND Timestamp > ? AND Timestamp <= ? ");
       createStatement(CpuTable.CpuStatements.QUERY_TRACE_INFO,
                       "SELECT TraceInfo from Cpu_Trace_Info WHERE " +
-                      "Session = ? AND ((StartTime < ? AND ? <= EndTime) OR (StartTime > ? AND EndTime = 0));");
-      createStatement(CpuTable.CpuStatements.FIND_TRACE_DATA, "SELECT Data, ProfilerType from Cpu_Trace WHERE TraceId = ? AND Session = ?");
+                      "AppId = ? AND Session = ? AND ((StartTime < ? AND ? <= EndTime) OR (StartTime > ? AND EndTime = 0));");
+      createStatement(CpuTable.CpuStatements.FIND_TRACE_DATA,
+                      "SELECT Data, ProfilerType from Cpu_Trace WHERE AppId = ? AND TraceId = ? AND Session = ?");
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_DATA,
-                      "INSERT INTO Cpu_Trace (TraceId, Session, ProfilerType, Data) values (?, ?, ?, ?)");
+                      "INSERT INTO Cpu_Trace (AppId, TraceId, Session, ProfilerType, Data) values (?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_INFO,
-                      "INSERT OR REPLACE INTO Cpu_Trace_Info (TraceId, Session, StartTime, EndTime, TraceInfo) values (?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Cpu_Trace_Info (AppId, TraceId, Session, StartTime, EndTime, TraceInfo) " +
+                      "values (?, ?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_THREAD_ACTIVITY,
                       "INSERT OR REPLACE INTO Thread_Activities " +
                       "(AppId, Session, ThreadId, Timestamp, State, Name) VALUES (?, ?, ?, ?, ?, ?)");
@@ -219,7 +225,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     List<CpuProfiler.TraceInfo> traceInfo = new ArrayList<>();
     try {
       ResultSet results =
-        executeQuery(CpuStatements.QUERY_TRACE_INFO, request.getSession(), request.getToTimestamp(), request.getFromTimestamp(),
+        executeQuery(CpuStatements.QUERY_TRACE_INFO, request.getProcessId(), request.getSession(), request.getToTimestamp(),
+                     request.getFromTimestamp(),
                      request.getFromTimestamp());
       while (results.next()) {
         // QUERY_TRACE_INFO will return only one column.
@@ -229,16 +236,16 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
         }
       }
     }
-    catch (SQLException|InvalidProtocolBufferException ex) {
+    catch (SQLException | InvalidProtocolBufferException ex) {
       getLogger().error(ex);
     }
 
     return traceInfo;
   }
 
-  public TraceData getTraceData(int traceId, Common.Session session) {
+  public TraceData getTraceData(int appId, int traceId, Common.Session session) {
     try {
-      ResultSet results = executeQuery(CpuStatements.FIND_TRACE_DATA, traceId, session);
+      ResultSet results = executeQuery(CpuStatements.FIND_TRACE_DATA, appId, traceId, session);
       if (results.next()) {
         byte[] data = results.getBytes(DATA_COLUMN);
         if (data != null) {
@@ -254,12 +261,12 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
     return null;
   }
 
-  public void insertTrace(int traceId, Common.Session session, CpuProfiler.CpuProfilerType profilerType, ByteString data) {
-    execute(CpuStatements.INSERT_TRACE_DATA, traceId, session, profilerType.toString(), data.toByteArray());
+  public void insertTrace(int appId, int traceId, Common.Session session, CpuProfiler.CpuProfilerType profilerType, ByteString data) {
+    execute(CpuStatements.INSERT_TRACE_DATA, appId, traceId, session, profilerType.toString(), data.toByteArray());
   }
 
-  public void insertTraceInfo(CpuProfiler.TraceInfo trace, Common.Session session) {
-    execute(CpuStatements.INSERT_TRACE_INFO, trace.getTraceId(), session, trace.getFromTimestamp(), trace.getToTimestamp(),
+  public void insertTraceInfo(int appId, CpuProfiler.TraceInfo trace, Common.Session session) {
+    execute(CpuStatements.INSERT_TRACE_INFO, appId, trace.getTraceId(), session, trace.getFromTimestamp(), trace.getToTimestamp(),
             trace.toByteArray());
   }
 
