@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class BuildApkAction extends DumbAwareAction {
@@ -60,7 +61,8 @@ public class BuildApkAction extends DumbAwareAction {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
           AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
+          if (androidModel != null && (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP
+                                       || androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP)) {
             String assembleTaskName = facet.getProperties().ASSEMBLE_TASK_NAME;
             if (isNotEmpty(assembleTaskName)) {
               appModules.add(module);

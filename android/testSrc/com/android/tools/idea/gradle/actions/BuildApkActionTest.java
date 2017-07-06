@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.ArgumentMatchers.eq;
@@ -65,7 +66,8 @@ public class BuildApkActionTest extends IdeaTestCase {
   public void testActionPerformed() {
     Module app1Module = createAndroidModule("app1", PROJECT_TYPE_APP);
     Module app2Module = createAndroidModule("app2", PROJECT_TYPE_APP);
-    Module[] appModules = {app1Module, app2Module};
+    Module instantApp = createAndroidModule("instantApp", PROJECT_TYPE_INSTANTAPP);
+    Module[] appModules = {app1Module, app2Module, instantApp};
     createAndroidModule("androidLib", PROJECT_TYPE_LIBRARY);
 
     when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
