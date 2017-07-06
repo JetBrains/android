@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,16 +47,18 @@ public class OpenIncludedLayoutTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
-      .open(OUTER_XML, EditorFixture.Tab.EDITOR);
-
+      .open(OUTER_XML, EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
     layoutEditor.waitForRenderToFinish();
-    layoutEditor.getComponentTree().clickPath("LinearLayout/include");
-    layoutEditor.getComponentTree().doubleClickPath("LinearLayout/include");
+    JTreeFixture tree = layoutEditor.getComponentTree();
+    tree.click();
+    tree.requireFocused();
+    tree.doubleClickPath("LinearLayout/include");
     assertEquals(INCLUDED_XML, editor.getCurrentFileName());
 
     layoutEditor.getBackNavigationPanel().click();
+    layoutEditor.waitForRenderToFinish();
     assertEquals("outer.xml", editor.getCurrentFileName());
   }
 
@@ -64,7 +67,7 @@ public class OpenIncludedLayoutTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
-      .open(OUTER_XML, EditorFixture.Tab.EDITOR);
+      .open(OUTER_XML, EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
     layoutEditor.waitForRenderToFinish();
