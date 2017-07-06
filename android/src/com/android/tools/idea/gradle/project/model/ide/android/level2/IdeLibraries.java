@@ -36,7 +36,9 @@ final class IdeLibraries {
   @NotNull
   static String computeAddress(@NotNull Library library) {
     MavenCoordinates coordinate = library.getResolvedCoordinates();
-    String address = coordinate.getGroupId() + ":" + trimStart(coordinate.getArtifactId(), ":") + ":" + coordinate.getVersion();
+    String artifactId = trimStart(coordinate.getArtifactId(), ":");
+    artifactId = artifactId.replace(':', '.');
+    String address = coordinate.getGroupId() + ":" + artifactId + ":" + coordinate.getVersion();
     String classifier = coordinate.getClassifier();
     if (classifier != null) {
       address = address + ":" + classifier;
