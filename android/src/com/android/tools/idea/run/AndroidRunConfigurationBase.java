@@ -354,10 +354,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
       else {
         InstantRunManager.LOG.warn("Instant Run enabled, but not doing an instant run build since: " + gradleSupport);
-        String notificationText = gradleSupport.getUserNotification();
-        if (notificationText != null) {
-          InstantRunNotificationTask.showNotification(env.getProject(), null, notificationText);
+        // IR is disabled, we only want to display IR notification on start of session to avoid spamming user on each run.
+        if (!isSameExecutorAsPreviousSession(executor, info)) {
+          String notificationText = gradleSupport.getUserNotification();
+          if (notificationText != null) {
+            InstantRunNotificationTask.showNotification(env.getProject(), null, notificationText);
+          }
         }
+
       }
     }
     else {
@@ -375,7 +379,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     AndroidRunConfigContext runConfigContext = new AndroidRunConfigContext();
     env.putCopyableUserData(AndroidRunConfigContext.KEY, runConfigContext);
     runConfigContext.setTargetDevices(deviceFutures);
-    runConfigContext.setSameExecutorAsPreviousSession(info != null && executor.getId().equals(info.getExecutorId()));
+    runConfigContext.setSameExecutorAsPreviousSession(isSameExecutorAsPreviousSession(executor, info));
     runConfigContext.setForceColdSwap(forceColdswap, couldHaveHotswapped);
 
     // Save the instant run context so that before-run task can access it
@@ -405,6 +409,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
                                processHandler);
+  }
+
+  private boolean isSameExecutorAsPreviousSession(@NotNull Executor executor, @Nullable AndroidSessionInfo info) {
+    return info != null && executor.getId().equals(info.getExecutorId());
   }
 
   private static void killSession(@NotNull AndroidSessionInfo info) {
@@ -497,7 +505,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return deployTarget;
   }
 
-  private boolean promptAndKillSession(@NotNull Executor executor, Project project, AndroidSessionInfo info) {
+  private boolean promptAndKillSession(@NotNull Executor executor, @NotNull Project project, @NotNull AndroidSessionInfo info) {
     String previousExecutor = info.getExecutorId();
     String currentExecutor = executor.getId();
 
