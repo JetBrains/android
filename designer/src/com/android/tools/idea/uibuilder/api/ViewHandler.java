@@ -23,7 +23,7 @@ import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
-import icons.AndroidDesignerIcons;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -143,10 +143,10 @@ public class ViewHandler extends StructurePaneComponentHandler {
   }
 
   protected void addDefaultViewActions(@NotNull List<ViewAction> actions, int startRank) {
-    actions.add(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, AndroidDesignerIcons.FillWidth,
-                                         AndroidDesignerIcons.WrapWidth).setRank(startRank));
-    actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, AndroidDesignerIcons.FillHeight,
-                                         AndroidDesignerIcons.WrapHeight).setRank(startRank + 20));
+    actions.add(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, AndroidIcons.SherpaIcons.HorizontalExpand,
+                                         AndroidIcons.SherpaIcons.HorizontalCenter).setRank(startRank));
+    actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, AndroidIcons.SherpaIcons.VerticalExpand,
+                                         AndroidIcons.SherpaIcons.VerticalCenter).setRank(startRank + 20));
     // TODO: Gravity, etc
   }
 
