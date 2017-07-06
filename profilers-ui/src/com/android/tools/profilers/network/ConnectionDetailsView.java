@@ -40,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -132,7 +131,11 @@ public class ConnectionDetailsView extends JPanel {
     stackTraceComponent.setBorder(DEFAULT_TOP_BORDER);
     myTabsPanel.addTab(TAB_TITLE_STACK, stackTraceComponent);
 
-    myTabsPanel.addChangeListener(this::trackActiveTab);
+    myTabsPanel.addChangeListener(e -> {
+      // Repaint required on tab change or else close button sometimes disappears (seen on Mac)
+      repaint();
+      trackActiveTab();
+    });
 
     CloseButton closeButton = new CloseButton(e -> myStageView.getStage().setSelectedConnection(null));
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
@@ -141,7 +144,7 @@ public class ConnectionDetailsView extends JPanel {
     add(rootPanel);
   }
 
-  private void trackActiveTab(ChangeEvent event) {
+  private void trackActiveTab() {
     if (myTabsPanel.getSelectedIndex() < 0) {
       return;
     }
