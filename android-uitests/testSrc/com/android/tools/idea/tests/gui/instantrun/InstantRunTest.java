@@ -525,7 +525,7 @@ public class InstantRunTest {
    *   Application should run smoothly without any errors and showing "Hot swapped changes, activity restarted."
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void changeOrderOfResources() throws Exception {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
