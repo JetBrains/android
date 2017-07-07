@@ -61,8 +61,16 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
           return null;
         }
         NlComponent primary = components.get(0);
-        int deltaX = lastX - startX;
-        int deltaY = lastY - startY;
+        int deltaX = lastX;
+        int deltaY = lastY;
+        if (!primary.isRoot()) {
+          deltaX -= startX;
+          deltaY -= startY;
+        }
+        else {
+          deltaX -= editor.pxToDp(NlComponentHelperKt.getW(primary) / 2);
+          deltaY -= editor.pxToDp(NlComponentHelperKt.getH(primary) / 2);
+        }
         moveHandler.updateMove(primary, deltaX, deltaY, modifiers);
 
         return null;
