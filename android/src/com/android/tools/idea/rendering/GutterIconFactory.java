@@ -17,10 +17,10 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -45,8 +45,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.SdkConstants.DOT_XML;
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.PREFIX_THEME_REF;
 
 /**
  * Static utilities for generating scaled-down {@link Icon} instances from image resources to display in the gutter.
@@ -143,41 +141,35 @@ public class GutterIconFactory {
     return UIUtil.isRetina();
   }
 
-  private static void replaceResourceReferences(@NonNull Node node, @NonNull ResourceResolver resolver) {
+  /**
+   * Returns true if {@code attributeValue} is a theme or resource reference, false otherwise.
+   */
+  @VisibleForTesting
+  static boolean isReference(String attributeValue) {
+    return ResourceUrl.parse(attributeValue) != null;
+  }
+
+  /**
+   * Recursively traverses a document tree starting at {@code node} and uses {@code resolver} to
+   * to resolve and replace attribute values which are resource or theme references. If a reference can not
+   * be resolved, the value of that attribute remains unchanged.
+   */
+  @VisibleForTesting
+  static void replaceResourceReferences(@NonNull Node node, @NonNull ResourceResolver resolver) {
     if (node.getNodeType() == Node.ELEMENT_NODE) {
       Element element = (Element)node;
       NamedNodeMap attributes = element.getAttributes();
 
-      attributes:
       for (int i = 0, n = attributes.getLength(); i < n; i++) {
         Node attribute = attributes.item(i);
         String value = attribute.getNodeValue();
-        if (!(value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF))) {
-          continue;
-        }
-        for (int j = 0; j < 10; j++) {
-          ResourceUrl resolvedUrl = ResourceUrl.parse(value);
-          if (resolvedUrl == null) {
-            continue attributes;
-          }
-          ResourceValue resourceValue;
-          if (resolvedUrl.theme) {
-            resourceValue = resolver.findItemInTheme(resolvedUrl.name, resolvedUrl.framework);
-          }
-          else {
-            resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.framework);
-          }
-          if (resourceValue == null) {
-            continue attributes;
-          }
-          value = resourceValue.getValue();
-          if (value == null) {
-            continue attributes;
-          }
-          if (!(value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF))) {
-            // Found leaf value
-            attribute.setNodeValue(value);
-            break;
+
+        if (isReference(value)) {
+          String resolvedValue = ResourceHelper.resolveStringValue(resolver, value);
+
+          // Leave the attribute value alone if we were unable to resolve it
+          if (!isReference(resolvedValue)) {
+            attribute.setNodeValue(resolvedValue);
           }
         }
       }
