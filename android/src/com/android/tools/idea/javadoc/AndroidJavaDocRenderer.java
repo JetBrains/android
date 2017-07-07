@@ -45,6 +45,7 @@ import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -789,7 +790,10 @@ public class AndroidJavaDocRenderer {
 
       Set<String> masked = new HashSet<>();
       while (styleValue != null) {
-        for (ItemResourceValue itemResourceValue : styleValue.getValues()) {
+        // Make sure the contents for the style are always generated in the same order. Helps with testing and the
+        // user will know where to find attributes.
+        ImmutableList<ItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getValues());
+        for (ItemResourceValue itemResourceValue : values) {
           String name = itemResourceValue.getName();
           if (masked.contains(name)) {
             continue;
