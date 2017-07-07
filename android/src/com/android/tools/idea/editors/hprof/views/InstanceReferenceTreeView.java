@@ -418,8 +418,9 @@ public final class InstanceReferenceTreeView implements DataProvider {
       return getTargetFiles();
     }
     else if (NAVIGATABLE_INSTANCE.is(dataId)) {
-      Object node = myTree.getSelectionPath().getLastPathComponent();
-      return node instanceof InstanceNode ? ((InstanceNode) node).getInstance() : null;
+      TreePath path = myTree.getSelectionPath();
+      Object node = path == null ? null : path.getLastPathComponent();
+      return node instanceof InstanceNode ? ((InstanceNode)node).getInstance() : null;
     }
     else if (CommonDataKeys.PROJECT.is(dataId)) {
       return myProject;
