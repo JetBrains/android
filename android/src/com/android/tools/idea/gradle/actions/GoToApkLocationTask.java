@@ -88,17 +88,17 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
       if (result.isBuildSuccessful()) {
         if (ShowFilePathAction.isSupported()) {
           StringBuilder buffer = new StringBuilder();
-          buffer.append("APK(s) generated successfully: ");
+          buffer.append("APK(s) generated successfully:<br/>");
           int moduleCount = moduleNames.size();
           for (int i = 0; i < moduleCount; i++) {
             String moduleName = moduleNames.get(i);
-            buffer.append("<a href=\"").append(MODULE).append(moduleName).append("\">").append(moduleName).append("</a> ");
-            buffer.append("<a href=\"").append(ANALYZE).append(moduleName).append("\">(analyze)</a>");
+            buffer.append("Module '" ).append(moduleName).append("': ");
+            buffer.append("<a href=\"").append(MODULE).append(moduleName).append("\">locate</a> or ");
+            buffer.append("<a href=\"").append(ANALYZE).append(moduleName).append("\">analyze</a> the APK.");
             if (i < moduleCount - 1) {
-              buffer.append(", ");
+              buffer.append("<br/>");
             }
           }
-          buffer.append(".");
           String text = buffer.toString();
           notification.showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(apkPathsByModule, myProject));
         }
