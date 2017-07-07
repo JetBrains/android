@@ -1,9 +1,214 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.util.Log boolean isLoggable(java.lang.String, int) 0">
-    <annotation name="android.support.annotation.Size">
-      <val name="max" val="23" />
-    </annotation>
+  <item name="android.util.Half EPSILON">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half Half(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half Half(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half LOWEST_VALUE">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half MAX_VALUE">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half MIN_NORMAL">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half MIN_VALUE">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half NEGATIVE_INFINITY">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half NEGATIVE_ZERO">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half NaN">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half POSITIVE_INFINITY">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half POSITIVE_ZERO">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half android.util.Half valueOf(float)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half android.util.Half valueOf(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half android.util.Half valueOf(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half android.util.Half valueOf(short)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half android.util.Half valueOf(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean equals(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean equals(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean greater(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean greater(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean greaterEquals(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean greaterEquals(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean isInfinite(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean isNaN(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean isNormalized(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean less(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean less(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean lessEquals(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half boolean lessEquals(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half float toFloat(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half int compare(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half int compare(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half int compareTo(android.util.Half) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half int getExponent(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half int getSign(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half int getSignificand(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half int halfToIntBits(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half int halfToRawIntBits(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half int hashCode(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half java.lang.String toHexString(short)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half java.lang.String toHexString(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half java.lang.String toString(short)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half java.lang.String toString(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short abs(short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short abs(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short ceil(short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short ceil(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short copySign(short, short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short copySign(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short copySign(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short floor(short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short floor(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short halfToShortBits(short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short halfToShortBits(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short halfValue()">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short intBitsToHalf(int)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short max(short, short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short max(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short max(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short min(short, short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short min(short, short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short min(short, short) 1">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short parseHalf(java.lang.String)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short parseHalf(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.util.Half short round(short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short round(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short toHalf(float)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short trunc(short)">
+    <annotation name="android.support.annotation.HalfFloat" />
+  </item>
+  <item name="android.util.Half short trunc(short) 0">
+    <annotation name="android.support.annotation.HalfFloat" />
   </item>
   <item name="android.util.Log boolean isLoggable(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
@@ -17,12 +222,9 @@
   </item>
   <item name="android.util.TypedValue changingConfigurations">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
-  </item>
-  <item name="android.util.TypedValue float getDimension(android.util.DisplayMetrics)">
-    <annotation name="android.support.annotation.Px" />
   </item>
   <item name="android.util.TypedValue resourceId">
     <annotation name="android.support.annotation.AnyRes" />

@@ -1,5 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable android.graphics.Region getTransparentRegion()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable int getChangingConfigurations()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void applyTheme(android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void getOutline(android.graphics.Outline) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void inflate(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void invalidateDrawable(android.graphics.drawable.Drawable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AdaptiveIconDrawable void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.graphics.drawable.Animatable2 boolean unregisterAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -43,7 +85,7 @@
   </item>
   <item name="android.graphics.drawable.AnimatedVectorDrawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -64,7 +106,7 @@
   </item>
   <item name="android.graphics.drawable.BitmapDrawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -91,7 +133,7 @@
   </item>
   <item name="android.graphics.drawable.ColorDrawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -117,6 +159,57 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.Drawable android.graphics.Region getTransparentRegion()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromPath(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.content.res.Resources.Theme)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXmlInner(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet, android.content.res.Resources.Theme) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable getCurrent()">
@@ -161,7 +254,7 @@
   </item>
   <item name="android.graphics.drawable.Drawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -252,7 +345,7 @@
   </item>
   <item name="android.graphics.drawable.Drawable void setChangingConfigurations(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -312,7 +405,7 @@
   </item>
   <item name="android.graphics.drawable.Drawable.ConstantState int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -323,7 +416,7 @@
   </item>
   <item name="android.graphics.drawable.DrawableContainer int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -347,7 +440,7 @@
   </item>
   <item name="android.graphics.drawable.DrawableContainer.DrawableContainerState int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -373,7 +466,7 @@
   </item>
   <item name="android.graphics.drawable.DrawableWrapper int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -445,7 +538,7 @@
   </item>
   <item name="android.graphics.drawable.GradientDrawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -523,6 +616,12 @@
   <item name="android.graphics.drawable.Icon android.graphics.drawable.Icon setTint(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.graphics.drawable.InsetDrawable InsetDrawable(android.graphics.drawable.Drawable, float) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.InsetDrawable InsetDrawable(android.graphics.drawable.Drawable, float, float, float, float) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.graphics.drawable.InsetDrawable InsetDrawable(android.graphics.drawable.Drawable, int) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -557,7 +656,7 @@
   </item>
   <item name="android.graphics.drawable.LayerDrawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -614,7 +713,7 @@
   </item>
   <item name="android.graphics.drawable.NinePatchDrawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -701,7 +800,7 @@
   </item>
   <item name="android.graphics.drawable.ShapeDrawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -710,7 +809,7 @@
   </item>
   <item name="android.graphics.drawable.VectorDrawable int getChangingConfigurations()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
+      <val name="value" val="{android.content.pm.ActivityInfo.CONFIG_MCC, android.content.pm.ActivityInfo.CONFIG_MNC, android.content.pm.ActivityInfo.CONFIG_LOCALE, android.content.pm.ActivityInfo.CONFIG_TOUCHSCREEN, android.content.pm.ActivityInfo.CONFIG_KEYBOARD, android.content.pm.ActivityInfo.CONFIG_KEYBOARD_HIDDEN, android.content.pm.ActivityInfo.CONFIG_NAVIGATION, android.content.pm.ActivityInfo.CONFIG_ORIENTATION, android.content.pm.ActivityInfo.CONFIG_SCREEN_LAYOUT, android.content.pm.ActivityInfo.CONFIG_UI_MODE, android.content.pm.ActivityInfo.CONFIG_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_SMALLEST_SCREEN_SIZE, android.content.pm.ActivityInfo.CONFIG_DENSITY, android.content.pm.ActivityInfo.CONFIG_LAYOUT_DIRECTION, android.content.pm.ActivityInfo.CONFIG_COLOR_MODE, android.content.pm.ActivityInfo.CONFIG_FONT_SCALE}" />
       <val name="flag" val="true" />
     </annotation>
   </item>

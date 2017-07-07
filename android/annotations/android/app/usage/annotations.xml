@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.app.usage.ExternalStorageStats long getAppBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.ExternalStorageStats long getAudioBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.ExternalStorageStats long getImageBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.ExternalStorageStats long getTotalBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.ExternalStorageStats long getVideoBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.NetworkStats.Bucket int getMetered()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.app.usage.NetworkStats.Bucket.METERED_ALL, android.app.usage.NetworkStats.Bucket.METERED_NO, android.app.usage.NetworkStats.Bucket.METERED_YES}" />
+    </annotation>
+  </item>
   <item name="android.app.usage.NetworkStats.Bucket int getRoaming()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.app.usage.NetworkStats.Bucket.ROAMING_ALL, android.app.usage.NetworkStats.Bucket.ROAMING_NO, android.app.usage.NetworkStats.Bucket.ROAMING_YES}" />
@@ -10,8 +30,86 @@
       <val name="value" val="{android.app.usage.NetworkStats.Bucket.STATE_ALL, android.app.usage.NetworkStats.Bucket.STATE_DEFAULT, android.app.usage.NetworkStats.Bucket.STATE_FOREGROUND}" />
     </annotation>
   </item>
+  <item name="android.app.usage.NetworkStatsManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.NETWORK_STATS_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.app.usage.NetworkStatsManager void registerUsageCallback(int, java.lang.String, long, android.app.usage.NetworkStatsManager.UsageCallback, android.os.Handler) 4">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.usage.StorageStats long getAppBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.StorageStats long getCacheBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.StorageStats long getDataBytes()">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.STORAGE_STATS_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.ExternalStorageStats queryExternalStatsForUser(java.util.UUID, android.os.UserHandle)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.ExternalStorageStats queryExternalStatsForUser(java.util.UUID, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.ExternalStorageStats queryExternalStatsForUser(java.util.UUID, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForPackage(java.util.UUID, java.lang.String, android.os.UserHandle)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForPackage(java.util.UUID, java.lang.String, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForPackage(java.util.UUID, java.lang.String, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForPackage(java.util.UUID, java.lang.String, android.os.UserHandle) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForUid(java.util.UUID, int)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForUid(java.util.UUID, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForUser(java.util.UUID, android.os.UserHandle)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForUser(java.util.UUID, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager android.app.usage.StorageStats queryStatsForUser(java.util.UUID, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager long getFreeBytes(java.util.UUID)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager long getFreeBytes(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager long getTotalBytes(java.util.UUID)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.app.usage.StorageStatsManager long getTotalBytes(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.usage.UsageStatsManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.USAGE_STATS_SERVICE" />
+    </annotation>
   </item>
 </root>
 

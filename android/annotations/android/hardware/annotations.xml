@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.hardware.ConsumerIrManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.CONSUMER_IR_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.hardware.HardwareBuffer android.hardware.HardwareBuffer create(int, int, int, int, long)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.HardwareBuffer android.hardware.HardwareBuffer create(int, int, int, int, long) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.HardwareBuffer.RGBA_8888, android.hardware.HardwareBuffer.RGBA_FP16, android.hardware.HardwareBuffer.RGBA_1010102, android.hardware.HardwareBuffer.RGBX_8888, android.hardware.HardwareBuffer.RGB_888, android.hardware.HardwareBuffer.RGB_565, android.hardware.HardwareBuffer.BLOB}" />
+    </annotation>
+  </item>
+  <item name="android.hardware.HardwareBuffer android.hardware.HardwareBuffer create(int, int, int, int, long) 4">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.HardwareBuffer.USAGE_CPU_READ_RARELY, android.hardware.HardwareBuffer.USAGE_CPU_READ_OFTEN, android.hardware.HardwareBuffer.USAGE_CPU_WRITE_RARELY, android.hardware.HardwareBuffer.USAGE_CPU_WRITE_OFTEN, android.hardware.HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE, android.hardware.HardwareBuffer.USAGE_GPU_COLOR_OUTPUT, android.hardware.HardwareBuffer.USAGE_PROTECTED_CONTENT, android.hardware.HardwareBuffer.USAGE_VIDEO_ENCODE, android.hardware.HardwareBuffer.USAGE_GPU_DATA_BUFFER, android.hardware.HardwareBuffer.USAGE_SENSOR_DIRECT_DATA}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.hardware.HardwareBuffer int getFormat()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.HardwareBuffer.RGBA_8888, android.hardware.HardwareBuffer.RGBA_FP16, android.hardware.HardwareBuffer.RGBA_1010102, android.hardware.HardwareBuffer.RGBX_8888, android.hardware.HardwareBuffer.RGB_888, android.hardware.HardwareBuffer.RGB_565, android.hardware.HardwareBuffer.BLOB}" />
+    </annotation>
+  </item>
+  <item name="android.hardware.Sensor boolean isDirectChannelTypeSupported(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.SensorDirectChannel.TYPE_MEMORY_FILE, android.hardware.SensorDirectChannel.TYPE_HARDWARE_BUFFER}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.hardware.Sensor int getHighestDirectReportRateLevel()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.SensorDirectChannel.RATE_STOP, android.hardware.SensorDirectChannel.RATE_NORMAL, android.hardware.SensorDirectChannel.RATE_FAST, android.hardware.SensorDirectChannel.RATE_VERY_FAST}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.hardware.SensorDirectChannel int configure(android.hardware.Sensor, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.SensorDirectChannel.RATE_STOP, android.hardware.SensorDirectChannel.RATE_NORMAL, android.hardware.SensorDirectChannel.RATE_FAST, android.hardware.SensorDirectChannel.RATE_VERY_FAST}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.hardware.SensorManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.SENSOR_SERVICE" />
+    </annotation>
+  </item>
+</root>
+

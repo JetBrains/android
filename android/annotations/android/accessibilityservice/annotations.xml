@@ -1,9 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.accessibilityservice.AccessibilityButtonController void registerAccessibilityButtonCallback(android.accessibilityservice.AccessibilityButtonController.AccessibilityButtonCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.accessibilityservice.AccessibilityButtonController void registerAccessibilityButtonCallback(android.accessibilityservice.AccessibilityButtonController.AccessibilityButtonCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.accessibilityservice.AccessibilityButtonController void registerAccessibilityButtonCallback(android.accessibilityservice.AccessibilityButtonController.AccessibilityButtonCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.accessibilityservice.AccessibilityButtonController void unregisterAccessibilityButtonCallback(android.accessibilityservice.AccessibilityButtonController.AccessibilityButtonCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.accessibilityservice.AccessibilityService android.accessibilityservice.AccessibilityButtonController getAccessibilityButtonController()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.accessibilityservice.AccessibilityService android.accessibilityservice.AccessibilityService.MagnificationController getMagnificationController()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accessibilityservice.AccessibilityService android.accessibilityservice.AccessibilityService.SoftKeyboardController getSoftKeyboardController()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.accessibilityservice.AccessibilityService android.accessibilityservice.FingerprintGestureController getFingerprintGestureController()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.USE_FINGERPRINT&quot;" />
+    </annotation>
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.accessibilityservice.AccessibilityService boolean dispatchGesture(android.accessibilityservice.GestureDescription, android.accessibilityservice.AccessibilityService.GestureResultCallback, android.os.Handler) 0">
@@ -17,7 +38,7 @@
   </item>
   <item name="android.accessibilityservice.AccessibilityService java.lang.Object getSystemService(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE, android.content.Context.HARDWARE_PROPERTIES_SERVICE, android.content.Context.SHORTCUT_SERVICE, android.content.Context.SYSTEM_HEALTH_SERVICE}" />
+      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.STORAGE_STATS_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.NETWORK_STATS_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_AWARE_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.FINGERPRINT_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.TELEPHONY_SUBSCRIPTION_SERVICE, android.content.Context.CARRIER_CONFIG_SERVICE, android.content.Context.TELECOM_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.TEXT_CLASSIFICATION_SERVICE, android.content.Context.APPWIDGET_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.LAUNCHER_APPS_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.RESTRICTIONS_SERVICE, android.content.Context.APP_OPS_SERVICE, android.content.Context.CAMERA_SERVICE, android.content.Context.PRINT_SERVICE, android.content.Context.CONSUMER_IR_SERVICE, android.content.Context.TV_INPUT_SERVICE, android.content.Context.USAGE_STATS_SERVICE, android.content.Context.MEDIA_SESSION_SERVICE, android.content.Context.BATTERY_SERVICE, android.content.Context.JOB_SCHEDULER_SERVICE, android.content.Context.MEDIA_PROJECTION_SERVICE, android.content.Context.MIDI_SERVICE, android.content.Context.HARDWARE_PROPERTIES_SERVICE, android.content.Context.SHORTCUT_SERVICE, android.content.Context.SYSTEM_HEALTH_SERVICE, android.content.Context.COMPANION_DEVICE_SERVICE}" />
     </annotation>
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -72,6 +93,12 @@
       <val name="value" val="{android.accessibilityservice.AccessibilityService.SHOW_MODE_AUTO, android.accessibilityservice.AccessibilityService.SHOW_MODE_HIDDEN}" />
     </annotation>
   </item>
+  <item name="android.accessibilityservice.FingerprintGestureController void registerFingerprintGestureCallback(android.accessibilityservice.FingerprintGestureController.FingerprintGestureCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.accessibilityservice.FingerprintGestureController void registerFingerprintGestureCallback(android.accessibilityservice.FingerprintGestureController.FingerprintGestureCallback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.accessibilityservice.GestureDescription android.accessibilityservice.GestureDescription.StrokeDescription getStroke(int) 0">
     <annotation name="android.support.annotation.IntRange">
       <val name="from" val="0" />
@@ -89,6 +116,19 @@
     </annotation>
   </item>
   <item name="android.accessibilityservice.GestureDescription.StrokeDescription StrokeDescription(android.graphics.Path, long, long) 2">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.accessibilityservice.GestureDescription.StrokeDescription StrokeDescription(android.graphics.Path, long, long, boolean) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.accessibilityservice.GestureDescription.StrokeDescription StrokeDescription(android.graphics.Path, long, long, boolean) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+    </annotation>
+  </item>
+  <item name="android.accessibilityservice.GestureDescription.StrokeDescription StrokeDescription(android.graphics.Path, long, long, boolean) 2">
     <annotation name="android.support.annotation.IntRange">
       <val name="from" val="0" />
     </annotation>

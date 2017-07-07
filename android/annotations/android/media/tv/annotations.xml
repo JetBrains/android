@@ -58,6 +58,11 @@
   <item name="android.media.tv.TvInputInfo void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.tv.TvInputManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.TV_INPUT_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.media.tv.TvInputManager android.media.tv.TvInputInfo getTvInputInfo(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>

@@ -559,6 +559,9 @@
   <item name="java.util.Collections java.util.List&lt;T&gt; nCopies(int, T)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.util.Collections java.util.List&lt;T&gt; singletonList(T)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.Collections java.util.List&lt;T&gt; synchronizedList(java.util.List&lt;T&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -589,6 +592,12 @@
   <item name="java.util.Collections java.util.Map&lt;K,V&gt; unmodifiableMap(java.util.Map&lt;? extends K,? extends V&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.util.Collections java.util.Queue&lt;E&gt; checkedQueue(java.util.Queue&lt;E&gt;, java.lang.Class&lt;E&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Collections java.util.Queue&lt;E&gt; checkedQueue(java.util.Queue&lt;E&gt;, java.lang.Class&lt;E&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.Collections java.util.Queue&lt;T&gt; asLifoQueue(java.util.Deque&lt;T&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -602,6 +611,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Collections java.util.Set&lt;T&gt; emptySet()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Collections java.util.Set&lt;T&gt; singleton(T)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Collections java.util.Set&lt;T&gt; synchronizedSet(java.util.Set&lt;T&gt;) 0">
@@ -629,6 +641,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Collections java.util.SortedSet&lt;E&gt; checkedSortedSet(java.util.SortedSet&lt;E&gt;, java.lang.Class&lt;E&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Collections java.util.SortedSet&lt;E&gt; emptySortedSet()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Collections java.util.SortedSet&lt;T&gt; synchronizedSortedSet(java.util.SortedSet&lt;T&gt;) 0">
@@ -787,6 +802,9 @@
   <item name="java.util.NavigableSet java.util.Iterator&lt;E&gt; descendingIterator()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.util.NavigableSet java.util.Iterator&lt;E&gt; iterator()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.NavigableSet java.util.NavigableSet&lt;E&gt; descendingSet()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -797,6 +815,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.NavigableSet java.util.NavigableSet&lt;E&gt; tailSet(E, boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.NavigableSet java.util.SortedSet&lt;E&gt; headSet(E)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.NavigableSet java.util.SortedSet&lt;E&gt; subSet(E, E)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.NavigableSet java.util.SortedSet&lt;E&gt; tailSet(E)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Objects T requireNonNull(T)">
@@ -932,6 +959,15 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Scanner Scanner(java.nio.channels.ReadableByteChannel, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Scanner Scanner(java.nio.file.Path) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Scanner Scanner(java.nio.file.Path, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.Scanner Scanner(java.nio.file.Path, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.Scanner boolean hasNext(java.lang.String) 0">
