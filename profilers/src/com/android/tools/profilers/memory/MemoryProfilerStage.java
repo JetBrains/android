@@ -91,7 +91,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @VisibleForTesting
-  MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
+  public MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers);
     myProcessId = profilers.getProcessId();
     mySessionData = profilers.getSession();
@@ -101,7 +101,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
                                    profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker());
     AllocationInfosDataSeries allocationSeries =
       new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
-                                    profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker());
+                                    profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker(), this);
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -396,6 +396,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   @Nullable
   public ClassSet getSelectedClassSet() {
     return mySelection.getClassSet();
+  }
+
+  public void refreshSelectedHeap() {
+    myAspect.changed(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS);
   }
 
   public void selectHeapSet(@Nullable HeapSet heapSet) {

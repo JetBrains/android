@@ -56,7 +56,7 @@ public class AllocationInfosDataSeriesTest {
 
     AllocationInfosDataSeries series =
       new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, 1,
-                                    new RelativeTimeConverter(0), myIdeProfilerServices.getFeatureTracker());
+                                    new RelativeTimeConverter(0), myIdeProfilerServices.getFeatureTracker(), null);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());

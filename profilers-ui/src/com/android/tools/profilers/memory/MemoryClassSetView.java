@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 
 final class MemoryClassSetView extends AspectObserver {
+  @VisibleForTesting static final ClassSet EMPTY_CLASS_SET = new ClassSet(new ClassDb.ClassEntry("null"));
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
@@ -83,7 +84,8 @@ final class MemoryClassSetView extends AspectObserver {
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCaptureObject)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::refreshInstance)
+      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::refreshSelectedInstance)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshAllInstances)
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::refreshFieldPath);
 
     myAttributeColumns.put(
@@ -469,7 +471,7 @@ final class MemoryClassSetView extends AspectObserver {
     myInstancesPanel.setVisible(true);
   }
 
-  private void refreshInstance() {
+  private void refreshSelectedInstance() {
     InstanceObject instanceObject = myStage.getSelectedInstanceObject();
     if (myInstanceObject == instanceObject) {
       return;
@@ -489,6 +491,31 @@ final class MemoryClassSetView extends AspectObserver {
         break;
       }
     }
+  }
+
+  private void refreshAllInstances() {
+    if (myClassSet == null) {
+      return;
+    }
+
+    if (myClassSet.isEmpty()) {
+      myStage.selectClassSet(EMPTY_CLASS_SET);
+      return;
+    }
+
+    populateTreeContents();
+    if (myInstanceObject == null) {
+      return;
+    }
+
+    // TODO: select node which is not visible yet
+    for (MemoryObjectTreeNode<MemoryObject> node : myTreeRoot.getChildren()) {
+      if (node.getAdapter() == myInstanceObject) {
+        selectPath(node);
+        return;
+      }
+    }
+    myStage.selectInstanceObject(null);
   }
 
   private void refreshFieldPath() {

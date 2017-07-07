@@ -21,7 +21,6 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerIcons;
 import com.android.tools.profilers.memory.adapters.*;
-import com.android.tools.profilers.memory.adapters.CaptureObject.CaptureChangedListener;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,6 +62,8 @@ final class MemoryClassifierView extends AspectObserver {
 
   @Nullable private ClassSet myClassSet = null;
 
+  @Nullable private ClassifierSet myClassifierSet = null;
+
   @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
 
   @Nullable private JComponent myColumnTree;
@@ -85,6 +86,7 @@ final class MemoryClassifierView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
       .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping);
 
@@ -206,6 +208,9 @@ final class MemoryClassifierView extends AspectObserver {
 
       assert path.getLastPathComponent() instanceof MemoryClassifierTreeNode;
       MemoryClassifierTreeNode classifierNode = (MemoryClassifierTreeNode)path.getLastPathComponent();
+
+      myClassifierSet = classifierNode.getAdapter();
+
       if (classifierNode.getAdapter() instanceof ClassSet && myClassSet != classifierNode.getAdapter()) {
         myClassSet = (ClassSet)classifierNode.getAdapter();
         myStage.selectClassSet(myClassSet);
@@ -257,22 +262,36 @@ final class MemoryClassifierView extends AspectObserver {
     builder.setBorder(DEFAULT_TOP_BORDER);
     myColumnTree = builder.build();
     myPanel.add(myColumnTree, BorderLayout.CENTER);
+  }
 
-    //noinspection Convert2Lambda
-    myCaptureObject.addCaptureChangedListener(new CaptureChangedListener() {
-      @Override
-      public void heapChanged() {
-        // TODO handle multiple heaps other than default heap
-        if (myHeapSet == null) {
-          return;
+  private void refreshTree() {
+    if (myHeapSet == null) {
+      return;
+    }
+
+    assert myTreeRoot != null;
+    myTreeRoot.reset();
+    myTreeRoot.expandNode();
+    myTreeModel.nodeStructureChanged(myTreeRoot);
+
+
+    // re-select ClassifierSet
+    if (myClassifierSet != null) {
+      if (!myClassifierSet.isEmpty()) {
+        MemoryObjectTreeNode nodeToSelect = findSmallestSuperSetNode(myTreeRoot, myClassifierSet);
+        if (nodeToSelect.getAdapter().equals(myClassifierSet)) {
+          TreePath treePath = new TreePath(nodeToSelect.getPathToRoot().toArray());
+          myTree.expandPath(treePath.getParentPath());
+          myTree.setSelectionPath(treePath);
+          myTree.scrollPathToVisible(treePath);
         }
-
-        assert myTreeRoot != null;
-        myTreeRoot.reset();
-        myTreeRoot.expandNode();
-        myTreeModel.nodeStructureChanged(myTreeRoot);
+        else {
+          myClassifierSet = null;
+        }
+      } else {
+        myClassifierSet = null;
       }
-    });
+    }
   }
 
   private void refreshHeapSet() {
@@ -390,7 +409,7 @@ final class MemoryClassifierView extends AspectObserver {
     }
 
     myClassSet = myStage.getSelectedClassSet();
-    if (myClassSet != null) {
+    if (myClassSet != null && !myClassSet.isEmpty()) {
       MemoryObjectTreeNode<ClassifierSet> node = findSmallestSuperSetNode(myTreeRoot, myClassSet);
       if (node != null) {
         TreePath treePath = new TreePath(node.getPathToRoot().toArray());
@@ -402,6 +421,10 @@ final class MemoryClassifierView extends AspectObserver {
         myClassSet = null;
         myStage.selectClassSet(null);
       }
+    }
+
+    if (myClassSet == null) {
+      myClassifierSet = null;
     }
   }
 
