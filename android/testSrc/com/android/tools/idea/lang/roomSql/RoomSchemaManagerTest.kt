@@ -18,60 +18,19 @@ package com.android.tools.idea.lang.roomSql
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 
-class RoomSchemaManagerTest : LightCodeInsightFixtureTestCase() {
-
-  override fun setUp() {
-    super.setUp()
-
-    myFixture.addClass(
-        """
-        package android.arch.persistence.room;
-
-        public @interface Dao {}
-        """.trimIndent())
-
-    myFixture.addClass(
-        """
-        package android.arch.persistence.room;
-
-        public @interface Database { Class[] entities(); int version(); }
-        """.trimIndent())
-
-    myFixture.addClass(
-        """
-        package android.arch.persistence.room;
-
-        public @interface Entity { String tableName() default ""; }
-        """.trimIndent())
-
-    myFixture.addClass(
-        """
-        package com.example;
-
-        public class NormalClass {}
-        """.trimIndent())
-  }
+class RoomSchemaManagerTest : LightRoomTestCase() {
 
   fun testEntities() {
-    myFixture.addClass(
-        """
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class User {}
-        """.trimIndent())
+    myFixture.addRoomEntity("User")
+    myFixture.addRoomEntity("com.example.Address")
 
     myFixture.addClass(
         """
-        package com.example;
+          package com.example;
 
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class Address {}
-        """.trimIndent())
+          public class NormalClass {}
+          """.trimIndent())
 
     assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
         RoomSchema(
@@ -83,15 +42,7 @@ class RoomSchemaManagerTest : LightCodeInsightFixtureTestCase() {
   }
 
   fun testEntities_tableNameOverride() {
-    myFixture.addClass(
-        """
-        package com.example;
-
-        import android.arch.persistence.room.Entity;
-
-        @Entity(tableName = "addresses")
-        public class Address {}
-        """.trimIndent())
+    myFixture.addRoomEntity("com.example.Address", tableNameOverride = "addresses")
 
     assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
         RoomSchema(
@@ -184,35 +135,9 @@ class RoomSchemaManagerTest : LightCodeInsightFixtureTestCase() {
   }
 
   fun testDatabases_single() {
-    myFixture.addClass(
-        """
-        package com.example;
-
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class User {}
-        """.trimIndent())
-
-    myFixture.addClass(
-        """
-        package com.example;
-
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class Address {}
-        """.trimIndent())
-
-    myFixture.addClass(
-        """
-        package com.example;
-
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class Order {}
-        """.trimIndent())
+    myFixture.addRoomEntity("com.example.User")
+    myFixture.addRoomEntity("com.example.Address")
+    myFixture.addRoomEntity("com.example.Order")
 
     myFixture.addClass(
         """
@@ -240,35 +165,9 @@ class RoomSchemaManagerTest : LightCodeInsightFixtureTestCase() {
   }
 
   fun testDatabases_multiple() {
-    myFixture.addClass(
-        """
-        package com.example;
-
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class User {}
-        """.trimIndent())
-
-    myFixture.addClass(
-        """
-        package com.example;
-
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class Address {}
-        """.trimIndent())
-
-    myFixture.addClass(
-        """
-        package com.example;
-
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class Order {}
-        """.trimIndent())
+    myFixture.addRoomEntity("com.example.User")
+    myFixture.addRoomEntity("com.example.Address")
+    myFixture.addRoomEntity("com.example.Order")
 
     myFixture.addClass(
         """
@@ -311,25 +210,18 @@ class RoomSchemaManagerTest : LightCodeInsightFixtureTestCase() {
   }
 
   fun testDaos() {
-    myFixture.addClass(
-        """
-        package com.example;
-
-        import android.arch.persistence.room.Entity;
-
-        @Entity
-        public class User {}
-        """.trimIndent())
+    myFixture.addRoomEntity("com.example.User")
 
     myFixture.addClass(
         """
         package com.example;
 
         import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
 
         @Dao
         public class UserDao {
-          @Query("SELECT * FROM user") List<User> getAll();
+          @Query("SELECT * FROM User") List<User> getAll();
         }
         """.trimIndent())
 

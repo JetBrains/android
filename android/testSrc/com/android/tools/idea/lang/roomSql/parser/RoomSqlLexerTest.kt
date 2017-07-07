@@ -219,4 +219,21 @@ class RoomSqlLexerTest : TestCase() {
         ")" to RPAREN,
         ";" to SEMICOLON)
   }
+
+  fun testNeedsQuoting() {
+    assertFalse(RoomSqlLexer.needsQuoting("foo"))
+    assertTrue(RoomSqlLexer.needsQuoting("select"))
+    assertTrue(RoomSqlLexer.needsQuoting("foo.bar"))
+    assertTrue(RoomSqlLexer.needsQuoting("foo'bar"))
+    assertTrue(RoomSqlLexer.needsQuoting("foo bar"))
+    assertTrue(RoomSqlLexer.needsQuoting("\$foo"))
+  }
+
+  fun testValidName() {
+    Truth.assertThat(RoomSqlLexer.getValidName("foo")).isEqualTo("foo")
+    Truth.assertThat(RoomSqlLexer.getValidName("Order")).isEqualTo("'Order'")
+    Truth.assertThat(RoomSqlLexer.getValidName("foo bar")).isEqualTo("'foo bar'")
+    Truth.assertThat(RoomSqlLexer.getValidName("foo'bar'baz")).isEqualTo("'foo''bar''baz'")
+    Truth.assertThat(RoomSqlLexer.getValidName("\$foo")).isEqualTo("'\$foo'")
+  }
 }
