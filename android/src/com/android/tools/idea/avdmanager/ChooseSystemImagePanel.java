@@ -110,14 +110,16 @@ public class ChooseSystemImagePanel extends JPanel
   }
 
   @NotNull
-  private SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
+  @VisibleForTesting
+  static SystemImageClassification getClassificationForDevice(@NotNull SystemImageDescription image, @Nullable Device theDevice) {
 
     SystemImageClassification classification = getClassificationFromParts(Abi.getEnum(image.getAbiType()),
                                                                           image.getVersion().getApiLevel(),
                                                                           image.getTag());
 
-    if (myDevice != null) {
-      if (myDevice.hasPlayStore()) {
+    if (theDevice != null && !image.getTag().equals(SystemImage.WEAR_TAG)) {
+      // For non-Wear devices, adjust the recommendation based on Play Store
+      if (theDevice.hasPlayStore()) {
         // The device supports Google Play Store. Recommend only system images that also support Play Store.
         if (classification == SystemImageClassification.RECOMMENDED && !image.getSystemImage().hasPlayStore()) {
           classification = SystemImageClassification.X86;
@@ -131,6 +133,11 @@ public class ChooseSystemImagePanel extends JPanel
       }
     }
     return classification;
+  }
+
+  @NotNull
+  private SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
+    return getClassificationForDevice(image, myDevice);
   }
 
   @NotNull
@@ -245,19 +252,21 @@ public class ChooseSystemImagePanel extends JPanel
 
   private void previewCurrentTab() {
     switch (myTabPane.getSelectedIndex()) {
-      case 0:
+      case 0: // "Recommended"
         myRecommendedImageList.makeListCurrent();
-        if (myDevice != null && myDevice.hasPlayStore()) {
+        if (myDevice != null && SystemImage.WEAR_TAG.getId().equals(myDevice.getTagId())) {
+          mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_WEAR);
+        } else if (myDevice != null && myDevice.hasPlayStore()) {
           mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_GOOGLE_PLAY);
         } else {
           mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_X86);
         }
         break;
-      case 1:
+      case 1: // "x86 images"
         myX86ImageList.makeListCurrent();
         mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_NONE);
         break;
-      default:
+      default: // "Other images"
         myOtherImageList.makeListCurrent();
         mySystemImagePreview.showExplanationForRecommended(ImageRecommendation.RECOMMENDATION_NONE);
         break;

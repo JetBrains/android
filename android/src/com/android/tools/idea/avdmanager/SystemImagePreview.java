@@ -45,7 +45,7 @@ import java.awt.image.BufferedImage;
  * launch graphic, platform and API level, and target CPU architecture.
  */
 public class SystemImagePreview {
-  public enum ImageRecommendation { RECOMMENDATION_NONE, RECOMMENDATION_X86, RECOMMENDATION_GOOGLE_PLAY };
+  public enum ImageRecommendation { RECOMMENDATION_NONE, RECOMMENDATION_X86, RECOMMENDATION_GOOGLE_PLAY, RECOMMENDATION_WEAR };
 
   private JBLabel myReleaseName;
   private JBLabel myReleaseIcon;
@@ -69,8 +69,10 @@ public class SystemImagePreview {
 
   private static final String PS_RECOMMENDATION = "<html>We recommend these Google Play "
     + "images because this device is compatible with Google Play.<br><br></html>";
+  private static final String WEAR_RECOMMENDATION = "<html>We recommend these Android Wear "
+    + "images because they run the fastest.<br><br></html>";
   private static final String NON_PS_RECOMMENDATION = "<html>We recommend these images "
-    + "because they run fastest and support Google APIs.<br><br></html>";
+    + "because they run the fastest and support Google APIs.<br><br></html>";
 
   public SystemImagePreview(@Nullable Disposable disposable) {
     myDisposable = disposable;
@@ -151,6 +153,10 @@ public class SystemImagePreview {
         break;
       case RECOMMENDATION_GOOGLE_PLAY:
         myRecommendedExplanation.setText(PS_RECOMMENDATION);
+        myRecommendedExplanation.setVisible(true);
+        break;
+      case RECOMMENDATION_WEAR:
+        myRecommendedExplanation.setText(WEAR_RECOMMENDATION);
         myRecommendedExplanation.setVisible(true);
         break;
     }
