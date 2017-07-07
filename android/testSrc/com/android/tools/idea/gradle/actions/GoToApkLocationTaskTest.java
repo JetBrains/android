@@ -80,8 +80,9 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
     myTask.execute(createBuildResult(null /* build successful - no errors */));
     if (ShowFilePathAction.isSupported()) {
       String moduleName = module.getName();
-      String message = "APK(s) generated successfully: <a href=\"" + GoToApkLocationTask.MODULE + moduleName + "\">" + moduleName + 
-                       "</a> <a href=\"" + GoToApkLocationTask.ANALYZE + moduleName + "\">(analyze)</a>.";
+      String message =
+        "APK(s) generated successfully:<br/>Module '" + moduleName + "': <a href=\"" + GoToApkLocationTask.MODULE + moduleName +
+        "\">locate</a> or <a href=\"" + GoToApkLocationTask.ANALYZE + moduleName + "\">analyze</a> the APK.";
       Map<String, File> apkPathsPerModule = Collections.singletonMap(moduleName, myApkPath);
       verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
                                              new OpenFolderNotificationListener(apkPathsPerModule, myProject));
