@@ -81,7 +81,6 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       createTable("Cpu_Trace_Info",
                   // TraceId is unique within an app, so just traceId is not enough
                   "AppId INTEGER NOT NULL",
-                  "TraceId INTEGER NOT NULL",
                   "Session INTEGER NOT NULL",
                   "StartTime INTEGER",
                   "EndTime INTEGER",
@@ -110,8 +109,8 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_DATA,
                       "INSERT INTO Cpu_Trace (AppId, TraceId, Session, ProfilerType, Data) values (?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_TRACE_INFO,
-                      "INSERT OR REPLACE INTO Cpu_Trace_Info (AppId, TraceId, Session, StartTime, EndTime, TraceInfo) " +
-                      "values (?, ?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Cpu_Trace_Info (AppId, Session, StartTime, EndTime, TraceInfo) " +
+                      "values (?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_THREAD_ACTIVITY,
                       "INSERT OR REPLACE INTO Thread_Activities " +
                       "(AppId, Session, ThreadId, Timestamp, State, Name) VALUES (?, ?, ?, ?, ?, ?)");
@@ -266,7 +265,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
   }
 
   public void insertTraceInfo(int appId, CpuProfiler.TraceInfo trace, Common.Session session) {
-    execute(CpuStatements.INSERT_TRACE_INFO, appId, trace.getTraceId(), session, trace.getFromTimestamp(), trace.getToTimestamp(),
+    execute(CpuStatements.INSERT_TRACE_INFO, appId, session, trace.getFromTimestamp(), trace.getToTimestamp(),
             trace.toByteArray());
   }
 
