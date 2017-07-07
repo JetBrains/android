@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -35,6 +36,16 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
   public CreateResourceFileActionGroup() {
     CreateResourceFileAction a = new CreateResourceFileAction();
     a.add(new CreateMultiRootResourceFileAction(ResourceType.LAYOUT.getDisplayName(), ResourceFolderType.LAYOUT));
+
+    if (NavigationSchema.enableNavigationEditor()) {
+      a.add(new CreateMultiRootResourceFileAction(ResourceType.NAVIGATION.getDisplayName(), ResourceFolderType.NAVIGATION) {
+        @NotNull
+        @Override
+        public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
+          return NavigationSchema.getOrCreateSchema(facet).getPossibleRoots();
+        }
+      });
+    }
 
     a.add(new CreateMultiRootResourceFileAction(ResourceType.XML.getDisplayName(), ResourceFolderType.XML) {
       @NotNull

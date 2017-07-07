@@ -44,7 +44,7 @@ public class NavNlEditorTest {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/xml/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
+    editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true);
 
     // This is separate to catch the case where we have a problem opening the file before sync is complete.
@@ -63,7 +63,7 @@ public class NavNlEditorTest {
     IdeFrameFixture frame = guiTest.importProject("Navigation");
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/xml/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
+    editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true);
 
     // This is separate to catch the case where we have a problem opening the file before sync is complete.

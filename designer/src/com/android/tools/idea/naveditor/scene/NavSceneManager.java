@@ -62,7 +62,6 @@ public class NavSceneManager extends SceneManager {
   @SuppressWarnings("CanBeFinal") private NavSceneLayoutAlgorithm myLayoutAlgorithm;
 
   private SceneDecoratorFactory myDecoratorFactory;
-  private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
 
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface) {
     super(model, surface);
@@ -70,10 +69,6 @@ public class NavSceneManager extends SceneManager {
     myLayoutAlgorithm = new ManualLayoutAlgorithm(model.getModule());
     surface.zoomActual();
     myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm, schema);
-  }
-
-  public static boolean enableNavigationEditor() {
-    return Boolean.getBoolean(ENABLE_NAV_PROPERTY);
   }
 
   @NotNull

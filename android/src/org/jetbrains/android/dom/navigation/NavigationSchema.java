@@ -29,8 +29,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Provides information on OOTB and user-specified navigation tags and attributes.
@@ -74,6 +73,12 @@ public class NavigationSchema implements Disposable {
     FRAGMENT,
     ACTIVITY,
     OTHER
+  }
+
+  private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
+
+  public static boolean enableNavigationEditor() {
+    return Boolean.getBoolean(ENABLE_NAV_PROPERTY);
   }
 
   @NotNull
@@ -235,5 +240,9 @@ public class NavigationSchema implements Disposable {
       layoutClass = layoutClass.getSuperClass();
     }
     return null;
+  }
+
+  public List<String> getPossibleRoots() {
+    return new ArrayList<String>(getDestinationClassByTagMap(DestinationType.NAVIGATION).keySet());
   }
 }

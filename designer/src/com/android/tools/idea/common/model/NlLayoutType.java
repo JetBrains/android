@@ -33,6 +33,7 @@ import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -87,7 +88,7 @@ public enum NlLayoutType {
   NAV(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return NavSceneManager.enableNavigationEditor() && NavigationDomFileDescription.isNavFile(file);
+      return NavigationSchema.enableNavigationEditor() && NavigationDomFileDescription.isNavFile(file);
     }
 
     @NotNull
