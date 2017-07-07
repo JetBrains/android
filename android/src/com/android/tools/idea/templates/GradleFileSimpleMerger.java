@@ -34,10 +34,9 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
-import static com.android.tools.idea.templates.GradleFileMergers.CONFIGURATION_ORDERING;
-import static com.android.tools.idea.templates.GradleFileMergers.DEPENDENCIES;
-import static com.android.tools.idea.templates.GradleFileMergers.removeExistingDependencies;
+import static com.android.tools.idea.templates.GradleFileMergers.*;
 
 /**
  * Simplified gradle.build merger designed to be used while instantiating android project templates.
@@ -425,7 +424,7 @@ public class GradleFileSimpleMerger {
     }
 
     private void mergeDependencies(@NotNull MergeContext context, @NotNull AstNode other) {
-      Map<String, Multimap<String, GradleCoordinate>> dependencies = Maps.newHashMap();
+      Map<String, Multimap<String, GradleCoordinate>> dependencies = new TreeMap<>(CONFIGURATION_ORDERING);
       List<Ast> unparseableDependencies = Lists.newArrayListWithCapacity(10);
 
       Map<String, Multimap<String, GradleCoordinate>> originalDependencies = Maps.newHashMap();
@@ -435,32 +434,36 @@ public class GradleFileSimpleMerger {
       removeExistingDependencies(dependencies, originalDependencies);
 
       RepositoryUrlManager urlManager = RepositoryUrlManager.get();
-      ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
 
-      Ast prev = myParam != null ? myParam.findLast() : null;
       AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdk != null) {
-        for (String configuration : configurations) {
-          List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(dependencies.get(configuration),
+        dependencies.forEach((configurationName, unresolvedDependencies) -> {
+          List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
                                                                                      context.getFilter(),
                                                                                      sdk,
                                                                                      FileOpUtils.create());
 
+          Ast prev = myParam != null ? findInsertionPoint(configurationName) : null;
           // Add the resolved dependencies:
           for (GradleCoordinate coordinate : resolved) {
-            AstNode compile = new AstNode(configuration);
-            compile.myParam = new ValueAst("'" + coordinate + "'");
+            AstNode configurationNode = new AstNode(configurationName);
+            configurationNode.myParam = new ValueAst("'" + coordinate + "'");
             if (prev == null) {
-              myParam = compile;
+              // Put this node as the first in the singly linked list.
+              configurationNode.myNext = myParam;
+              myParam = configurationNode;
             }
             else {
-              prev.myNext = compile;
+              // Append after "prev".
+              configurationNode.myNext = prev.myNext;
+              prev.myNext = configurationNode;
             }
-            prev = compile;
+            prev = configurationNode;
           }
-        }
+        });
       }
 
+      Ast prev = myParam != null ? myParam.findLast() : null;
       // Add the dependencies we could not parse (steal the AST nodes from the other parse tree):
       for (Ast node : unparseableDependencies) {
         if (prev == null) {
@@ -472,6 +475,33 @@ public class GradleFileSimpleMerger {
         prev = node;
         node.myNext = null;
       }
+    }
+
+    /**
+     * Finds the {@link Ast} node that dependencies for a given configuration should appended after. Returns null if dependencies for the
+     * given configuration should be prepended before all existing {@link Ast} nodes.
+     */
+    @Nullable
+    private Ast findInsertionPoint(@NotNull String configuration) {
+      assert myParam != null;
+
+      if (myParam.myId != null && CONFIGURATION_ORDERING.compare(configuration, myParam.myId) < 0) {
+        // There is no previous node, we go first.
+        return null;
+      }
+
+      // Skip all dependencies that go before us.
+      Ast result = myParam;
+      while (result.myNext != null) {
+        // result.myNext may be a comment node, which has no ID. Skip over those.
+        if (result.myNext.myId != null && CONFIGURATION_ORDERING.compare(configuration, result.myNext.myId) < 0) {
+          break;
+        }
+        result = result.myNext;
+        assert result != null; // Make IJ happy: we've already checked there's a next node at the start of the loop.
+      }
+
+      return result;
     }
 
     private void pullDependenciesIntoMap(@NotNull Map<String, Multimap<String, GradleCoordinate>> dependencies,

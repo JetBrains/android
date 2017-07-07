@@ -20,7 +20,10 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.base.CharMatcher;
-import com.google.common.collect.*;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -33,15 +36,20 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
@@ -151,7 +159,7 @@ public class GradleFilePsiMerger {
                                         @NotNull PsiElement toRoot,
                                         @NotNull Project project,
                                         @Nullable String supportLibVersionFilter) {
-    Map<String, Multimap<String, GradleCoordinate>> dependencies = Maps.newHashMap();
+    Map<String, Multimap<String, GradleCoordinate>> dependencies = new TreeMap<>(CONFIGURATION_ORDERING);
     final List<String> unparsedDependencies = Lists.newArrayList();
 
     // Load existing dependencies into a map for the existing build.gradle
@@ -169,23 +177,22 @@ public class GradleFilePsiMerger {
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
-    ImmutableList<String> configurations = CONFIGURATION_ORDERING.immutableSortedCopy(dependencies.keySet());
-
     AndroidSdkData sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (sdk != null) {
-      for (String configurationName : configurations) {
-        List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(dependencies.get(configurationName),
+      dependencies.forEach((configurationName, unresolvedDependencies) -> {
+        List<GradleCoordinate> resolved = urlManager.resolveDynamicSdkDependencies(unresolvedDependencies,
                                                                                    supportLibVersionFilter,
                                                                                    sdk,
                                                                                    FileOpUtils.create());
+        PsiElement nextElement = findInsertionPoint(toRoot, configurationName);
         for (GradleCoordinate dependency : resolved) {
           PsiElement dependencyElement = factory.createStatementFromText(String.format("%s '%s'\n",
                                                                                        configurationName,
                                                                                        dependency.toString()));
-          toRoot.addBefore(dependencyElement, toRoot.getLastChild());
-          toRoot.addBefore(factory.createLineTerminator(1), toRoot.getLastChild());
+          PsiElement newElement = toRoot.addBefore(dependencyElement, nextElement);
+          toRoot.addAfter(factory.createLineTerminator(1), newElement);
         }
-      }
+      });
     }
 
     // Unfortunately the "from" and "to" dependencies may not have the same white space formatting
@@ -196,6 +203,41 @@ public class GradleFilePsiMerger {
         toRoot.addBefore(dependencyElement, toRoot.getLastChild());
       }
     }
+  }
+
+  /** Finds the {@link PsiElement} that a new dependency (in the given configuration) should be inserted before. */
+  @NotNull
+  private static PsiElement findInsertionPoint(@NotNull PsiElement root, String configurationName) {
+    GrMethodCall current = PsiTreeUtil.getChildOfType(root, GrMethodCall.class);
+
+    // Try to find a method call element that needs to be after our configurationName.
+    while (current != null) {
+      String currentConfigurationName = getConfigurationName(current);
+      if (currentConfigurationName != null && CONFIGURATION_ORDERING.compare(currentConfigurationName, configurationName) > 0) {
+        break;
+      }
+
+      current = PsiTreeUtil.getNextSiblingOfType(current, GrMethodCall.class);
+    }
+
+    return current != null ? current : root.getLastChild();
+  }
+
+  /** Tries to get the configuration name from a dependency declaration. */
+  @Nullable
+  private static String getConfigurationName(@NotNull GrMethodCall element) {
+    GrExpression invokedExpression = element.getInvokedExpression();
+    if (invokedExpression instanceof GrReferenceExpression) {
+      PsiElement referenceNameElement = ((GrReferenceExpression)invokedExpression).getReferenceNameElement();
+      if (referenceNameElement instanceof LeafPsiElement) {
+        IElementType elementType = ((LeafPsiElement)referenceNameElement).getElementType();
+        if (elementType == GroovyTokenTypes.mIDENT) {
+          return referenceNameElement.getText();
+        }
+      }
+    }
+
+    return null;
   }
 
   /**
