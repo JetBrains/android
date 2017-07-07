@@ -28,6 +28,7 @@ import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -402,12 +403,8 @@ public class NlPreviewManager implements ProjectComponent {
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      if (!file.isValid()) {
-        return;
-      }
-
       ApplicationManager.getApplication().invokeLater(() -> {
-        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+        PsiFile psiFile = file.isValid() ? PsiManager.getInstance(myProject).findFile(file) : null;
         processFileEditorChange(getActiveLayoutXmlEditor(psiFile));
       }, myProject.getDisposed());
     }

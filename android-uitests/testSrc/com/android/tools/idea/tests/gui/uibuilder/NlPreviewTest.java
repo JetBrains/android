@@ -18,14 +18,14 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.TextEditorFixture;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -33,11 +33,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
@@ -296,6 +298,25 @@ public class NlPreviewTest {
     // Navigation in frames.xml
     frames.focusAndWaitForFocusGain();
     navigateEditor(editor, frames, 345, 1572, absolute, 1706);
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void deletePreviewedFile() throws Exception {
+    guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getLayoutPreview(true)
+      .waitForRenderToFinish();
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout", "activity_my.xml")
+      .invokeMenuPath("Delete...");
+    DeleteDialogFixture.find(guiTest.robot(), "Delete")
+      .safe(false)
+      .clickOk()
+      .waitUntilNotShowing();
   }
 
   private static void navigateEditor(@NotNull EditorFixture editor,
