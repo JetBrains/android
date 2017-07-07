@@ -16,11 +16,14 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.memory.MemoryProfilerAspect;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,7 +50,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   static final String DEFAULT_HEAP_NAME = "default";
   static final int DEFAULT_CLASSLOADER_ID = -1;
 
-  private final List<CaptureChangedListener> myListeners = new ArrayList<>(1);
+  @Nullable private MemoryProfilerStage myStage;
 
   @VisibleForTesting final ExecutorService myExecutorService;
   private final ClassDb myClassDb;
@@ -76,7 +79,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
                                      @Nullable Common.Session session,
                                      int processId,
                                      long captureStartTime,
-                                     @Nullable ExecutorService loadService) {
+                                     @Nullable ExecutorService loadService,
+                                     @Nullable MemoryProfilerStage stage) {
     if (loadService == null) {
       myExecutorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("profiler-live-allocation").build());
     }
@@ -96,6 +100,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myCaptureStartTime = captureStartTime;
     myDefaultHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
     myAspectObserver = new AspectObserver();
+    myStage = stage;
 
     myEventsEndTimeNs = Long.MIN_VALUE;
     myContextEndTimeNs = Long.MIN_VALUE;
@@ -196,11 +201,6 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   public void unload() {
     myQueryRange.removeDependencies(myAspectObserver);
     myExecutorService.shutdownNow();
-  }
-
-  @Override
-  public void addCaptureChangedListener(@NotNull CaptureChangedListener listener) {
-    myListeners.add(listener);
   }
 
   // Update myContextEndTimeNs and Callstack information
@@ -369,7 +369,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             resetDeallocationList.forEach(instance -> {
               myDefaultHeapSet.removeFreeingInstanceObject(instance);
             });
-            myListeners.forEach(listener -> listener.heapChanged());
+            myStage.refreshSelectedHeap();
           });
         }
         return null;

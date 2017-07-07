@@ -40,6 +40,7 @@ import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChi
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
 import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class MemoryClassSetViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
@@ -88,41 +89,43 @@ public class MemoryClassSetViewTest {
     myClassifierSetTree = myStageView.getClassifierView().getTree();
     assertNotNull(myClassifierSetTree);
     Object classifierRoot = myClassifierSetTree.getModel().getRoot();
-    assertTrue(classifierRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classifierRoot).getAdapter() instanceof HeapSet);
+    assertThat(classifierRoot).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)classifierRoot).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     myClassifierSetHeapNode = (MemoryObjectTreeNode<HeapSet>)classifierRoot;
 
     myClassSetView = myStageView.getClassSetView();
     ClassifierSet classifierSet = myClassifierSetHeapNode.getAdapter().findContainingClassifierSet(myInstanceObjects.get(0));
-    assertTrue(classifierSet instanceof ClassSet);
+    assertThat(classifierSet).isInstanceOf(ClassSet.class);
     myStage.selectClassSet((ClassSet)classifierSet);
 
     myClassSetTree = myClassSetView.getTree();
     assertNotNull(myClassSetTree);
     Object classSetRoot = myClassSetTree.getModel().getRoot();
-    assertTrue(classSetRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classSetRoot).getAdapter() instanceof ClassSet);
+    assertThat(classSetRoot).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)classSetRoot).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     myClassSetRootNode = (MemoryObjectTreeNode<MemoryObject>)classSetRoot;
   }
 
   @Test
   public void testSelectClassSetToShowInClassSetView() {
-    assertEquals(3, myClassSetRootNode.getChildCount());
+    assertThat(myClassSetRootNode.getChildCount()).isEqualTo(3);
     //noinspection unchecked
     ImmutableList<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
     // Verify the ordering is based on retain size.
-    assertEquals(myInstanceObjects.get(2), children.get(0).getAdapter());
-    assertEquals(myInstanceObjects.get(1), children.get(1).getAdapter());
-    assertEquals(myInstanceObjects.get(0), children.get(2).getAdapter());
+    assertThat(children.get(0).getAdapter()).isEqualTo(myInstanceObjects.get(2));
+    assertThat(children.get(1).getAdapter()).isEqualTo(myInstanceObjects.get(1));
+    assertThat(children.get(2).getAdapter()).isEqualTo(myInstanceObjects.get(0));
   }
 
   @Test
   public void testSelectInstanceToShowInInstanceView() {
-    assertEquals(0, myClassSetTree.getSelectionCount());
+    assertThat(myClassSetTree.getSelectionCount()).isEqualTo(0);
     myStage.selectInstanceObject(myInstanceObjects.get(0));
-    assertEquals(1, myClassSetTree.getSelectionCount());
-    assertTrue(myClassSetTree.getLastSelectedPathComponent() instanceof MemoryObjectTreeNode);
-    assertEquals(myInstanceObjects.get(0), ((MemoryObjectTreeNode)myClassSetTree.getLastSelectedPathComponent()).getAdapter());
+    assertThat(myClassSetTree.getSelectionCount()).isEqualTo(1);
+    assertThat(myClassSetTree.getLastSelectedPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)myClassSetTree.getLastSelectedPathComponent()).getAdapter()).isEqualTo(myInstanceObjects.get(0));
   }
 
   @Test
@@ -132,27 +135,27 @@ public class MemoryClassSetViewTest {
     // Selects the first instance object.
     MemoryObjectTreeNode firstNode = (MemoryObjectTreeNode)((MemoryObjectTreeNode)myClassSetTree.getModel().getRoot()).getChildAt(0);
     // Verify the ordering is based on retain size.
-    assertEquals(myInstanceObjects.get(2), firstNode.getAdapter());
+    assertThat(firstNode.getAdapter()).isEqualTo(myInstanceObjects.get(2));
     myClassSetTree.setSelectionPath(new TreePath(firstNode));
     observer.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1, 0);
-    assertEquals(firstNode, myClassSetTree.getSelectionPath().getLastPathComponent());
+    assertThat(myClassSetTree.getSelectionPath().getLastPathComponent()).isEqualTo(firstNode);
   }
 
   @Test
   public void testResetInstanceView() {
     myClassSetView.reset();
-    assertNull(myClassSetView.getTree());
+    assertThat(myClassSetView.getTree()).isNull();
   }
 
   @Test
   public void testCorrectColumnsAndRendererContents() {
     JScrollPane columnTreePane = (JScrollPane)myClassSetView.getColumnTree();
-    assertNotNull(columnTreePane);
+    assertThat(columnTreePane).isNotNull();
     ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(myClassSetTree, columnTreePane);
     treeInfo.verifyColumnHeaders("Instance", "Alloc Time", "Dealloc Time", "Depth", "Shallow Size", "Retained Size");
 
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)myClassSetTree.getModel().getRoot();
-    assertEquals(myInstanceObjects.size(), root.getChildCount());
+    assertThat(root.getChildCount()).isEqualTo(myInstanceObjects.size());
     for (int i = 0; i < root.getChildCount(); i++) {
       InstanceObject instance = myInstanceObjects.get(2 - i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
@@ -216,9 +219,9 @@ public class MemoryClassSetViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    assertEquals(ARRANGE_BY_CLASS, myStage.getConfiguration().getClassGrouping());
-    assertNotNull(myStage.getSelectedHeapSet());
-    assertEquals(FakeCaptureObject.DEFAULT_HEAP_ID, myStage.getSelectedHeapSet().getId());
+    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    assertThat(myStage.getSelectedHeapSet()).isNotNull();
+    assertThat(myStage.getSelectedHeapSet().getId()).isEqualTo(FakeCaptureObject.DEFAULT_HEAP_ID);
     myStage.selectClassSet(findChildClassSetWithName(myStage.getSelectedHeapSet(), TEST_CLASS_NAME));
     myStage.selectInstanceObject(instanceFoo);
     myStage.selectFieldObjectPath(Collections.singletonList(fieldFoo));
@@ -226,13 +229,14 @@ public class MemoryClassSetViewTest {
 
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
     aspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 2, 2);
-    assertEquals(instanceFoo, myStage.getSelectedInstanceObject());
-    assertEquals(Collections.singletonList(fieldFoo), myStage.getSelectedFieldObjectPath());
+    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(instanceFoo);
+    assertThat(myStage.getSelectedFieldObjectPath()).isEqualTo(Collections.singletonList(fieldFoo));
 
     myClassSetTree = myClassSetView.getTree();
-    assertNotNull(myClassSetTree);
+    assertThat(myClassSetTree).isNotNull();
     Object classSetRoot = myClassSetTree.getModel().getRoot();
-    assertTrue(classSetRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classSetRoot).getAdapter() instanceof ClassSet);
+    assertThat(classSetRoot).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)classSetRoot).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     myClassSetRootNode = (MemoryObjectTreeNode<MemoryObject>)classSetRoot;
     findChildWithPredicate(findChildWithPredicate(myClassSetRootNode, instance -> instance == instanceFoo),
@@ -240,21 +244,21 @@ public class MemoryClassSetViewTest {
 
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
     aspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 2, 2);
-    assertEquals(instanceFoo, myStage.getSelectedInstanceObject());
-    assertEquals(Collections.singletonList(fieldFoo), myStage.getSelectedFieldObjectPath());
+    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(instanceFoo);
+    assertThat(myStage.getSelectedFieldObjectPath()).isEqualTo(Collections.singletonList(fieldFoo));
 
     Supplier<CodeLocation> codeLocationSupplier = myFakeIdeProfilerComponents.getCodeLocationSupplier(myClassSetTree);
 
-    assertNotNull(codeLocationSupplier);
+    assertThat(codeLocationSupplier).isNotNull();
     CodeLocation codeLocation = codeLocationSupplier.get();
-    assertNotNull(codeLocation);
+    assertThat(codeLocation).isNotNull();
     String codeLocationClassName = codeLocation.getClassName();
-    assertEquals(TEST_FIELD_NAME, codeLocationClassName);
+    assertThat(codeLocationClassName).isEqualTo(TEST_FIELD_NAME);
 
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().addListener(myStage); // manually add, since we didn't enter stage
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(myStage);
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }
 
   @Test
@@ -262,18 +266,18 @@ public class MemoryClassSetViewTest {
     InstanceTreeNode instanceTreeNode0 = new InstanceTreeNode(myInstanceObjects.get(0));
     InstanceTreeNode instanceTreeNode1 = new InstanceTreeNode(myInstanceObjects.get(1));
     InstanceTreeNode instanceTreeNode2 = new InstanceTreeNode(myInstanceObjects.get(2));
-    assertEquals(0, instanceTreeNode0.getBuiltChildren().size());
-    assertEquals(0, instanceTreeNode1.getBuiltChildren().size());
-    assertEquals(0, instanceTreeNode2.getBuiltChildren().size());
+    assertThat(instanceTreeNode0.getBuiltChildren().size()).isEqualTo(0);
+    assertThat(instanceTreeNode1.getBuiltChildren().size()).isEqualTo(0);
+    assertThat(instanceTreeNode2.getBuiltChildren().size()).isEqualTo(0);
     instanceTreeNode0.expandNode();
     instanceTreeNode1.expandNode();
     instanceTreeNode2.expandNode();
-    assertEquals(0, instanceTreeNode0.getBuiltChildren().size());
-    assertTrue(instanceTreeNode0.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject));
-    assertEquals(1, instanceTreeNode1.getBuiltChildren().size());
-    assertTrue(instanceTreeNode1.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject));
-    assertEquals(5, instanceTreeNode2.getBuiltChildren().size());
-    assertTrue(instanceTreeNode2.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject));
+    assertThat(instanceTreeNode0.getBuiltChildren().size()).isEqualTo(0);
+    assertThat(instanceTreeNode0.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
+    assertThat(instanceTreeNode1.getBuiltChildren().size()).isEqualTo(1);
+    assertThat(instanceTreeNode1.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
+    assertThat(instanceTreeNode2.getBuiltChildren().size()).isEqualTo(5);
+    assertThat(instanceTreeNode2.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
   }
 
   @Test
@@ -294,36 +298,59 @@ public class MemoryClassSetViewTest {
     myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
 
     myClassifierSetTree = myStageView.getClassifierView().getTree();
-    assertNotNull(myClassifierSetTree);
+    assertThat(myClassifierSetTree).isNotNull();
     Object classifierRoot = myClassifierSetTree.getModel().getRoot();
-    assertTrue(classifierRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classifierRoot).getAdapter() instanceof HeapSet);
+    assertThat(classifierRoot).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)classifierRoot).getAdapter()).isInstanceOf(HeapSet.class);
     //noinspection unchecked
     myClassifierSetHeapNode = (MemoryObjectTreeNode<HeapSet>)classifierRoot;
 
     ClassifierSet classifierSet = myClassifierSetHeapNode.getAdapter().findContainingClassifierSet(fakeInstances.get(0));
-    assertTrue(classifierSet instanceof ClassSet);
+    assertThat(classifierSet).isInstanceOf(ClassSet.class);
     myStage.selectClassSet((ClassSet)classifierSet);
 
     myClassSetTree = myClassSetView.getTree();
-    assertNotNull(myClassSetTree);
+    assertThat(myClassSetTree).isNotNull();
     Object classSetRoot = myClassSetTree.getModel().getRoot();
-    assertTrue(classSetRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classSetRoot).getAdapter() instanceof ClassSet);
+    assertThat(classSetRoot).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)classSetRoot).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
     myClassSetRootNode = (MemoryObjectTreeNode<MemoryObject>)classSetRoot;
 
     // View would display only the first 100 object, plus an extra node for sibling expansion.
-    assertEquals(101, myClassSetRootNode.getChildCount());
+    assertThat(myClassSetRootNode.getChildCount()).isEqualTo(101);
 
     // Selecting a regular node would do nothing
     myClassSetTree.addSelectionPath(new TreePath(new Object[]{myClassSetRootNode, myClassSetRootNode.getChildAt(0)}));
-    assertEquals(101, myClassSetRootNode.getChildCount());
+    assertThat(myClassSetRootNode.getChildCount()).isEqualTo(101);
 
     // Selecting the last node would expand the next 100
     myClassSetTree.addSelectionPath(new TreePath(new Object[]{myClassSetRootNode, myClassSetRootNode.getChildAt(100)}));
-    assertEquals(201, myClassSetRootNode.getChildCount());
+    assertThat(myClassSetRootNode.getChildCount()).isEqualTo(201);
 
     // Selecting the last node again would expand the remaining 9
     myClassSetTree.addSelectionPath(new TreePath(new Object[]{myClassSetRootNode, myClassSetRootNode.getChildAt(200)}));
-    assertEquals(209, myClassSetRootNode.getChildCount());
+    assertThat(myClassSetRootNode.getChildCount()).isEqualTo(209);
+  }
+
+
+  @Test
+  public void testSelectedInstanceAfterHeapChanged() {
+    assertThat(myClassSetRootNode.getAdapter()).isInstanceOf(ClassSet.class);
+    ClassSet classSet = (ClassSet)myClassSetRootNode.getAdapter();
+
+    // Select MockInstance1
+    myStage.selectInstanceObject(myInstanceObjects.get(0));
+    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(myInstanceObjects.get(0));
+
+    // Remove MockInstance2 and refresh selected heap, myStage should still select MockInstance1
+    classSet.removeAddingInstanceObject(myInstanceObjects.get(1));
+    myStage.refreshSelectedHeap();
+    assertThat(myStage.getSelectedInstanceObject()).isEqualTo(myInstanceObjects.get(0));
+
+    // Remove MockInstance1 and refresh selected heap, myStage should not select any InstanceObject
+    classSet.removeAddingInstanceObject(myInstanceObjects.get(0));
+    myStage.refreshSelectedHeap();
+    assertThat(myStage.getSelectedInstanceObject()).isNull();
   }
 }

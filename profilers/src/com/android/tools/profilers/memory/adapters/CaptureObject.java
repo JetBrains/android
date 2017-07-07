@@ -22,7 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
@@ -94,10 +95,6 @@ public interface CaptureObject extends MemoryObject {
     }
   }
 
-  interface CaptureChangedListener {
-    void heapChanged();
-  }
-
   @Nullable
   String getExportableExtension();
 
@@ -139,7 +136,4 @@ public interface CaptureObject extends MemoryObject {
   boolean isError();
 
   void unload();
-
-  default void addCaptureChangedListener(@NotNull CaptureChangedListener listener) {
-  }
 }

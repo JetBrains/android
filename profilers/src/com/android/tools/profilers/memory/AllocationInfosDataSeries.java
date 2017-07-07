@@ -33,10 +33,16 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
+  @Nullable private MemoryProfilerStage myStage;
+
   public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                                   @Nullable Common.Session session, int processId,
-                                   @NotNull RelativeTimeConverter converter, @NotNull FeatureTracker featureTracker) {
+                                   @Nullable Common.Session session,
+                                   int processId,
+                                   @NotNull RelativeTimeConverter converter,
+                                   @NotNull FeatureTracker featureTracker,
+                                   @Nullable MemoryProfilerStage stage) {
     super(client, session, processId, converter, featureTracker);
+    myStage = stage;
   }
 
   @NotNull
@@ -73,7 +79,7 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
                 return new LegacyAllocationCaptureObject(myClient, mySession, myProcessId, info, myConverter, myFeatureTracker);
               }
               else {
-                return new LiveAllocationCaptureObject(myClient, mySession, myProcessId, startTimeNs, null);
+                return new LiveAllocationCaptureObject(myClient, mySession, myProcessId, startTimeNs, null, myStage);
               }
             }))));
     }
