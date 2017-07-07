@@ -34,6 +34,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -72,17 +73,17 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     return new ModelBuilder(myFacet, myFixture, name, root,
                             model -> {
                               SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
-                              SyncLayoutlibSceneManager.updateHierarchy(buildViewInfos(model, root), model);
+                              LayoutlibSceneManager.updateHierarchy(buildViewInfos(model, root), model);
                               return manager;
                             },
                             (model, newModel) ->
                               LayoutlibSceneManager
                                 .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
                                                  model),
-                            "layout", NlDesignSurface.class, (tag, model) -> NlDesignSurface.createComponent(tag, model));
+                            "layout", NlDesignSurface.class, NlDesignSurface::createComponent);
   }
 
-  private List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {
+  private static List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {
     List<ViewInfo> infos = Lists.newArrayList();
     XmlFile file = model.getFile();
     assertThat(file).isNotNull();
@@ -111,8 +112,8 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     ViewEditor editor = Mockito.mock(ViewEditor.class);
     NlModel model = screenView.getModel();
     when(editor.getModel()).thenReturn(model);
-    when(editor.dpToPx(Mockito.anyInt())).thenAnswer(i -> Coordinates.dpToPx(screenView, (Integer)i.getArguments()[0]));
-    when(editor.pxToDp(Mockito.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
+    when(editor.dpToPx(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.dpToPx(screenView, (Integer)i.getArguments()[0]));
+    when(editor.pxToDp(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
 
     return editor;
   }
