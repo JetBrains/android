@@ -360,10 +360,11 @@ public class LayoutlibSceneManager extends SceneManager {
     getRenderingQueue().queue(new Update("model.update", HIGH_PRIORITY) {
       @Override
       public void run() {
-        Project project = getModel().getModule().getProject();
+        NlModel model = getModel();
+        Project project = model.getModule().getProject();
         if (project.isOpen()) {
           DumbService.getInstance(project).waitForSmartMode();
-          if (!getModel().getFacet().isDisposed()) {
+          if (model.getFile().isValid() && !model.getFacet().isDisposed()) {
             try {
               updateModel();
             }
