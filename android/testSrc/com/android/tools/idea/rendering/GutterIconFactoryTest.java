@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceValueMap;
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.io.TestFileUtils;
+import com.android.utils.XmlUtils;
+import com.google.common.collect.Maps;
 import org.jetbrains.android.AndroidTestCase;
+import org.w3c.dom.Node;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -26,7 +34,10 @@ import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
 import static com.google.common.truth.Truth.assertThat;
 
 public class GutterIconFactoryTest extends AndroidTestCase {
@@ -90,5 +101,80 @@ public class GutterIconFactoryTest extends AndroidTestCase {
 
     // Input and output should be identical.
     ImageDiffUtil.assertImageSimilar(getName(), input, output, 0);
+  }
+
+  public void testIsReference() {
+    final String themeReference = PREFIX_THEME_REF + "android:attr/textColorSecondary";
+    final String resourceReference = PREFIX_RESOURCE_REF + "android:color/opaque_red";
+    final String notAReference = "#00aa00";
+
+    assertThat(GutterIconFactory.isReference(themeReference)).isTrue();
+    assertThat(GutterIconFactory.isReference(resourceReference)).isTrue();
+    assertThat(GutterIconFactory.isReference(notAReference)).isFalse();
+  }
+
+  public void testReplaceResourceReferences() {
+    final String red = "#ff0000";
+    final String green = "#00ff00";
+    final String[] colors = {red, "@color/directRef", "@color/indirectRef", "@color/indirectRefCycle"};
+
+    final Node root = createVectorRoot(colors);
+    final ResourceResolver resolver = createResourceResolver();
+
+    addColor(resolver, "directRef", green);
+    addColor(resolver, "indirectRef", "@color/directRef");
+    addColor(resolver, "indirectRefCycle", "@color/indirectRefCycle");
+
+    // Sanity check
+    for (int i = 0; i < colors.length; i++) {
+      assertThat(getColorFromRoot(root, i)).isEqualTo(colors[i]);
+    }
+
+    GutterIconFactory.replaceResourceReferences(root, resolver);
+
+    // Hardcoded color should not have been affected
+    assertThat(getColorFromRoot(root, 0)).isEqualTo(red);
+    // Both direct and indirect references should have been replaced with true value
+    assertThat(getColorFromRoot(root, 1)).isEqualTo(green);
+    assertThat(getColorFromRoot(root, 2)).isEqualTo(green);
+    // Cyclic references should not be replaced
+    assertThat(getColorFromRoot(root, 3)).isEqualTo(colors[3]);
+  }
+
+  // Helper methods for testing replaceResourceReferences
+
+  private static String getColorFromRoot(Node root, int i) {
+    return root.getChildNodes().item(i).getAttributes().getNamedItem("android:fillColor").getNodeValue();
+  }
+
+  private static Node createVectorRoot(String...colors) {
+    StringBuilder xml = new StringBuilder("<vector" +
+                       " android:height=\"50px\"  android:width=\"50px\"" +
+                       " android:viewportWidth=\"50.0\" android:viewportHeight=\"50.0\"" +
+                       " xmlns:android=\"http://schemas.android.com/apk/res/android\">");
+
+    for (String color: colors) {
+      xml.append("<path android:fillColor=\"");
+      xml.append(color);
+      xml.append("\" android:pathData=\"M0,0 L50,0 L50,50 z\"/>");
+    }
+
+    xml.append("</vector>");
+    return XmlUtils.parseDocumentSilently(xml.toString(), true).getDocumentElement();
+  }
+
+  private static ResourceResolver createResourceResolver() {
+    final Map<ResourceType, ResourceValueMap> projectResources = Maps.newHashMap();
+    final ResourceValueMap resourceValueMap = ResourceValueMap.create();
+
+    projectResources.put(ResourceType.COLOR, resourceValueMap);
+
+    return ResourceResolver.create(projectResources, Maps.newHashMap(), "", false);
+  }
+
+  private static void addColor(ResourceResolver resolver, String colorName, String colorValue) {
+    ResourceValueMap resourceValueMap = resolver.getProjectResources().get(ResourceType.COLOR);
+
+    resourceValueMap.put(colorName, new ResourceValue(ResourceUrl.create(null, ResourceType.COLOR, colorName), colorValue));
   }
 }
