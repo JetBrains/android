@@ -1,4 +1,5 @@
 dependencies {
   compile 'com.google.guava:guava:19.0'
   testCompile 'junit:junit:4.11'
+  androidTestCompile 'com.android.support.test:runner:0.5'
 }

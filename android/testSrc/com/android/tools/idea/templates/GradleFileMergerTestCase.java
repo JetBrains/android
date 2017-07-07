@@ -82,6 +82,7 @@ public abstract class GradleFileMergerTestCase extends AndroidGradleTestCase {
 
   public void testDifferentConfigurationDependencies() throws Exception {
     checkFileMerge("templates/Base.gradle", "templates/TestDependencies.gradle", "templates/MergedTestDependencies.gradle");
+    checkFileMerge("templates/MergedTestDependencies.gradle", "templates/NewDependencies.gradle", "templates/MergedTestAndNewDependencies.gradle");
   }
 
   public void testRemapFlavorAssetDir() throws Exception {
