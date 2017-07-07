@@ -28,7 +28,19 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 
-class RoomSqlLexer : FlexAdapter(_RoomSqlLexer())
+class RoomSqlLexer : FlexAdapter(_RoomSqlLexer()) {
+  companion object {
+    fun needsQuoting(name: String): Boolean {
+      val lexer = RoomSqlLexer()
+      lexer.start(name)
+      return lexer.tokenType != RoomPsiTypes.IDENTIFIER || lexer.tokenEnd != lexer.bufferEnd
+    }
+
+    /** Checks if the given name (table name, column name) needs escaping and returns a string that's safe to put in SQL. */
+    fun getValidName(name: String): String =
+        if (!needsQuoting(name)) name else "'${name.replace("'", "''")}'"
+  }
+}
 
 class RoomSqlParserDefinition : ParserDefinition {
   override fun createLexer(project: Project?): Lexer = RoomSqlLexer()

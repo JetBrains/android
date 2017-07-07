@@ -34,6 +34,7 @@
   psiImplClassSuffix="Impl"
   psiPackage="com.android.tools.idea.lang.roomSql.psi"
   psiImplPackage="com.android.tools.idea.lang.roomSql.psi.impl"
+  psiImplUtilClass="com.android.tools.idea.lang.roomSql.psi.PsiImplUtil"
 
   elementTypeHolderClass="com.android.tools.idea.lang.roomSql.psi.RoomPsiTypes"
   elementTypeClass="com.android.tools.idea.lang.roomSql.psi.RoomAstNodeType"
@@ -122,7 +123,9 @@ sql_stmt ::=
 
 alter_table_stmt ::= ALTER TABLE ( database_name '.' )? table_name ( RENAME TO table_name | ADD ( COLUMN )? column_def )
 
-table_name ::= entity_name
+table_name ::= entity_name {
+  methods=[getReference getNameAsString isQuoted]
+}
 
 database_name ::= entity_name
 

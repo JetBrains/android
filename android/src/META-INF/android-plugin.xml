@@ -1377,6 +1377,9 @@
     <lang.syntaxHighlighterFactory language="RoomSql" implementationClass="com.android.tools.idea.lang.roomSql.RoomSqlSyntaxHighlighterFactory" />
     <concatenationAwareInjector implementation="com.android.tools.idea.lang.roomSql.RoomSqlLanguageInjector" />
     <moduleService serviceImplementation="com.android.tools.idea.lang.roomSql.RoomSchemaManager"/>
+    <projectService serviceImplementation="com.android.tools.idea.lang.roomSql.RoomSqlPsiFacade"/>
+    <lang.elementManipulator forClass="com.android.tools.idea.lang.roomSql.psi.impl.RoomTableNameImpl"
+                             implementationClass="com.android.tools.idea.lang.roomSql.RoomTableNameManipulator"/>
   </extensions>
 
 </idea-plugin>
