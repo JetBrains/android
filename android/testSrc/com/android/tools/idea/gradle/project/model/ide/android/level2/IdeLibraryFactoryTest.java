@@ -101,14 +101,20 @@ public class IdeLibraryFactoryTest {
 
   @Test
   public void computeMavenAddressWithModuleLibrary() {
-    Library library = new LibraryStub() {
+    Library library = new com.android.tools.idea.gradle.project.model.ide.android.stubs.AndroidLibraryStub() {
       @Override
-      @NotNull
-      public MavenCoordinates getResolvedCoordinates() {
-        return new MavenCoordinatesStub("myGroup", ":androidLib", "undefined", "aar");
+      @Nullable
+      public String getProject() {
+        return ":androidLib";
+      }
+
+      @Override
+      @Nullable
+      public String getProjectVariant() {
+        return "release";
       }
     };
-    assertThat(computeAddress(library)).isEqualTo("myGroup:androidLib:undefined@aar");
+    assertThat(computeAddress(library)).isEqualTo(":androidLib::release");
   }
 
   @Test

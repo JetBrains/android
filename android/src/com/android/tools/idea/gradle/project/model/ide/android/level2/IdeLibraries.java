@@ -35,6 +35,18 @@ final class IdeLibraries {
    */
   @NotNull
   static String computeAddress(@NotNull Library library) {
+    // If the library is an android module dependency, use projectPath::variant as unique identifier.
+    // MavenCoordinates cannot be used because it doesn't contain variant information, which results
+    // in the same MavenCoordinates for different variants of the same module.
+    try {
+      if (library.getProject() != null && library instanceof AndroidLibrary) {
+        return library.getProject() + "::" + ((AndroidLibrary)library).getProjectVariant();
+      }
+    }
+    catch (UnsupportedOperationException ex) {
+      // getProject() isn't available for pre-2.0 plugins. Proceed with MavenCoordinates.
+      // Anyway pre-2.0 plugins don't have variant information for module dependency.
+    }
     MavenCoordinates coordinate = library.getResolvedCoordinates();
     String artifactId = trimStart(coordinate.getArtifactId(), ":");
     artifactId = artifactId.replace(':', '.');
