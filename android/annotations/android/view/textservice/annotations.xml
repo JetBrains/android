@@ -6,5 +6,10 @@
   <item name="android.view.textservice.SpellCheckerSubtype java.lang.String getLocale()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.textservice.TextServicesManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.TEXT_SERVICES_MANAGER_SERVICE" />
+    </annotation>
+  </item>
 </root>
 

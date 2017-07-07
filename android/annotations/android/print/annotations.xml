@@ -243,6 +243,11 @@
   <item name="android.print.PrintJobInfo.Builder void setPages(android.print.PageRange[]) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.print.PrintManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.PRINT_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.print.PrintManager android.print.PrintJob print(java.lang.String, android.print.PrintDocumentAdapter, android.print.PrintAttributes)">
     <annotation name="android.support.annotation.NonNull" />
   </item>

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.hardware.fingerprint.FingerprintManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.FINGERPRINT_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.hardware.fingerprint.FingerprintManager boolean hasEnrolledFingerprints()">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.USE_FINGERPRINT&quot;" />

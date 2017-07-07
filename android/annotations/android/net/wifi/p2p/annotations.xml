@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.net.wifi.p2p.WifiP2pManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.WIFI_P2P_SERVICE" />
+    </annotation>
+  </item>
+</root>
+

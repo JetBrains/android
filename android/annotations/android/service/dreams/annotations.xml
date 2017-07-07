@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.service.dreams.DreamService android.view.View findViewById(int) 0">
+  <item name="android.service.dreams.DreamService T findViewById(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.service.dreams.DreamService void setContentView(int) 0">

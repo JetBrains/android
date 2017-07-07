@@ -16,7 +16,7 @@
   </item>
   <item name="android.media.AudioAttributes.Builder android.media.AudioAttributes.Builder setUsage(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.media.AudioAttributes.USAGE_UNKNOWN, android.media.AudioAttributes.USAGE_MEDIA, android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION, android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING, android.media.AudioAttributes.USAGE_ALARM, android.media.AudioAttributes.USAGE_NOTIFICATION, android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_REQUEST, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_DELAYED, android.media.AudioAttributes.USAGE_NOTIFICATION_EVENT, android.media.AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY, android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE, android.media.AudioAttributes.USAGE_ASSISTANCE_SONIFICATION, android.media.AudioAttributes.USAGE_GAME}" />
+      <val name="value" val="{android.media.AudioAttributes.USAGE_UNKNOWN, android.media.AudioAttributes.USAGE_MEDIA, android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION, android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING, android.media.AudioAttributes.USAGE_ALARM, android.media.AudioAttributes.USAGE_NOTIFICATION, android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_REQUEST, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_INSTANT, android.media.AudioAttributes.USAGE_NOTIFICATION_COMMUNICATION_DELAYED, android.media.AudioAttributes.USAGE_NOTIFICATION_EVENT, android.media.AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY, android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE, android.media.AudioAttributes.USAGE_ASSISTANCE_SONIFICATION, android.media.AudioAttributes.USAGE_GAME, android.media.AudioAttributes.USAGE_ASSISTANT}" />
     </annotation>
   </item>
   <item name="android.media.AudioDeviceInfo int[] getChannelCounts()">
@@ -34,6 +34,42 @@
   <item name="android.media.AudioDeviceInfo int[] getSampleRates()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.AudioFocusRequest android.media.AudioAttributes getAudioAttributes()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder Builder(android.media.AudioFocusRequest) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setAcceptsDelayedFocusGain(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setAudioAttributes(android.media.AudioAttributes)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setAudioAttributes(android.media.AudioAttributes) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setFocusGain(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setOnAudioFocusChangeListener(android.media.AudioManager.OnAudioFocusChangeListener)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setOnAudioFocusChangeListener(android.media.AudioManager.OnAudioFocusChangeListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setOnAudioFocusChangeListener(android.media.AudioManager.OnAudioFocusChangeListener, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setOnAudioFocusChangeListener(android.media.AudioManager.OnAudioFocusChangeListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setOnAudioFocusChangeListener(android.media.AudioManager.OnAudioFocusChangeListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioFocusRequest.Builder android.media.AudioFocusRequest.Builder setWillPauseWhenDucked(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.AudioFormat.Builder android.media.AudioFormat.Builder setChannelIndexMask(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -45,10 +81,30 @@
       <val name="value" val="{android.media.AudioFormat.ENCODING_DEFAULT, android.media.AudioFormat.ENCODING_PCM_8BIT, android.media.AudioFormat.ENCODING_PCM_16BIT, android.media.AudioFormat.ENCODING_PCM_FLOAT, android.media.AudioFormat.ENCODING_AC3, android.media.AudioFormat.ENCODING_E_AC3, android.media.AudioFormat.ENCODING_DTS, android.media.AudioFormat.ENCODING_DTS_HD, android.media.AudioFormat.ENCODING_IEC61937}" />
     </annotation>
   </item>
+  <item name="android.media.AudioManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.AUDIO_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.media.AudioManager int abandonAudioFocusRequest(android.media.AudioFocusRequest) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioManager int requestAudioFocus(android.media.AudioFocusRequest) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioManager java.util.List&lt;android.media.AudioPlaybackConfiguration&gt; getActivePlaybackConfigurations()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.AudioManager java.util.List&lt;android.media.AudioRecordingConfiguration&gt; getActiveRecordingConfigurations()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.AudioManager void registerAudioPlaybackCallback(android.media.AudioManager.AudioPlaybackCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.AudioManager void registerAudioRecordingCallback(android.media.AudioManager.AudioRecordingCallback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioManager void unregisterAudioPlaybackCallback(android.media.AudioManager.AudioPlaybackCallback) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.AudioManager void unregisterAudioRecordingCallback(android.media.AudioManager.AudioRecordingCallback) 0">
@@ -120,6 +176,17 @@
   <item name="android.media.AudioTrack android.media.PlaybackParams getPlaybackParams()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.AudioTrack android.media.VolumeShaper createVolumeShaper(android.media.VolumeShaper.Configuration)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack android.media.VolumeShaper createVolumeShaper(android.media.VolumeShaper.Configuration) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack int getPerformanceMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioTrack.PERFORMANCE_MODE_NONE, android.media.AudioTrack.PERFORMANCE_MODE_LOW_LATENCY, android.media.AudioTrack.PERFORMANCE_MODE_POWER_SAVING}" />
+    </annotation>
+  </item>
   <item name="android.media.AudioTrack int write(byte[], int, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -187,6 +254,14 @@
   <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setBufferSizeInBytes(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setPerformanceMode(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setPerformanceMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.AudioTrack.PERFORMANCE_MODE_NONE, android.media.AudioTrack.PERFORMANCE_MODE_LOW_LATENCY, android.media.AudioTrack.PERFORMANCE_MODE_POWER_SAVING}" />
+    </annotation>
+  </item>
   <item name="android.media.AudioTrack.Builder android.media.AudioTrack.Builder setSessionId(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -197,6 +272,48 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.media.AudioTrack.MODE_STATIC, android.media.AudioTrack.MODE_STREAM}" />
     </annotation>
+  </item>
+  <item name="android.media.MediaCas void processEmm(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCas void processEmm(byte[], int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCas void provision(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCas void refreshEntitlements(int, byte[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCas void sendEvent(int, int, byte[]) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCas void setEventListener(android.media.MediaCas.EventListener, android.os.Handler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCas void setEventListener(android.media.MediaCas.EventListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCas void setPrivateData(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCas.EventListener void onEvent(android.media.MediaCas, int, int, byte[]) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCas.PluginDescriptor java.lang.String getName()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCas.Session void processEcm(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCas.Session void processEcm(byte[], int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCas.Session void setPrivateData(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaCasStateException java.lang.String getDiagnosticInfo()">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaCodec android.media.Image getInputImage(int)">
     <annotation name="android.support.annotation.Nullable" />
@@ -278,6 +395,21 @@
       <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="android.media.MediaCodec void configure(android.media.MediaFormat, android.view.Surface, int, android.media.MediaDescrambler) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void configure(android.media.MediaFormat, android.view.Surface, int, android.media.MediaDescrambler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaCodec void configure(android.media.MediaFormat, android.view.Surface, int, android.media.MediaDescrambler) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaCodec.CONFIGURE_FLAG_ENCODE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaCodec void configure(android.media.MediaFormat, android.view.Surface, int, android.media.MediaDescrambler) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.media.MediaCodec void queueSecureInputBuffer(int, int, android.media.MediaCodec.CryptoInfo, long, int) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -312,13 +444,13 @@
   </item>
   <item name="android.media.MediaCodec.BufferInfo flags">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.media.MediaCodec.BUFFER_FLAG_SYNC_FRAME, android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME, android.media.MediaCodec.BUFFER_FLAG_CODEC_CONFIG, android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM}" />
+      <val name="value" val="{android.media.MediaCodec.BUFFER_FLAG_SYNC_FRAME, android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME, android.media.MediaCodec.BUFFER_FLAG_CODEC_CONFIG, android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM, android.media.MediaCodec.BUFFER_FLAG_PARTIAL_FRAME}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.media.MediaCodec.BufferInfo void set(int, int, long, int) 3">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.media.MediaCodec.BUFFER_FLAG_SYNC_FRAME, android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME, android.media.MediaCodec.BUFFER_FLAG_CODEC_CONFIG, android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM}" />
+      <val name="value" val="{android.media.MediaCodec.BUFFER_FLAG_SYNC_FRAME, android.media.MediaCodec.BUFFER_FLAG_KEY_FRAME, android.media.MediaCodec.BUFFER_FLAG_CODEC_CONFIG, android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM, android.media.MediaCodec.BUFFER_FLAG_PARTIAL_FRAME}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -389,6 +521,21 @@
   </item>
   <item name="android.media.MediaCryptoException MediaCryptoException(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaDescrambler boolean requiresSecureDecoderComponent(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDescrambler int descramble(java.nio.ByteBuffer, java.nio.ByteBuffer, android.media.MediaCodec.CryptoInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDescrambler int descramble(java.nio.ByteBuffer, java.nio.ByteBuffer, android.media.MediaCodec.CryptoInfo) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDescrambler int descramble(java.nio.ByteBuffer, java.nio.ByteBuffer, android.media.MediaCodec.CryptoInfo) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaDescrambler void setMediaCasSession(android.media.MediaCas.Session) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaDescription android.graphics.Bitmap getIconBitmap()">
     <annotation name="android.support.annotation.Nullable" />
@@ -559,18 +706,8 @@
   <item name="android.media.MediaDrm void setOnKeyStatusChangeListener(android.media.MediaDrm.OnKeyStatusChangeListener, android.os.Handler) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
-  <item name="android.media.MediaDrm void setPropertyByteArray(java.lang.String, byte[]) 0">
-    <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.media.MediaDrm.PROPERTY_DEVICE_UNIQUE_ID}" />
-    </annotation>
-  </item>
   <item name="android.media.MediaDrm void setPropertyByteArray(java.lang.String, byte[]) 1">
     <annotation name="android.support.annotation.NonNull" />
-  </item>
-  <item name="android.media.MediaDrm void setPropertyString(java.lang.String, java.lang.String) 0">
-    <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.media.MediaDrm.PROPERTY_VENDOR, android.media.MediaDrm.PROPERTY_VERSION, android.media.MediaDrm.PROPERTY_DESCRIPTION, android.media.MediaDrm.PROPERTY_ALGORITHMS}" />
-    </annotation>
   </item>
   <item name="android.media.MediaDrm void setPropertyString(java.lang.String, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
@@ -682,7 +819,7 @@
   </item>
   <item name="android.media.MediaExtractor int getSampleFlags()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.media.MediaExtractor.SAMPLE_FLAG_SYNC, android.media.MediaExtractor.SAMPLE_FLAG_ENCRYPTED}" />
+      <val name="value" val="{android.media.MediaExtractor.SAMPLE_FLAG_SYNC, android.media.MediaExtractor.SAMPLE_FLAG_ENCRYPTED, android.media.MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -727,6 +864,9 @@
   <item name="android.media.MediaExtractor void setDataSource(java.lang.String, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.media.MediaExtractor void setMediaCas(android.media.MediaCas) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.MediaMetadata android.graphics.Bitmap getBitmap(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
       <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_ART, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON}" />
@@ -742,17 +882,17 @@
   </item>
   <item name="android.media.MediaMetadata java.lang.CharSequence getText(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID}" />
+      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID, android.media.MediaMetadata.METADATA_KEY_MEDIA_URI}" />
     </annotation>
   </item>
   <item name="android.media.MediaMetadata java.lang.String getString(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID}" />
+      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID, android.media.MediaMetadata.METADATA_KEY_MEDIA_URI}" />
     </annotation>
   </item>
   <item name="android.media.MediaMetadata long getLong(java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_DURATION, android.media.MediaMetadata.METADATA_KEY_YEAR, android.media.MediaMetadata.METADATA_KEY_TRACK_NUMBER, android.media.MediaMetadata.METADATA_KEY_NUM_TRACKS, android.media.MediaMetadata.METADATA_KEY_DISC_NUMBER}" />
+      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_DURATION, android.media.MediaMetadata.METADATA_KEY_YEAR, android.media.MediaMetadata.METADATA_KEY_TRACK_NUMBER, android.media.MediaMetadata.METADATA_KEY_NUM_TRACKS, android.media.MediaMetadata.METADATA_KEY_DISC_NUMBER, android.media.MediaMetadata.METADATA_KEY_BT_FOLDER_TYPE}" />
     </annotation>
   </item>
   <item name="android.media.MediaMetadata.Builder android.media.MediaMetadata.Builder putBitmap(java.lang.String, android.graphics.Bitmap) 0">
@@ -762,7 +902,7 @@
   </item>
   <item name="android.media.MediaMetadata.Builder android.media.MediaMetadata.Builder putLong(java.lang.String, long) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_DURATION, android.media.MediaMetadata.METADATA_KEY_YEAR, android.media.MediaMetadata.METADATA_KEY_TRACK_NUMBER, android.media.MediaMetadata.METADATA_KEY_NUM_TRACKS, android.media.MediaMetadata.METADATA_KEY_DISC_NUMBER}" />
+      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_DURATION, android.media.MediaMetadata.METADATA_KEY_YEAR, android.media.MediaMetadata.METADATA_KEY_TRACK_NUMBER, android.media.MediaMetadata.METADATA_KEY_NUM_TRACKS, android.media.MediaMetadata.METADATA_KEY_DISC_NUMBER, android.media.MediaMetadata.METADATA_KEY_BT_FOLDER_TYPE}" />
     </annotation>
   </item>
   <item name="android.media.MediaMetadata.Builder android.media.MediaMetadata.Builder putRating(java.lang.String, android.media.Rating) 0">
@@ -772,12 +912,20 @@
   </item>
   <item name="android.media.MediaMetadata.Builder android.media.MediaMetadata.Builder putString(java.lang.String, java.lang.String) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID}" />
+      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID, android.media.MediaMetadata.METADATA_KEY_MEDIA_URI}" />
     </annotation>
   </item>
   <item name="android.media.MediaMetadata.Builder android.media.MediaMetadata.Builder putText(java.lang.String, java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.StringDef">
-      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID}" />
+      <val name="value" val="{android.media.MediaMetadata.METADATA_KEY_TITLE, android.media.MediaMetadata.METADATA_KEY_ARTIST, android.media.MediaMetadata.METADATA_KEY_ALBUM, android.media.MediaMetadata.METADATA_KEY_AUTHOR, android.media.MediaMetadata.METADATA_KEY_WRITER, android.media.MediaMetadata.METADATA_KEY_COMPOSER, android.media.MediaMetadata.METADATA_KEY_COMPILATION, android.media.MediaMetadata.METADATA_KEY_DATE, android.media.MediaMetadata.METADATA_KEY_GENRE, android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST, android.media.MediaMetadata.METADATA_KEY_ART_URI, android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI, android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, android.media.MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, android.media.MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, android.media.MediaMetadata.METADATA_KEY_MEDIA_ID, android.media.MediaMetadata.METADATA_KEY_MEDIA_URI}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaMuxer MediaMuxer(java.io.FileDescriptor, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaMuxer MediaMuxer(java.io.FileDescriptor, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4, android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM, android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_3GPP}" />
     </annotation>
   </item>
   <item name="android.media.MediaMuxer MediaMuxer(java.lang.String, int) 0">
@@ -785,7 +933,7 @@
   </item>
   <item name="android.media.MediaMuxer MediaMuxer(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4, android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM}" />
+      <val name="value" val="{android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4, android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM, android.media.MediaMuxer.OutputFormat.MUXER_OUTPUT_3GPP}" />
     </annotation>
   </item>
   <item name="android.media.MediaMuxer int addTrack(android.media.MediaFormat) 0">
@@ -797,6 +945,26 @@
   <item name="android.media.MediaMuxer void writeSampleData(int, java.nio.ByteBuffer, android.media.MediaCodec.BufferInfo) 2">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.MediaPlayer android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.Map&lt;java.lang.String,java.lang.String&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 3">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaDrm.KEY_TYPE_STREAMING, android.media.MediaDrm.KEY_TYPE_OFFLINE, android.media.MediaDrm.KEY_TYPE_RELEASE}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaPlayer android.media.MediaDrm.KeyRequest getKeyRequest(byte[], byte[], java.lang.String, int, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 4">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.media.MediaPlayer android.media.MediaTimestamp getTimestamp()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -805,6 +973,38 @@
   </item>
   <item name="android.media.MediaPlayer android.media.SyncParams getSyncParams()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.VolumeShaper createVolumeShaper(android.media.VolumeShaper.Configuration)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer android.media.VolumeShaper createVolumeShaper(android.media.VolumeShaper.Configuration) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer byte[] provideKeyResponse(byte[], byte[]) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaPlayer byte[] provideKeyResponse(byte[], byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer java.lang.String getDrmPropertyString(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer java.lang.String getDrmPropertyString(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.MediaDrm.PROPERTY_VENDOR, android.media.MediaDrm.PROPERTY_VERSION, android.media.MediaDrm.PROPERTY_DESCRIPTION, android.media.MediaDrm.PROPERTY_ALGORITHMS}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaPlayer void prepareDrm(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer void restoreKeys(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer void seekTo(long, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaPlayer.SEEK_PREVIOUS_SYNC, android.media.MediaPlayer.SEEK_NEXT_SYNC, android.media.MediaPlayer.SEEK_CLOSEST_SYNC, android.media.MediaPlayer.SEEK_CLOSEST}" />
+    </annotation>
   </item>
   <item name="android.media.MediaPlayer void setDataSource(android.content.Context, android.net.Uri) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -821,7 +1021,28 @@
   <item name="android.media.MediaPlayer void setDataSource(android.content.Context, android.net.Uri, java.util.Map&lt;java.lang.String,java.lang.String&gt;) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.media.MediaPlayer void setDataSource(android.content.Context, android.net.Uri, java.util.Map&lt;java.lang.String,java.lang.String&gt;, java.util.List&lt;java.net.HttpCookie&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer void setDataSource(android.content.Context, android.net.Uri, java.util.Map&lt;java.lang.String,java.lang.String&gt;, java.util.List&lt;java.net.HttpCookie&gt;) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer void setDataSource(android.content.Context, android.net.Uri, java.util.Map&lt;java.lang.String,java.lang.String&gt;, java.util.List&lt;java.net.HttpCookie&gt;) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.media.MediaPlayer void setDataSource(android.content.Context, android.net.Uri, java.util.Map&lt;java.lang.String,java.lang.String&gt;, java.util.List&lt;java.net.HttpCookie&gt;) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.media.MediaPlayer void setDataSource(android.content.res.AssetFileDescriptor) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaPlayer void setDrmPropertyString(java.lang.String, java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.media.MediaDrm.PROPERTY_VENDOR, android.media.MediaDrm.PROPERTY_VERSION, android.media.MediaDrm.PROPERTY_DESCRIPTION, android.media.MediaDrm.PROPERTY_ALGORITHMS}" />
+    </annotation>
+  </item>
+  <item name="android.media.MediaPlayer void setDrmPropertyString(java.lang.String, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.MediaPlayer void setPlaybackParams(android.media.PlaybackParams) 0">
@@ -830,8 +1051,18 @@
   <item name="android.media.MediaPlayer void setSyncParams(android.media.SyncParams) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.MediaPlayer.OnDrmPreparedListener void onDrmPrepared(android.media.MediaPlayer, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.MediaPlayer.PREPARE_DRM_STATUS_SUCCESS, android.media.MediaPlayer.PREPARE_DRM_STATUS_PROVISIONING_NETWORK_ERROR, android.media.MediaPlayer.PREPARE_DRM_STATUS_PROVISIONING_SERVER_ERROR, android.media.MediaPlayer.PREPARE_DRM_STATUS_PREPARATION_ERROR}" />
+    </annotation>
+  </item>
   <item name="android.media.MediaRecorder void setInputSurface(android.view.Surface) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.MediaRouter">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.MEDIA_ROUTER_SERVICE" />
+    </annotation>
   </item>
   <item name="android.media.MediaRouter void selectRoute(int, android.media.MediaRouter.RouteInfo) 1">
     <annotation name="android.support.annotation.NonNull" />
@@ -960,6 +1191,12 @@
       <val name="value" val="{android.media.SyncParams.SYNC_SOURCE_DEFAULT, android.media.SyncParams.SYNC_SOURCE_SYSTEM_CLOCK, android.media.SyncParams.SYNC_SOURCE_AUDIO, android.media.SyncParams.SYNC_SOURCE_VSYNC}" />
     </annotation>
   </item>
+  <item name="android.media.VolumeAutomation android.media.VolumeShaper createVolumeShaper(android.media.VolumeShaper.Configuration)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeAutomation android.media.VolumeShaper createVolumeShaper(android.media.VolumeShaper.Configuration) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.VolumeProvider VolumeProvider(int, int, int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.media.VolumeProvider.VOLUME_CONTROL_FIXED, android.media.VolumeProvider.VOLUME_CONTROL_RELATIVE, android.media.VolumeProvider.VOLUME_CONTROL_ABSOLUTE}" />
@@ -968,6 +1205,58 @@
   <item name="android.media.VolumeProvider int getVolumeControl()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.media.VolumeProvider.VOLUME_CONTROL_FIXED, android.media.VolumeProvider.VOLUME_CONTROL_RELATIVE, android.media.VolumeProvider.VOLUME_CONTROL_ABSOLUTE}" />
+    </annotation>
+  </item>
+  <item name="android.media.VolumeShaper void apply(android.media.VolumeShaper.Operation) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper void replace(android.media.VolumeShaper.Configuration, android.media.VolumeShaper.Operation, boolean) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper void replace(android.media.VolumeShaper.Configuration, android.media.VolumeShaper.Operation, boolean) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration int getInterpolatorType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.VolumeShaper.Configuration.INTERPOLATOR_TYPE_STEP, android.media.VolumeShaper.Configuration.INTERPOLATOR_TYPE_LINEAR, android.media.VolumeShaper.Configuration.INTERPOLATOR_TYPE_CUBIC, android.media.VolumeShaper.Configuration.INTERPOLATOR_TYPE_CUBIC_MONOTONIC}" />
+    </annotation>
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder Builder(android.media.VolumeShaper.Configuration) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder invertVolumes()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder reflectTimes()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder scaleToEndVolume(float)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder scaleToStartVolume(float)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder setCurve(float[], float[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder setCurve(float[], float[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder setCurve(float[], float[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder setDuration(long)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder setInterpolatorType(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.VolumeShaper.Configuration.Builder android.media.VolumeShaper.Configuration.Builder setInterpolatorType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.media.VolumeShaper.Configuration.INTERPOLATOR_TYPE_STEP, android.media.VolumeShaper.Configuration.INTERPOLATOR_TYPE_LINEAR, android.media.VolumeShaper.Configuration.INTERPOLATOR_TYPE_CUBIC, android.media.VolumeShaper.Configuration.INTERPOLATOR_TYPE_CUBIC_MONOTONIC}" />
     </annotation>
   </item>
 </root>

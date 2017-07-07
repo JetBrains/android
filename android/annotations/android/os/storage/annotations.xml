@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.os.storage.StorageManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.STORAGE_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.os.storage.StorageManager android.os.ParcelFileDescriptor openProxyFileDescriptor(int, android.os.ProxyFileDescriptorCallback, android.os.Handler)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.os.storage.StorageManager android.os.storage.StorageVolume getPrimaryStorageVolume()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -8,6 +16,48 @@
   </item>
   <item name="android.os.storage.StorageManager java.util.List&lt;android.os.storage.StorageVolume&gt; getStorageVolumes()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.storage.StorageManager java.util.UUID getUuidForPath(java.io.File)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.storage.StorageManager java.util.UUID getUuidForPath(java.io.File) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.storage.StorageManager long getAllocatableBytes(java.util.UUID)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.os.storage.StorageManager long getAllocatableBytes(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.storage.StorageManager long getCacheQuotaBytes(java.util.UUID)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.os.storage.StorageManager long getCacheQuotaBytes(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.storage.StorageManager long getCacheSizeBytes(java.util.UUID)">
+    <annotation name="android.support.annotation.WorkerThread" />
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.os.storage.StorageManager long getCacheSizeBytes(java.util.UUID) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.storage.StorageManager void allocateBytes(java.io.FileDescriptor, long)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.os.storage.StorageManager void allocateBytes(java.io.FileDescriptor, long) 1">
+    <annotation name="android.support.annotation.BytesLong" />
+  </item>
+  <item name="android.os.storage.StorageManager void allocateBytes(java.util.UUID, long)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.os.storage.StorageManager void allocateBytes(java.util.UUID, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.storage.StorageManager void allocateBytes(java.util.UUID, long) 1">
+    <annotation name="android.support.annotation.BytesLong" />
   </item>
   <item name="android.os.storage.StorageVolume android.content.Intent createAccessIntent(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />

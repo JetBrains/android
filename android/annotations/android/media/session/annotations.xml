@@ -179,6 +179,11 @@
   <item name="android.media.session.MediaSession.Callback void onSetRating(android.media.Rating) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.media.session.MediaSessionManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.MEDIA_SESSION_SERVICE" />
+    </annotation>
+  </item>
   <item name="android.media.session.MediaSessionManager java.util.List&lt;android.media.session.MediaController&gt; getActiveSessions(android.content.ComponentName)">
     <annotation name="android.support.annotation.NonNull" />
   </item>

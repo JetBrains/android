@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.companion.AssociationRequest.Builder android.companion.AssociationRequest build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.AssociationRequest.Builder android.companion.AssociationRequest.Builder addDeviceFilter(android.companion.DeviceFilter&lt;?&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.AssociationRequest.Builder android.companion.AssociationRequest.Builder addDeviceFilter(android.companion.DeviceFilter&lt;?&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.AssociationRequest.Builder android.companion.AssociationRequest.Builder setSingleDevice(boolean)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothDeviceFilter.Builder android.companion.BluetoothDeviceFilter build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothDeviceFilter.Builder android.companion.BluetoothDeviceFilter.Builder addServiceUuid(android.os.ParcelUuid, android.os.ParcelUuid)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothDeviceFilter.Builder android.companion.BluetoothDeviceFilter.Builder addServiceUuid(android.os.ParcelUuid, android.os.ParcelUuid) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.BluetoothDeviceFilter.Builder android.companion.BluetoothDeviceFilter.Builder addServiceUuid(android.os.ParcelUuid, android.os.ParcelUuid) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.BluetoothDeviceFilter.Builder android.companion.BluetoothDeviceFilter.Builder setAddress(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothDeviceFilter.Builder android.companion.BluetoothDeviceFilter.Builder setAddress(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.BluetoothDeviceFilter.Builder android.companion.BluetoothDeviceFilter.Builder setNamePattern(java.util.regex.Pattern) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setNamePattern(java.util.regex.Pattern) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRawDataFilter(byte[], byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRawDataFilter(byte[], byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRawDataFilter(byte[], byte[]) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRenameFromBytes(java.lang.String, java.lang.String, int, int, java.nio.ByteOrder)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRenameFromBytes(java.lang.String, java.lang.String, int, int, java.nio.ByteOrder) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRenameFromBytes(java.lang.String, java.lang.String, int, int, java.nio.ByteOrder) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRenameFromName(java.lang.String, java.lang.String, int, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRenameFromName(java.lang.String, java.lang.String, int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setRenameFromName(java.lang.String, java.lang.String, int, int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setScanFilter(android.bluetooth.le.ScanFilter)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.BluetoothLeDeviceFilter.Builder android.companion.BluetoothLeDeviceFilter.Builder setScanFilter(android.bluetooth.le.ScanFilter) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.CompanionDeviceManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.COMPANION_DEVICE_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.companion.CompanionDeviceManager java.util.List&lt;java.lang.String&gt; getAssociations()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.CompanionDeviceManager void associate(android.companion.AssociationRequest, android.companion.CompanionDeviceManager.Callback, android.os.Handler) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.CompanionDeviceManager void associate(android.companion.AssociationRequest, android.companion.CompanionDeviceManager.Callback, android.os.Handler) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.CompanionDeviceManager void associate(android.companion.AssociationRequest, android.companion.CompanionDeviceManager.Callback, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.companion.CompanionDeviceManager void disassociate(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.WifiDeviceFilter.Builder android.companion.WifiDeviceFilter build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.companion.WifiDeviceFilter.Builder android.companion.WifiDeviceFilter.Builder setNamePattern(java.util.regex.Pattern) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+</root>
+

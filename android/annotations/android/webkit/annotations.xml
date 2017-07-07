@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.webkit.RenderProcessGoneDetail int rendererPriorityAtExit()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebView.RENDERER_PRIORITY_WAIVED, android.webkit.WebView.RENDERER_PRIORITY_BOUND, android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT}" />
+    </annotation>
+  </item>
   <item name="android.webkit.ServiceWorkerController android.webkit.ServiceWorkerController getInstance()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -39,6 +44,16 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.webkit.WebSettings.MENU_ITEM_NONE, android.webkit.WebSettings.MENU_ITEM_SHARE, android.webkit.WebSettings.MENU_ITEM_WEB_SEARCH, android.webkit.WebSettings.MENU_ITEM_PROCESS_TEXT}" />
       <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.webkit.WebView int getRendererRequestedPriority()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebView.RENDERER_PRIORITY_WAIVED, android.webkit.WebView.RENDERER_PRIORITY_BOUND, android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT}" />
+    </annotation>
+  </item>
+  <item name="android.webkit.WebView void setRendererPriorityPolicy(int, boolean) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.webkit.WebView.RENDERER_PRIORITY_WAIVED, android.webkit.WebView.RENDERER_PRIORITY_BOUND, android.webkit.WebView.RENDERER_PRIORITY_IMPORTANT}" />
     </annotation>
   </item>
 </root>
