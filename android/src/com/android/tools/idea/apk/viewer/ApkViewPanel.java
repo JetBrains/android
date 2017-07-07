@@ -247,7 +247,11 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   private void refreshTree() {
     myTree.setPaintBusy(false);
+    myTree.removeTreeSelectionListener(this);
+    TreePath[] selected = myTree.getSelectionPaths();
     myTreeModel.reload();
+    myTree.setSelectionPaths(selected);
+    myTree.addTreeSelectionListener(this);
   }
 
   private void setApkSizes(long uncompressed, long compressedFullApk) {
