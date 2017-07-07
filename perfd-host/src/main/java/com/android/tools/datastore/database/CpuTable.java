@@ -79,7 +79,6 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
                   "Data BLOB");
 
       createTable("Cpu_Trace_Info",
-                  // TraceId is unique within an app, so just traceId is not enough
                   "AppId INTEGER NOT NULL",
                   "Session INTEGER NOT NULL",
                   "StartTime INTEGER",
