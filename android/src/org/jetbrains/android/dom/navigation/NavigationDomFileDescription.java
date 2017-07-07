@@ -16,17 +16,13 @@
 package org.jetbrains.android.dom.navigation;
 
 import com.android.resources.ResourceFolderType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class NavigationDomFileDescription extends AndroidResourceDomFileDescription<NavDestinationElement> {
   // We don't have access to a project at this point, and thus don't have access to the nav library, so this has to be hardcoded.
-  private static final String DEFAULT_ROOT_TAG = "navigation";
+  public static final String DEFAULT_ROOT_TAG = "navigation";
 
   public NavigationDomFileDescription() {
     super(NavDestinationElement.class, DEFAULT_ROOT_TAG, ResourceFolderType.NAVIGATION);
@@ -37,18 +33,7 @@ public class NavigationDomFileDescription extends AndroidResourceDomFileDescript
     return true;
   }
 
-  @Override
-  public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
-    return isNavFile(file);
-  }
-
   public static boolean isNavFile(@NotNull XmlFile file) {
-    // TODO: remove once navigation type is fully supported (e.g. in aapt)
-    if (file.getName().equals("mobile_navigation.xml")) {
-      return true;
-    }
-
-    return ApplicationManager.getApplication().runReadAction(
-      (Computable<Boolean>)() -> AndroidResourceDomFileDescription.doIsMyFile(file, ResourceFolderType.NAVIGATION));
+    return doIsMyFile(file, ResourceFolderType.NAVIGATION);
   }
 }

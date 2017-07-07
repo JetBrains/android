@@ -48,6 +48,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.xml.refactoring.XmlTagInplaceRenamer;
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
+import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
@@ -251,6 +252,8 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
         return TransitionDomUtil.DEFAULT_ROOT;
       case FONT:
         return FontFamilyDomFileDescription.TAG_NAME;
+      case NAVIGATION:
+        return NavigationDomFileDescription.DEFAULT_ROOT_TAG;
       default:
     }
     throw new IllegalArgumentException("Incorrect resource folder type");
