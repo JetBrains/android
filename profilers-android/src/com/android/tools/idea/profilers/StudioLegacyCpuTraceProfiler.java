@@ -62,8 +62,8 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
   @Override
   public CpuProfilingAppStartResponse startProfilingApp(CpuProfilingAppStartRequest request) {
     CpuProfilingAppStartResponse.Builder responseBuilder = CpuProfilingAppStartResponse.newBuilder();
-    String appPkgName = request.getAppPkgName();
-    Client client = myDevice.getClient(appPkgName);
+    String appPkgName = myDevice.getClientName(request.getProcessId());
+    Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
     if (client == null) {
       return responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE)
         .setErrorMessage("App is not running.").build();
@@ -113,8 +113,8 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
   @Override
   public CpuProfilingAppStopResponse stopProfilingApp(CpuProfilingAppStopRequest request) {
     CpuProfilingAppStopResponse.Builder responseBuilder = CpuProfilingAppStopResponse.newBuilder();
-    String appPkgName = request.getAppPkgName();
-    Client client = myDevice.getClient(appPkgName);
+    String appPkgName = myDevice.getClientName(request.getProcessId());
+    Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
 
     synchronized (myLegacyProfilingLock) {
       if (client == null) {

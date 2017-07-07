@@ -337,7 +337,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void startCapturing() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
-      .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
+      .setProcessId(getStudioProfilers().getProcessId())
       .setSession(getStudioProfilers().getSession())
       .setMode(myProfilingConfiguration.getMode())
       .setProfilerType(myProfilingConfiguration.getProfilerType())
@@ -372,7 +372,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void stopCapturing() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStopRequest request = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
-      .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProcessId(getStudioProfilers().getProcessId())
       .setProfilerType(myProfilerType)
       .setSession(getStudioProfilers().getSession())
