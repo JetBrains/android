@@ -18,8 +18,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
@@ -300,7 +298,6 @@ public class NlPreviewTest {
     navigateEditor(editor, frames, 345, 1572, absolute, 1706);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void deletePreviewedFile() throws Exception {
     guiTest.importSimpleApplication()
