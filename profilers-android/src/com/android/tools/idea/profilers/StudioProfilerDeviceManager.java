@@ -69,7 +69,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private static final int DEVICE_PORT = 12389;
   // On-device daemon uses Unix abstract socket for O and future devices.
   private static final String DEVICE_SOCKET_NAME = "AndroidStudioProfiler";
-  private static final String AGENT_CONFIG_FILE = "agent.config";
 
   @NotNull
   private final DataStoreService myDataStoreService;
@@ -181,9 +180,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         copyFileToDevice("perfa.jar", "plugins/android/resources", "../../bazel-genfiles/tools/base/profiler/app", deviceDir, false);
         // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
         pushSimpleperfIfSupported(deviceDir);
-        pushAgentConfig(AGENT_CONFIG_FILE, deviceDir);
+        pushAgentConfig("agent.config", deviceDir);
 
-        myDevice.executeShellCommand(deviceDir + "perfd -config_file=" + deviceDir + AGENT_CONFIG_FILE, new IShellOutputReceiver() {
+        myDevice.executeShellCommand(deviceDir + "perfd", new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
