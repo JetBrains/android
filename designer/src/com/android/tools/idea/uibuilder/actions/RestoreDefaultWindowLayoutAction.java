@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.tools.adtui.workbench.FloatingToolWindowManager;
+import com.android.tools.adtui.workbench.DetachedToolWindowManager;
 import com.android.tools.adtui.workbench.WorkBenchManager;
 import com.intellij.ide.actions.RestoreDefaultLayoutAction;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -45,7 +45,7 @@ public class RestoreDefaultWindowLayoutAction extends AnAction implements DumbAw
     if (project == null) {
       return;
     }
-    FloatingToolWindowManager floatingToolWindowManager = FloatingToolWindowManager.getInstance(project);
+    DetachedToolWindowManager floatingToolWindowManager = DetachedToolWindowManager.getInstance(project);
     floatingToolWindowManager.restoreDefaultLayout();
   }
 

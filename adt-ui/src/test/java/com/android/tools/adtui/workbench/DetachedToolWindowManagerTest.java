@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
-import com.android.tools.adtui.workbench.FloatingToolWindowManager.FloatingToolWindowFactory;
+import com.android.tools.adtui.workbench.DetachedToolWindowManager.DetachedToolWindowFactory;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -24,7 +24,6 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
@@ -48,7 +47,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(JUnit4.class)
-public class FloatingToolWindowManagerTest {
+public class DetachedToolWindowManagerTest {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
   private static volatile boolean DARK = UIUtil.isUnderDarcula();
@@ -74,17 +73,17 @@ public class FloatingToolWindowManagerTest {
   @Mock
   private VirtualFile myVirtualFile;
   @Mock
-  private FloatingToolWindow myFloatingToolWindow1;
+  private DetachedToolWindow myDetachedToolWindow1;
   @Mock
-  private FloatingToolWindow myFloatingToolWindow2;
+  private DetachedToolWindow myDetachedToolWindow2;
   @Mock
-  private FloatingToolWindowFactory myFloatingToolWindowFactory;
+  private DetachedToolWindowFactory myDetachedToolWindowFactory;
   @Mock
   private KeyboardFocusManager myKeyboardFocusManager;
 
   private FileEditorManager myEditorManager;
   private FileEditorManagerListener myListener;
-  private FloatingToolWindowManager myManager;
+  private DetachedToolWindowManager myManager;
 
   @Before
   public void before() {
@@ -92,21 +91,20 @@ public class FloatingToolWindowManagerTest {
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
     Project project = ProjectManager.getInstance().getDefaultProject();
     myEditorManager = FileEditorManager.getInstance(project);
-    when(myWorkBench1.getFloatingToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow1));
-    when(myWorkBench2.getFloatingToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow2));
+    when(myWorkBench1.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow1));
+    when(myWorkBench2.getDetachedToolWindows()).thenReturn(ImmutableList.of(myAttachedToolWindow2));
     when(myAttachedToolWindow1.getDefinition()).thenReturn(PalettePanelToolContent.getDefinition());
     when(myAttachedToolWindow2.getDefinition()).thenReturn(PalettePanelToolContent.getOtherDefinition());
-    when(myFloatingToolWindowFactory.create(any(Project.class), any(ToolWindowDefinition.class)))
-      .thenReturn(myFloatingToolWindow1, myFloatingToolWindow2, null);
+    when(myDetachedToolWindowFactory.create(any(Project.class), any(ToolWindowDefinition.class)))
+      .thenReturn(myDetachedToolWindow1, myDetachedToolWindow2, null);
 
-    myManager = new FloatingToolWindowManager(
+    myManager = new DetachedToolWindowManager(
       ApplicationManager.getApplication(),
       project,
-      StartupManager.getInstance(project),
       FileEditorManager.getInstance(project));
     myManager.initComponent();
-    myManager.setFloatingToolWindowFactory(myFloatingToolWindowFactory);
-    assert myManager.getComponentName().equals("FloatingToolWindowManager");
+    myManager.setDetachedToolWindowFactory(myDetachedToolWindowFactory);
+    assert myManager.getComponentName().equals("DetachedToolWindowManager");
 
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
     when(project.getMessageBus()).thenReturn(myMessageBus);
@@ -131,8 +129,11 @@ public class FloatingToolWindowManagerTest {
 
   @Test
   public void testProjectClosed() {
+    when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
+    myManager.restoreDefaultLayout();
     myManager.projectClosed();
     verify(myConnection).disconnect();
+    verify(myDetachedToolWindow1).updateSettingsInAttachedToolWindow();
   }
 
   @Test
@@ -141,7 +142,7 @@ public class FloatingToolWindowManagerTest {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
 
     myManager.restoreDefaultLayout();
-    verify(myFloatingToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
   }
 
   @Test
@@ -154,7 +155,7 @@ public class FloatingToolWindowManagerTest {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1});
     myListener.fileOpened(myEditorManager, myVirtualFile);
     //noinspection unchecked
-    verify(myFloatingToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
   }
 
   @Test
@@ -162,7 +163,7 @@ public class FloatingToolWindowManagerTest {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1, myFileEditor2});
     myListener.fileOpened(myEditorManager, myVirtualFile);
     //noinspection unchecked
-    verify(myFloatingToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
   }
 
   @Test
@@ -170,26 +171,26 @@ public class FloatingToolWindowManagerTest {
   public void testSwitchingBetweenTwoEditorsWithDifferentFloatingToolWindows() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, myWorkBench2);
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    verify(myFloatingToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    verify(myFloatingToolWindow1).hide();
-    verify(myFloatingToolWindow2).show(eq(myAttachedToolWindow2));
+    verify(myDetachedToolWindow1).hide();
+    verify(myDetachedToolWindow2).show(eq(myAttachedToolWindow2));
 
     FileEditorManagerEvent event1 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor1);
     FileEditorManagerEvent event2 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor2);
 
     myListener.selectionChanged(event1);
-    verify(myFloatingToolWindow2).hide();
-    verify(myFloatingToolWindow1, times(2)).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow2).hide();
+    verify(myDetachedToolWindow1, times(2)).show(eq(myAttachedToolWindow1));
     myListener.selectionChanged(event2);
-    verify(myFloatingToolWindow1, times(2)).hide();
-    verify(myFloatingToolWindow2, times(2)).show(eq(myAttachedToolWindow2));
+    verify(myDetachedToolWindow1, times(2)).hide();
+    verify(myDetachedToolWindow2, times(2)).show(eq(myAttachedToolWindow2));
 
     // Now unregister one of them:
     myManager.unregister(myFileEditor1);
     myListener.selectionChanged(event1);
-    verify(myFloatingToolWindow1, times(3)).hide();
-    verify(myFloatingToolWindow2, times(2)).hide();
+    verify(myDetachedToolWindow1, times(3)).hide();
+    verify(myDetachedToolWindow2, times(2)).hide();
   }
 
   @Test
@@ -197,9 +198,9 @@ public class FloatingToolWindowManagerTest {
   public void testFileCloseCausingFloatingToolWindowToHide() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, new JLabel());
     myListener.fileOpened(myEditorManager, myVirtualFile);
-    verify(myFloatingToolWindow1).show(eq(myAttachedToolWindow1));
+    verify(myDetachedToolWindow1).show(eq(myAttachedToolWindow1));
 
     myListener.fileClosed(myEditorManager, myVirtualFile);
-    verify(myFloatingToolWindow1).hide();
+    verify(myDetachedToolWindow1).hide();
   }
 }

@@ -72,7 +72,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final String myName;
   private final PropertiesComponent myPropertiesComponent;
   private final WorkBenchManager myWorkBenchManager;
-  private final FloatingToolWindowManager myFloatingToolWindowManager;
+  private final DetachedToolWindowManager myDetachedToolWindowManager;
   private final FileEditorManager myFileEditorManager;
   private final List<ToolWindowDefinition<T>> myToolDefinitions;
   private final SideModel<T> myModel;
@@ -116,7 +116,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myModel.setContext(context);
     addToolsToModel();
     myWorkBenchManager.register(this);
-    myFloatingToolWindowManager.register(myFileEditor, this);
+    myDetachedToolWindowManager.register(myFileEditor, this);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
@@ -141,18 +141,18 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
    * Currently needed for the designer preview pane.
    */
   public void setFileEditor(@Nullable FileEditor fileEditor) {
-    myFloatingToolWindowManager.unregister(myFileEditor);
-    myFloatingToolWindowManager.register(fileEditor, this);
+    myDetachedToolWindowManager.unregister(myFileEditor);
+    myDetachedToolWindowManager.register(fileEditor, this);
     myFileEditor = fileEditor;
     if (fileEditor != null && isCurrentEditor(fileEditor)) {
-      myFloatingToolWindowManager.updateToolWindowsForWorkBench(this);
+      myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
     }
   }
 
   @Override
   public void dispose() {
     myWorkBenchManager.unregister(this);
-    myFloatingToolWindowManager.unregister(myFileEditor);
+    myDetachedToolWindowManager.unregister(myFileEditor);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
@@ -167,7 +167,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myFileEditor = fileEditor;
     myPropertiesComponent = PropertiesComponent.getInstance();
     myWorkBenchManager = WorkBenchManager.getInstance();
-    myFloatingToolWindowManager = FloatingToolWindowManager.getInstance(project);
+    myDetachedToolWindowManager = DetachedToolWindowManager.getInstance(project);
     myFileEditorManager = FileEditorManager.getInstance(project);
     myToolDefinitions = new ArrayList<>(4);
     myModel = params.myModel;
@@ -397,9 +397,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
         myWorkBenchManager.updateOtherWorkBenches(this);
         break;
 
-      case UPDATE_FLOATING_WINDOW:
+      case UPDATE_DETACHED_WINDOW:
         myWorkBenchManager.updateOtherWorkBenches(this);
-        myFloatingToolWindowManager.updateToolWindowsForWorkBench(this);
+        myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
         break;
 
       case LOCAL_UPDATE:
@@ -428,8 +428,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myModel.setTools(tools);
   }
 
-  public List<AttachedToolWindow<T>> getFloatingToolWindows() {
-    return myModel.getFloatingTools();
+  public List<AttachedToolWindow<T>> getDetachedToolWindows() {
+    return myModel.getDetachedTools();
   }
 
   public void storeDefaultLayout() {

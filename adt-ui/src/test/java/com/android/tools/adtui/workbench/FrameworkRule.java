@@ -73,7 +73,7 @@ public class FrameworkRule implements TestRule {
     @Mock private WorkBenchManager myWorkBenchManager;
     @Mock private StartupManager myStartupManager;
     @Mock private DumbService myDumbService;
-    @Mock private FloatingToolWindowManager myFloatingToolWindowManager;
+    @Mock private DetachedToolWindowManager myFloatingToolWindowManager;
     @Mock private FileEditorManager myFileEditorManager;
     @Mock private ToolWindowManager myToolWindowManager;
     @Mock private ActionPopupMenu myActionPopupMenu;
@@ -113,7 +113,7 @@ public class FrameworkRule implements TestRule {
       when(myPicoContainer.getComponentInstance(PropertiesComponent.class.getName())).thenReturn(myPropertiesComponent);
 
       when(myProject.getPicoContainer()).thenReturn(myProjectPicoContainer);
-      when(myProject.getComponent(FloatingToolWindowManager.class)).thenReturn(myFloatingToolWindowManager);
+      when(myProject.getComponent(DetachedToolWindowManager.class)).thenReturn(myFloatingToolWindowManager);
       when(myProject.getComponent(FileEditorManager.class)).thenReturn(myFileEditorManager);
       when(myProject.getComponent(ToolWindowManager.class)).thenReturn(myToolWindowManager);
       when(myProject.isDisposed()).thenReturn(false);

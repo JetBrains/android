@@ -1346,7 +1346,7 @@
       <loadForDefaultProject/>
     </component>
     <component>
-      <implementation-class>com.android.tools.adtui.workbench.FloatingToolWindowManager</implementation-class>
+      <implementation-class>com.android.tools.adtui.workbench.DetachedToolWindowManager</implementation-class>
       <skipForDefaultProject/>
     </component>
   </project-components>

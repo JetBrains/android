@@ -16,15 +16,14 @@
 package com.android.tools.adtui.workbench;
 
 import com.android.annotations.VisibleForTesting;
+import com.intellij.ide.actions.ToggleDistractionFreeModeAction;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
@@ -37,49 +36,50 @@ import java.util.*;
 import java.util.List;
 
 /**
- * All {@link WorkBench}es of a specified name will use the same {@link FloatingToolWindow}
+ * All {@link WorkBench}es of a specified name will use the same {@link DetachedToolWindow}
  * for a given tool window name.
  * This class is responsible for switching the content to the content of the currently
  * active {@link WorkBench}.
  */
-public class FloatingToolWindowManager implements ProjectComponent {
+public class DetachedToolWindowManager implements ProjectComponent {
   private final Application myApplication;
   private final Project myProject;
-  private final StartupManager myStartupManager;
   private final FileEditorManager myEditorManager;
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench> myWorkBenchMap;
-  private final HashMap<String, FloatingToolWindow> myToolWindowMap;
-  private FloatingToolWindowFactory myFloatingToolWindowFactory;
+  private final HashMap<String, DetachedToolWindow> myToolWindowMap;
+  private DetachedToolWindowFactory myDetachedToolWindowFactory;
   private MessageBusConnection myConnection;
+  private FileEditor myLastSelectedEditor;
 
-  public static FloatingToolWindowManager getInstance(@NotNull Project project) {
-    return project.getComponent(FloatingToolWindowManager.class);
+  public static DetachedToolWindowManager getInstance(@NotNull Project project) {
+    return project.getComponent(DetachedToolWindowManager.class);
   }
 
-  public FloatingToolWindowManager(@NotNull Application application,
+  public DetachedToolWindowManager(@NotNull Application application,
                                    @NotNull Project currentProject,
-                                   @NotNull StartupManager startupManager,
                                    @NotNull FileEditorManager fileEditorManager) {
     myApplication = application;
     myProject = currentProject;
-    myStartupManager = startupManager;
     myEditorManager = fileEditorManager;
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
     //noinspection unchecked
-    myFloatingToolWindowFactory = FloatingToolWindow::new;
+    myDetachedToolWindowFactory = DetachedToolWindow::new;
   }
 
   @VisibleForTesting
-  void setFloatingToolWindowFactory(@NotNull FloatingToolWindowFactory factory) {
-    myFloatingToolWindowFactory = factory;
+  void setDetachedToolWindowFactory(@NotNull DetachedToolWindowFactory factory) {
+    myDetachedToolWindowFactory = factory;
   }
 
   public void register(@Nullable FileEditor fileEditor, @NotNull WorkBench workBench) {
     if (fileEditor != null) {
       myWorkBenchMap.put(fileEditor, workBench);
+      if (fileEditor == myLastSelectedEditor) {
+        updateToolWindowsForWorkBench(workBench);
+      }
     }
   }
 
@@ -92,7 +92,7 @@ public class FloatingToolWindowManager implements ProjectComponent {
   @NotNull
   @Override
   public String getComponentName() {
-    return FloatingToolWindowManager.class.getSimpleName();
+    return DetachedToolWindowManager.class.getSimpleName();
   }
 
   @Override
@@ -105,11 +105,8 @@ public class FloatingToolWindowManager implements ProjectComponent {
 
   @Override
   public void projectOpened() {
-    myStartupManager.runWhenProjectIsInitialized((DumbAwareRunnable)() -> {
-      myConnection = myProject.getMessageBus().connect(myProject);
-      myConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
-      updateToolWindowsForWorkBench(getActiveWorkBench());
-    });
+    myConnection = myProject.getMessageBus().connect(myProject);
+    myConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myEditorManagerListener);
   }
 
   @Override
@@ -117,6 +114,9 @@ public class FloatingToolWindowManager implements ProjectComponent {
     if (myConnection != null) {
       myConnection.disconnect();
       myConnection = null;
+    }
+    for (DetachedToolWindow detachedToolWindow : myToolWindowMap.values()) {
+      detachedToolWindow.updateSettingsInAttachedToolWindow();
     }
   }
 
@@ -147,21 +147,24 @@ public class FloatingToolWindowManager implements ProjectComponent {
     return myWorkBenchMap.get(selectedEditors[0]);
   }
 
-  public <T> void updateToolWindowsForWorkBench(@Nullable WorkBench<T> workBench) {
+  public void updateToolWindowsForWorkBench(@Nullable WorkBench workBench) {
     Set<String> ids = new HashSet<>(myToolWindowMap.keySet());
     if (workBench != null) {
-      List<AttachedToolWindow<T>> floatingToolWindows = workBench.getFloatingToolWindows();
-      for (AttachedToolWindow<T> tool : floatingToolWindows) {
-        ToolWindowDefinition<T> definition = tool.getDefinition();
+      //noinspection unchecked
+      List<AttachedToolWindow> detachedToolWindows = workBench.getDetachedToolWindows();
+      for (AttachedToolWindow tool : detachedToolWindows) {
+        ToolWindowDefinition definition = tool.getDefinition();
         String id = definition.getName();
-        FloatingToolWindow floatingToolWindow = myToolWindowMap.get(id);
-        if (floatingToolWindow == null) {
-          floatingToolWindow = myFloatingToolWindowFactory.create(myProject, definition);
-          Disposer.register(myProject, floatingToolWindow);
-          myToolWindowMap.put(id, floatingToolWindow);
+        DetachedToolWindow detachedToolWindow = myToolWindowMap.get(id);
+        if (detachedToolWindow == null) {
+          detachedToolWindow = myDetachedToolWindowFactory.create(myProject, definition);
+          Disposer.register(myProject, detachedToolWindow);
+          myToolWindowMap.put(id, detachedToolWindow);
         }
-        //noinspection unchecked
-        floatingToolWindow.show(tool);
+        if (!ToggleDistractionFreeModeAction.isDistractionFreeModeEnabled()) {
+          //noinspection unchecked
+          detachedToolWindow.show(tool);
+        }
         ids.remove(id);
       }
     }
@@ -176,7 +179,7 @@ public class FloatingToolWindowManager implements ProjectComponent {
 
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      updateToolWindowsForWorkBench(getActiveWorkBench());
+      myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
     }
 
     @Override
@@ -186,11 +189,12 @@ public class FloatingToolWindowManager implements ProjectComponent {
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-      updateToolWindowsForWorkBench(myWorkBenchMap.get(event.getNewEditor()));
+      myLastSelectedEditor = event.getNewEditor();
+      updateToolWindowsForWorkBench(myWorkBenchMap.get(myLastSelectedEditor));
     }
   }
 
-  interface FloatingToolWindowFactory {
-    FloatingToolWindow create(@NotNull Project project, @NotNull ToolWindowDefinition definition);
+  interface DetachedToolWindowFactory {
+    DetachedToolWindow create(@NotNull Project project, @NotNull ToolWindowDefinition definition);
   }
 }

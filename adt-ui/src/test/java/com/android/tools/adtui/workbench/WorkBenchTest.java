@@ -59,7 +59,7 @@ public class WorkBenchTest {
   private FileEditor myFileEditor2;
 
   private WorkBenchManager myWorkBenchManager;
-  private FloatingToolWindowManager myFloatingToolWindowManager;
+  private DetachedToolWindowManager myFloatingToolWindowManager;
   private JComponent myContent;
   private ThreeComponentsSplitter mySplitter;
   private PropertiesComponent myPropertiesComponent;
@@ -80,7 +80,7 @@ public class WorkBenchTest {
     Project project = ProjectManager.getInstance().getDefaultProject();
     myPropertiesComponent = PropertiesComponent.getInstance();
     myWorkBenchManager = WorkBenchManager.getInstance();
-    myFloatingToolWindowManager = FloatingToolWindowManager.getInstance(project);
+    myFloatingToolWindowManager = DetachedToolWindowManager.getInstance(project);
     FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
     myModel = new SideModel<>(project);
     myLeftMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));
@@ -261,7 +261,8 @@ public class WorkBenchTest {
   @Test
   public void testModelUpdateFloatingStatus() {
     myToolWindow1.setFloating(true);
-    myModel.update(myToolWindow1, PropertyType.FLOATING);
+    myToolWindow1.setDetached(true);
+    myModel.update(myToolWindow1, PropertyType.DETACHED);
 
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
     verify(myFloatingToolWindowManager).updateToolWindowsForWorkBench(eq(myWorkBench));
