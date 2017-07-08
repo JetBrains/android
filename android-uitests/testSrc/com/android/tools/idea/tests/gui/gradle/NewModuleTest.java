@@ -152,7 +152,6 @@ public class NewModuleTest {
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "library-module")).isDirectory();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void createNewCloudModule() throws Exception {
     guiTest.importSimpleApplication()
@@ -169,7 +168,6 @@ public class NewModuleTest {
       .open("backend/src/main/webapp/index.html");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void createNewJavaLibraryWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
