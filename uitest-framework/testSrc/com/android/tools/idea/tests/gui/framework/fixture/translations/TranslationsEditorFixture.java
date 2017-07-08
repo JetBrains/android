@@ -40,6 +40,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -127,6 +128,14 @@ public final class TranslationsEditorFixture {
         .mapToObj(table::getColumnName)
         .collect(Collectors.toList());
     });
+  }
+
+  public void waitUntilTableValueAtEquals(@NotNull TableCell cell, @NotNull Object value) {
+    JTableFixture table = getTable();
+
+    // There's nothing special about the 2 second wait, it's simply more than the 500 millisecond delay of the
+    // TranslationsEditorTextField.SetTableValueAtTimer
+    Wait.seconds(2).expecting("value at " + cell + " to equal " + value).until(() -> table.valueAt(cell).equals(value));
   }
 
   @Nullable
