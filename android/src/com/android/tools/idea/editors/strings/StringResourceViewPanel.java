@@ -62,7 +62,6 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.IntSupplier;
 
 final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private static final boolean HIDE_TRANSLATION_ORDER_LINK = Boolean.getBoolean("hide.order.translations");
@@ -101,7 +100,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     }
 
     initTable();
-    myKeyTextField.addFocusListener(new SetTableValueAtFocusListener(StringResourceTableModel.KEY_COLUMN));
 
     addResourceChangeListenerOrSubscribe();
 
@@ -134,6 +132,9 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private void createUIComponents() {
     createTable();
     createTablePopupMenu();
+
+    myKeyTextField = new TranslationsEditorTextField(myTable, StringResourceTableModel.KEY_COLUMN);
+
     createDefaultValueTextField();
     createTranslationTextField();
   }
@@ -179,74 +180,24 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private void createDefaultValueTextField() {
-    myDefaultValueTextField = new TextFieldWithBrowseButton(new ShowMultilineActionListener(), this);
-    myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
-
-    JComponent textField = myDefaultValueTextField.getTextField();
-
-    textField.addFocusListener(new SetTableValueAtFocusListener(StringResourceTableModel.DEFAULT_VALUE_COLUMN));
+    JTextField textField = new TranslationsEditorTextField(myTable, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
+
+    myDefaultValueTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
+    myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
   }
 
   private void createTranslationTextField() {
-    myTranslationTextField = new TextFieldWithBrowseButton(new ShowMultilineActionListener(), this);
-    myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
-
-    JComponent textField = myTranslationTextField.getTextField();
-
-    textField.addFocusListener(new SetTableValueAtFocusListener(myTable::getSelectedColumnModelIndex));
+    JTextField textField = new TranslationsEditorTextField(myTable, myTable::getSelectedColumnModelIndex);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
+
+    myTranslationTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
+    myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
   }
 
   @NotNull
   public AndroidFacet getFacet() {
     return myFacet;
-  }
-
-  private final class SetTableValueAtFocusListener implements FocusListener {
-    private final IntSupplier myColumnSupplier;
-
-    private int mySelectedRowCount;
-    private int mySelectedColumnCount;
-    private int myRow;
-    private int myColumn;
-
-    private SetTableValueAtFocusListener(int column) {
-      myColumnSupplier = () -> column;
-    }
-
-    private SetTableValueAtFocusListener(@NotNull IntSupplier columnSupplier) {
-      myColumnSupplier = columnSupplier;
-    }
-
-    @Override
-    public void focusGained(@NotNull FocusEvent event) {
-      mySelectedRowCount = myTable.getSelectedRowCount();
-      mySelectedColumnCount = myTable.getSelectedColumnCount();
-
-      if (mySelectedRowCount != 1 || mySelectedColumnCount != 1) {
-        return;
-      }
-
-      myRow = myTable.getSelectedRowModelIndex();
-      myColumn = myColumnSupplier.getAsInt();
-    }
-
-    @Override
-    public void focusLost(@NotNull FocusEvent event) {
-      if (mySelectedRowCount != 1 || mySelectedColumnCount != 1) {
-        return;
-      }
-
-      JTextComponent component = (JTextComponent)event.getComponent();
-
-      if (!component.isEditable()) {
-        return;
-      }
-
-      myTable.getModel().setValueAt(component.getText(), myRow, myColumn);
-      myTable.refilter();
-    }
   }
 
   @Override

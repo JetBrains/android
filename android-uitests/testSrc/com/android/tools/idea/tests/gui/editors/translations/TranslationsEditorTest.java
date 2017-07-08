@@ -17,7 +17,9 @@ package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
@@ -33,7 +35,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.EmptyClipboardOwner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.KeyPressInfo;
-import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -419,25 +420,22 @@ public final class TranslationsEditorTest {
     assertEquals("Invalid XML", component.myTooltipText);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63177330
   @Test
   public void enteringTextInDefaultValueTextFieldUpdatesTableCell() throws IOException {
     importSimpleApplication();
 
     JTableFixture table = myTranslationsEditor.getTable();
     TableCell actionSettingsDefaultValue = TableCell.row(2).column(DEFAULT_VALUE_COLUMN);
-
     table.selectCell(actionSettingsDefaultValue);
 
     JTextComponentFixture field = myTranslationsEditor.getDefaultValueTextField();
-
     field.selectAll();
     field.enterText("action_settings");
 
     TableCell appNameDefaultValue = TableCell.row(0).column(DEFAULT_VALUE_COLUMN);
     table.selectCell(appNameDefaultValue);
 
-    assertEquals("action_settings", table.valueAt(actionSettingsDefaultValue));
+    myTranslationsEditor.waitUntilTableValueAtEquals(actionSettingsDefaultValue, "action_settings");
     assertEquals("Simple Application", table.valueAt(appNameDefaultValue));
   }
 
@@ -445,20 +443,14 @@ public final class TranslationsEditorTest {
   public void enteringTextInTranslationTextFieldUpdatesTableCell() throws IOException {
     importSimpleApplication();
 
-    JTableFixture table = myTranslationsEditor.getTable();
-    TableCell cell = TableCell.row(3).column(ENGLISH_COLUMN);
-
-    table.selectCell(cell);
+    TableCell cancelEnglishTranslation = TableCell.row(3).column(ENGLISH_COLUMN);
+    myTranslationsEditor.getTable().selectCell(cancelEnglishTranslation);
 
     JTextComponentFixture field = myTranslationsEditor.getTranslationTextField();
-
     field.selectAll();
     field.enterText("cancel_en");
 
-    // Make the Translation text field lose focus
-    myTranslationsEditor.getKeyTextField().focus();
-
-    assertEquals("cancel_en", table.valueAt(cell));
+    myTranslationsEditor.waitUntilTableValueAtEquals(cancelEnglishTranslation, "cancel_en");
   }
 
   @Test
@@ -473,24 +465,6 @@ public final class TranslationsEditorTest {
     translationTextField.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
 
     assertEquals(-1, translationTextField.font().target().canDisplayUpTo("יישום פשוט"));
-  }
-
-  @Test
-  public void translationTextFieldFocusListenerDoesntThrowIndexOutOfBoundsException() throws IOException {
-    importSimpleApplication();
-
-    JTableFixture table = myTranslationsEditor.getTable();
-    TableCell cell = TableCell.row(0).column(ENGLISH_COLUMN);
-
-    table.selectCell(cell);
-
-    Robot robot = myGuiTest.robot();
-    // deselectCell
-    robot.pressKey(KeyEvent.VK_CONTROL);
-    table.cell(cell).click();
-    robot.releaseKey(KeyEvent.VK_CONTROL);
-
-    myTranslationsEditor.getTranslationTextField().focus();
   }
 
   @Test
