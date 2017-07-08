@@ -981,7 +981,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final MyProgressPanel myProgressPanel;
 
   public void registerIndicator(@NotNull ProgressIndicator indicator) {
-    if (myProject.isDisposed()) {
+    if (myProject.isDisposed() || Disposer.isDisposed(this)) {
       return;
     }
 

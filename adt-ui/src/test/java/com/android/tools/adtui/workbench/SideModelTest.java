@@ -25,8 +25,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.util.List;
 import java.util.Properties;
@@ -80,8 +78,10 @@ public class SideModelTest {
     myToolWindow3.setLeft(true);
     myToolWindow3.setSplit(true);
     myFloatingToolWindow1.setFloating(true);
+    myFloatingToolWindow1.setDetached(true);
     myFloatingToolWindow1.setLeft(true);
     myFloatingToolWindow2.setFloating(true);
+    myFloatingToolWindow2.setDetached(true);
 
     mySideModel.setContext(CONTEXT);
     mySideModel.setTools(myToolWindows);
@@ -111,7 +111,7 @@ public class SideModelTest {
     assertThat(mySideModel.getBottomTools(Side.RIGHT)).isEmpty();
     assertThat(mySideModel.getVisibleAutoHideTool()).isNull();
     assertThat(mySideModel.getHiddenSliders()).isEmpty();
-    assertThat(mySideModel.getFloatingTools()).containsExactly(myFloatingToolWindow1, myFloatingToolWindow2).inOrder();
+    assertThat(mySideModel.getDetachedTools()).containsExactly(myFloatingToolWindow1, myFloatingToolWindow2).inOrder();
   }
 
   @Test
@@ -160,13 +160,13 @@ public class SideModelTest {
 
   @Test
   public void testRestoreFloatingWindow() {
-    myFloatingToolWindow1.setFloating(false);
-    mySideModel.update(myFloatingToolWindow1, PropertyType.FLOATING);
+    myFloatingToolWindow1.setDetached(false);
+    mySideModel.update(myFloatingToolWindow1, PropertyType.DETACHED);
     assertThat(mySideModel.getVisibleTools(Side.LEFT)).containsExactly(myFloatingToolWindow1, myToolWindow2).inOrder();
     assertThat(mySideModel.getHiddenTools(Side.LEFT)).containsExactly(myToolWindow1, myToolWindow3).inOrder();
     assertThat(mySideModel.getTopTools(Side.LEFT)).containsExactly(myToolWindow1, myFloatingToolWindow1).inOrder();
-    assertThat(mySideModel.getFloatingTools()).containsExactly(myFloatingToolWindow2);
-    verify(myListener).modelChanged(eq(mySideModel), eq(UPDATE_FLOATING_WINDOW));
+    assertThat(mySideModel.getDetachedTools()).containsExactly(myFloatingToolWindow2);
+    verify(myListener).modelChanged(eq(mySideModel), eq(UPDATE_DETACHED_WINDOW));
   }
 
   @Test
@@ -241,7 +241,7 @@ public class SideModelTest {
     myToolWindow4.setLeft(true);
     myToolWindow4.setMinimized(true);
     myToolWindow5.setAutoHide(true);
-    myFloatingToolWindow2.setFloating(false);
+    myFloatingToolWindow2.setDetached(false);
     myFloatingToolWindow2.setMinimized(true);
     mySideModel.updateLocally();
 
@@ -255,7 +255,7 @@ public class SideModelTest {
     assertThat(mySideModel.getBottomTools(Side.RIGHT)).isEmpty();
     assertThat(mySideModel.getVisibleAutoHideTool()).isNull();
     assertThat(mySideModel.getHiddenSliders()).containsExactly(myToolWindow5);
-    assertThat(mySideModel.getFloatingTools()).containsExactly(myFloatingToolWindow1);
+    assertThat(mySideModel.getDetachedTools()).containsExactly(myFloatingToolWindow1);
     verify(myListener).modelChanged(eq(mySideModel), eq(LOCAL_UPDATE));
   }
 
@@ -273,7 +273,7 @@ public class SideModelTest {
     assertThat(mySideModel.getBottomTools(Side.LEFT)).isEmpty();
     assertThat(mySideModel.getVisibleAutoHideTool()).isNull();
     assertThat(mySideModel.getHiddenSliders()).isEmpty();
-    assertThat(mySideModel.getFloatingTools()).containsExactly(myFloatingToolWindow1, myFloatingToolWindow2).inOrder();
+    assertThat(mySideModel.getDetachedTools()).containsExactly(myFloatingToolWindow1, myFloatingToolWindow2).inOrder();
     verify(myListener).modelChanged(eq(mySideModel), eq(SWAP));
   }
 
@@ -333,33 +333,32 @@ public class SideModelTest {
     for (AttachedToolWindow toolWindow : toolWindows) {
       String id = PROPERTY_PREFIX + ++number;
       when(toolWindow.getToolName()).thenReturn(id);
-      doAnswer(new Answer<Void>() {
-        @Override
-        public Void answer(InvocationOnMock invocation) throws Throwable {
-          Object[] arguments = invocation.getArguments();
-          PropertyType propertyType = (PropertyType)arguments[0];
-          Boolean value = (Boolean)arguments[1];
-          myProperties.setProperty(id + "." + propertyType.name(), value.toString());
-          return null;
-        }
+
+      doAnswer(invocation -> {
+        Object[] arguments = invocation.getArguments();
+        PropertyType propertyType = (PropertyType)arguments[0];
+        Boolean value = (Boolean)arguments[1];
+        myProperties.setProperty(id + "." + propertyType.name(), value.toString());
+        return null;
       }).when(toolWindow).setProperty(any(PropertyType.class), anyBoolean());
-      doAnswer(new Answer<Boolean>() {
-        @Override
-        public Boolean answer(InvocationOnMock invocation) throws Throwable {
-          Object[] arguments = invocation.getArguments();
-          PropertyType propertyType = (PropertyType)arguments[0];
-          return Boolean.parseBoolean(myProperties.getProperty(id + "." + propertyType.name(), "false"));
-        }
+
+      doAnswer(invocation -> {
+        Object[] arguments = invocation.getArguments();
+        PropertyType propertyType = (PropertyType)arguments[0];
+        return Boolean.parseBoolean(myProperties.getProperty(id + "." + propertyType.name(), "false"));
       }).when(toolWindow).getProperty(any(PropertyType.class));
+
       doCallRealMethod().when(toolWindow).isMinimized();
       doCallRealMethod().when(toolWindow).isLeft();
       doCallRealMethod().when(toolWindow).isFloating();
+      doCallRealMethod().when(toolWindow).isDetached();
       doCallRealMethod().when(toolWindow).isSplit();
       doCallRealMethod().when(toolWindow).isAutoHide();
       doCallRealMethod().when(toolWindow).setMinimized(anyBoolean());
       doCallRealMethod().when(toolWindow).setLeft(anyBoolean());
       doCallRealMethod().when(toolWindow).setSplit(anyBoolean());
       doCallRealMethod().when(toolWindow).setFloating(anyBoolean());
+      doCallRealMethod().when(toolWindow).setDetached(anyBoolean());
       doCallRealMethod().when(toolWindow).setAutoHide(anyBoolean());
     }
   }

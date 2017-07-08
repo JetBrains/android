@@ -19,6 +19,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -31,27 +32,27 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.FLOATING;
+import static com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType.DETACHED;
 
 /**
- * Represents a floating tool window which is essentially an Intellij {@link ToolWindowEx}.
- * At any given time a floating tool window has a corresponding {@link AttachedToolWindow},
+ * Represents a detached tool window which is essentially an Intellij {@link ToolWindowEx}.
+ * At any given time a detached tool window has a corresponding {@link AttachedToolWindow},
  * which it can be turned into.
  *
  * @param <T> Specifies the type of data controlled by the {@link WorkBench}.
  */
 
-class FloatingToolWindow<T> implements Disposable {
+class DetachedToolWindow<T> implements Disposable {
   private final ToolContent<T> myContent;
   private final ToolWindowEx myToolWindow;
   private AttachedToolWindow<T> myCorrespondingToolWindow;
 
-  public FloatingToolWindow(@NotNull Project project,
+  public DetachedToolWindow(@NotNull Project project,
                             @NotNull ToolWindowDefinition<T> definition) {
     this(definition, ToolWindowManager.getInstance(project));
   }
 
-  public FloatingToolWindow(@NotNull ToolWindowDefinition<T> definition,
+  public DetachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                             @NotNull ToolWindowManager toolWindowManager) {
     myContent = definition.getFactory().create();
     myToolWindow = createToolWindow(toolWindowManager, definition);
@@ -62,6 +63,8 @@ class FloatingToolWindow<T> implements Disposable {
     updateState(correspondingWindow);
     myContent.setToolContext(correspondingWindow.getContext());
     myToolWindow.setAvailable(true, null);
+    myToolWindow.setType(toToolWindowType(correspondingWindow), null);
+    myToolWindow.setSplitMode(correspondingWindow.isSplit(), null);
     myToolWindow.show(null);
   }
 
@@ -70,10 +73,19 @@ class FloatingToolWindow<T> implements Disposable {
     myToolWindow.setAvailable(false, null);
   }
 
+  @NotNull
+  private ToolWindowType toToolWindowType(@NotNull AttachedToolWindow<T> attachedToolWindow) {
+    if (attachedToolWindow.isFloating()) {
+      return ToolWindowType.FLOATING;
+    }
+    if (attachedToolWindow.isAutoHide()) {
+      return ToolWindowType.SLIDING;
+    }
+    return ToolWindowType.DOCKED;
+  }
+
   private void updateState(@NotNull AttachedToolWindow<T> correspondingWindow) {
     myCorrespondingToolWindow = correspondingWindow;
-    ToolWindowAnchor anchor = correspondingWindow.isLeft() ? ToolWindowAnchor.LEFT : ToolWindowAnchor.RIGHT;
-    myToolWindow.setAnchor(anchor, null);
   }
 
   private ToolWindowEx createToolWindow(@NotNull ToolWindowManager toolWindowManager,
@@ -84,7 +96,6 @@ class FloatingToolWindow<T> implements Disposable {
       ToolWindowAnchor anchor = definition.getSide().isLeft() ? ToolWindowAnchor.LEFT : ToolWindowAnchor.RIGHT;
       window = (ToolWindowEx)toolWindowManager.registerToolWindow(id, false, anchor, this, true);
       window.setIcon(definition.getIcon());
-      window.setType(ToolWindowType.FLOATING, null);
       window.setAutoHide(false);
       setToolWindowContent(window);
       setAdditionalGearPopupActions(window);
@@ -120,6 +131,7 @@ class FloatingToolWindow<T> implements Disposable {
     DefaultActionGroup attachedSide = new DefaultActionGroup("Attached Side", true);
     attachedSide.add(new AttachToSideAction(Side.LEFT));
     attachedSide.add(new AttachToSideAction(Side.RIGHT));
+    attachedSide.add(new DetachedAction());
     toolWindow.setAdditionalGearActions(new DefaultActionGroup(attachedSide));
   }
 
@@ -127,10 +139,16 @@ class FloatingToolWindow<T> implements Disposable {
   public void dispose() {
   }
 
+  public void updateSettingsInAttachedToolWindow() {
+    myCorrespondingToolWindow.setAutoHide(myToolWindow.getType() == ToolWindowType.SLIDING);
+    myCorrespondingToolWindow.setFloating(myToolWindow.getType() == ToolWindowType.FLOATING);
+    myCorrespondingToolWindow.setSplit(myToolWindow.isSplitMode());
+  }
+
   private class AttachToSideAction extends AnAction {
     private final Side mySide;
 
-    public AttachToSideAction(@NotNull Side side) {
+    private AttachToSideAction(@NotNull Side side) {
       super(side.isLeft() ? "Left" : "Right");
       mySide = side;
     }
@@ -144,9 +162,28 @@ class FloatingToolWindow<T> implements Disposable {
     public void actionPerformed(@NotNull AnActionEvent event) {
       if (myCorrespondingToolWindow != null) {
         myToolWindow.setAvailable(false, null);
+        updateSettingsInAttachedToolWindow();
         myCorrespondingToolWindow.setLeft(mySide.isLeft());
-        myCorrespondingToolWindow.setPropertyAndUpdate(FLOATING, false);
+        myCorrespondingToolWindow.setPropertyAndUpdate(DETACHED, false);
       }
+    }
+  }
+
+  private static class DetachedAction extends ToggleAction {
+
+    private DetachedAction() {
+      super("None");
+    }
+
+    @Override
+    public boolean isSelected(@NotNull AnActionEvent event) {
+      return true;
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      // Dummy action. The tool window is always detached when using a real Intellij ToolWindow.
+      // Note that the AttachToSideAction will reset the DETACHED state.
     }
   }
 }

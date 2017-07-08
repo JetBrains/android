@@ -65,7 +65,7 @@ class AttachedToolWindow<T> implements Disposable {
   static final String LABEL_HEADER = "LABEL";
   static final String SEARCH_HEADER = "SEARCH";
 
-  enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, FLOATING}
+  enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, DETACHED, FLOATING}
 
   private final String myWorkBenchName;
   private final ToolWindowDefinition<T> myDefinition;
@@ -188,6 +188,14 @@ class AttachedToolWindow<T> implements Disposable {
     setProperty(PropertyType.FLOATING, value);
   }
 
+  public boolean isDetached() {
+    return getProperty(PropertyType.DETACHED);
+  }
+
+  public void setDetached(boolean value) {
+    setProperty(PropertyType.DETACHED, value);
+  }
+
   public boolean getProperty(@NotNull PropertyType property) {
     if (property == PropertyType.MINIMIZED && isAutoHide()) {
       return !myAutoHideOpen;
@@ -217,7 +225,8 @@ class AttachedToolWindow<T> implements Disposable {
 
   public void setDefaultProperty(@NotNull PropertyType property, boolean defaultValue) {
     if (!myPropertiesComponent.isValueSet(getPropertyName(Layout.DEFAULT, property))) {
-      setLayoutProperty(Layout.DEFAULT, property, defaultValue);
+      // Force write of all default values:
+      myPropertiesComponent.setValue(getPropertyName(Layout.DEFAULT, property), defaultValue, !defaultValue);
       setLayoutProperty(Layout.CURRENT, property, defaultValue);
     }
   }
@@ -228,6 +237,10 @@ class AttachedToolWindow<T> implements Disposable {
 
   public void setPropertyAndUpdate(@NotNull PropertyType property, boolean value) {
     setProperty(property, value);
+    if (property == PropertyType.FLOATING && value) {
+      property = PropertyType.DETACHED;
+      setProperty(property, true);
+    }
     updateContent();
     updateActions();
     myModel.update(this, property);
@@ -261,13 +274,13 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private void updateContent() {
-    if (isFloating() && myContent != null) {
+    if (isDetached() && myContent != null) {
       myPanel.removeAll();
       myContent.setToolContext(null);
       Disposer.dispose(myContent);
       myContent = null;
     }
-    else if (!isFloating() && myContent == null) {
+    else if (!isDetached() && myContent == null) {
       myContent = myDefinition.getFactory().create();
       assert myContent != null;
       myContent.setToolContext(myModel.getContext());
@@ -279,7 +292,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private void closeAutoHideWindow() {
-    if (!isFloating() && isAutoHide() && !isMinimized()) {
+    if (!isDetached() && isAutoHide() && !isMinimized()) {
       setPropertyAndUpdate(PropertyType.MINIMIZED, true);
     }
   }
@@ -383,6 +396,7 @@ class AttachedToolWindow<T> implements Disposable {
     attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
     attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
     attachedSide.add(new SwapAction());
+    attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
     group.add(attachedSide);
     ActionManager manager = ActionManager.getInstance();
     group.add(new ToggleOppositePropertyTypeAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));

@@ -176,7 +176,7 @@ public class AttachedToolWindowTest {
     assertThat(myToolWindow.isFloating()).isTrue();
     assertThat(myPropertiesComponent.getBoolean(TOOL_WINDOW_PROPERTY_PREFIX + "DESIGNER.PALETTE.FLOATING")).isTrue();
     assertThat(myToolWindow.getContent()).isNull();
-    verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
   }
 
   @Test
@@ -363,12 +363,25 @@ public class AttachedToolWindowTest {
     action.actionPerformed(createActionEvent(action));
 
     assertThat(myToolWindow.isFloating()).isTrue();
-    verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    assertThat(myToolWindow.isDetached()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
 
     action.actionPerformed(createActionEvent(action));
 
     assertThat(myToolWindow.isFloating()).isFalse();
-    verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    assertThat(myToolWindow.isDetached()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
+  }
+
+  @Test
+  public void testToggleAttachedModeFromButtonRightClick() {
+    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), "None");
+    assertThat(action).isNotNull();
+    action.actionPerformed(createActionEvent(action));
+
+    assertThat(myToolWindow.isDetached()).isTrue();
+    assertThat(myToolWindow.isFloating()).isFalse();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
   }
 
   @Test
@@ -473,12 +486,14 @@ public class AttachedToolWindowTest {
     action.actionPerformed(createActionEvent(action));
 
     assertThat(myToolWindow.isFloating()).isTrue();
-    verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    assertThat(myToolWindow.isDetached()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
 
     action.actionPerformed(createActionEvent(action));
 
     assertThat(myToolWindow.isFloating()).isFalse();
-    verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.FLOATING));
+    assertThat(myToolWindow.isDetached()).isTrue();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
   }
 
   @Test
@@ -579,6 +594,19 @@ public class AttachedToolWindowTest {
     Disposer.dispose(myToolWindow);
     myToolWindow = null;
     assertThat(panel.isDisposed()).isTrue();
+  }
+
+  @Test
+  public void testDefaultValueDoesNotOverrideActualValue() {
+    myToolWindow.setDefaultProperty(PropertyType.SPLIT, false);
+    myToolWindow.setProperty(PropertyType.SPLIT, true);
+    myToolWindow.setDefaultProperty(PropertyType.SPLIT, false);
+    assertThat(myToolWindow.getProperty(PropertyType.SPLIT)).isTrue();
+
+    myToolWindow.setDefaultProperty(PropertyType.SPLIT, true);
+    myToolWindow.setProperty(PropertyType.SPLIT, false);
+    myToolWindow.setDefaultProperty(PropertyType.SPLIT, true);
+    assertThat(myToolWindow.getProperty(PropertyType.SPLIT)).isFalse();
   }
 
   private static void fireMouseDragged(@NotNull JComponent component, @NotNull MouseEvent event) {
