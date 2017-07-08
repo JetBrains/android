@@ -44,8 +44,8 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Test that newly created Instant App projects do not have errors in them
  */
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
-@RunIn(TestGroup.UNRELIABLE)
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
