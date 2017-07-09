@@ -345,6 +345,7 @@ public final class TranslationsEditorTest {
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63507900
   @Test
   public void keyColumnWidthDoesntResetWhenAddingKey() throws IOException {
     importSimpleApplication();
