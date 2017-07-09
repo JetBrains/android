@@ -1074,13 +1074,6 @@
     <compiler.buildTargetScopeProvider implementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildTargetScopeProvider"/>
     <buildProcess.parametersProvider implementation="org.jetbrains.android.compiler.AndroidBuildProcessParametersProvider"/>
 
-    <!-- Temporarily disabled: need to display counts for files in multiple folders, and investigate bug
-         where cloned layout files do not appear etc.
-    <treeStructureProvider implementation="org.jetbrains.android.projectView.ResourceMergerTreeStructureProvider"/>
-         Also disabled; add more info, possibly icon, etc
-    <editorNotificationProvider implementation="org.jetbrains.android.projectView.ResourceQualifierSwitcher"/>
-    -->
-
     <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" id="android"/>
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <projectViewNodeDecorator id="android.module.node.decorator" implementation="com.android.tools.idea.gradle.projectView.ModuleNodeIconDecorator"/>
