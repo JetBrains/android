@@ -194,8 +194,8 @@ final class MemoryClassifierView extends AspectObserver {
     assert myColumnTree == null && myTreeModel == null && myTreeRoot == null && myTree == null;
 
     myTree = new Tree();
-    myTree.setRootVisible(false);
-    myTree.setShowsRootHandles(true);
+    myTree.setRootVisible(true);
+    myTree.setShowsRootHandles(false);
     myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
     myTree.addTreeSelectionListener(e -> {
@@ -466,6 +466,12 @@ final class MemoryClassifierView extends AspectObserver {
           setIcon(AllIcons.Debugger.ThreadSuspended);
           String threadName = node.getAdapter().getName();
           append(threadName, SimpleTextAttributes.REGULAR_ATTRIBUTES, threadName);
+        }
+        else if (node.getAdapter() instanceof HeapSet) {
+          ClassifierSet set = (ClassifierSet)node.getAdapter();
+          setIcon(set.hasStackInfo() ? ProfilerIcons.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          String name = set.getName() + " heap";
+          append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
 
         setTextAlign(SwingConstants.LEFT);

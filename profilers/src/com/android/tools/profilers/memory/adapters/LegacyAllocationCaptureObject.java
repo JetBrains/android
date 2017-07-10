@@ -23,7 +23,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -194,7 +193,7 @@ public final class LegacyAllocationCaptureObject implements CaptureObject {
   @Override
   @NotNull
   public List<ClassifierAttribute> getClassifierAttributes() {
-    return Arrays.asList(ClassifierAttribute.LABEL, ClassifierAttribute.ALLOC_COUNT);
+    return Arrays.asList(ClassifierAttribute.LABEL, ClassifierAttribute.ALLOC_COUNT, ClassifierAttribute.SHALLOW_SIZE);
   }
 
   @NotNull

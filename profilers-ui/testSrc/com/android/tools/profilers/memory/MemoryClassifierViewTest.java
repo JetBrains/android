@@ -142,6 +142,7 @@ public class MemoryClassifierViewTest {
     assertThat(reselectedClassifier).isInstanceOf(ClassSet.class);
     assertThat(((ClassSet)selectedClassifier).isSupersetOf((ClassSet)reselectedClassifier)).isTrue();
 
+    verifyNode((MemoryObjectTreeNode)root, 1, 8, 16, 33);
     MemoryObjectTreeNode<? extends ClassifierSet> comNode = findChildWithName(rootNode, "com");
     verifyNode(comNode, 2, 8, 16, 33);
     MemoryObjectTreeNode<? extends ClassifierSet> googleNode = findChildWithName(comNode, "google");
@@ -178,6 +179,9 @@ public class MemoryClassifierViewTest {
     assertThat(((MemoryObjectTreeNode)root).getChildCount()).isEqualTo(3);
     //noinspection unchecked
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+
+    // Heap node should now have 3 children, all other stats should not have changed.
+    verifyNode((MemoryObjectTreeNode)root, 3, 8, 16, 33);
 
     fooSet = findChildClassSetNodeWithClassName(rootNode, CLASS_NAME_0);
     assertThat(fooSet.getAdapter().findContainingClassifierSet(instanceFoo0)).isEqualTo(fooSet.getAdapter());
@@ -712,8 +716,7 @@ public class MemoryClassifierViewTest {
     Range selectionRange = myStage.getStudioProfilers().getTimeline().getSelectionRange();
     selectionRange.set(captureStartTime, captureStartTime + 3);
     Queue<String> expected_0_to_3 = new LinkedList<>();
-    // Note - the root (heap) node is hidden by default and we are not rendering the name.
-    expected_0_to_3.add(String.format(nodeFormat, "", 3, 1, 2, 2));
+    expected_0_to_3.add(String.format(nodeFormat, "default heap", 3, 1, 2, 2));
     expected_0_to_3.add(" " + String.format(nodeFormat, "This", 2, 1, 1, 2));
     expected_0_to_3.add("  " + String.format(nodeFormat, "Is", 1, 1, 0, 1));
     expected_0_to_3.add("   " + String.format(nodeFormat, "Foo", 1, 1, 0, 0));
@@ -727,7 +730,7 @@ public class MemoryClassifierViewTest {
     // Expand right to 6
     selectionRange.set(captureStartTime, captureStartTime + 6);
     Queue<String> expected_0_to_6 = new LinkedList<>();
-    expected_0_to_6.add(String.format(nodeFormat, "", 6, 4, 2, 2));
+    expected_0_to_6.add(String.format(nodeFormat, "default heap", 6, 4, 2, 2));
     expected_0_to_6.add(" " + String.format(nodeFormat, "This", 3, 2, 1, 2));
     expected_0_to_6.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
     expected_0_to_6.add("   " + String.format(nodeFormat, "Foo", 2, 1, 1, 0));
@@ -743,7 +746,7 @@ public class MemoryClassifierViewTest {
     // Shrink left to 3
     selectionRange.set(captureStartTime + 3, captureStartTime + 6);
     Queue<String> expected_3_to_6 = new LinkedList<>();
-    expected_3_to_6.add(String.format(nodeFormat, "", 3, 3, 0, 2));
+    expected_3_to_6.add(String.format(nodeFormat, "default heap", 3, 3, 0, 2));
     expected_3_to_6.add(" " + String.format(nodeFormat, "This", 1, 1, 0, 2));
     expected_3_to_6.add("  " + String.format(nodeFormat, "Is", 1, 0, 1, 1));
     expected_3_to_6.add("   " + String.format(nodeFormat, "Foo", 1, 0, 1, 0));
@@ -759,13 +762,13 @@ public class MemoryClassifierViewTest {
     // Shrink right to 3
     selectionRange.set(captureStartTime + 3, captureStartTime + 3);
     Queue<String> expected_3_to_3 = new LinkedList<>();
-    expected_3_to_3.add(String.format(nodeFormat, "", 0, 0, 0, 0));
+    expected_3_to_3.add(String.format(nodeFormat, "default heap", 0, 0, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_3_to_3, 0);
 
     // Shifts to {4,10}
     selectionRange.set(captureStartTime + 4, captureStartTime + 9);
     Queue<String> expected_4_to_9 = new LinkedList<>();
-    expected_4_to_9.add(String.format(nodeFormat, "", 5, 5, 0, 2));
+    expected_4_to_9.add(String.format(nodeFormat, "default heap", 5, 5, 0, 2));
     expected_4_to_9.add(" " + String.format(nodeFormat, "This", 3, 3, 0, 2));
     expected_4_to_9.add("  " + String.format(nodeFormat, "Is", 2, 1, 1, 1));
     expected_4_to_9.add("   " + String.format(nodeFormat, "Foo", 2, 1, 1, 0));

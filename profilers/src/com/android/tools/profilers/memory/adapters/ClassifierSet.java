@@ -44,7 +44,6 @@ public abstract class ClassifierSet implements MemoryObject {
   public ClassifierSet(@NotNull String name) {
     myName = name;
     myInstances = new LinkedHashSet<>(0);
-    resetDescendants();
   }
 
   @Override
@@ -230,15 +229,6 @@ public abstract class ClassifierSet implements MemoryObject {
 
     Set<InstanceObject> instances = getInstancesStream().collect(Collectors.toSet());
     return targetSet.getInstancesStream().allMatch(instances::contains);
-  }
-
-  protected void resetDescendants() {
-    myInstances.clear();
-    myClassifier = null;
-    myAllocatedCount = 0;
-    myTotalShallowSize = 0;
-    myTotalRetainedSize = 0;
-    myInstancesWithStackInfoCount = 0;
   }
 
   /**
