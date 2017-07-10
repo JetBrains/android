@@ -178,7 +178,6 @@ public class NewActivityTest {
       .enterText("my_")
       .moveBetween("classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_", "version")
       .enterText("my_")
-      .moveBetween("mavenCentral()", "")
       .open("app/src/main/java/google/simpleapplication/MainActivity.kt")
       .moveBetween("override fun onCreate", "");
 
