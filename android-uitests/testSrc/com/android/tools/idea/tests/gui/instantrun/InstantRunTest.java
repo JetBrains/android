@@ -539,8 +539,8 @@ public class InstantRunTest {
       .clickNext()
       .clickFinish();
 
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     String MAIN_LAYOUT_FILE = "app/src/main/res/layout/activity_main.xml";
     String MAIN_ACTIVITY_FILE = "app/src/main/java/com/test/project/MainActivity.java";
