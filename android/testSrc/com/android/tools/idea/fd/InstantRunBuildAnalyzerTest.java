@@ -19,6 +19,8 @@ import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunArtifactType;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
+import com.android.tools.idea.run.LaunchOptions;
+import com.android.tools.idea.run.tasks.*;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import org.junit.Before;
@@ -30,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +41,7 @@ public class InstantRunBuildAnalyzerTest {
   private GradleInstantRunContext myContext;
   private ProcessHandler mySession;
   private InstantRunBuildInfo myBuildInfo;
+  private LaunchOptions myLaunchOptions;
 
   @Before
   public void setUp() {
@@ -45,6 +49,7 @@ public class InstantRunBuildAnalyzerTest {
     myContext = mock(GradleInstantRunContext.class);
     mySession = mock(ProcessHandler.class);
     myBuildInfo = mock(InstantRunBuildInfo.class);
+    myLaunchOptions = LaunchOptions.builder().build(); // has no impact on list of tasks.
     when(myBuildInfo.isCompatibleFormat()).thenReturn(true);
     when(myContext.getInstantRunBuildInfo()).thenReturn(myBuildInfo);
   }
@@ -60,6 +65,10 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.NO_CHANGES, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    assertEquals(tasks.size(), 2);
+    assertTrue(tasks.get(0) instanceof NoChangesTask);
+    assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
   }
 
   @Test
@@ -72,6 +81,10 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.SPLITAPK, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    assertEquals(tasks.size(), 2);
+    assertTrue(tasks.get(0) instanceof SplitApkDeployTask);
+    assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
   }
 
   @Test
@@ -86,34 +99,108 @@ public class InstantRunBuildAnalyzerTest {
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.RESTART, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    assertEquals(tasks.size(), 2);
+    assertTrue(tasks.get(0) instanceof KillTask);
+    assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
   }
 
   @Test
-  public void testHotSwap() {
+  public void testHotSwapDexOnly() {
     // setup conditions
     BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
     when(myContext.getBuildSelection()).thenReturn(buildSelection);
     when(myBuildInfo.canHotswap()).thenReturn(true);
-    when(myBuildInfo.getVerifierStatus()).thenReturn("METHOD_ADDED");
     when(myBuildInfo.getBuildMode()).thenReturn("HOT_WARM");
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.RELOAD_DEX)).thenReturn(true);
 
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
     assertEquals(DeployType.HOTSWAP, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    assertEquals(tasks.size(), 2);
+    assertTrue(tasks.get(0) instanceof HotSwapTask);
+    assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
   }
 
   @Test
-  public void testWarmSwap() {
+  public void testHotSwapDexAndResourcesPreO() {
     // setup conditions
     BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
     when(myContext.getBuildSelection()).thenReturn(buildSelection);
     when(myBuildInfo.canHotswap()).thenReturn(true);
-    when(myBuildInfo.getVerifierStatus()).thenReturn("METHOD_ADDED");
     when(myBuildInfo.getBuildMode()).thenReturn("HOT_WARM");
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.RELOAD_DEX)).thenReturn(true);
+    when(myBuildInfo.hasHotSwapResources()).thenReturn(true);
+
+    // test
+    InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
+    assertEquals(DeployType.HOTSWAP, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    assertEquals(tasks.size(), 2);
+    assertTrue(tasks.get(0) instanceof HotSwapTask);
+    assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
+  }
+
+  @Test
+  public void testHotSwapDexAndResourcesOAndAbove() {
+    // setup conditions
+    BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
+    when(myContext.getBuildSelection()).thenReturn(buildSelection);
+    when(myBuildInfo.canHotswap()).thenReturn(true);
+    when(myBuildInfo.getBuildMode()).thenReturn("HOT_WARM");
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.RELOAD_DEX)).thenReturn(true);
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(true);
+
+    // test
+    InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
+    assertEquals(DeployType.HOTSWAP, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    assertEquals(tasks.size(), 4);
+    assertTrue(tasks.get(0) instanceof SplitApkDeployTask);
+    assertTrue(tasks.get(1) instanceof UpdateAppInfoTask);
+    assertTrue(tasks.get(2) instanceof HotSwapTask);
+    assertTrue(tasks.get(3) instanceof UpdateInstantRunStateTask);
+
+  }
+
+  @Test
+  public void testHotSwapResourcesOAndAbove() {
+    // setup conditions
+    BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
+    when(myContext.getBuildSelection()).thenReturn(buildSelection);
+    when(myBuildInfo.canHotswap()).thenReturn(true);
+    when(myBuildInfo.getBuildMode()).thenReturn("HOT_WARM");
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.SPLIT)).thenReturn(true);
+
+    // test
+    InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, false);
+    assertEquals(DeployType.HOTSWAP, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    assertEquals(tasks.size(), 3);
+    assertTrue(tasks.get(0) instanceof SplitApkDeployTask);
+    assertTrue(tasks.get(1) instanceof UpdateAppInfoTask);
+    assertTrue(tasks.get(2) instanceof UpdateInstantRunStateTask);
+  }
+
+
+  // Warmswap has the same list of LaunchTasks as Hot so we only test 1 case.
+  @Test
+  public void testWarmSwapDexOnly() {
+    // setup conditions
+    BuildSelection buildSelection = new BuildSelection(BuildCause.INCREMENTAL_BUILD, false);
+    when(myContext.getBuildSelection()).thenReturn(buildSelection);
+    when(myBuildInfo.canHotswap()).thenReturn(true);
+    when(myBuildInfo.getBuildMode()).thenReturn("HOT_WARM");
+    when(myBuildInfo.hasOneOf(InstantRunArtifactType.RELOAD_DEX)).thenReturn(true);
 
     // test
     InstantRunBuildAnalyzer buildAnalyzer = new InstantRunBuildAnalyzer(myProject, myContext, mySession, true);
     assertEquals(DeployType.WARMSWAP, buildAnalyzer.getDeployType());
+    List<LaunchTask> tasks = buildAnalyzer.getDeployTasks(myLaunchOptions);
+    assertEquals(tasks.size(), 2);
+    assertTrue(tasks.get(0) instanceof HotSwapTask);
+    assertTrue(tasks.get(1) instanceof UpdateInstantRunStateTask);
   }
 
   private List<InstantRunArtifact> getExampleArtifact() {
