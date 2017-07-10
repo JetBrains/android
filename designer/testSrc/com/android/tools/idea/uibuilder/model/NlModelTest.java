@@ -789,6 +789,23 @@ public class NlModelTest extends LayoutTestCase {
     LayoutlibSceneManager.updateHierarchy(oldTag, Collections.emptyList(), model);
   }
 
+  public void testModelVersion() {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model_version.xml",
+                                                           "<RelativeLayout" +
+                                                           "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                           "         android:layout_width=\"match_parent\"" +
+                                                           "         android:layout_height=\"match_parent\">" +
+                                                           "</RelativeLayout>");
+    NlModel model = SyncNlModel.create(createSurface(NlDesignSurface.class), myFixture.getProject(), myFacet, modelXml);
+
+    long expectedModificationCount = model.getModificationCount();
+    for (NlModel.ChangeType changeType : NlModel.ChangeType.values()) {
+      model.notifyModified(changeType);
+      expectedModificationCount += 1;
+      assertEquals(expectedModificationCount, model.getModificationCount());
+    }
+  }
+
   @Override
   public void tearDown() throws Exception {
     super.tearDown();
