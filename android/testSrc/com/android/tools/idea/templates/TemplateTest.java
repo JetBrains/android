@@ -46,10 +46,7 @@ import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -172,11 +169,11 @@ public class TemplateTest extends AndroidGradleTestCase {
    * The following templates parameters are not very interesting (change only one small bit of text etc). We can skip them when not running
    * in comprehensive mode.
    */
-  private static final Set<String> SKIPPABLE_PARAMETERS = new HashSet<>();
-
-  static {
-    SKIPPABLE_PARAMETERS.add("instantAppActivityRouteType");
-  }
+  private static final Set<String> SKIPPABLE_PARAMETERS = ImmutableSet.of(
+    "instantAppActivityRouteType",
+    "makeIgnore", // not exposed in UI
+    "enableProGuard" // not exposed in UI
+  );
 
   /**
    * Flags used to quickly check each template once (for one version), to get
@@ -1277,12 +1274,12 @@ public class TemplateTest extends AndroidGradleTestCase {
         buildLauncher.run();
       }
       //// Use the following commented out code to debug the generated project in case of a failure.
-      catch (Exception e) {
-        File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
-        FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
-        System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
-        throw e;
-      }
+      //catch (Exception e) {
+      //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
+      //  FileUtil.copyDir(new File(projectDir, ".."), tmpDir);
+      //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
+      //  throw e;
+      //}
       finally {
         connection.close();
       }
