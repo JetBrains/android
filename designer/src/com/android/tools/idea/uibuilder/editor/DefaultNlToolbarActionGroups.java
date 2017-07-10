@@ -27,9 +27,15 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
+
+  private static final int CONFIGURATION_UPDATE_FLAGS = ConfigurationListener.CFG_TARGET |
+                                                        ConfigurationListener.CFG_DEVICE;
+
   public DefaultNlToolbarActionGroups(@NotNull NlDesignSurface surface) {
     super(surface);
   }
@@ -45,7 +51,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(new BlueprintModeAction((NlDesignSurface)mySurface));
     group.addSeparator();
 
-    group.add(new OrientationMenuAction(mySurface::getConfiguration));
+    group.add(new OrientationMenuAction(mySurface::getConfiguration, mySurface));
     group.addSeparator();
 
     group.add(new DeviceMenuAction(mySurface::getConfiguration));
@@ -55,10 +61,25 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.addSeparator();
 
     group.add(new LocaleMenuAction(mySurface::getConfiguration));
-    group.addSeparator();
-
-    group.add(new ConfigurationMenuAction(mySurface));
+    addConfigurationListener();
     return group;
+  }
+
+  /**
+   * Add a configuration listener to update the toolbars on some config event
+   */
+  private void addConfigurationListener() {
+    Configuration configuration = mySurface.getConfiguration();
+    if (configuration != null) {
+      ConfigurationListener listener = flags -> {
+        if ((flags & CONFIGURATION_UPDATE_FLAGS) >= 0) {
+          ActionToolbarImpl.updateAllToolbarsImmediately();
+        }
+        return true;
+      };
+      configuration.addListener(listener);
+      Disposer.register(mySurface, () -> configuration.removeListener(listener));
+    }
   }
 
   @NotNull

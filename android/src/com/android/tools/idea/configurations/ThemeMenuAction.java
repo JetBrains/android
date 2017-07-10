@@ -50,6 +50,13 @@ public class ThemeMenuAction extends AnAction {
     boolean visible = configuration != null;
     if (visible) {
       String brief = getThemeLabel(configuration.getTheme(), true);
+
+      // The tests only have access to the template presentation and not the actual presentation of the
+      // ActionButtonWithText that is create for this action
+      // This is a little hack since the text displayed is taken from the a Presentation that might no be the same as template one.
+      // The order is also important. If the text is set on the template presentation after the current presentation,
+      // the button disappear (Intellij Actions magic)
+      getTemplatePresentation().setText(brief, false);
       presentation.setText(brief, false);
     }
     if (visible != presentation.isVisible()) {

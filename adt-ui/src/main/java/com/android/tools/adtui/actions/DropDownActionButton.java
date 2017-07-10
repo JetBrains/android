@@ -17,26 +17,31 @@ package com.android.tools.adtui.actions;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionHolder;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
+import com.intellij.ui.TextAccessor;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
 
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
 
 /**
- * TODO Write documention
+ * UI component for {@link DropDownAction}.
+ *
+ * It displays an ActionButton with a down arrow on the right of the text or the icon
+ * if there is no text.
  */
-public class DropDownActionButton extends ActionButtonWithText {
+public class DropDownActionButton extends ActionButtonWithText implements TextAccessor {
 
   private static final int DROP_DOWN_ICON_MARGIN_RIGHT = JBUI.scale(2);
   private static final Icon DROP_DOWN_ICON = AllIcons.General.Combo3;
   private static final int ICON_TEXT_SPACE = JBUI.scale(4);
+  private static final Border ICON_MARGIN_BORDER = BorderFactory.createEmptyBorder(0, 0, 0, DROP_DOWN_ICON.getIconWidth());
 
   private boolean myIsSelected = false;
 
@@ -44,11 +49,8 @@ public class DropDownActionButton extends ActionButtonWithText {
                               @NotNull Presentation presentation,
                               @NotNull String place) {
     super(action, presentation, place, DEFAULT_MINIMUM_BUTTON_SIZE);
-    presentation.setEnabled(true);
     setHorizontalTextAlignment(SwingConstants.CENTER);
-    setBorder(new CompoundBorder(
-      getBorder(),
-      BorderFactory.createEmptyBorder(0, 0, 0, DROP_DOWN_ICON.getIconWidth() - DROP_DOWN_ICON_MARGIN_RIGHT)));
+    setBorder(new CompoundBorder(getBorder(), ICON_MARGIN_BORDER));
   }
 
   @Override
@@ -69,13 +71,18 @@ public class DropDownActionButton extends ActionButtonWithText {
     return ICON_TEXT_SPACE;
   }
 
-  @Override
-  public Dimension getPreferredSize() {
-    return super.getPreferredSize();
-  }
-
   public void setSelected(boolean selected) {
     myIsSelected = selected;
+    repaint();
   }
 
+  @Override
+  public void setText(String text) {
+    myPresentation.setText(text);
+  }
+
+  @Override
+  public String getText() {
+    return myPresentation.getText();
+  }
 }

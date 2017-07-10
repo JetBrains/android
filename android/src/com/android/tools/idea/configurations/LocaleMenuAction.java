@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.Locale;
@@ -27,7 +28,6 @@ import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,21 +40,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class LocaleMenuAction extends FlatComboAction {
+public class LocaleMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
+    super("", "Locale in Editor", null);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Locale in Editor");
     updatePresentation(presentation);
   }
 
   @Override
-  @NotNull
-  protected DefaultActionGroup createPopupActionGroup() {
-    DefaultActionGroup group = new DefaultActionGroup(null, true);
-
+  protected boolean updateActions() {
+    removeAll();
     // TODO: Offer submenus, lazily populated, which offer languages either by code or by name.
     // However, this doesn't currently work for the JBPopup dialog we're using as part
     // of the combo action (and using the JBPopup dialog rather than a Swing menu has some
@@ -65,8 +63,8 @@ public class LocaleMenuAction extends FlatComboAction {
 
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null && !locales.isEmpty()) {
-      group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
-      group.addSeparator();
+      add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
+      addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
@@ -77,17 +75,17 @@ public class LocaleMenuAction extends FlatComboAction {
           title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true), better, configuration.getFile());
         }
 
-        group.add(new SetLocaleAction(myRenderContext, title, locale));
+        add(new SetLocaleAction(myRenderContext, title, locale));
       }
 
-      group.addSeparator();
+      addSeparator();
     }
 
-    group.add(new EditTranslationAction());
+    add(new EditTranslationAction());
 
     if (configuration != null && !hasAnyRtlLocales(configuration, locales)) {
       // The switch RtlAction is only added is there are not any RTL locales that you can use to preview the layout
-      group.add(new RtlAction(myRenderContext));
+      add(new RtlAction(myRenderContext));
     }
 
     /* TODO: Restore multi-configuration editing
@@ -103,7 +101,7 @@ public class LocaleMenuAction extends FlatComboAction {
     }
     */
 
-    return group;
+    return true;
   }
 
   /**
@@ -189,11 +187,6 @@ public class LocaleMenuAction extends FlatComboAction {
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
     }
-  }
-
-  @Override
-  protected int getMaxRows() {
-    return 10;
   }
 
   /**

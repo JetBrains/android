@@ -37,7 +37,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
     when(holder.getConfiguration()).thenReturn(configuration);
     when(configuration.getConfigurationManager()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
 
-    DefaultActionGroup actions = new DeviceMenuAction(holder).createPopupActionGroup();
+    DefaultActionGroup actions = new DeviceMenuAction(holder);
     StringBuilder sb = new StringBuilder();
     prettyPrintActions(actions, sb, 0);
     String actual = sb.toString();

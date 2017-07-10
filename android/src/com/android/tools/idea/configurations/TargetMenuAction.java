@@ -74,7 +74,9 @@ public class TargetMenuAction extends DropDownAction {
     if (visible) {
       IAndroidTarget target = configuration.getTarget();
       String brief = getRenderingTargetLabel(target, true);
-      presentation.setText(brief);
+      if (!brief.equals(presentation.getText())) {
+        presentation.setText(brief, false);
+      }
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
@@ -220,7 +222,6 @@ public class TargetMenuAction extends DropDownAction {
 
     TogglePickBestAction(ConfigurationManager manager) {
       super("Automatically Pick Best");
-
       myManager = manager;
 
       if (manager.getStateManager().getProjectState().isPickTarget()) {
@@ -248,11 +249,8 @@ public class TargetMenuAction extends DropDownAction {
 
     public SetTargetAction(@NotNull ConfigurationHolder renderContext, @NotNull final String title,
                            @NotNull final IAndroidTarget target, final boolean select) {
-      super(renderContext, title);
+      super(renderContext, title, select ? AllIcons.Actions.Checked : null);
       myTarget = target;
-      if (select) {
-        getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
-      }
     }
 
     @Override

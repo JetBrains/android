@@ -17,7 +17,9 @@ package com.android.tools.adtui.actions;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.PopupMenuListenerAdapter;
+import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,25 +28,20 @@ import javax.swing.event.PopupMenuEvent;
 import java.awt.*;
 
 /**
- * Button Action with a drop down popup and a text
+ * Button Action with a drop down popup and a text.
+ *
+ * <p> It extend {@link DefaultActionGroup} so action can be added to the popup using the {{@link #add(AnAction)}} method.
+ * <p> If a class needs to update the popup actions dynamically, it can subclass this call and override the {@link #updateActions()}
+ * method. This method will be called before opening the popup menu
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
 
-  private Icon myIcon;
-  private String myDescription;
-
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
     super(title, true);
-    myIcon = icon;
-    myDescription = description;
-  }
-
-  public DropDownAction(@Nullable String title,
-                        @Nullable String description,
-                        @Nullable Icon icon,
-                        @NotNull AnAction... actions) {
-    this(title, description, icon);
-    addAll(actions);
+    Presentation presentation = getTemplatePresentation();
+    presentation.setText(title);
+    presentation.setDescription(description);
+    presentation.setIcon(icon != null ? icon : EmptyIcon.ICON_0);
   }
 
   @Override
@@ -54,51 +51,81 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
 
   private static void showPopup(@NotNull Component invoker, @NotNull DropDownActionButton button) {
     button.setSelected(true);
-    button.getComponentPopupMenu().show(invoker, 0, invoker.getHeight());
-  }
-
-  @Override
-  public void actionPerformed(AnActionEvent eve) {
-    DropDownActionButton button = (DropDownActionButton) eve.getPresentation().getClientProperty(CustomComponentAction.CUSTOM_COMPONENT_PROPERTY);
-    if(button == null) {
-      return;
-    }
-    if(updateActions()) {
-      button.setComponentPopupMenu(createPopupMenu(button));
-    }
-    showPopup(eve.getInputEvent().getComponent(), button);
-  }
-
-  @Override
-  public JComponent createCustomComponent(Presentation presentation) {
-    DropDownActionButton button = new DropDownActionButton(this, presentation, ActionPlaces.TOOLBAR);
-    presentation.setIcon(myIcon);
-    presentation.setEnabled(true);
-    presentation.setDescription(myDescription);
-    button.setComponentPopupMenu(createPopupMenu(button));
-    return button;
-  }
-
-  @NotNull
-  private JPopupMenu createPopupMenu(@NotNull DropDownActionButton button) {
-    JPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLBAR, this).getComponent();
+    JPopupMenu menu = button.getComponentPopupMenu();
     PopupMenuListenerAdapter listener = new PopupMenuListenerAdapter() {
 
       @Override
       public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
         button.setSelected(false);
+        button.revalidate();
+        button.repaint();
+        menu.removePopupMenuListener(this);
       }
     };
-    popupMenu.addPopupMenuListener(listener);
+    menu.addPopupMenuListener(listener);
+    menu.show(invoker, 0, invoker.getHeight());
+  }
+
+  @Override
+  public void actionPerformed(@NotNull AnActionEvent eve) {
+    DropDownActionButton button =
+      (DropDownActionButton)eve.getPresentation().getClientProperty(CustomComponentAction.CUSTOM_COMPONENT_PROPERTY);
+    if (button == null) {
+      return;
+    }
+    if (updateActions()) {
+      button.setComponentPopupMenu(createPopupMenu());
+    }
+    showPopup(eve.getInputEvent().getComponent(), button);
+  }
+
+  @Override
+  @NotNull
+  public JComponent createCustomComponent(@NotNull Presentation presentation) {
+    DropDownActionButton button = new DropDownActionButton(this, presentation, ActionPlaces.TOOLBAR);
+    updateActions();
+    button.setComponentPopupMenu(createPopupMenu());
+    return button;
+  }
+
+  @NotNull
+  private JPopupMenu createPopupMenu() {
+    JPanel customPanel = createCustomComponentPopup();
+    JPopupMenu popupMenu;
+    if (customPanel != null) {
+      popupMenu = new JBPopupMenu();
+      popupMenu.add(customPanel);
+    }
+    else {
+      popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLBAR, this).getComponent();
+    }
     return popupMenu;
   }
 
+  /**
+   * Subclass should override this method to display a custom popup content.
+   * The returned JPanel will be used as the content of the popup and no other actions will be added.
+   * <p> The implementing class can have access to the action using the {@link #getChildren(AnActionEvent)} method
+   *
+   * @return The custom panel to use or null to use the default one
+   */
+  @Nullable
+  protected JPanel createCustomComponentPopup() {
+    return null;
+  }
+
+  /**
+   * If a subclass needs to update the popup menu actions dynamically, it should override this class.
+   *
+   * @return true id the actions were updated, false otherwise.
+   * <p>Returning false allows the popup previous popup instance to be reused
+   */
   protected boolean updateActions() {
     return false;
   }
 
   @Override
-  public boolean canBePerformed(DataContext context) {
+  public boolean canBePerformed(@Nullable DataContext context) {
     return true;
   }
 }

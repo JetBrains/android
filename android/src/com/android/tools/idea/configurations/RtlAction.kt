@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
 import com.android.resources.LayoutDirection
 import com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import icons.AndroidIcons
@@ -25,7 +26,7 @@ import icons.AndroidIcons
 /**
  * Action that sets the layout direction in the layout editor
  */
-class RtlAction(private val holder: ConfigurationHolder) : FlatAction() {
+class RtlAction(private val holder: ConfigurationHolder) : AnAction() {
 
   init {
     val presentation = templatePresentation
