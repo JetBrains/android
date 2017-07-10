@@ -459,7 +459,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
      */
     @VisibleForTesting
     public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
-      if (newRoot == null) {
+      if (newRoot == null || !newRoot.isValid()) {
         myModel.myComponents = Collections.emptyList();
         return;
       }
@@ -640,6 +640,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
      * otherwise adds it to the missing set.
      */
     private static void checkMissing(XmlTag tag, Set<XmlTag> remaining, List<XmlTag> missing) {
+
       boolean found = remaining.remove(tag);
       if (!found) {
         missing.add(tag);

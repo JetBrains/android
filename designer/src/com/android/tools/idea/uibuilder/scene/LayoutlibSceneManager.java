@@ -744,9 +744,11 @@ public class LayoutlibSceneManager extends SceneManager {
       updateBounds(view, 0, 0, snapshotToComponent, tagToComponent);
     }
 
-    // Finally, fix up bounds: ensure that all components not found in the view
-    // info hierarchy inherit position from parent
-    fixBounds(model.getComponents().get(0));
+    if (!rootViews.isEmpty()) {
+      // Finally, fix up bounds: ensure that all components not found in the view
+      // info hierarchy inherit position from parent
+      fixBounds(model.getComponents().get(0));
+    }
   }
 
   private static void fixBounds(@NotNull NlComponent root) {
