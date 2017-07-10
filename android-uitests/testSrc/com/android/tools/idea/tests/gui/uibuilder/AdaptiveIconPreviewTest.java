@@ -40,7 +40,8 @@ public class AdaptiveIconPreviewTest {
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
         .getLayoutPreview(true);
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
-    toolbar.chooseDensity("mdpi")
+    toolbar.requireDensity("xxxhdpi")
+      .chooseDensity("mdpi")
       .leaveConfigToolbar()
       .waitForRenderToFinish();
     // noinspection SpellCheckingInspection

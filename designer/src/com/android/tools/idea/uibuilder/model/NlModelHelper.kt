@@ -54,6 +54,8 @@ import java.util.*
  * Layout editor-specific helper methods and data for NlModel
  */
 
+const val CUSTOM_DENSITY_ID = "Custom Density"
+
 /**
  * Returns true if the current module depends on the specified library.
 
@@ -170,7 +172,7 @@ fun NlModel.overrideConfigurationDensity(density: Density) {
     deviceBuilder.setTagId(original.tagId)
   }
   deviceBuilder.setName("Custom")
-  deviceBuilder.setId("Custom Density")
+  deviceBuilder.setId(CUSTOM_DENSITY_ID)
   val device = deviceBuilder.build()
   device.allStates
       .map { it.hardware.screen }

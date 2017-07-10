@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.resources.Density;
+import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.workbench.AutoHide;
 import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
@@ -22,10 +24,7 @@ import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.DelayedInitialization;
-import com.android.tools.idea.uibuilder.model.ModelListener;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -308,6 +307,14 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
       mySurface.setModel(myModel);
       myPendingFile = new Pending(xmlFile, myModel);
+
+      // Set the default density to XXXHDPI for adaptive icon preview
+      if (myModel.getType() == NlLayoutType.ADAPTIVE_ICON) {
+        Device device = myModel.getConfiguration().getDevice();
+        if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
+          NlModelHelperKt.overrideConfigurationDensity(myModel, Density.XXXHIGH);
+        }
+      }
     }
   }
 

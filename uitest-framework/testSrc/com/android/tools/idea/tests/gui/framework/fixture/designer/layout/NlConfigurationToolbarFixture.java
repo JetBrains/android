@@ -109,6 +109,22 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   }
 
   /**
+   * Requires the device density to be the given density
+   */
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> requireDensity(@NotNull String density) {
+    Wait.seconds(1).expecting("configuration to be updated").until(() -> {
+      Configuration configuration = mySurface.getConfiguration();
+      if (configuration != null) {
+        Device device = configuration.getDevice();
+        return device != null && density.equals(device.getDefaultState().getHardware().getScreen().getPixelDensity().getResourceValue());
+      }
+      return false;
+    });
+    return this;
+  }
+
+  /**
    * Selects the shape matching the given string in the configuration toolbar's shape menu
    */
   @NotNull
