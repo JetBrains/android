@@ -473,7 +473,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private void updateProfilingState() {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.ProfilingStateRequest request = CpuProfiler.ProfilingStateRequest.newBuilder()
-      .setAppPkgName(getStudioProfilers().getProcess().getName())
+      .setProcessId(getStudioProfilers().getProcessId())
       .setSession(getStudioProfilers().getSession())
       .setTimestamp(currentTimeNs())
       .build();
