@@ -704,7 +704,7 @@ public class InteractionManager {
           return;
         }
         NlModel model = sceneView.getModel();
-        DnDTransferItem item = NlModel.getTransferItem(event.getTransferable(), true /* allow placeholders */);
+        DnDTransferItem item = DnDTransferItem.getTransferItem(event.getTransferable(), true /* allow placeholders */);
         if (item == null) {
           event.reject();
           return;
@@ -801,7 +801,7 @@ public class InteractionManager {
       if (transferable == null) {
         return null;
       }
-      DnDTransferItem item = NlModel.getTransferItem(transferable, false /* no placeholders */);
+      DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, false /* no placeholders */);
       if (item == null) {
         return null;
       }

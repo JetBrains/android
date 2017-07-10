@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.dnd.DropTargetDropEvent;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +57,7 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull Collection<NlComponent> deleted) {
     return myHandler.deleteChildren(parent, deleted);
   }
 

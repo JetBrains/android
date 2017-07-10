@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.dnd.DropTargetDropEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -98,8 +99,7 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
    * designer.
    */
-  @SuppressWarnings("SameReturnValue")
-  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull Collection<NlComponent> deleted) {
     return false;
   }
 

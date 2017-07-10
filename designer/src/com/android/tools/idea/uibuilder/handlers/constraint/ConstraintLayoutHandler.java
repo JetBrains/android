@@ -1028,7 +1028,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * designer.
    */
   @Override
-  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull Collection<NlComponent> deleted) {
     final int count = parent.getChildCount();
     for (int i = 0; i < count; i++) {
       NlComponent component = parent.getChild(i);
@@ -1046,7 +1046,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * @param component the component we want to check
    * @param deleted   the list of components that are deleted
    */
-  private static void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
+  private static void willDelete(NlComponent component, @NotNull Collection<NlComponent> deleted) {
     for (NlComponent deletedComponent : deleted) {
       String id = deletedComponent.getId();
       ConstraintComponentUtilities.updateOnDelete(component, id);

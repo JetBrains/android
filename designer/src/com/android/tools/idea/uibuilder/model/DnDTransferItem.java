@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.idea.uibuilder.surface.InteractionManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.InvalidDnDOperationException;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,6 +52,33 @@ public class DnDTransferItem {
     myFromPalette = fromPalette;
     myModelId = modelId;
     myComponents = components;
+  }
+
+  @Nullable
+  public static DnDTransferItem getTransferItem(@NotNull Transferable transferable, boolean allowPlaceholder) {
+    DnDTransferItem item = null;
+    try {
+      if (transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
+        item = (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+      }
+      else if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
+        if (!StringUtil.isEmpty(xml)) {
+          item = new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
+        }
+      }
+    }
+    catch (InvalidDnDOperationException ex) {
+      if (!allowPlaceholder) {
+        return null;
+      }
+      String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
+      item = new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
+    }
+    catch (IOException | UnsupportedFlavorException ex) {
+      Logger.getInstance(DnDTransferItem.class).warn(ex);
+    }
+    return item;
   }
 
   public boolean isFromPalette() {
