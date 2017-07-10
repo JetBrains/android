@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,31 @@
 package com.android.tools.idea.ui.properties.swing;
 
 import com.android.tools.idea.ui.properties.CountListener;
-import com.intellij.openapi.util.EmptyRunnable;
 import org.junit.Test;
 
 import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public final class VisiblePropertyTest {
+public final class SelectedPropertyTest {
   @Test
-  public void testVisibleProperty() throws Exception {
-    JLabel label = new JLabel();
-    VisibleProperty visibleProperty = new VisibleProperty(label);
-    CountListener listener = new CountListener();
-    visibleProperty.addListener(listener);
+  public void testSelectedProperty() {
+    JCheckBox checkbox = new JCheckBox();
+    checkbox.setSelected(true);
 
-    assertThat(visibleProperty.get()).isTrue();
+    SelectedProperty selectedProperty = new SelectedProperty(checkbox);
+    CountListener listener = new CountListener();
+    selectedProperty.addListener(listener);
+
+    assertThat(selectedProperty.get()).isTrue();
     assertThat(listener.getCount()).isEqualTo(0);
 
-    label.setVisible(false);
-    // Swing enqueues the visibility changed event, so we need to wait for it
-    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
-    assertThat(visibleProperty.get()).isFalse();
+    checkbox.setSelected(false);
+    assertThat(selectedProperty.get()).isFalse();
     assertThat(listener.getCount()).isEqualTo(1);
 
-    visibleProperty.set(true);
-    assertThat(label.isVisible()).isTrue();
-    assertThat(listener.getCount()).isGreaterThan(1);
+    selectedProperty.set(true);
+    assertThat(checkbox.isSelected()).isTrue();
+    assertThat(listener.getCount()).isEqualTo(2);
   }
 }

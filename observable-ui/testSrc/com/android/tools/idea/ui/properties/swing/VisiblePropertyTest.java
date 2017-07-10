@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,32 @@
 package com.android.tools.idea.ui.properties.swing;
 
 import com.android.tools.idea.ui.properties.CountListener;
+import com.intellij.openapi.util.EmptyRunnable;
 import org.junit.Test;
 
 import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class SliderValuePropertyTest {
+public final class VisiblePropertyTest {
   @Test
-  public void testSliderValueProperty() throws Exception {
-    JSlider slider = new JSlider(0, 100, 50);
-    SliderValueProperty sliderValue = new SliderValueProperty(slider);
+  public void testVisibleProperty() throws Exception {
+    JLabel label = new JLabel();
+    VisibleProperty visibleProperty = new VisibleProperty(label);
     CountListener listener = new CountListener();
-    sliderValue.addListener(listener);
+    visibleProperty.addListener(listener);
 
-    assertThat(sliderValue.get()).isEqualTo(50);
+    assertThat(visibleProperty.get()).isTrue();
     assertThat(listener.getCount()).isEqualTo(0);
 
-    slider.setValue(90);
-    assertThat(sliderValue.get()).isEqualTo(90);
+    label.setVisible(false);
+    // Swing enqueues the visibility changed event, so we need to wait for it
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
+    assertThat(visibleProperty.get()).isFalse();
     assertThat(listener.getCount()).isEqualTo(1);
 
-    sliderValue.set(10);
-    assertThat(slider.getValue()).isEqualTo(10);
-    assertThat(listener.getCount()).isEqualTo(2);
+    visibleProperty.set(true);
+    assertThat(label.isVisible()).isTrue();
+    assertThat(listener.getCount()).isGreaterThan(1);
   }
 }
