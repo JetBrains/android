@@ -46,7 +46,8 @@ data class AnnotatedCallPath(
 )
 
 /** Returns a collection of call paths that violate thread annotations found in source code. */
-fun searchForInterproceduralThreadAnnotationViolations(callGraph: CallGraph): Collection<AnnotatedCallPath> {
+fun searchForInterproceduralThreadAnnotationViolations(callGraph: CallGraph,
+                                                       nonContextualReceiverEval: CallReceiverEvaluator): Collection<AnnotatedCallPath> {
   fun PsiModifierListOwner.isAnnotatedWith(annotation: String) =
       AnnotationUtil.isAnnotated(this, annotation, /*inHierarchy*/ true, /*skipExternal*/ false)
 
@@ -60,12 +61,9 @@ fun searchForInterproceduralThreadAnnotationViolations(callGraph: CallGraph): Co
 
   val uiNodes = callGraph.nodesAnnotatedWith(UI_THREAD_ANNOTATION)
   val workerNodes = callGraph.nodesAnnotatedWith(WORKER_THREAD_ANNOTATION)
-  fun getNeighbors(node: CallGraph.Node) =
-      node.edges.filter { it.isLikely || it.kind == CallGraph.Edge.Kind.NON_UNIQUE_BASE }.map { it.node }
-
-  val uiPaths = searchForPaths(uiNodes, workerNodes, ::getNeighbors)
+  val uiPaths = callGraph.searchForPaths(uiNodes, workerNodes, nonContextualReceiverEval)
       .map { AnnotatedCallPath(it, UI_THREAD_ANNOTATION, WORKER_THREAD_ANNOTATION) }
-  val workerPaths = searchForPaths(workerNodes, uiNodes, ::getNeighbors)
+  val workerPaths = callGraph.searchForPaths(workerNodes, uiNodes, nonContextualReceiverEval)
       .map { AnnotatedCallPath(it, WORKER_THREAD_ANNOTATION, UI_THREAD_ANNOTATION) }
   return uiPaths + workerPaths
 }
@@ -104,8 +102,9 @@ class AndroidLintInterproceduralThreadAnnotationInspection : AndroidLintInspecti
     InterproceduralThreadAnnotationDetector.ISSUE)
 
 class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner {
-  private var callGraphVisitor: CallGraphVisitor = CallGraphVisitor()
-  private var fileContexts = HashMap<UFile, JavaContext>()
+  private val nonContextualReceiverEval = IntraproceduralReceiverVisitor()
+  private val callGraphVisitor: CallGraphVisitor = CallGraphVisitor(nonContextualReceiverEval)
+  private val fileContexts = HashMap<UFile, JavaContext>()
 
   override fun getApplicableUastTypes() = listOf(UFile::class.java)
 
@@ -118,11 +117,14 @@ class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner
 
   override fun createUastHandler(context: JavaContext): UElementHandler =
       object : UElementHandler() {
-        override fun visitFile(uFile: UFile) = uFile.accept(callGraphVisitor)
+        override fun visitFile(uFile: UFile) {
+          uFile.accept(nonContextualReceiverEval)
+          uFile.accept(callGraphVisitor)
+        }
       }
 
   override fun afterCheckProject(context: Context) {
-    val badPaths = searchForInterproceduralThreadAnnotationViolations(callGraphVisitor.callGraph)
+    val badPaths = searchForInterproceduralThreadAnnotationViolations(callGraphVisitor.callGraph, nonContextualReceiverEval)
     for ((nodes, sourceAnnotation, sinkAnnotation) in badPaths) {
       val (first, second) = nodes
       val firstEdge = first.findEdge(second) ?: throw Error("Missing edge in call path")

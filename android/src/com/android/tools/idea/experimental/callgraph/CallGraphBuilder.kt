@@ -30,50 +30,48 @@ import com.intellij.psi.search.searches.OverridingMethodsSearch
 import org.jetbrains.uast.*
 import org.jetbrains.uast.util.isConstructorCall
 import org.jetbrains.uast.visitor.AbstractUastVisitor
-import org.jetbrains.uast.visitor.UastVisitor
-import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance("#com.android.tools.idea.experimental.callgraph.CallGraphBuilder")
 
 // TODO: Handle unexpected conditions differently.
 fun Logger.debugError(msg: String) = if (ApplicationManager.getApplication().isUnitTestMode) error(msg) else warn(msg)
 
-val defaultCallGraphEdges = Edge.Kind.values().filter { it.isLikely || it == NON_UNIQUE_BASE }.toTypedArray()
+val defaultCallGraphEdges = Edge.Kind.values().filter { it.isLikely || it == BASE }.toTypedArray()
 
-fun buildCallGraph(project: Project, scope: AnalysisScope, vararg edgeKinds: Edge.Kind = defaultCallGraphEdges): CallGraph {
+fun buildUFiles(project: Project, scope: AnalysisScope): Collection<UFile> {
+  val res = ArrayList<UFile>()
   val uastContext = ServiceManager.getService(project, UastContext::class.java)
-  val callGraphVisitor = CallGraphVisitor(*edgeKinds)
-  fun visitAll(visitor: UastVisitor) = scope.accept { virtualFile ->
+  scope.accept { virtualFile ->
     if (!uastContext.isFileSupported(virtualFile.name)) return@accept true
     val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@accept true
     val file = uastContext.convertWithParent<UFile>(psiFile) ?: return@accept true
-    LOG.info("Adding ${psiFile.name} to call graph")
-    file.accept(visitor)
-    true
+    res.add(file)
   }
-  val time = measureTimeMillis {
-    visitAll(callGraphVisitor)
-  }
-  LOG.info("Call graph built in ${time}ms")
+  return res
+}
+
+fun buildIntraproceduralReceiverEval(files: Collection<UFile>): CallReceiverEvaluator {
+  val receiverEval = IntraproceduralReceiverVisitor()
+  files.forEach { it.accept(receiverEval) }
+  return receiverEval
+}
+
+fun buildCallGraph(files: Collection<UFile>, receiverEval: CallReceiverEvaluator,
+                   vararg edgeKinds: Edge.Kind = defaultCallGraphEdges): CallGraph {
+  val callGraphVisitor = CallGraphVisitor(receiverEval, *edgeKinds)
+  files.forEach { it.accept(callGraphVisitor) }
   LOG.info("${callGraphVisitor.callGraph}")
   return callGraphVisitor.callGraph
 }
 
-class CallGraphVisitor(private vararg val edgeKinds: Edge.Kind = defaultCallGraphEdges) : AbstractUastVisitor() {
-  private val typeEvaluator = StandardTypeEvaluator()
-  private val targetEvaluator = CallTargetVisitor()
+class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
+                       private vararg val edgeKinds: Edge.Kind = defaultCallGraphEdges) : AbstractUastVisitor() {
   private val mutableCallGraph: MutableCallGraph = MutableCallGraph()
   val callGraph: CallGraph get() = mutableCallGraph
 
-  override fun visitFile(node: UFile): Boolean {
-    node.accept(typeEvaluator)
-    node.accept(targetEvaluator)
-    return super.visitFile(node)
-  }
-
   override fun visitClass(node: UClass): Boolean {
     // Check for an implicit call to a super constructor.
-    val superClass = node.getSuperClass()
+    val superClass = node.superClass
     if (superClass != null) {
       val constructors = node.constructors()
       val thoseWithoutExplicitSuper = constructors.filter {
@@ -141,24 +139,26 @@ class CallGraphVisitor(private vararg val edgeKinds: Edge.Kind = defaultCallGrap
       return earlyReturn()
     }
 
+    // Always add the base method.
+    addEdge(baseCallee, BASE)
+
     // TODO: Searching for overriding methods can be slow; may need to add caching or pre-computation.
     val overrides = OverridingMethodsSearch.search(baseCallee).findAll().map { it.toUElement() as? UMethod }.filterNotNull()
 
     // Create an edge based on the type of call.
-    val cannotOverride = !canBeOverriden(baseCallee)
+    val cannotOverride = !baseCallee.canBeOverriden()
     val throughSuper = node.receiver is USuperExpression
-    val isFunctionalCall = baseCallee.psi == LambdaUtil.getFunctionalInterfaceMethod(node.receiver?.getExpressionType())
+    val isFunctionalCall = baseCallee.psi == LambdaUtil.getFunctionalInterfaceMethod(node.receiverType)
     val uniqueBase = overrides.isEmpty() && !isFunctionalCall
-    val uniqueOverride = !isCallable(baseCallee) && overrides.size == 1 && !isFunctionalCall
+    val uniqueOverride = !baseCallee.isCallable() && overrides.size == 1 && !isFunctionalCall
     when {
       cannotOverride || throughSuper -> addEdge(baseCallee, DIRECT)
       uniqueBase -> addEdge(baseCallee, UNIQUE)
       uniqueOverride -> addEdge(overrides.first(), UNIQUE)
       else -> {
         // Use static analyses to try to indicate which overriding methods are likely targets.
-        val evidencedTargets = targetEvaluator[node].map { it.element }
+        val evidencedTargets = node.getTargets(receiverEval).map { it.element }
         evidencedTargets.forEach { addEdge(it, TYPE_EVIDENCED) }
-        if (baseCallee !in evidencedTargets) addEdge(baseCallee, NON_UNIQUE_BASE)
         overrides.filter { it !in evidencedTargets }.forEach { addEdge(it, NON_UNIQUE_OVERRIDE) }
       }
     }
@@ -166,23 +166,23 @@ class CallGraphVisitor(private vararg val edgeKinds: Edge.Kind = defaultCallGrap
     return super.visitCallExpression(node)
   }
 
-  private fun UClass.constructors() = getMethods().filter { it.isConstructor() }
+  private fun UClass.constructors() = methods.filter { it.isConstructor }
 
-  // TODO: Update for Kotlin, and turn into function with receiver when inspection bugs are fixed.
-  private fun isCallable(method: UMethod) = when {
-    method.hasModifierProperty(PsiModifier.ABSTRACT) -> false
-    method.getContainingClass()?.isInterface() == true -> method.hasModifierProperty(PsiModifier.DEFAULT)
+  // TODO: Verify functionality for Kotlin.
+  private fun UMethod.isCallable() = when {
+    hasModifierProperty(PsiModifier.ABSTRACT) -> false
+    containingClass?.isInterface == true -> hasModifierProperty(PsiModifier.DEFAULT)
     else -> true
   }
 
-  // TODO: Update for Kotlin, and turn into function with receiver when inspection bugs are fixed.
-  private fun canBeOverriden(method: UMethod): Boolean {
-    val parentClass = method.getContainingClass()
+  // TODO: Verify functionality for Kotlin.
+  private fun UMethod.canBeOverriden(): Boolean {
+    val parentClass = containingClass
     return parentClass != null
-        && !method.isConstructor()
-        && !method.hasModifierProperty(PsiModifier.STATIC)
-        && !method.hasModifierProperty(PsiModifier.FINAL)
-        && !method.hasModifierProperty(PsiModifier.PRIVATE)
+        && !isConstructor
+        && !hasModifierProperty(PsiModifier.STATIC)
+        && !hasModifierProperty(PsiModifier.FINAL)
+        && !hasModifierProperty(PsiModifier.PRIVATE)
         && parentClass !is PsiAnonymousClass
         && !parentClass.hasModifierProperty(PsiModifier.FINAL)
   }

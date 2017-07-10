@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.callgraph
 
-import com.android.tools.idea.experimental.callgraph.CallGraph
-import com.android.tools.idea.experimental.callgraph.buildCallGraph
-import com.android.tools.idea.experimental.callgraph.searchForPaths
+import com.android.tools.idea.experimental.callgraph.*
 import com.intellij.analysis.AnalysisScope
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
 import junit.framework.TestCase
@@ -31,7 +29,9 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
 
   private fun doTest(file: String) {
     myFixture.copyFileToProject(file)
-    val graph = buildCallGraph(project, AnalysisScope(project))
+    val files = buildUFiles(project, AnalysisScope(project))
+    val receiverEval = buildIntraproceduralReceiverEval(files)
+    val graph = buildCallGraph(files, receiverEval)
     val nodeMap = graph.nodes.associateBy({ it.shortName })
 
     fun String.assertCalls(vararg callees: String) {
@@ -43,12 +43,11 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     fun String.findPath(callee: String): List<String>? {
       val source = nodeMap.getValue(this)
       val sink = nodeMap.getValue(callee)
-      fun getNeighbors(node: CallGraph.Node) = node.likelyEdges.map { it.node }
-      return searchForPaths(listOf(source), listOf(sink), ::getNeighbors).firstOrNull()?.map { it.shortName }
+      return graph.searchForPaths(listOf(source), listOf(sink), receiverEval).firstOrNull()?.map { it.shortName }
     }
 
-    fun String.assertReaches(callee: String) = TestCase.assertNotNull("${this} does not reach ${callee}", this.findPath(callee))
-    fun String.assertDoesNotReach(callee: String) = TestCase.assertNull("${this} reaches ${callee}", this.findPath(callee))
+    fun String.assertReaches(callee: String) = TestCase.assertNotNull("${this} should reach ${callee}", this.findPath(callee))
+    fun String.assertDoesNotReach(callee: String) = TestCase.assertNull("${this} should not reach ${callee}", this.findPath(callee))
 
     // Check simple call chains.
     "Trivial#empty".assertCalls(/*nothing*/)
@@ -93,5 +92,35 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     "Lambdas#g".assertCalls("Lambdas#f")
     "Lambdas#h".assertCalls("Lambdas#h#lambda")
     "Lambdas#h#lambda".assertCalls("Lambdas#f", "Lambdas#g")
+
+    // Test contextual call paths relying on single argument.
+    "Contextual#a".assertReaches("Contextual#f")
+    "Contextual#a".assertDoesNotReach("Contextual#g")
+    "Contextual#b".assertReaches("Contextual#g")
+    "Contextual#b".assertDoesNotReach("Contextual#f")
+    "Contextual#run".assertReaches("Contextual#f")
+    "Contextual#run".assertReaches("Contextual#g")
+
+    // Test contextual call paths relying on multiple arguments.
+    "Contextual#multiArgA".assertReaches("Contextual#f")
+    "Contextual#multiArgA".assertReaches("MultiArgA#run")
+    "Contextual#multiArgA".assertDoesNotReach("Contextual#g")
+    "Contextual#multiArgA".assertDoesNotReach("MultiArgB#run")
+    "MultiArgA#run".assertReaches("Contextual#f")
+    "MultiArgA#run".assertDoesNotReach("Contextual#g")
+
+    // Test contextual call paths also relying on implicit `this`.
+    "Contextual#implicitThisA".assertReaches("Contextual#f")
+    "Contextual#implicitThisA".assertReaches("ImplicitThisA#myRun")
+    "Contextual#implicitThisA".assertDoesNotReach("Contextual#g")
+    "Contextual#implicitThisA".assertDoesNotReach("ImplicitThisB#myRun")
+    "ImplicitThisA#myRun".assertReaches("Contextual#f")
+    "ImplicitThisA#myRun".assertDoesNotReach("Contextual#g")
+
+    // Test long contextual paths.
+    "Contextual#c".assertReaches("Contextual#f")
+    "Contextual#c".assertReaches("Contextual#run")
+    "Contextual#run3".assertReaches("Contextual#c#lambda")
+    "Contextual#run3".assertDoesNotReach("Contextual#g")
   }
 }
