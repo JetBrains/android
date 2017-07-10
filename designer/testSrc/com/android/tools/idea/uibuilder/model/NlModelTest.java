@@ -18,22 +18,26 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -770,6 +774,19 @@ public class NlModelTest extends LayoutTestCase {
     model.deactivate(sourceA);
     verify(listener1).modelDeactivated(any());
     verifyNoMoreInteractions(listener1);
+  }
+
+  public void testInvalidTag() {
+    // Regression test for b/37324684
+    ModelBuilder modelBuilder = createDefaultModelBuilder(false);
+    SyncNlModel model = modelBuilder.build();
+    SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
+    XmlFile file = model.getFile();
+    XmlTag oldTag = file.getRootTag();
+
+    // Force tag invalidation by deleting it
+    WriteCommandAction.runWriteCommandAction(getProject(), oldTag::delete);
+    LayoutlibSceneManager.updateHierarchy(oldTag, Collections.emptyList(), model);
   }
 
   @Override
