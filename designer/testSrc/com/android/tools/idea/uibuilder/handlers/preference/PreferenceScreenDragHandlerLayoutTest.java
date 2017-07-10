@@ -25,10 +25,10 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.util.XmlTagUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -45,7 +45,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
 
     NlComponent screen = model.getComponents().get(0);
     List<NlComponent> actualCategoryChildren = screen.getChildren().get(1).getChildren();
-    NlComponent preference = model.createComponent(NlModel.createTag(myModule.getProject(), "<CheckBoxPreference />"));
+    NlComponent preference = model.createComponent(XmlTagUtil.createTag(myModule.getProject(), "<CheckBoxPreference />"));
 
     List<NlComponent> expectedCategoryChildren = Arrays.asList(
       actualCategoryChildren.get(0),

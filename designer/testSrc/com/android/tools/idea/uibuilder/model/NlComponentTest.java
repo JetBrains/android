@@ -47,7 +47,7 @@ public final class NlComponentTest extends AndroidTestCase {
     return result;
   }
 
-  private static XmlTag createTag(String tagName) {
+  static XmlTag createTag(String tagName) {
     XmlTag tag = mock(XmlTag.class);
     when(tag.getName()).thenReturn(tagName);
 

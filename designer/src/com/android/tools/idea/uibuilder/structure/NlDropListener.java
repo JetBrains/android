@@ -195,7 +195,7 @@ public class NlDropListener extends DropTargetAdapter {
       performNormalDrop(event, insertType, model);
     }
     else if (!myDragReceiver.isRoot()
-             && !NlModel.isDescendant(myDragReceiver, myDragged)
+             && !NlComponentUtil.isDescendant(myDragReceiver, myDragged)
              && NlComponentHelperKt.isMorphableToViewGroup(myDragReceiver)) {
       morphReceiverIntoViewGroup(model);
       performNormalDrop(event, insertType, model);

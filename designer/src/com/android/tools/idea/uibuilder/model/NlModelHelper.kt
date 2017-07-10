@@ -36,7 +36,7 @@ import com.android.tools.idea.uibuilder.editor.NlEditor
 import com.android.tools.idea.uibuilder.editor.NlEditorProvider
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.model.NlModel.createTag
+import com.android.tools.idea.uibuilder.util.XmlTagUtil.createTag
 import com.android.tools.idea.uibuilder.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneView
 import com.google.common.collect.ImmutableList
@@ -328,7 +328,7 @@ fun NlModel.handleAddition(added: List<NlComponent>, receiver: NlComponent, inse
 }
 
 object NlModelHelper {
-  fun handleDeletion(parent: NlComponent, children: List<NlComponent>): Boolean {
+  fun handleDeletion(parent: NlComponent, children: Collection<NlComponent>): Boolean {
     if (parent.hasNlComponentInfo) {
       val viewHandlerManager = ViewHandlerManager.get(parent.model.facet)
 

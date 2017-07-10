@@ -16,15 +16,15 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.NlComponentUtil;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Select all siblings of the selected components
@@ -47,7 +47,7 @@ public class SelectSiblingsAction extends AnAction {
     if (myModel.isEmpty()) {
       return;
     }
-    Map<NlComponent, List<NlComponent>> map = NlModel.groupSiblings(myModel.getSelection());
+    Multimap<NlComponent, NlComponent> map = NlComponentUtil.groupSiblings(myModel.getSelection());
 
     List<NlComponent> allSiblings = Lists.newArrayList();
     for (NlComponent parent : map.keySet()) {

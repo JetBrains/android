@@ -34,38 +34,29 @@ import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
-import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.InvalidDnDOperationException;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -76,7 +67,6 @@ import static com.android.SdkConstants.*;
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
-  private static final Logger LOG = Logger.getInstance(NlModel.class);
   private static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
@@ -820,16 +810,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private void handleDeletion(@NotNull Collection<NlComponent> components) {
     // Segment the deleted components into lists of siblings
-    Map<NlComponent, List<NlComponent>> siblingLists = groupSiblings(components);
+    Multimap<NlComponent, NlComponent> siblingLists = NlComponentUtil.groupSiblings(components);
 
     // Notify parent components about children getting deleted
-    for (Map.Entry<NlComponent, List<NlComponent>> entry : siblingLists.entrySet()) {
-      NlComponent parent = entry.getKey();
+    for (NlComponent parent : siblingLists.keySet()) {
       if (parent == null) {
         continue;
       }
-      List<NlComponent> children = entry.getValue();
 
+      Collection<NlComponent> children = siblingLists.get(parent);
       if (!NlModelHelper.INSTANCE.handleDeletion(parent, children)) {
         for (NlComponent component : children) {
           NlComponent p = component.getParent();
@@ -840,42 +829,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
       }
     }
-  }
-
-  /**
-   * Partitions the given list of components into a map where each value is a list of siblings,
-   * in the same order as in the original list, and where the keys are the parents (or null
-   * for the components that do not have a parent).
-   * <p/>
-   * The value lists will never be empty. The parent key will be null for components without parents.
-   *
-   * @param components the components to be grouped
-   * @return a map from parents (or null) to a list of components with the corresponding parent
-   */
-  @NotNull
-  public static Map<NlComponent, List<NlComponent>> groupSiblings(@NotNull Collection<? extends NlComponent> components) {
-    Map<NlComponent, List<NlComponent>> siblingLists = new HashMap<>();
-
-    if (components.isEmpty()) {
-      return siblingLists;
-    }
-    if (components.size() == 1) {
-      NlComponent component = components.iterator().next();
-      siblingLists.put(component.getParent(), Collections.singletonList(component));
-      return siblingLists;
-    }
-
-    for (NlComponent component : components) {
-      NlComponent parent = component.getParent();
-      List<NlComponent> children = siblingLists.get(parent);
-      if (children == null) {
-        children = new ArrayList<>();
-        siblingLists.put(parent, children);
-      }
-      children.add(component);
-    }
-
-    return siblingLists;
   }
 
   /**
@@ -1129,71 +1082,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  @Nullable
-  public static DnDTransferItem getTransferItem(@NotNull Transferable transferable, boolean allowPlaceholder) {
-    DnDTransferItem item = null;
-    try {
-      if (transferable.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) {
-        item = (DnDTransferItem)transferable.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
-      }
-      else if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-        String xml = (String)transferable.getTransferData(DataFlavor.stringFlavor);
-        if (!StringUtil.isEmpty(xml)) {
-          item = new DnDTransferItem(new DnDTransferComponent("", xml, 200, 100));
-        }
-      }
-    }
-    catch (InvalidDnDOperationException ex) {
-      if (!allowPlaceholder) {
-        return null;
-      }
-      String defaultXml = "<placeholder xmlns:android=\"http://schemas.android.com/apk/res/android\"/>";
-      item = new DnDTransferItem(new DnDTransferComponent("", defaultXml, 200, 100));
-    }
-    catch (IOException | UnsupportedFlavorException ex) {
-      LOG.warn(ex);
-    }
-    return item;
-  }
-
-  @NotNull
-  @VisibleForTesting
-  public static XmlTag createTag(@NotNull Project project, @NotNull String text) {
-    XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
-    XmlTag tag = null;
-    if (XmlUtils.parseDocumentSilently(text, false) != null) {
-      try {
-        tag = elementFactory.createTagFromText(text);
-
-        setNamespaceUri(tag, ANDROID_NS_NAME, ANDROID_URI);
-        setNamespaceUri(tag, APP_PREFIX, AUTO_URI);
-      }
-      catch (IncorrectOperationException ignore) {
-        // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
-        // to drop something like plain text -- insert this as a text view instead.
-        // However, createTagFromText may not always throw this for invalid XML, so we perform the above parseDocument
-        // check first instead.
-      }
-    }
-    if (tag == null) {
-      tag = elementFactory.createTagFromText("<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
-                                             " android:text=\"" + XmlUtils.toXmlAttributeValue(text) + "\"" +
-                                             " android:layout_width=\"wrap_content\"" +
-                                             " android:layout_height=\"wrap_content\"" +
-                                             "/>");
-    }
-    return tag;
-  }
-
-  private static void setNamespaceUri(@NotNull XmlTag tag, @NotNull String prefix, @NotNull String uri) {
-    boolean anyMatch = Arrays.stream(tag.getAttributes())
-      .anyMatch(attribute -> attribute.getNamespacePrefix().equals(prefix));
-
-    if (anyMatch) {
-      tag.setAttribute("xmlns:" + prefix, uri);
-    }
-  }
-
   @NotNull
   public InsertType determineInsertType(@NotNull DragType dragType, @Nullable DnDTransferItem item, boolean asPreview) {
     if (item != null && item.isFromPalette()) {
@@ -1210,24 +1098,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       default:
         return InsertType.PASTE;
     }
-  }
-
-  /**
-   * Check if the provided potential descendant component has an ancestor in the list
-   *
-   * @return true if potentialAncestor element have potentialDescendant as child or grand-child
-   */
-  public static boolean isDescendant(@NotNull NlComponent potentialAncestor, @NotNull List<NlComponent> potentialDescendant) {
-    NlComponent same = potentialAncestor;
-    for (NlComponent component : potentialDescendant) {
-      while (same != null) {
-        if (same == component) {
-          return true;
-        }
-        same = same.getParent();
-      }
-    }
-    return false;
   }
 
   @Override

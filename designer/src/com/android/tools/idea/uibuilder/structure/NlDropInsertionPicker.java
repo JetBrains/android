@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.structure;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlComponentUtil;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -198,7 +199,7 @@ class NlDropInsertionPicker {
   protected boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver, @NotNull List<NlComponent> dragged) {
     return model.canAddComponents(dragged, receiver, receiver.getChild(0))
            || (NlComponentHelperKt.isMorphableToViewGroup(receiver)
-               && !NlModel.isDescendant(receiver, dragged));
+               && !NlComponentUtil.isDescendant(receiver, dragged));
   }
 
   private boolean canSelectLowerDepth(int row, int relativeDepth) {

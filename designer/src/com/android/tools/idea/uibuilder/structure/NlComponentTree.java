@@ -700,7 +700,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     if (transferable == null) {
       return;
     }
-    DnDTransferItem item = NlModel.getTransferItem(transferable, true /* allow placeholders */);
+    DnDTransferItem item = DnDTransferItem.getTransferItem(transferable, true /* allow placeholders */);
     if (item == null) {
       return;
     }
