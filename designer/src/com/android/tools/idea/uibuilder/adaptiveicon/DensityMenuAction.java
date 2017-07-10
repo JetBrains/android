@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.adaptiveicon;
 
 import com.android.resources.Density;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.configurations.FlatComboAction;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -26,15 +27,16 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 
-public class DensityMenuAction extends FlatComboAction {
+public class DensityMenuAction extends DropDownAction {
   private static final Density[] DENSITIES = new Density[] {Density.MEDIUM, Density.HIGH, Density.XHIGH, Density.XXHIGH, Density.XXXHIGH};
   private final NlModel myModel;
 
   public DensityMenuAction(@NotNull NlModel model) {
+    super("", "Device Screen Density", null);
     myModel = model;
-    Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Device Screen Density");
-    presentation.setIcon(EmptyIcon.ICON_0);
+    for (Density density : DENSITIES) {
+      add(new SetDensityAction(myModel, density));
+    }
   }
 
   @Override
@@ -47,16 +49,6 @@ public class DensityMenuAction extends FlatComboAction {
         break;
       }
     }
-  }
-
-  @NotNull
-  @Override
-  protected DefaultActionGroup createPopupActionGroup() {
-    DefaultActionGroup group = new DefaultActionGroup(null, true);
-    for (Density density : DENSITIES) {
-      group.add(new SetDensityAction(myModel, density));
-    }
-    return group;
   }
 
   private static class SetDensityAction extends AnAction {

@@ -21,6 +21,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
@@ -42,15 +43,14 @@ import java.util.*;
 
 import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 
-public class DeviceMenuAction extends FlatComboAction {
+public class DeviceMenuAction extends DropDownAction {
   private static final boolean LIST_RECENT_DEVICES = false;
   private final ConfigurationHolder myRenderContext;
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
+    super("", "Device in Editor", AndroidIcons.NeleIcons.VirtualDevice);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Device in Editor");
-    presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
     updatePresentation(presentation);
   }
 
@@ -138,12 +138,11 @@ public class DeviceMenuAction extends FlatComboAction {
   }
 
   @Override
-  @NotNull
-  protected DefaultActionGroup createPopupActionGroup() {
-    DefaultActionGroup group = new DefaultActionGroup(null, true);
+  protected boolean updateActions() {
+    removeAll();
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration == null) {
-      return group;
+      return true;
     }
     Device current = configuration.getDevice();
     ConfigurationManager configurationManager = configuration.getConfigurationManager();
@@ -156,11 +155,11 @@ public class DeviceMenuAction extends FlatComboAction {
         for (Device device : recent) {
           String label = getLabel(device, isNexus(device));
           Icon icon = getDeviceClassIcon(device);
-          group.add(new SetDeviceAction(myRenderContext, label, device, icon, device == current));
+          add(new SetDeviceAction(myRenderContext, label, device, icon, device == current));
           separatorNeeded = true;
         }
         if (separatorNeeded) {
-          group.addSeparator();
+          addSeparator();
         }
       }
     }
@@ -168,7 +167,7 @@ public class DeviceMenuAction extends FlatComboAction {
     AndroidFacet facet = AndroidFacet.getInstance(configurationManager.getModule());
     if (facet == null) {
       // Unlikely, but has happened - see http://b.android.com/68091
-      return group;
+      return true;
     }
 
     if (!deviceList.isEmpty()) {
@@ -185,7 +184,7 @@ public class DeviceMenuAction extends FlatComboAction {
         devices.add(device);
       }
       List<Device> nexus = new ArrayList<>();
-      Map<FormFactor,List<Device>> deviceMap = Maps.newEnumMap(FormFactor.class);
+      Map<FormFactor, List<Device>> deviceMap = Maps.newEnumMap(FormFactor.class);
       for (FormFactor factor : FormFactor.values()) {
         deviceMap.put(factor, Lists.newArrayList());
       }
@@ -194,7 +193,8 @@ public class DeviceMenuAction extends FlatComboAction {
           if (isNexus(device) && !device.getManufacturer().equals(HardwareConfig.MANUFACTURER_GENERIC)
               && !isWear(device) && !isTv(device)) {
             nexus.add(device);
-          } else {
+          }
+          else {
             deviceMap.get(FormFactor.getFormFactor(device)).add(device);
           }
         }
@@ -202,13 +202,13 @@ public class DeviceMenuAction extends FlatComboAction {
 
       sortDevicesByScreenSize(nexus);
       for (List<Device> list : splitDevicesByScreenSize(nexus)) {
-        addNexusDeviceSection(group, current, list);
-        group.addSeparator();
+        addNexusDeviceSection(this, current, list);
+        addSeparator();
       }
-      addDeviceSection(group, current, deviceMap, false, FormFactor.WEAR);
-      group.addSeparator();
-      addDeviceSection(group, current, deviceMap, false, FormFactor.TV);
-      group.addSeparator();
+      addDeviceSection(this, current, deviceMap, false, FormFactor.WEAR);
+      addSeparator();
+      addDeviceSection(this, current, deviceMap, false, FormFactor.TV);
+      addSeparator();
 
       AvdManager avdManager = ModuleAvds.getInstance(facet).getAvdManagerSilently();
       if (avdManager != null) {
@@ -220,26 +220,26 @@ public class DeviceMenuAction extends FlatComboAction {
             String avdName = "AVD: " + avd.getName();
             boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
             Icon icon = first ? getDeviceClassIcon(device) : null;
-            group.add(new SetDeviceAction(myRenderContext, avdName, device, icon, selected));
+            add(new SetDeviceAction(myRenderContext, avdName, device, icon, selected));
             first = false;
             separatorNeeded = true;
           }
         }
 
         if (separatorNeeded) {
-          group.addSeparator();
+          addSeparator();
         }
       }
 
       DefaultActionGroup genericGroup = new DefaultActionGroup("_Generic Phones and Tablets", true);
       sortDevicesByScreenSize(deviceMap.get(FormFactor.MOBILE));
       addDeviceSection(genericGroup, current, deviceMap, true, FormFactor.MOBILE);
-      group.add(genericGroup);
+      add(genericGroup);
     }
 
-    group.add(new RunAndroidAvdManagerAction("Add Device Definition..."));
+    add(new RunAndroidAvdManagerAction("Add Device Definition..."));
 
-    return group;
+    return true;
   }
 
   private static List<List<Device>> splitDevicesByScreenSize(List<Device> devices) {
@@ -263,9 +263,11 @@ public class DeviceMenuAction extends FlatComboAction {
     double diagonalLength = device.getDefaultHardware().getScreen().getDiagonalLength();
     if (diagonalLength < 5) {
       return 1;
-    } else if (diagonalLength < 6.5) {
+    }
+    else if (diagonalLength < 6.5) {
       return 2;
-    } else {
+    }
+    else {
       return 3;
     }
   }
@@ -276,7 +278,7 @@ public class DeviceMenuAction extends FlatComboAction {
       String label = getLabel(device, true /*nexus*/);
       Icon icon = first ? getDeviceClassIcon(device) : null;
       first = false;
-      group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
+      add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
     }
   }
 
@@ -323,16 +325,18 @@ public class DeviceMenuAction extends FlatComboAction {
       myDevice = device;
       if (select) {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
-      } else if (ConfigurationAction.isBetterMatchLabel(title)) {
+      }
+      else if (ConfigurationAction.isBetterMatchLabel(title)) {
         getTemplatePresentation().setIcon(ConfigurationAction.getBetterMatchIcon());
-      } else if (defaultIcon != null) {
+      }
+      else if (defaultIcon != null) {
         getTemplatePresentation().setIcon(defaultIcon);
       }
     }
 
     @Override
-    protected void updatePresentation() {
-      DeviceMenuAction.this.updatePresentation(DeviceMenuAction.this.getTemplatePresentation());
+    protected void updatePresentation(@NotNull Presentation presentation) {
+      DeviceMenuAction.this.updatePresentation(presentation);
     }
 
     @Override
@@ -360,7 +364,8 @@ public class DeviceMenuAction extends FlatComboAction {
       }
       if (commit) {
         configuration.getConfigurationManager().selectDevice(myDevice);
-      } else {
+      }
+      else {
         configuration.setDevice(myDevice, true);
       }
     }

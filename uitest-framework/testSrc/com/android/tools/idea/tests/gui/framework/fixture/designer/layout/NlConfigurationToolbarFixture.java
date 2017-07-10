@@ -21,17 +21,16 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.ui.TextAccessors;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionButtonComponent;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.function.Predicate;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -79,7 +78,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseApiLevel(@NotNull String apiLevel) {
-    new JButtonFixture(myRobot, findToolbarButton("API Version in Editor")).click();
+    new ActionButtonFixture(myRobot, findToolbarButton("API Version in Editor")).click();
     clickPopupMenuItemMatching(new ApiLevelPredicate(apiLevel), myToolBar.getComponent(), myRobot);
     return this;
   }
@@ -93,7 +92,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> requireTheme(@NotNull String theme) {
     Wait.seconds(1).expecting("theme to be updated")
-      .until(() -> theme.equals(new JButtonFixture(myRobot, findToolbarButton("Theme in Editor")).text()));
+      .until(() -> theme.equals( TextAccessors.getTextAccessor(findToolbarButton("Theme in Editor")).getText()));
     return this;
   }
 
@@ -101,7 +100,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    * Returns the current API level of the toolbar's configuration as a String
    */
   public String getApiLevel() {
-    return new JButtonFixture(myRobot, findToolbarButton("API Version in Editor")).text();
+    return TextAccessors.getTextAccessor(findToolbarButton("API Version in Editor")).getText();
   }
 
   /**
@@ -109,13 +108,13 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseDevice(@NotNull String label) {
-    new JButtonFixture(myRobot, findToolbarButton("Device in Editor")).click();
+    new ActionButtonFixture(myRobot, findToolbarButton("Device in Editor")).click();
     clickPopupMenuItemMatching(new DeviceNamePredicate(label), myToolBar.getComponent(), myRobot);
     return this;
   }
 
   public void chooseLayoutVariant(@NotNull String layoutVariant) {
-    new JButtonFixture(myRobot, findToolbarButton("Layout Variants")).click();
+    new ActionButtonFixture(myRobot, findToolbarButton("Orientation in Editor")).click();
     clickPopupMenuItemMatching(Predicate.isEqual(layoutVariant), myToolBar.getComponent(), myRobot);
   }
 
@@ -124,7 +123,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseDensity(@NotNull String density) {
-    new JButtonFixture(myRobot, findToolbarButton("Device Screen Density")).click();
+    new ActionButtonFixture(myRobot, findToolbarButton("Device Screen Density")).click();
     clickPopupMenuItem(density, myToolBar.getComponent(), myRobot);
     return this;
   }
@@ -150,7 +149,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseShape(@NotNull String shape) {
-    new JButtonFixture(myRobot, findToolbarButton("Adaptive Icon Shape")).click();
+    new ActionButtonFixture(myRobot, findToolbarButton("Adaptive Icon Shape")).click();
     clickPopupMenuItem(shape, myToolBar.getComponent(), myRobot);
     return this;
   }
@@ -160,7 +159,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public ThemeSelectionDialogFixture openThemeSelectionDialog() {
-    new JButtonFixture(myRobot, findToolbarButton("Theme in Editor")).click();
+    new ActionButtonFixture(myRobot, findToolbarButton("Theme in Editor")).click();
     return ThemeSelectionDialogFixture.find(myRobot);
   }
 
@@ -250,13 +249,15 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    * Click on the "Orientation in Editor" button
    */
   public NlConfigurationToolbarFixture<ParentFixture> switchOrientation() {
-    new JButtonFixture(myRobot, findToolbarButton("Orientation in Editor")).click();
+    ActionButtonFixture button = new ActionButtonFixture(myRobot, findToolbarButton("Orientation in Editor"));
+    button.click();
+    clickPopupMenuItemMatching(s -> s.matches("Switch to (Landscape|Portrait)"), button.target(), myRobot);
     return this;
   }
 
   @NotNull
-  private JButton findToolbarButton(@NotNull final String tooltip) {
-    return waitUntilShowingAndEnabled(myRobot, myToolBar.getComponent(), Matchers.byTooltip(JButton.class, tooltip));
+  private ActionButton findToolbarButton(@NotNull final String tooltip) {
+    return waitUntilShowingAndEnabled(myRobot, myToolBar.getComponent(), Matchers.byTooltip(ActionButton.class, tooltip));
   }
 
   private static class DeviceNamePredicate implements Predicate<String> {

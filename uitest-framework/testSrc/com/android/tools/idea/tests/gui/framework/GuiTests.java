@@ -58,6 +58,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.AssumptionViolatedException;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -390,13 +391,24 @@ public final class GuiTests {
   }
 
   public static void clickPopupMenuItemMatching(@NotNull Predicate<String> predicate, @NotNull Component component, @NotNull Robot robot) {
+
+    JPopupMenu menu = robot.findActivePopupMenu();
+    if (menu != null) {
+      new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+        @Override
+        protected boolean isMatching(@Nonnull JMenuItem component) {
+          return predicate.test(component.getText());
+        }
+      }).click();
+      return;
+    }
+
     // IntelliJ doesn't seem to use a normal JPopupMenu, so this won't work:
     //    JPopupMenu menu = myRobot.findActivePopupMenu();
     // Instead, it uses a JList (technically a JBList), which is placed somewhere
     // under the root pane.
 
     Container root = GuiQuery.getNonNull(() -> (Container)SwingUtilities.getRoot(component));
-
     // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
     JBList list = waitUntilShowing(robot, root, new GenericTypeMatcher<JBList>(JBList.class) {
@@ -608,13 +620,17 @@ public final class GuiTests {
       });
   }
 
-  /** Pretty-prints the given table fixture */
+  /**
+   * Pretty-prints the given table fixture
+   */
   @NotNull
   public static String tableToString(@NotNull JTableFixture table) {
     return tableToString(table, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 40);
   }
 
-  /** Pretty-prints the given table fixture */
+  /**
+   * Pretty-prints the given table fixture
+   */
   @NotNull
   public static String tableToString(@NotNull JTableFixture table, int startRow, int endRow, int startColumn, int endColumn,
                                      int cellWidth) {
@@ -636,13 +652,17 @@ public final class GuiTests {
     return sb.toString();
   }
 
-  /** Pretty-prints the given list fixture */
+  /**
+   * Pretty-prints the given list fixture
+   */
   @NotNull
   public static String listToString(@NotNull JListFixture list) {
     return listToString(list, 0, Integer.MAX_VALUE, 40);
   }
 
-  /** Pretty-prints the given list fixture */
+  /**
+   * Pretty-prints the given list fixture
+   */
   @NotNull
   public static String listToString(@NotNull JListFixture list, int startRow, int endRow, int cellWidth) {
     String[] contents = list.contents();

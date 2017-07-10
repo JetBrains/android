@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.actions.SaveScreenshotAction;
-import com.android.tools.idea.configurations.FlatComboAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -37,8 +37,6 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
@@ -630,7 +628,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
   }
 
-  private class ViewActionToolbarMenuWrapper extends FlatComboAction implements ViewActionPresentation {
+  private class ViewActionToolbarMenuWrapper extends DropDownAction implements ViewActionPresentation {
     private final NestedViewActionMenu myAction;
     private final ViewEditor myEditor;
     private final ViewHandler myHandler;
@@ -643,6 +641,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                         @NotNull ViewHandler handler,
                                         @NotNull NlComponent component,
                                         @NotNull List<NlComponent> selectedChildren) {
+      super("", action.getLabel(), action.getDefaultIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;
@@ -664,27 +663,25 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       }
     }
 
-    @NotNull
     @Override
-    protected DefaultActionGroup createPopupActionGroup() {
+    protected boolean updateActions() {
+      removeAll();
       List<List<ViewAction>> rows = myAction.getActions();
       if (rows.size() == 1) {
         List<AnAction> actions = Lists.newArrayList();
         for (ViewAction viewAction : rows.get(0)) {
           addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
         }
-        return new DefaultActionGroup(actions);
+        addAll(actions);
       }
-      else {
-        return new DefaultActionGroup();
-      }
+      return true;
     }
 
     @Override
-    protected JBPopup createPopup(@Nullable Runnable onDispose, @Nullable DataContext context) {
+    protected JPanel createCustomComponentPopup() {
       List<List<ViewAction>> rows = myAction.getActions();
       if (rows.size() == 1) {
-        return super.createPopup(onDispose, context);
+        return null;
       }
 
       com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
@@ -702,20 +699,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
         ActionToolbar toolbar = actionManager.createActionToolbar("DynamicToolbar", group, true);
         panel.add(toolbar.getComponent());
       }
-
-      return JBPopupFactory.getInstance().createComponentPopupBuilder(panel, panel)
-        .setRequestFocus(true)
-        .setCancelOnClickOutside(true)
-        .setLocateWithinScreenBounds(true)
-        .setShowShadow(true)
-        .setCancelOnWindowDeactivation(true)
-        .setCancelCallback(() -> {
-          if (onDispose != null) {
-            onDispose.run();
-          }
-          return Boolean.TRUE;
-        })
-        .createPopup();
+      return panel;
     }
 
     // ---- Implements ViewActionPresentation ----

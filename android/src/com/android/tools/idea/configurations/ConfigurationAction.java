@@ -19,6 +19,7 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -54,7 +55,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     myRenderContext = renderContext;
   }
 
-  protected void updatePresentation() {
+  protected void updatePresentation(@NotNull Presentation presentation) {
   }
 
   @Override
@@ -66,7 +67,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     manager.fireBeforeActionPerformed(this, dataContext, e);
 
     tryUpdateConfiguration();
-    updatePresentation();
+    updatePresentation(e.getPresentation());
   }
 
   /**
@@ -150,7 +151,8 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
         sb.append(FD_RES_LAYOUT);
         sb.append(File.separatorChar);
       }
-    } else {
+    }
+    else {
       if (folderName.startsWith(FD_RES_LAYOUT)) {
         folderName = folderName.substring(FD_RES_LAYOUT.length() + 1);
       }
