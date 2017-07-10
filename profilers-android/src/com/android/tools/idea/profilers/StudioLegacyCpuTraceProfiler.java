@@ -44,10 +44,10 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
   @NotNull private IDevice myDevice;
   @NotNull private final Object myLegacyProfilingLock = new Object();
   /**
-   * Map from app package name to the record of the profiling.
+   * Map from process id to the record of the profiling.
    * Existence in the map means there is an active ongoing profiling for that given app.
    */
-  @NotNull private final Map<String, LegacyProfilingRecord> myLegacyProfilingRecord = new HashMap<>();
+  @NotNull private final Map<Integer, LegacyProfilingRecord> myLegacyProfilingRecord = new HashMap<>();
 
   public StudioLegacyCpuTraceProfiler(@NotNull IDevice device) {
     myDevice = device;
@@ -70,7 +70,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
     }
 
     synchronized (myLegacyProfilingLock) {
-      LegacyProfilingRecord record = myLegacyProfilingRecord.get(appPkgName);
+      LegacyProfilingRecord record = myLegacyProfilingRecord.get(request.getProcessId());
       if (record != null && client.getClientData().getMethodProfilingStatus() != ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.FAILURE)
           .setErrorMessage("Start request ignored. The app has an on-going profiling session.").build();
@@ -82,7 +82,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       DdmPreferences.setProfilerBufferSizeMb(request.getBufferSizeInMb());
       long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
       record = new LegacyProfilingRecord(request, nowNs, responseBuilder);
-      myLegacyProfilingRecord.put(appPkgName, record);
+      myLegacyProfilingRecord.put(request.getProcessId(), record);
       try {
         if (request.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED) {
           client.startSamplingProfiler(request.getSamplingIntervalUs(), TimeUnit.MICROSECONDS);
@@ -96,7 +96,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         // we limit the waiting to 0.1 second which is usually sufficient for the error handling to complete.
         record.myStartLatch.await(100, TimeUnit.MILLISECONDS);
         if (record.myStartFailed) {
-          myLegacyProfilingRecord.remove(appPkgName);
+          myLegacyProfilingRecord.remove(request.getProcessId());
         } else {
           responseBuilder.setStatus(CpuProfilingAppStartResponse.Status.SUCCESS);
         }
@@ -118,12 +118,12 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
     synchronized (myLegacyProfilingLock) {
       if (client == null) {
-        myLegacyProfilingRecord.remove(appPkgName);   // Remove the entry if there exists one.
+        myLegacyProfilingRecord.remove(request.getProcessId());   // Remove the entry if there exists one.
         return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE)
           .setErrorMessage("App is not running.").build();
       }
 
-      LegacyProfilingRecord record = myLegacyProfilingRecord.get(appPkgName);
+      LegacyProfilingRecord record = myLegacyProfilingRecord.get(request.getProcessId());
       if (record == null || client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE)
           .setErrorMessage("The app is not being profiled.").build();
@@ -143,7 +143,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
         responseBuilder.setErrorMessage("Failed: " + e);
         getLogger().error("Exception while CpuServiceProxy stopProfilingApp: " + e);
       }
-      myLegacyProfilingRecord.remove(appPkgName);
+      myLegacyProfilingRecord.remove(request.getProcessId());
     }
     return responseBuilder.build();
   }
@@ -152,14 +152,14 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
   public ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request) {
     long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
     ProfilingStateResponse.Builder responseBuilder = ProfilingStateResponse.newBuilder();
-    String appPkgName = request.getAppPkgName();
-    Client client = myDevice.getClient(appPkgName);
+    String appPkgName = myDevice.getClientName(request.getProcessId());
+    Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
     if (client == null) {
       return responseBuilder.setBeingProfiled(false).build();
     }
 
     synchronized (myLegacyProfilingLock) {
-      LegacyProfilingRecord record = myLegacyProfilingRecord.get(appPkgName);
+      LegacyProfilingRecord record = myLegacyProfilingRecord.get(request.getProcessId());
       if (record == null || client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF) {
         return responseBuilder.setBeingProfiled(false).build();
       }
@@ -175,7 +175,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
   }
 
   private static class LegacyProfilingHandler implements ClientData.IMethodProfilingHandler {
-    @NotNull private final Map<IDevice, Map<String, LegacyProfilingRecord>> myProfilingRecords;
+    @NotNull private final Map<IDevice, Map<Integer, LegacyProfilingRecord>> myProfilingRecords;
 
     private static LegacyProfilingHandler ourInstance;
 
@@ -192,7 +192,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
     @Override
     public void onSuccess(String remoteFilePath, Client client) {
-      LegacyProfilingRecord record = myProfilingRecords.get(client.getDevice()).get(client.getClientData().getClientDescription());
+      LegacyProfilingRecord record = myProfilingRecords.get(client.getDevice()).get(client.getClientData().getPid());
       if (record != null) {
         CpuProfilingAppStopResponse.Builder stopResponseBuilder = record.getStopResponseBuilder();
         assert stopResponseBuilder != null;
@@ -207,7 +207,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
     @Override
     public void onSuccess(byte[] data, Client client) {
-      LegacyProfilingRecord record = myProfilingRecords.get(client.getDevice()).get(client.getClientData().getClientDescription());
+      LegacyProfilingRecord record = myProfilingRecords.get(client.getDevice()).get(client.getClientData().getPid());
       if (record != null) {
         CpuProfilingAppStopResponse.Builder stopResponseBuilder = record.getStopResponseBuilder();
         assert stopResponseBuilder != null;
@@ -241,7 +241,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
      */
     @Override
     public void onEndFailure(Client client, String message) {
-      LegacyProfilingRecord record = myProfilingRecords.get(client.getDevice()).get(client.getClientData().getClientDescription());
+      LegacyProfilingRecord record = myProfilingRecords.get(client.getDevice()).get(client.getClientData().getPid());
       if (record != null) {
         CpuProfilingAppStopResponse.Builder stopResponseBuilder = record.getStopResponseBuilder();
         if (stopResponseBuilder != null) {
@@ -257,7 +257,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       }
     }
 
-    public void addProfilingRecords(@NotNull IDevice device, @NotNull Map<String, LegacyProfilingRecord> record) {
+    public void addProfilingRecords(@NotNull IDevice device, @NotNull Map<Integer, LegacyProfilingRecord> record) {
       myProfilingRecords.put(device, record);
     }
   }
