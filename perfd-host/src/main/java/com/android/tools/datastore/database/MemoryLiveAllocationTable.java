@@ -77,7 +77,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
   }
 
-  private int myAllocationCountLimit = 500000; // 500k ought to be enough for anybody (~30MB of data)
+  // 5M ought to be enough for anybody (~300MB of data)
+  // Note - Google Search app can easily allocate 100k+ temporary objects in an relatively short amount of time (e.g. one search query)
+  private int myAllocationCountLimit = 5000000;
 
   private static Logger getLogger() {
     return Logger.getInstance(MemoryLiveAllocationTable.class);
@@ -369,7 +371,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       result.next();
       int rowCount = result.getInt(1);
       if (rowCount > myAllocationCountLimit) {
-        execute(PRUNE_ALLOC, pid, session, pid, session, rowCount - myAllocationCountLimit);
+        int pruneCount = rowCount - myAllocationCountLimit;
+        execute(PRUNE_ALLOC, pid, session, pid, session, pruneCount);
+        getLogger().info(String.format("Allocations have exceed %d entries. Attempting to prune %d.", myAllocationCountLimit, pruneCount));
       }
     }
     catch (SQLException e) {
