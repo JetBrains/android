@@ -16,6 +16,8 @@
 package com.android.tools.idea.callgraph
 
 import com.android.tools.idea.experimental.callgraph.buildCallGraph
+import com.android.tools.idea.experimental.callgraph.buildIntraproceduralReceiverEval
+import com.android.tools.idea.experimental.callgraph.buildUFiles
 import com.android.tools.idea.experimental.callgraph.searchForInterproceduralThreadAnnotationViolations
 import com.intellij.analysis.AnalysisScope
 import junit.framework.TestCase
@@ -27,14 +29,17 @@ class InterproceduralThreadAnnotationTest : AndroidTestCase() {
 
   private fun doTest(ext: String) {
     myFixture.copyFileToProject("callgraph/ThreadAnnotations" + ext)
-    val callGraph = buildCallGraph(project, AnalysisScope(project))
-    val paths = searchForInterproceduralThreadAnnotationViolations(callGraph)
+    val files = buildUFiles(project, AnalysisScope(project))
+    val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files)
+    val callGraph = buildCallGraph(files, nonContextualReceiverEval)
+    val paths = searchForInterproceduralThreadAnnotationViolations(callGraph, nonContextualReceiverEval)
     val namedPathSet = paths.map { (nodes) -> nodes.map { node -> node.shortName } }.toSet()
     val prefix = "ThreadAnnotations#"
     val expectedPathSet = setOf(
         arrayListOf("${prefix}uiThreadStatic", "${prefix}unannotatedStatic", "${prefix}workerThreadStatic"),
-        arrayListOf("${prefix}uiThread", "${prefix}unannotated", "${prefix}workerThread")
+        arrayListOf("${prefix}uiThread", "${prefix}unannotated", "${prefix}workerThread"),
+        arrayListOf("${prefix}callRunIt", "${prefix}runIt", "${prefix}callRunIt#lambda", "${prefix}runUi")
     )
-    TestCase.assertEquals(namedPathSet, expectedPathSet)
+    TestCase.assertEquals(expectedPathSet, namedPathSet)
   }
 }

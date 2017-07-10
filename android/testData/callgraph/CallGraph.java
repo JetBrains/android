@@ -145,3 +145,55 @@ class Lambdas {
     r.run();
   }
 }
+
+
+/** Test contextual call paths, found by tracking lambdas and concrete types. */
+class Contextual {
+  // Test paths relying only on a single argument.
+  void f() {}
+  void g() {}
+  void a() { run(() -> f()); }
+  void b() { run(() -> g()); }
+  void run(Runnable r) { r.run(); }
+
+  // Test paths relying on multiple arguments at once.
+  interface MultiArg {
+    void run(Runnable r);
+  }
+  class MultiArgA implements MultiArg {
+    @Override
+    public void run(Runnable r) { r.run(); }
+  }
+  class MultiArgB implements MultiArg {
+    @Override
+    public void run(Runnable r) { r.run(); }
+  }
+  void runMultiArg(MultiArg it, Runnable r) { it.run(r); }
+  void multiArgA() { runMultiArg(new MultiArgA(), () -> f()); }
+  void multiArgB() { runMultiArg(new MultiArgB(), () -> g()); }
+
+  // Test paths also relying on the implicit `this` argument.
+  abstract class ImplicitThis {
+    void run(Runnable r) { myRun(r); }
+    protected abstract void myRun(Runnable r);
+  }
+  class ImplicitThisA extends ImplicitThis {
+    @Override
+    protected void myRun(Runnable r) { r.run(); }
+  }
+  class ImplicitThisB extends ImplicitThis {
+    @Override
+    protected void myRun(Runnable r) { r.run(); }
+  }
+  void runImplicitThis(ImplicitThis it, Runnable r) { it.run(r); }
+  void implicitThisA() { runImplicitThis(new ImplicitThisA(), () -> f()); }
+  void implicitThisB() { runImplicitThis(new ImplicitThisB(), () -> g()); }
+
+  // Test long contextual paths.
+  void run1(Runnable r) { run(r); }
+  void run2(Runnable r) { run1(r); }
+  void run3(Runnable r) { run2(r); }
+  void run4(Runnable r) { run3(r); }
+  void run5(Runnable r) { run4(r); }
+  void c() { run5(() -> f()); }
+}

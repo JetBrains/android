@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 package android.support.annotation;
+
 @interface UiThread {}
 @interface WorkerThread {}
+
+@FunctionalInterface
+public interface Runnable {
+  public abstract void run();
+}
 
 class ThreadAnnotations {
   @UiThread static void uiThreadStatic() { unannotatedStatic(); }
@@ -25,6 +31,12 @@ class ThreadAnnotations {
   @UiThread void uiThread() { unannotated(); }
   void unannotated() { workerThread(); }
   @WorkerThread void workerThread() {}
+
+  @UiThread void runUi() {}
+  void runIt(Runnable r) { r.run(); }
+  @WorkerThread void callRunIt() {
+    runIt(() -> runUi());
+  }
 
   public static void main(String[] args) {
     ThreadAnnotations instance = new ThreadAnnotations();

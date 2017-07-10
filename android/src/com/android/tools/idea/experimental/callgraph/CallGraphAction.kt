@@ -25,7 +25,9 @@ class CallGraphAction : BaseAnalysisAction("Call Graph", "Call Graph") {
   private val LOG = Logger.getInstance(CallGraphAction::class.java)
 
   override fun analyze(project: Project, scope: AnalysisScope) {
-    val callGraph = buildCallGraph(project, scope)
+    val files = buildUFiles(project, scope)
+    val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files)
+    val callGraph = buildCallGraph(files, nonContextualReceiverEval)
     LOG.info(callGraph.toString())
     LOG.info(callGraph.dump())
   }
