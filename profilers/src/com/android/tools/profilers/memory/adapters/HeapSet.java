@@ -42,14 +42,12 @@ public class HeapSet extends ClassifierSet {
     }
     myClassGrouping = classGrouping;
 
+    // Gather all the instances from the descendants and add them to the heap node.
+    // Subsequent calls to getChildrenClassifierSets will re-partition them to the correct child ClassifierSet.
     List<InstanceObject> descendantsStream = getInstancesStream().collect(Collectors.toList());
-    resetDescendants();
+    myInstances.clear();
+    myClassifier = null;
     myInstances.addAll(descendantsStream);
-  }
-
-  public void clearClassifierSets() {
-    resetDescendants();
-    ensurePartition();
   }
 
   public int getId() {
