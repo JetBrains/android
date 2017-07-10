@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,24 +50,21 @@ public final class AnyCheckedDemo {
 
   public static void main(String[] args) {
     //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        final JFrame frame = new JFrame("AnyCheckedDemo");
-        final AnyCheckedDemo demo = new AnyCheckedDemo();
-        frame.setContentPane(demo.myRootPanel);
-        demo.init();
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-        frame.addWindowListener(new WindowAdapter() {
-          @Override
-          public void windowClosing(WindowEvent e) {
-            demo.dispose();
-          }
-        });
-      }
+    SwingUtilities.invokeLater(() -> {
+      final JFrame frame = new JFrame("AnyCheckedDemo");
+      final AnyCheckedDemo demo = new AnyCheckedDemo();
+      frame.setContentPane(demo.myRootPanel);
+      demo.init();
+      frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+      frame.pack();
+      frame.setLocationRelativeTo(null);
+      frame.setVisible(true);
+      frame.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+          demo.dispose();
+        }
+      });
     });
   }
 

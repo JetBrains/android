@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,17 @@ public final class CorePropertiesDemo {
   private JPanel myRootPanel;
   private JBLabel myGenderLabel;
 
+  public static void main(String[] args) {
+    //noinspection SSBasedInspection
+    SwingUtilities.invokeLater(() -> {
+      JFrame frame = new JFrame("CorePropertiesDemo");
+      frame.setContentPane(new CorePropertiesDemo().myRootPanel);
+      frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+      frame.pack();
+      frame.setVisible(true);
+    });
+  }
+
   public CorePropertiesDemo() {
     final Person person = new Person();
 
@@ -66,9 +77,8 @@ public final class CorePropertiesDemo {
     }
     myGenderCombo.setSelectedItem(person.myGender.get());
 
-    /**
-     * Hook up the first panel (which modifies the target person)
-     */
+    // Hook up the first panel (which modifies the target person)
+
     myBindings.bindTwoWay(new TextProperty(myNameTextField), person.myName);
     myBindings.bindTwoWay(new SliderValueProperty(myAgeSlider), person.myAge);
     myBindings.bind(new TextProperty(myAgeLabel), new FormatExpression("%d", person.myAge));
@@ -90,9 +100,8 @@ public final class CorePropertiesDemo {
       }
     });
 
-    /**
-     * Hook up the second panel (which prints out useful information about the person)
-     */
+    // Hook up the second panel (which prints out useful information about the person)
+
     myBindings.bind(new TextProperty(myIsValidNameLabel), new YesNoExpression(person.myName.isEmpty().not()));
     myBindings.bind(new TextProperty(myGenderLabel), new StringExpression(person.myGender) {
       @NotNull
@@ -107,20 +116,6 @@ public final class CorePropertiesDemo {
       @Override
       protected String transform(@NotNull String value) {
         return String.format("Yes (%s)", value.trim());
-      }
-    });
-  }
-
-  public static void main(String[] args) {
-    //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        JFrame frame = new JFrame("CorePropertiesDemo");
-        frame.setContentPane(new CorePropertiesDemo().myRootPanel);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
       }
     });
   }

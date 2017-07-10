@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,37 @@
 package com.android.tools.idea.ui.properties.swing;
 
 import com.android.tools.idea.ui.properties.CountListener;
+import com.intellij.ui.ColorPanel;
 import org.junit.Test;
 
-import javax.swing.*;
+import java.awt.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public final class SelectedPropertyTest {
+public class ColorPropertyTest {
   @Test
-  public void testSelectedProperty() {
-    JCheckBox checkbox = new JCheckBox();
-    checkbox.setSelected(true);
-
-    SelectedProperty selectedProperty = new SelectedProperty(checkbox);
+  public void testColorProperty() throws Exception {
+    ColorPanel colorPanel = new ColorPanel();
+    ColorProperty color = new ColorProperty(colorPanel);
     CountListener listener = new CountListener();
-    selectedProperty.addListener(listener);
+    color.addListener(listener);
 
-    assertThat(selectedProperty.get()).isTrue();
+    assertThat(color.get().isPresent()).isFalse();
     assertThat(listener.getCount()).isEqualTo(0);
 
-    checkbox.setSelected(false);
-    assertThat(selectedProperty.get()).isFalse();
+    colorPanel.setSelectedColor(Color.RED);
+    assertThat(color.get().isPresent()).isTrue();
+    assertThat(color.getValue()).isEqualTo(Color.RED);
+    // ColorPanel only fires its listener when the button is clicked, not when color is set
+    // programmatically. Otherwise, this should have been true:
+    // assertThat(listener.getCount()).isEqualTo(1);
+
+    color.setValue(Color.BLUE);
+    assertThat(colorPanel.getSelectedColor()).isEqualTo(Color.BLUE);
     assertThat(listener.getCount()).isEqualTo(1);
 
-    selectedProperty.set(true);
-    assertThat(checkbox.isSelected()).isTrue();
+    color.clear();
+    assertThat(colorPanel.getSelectedColor()).isNull();
     assertThat(listener.getCount()).isEqualTo(2);
   }
 }

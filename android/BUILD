@@ -83,6 +83,7 @@ iml_module(
         "//tools/base/sdk-common:studio.sdk-common[module]",
         "//tools/base/flags:studio.flags[module]",
         "//tools/idea/platform/lang-api[module]",
+        "//tools/adt/idea/observable-ui[module]",
     ],
 )
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,34 @@
 package com.android.tools.idea.ui.properties.swing;
 
 import com.android.tools.idea.ui.properties.CountListener;
-import com.intellij.ui.ColorPanel;
 import org.junit.Test;
 
-import java.awt.*;
+import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class ColorPropertyTest {
+public final class SelectedIndexPropertyTest {
   @Test
-  public void testColorProperty() throws Exception {
-    ColorPanel colorPanel = new ColorPanel();
-    ColorProperty color = new ColorProperty(colorPanel);
-    CountListener listener = new CountListener();
-    color.addListener(listener);
+  public void testSelectedIndexProperty() {
+    DefaultComboBoxModel model = new DefaultComboBoxModel();
+    model.addElement("A");
+    model.addElement("B");
+    model.addElement("C");
 
-    assertThat(color.get().isPresent()).isFalse();
+    JComboBox comboBox = new JComboBox(model);
+    SelectedIndexProperty selectedIndexProperty = new SelectedIndexProperty(comboBox);
+    CountListener listener = new CountListener();
+    selectedIndexProperty.addListener(listener);
+
+    assertThat(selectedIndexProperty.get()).isEqualTo(0);
     assertThat(listener.getCount()).isEqualTo(0);
 
-    colorPanel.setSelectedColor(Color.RED);
-    assertThat(color.get().isPresent()).isTrue();
-    assertThat(color.getValue()).isEqualTo(Color.RED);
-    // ColorPanel only fires its listener when the button is clicked, not when color is set
-    // programmatically. Otherwise, this should have been true:
-    // assertThat(listener.getCount()).isEqualTo(1);
-
-    color.setValue(Color.BLUE);
-    assertThat(colorPanel.getSelectedColor()).isEqualTo(Color.BLUE);
+    comboBox.setSelectedIndex(2);
+    assertThat(selectedIndexProperty.get()).isEqualTo(2);
     assertThat(listener.getCount()).isEqualTo(1);
 
-    color.clear();
-    assertThat(colorPanel.getSelectedColor()).isNull();
+    selectedIndexProperty.set(1);
+    assertThat(comboBox.getSelectedIndex()).isEqualTo(1);
     assertThat(listener.getCount()).isEqualTo(2);
   }
 }

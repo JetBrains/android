@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,24 +22,23 @@ import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public final class EditablePropertyTest {
+public class SliderValuePropertyTest {
   @Test
-  public void testEditableProperty() {
-    JTextField field = new JTextField();
-
-    EditableProperty editableProperty = new EditableProperty(field);
+  public void testSliderValueProperty() throws Exception {
+    JSlider slider = new JSlider(0, 100, 50);
+    SliderValueProperty sliderValue = new SliderValueProperty(slider);
     CountListener listener = new CountListener();
-    editableProperty.addListener(listener);
+    sliderValue.addListener(listener);
 
-    assertThat(editableProperty.get()).isTrue();
+    assertThat(sliderValue.get()).isEqualTo(50);
     assertThat(listener.getCount()).isEqualTo(0);
 
-    field.setEditable(false);
-    assertThat(editableProperty.get()).isFalse();
+    slider.setValue(90);
+    assertThat(sliderValue.get()).isEqualTo(90);
     assertThat(listener.getCount()).isEqualTo(1);
 
-    editableProperty.set(true);
-    assertThat(field.isEditable()).isTrue();
+    sliderValue.set(10);
+    assertThat(slider.getValue()).isEqualTo(10);
     assertThat(listener.getCount()).isEqualTo(2);
   }
 }

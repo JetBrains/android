@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 package com.android.tools.idea.ui.properties.demo;
 
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
 import com.android.tools.idea.ui.properties.swing.EnabledProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -52,24 +49,21 @@ public final class SyncFieldsDemo {
 
   public static void main(String[] args) {
     //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        final JFrame frame = new JFrame("SyncFieldsDemo");
-        final SyncFieldsDemo demo = new SyncFieldsDemo();
-        frame.setContentPane(demo.myRootPanel);
-        demo.init();
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-        frame.addWindowListener(new WindowAdapter() {
-          @Override
-          public void windowClosing(WindowEvent e) {
-            demo.dispose();
-          }
-        });
-      }
+    SwingUtilities.invokeLater(() -> {
+      final JFrame frame = new JFrame("SyncFieldsDemo");
+      final SyncFieldsDemo demo = new SyncFieldsDemo();
+      frame.setContentPane(demo.myRootPanel);
+      demo.init();
+      frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+      frame.pack();
+      frame.setLocationRelativeTo(null);
+      frame.setVisible(true);
+      frame.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+          demo.dispose();
+        }
+      });
     });
   }
 
@@ -92,12 +86,7 @@ public final class SyncFieldsDemo {
     myBindings.bind(isLinkEnabled, createActivity);
 
     // Listen to activityText - if it is changed by the user and not its binding, break syncing!
-    activityText.addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        isSynced.set(activityText.get().equals(activityNameExpression.get()));
-      }
-    });
+    activityText.addListener(sender -> isSynced.set(activityText.get().equals(activityNameExpression.get())));
   }
 
   public void dispose() {

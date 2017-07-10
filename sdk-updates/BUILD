@@ -15,6 +15,7 @@ iml_module(
         "//tools/adt/idea/observable[module]",
         "//tools/adt/idea/adt-ui[module]",
         "//tools/adt/idea/wizard[module]",
+        "//tools/adt/idea/observable-ui[module]",
     ],
 )
 
