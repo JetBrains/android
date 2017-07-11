@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.traceFileToByteString;
 import static org.junit.Assert.*;
@@ -168,7 +169,9 @@ public class SimplePerfTraceParserTest {
   @Test
   public void rangeShouldBeFromFirstToLastTimestamp() throws IOException {
     myParser.parse(myTraceFile);
-    Range expected = new Range(myParser.mySamples.get(0).getTime(), myParser.mySamples.get(myParser.mySamples.size() - 1).getTime());
+    long startTimeUs = TimeUnit.NANOSECONDS.toMicros(myParser.mySamples.get(0).getTime());
+    long endTimeUs = TimeUnit.NANOSECONDS.toMicros( myParser.mySamples.get(myParser.mySamples.size() - 1).getTime());
+    Range expected = new Range(startTimeUs, endTimeUs);
     assertEquals(expected.getMin(), myParser.getRange().getMin(), 0);
     assertEquals(expected.getMax(), myParser.getRange().getMax(), 0);
   }
