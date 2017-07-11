@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
@@ -54,6 +56,7 @@ public final class NavigationViewTest {
     myLayoutEditor.showOnlyDesignView();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63547131
   @Test
   public void doubleClickHeaderLayout() {
     myLayoutEditor.getSurface().doubleClick(new Point(230, 170));
