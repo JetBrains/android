@@ -36,7 +36,7 @@ public class NlSlicePropertyEditor extends NlReferenceEditor {
   }
 
   protected NlSlicePropertyEditor(@NotNull Project project, @NotNull NlEditingListener listener) {
-    super(project, listener, null, false, false);
+    super(project, listener, null, false, false, VERTICAL_PADDING_FOR_SMALL_FONT);
   }
 
   @Override

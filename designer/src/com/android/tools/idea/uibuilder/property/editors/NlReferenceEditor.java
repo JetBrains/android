@@ -74,25 +74,25 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true), browsePanel);
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true, VERTICAL_PADDING), browsePanel);
     return cellEditor;
   }
 
   public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, true, true);
+    return new NlReferenceEditor(project, listener, null, true, true, VERTICAL_SPACING);
   }
 
   @TestOnly
   public static NlReferenceEditor createForTableTesting(@NotNull Project project,
                                                         @NotNull NlEditingListener listener,
                                                         @NotNull BrowsePanel browsePanel) {
-    return new NlReferenceEditor(project, listener, browsePanel, false, true);
+    return new NlReferenceEditor(project, listener, browsePanel, false, true, VERTICAL_SPACING);
   }
 
   public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
     BrowsePanel.ContextDelegate delegate = new BrowsePanel.ContextDelegate();
     BrowsePanel browsePanel = new BrowsePanel(delegate, false);
-    NlReferenceEditor editor = new NlReferenceEditor(project, listener, browsePanel, true, true);
+    NlReferenceEditor editor = new NlReferenceEditor(project, listener, browsePanel, true, true, VERTICAL_SPACING);
     delegate.setEditor(editor);
     return editor;
   }
@@ -101,7 +101,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
                               @NotNull NlEditingListener listener,
                               @Nullable BrowsePanel browsePanel,
                               boolean includeBorder,
-                              boolean includeSliderSupport) {
+                              boolean includeSliderSupport,
+                              int verticalSpacing) {
     super(listener);
     myPanel = new JPanel(new BorderLayout());
 
@@ -125,9 +126,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     mySlider.setVisible(includeSliderSupport);
 
     //noinspection UseDPIAwareInsets
-    myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
+    myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(verticalSpacing,
                                                                                               HORIZONTAL_PADDING,
-                                                                                              VERTICAL_SPACING + VERTICAL_PADDING,
+                                                                                              verticalSpacing,
                                                                                               HORIZONTAL_PADDING));
     if (includeBorder) {
       myTextEditorWithAutoCompletion.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, 0));
@@ -443,7 +444,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   // in a table also causes the slider to change value. The workaround is simply
   // to delay all mouse events until a short time after the editor is created.
   public static class SliderWithTimeDelay extends JSlider {
-    private long SHORT_WAIT_MILLIS = 300;
+    private static final long SHORT_WAIT_MILLIS = 300;
     private Clock myClock;
     private long myLastAddNotifyMillis;
 

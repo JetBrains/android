@@ -44,6 +44,9 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
   /** Vertical padding inside the edit control */
   protected static final int VERTICAL_PADDING = 2;
 
+  /** Vertical padding inside the edit control with small font */
+  protected static final int VERTICAL_PADDING_FOR_SMALL_FONT = 3;
+
   private final NlEditingListener myListener;
 
   private JLabel myLabel;
