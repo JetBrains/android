@@ -358,7 +358,7 @@ public class InstantRunTest {
    */
   @Test
   public void modifyVariableDuringDebugSession() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProject("Project204792").waitForGradleProjectSyncToFinish();
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("Project204792");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     final String TEST_FILE = "app/src/main/java/com/bug204792/myapplication/TestJava.java";
@@ -539,8 +539,8 @@ public class InstantRunTest {
       .clickNext()
       .clickFinish();
 
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     String MAIN_LAYOUT_FILE = "app/src/main/res/layout/activity_main.xml";
     String MAIN_ACTIVITY_FILE = "app/src/main/java/com/test/project/MainActivity.java";
@@ -638,7 +638,7 @@ public class InstantRunTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // http://b/62204067
   @Test
   public void fullBuildAndReinstall() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProject("Topeka");
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("Topeka");
     emulator.createAVD(guiTest.ideFrame().invokeAvdManager(),
                        "x86 Images",
                        new ChooseSystemImageStepFixture.SystemImage("Marshmallow", "23", "x86", "Android 6.0"),
