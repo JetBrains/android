@@ -19,32 +19,34 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Mode for toggling design mode
  */
-public class DesignModeAction extends AnAction {
+public class DesignModeAction extends ToggleAction {
   private final NlDesignSurface mySurface;
 
-  public DesignModeAction(NlDesignSurface surface) {
+  public DesignModeAction(@NotNull NlDesignSurface surface) {
     super(null, "Show Design", AndroidIcons.NeleIcons.DesignView);
     mySurface = surface;
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
-    // If we're already in design mode, go to both-mode, otherwise go to design only
-    ScreenMode mode;
-    switch (mySurface.getScreenMode()) {
-      case SCREEN_ONLY:
-        mode = ScreenMode.BOTH;
-        break;
-      case BLUEPRINT_ONLY:
-      case BOTH:
-      default:
-        mode = ScreenMode.SCREEN_ONLY;
-        break;
+  public boolean isSelected(AnActionEvent e) {
+    return mySurface.getScreenMode() == ScreenMode.BOTH || mySurface.getScreenMode() == ScreenMode.SCREEN_ONLY;
+  }
+
+  @Override
+  public void setSelected(AnActionEvent e, boolean state) {
+    ScreenMode mode = mySurface.getScreenMode();
+    if (state) {
+      mode = ScreenMode.BOTH;
+    }
+    else {
+      mode = ScreenMode.BLUEPRINT_ONLY;
     }
     mySurface.setScreenMode(mode, true);
   }

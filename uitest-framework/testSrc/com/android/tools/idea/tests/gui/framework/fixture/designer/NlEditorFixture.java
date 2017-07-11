@@ -229,6 +229,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.SCREEN_ONLY) {
       getConfigToolbar().showDesign();
+      getConfigToolbar().hideBlueprint();
     }
     return this;
   }
@@ -241,6 +242,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
       getConfigToolbar().showBlueprint();
+      getConfigToolbar().hideDesign();
     }
     return this;
   }

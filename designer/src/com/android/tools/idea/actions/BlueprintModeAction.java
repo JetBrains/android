@@ -20,42 +20,28 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Mode for toggling blueprint mode
  */
-public class BlueprintModeAction extends AnAction {
+public class BlueprintModeAction extends ToggleAction {
   private final NlDesignSurface mySurface;
 
-  public BlueprintModeAction(NlDesignSurface surface) {
+  public BlueprintModeAction(@NotNull NlDesignSurface surface) {
     super(null, "Show Blueprint", AndroidIcons.NeleIcons.Blueprint);
     mySurface = surface;
   }
 
   @Override
-  public void update(AnActionEvent event) {
-    ScreenView screenView = mySurface.getCurrentSceneView();
-
-    if (screenView != null) {
-      event.getPresentation().setEnabled(screenView.getModel().getType().isLayout());
-    }
+  public boolean isSelected(AnActionEvent e) {
+    return mySurface.getScreenMode() == ScreenMode.BLUEPRINT_ONLY || mySurface.getScreenMode() == ScreenMode.BOTH;
   }
 
   @Override
-  public void actionPerformed(AnActionEvent e) {
-    // If we're already in blueprint mode, go to both-mode, otherwise go to blueprint only
-    ScreenMode mode;
-    switch (mySurface.getScreenMode()) {
-      case BLUEPRINT_ONLY:
-        mode = ScreenMode.BOTH;
-        break;
-      case SCREEN_ONLY:
-      case BOTH:
-      default:
-        mode = ScreenMode.BLUEPRINT_ONLY;
-        break;
-    }
-    mySurface.setScreenMode(mode, true);
+  public void setSelected(AnActionEvent e, boolean state) {
+    mySurface.setScreenMode(state ? ScreenMode.BOTH : ScreenMode.SCREEN_ONLY, true);
   }
 }
