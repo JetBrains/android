@@ -33,7 +33,7 @@ public class ArtTraceHandlerTest {
   @Test
   public void testTreeStructure() throws IOException {
     CaptureNode node = parseCaptureNode();
-    assertEquals("AsyncTask #1.", node.getData().getId());
+    assertEquals("AsyncTask #1", node.getData().getId());
     expectedChildrenIds(node, "android/os/Debug.startMethodTracing(Ljava/lang/String;)V",
                         "com/test/android/traceview/Basic.foo()V",
                         "android/os/Debug.stopMethodTracing()V");
@@ -66,7 +66,7 @@ public class ArtTraceHandlerTest {
   @Test
   public void testGlobalAndThreadTime() throws IOException {
     Map<String, String> expected = new HashMap<>();
-    expected.put("AsyncTask #1.",
+    expected.put("AsyncTask #1",
                  "global: 1374703971214985-1374703971215049, thread: 1374703971214985-1374703971215049");
     expected.put("android/os/Debug.startMethodTracing(Ljava/lang/String;)V",
                  "global: 1374703971214986-1374703971214994, thread: 1374703971214985-1374703971214994");

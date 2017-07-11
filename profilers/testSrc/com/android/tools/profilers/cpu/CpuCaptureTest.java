@@ -45,7 +45,7 @@ public class CpuCaptureTest {
     CaptureNode mainNode = capture.getCaptureNode(main);
     assertNotNull(mainNode);
     assertNotNull(mainNode.getData());
-    assertEquals("main", mainNode.getData().getClassName());
+    assertEquals("main", mainNode.getData().getName());
 
     Set<CpuThreadInfo> threads = capture.getThreads();
     assertFalse(threads.isEmpty());
