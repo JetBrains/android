@@ -13,10 +13,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.*;
-import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
-import com.intellij.codeInspection.ex.InspectionProfileImpl;
-import com.intellij.codeInspection.ex.InspectionProfileKt;
-import com.intellij.codeInspection.ex.InspectionToolWrapper;
+import com.intellij.codeInspection.ex.*;
 import com.intellij.lang.annotation.ProblemGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,6 +27,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.tools.Tool;
 import com.intellij.util.containers.HashMap;
 import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;
@@ -56,6 +54,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
   @GuardedBy("ISSUE_MAP_LOCK")
   private static volatile Map<Issue, String> ourIssue2InspectionShortName;
+
+  @GuardedBy("ISSUE_MAP_LOCK")
+  private static volatile List<Tools> ourDynamicTools;
 
   protected final Issue myIssue;
   private String[] myGroupPath;
@@ -321,6 +322,22 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   public static void invalidateInspectionShortName2IssueMap() {
     //noinspection FieldAccessNotGuarded  // TestOnly method
     ourIssue2InspectionShortName = null;
+    //noinspection FieldAccessNotGuarded  // TestOnly method
+    ourDynamicTools = null;
+  }
+
+  @Nullable
+  public static List<Tools> getDynamicTools() {
+    synchronized (ISSUE_MAP_LOCK) {
+      return ourDynamicTools;
+    }
+  }
+
+  @Nullable
+  public static void resetDynamicTools() {
+    synchronized (ISSUE_MAP_LOCK) {
+      ourDynamicTools = null;
+    }
   }
 
   public static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
@@ -363,6 +380,14 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
         name = tool.getShortName();
         ourIssue2InspectionShortName.put(issue, name);
+
+        ToolsImpl tools = current.getToolsOrNull(name, project);
+        if (tools != null) {
+          if (ourDynamicTools == null) {
+            ourDynamicTools = new ArrayList<>();
+          }
+          ourDynamicTools.add(tools);
+        }
       }
       return name;
     }
