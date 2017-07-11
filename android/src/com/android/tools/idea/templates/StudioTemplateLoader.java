@@ -37,6 +37,8 @@ public final class StudioTemplateLoader implements TemplateLoader {
   private final Stack<File> myLastTemplateFolders;
   // Specify the root folder as a prefix
   private final static String ROOT = "root://";
+  // The construct: new File(String) strip 1 forward slashes in "root://", and depending on the OS we may end up with root:/ or root:\
+  private final static String ROOT_FILE = "root:" + File.separator;
 
   /**
    * A {@link TemplateLoader} that is loading files for FreeMarker template engine.
@@ -161,6 +163,9 @@ public final class StudioTemplateLoader implements TemplateLoader {
     File file;
     if (name.startsWith(ROOT)) {
       file = new File(myTemplateRootFolder, name.substring(ROOT.length()));
+    }
+    else if (name.startsWith(ROOT_FILE)) {
+      file = new File(myTemplateRootFolder, name.substring(ROOT_FILE.length()));
     }
     else if (myLastTemplateFolders != null) {
       file = new File(myLastTemplateFolders.peek(), name);
