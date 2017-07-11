@@ -24,6 +24,7 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -174,7 +175,13 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
         editor.setProperty(myProperty.getChildProperty(item));
         panel.add(editor.getComponent());
       }
-      return panel;
+      JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(panel,
+                                                                  ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                                  ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      scrollPane.setBorder(null);
+      scrollPane.getVerticalScrollBar().setUnitIncrement(25);
+      scrollPane.getVerticalScrollBar().setBlockIncrement(25);
+      return scrollPane;
     }
   }
 
