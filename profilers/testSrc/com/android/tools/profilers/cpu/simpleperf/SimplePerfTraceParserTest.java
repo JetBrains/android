@@ -69,6 +69,57 @@ public class SimplePerfTraceParserTest {
   }
 
   @Test
+  public void checkKnownThreadsPresenceAndCount() throws IOException {
+    myParser.parse(myTraceFile);
+    Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
+
+    assertFalse(callTrees.values().isEmpty());
+    CaptureNode first = callTrees.values().iterator().next();
+
+    // Studio:Heartbeat
+    int studioHeartbeatCount = 0;
+    // displayingbitmaps
+    int displayingBitmapsCount = 0;
+    // Studio:Agent
+    int studioAgentCount = 0;
+    // JVMTI Agent thread
+    int jvmtiAgentCount = 0;
+
+    assertNotNull(first);
+    assertEquals("main", first.getData().getName());
+    for (Map.Entry<CpuThreadInfo, CaptureNode> tree : callTrees.entrySet()) {
+      String thread = tree.getKey().getName();
+      // Using contains instead of equals because native thread names are limited to 15 characters
+      // and there is no way to predict where they are going to be trimmed.
+      if ("Studio:Heartbeat".contains(thread)) {
+        studioHeartbeatCount++;
+        // libperfa should be the entry point
+        assertTrue(tree.getValue().getChildAt(0).getData().getName().startsWith("libperfa.so"));
+      }
+      else if ("displayingbitmaps".contains(thread)) {
+        displayingBitmapsCount++;
+        // libperfa should be the entry point
+        assertTrue(tree.getValue().getChildAt(0).getData().getName().startsWith("libperfa.so"));
+      }
+      else if ("Studio:Agent".contains(thread)) {
+        studioAgentCount++;
+        // libperfa should be the entry point
+        assertTrue(tree.getValue().getChildAt(0).getData().getName().startsWith("libperfa.so"));
+      }
+      else if ("JVMTI Agent thread".contains(thread)) {
+        jvmtiAgentCount++;
+        // libperfa should be the entry point
+        assertTrue(tree.getValue().getChildAt(0).getData().getName().startsWith("libperfa.so"));
+      }
+    }
+
+    assertEquals(1, studioHeartbeatCount);
+    assertEquals(1, displayingBitmapsCount);
+    assertEquals(1, studioAgentCount);
+    assertEquals(1, jvmtiAgentCount);
+  }
+
+  @Test
   public void nodeDepthsShouldBeCoherent() throws IOException {
     myParser.parse(myTraceFile);
     CaptureNode anyTree = myParser.getCaptureTrees().values().iterator().next();

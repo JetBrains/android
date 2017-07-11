@@ -268,20 +268,22 @@ public class SimplePerfTraceParser implements TraceParser {
     List<SimpleperfReport.Sample.CallChainEntry> previousCallChain = myLastCallChain.get(threadId);
     // First, identify where the call chains diverge, so we update the endTime of the nodes that are not in the call chain anymore.
     // If the last call chain is empty, there is no divergent index and no end values need to be updated.
-    int divergentIndex = 0;
+    int previousCallChainIndex = previousCallChain.size() - 1;
+    int newCallChainIndex = callChain.size() - 1;
     CaptureNode divergentNodeParent = null;
     if (!previousCallChain.isEmpty()) {
-      while (divergentIndex < previousCallChain.size() && divergentIndex < callChain.size() &&
-             equals(previousCallChain.get(divergentIndex), callChain.get(divergentIndex))) {
-        divergentIndex++;
+      while (previousCallChainIndex >= 0 && newCallChainIndex >= 0 &&
+             equals(previousCallChain.get(previousCallChainIndex), callChain.get(newCallChainIndex))) {
+        previousCallChainIndex--;
+        newCallChainIndex--;
       }
-      divergentNodeParent = findDivergenceAndUpdateEndTime(previousCallChain.size() - divergentIndex, threadId, timestamp);
+      divergentNodeParent = findDivergenceAndUpdateEndTime(previousCallChainIndex, threadId, timestamp);
     }
 
     // Now, add the nodes of the new call chain to the tree
-    if (callChain.size() > divergentIndex) {
+    if (newCallChainIndex >= 0) {
       divergentNodeParent = divergentNodeParent == null ? myLastCallStackTopNode.get(threadId) : divergentNodeParent;
-      addNewNodes(callChain, divergentNodeParent, divergentIndex, timestamp, threadId);
+      addNewNodes(callChain, divergentNodeParent, newCallChainIndex, timestamp, threadId);
     }
 
     // Finally, update previous call chain and previous last node
@@ -315,7 +317,7 @@ public class SimplePerfTraceParser implements TraceParser {
   private void addNewNodes(List<SimpleperfReport.Sample.CallChainEntry> callChain,
                            CaptureNode node, int startIndex, long startTimestamp, int tid) {
     assert node != null;
-    for (int i = startIndex; i < callChain.size(); i++) {
+    for (int i = startIndex; i >= 0; i--) {
       CaptureNode child = createCaptureNode(parseMethodName(callChain.get(i)), startTimestamp);
       node.addChild(child);
       child.setDepth(node.getDepth() + 1);
