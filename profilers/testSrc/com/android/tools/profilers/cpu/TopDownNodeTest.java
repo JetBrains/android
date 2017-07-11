@@ -37,16 +37,16 @@ public class TopDownNodeTest {
     //    +-F
 
     TopDownNode topDown = new TopDownNode(root);
-    assertEquals(".A", topDown.getId());
+    assertEquals("A", topDown.getId());
     assertEquals(2, topDown.getChildren().size());
-    assertEquals(".B", topDown.getChildren().get(0).getId());
+    assertEquals("B", topDown.getChildren().get(0).getId());
     assertEquals(3, topDown.getChildren().get(0).getChildren().size());
-    assertEquals(".D", topDown.getChildren().get(0).getChildren().get(0).getId());
-    assertEquals(".E", topDown.getChildren().get(0).getChildren().get(1).getId());
-    assertEquals(".G", topDown.getChildren().get(0).getChildren().get(2).getId());
-    assertEquals(".C", topDown.getChildren().get(1).getId());
+    assertEquals("D", topDown.getChildren().get(0).getChildren().get(0).getId());
+    assertEquals("E", topDown.getChildren().get(0).getChildren().get(1).getId());
+    assertEquals("G", topDown.getChildren().get(0).getChildren().get(2).getId());
+    assertEquals("C", topDown.getChildren().get(1).getId());
     assertEquals(1, topDown.getChildren().get(1).getChildren().size());
-    assertEquals(".F", topDown.getChildren().get(1).getChildren().get(0).getId());
+    assertEquals("F", topDown.getChildren().get(1).getChildren().get(0).getId());
   }
 
   @Test

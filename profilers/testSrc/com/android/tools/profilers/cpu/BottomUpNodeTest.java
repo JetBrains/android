@@ -254,7 +254,7 @@ public class BottomUpNodeTest {
 
     BottomUpNode node = new BottomUpNode(root);
 
-    BottomUpNode nodeA = node.getChildren().stream().filter(n -> n.getId().equals(".A")).findAny().orElseThrow(AssertionError::new);
+    BottomUpNode nodeA = node.getChildren().stream().filter(n -> n.getId().equals("A")).findAny().orElseThrow(AssertionError::new);
     nodeA.update(new Range(0, 100));
     assertEquals(100, nodeA.getTotal(), EPS);
     assertEquals(61, nodeA.getChildrenTotal(), EPS);

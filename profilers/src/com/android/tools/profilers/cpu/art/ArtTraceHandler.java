@@ -84,7 +84,7 @@ public class ArtTraceHandler implements VmTraceHandler {
     long id = Long.MAX_VALUE - threadId;
     assert myMethods.get(id) == null :
       "Unexpected error while attempting to create a unique key - key already exists";
-    MethodModel model = new MethodModel("", myThreads.get(threadId), "");
+    MethodModel model = new MethodModel(myThreads.get(threadId));
     myMethods.put(id, model);
     return model;
   }
