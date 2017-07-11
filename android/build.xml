@@ -48,6 +48,7 @@
         </condition>
         <exec executable="${gradle.wrapper.executable}" dir="${workspace}/tools" failonerror="true">
             <env key="JAVA_HOME" value="${java.home}" />
+            <arg line="--no-daemon" />
             <arg line="${select.release.args}" />
             <arg value="init" />
             <arg value="zipOfflineRepo" />
