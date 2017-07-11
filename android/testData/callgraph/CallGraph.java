@@ -144,6 +144,13 @@ class Lambdas {
     Runnable r = () -> { f(); g(); };
     r.run();
   }
+  void i() {
+    Runnable r = new Runnable() {
+      @Override
+      public void run() { f(); }
+    };
+    r.run();
+  }
 }
 
 
@@ -195,5 +202,10 @@ class Contextual {
   void run3(Runnable r) { run2(r); }
   void run4(Runnable r) { run3(r); }
   void run5(Runnable r) { run4(r); }
-  void c() { run5(() -> f()); }
+  void c() {
+    run5(new Runnable() {
+      @Override
+      public void run() { f(); }
+    });
+  }
 }

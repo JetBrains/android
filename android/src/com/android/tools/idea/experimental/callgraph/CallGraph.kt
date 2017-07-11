@@ -111,7 +111,9 @@ class MutableCallGraph : CallGraph {
   override val nodes get() = nodeMap.values
 
   class MutableNode(override val caller: CallTarget,
-                    override val edges: MutableCollection<Edge> = ArrayList()) : Node
+                    override val edges: MutableCollection<Edge> = ArrayList()) : Node {
+    override fun toString() = shortName
+  }
 
   override fun getNode(element: UElement): MutableNode {
     return nodeMap.getOrPut(element) {

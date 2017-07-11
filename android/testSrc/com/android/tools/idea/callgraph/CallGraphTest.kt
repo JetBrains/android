@@ -92,6 +92,7 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     "Lambdas#g".assertCalls("Lambdas#f")
     "Lambdas#h".assertCalls("Lambdas#h#lambda")
     "Lambdas#h#lambda".assertCalls("Lambdas#f", "Lambdas#g")
+    "Lambdas#i".assertReaches("Lambdas#f")
 
     // Test contextual call paths relying on single argument.
     "Contextual#a".assertReaches("Contextual#f")
@@ -120,7 +121,8 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     // Test long contextual paths.
     "Contextual#c".assertReaches("Contextual#f")
     "Contextual#c".assertReaches("Contextual#run")
-    "Contextual#run3".assertReaches("Contextual#c#lambda")
+    "Contextual#c".assertDoesNotReach("Contextual#g")
+    "Contextual#run3".assertReaches("Contextual#f")
     "Contextual#run3".assertDoesNotReach("Contextual#g")
   }
 }
