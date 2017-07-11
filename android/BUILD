@@ -112,6 +112,7 @@ iml_module(
         "//prebuilts/studio/sdk:typos",
         "//prebuilts/studio/sdk:wearable_latest",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
+        "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android:device-art-resources",
         "//tools/adt/idea/android/lib:androidWidgets",
