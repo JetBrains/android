@@ -107,6 +107,11 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     setToolContextWithoutCheck(designSurface);
   }
 
+  @Override
+  public void setRestoreToolWindow(@NotNull Runnable restoreToolWindowCallback) {
+    myPropertiesPanel.setRestoreToolWindow(restoreToolWindowCallback);
+  }
+
   @NotNull
   private JBLoadingPanel getLoadingPanel() {
     if (myLoadingPanel == null) {
@@ -438,6 +443,14 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     // Do nothing
   }
 
+  /**
+   * Find the preferred attribute of the component specified,
+   * and bring focus to the editor of this attribute in the inspector.
+   * If the inspector is not the current attribute panel: make it the active panel,
+   * if the attributes tool window is minimized: restore the attributes tool window.
+   * @return true if a preferred attribute was identified and an editor will eventually gain focus in the inspector.
+   *         false if no preferred attribute was identified.
+   */
   @Override
   public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
     getComponentAssistant().activatePreferredEditor(surface, component);
@@ -447,7 +460,8 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (propertyName == null) {
       return false;
     }
-    return getPropertiesPanel().activatePreferredEditor(propertyName, myLoading);
+    getPropertiesPanel().activatePreferredEditor(propertyName, myLoading);
+    return true;
   }
 
   @Override

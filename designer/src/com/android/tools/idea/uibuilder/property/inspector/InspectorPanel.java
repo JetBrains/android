@@ -291,7 +291,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     ApplicationManager.getApplication().invokeLater(() -> myInspectors.forEach(InspectorComponent::refresh));
   }
 
-  public boolean activatePreferredEditor(@NotNull String propertyName, boolean activateAfterLoading) {
+  public void activatePreferredEditor(@NotNull String propertyName, boolean activateAfterLoading) {
     if (activateAfterLoading) {
       myActivateEditorAfterLoad = true;
       myPropertyNameForActivation = propertyName;
@@ -299,7 +299,6 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     else {
       activatePreferredEditor(propertyName);
     }
-    return true;
   }
 
   private void activatePreferredEditor(@NotNull String propertyName) {

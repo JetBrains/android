@@ -202,6 +202,16 @@ public class AttachedToolWindowTest {
   }
 
   @Test
+  public void testRestore() {
+    myToolWindow.setMinimized(true);
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assert panel != null;
+    panel.restore();
+    assertThat(myToolWindow.isMinimized()).isFalse();
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.MINIMIZED));
+  }
+
+  @Test
   public void testRestoreDefaultLayout() {
     myToolWindow.setMinimized(true);
     myToolWindow.setLeft(false);

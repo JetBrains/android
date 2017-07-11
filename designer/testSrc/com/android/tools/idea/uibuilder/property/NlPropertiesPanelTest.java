@@ -313,6 +313,20 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     assertThat(PropertiesComponent.getInstance().getValue(PROPERTY_MODE)).isEqualTo(PropertiesViewMode.TABLE.name());
   }
 
+  public void testActivatePreferredEditor() {
+    boolean[] called = new boolean[1];
+    List<NlComponent> components = Collections.singletonList(myTextView);
+    Table<String, String, NlPropertyItem> properties = getPropertyTable(components);
+    myPanel.setAllPropertiesPanelVisible(true);
+    myPanel.setRestoreToolWindow(() -> called[0] = true);
+    myPanel.setItems(components, properties, myPropertiesManager);
+
+    myPanel.activatePreferredEditor(ATTR_TEXT, false);
+    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+    assertThat(called[0]).isTrue();
+    verify(myInspector).activatePreferredEditor(ATTR_TEXT, false);
+  }
+
   private int findRowOf(@NotNull String namespace, @NotNull String name) {
     for (int row = 0; row < myModel.getRowCount(); row++) {
       PTableItem item = (PTableItem)myModel.getValueAt(row, 0);
