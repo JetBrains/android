@@ -51,7 +51,7 @@ public class LintTest {
   @RunIn(TestGroup.QA)
   @Test
   public void obsoleteSdkIntLintCheck() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProject("LintTest");
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LintTest");
 
     EditorFixture editor = ideFrameFixture
       .waitForGradleProjectSyncToFinish()
