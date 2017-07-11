@@ -328,7 +328,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     ImmutableList.Builder<Target> listBuilder = ImmutableList.builder();
     listBuilder.add(new LinearDragTarget(this));
-    createResizeTarget(listBuilder);
+    createResizeTarget(sceneComponent, listBuilder);
     createSeparatorTargets(sceneComponent, listBuilder);
     return listBuilder.build();
   }
@@ -350,13 +350,83 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private static void createResizeTarget(@NotNull ImmutableList.Builder<Target> listBuilder) {
-    // TODO Only display the Resize target in the direction that can be resized depending on the gravity
-    listBuilder
-      .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
-      .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
-      .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
-      .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+  private static void createResizeTarget(@NotNull SceneComponent sceneComponent, @NotNull ImmutableList.Builder<Target> listBuilder) {
+    SceneComponent parent = sceneComponent.getParent();
+    assert parent != null;
+
+    String orientation = parent.getNlComponent().getAttribute(ANDROID_URI, ATTR_ORIENTATION);
+
+    boolean showLeft = true;
+    boolean showTop = true;
+    boolean showBottom = true;
+    boolean showRight = true;
+
+    String gravityAttribute = sceneComponent.getNlComponent().getAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY);
+    if (gravityAttribute == null || gravityAttribute.contains(GRAVITY_VALUE_FILL)) {
+      // LinearLayout works as default case.
+      showLeft = false;
+      showTop = false;
+    }
+    else {
+      // TODO: handle the start and end case with condition of RTL
+      String[] gravities = gravityAttribute.split("\\|");
+      for (String gravity : gravities) {
+        switch (gravity) {
+          case GRAVITY_VALUE_LEFT:
+          case GRAVITY_VALUE_START:
+            showLeft = false;
+            break;
+          case GRAVITY_VALUE_TOP:
+            showTop = false;
+            break;
+          case GRAVITY_VALUE_BOTTOM:
+            showBottom = false;
+            break;
+          case GRAVITY_VALUE_RIGHT:
+          case GRAVITY_VALUE_END:
+            showRight = false;
+            break;
+          case GRAVITY_VALUE_CENTER_HORIZONTAL:
+            if (VALUE_VERTICAL.equals(orientation)) {
+              showTop = false;
+            }
+            break;
+          case GRAVITY_VALUE_CENTER_VERTICAL:
+            if (VALUE_HORIZONTAL.equals(orientation)) {
+              showLeft = false;
+            }
+            break;
+        }
+      }
+    }
+
+    // edges
+    if (showLeft) {
+      listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT));
+    }
+    if (showTop) {
+      listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.TOP));
+    }
+    if (showBottom) {
+      listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.BOTTOM));
+    }
+    if (showRight) {
+      listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT));
+    }
+
+    // corners
+    if (showLeft && showTop) {
+      listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+    }
+    if (showLeft && showBottom) {
+      listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
+    }
+    if (showRight && showTop) {
+      listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
+    }
+    if (showRight && showBottom) {
+      listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
+    }
   }
 
   /**
