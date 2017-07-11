@@ -273,6 +273,26 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     lint.analyze();
 
+    List<Tools> tools = AndroidLintInspectionBase.getDynamicTools();
+    AndroidLintInspectionBase.resetDynamicTools();
+    if (tools != null) {
+      for (Tools tool : tools) {
+        // can't just call globalTools.contains(tool): ToolsImpl.equals does *not* check
+        // tool identity, it just checks settings identity.
+        String name = tool.getShortName();
+        boolean found = false;
+        for (Tools registered : globalTools) {
+          if (registered.getShortName().equals(name)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          globalTools.add(tool);
+        }
+      }
+    }
+
     AndroidLintLintBaselineInspection.clearNextRunState();
 
     myResults = problemMap;

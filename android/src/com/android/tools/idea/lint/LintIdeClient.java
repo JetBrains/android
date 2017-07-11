@@ -44,7 +44,6 @@ import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.utils.Pair;
 import com.google.common.base.Charsets;
-import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
@@ -75,6 +74,7 @@ import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.inspections.lint.State;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -209,11 +209,19 @@ public class LintIdeClient extends LintClient implements Disposable {
     return new DefaultConfiguration(this, project, null) {
       @Override
       public boolean isEnabled(@NonNull Issue issue) {
-        if (getIssues().contains(issue) && super.isEnabled(issue)) {
-          return true;
+        Set<Issue> issues = getIssues();
+        boolean known = issues.contains(issue);
+        if (!known) {
+          if (issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED) {
+            return true;
+          }
+
+          // Allow third-party checks
+          LintIdeIssueRegistry builtin = new LintIdeIssueRegistry();
+          return !builtin.isIssueId(issue.getId());
         }
 
-        return issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED;
+        return super.isEnabled(issue);
       }
     };
   }
@@ -853,6 +861,9 @@ public class LintIdeClient extends LintClient implements Disposable {
           reportSecondary(context, issue, severity, location, message, format, quickfixData);
         }
       }
+
+      // Ensure third party issue registered
+      AndroidLintInspectionBase.getInspectionShortNameByIssue(myProject, issue);
     }
 
     @NonNull
