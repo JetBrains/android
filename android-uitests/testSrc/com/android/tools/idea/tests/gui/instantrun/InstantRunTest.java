@@ -358,7 +358,7 @@ public class InstantRunTest {
    */
   @Test
   public void modifyVariableDuringDebugSession() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProject("Project204792");
+    IdeFrameFixture ideFrameFixture = guiTest.importProject("Project204792").waitForGradleProjectSyncToFinish();
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     final String TEST_FILE = "app/src/main/java/com/bug204792/myapplication/TestJava.java";
