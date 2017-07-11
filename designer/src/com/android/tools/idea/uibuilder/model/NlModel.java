@@ -459,7 +459,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
      */
     @VisibleForTesting
     public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
-      if (newRoot == null || !newRoot.isValid()) {
+      if (newRoot == null) {
+        myModel.myComponents = Collections.emptyList();
+        return;
+      }
+
+      boolean isValidRoot = ApplicationManager.getApplication().runReadAction((Computable<Boolean>)newRoot::isValid);
+      if (!isValidRoot) {
         myModel.myComponents = Collections.emptyList();
         return;
       }
