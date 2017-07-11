@@ -104,7 +104,6 @@ fun UCallExpression.getTargets(receiverEval: CallReceiverEvaluator): Collection<
   if (resolved.isStatic)
     return listOf(CallTarget.Method(resolved))
   val receivers = receiver?.let { receiverEval[it] } ?: receiverEval.getForImplicitThis()
-  // TODO: Methods refined by anonymous classes currently fail to convert to UElement. Need to investigate and test this.
   fun refine(method: UMethod, clazz: UClass): PsiMethod? = clazz.findMethodBySignature(method, /*checkBases*/ true)
   fun isFunctionalCall() = resolved.psi == LambdaUtil.getFunctionalInterfaceMethod(receiverType)
   fun ULambdaExpression.toLambdaTarget() = CallTarget.Lambda(this)
