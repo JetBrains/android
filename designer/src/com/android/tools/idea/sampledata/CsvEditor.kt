@@ -68,8 +68,17 @@ private class CsvTableModel(val myEditor: CsvEditor, val myFile: PsiPlainTextFil
 
   private fun reloadFromFile() {
     val csvReader = CSVReader(StringReader(myFile.text))
-    myHeaders = csvReader.readNext()
-    myContent = csvReader.readAll()
+    val headers = csvReader.readNext()
+
+    if (headers != null) {
+      myHeaders = headers
+      myContent = csvReader.readAll()
+    }
+    else {
+      // File is empty
+      myHeaders = Array(0, {""})
+      myContent = ArrayList<Array<String>>()
+    }
 
     fireTableDataChanged()
   }
@@ -77,13 +86,17 @@ private class CsvTableModel(val myEditor: CsvEditor, val myFile: PsiPlainTextFil
   override fun getRowCount(): Int = myContent.size
 
   override fun getColumnName(columnIndex: Int): String = myHeaders[columnIndex]
-  override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = true
+  override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = myHeaders.isNotEmpty()
   override fun getColumnClass(columnIndex: Int): Class<*> = String::class.java
   override fun setValueAt(aValue: Any?, rowIndex: Int, columnIndex: Int) {
-    val oldValue = myContent[rowIndex][columnIndex]
-
+    val oldValue = getValueAt(rowIndex, columnIndex)
     if (oldValue == aValue) {
       return
+    }
+
+    if (columnIndex >= myContent[rowIndex].size) {
+      // The row needs more columns
+      myContent[rowIndex] = myContent[rowIndex].copyOf(myHeaders.size).map { it ?: ""}.toTypedArray()
     }
 
     myContent[rowIndex][columnIndex] = aValue as String
@@ -102,6 +115,10 @@ private class CsvTableModel(val myEditor: CsvEditor, val myFile: PsiPlainTextFil
 
   override fun getColumnCount(): Int = myHeaders.size
   override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
+    if (rowIndex >= myContent.size || columnIndex >= myContent[rowIndex].size) {
+      return ""
+    }
+
     return myContent[rowIndex][columnIndex]
   }
 
