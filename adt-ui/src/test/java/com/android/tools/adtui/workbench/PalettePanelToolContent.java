@@ -36,6 +36,7 @@ class PalettePanelToolContent implements ToolContent<String> {
   private final JComponent myFocusComponent;
   private final KeyListener myKeyListener;
   private String myContext;
+  private Runnable myRestore;
   private Runnable myAutoClose;
   private StartFilteringListener myStartFilteringListener;
   private boolean myDisposed;
@@ -77,6 +78,12 @@ class PalettePanelToolContent implements ToolContent<String> {
       "Other", AllIcons.Toolwindows.ToolWindowAnt, "THIRD", Side.RIGHT, Split.TOP, AutoHide.DOCKED, PalettePanelToolContent::new);
   }
 
+  public void restore() {
+    if (myRestore != null) {
+      myRestore.run();
+    }
+  }
+
   public void closeAutoHideWindow() {
     if (myAutoClose != null) {
       myAutoClose.run();
@@ -115,6 +122,11 @@ class PalettePanelToolContent implements ToolContent<String> {
   @Override
   public List<AnAction> getAdditionalActions() {
     return Collections.singletonList(myAdditionalAction);
+  }
+
+  @Override
+  public void setRestoreToolWindow(@NotNull Runnable runnable) {
+    myRestore = runnable;
   }
 
   @Override

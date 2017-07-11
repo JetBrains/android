@@ -71,6 +71,12 @@ public interface ToolContent<T> extends Disposable {
   }
 
   /**
+   * The tool window system will register a callback for restoring a hidden tool window.
+   * TODO: Replace this callback with a callback for all 3 actions: restore, autoHide, startFiltering
+   */
+  default void setRestoreToolWindow(@NotNull Runnable runnable) {}
+
+  /**
    * The tool window system will register a callback for closing a tool window in auto hide mode.
    */
   default void setCloseAutoHideWindow(@NotNull Runnable runnable) {}

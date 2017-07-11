@@ -285,9 +285,16 @@ class AttachedToolWindow<T> implements Disposable {
       assert myContent != null;
       myContent.setToolContext(myModel.getContext());
       myContent.setCloseAutoHideWindow(this::closeAutoHideWindow);
+      myContent.setRestoreToolWindow(this::restore);
       myContent.setStartFiltering(this::startFiltering);
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
+    }
+  }
+
+  private void restore() {
+    if (!isDetached() && isMinimized()) {
+      setPropertyAndUpdate(PropertyType.MINIMIZED, false);
     }
   }
 

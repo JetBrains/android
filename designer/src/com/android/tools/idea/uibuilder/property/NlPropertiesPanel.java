@@ -86,6 +86,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private List<NlPropertyItem> myProperties;
   @NotNull
   private PropertiesViewMode myPropertiesViewMode;
+  private Runnable myRestoreToolWindowCallback;
 
   public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     this(propertiesManager, parentDisposable, new NlPTable(new PTableModel()), null);
@@ -163,6 +164,10 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   public void removeNotify() {
     super.removeNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(myPropertyChangeListener);
+  }
+
+  public void setRestoreToolWindow(@NotNull Runnable restoreToolWindowCallback) {
+    myRestoreToolWindowCallback = restoreToolWindowCallback;
   }
 
   public int getFilterMatchCount() {
@@ -331,9 +336,13 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
   @Override
   public void setAllPropertiesPanelVisible(boolean viewAllProperties) {
-    myPropertiesViewMode = viewAllProperties ? PropertiesViewMode.TABLE : PropertiesViewMode.INSPECTOR;
     Component next = viewAllProperties ? myTable : myInspectorPanel;
-    myCardLayout.swipe(myCardPanel, myPropertiesViewMode.name(), JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
+    setAllPropertiesPanelVisibleInternal(viewAllProperties, next::requestFocus);
+  }
+
+  private void setAllPropertiesPanelVisibleInternal(boolean viewAllProperties, @Nullable Runnable onDone) {
+    myPropertiesViewMode = viewAllProperties ? PropertiesViewMode.TABLE : PropertiesViewMode.INSPECTOR;
+    myCardLayout.swipe(myCardPanel, myPropertiesViewMode.name(), JBCardLayout.SwipeDirection.AUTO, onDone);
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, myPropertiesViewMode.name());
   }
 
@@ -360,11 +369,22 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     return mode;
   }
 
-  public boolean activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
-    if (isAllPropertiesPanelVisible()) {
-      setAllPropertiesPanelVisible(false);
+  public void activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
+    Runnable selectEditor = () -> {
+      // Restore a possibly minimized tool window
+      if (myRestoreToolWindowCallback != null) {
+        myRestoreToolWindowCallback.run();
+      }
+      // Set focus on the editor of preferred property
+      myInspectorPanel.activatePreferredEditor(propertyName, afterload);
+    };
+    if (!isAllPropertiesPanelVisible()) {
+      selectEditor.run();
     }
-    return myInspectorPanel.activatePreferredEditor(propertyName, afterload);
+    else {
+      // Switch to the inspector. The switch is animated, so we need to delay the editor selection.
+      setAllPropertiesPanelVisibleInternal(false, selectEditor);
+    }
   }
 
   private void scrollIntoView(@NotNull PropertyChangeEvent event) {

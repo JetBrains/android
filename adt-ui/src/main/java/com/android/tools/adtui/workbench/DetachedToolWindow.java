@@ -62,6 +62,7 @@ class DetachedToolWindow<T> implements Disposable {
   public void show(@NotNull AttachedToolWindow<T> correspondingWindow) {
     updateState(correspondingWindow);
     myContent.setToolContext(correspondingWindow.getContext());
+    myContent.setRestoreToolWindow(this::restore);
     myToolWindow.setAvailable(true, null);
     myToolWindow.setType(toToolWindowType(correspondingWindow), null);
     myToolWindow.setSplitMode(correspondingWindow.isSplit(), null);
@@ -71,6 +72,12 @@ class DetachedToolWindow<T> implements Disposable {
   public void hide() {
     myContent.setToolContext(null);
     myToolWindow.setAvailable(false, null);
+  }
+
+  private void restore() {
+    if (myToolWindow.isAvailable() && !myToolWindow.isVisible()) {
+      myToolWindow.show(null);
+    }
   }
 
   @NotNull
