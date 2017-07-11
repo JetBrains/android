@@ -56,7 +56,7 @@ public class LintOptionsStub extends BaseStub implements LintOptions {
   public LintOptionsStub() {
     this(Sets.newHashSet("disable"), Sets.newHashSet("enable"), Sets.newHashSet("check"), new File("lintConfig"), new File("textOutput"),
          new File("htmlOutput"), new File("xmlOutput"), new File("baselineFile"), ImmutableMap.of("key", 1), true, true, true, true, true,
-         true, true, true, true, true, true, true, true, true, true, true);
+         true, true, true, true, true, true, true, true, true, true, false);
   }
 
   public LintOptionsStub(@NotNull Set<String> disable,
