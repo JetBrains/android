@@ -89,6 +89,9 @@ public class IdeaTestSuite {
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
 
     provideRealJdkPathForGradle("prebuilts/studio/jdk");
+
+    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
+    System.setProperty("plugin.path", TestUtils.getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
   }
 
   /**
