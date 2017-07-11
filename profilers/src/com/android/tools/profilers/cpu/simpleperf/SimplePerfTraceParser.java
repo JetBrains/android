@@ -33,6 +33,7 @@ import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Parses a trace file obtained using simpleperf to a map threadId -> {@link CaptureNode}.
@@ -153,9 +154,7 @@ public class SimplePerfTraceParser implements TraceParser {
   private static CaptureNode createCaptureNode(String name, long timestamp) {
     CaptureNode node = new CaptureNode();
     node.setMethodModel(new MethodModel(name));
-    node.setStartGlobal(timestamp);
-    // TODO: use thread time
-    node.setStartThread(timestamp);
+    setNodeStartTime(node, timestamp);
     node.setDepth(0);
     return node;
   }
@@ -235,16 +234,26 @@ public class SimplePerfTraceParser implements TraceParser {
 
     // Update the end timestamp of the last active call chain of each thread
     long endTimestamp = mySamples.get(mySamples.size() - 1).getTime();
-    myRange = new Range(startTimestamp, endTimestamp);
+    myRange = new Range(TimeUnit.NANOSECONDS.toMicros(startTimestamp), TimeUnit.NANOSECONDS.toMicros(endTimestamp));
     for (CaptureNode lastNode : myLastCallStackTopNode.values()) {
       CaptureNode node = lastNode;
       while (node != null && node.getEnd() == 0) {
-        node.setEndGlobal(endTimestamp);
-        // TODO: use thread time
-        node.setEndThread(endTimestamp);
+        setNodeEndTime(node, endTimestamp);
         node = node.getParent();
       }
     }
+  }
+
+  // TODO: support thread time
+  private static void setNodeEndTime(CaptureNode node, long endTimeNs) {
+    node.setEndGlobal(TimeUnit.NANOSECONDS.toMicros(endTimeNs));
+    node.setEndThread(TimeUnit.NANOSECONDS.toMicros(endTimeNs));
+  }
+
+  // TODO: support thread time
+  private static void setNodeStartTime(CaptureNode node, long startTimeNs) {
+    node.setStartGlobal(TimeUnit.NANOSECONDS.toMicros(startTimeNs));
+    node.setStartThread(TimeUnit.NANOSECONDS.toMicros(startTimeNs));
   }
 
   /**
@@ -299,9 +308,7 @@ public class SimplePerfTraceParser implements TraceParser {
     CaptureNode node = myLastCallStackTopNode.get(tid);
     for (int i = 0; i < divergenceCount; i++) {
       assert node != null;
-      node.setEndGlobal(endTimestamp);
-      // TODO: use thread time
-      node.setEndThread(endTimestamp);
+      setNodeEndTime(node, endTimestamp);
       node = node.getParent();
     }
 
