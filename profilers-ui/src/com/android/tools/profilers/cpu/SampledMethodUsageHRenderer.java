@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.profilers.ProfilerColors;
+import com.intellij.openapi.util.text.StringUtil;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -73,14 +74,18 @@ public class SampledMethodUsageHRenderer extends HRenderer<MethodModel> {
   @Override
   protected String generateFittingText(MethodModel node, Rectangle2D rect, FontMetrics fontMetrics) {
     double maxWidth = rect.getWidth() - LEFT_MARGIN_PX;
-    // Try: java.lang.String.toString
-    String fullyQualified = node.getClassName() + "." + node.getName();
+    // Try: java.lang.String.toString. Add a "." separator between class name and method name.
+    // Native methods (e.g. clock_gettime) don't have a class name and, therefore, we don't add a "." before them.
+    String separator = StringUtil.isEmpty(node.getClassName()) ? "" : ".";
+    String fullyQualified = node.getClassName() + separator + node.getName();
     if (fontMetrics.stringWidth(fullyQualified) < maxWidth) {
       return fullyQualified;
     }
 
     // Try: j.l.s.toString
-    String abbrevPackage = getShortPackageName(node.getClassName()) + "." + node.getName();
+    String shortPackage =  getShortPackageName(node.getClassName());
+    separator = StringUtil.isEmpty(shortPackage) ? "" : ".";
+    String abbrevPackage = shortPackage + separator + node.getName();
     if (fontMetrics.stringWidth(abbrevPackage) < maxWidth) {
       return abbrevPackage;
     }
