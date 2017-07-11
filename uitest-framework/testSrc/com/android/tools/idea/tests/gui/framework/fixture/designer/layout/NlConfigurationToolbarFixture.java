@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.intellij.openapi.actionSystem.ActionButtonComponent;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -33,9 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.function.Predicate;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
@@ -160,31 +159,69 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   }
 
   /**
-   * Click on the "Show Design" button
+   * Click on the "Show Design" button if not selected
    */
   public NlConfigurationToolbarFixture<ParentFixture> showDesign() {
+    ActionButtonFixture fixture = getToggleDesignButton();
+    if (fixture.target().getPopState() != ActionButtonComponent.PUSHED) {
+      fixture.click();
+    }
+    return this;
+  }
+
+  /**
+   * Click on the "Show Design" if it is selected
+   */
+  public NlConfigurationToolbarFixture<ParentFixture> hideDesign() {
+    ActionButtonFixture fixture = getToggleDesignButton();
+    if (fixture.target().getPopState() == ActionButtonComponent.PUSHED) {
+      fixture.click();
+    }
+    return this;
+  }
+
+  @NotNull
+  private ActionButtonFixture getToggleDesignButton() {
     ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         return "Show Design".equals(component.getAction().getTemplatePresentation().getDescription());
       }
     });
-    new ActionButtonFixture(myRobot, button).click();
+    return new ActionButtonFixture(myRobot, button);
+  }
+
+  /**
+   * Click on the "Show Blueprint" button if not selected
+   */
+  public NlConfigurationToolbarFixture<ParentFixture> showBlueprint() {
+    ActionButtonFixture fixture = getBlueprintButton();
+    if (fixture.target().getPopState() != ActionButtonComponent.PUSHED) {
+      fixture.click();
+    }
     return this;
   }
 
   /**
-   * Click on the "Show Blueprint" button
+   * Click on the "Show Blueprint" button if not selected
    */
-  public NlConfigurationToolbarFixture<ParentFixture> showBlueprint() {
+  public NlConfigurationToolbarFixture<ParentFixture> hideBlueprint() {
+    ActionButtonFixture fixture = getBlueprintButton();
+    if (fixture.target().getPopState() == ActionButtonComponent.PUSHED) {
+      fixture.click();
+    }
+    return this;
+  }
+
+  @NotNull
+  private ActionButtonFixture getBlueprintButton() {
     ActionButton button = waitUntilShowing(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton component) {
         return "Show Blueprint".equals(component.getAction().getTemplatePresentation().getDescription());
       }
     });
-    new ActionButtonFixture(myRobot, button).click();
-    return this;
+    return new ActionButtonFixture(myRobot, button);
   }
 
   /**

@@ -198,6 +198,9 @@ public class NlDesignSurface extends DesignSurface {
           manager.requestRender();
         }
       }
+      else {
+        repaint();
+      }
     }
   }
 
@@ -221,7 +224,7 @@ public class NlDesignSurface extends DesignSurface {
         builder.addAll(getBlueprintLayers(this, myScreenView));
         break;
       case BOTH:
-        assert myScreenView != null &&  myBlueprintView != null;
+        assert myScreenView != null && myBlueprintView != null;
         builder.addAll(getScreenLayers(this, myScreenView));
         builder.addAll(getBlueprintLayers(this, myBlueprintView));
         break;

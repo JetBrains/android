@@ -127,6 +127,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
     NlDesignSurface surface = myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
       getConfigToolbar().showBlueprint();
+      getConfigToolbar().hideDesign();
     }
     return this;
   }

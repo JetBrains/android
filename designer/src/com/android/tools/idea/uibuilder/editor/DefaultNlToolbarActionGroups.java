@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.actions.BlueprintModeAction;
-import com.android.tools.idea.actions.BothModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RefreshRenderAction;
@@ -44,7 +43,6 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.addSeparator();
     group.add(new DesignModeAction((NlDesignSurface)mySurface));
     group.add(new BlueprintModeAction((NlDesignSurface)mySurface));
-    group.add(new BothModeAction((NlDesignSurface)mySurface));
     group.addSeparator();
 
     group.add(new OrientationMenuAction(mySurface::getConfiguration));
