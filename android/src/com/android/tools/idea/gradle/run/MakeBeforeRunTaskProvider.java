@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.run;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestedTargetVariant;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
@@ -37,10 +38,12 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
@@ -99,6 +102,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
+  @NotNull private final GradleTaskRunnerFactory myTaskRunnerFactory;
 
   public MakeBeforeRunTaskProvider(@NotNull Project project,
                                    @NotNull AndroidProjectInfo androidProjectInfo,
@@ -106,6 +110,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     myProject = project;
     myAndroidProjectInfo = androidProjectInfo;
     myGradleProjectInfo = gradleProjectInfo;
+    myTaskRunnerFactory = new GradleTaskRunnerFactory(myProject, GradleVersions.getInstance());
   }
 
   @Override
@@ -268,19 +273,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     BeforeRunBuilder builder =
       createBuilder(env, getModules(myProject, context, configuration), configuration, runConfigContext, task.getGoal());
 
-    GradleTaskRunner.DefaultGradleTaskRunner runner;
-    if (configuration instanceof AndroidRunConfigurationBase) {
-      Module selectedModule = ((AndroidRunConfigurationBase)configuration).getConfigurationModule().getModule();
-      runner = GradleTaskRunner.newBuildActionRunner(myProject, new OutputBuildAction(getConcernedGradlePaths(selectedModule)));
-    }
-    else {
-      runner = GradleTaskRunner.newRunner(myProject);
-    }
+    GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
 
     try {
       boolean success = builder.build(runner, cmdLineArgs);
 
       if (configuration instanceof AndroidRunConfigurationBase) {
+        //noinspection unchecked
         ImmutableMap<String, ProjectBuildOutput> model = (ImmutableMap<String, ProjectBuildOutput>)runner.getModel();
         if (model != null) {
           ((AndroidRunConfigurationBase)configuration).setOutputModel(new PostBuildModel(model));
@@ -302,32 +301,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       Thread.currentThread().interrupt();
       return false;
     }
-  }
-
-  /**
-   * Get the gradle paths for the given module and all the tested projects (if it is a test app).
-   * These paths will be used by the BuildAction run after build to know all the needed models.
-   */
-  @NotNull
-  private static Collection<String> getConcernedGradlePaths(@Nullable Module module) {
-    Collection<String> gradlePaths = new HashSet<>();
-
-    if (module == null) {
-      return gradlePaths;
-    }
-
-    gradlePaths.add(getGradlePath(module));
-    AndroidModuleModel moduleModel = AndroidModuleModel.get(module);
-    if (moduleModel != null) {
-      IdeAndroidProject androidProject = moduleModel.getAndroidProject();
-      if (androidProject.getProjectType() == PROJECT_TYPE_TEST) {
-        for (TestedTargetVariant testedVariant : moduleModel.getSelectedVariant().getTestedTargetVariants()) {
-          gradlePaths.add(testedVariant.getTargetProjectPath());
-        }
-      }
-    }
-
-    return gradlePaths;
   }
 
   @NotNull
@@ -480,6 +453,55 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
     catch (ExecutionException | TimeoutException e) {
       return null;
+    }
+  }
+
+  @VisibleForTesting
+  static class GradleTaskRunnerFactory {
+    @NotNull private final Project myProject;
+    @NotNull private final GradleVersions myGradleVersions;
+
+    GradleTaskRunnerFactory(@NotNull Project project, @NotNull GradleVersions gradleVersions) {
+      myProject = project;
+      myGradleVersions = gradleVersions;
+    }
+
+    @NotNull
+    GradleTaskRunner.DefaultGradleTaskRunner createTaskRunner(@NotNull RunConfiguration configuration) {
+      if (configuration instanceof AndroidRunConfigurationBase) {
+        GradleVersion version = myGradleVersions.getGradleVersion(myProject);
+        if (version != null && version.isAtLeast(3, 5, 0)) {
+          // This APIs are supported by Gradle 3.5.0+ only.
+          Module selectedModule = ((AndroidRunConfigurationBase)configuration).getConfigurationModule().getModule();
+          return GradleTaskRunner.newBuildActionRunner(myProject, new OutputBuildAction(getConcernedGradlePaths(selectedModule)));
+        }
+      }
+      return GradleTaskRunner.newRunner(myProject);
+    }
+
+    /**
+     * Get the gradle paths for the given module and all the tested projects (if it is a test app).
+     * These paths will be used by the BuildAction run after build to know all the needed models.
+     */
+    @NotNull
+    private static Collection<String> getConcernedGradlePaths(@Nullable Module module) {
+      if (module == null) {
+        return Collections.emptySet();
+      }
+
+      Collection<String> gradlePaths = new HashSet<>();
+      gradlePaths.add(getGradlePath(module));
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      if (androidModel != null) {
+        IdeAndroidProject androidProject = androidModel.getAndroidProject();
+        if (androidProject.getProjectType() == PROJECT_TYPE_TEST) {
+          for (TestedTargetVariant testedVariant : androidModel.getSelectedVariant().getTestedTargetVariants()) {
+            gradlePaths.add(testedVariant.getTargetProjectPath());
+          }
+        }
+      }
+
+      return gradlePaths;
     }
   }
 }
