@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -95,6 +96,12 @@ public interface GradleTaskRunner {
     @Nullable
     public Object getModel() {
       return model.get();
+    }
+
+    @VisibleForTesting
+    @Nullable
+    BuildAction getBuildAction() {
+      return myBuildAction;
     }
   }
 }

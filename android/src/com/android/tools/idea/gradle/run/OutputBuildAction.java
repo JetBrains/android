@@ -51,7 +51,10 @@ public class OutputBuildAction implements BuildAction<ImmutableMap<String, Proje
 
       for (String path : myGradlePaths) {
         GradleProject module = root.findByPath(path);
-        outputsBuilder.put(path, controller.findModel(module, ProjectBuildOutput.class));
+        ProjectBuildOutput model = controller.findModel(module, ProjectBuildOutput.class);
+        if (model != null) {
+          outputsBuilder.put(path, model);
+        }
       }
     }
 

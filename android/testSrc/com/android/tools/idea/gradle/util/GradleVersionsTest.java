@@ -26,6 +26,8 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import java.io.IOException;
 
+import static com.intellij.util.ThreeState.NO;
+import static com.intellij.util.ThreeState.YES;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -61,32 +63,53 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     assertEquals(expected, GradleVersions.removeTimestampFromGradleVersion(gradleVersionFromSync.toString()));
   }
 
-  public void testReadGradleVersionFromWrapper() throws Exception {
+  public void testReadGradleVersionFromWrapperWhenGradleSyncStateReturnsNullGradleVersion() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
 
-    simulateGradleSyncStateReturnNullGradleVersion();
+    GradleSyncState syncState = createMockGradleSyncState();
+    when(syncState.isSyncNeeded()).thenReturn(NO);
+    GradleSyncSummary summary = mock(GradleSyncSummary.class);
+    when(syncState.getSummary()).thenReturn(summary);
 
-    GradleProjectSettings settings = new GradleProjectSettings();
-    settings.setDistributionType(DEFAULT_WRAPPED);
+    // Simulate Gradle SyncState returns null.
+    when(summary.getGradleVersion()).thenReturn(null);
 
-    when(mySettingsFinder.findGradleProjectSettings(any())).thenReturn(settings);
+    simulateGettingGradleSettings();
 
     String expected = getGradleVersionFromWrapper();
 
     GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
-    assertNotNull(gradleVersion);
     assertEquals(expected, gradleVersion.toString());
   }
 
-  private void simulateGradleSyncStateReturnNullGradleVersion() {
+  public void testReadGradleVersionFromWrapperWhenSyncIsNeeded() throws Exception {
+    loadSimpleApplication();
+    Project project = getProject();
+
+    GradleSyncState syncState = createMockGradleSyncState();
+    // Simulate Gradle Sync is needed.
+    when(syncState.isSyncNeeded()).thenReturn(YES);
+
+    simulateGettingGradleSettings();
+
+    String expected = getGradleVersionFromWrapper();
+
+    GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
+    assertEquals(expected, gradleVersion.toString());
+  }
+
+  @NotNull
+  private GradleSyncState createMockGradleSyncState() {
     GradleSyncState syncState = mock(GradleSyncState.class);
     IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
+    return syncState;
+  }
 
-    GradleSyncSummary summary = mock(GradleSyncSummary.class);
-    when(summary.getGradleVersion()).thenReturn(null);
-
-    when(syncState.getSummary()).thenReturn(summary);
+  private void simulateGettingGradleSettings() {
+    GradleProjectSettings settings = new GradleProjectSettings();
+    settings.setDistributionType(DEFAULT_WRAPPED);
+    when(mySettingsFinder.findGradleProjectSettings(any())).thenReturn(settings);
   }
 
   @NotNull
