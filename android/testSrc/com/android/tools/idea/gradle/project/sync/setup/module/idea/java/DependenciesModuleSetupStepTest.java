@@ -75,4 +75,9 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     // See https://code.google.com/p/android/issues/detail?id=225923
     assertAbout(moduleDependencies()).that(mainModule).contains(libModule.getName(), COMPILE);
   }
+
+  public void testInvokeOnSkippedSync() {
+    // Make sure this step is called even when sync was skipped see b/62292929
+    assertTrue(mySetupStep.invokeOnSkippedSync());
+  }
 }
