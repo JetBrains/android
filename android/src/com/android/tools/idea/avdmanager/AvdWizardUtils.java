@@ -26,6 +26,7 @@ import com.android.sdklib.devices.Storage.Unit;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
@@ -44,6 +45,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.JBFont;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,6 +96,9 @@ public class AvdWizardUtils {
   public static final String USE_HOST_GPU_KEY = AvdManager.AVD_INI_GPU_EMULATION;
   public static final String HOST_GPU_MODE_KEY = AvdManager.AVD_INI_GPU_MODE;
 
+  public static final String USE_COLD_BOOT = AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
+  public static final String FEATURE_FAST_BOOT = "FastSnapshotV1"; // Emulator feature support
+
   public static final String IS_IN_EDIT_MODE_KEY = WIZARD_ONLY + "isInEditMode";
 
   public static final String CUSTOM_SKIN_FILE_KEY = AvdManager.AVD_INI_SKIN_PATH;
@@ -136,6 +141,8 @@ public class AvdWizardUtils {
 
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 1536;
+
+  private static Map<String, String> ourEmuAdvFeatures; // Advanced Emulator features
 
   private static Logger getLog() {
     return Logger.getInstance(AvdWizardUtils.class);
@@ -308,6 +315,37 @@ public class AvdWizardUtils {
     }
 
     return false;
+  }
+
+  /**
+   * Indicates if the Emulator supports the requested advanced feature
+   *
+   * @param theFeature The name of the requested feature
+   * @return true if the feature is "on" in the Emulator
+   */
+
+   public static boolean emulatorSupportsFeature(@NotNull String theFeature) {
+    if (ourEmuAdvFeatures == null) {
+      AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+      LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
+      if (emulatorPackage != null) {
+        File emuAdvFeaturesFile = new File(emulatorPackage.getLocation(), FD_LIB + File.separator + FN_ADVANCED_FEATURES);
+        if (emuAdvFeaturesFile.isFile()) {
+          ourEmuAdvFeatures = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(emuAdvFeaturesFile),
+                                                                  new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+        }
+      }
+    }
+    return ourEmuAdvFeatures != null && "on".equals(ourEmuAdvFeatures.get(theFeature));
+  }
+
+  /**
+   * Indicates if the Emulator supports the Fast Boot feature
+   *
+   * @return true if Fast Boot is supported
+   */
+  public static boolean emulatorSupportsFastBoot() {
+    return emulatorSupportsFeature(FEATURE_FAST_BOOT);
   }
 
   /**

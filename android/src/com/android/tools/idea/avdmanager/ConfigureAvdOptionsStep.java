@@ -167,6 +167,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JPanel myAvdIdRow;
   private JPanel myCustomSkinPanel;
   private JPanel myScrollRootPane;
+  private JPanel myBootOptionPanel;
+  private JRadioButton myColdBootRadioButton;
+  private JRadioButton myFastBootRadioButton;
   private Iterable<JComponent> myAdvancedOptionsComponents;
 
   private Project myProject;
@@ -322,6 +325,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myQemu2CheckBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Number of cores");
     myInternalStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Internal Flash");
     myHostGraphics.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Graphics Rendering");
+    myBootOptionPanel.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
+    myColdBootRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
+    myFastBootRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
     mySkinComboBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Custom Device Frame");
     myVmHeapStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Virtual Machine Heap");
     myOrientationToggle.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Default Orientation");
@@ -337,7 +343,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myCoreCount.setPreferredSize(myRamStorage.getPreferredSizeOfUnitsDropdown());
     setAdvanceSettingsVisible(false);
 
-    // Add labelFor property for custom components since its not allowed from the designer
+    // Add labelFor property for custom components since it's not allowed from the designer
     myAvdIdLabel.setLabelFor(myAvdId);
     myDeviceDetails.setLabelFor(myDeviceName);
     mySystemImageDetails.setLabelFor(mySystemImageName);
@@ -539,6 +545,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedItemProperty<GpuMode>(myHostGraphics), getModel().hostGpuMode());
 
     myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
+    myBindings.bindTwoWay(new SelectedProperty(myColdBootRadioButton), getModel().useColdBoot());
+    myBindings.bindTwoWay(new SelectedProperty(myFastBootRadioButton), getModel().useFastBoot());
 
     myBindings.bindTwoWay(new SelectedItemProperty<File>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile() /*myDisplaySkinFile*/);
     myOrientationToggle.addListSelectionListener(new ListSelectionListener() {
@@ -745,6 +753,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     for (JComponent c : myAdvancedOptionsComponents) {
       c.setVisible(show);
     }
+    // Separately handle the Boot Option. It is only
+    // shown if the Emulator supports it.
+    myBootOptionPanel.setVisible(show && AvdWizardUtils.emulatorSupportsFastBoot());
+
     toggleSystemOptionals(false);
 
     // The following is necessary to get the scrollpane to realize that its children have been

@@ -94,6 +94,7 @@ public final class AvdOptionsModel extends WizardModel {
   private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<>(new Storage(100, Storage.Unit.MiB));
 
   private BoolProperty myUseHostGpu = new BoolValueProperty(true);
+  private BoolProperty myColdBoot = new BoolValueProperty(false);
   private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<>(GpuMode.AUTO);
   private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty(true);
 
@@ -321,6 +322,16 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
+  public BoolProperty useColdBoot() {
+    return myColdBoot;
+  }
+
+  @NotNull
+  public BoolProperty useFastBoot() {
+    return new BoolValueProperty(!myColdBoot.get());
+  }
+
+  @NotNull
   public OptionalProperty<GpuMode> hostGpuMode() {
     return myHostGpuMode;
   }
@@ -435,6 +446,7 @@ public final class AvdOptionsModel extends WizardModel {
     myEnableHardwareKeyboard.set(fromIniString(properties.get(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY)));
     myAvdDisplayName.set(AvdManagerConnection.getAvdDisplayName(avdInfo));
     myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY)));
+    myColdBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_COLD_BOOT)));
 
     ScreenOrientation screenOrientation = null;
     String orientation = properties.get(HardwareProperties.HW_INITIAL_ORIENTATION);
@@ -577,6 +589,7 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.USE_HOST_GPU_KEY, myUseHostGpu.get());
     map.put(AvdWizardUtils.DEVICE_FRAME_KEY, myHasDeviceFrame.get());
     map.put(AvdWizardUtils.HOST_GPU_MODE_KEY, myHostGpuMode.getValue());
+    map.put(AvdWizardUtils.USE_COLD_BOOT, myColdBoot.get());
 
     if (myUseQemu2.get()) {
       if (myCpuCoreCount.get().isPresent()) {
