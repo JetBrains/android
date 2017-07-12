@@ -306,6 +306,10 @@ public class GraphicsLayoutRenderer {
   public boolean render(@NotNull final Graphics2D graphics) {
     myRenderSessionLock.readLock().lock();
     try {
+      if (myRenderSession == null) {
+        LOG.warn("Render error: Render session is null ");
+        return false;
+      }
       if (!SystemInfo.isMac) {
         // Do not enable anti-aliasing on MAC. It doesn't improve much and causes has performance issues when filling the background using
         // alpha values.
