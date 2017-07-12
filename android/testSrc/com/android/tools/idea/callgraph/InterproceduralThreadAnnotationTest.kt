@@ -33,12 +33,14 @@ class InterproceduralThreadAnnotationTest : AndroidTestCase() {
     val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files)
     val callGraph = buildCallGraph(files, nonContextualReceiverEval)
     val paths = searchForInterproceduralThreadAnnotationViolations(callGraph, nonContextualReceiverEval)
-    val namedPathSet = paths.map { (nodes) -> nodes.map { node -> node.shortName } }.toSet()
+    val namedPathSet = paths.map { (searchNodes, _, _) -> searchNodes.map { (node, _) -> node.shortName } }.toSet()
     val prefix = "ThreadAnnotations#"
     val expectedPathSet = setOf(
         arrayListOf("${prefix}uiThreadStatic", "${prefix}unannotatedStatic", "${prefix}workerThreadStatic"),
         arrayListOf("${prefix}uiThread", "${prefix}unannotated", "${prefix}workerThread"),
-        arrayListOf("${prefix}callRunIt", "${prefix}runIt", "${prefix}callRunIt#lambda", "${prefix}runUi")
+        arrayListOf("${prefix}callRunIt", "${prefix}runIt", "${prefix}callRunIt#lambda", "${prefix}runUi"),
+        arrayListOf("A#run", "${prefix}b"),
+        arrayListOf("B#run", "${prefix}a")
     )
     TestCase.assertEquals(expectedPathSet, namedPathSet)
   }
