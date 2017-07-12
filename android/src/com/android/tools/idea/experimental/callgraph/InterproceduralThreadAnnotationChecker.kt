@@ -34,13 +34,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiModifierListOwner
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.uast.*
+import org.jetbrains.uast.UFile
+import org.jetbrains.uast.getContainingFile
 import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance(InterproceduralThreadAnnotationChecker::class.java)
 
 data class AnnotatedCallPath(
-    val nodes: List<CallGraph.Node>,
+    val searchNodes: List<SearchNode>,
     val sourceAnnotation: String,
     val sinkAnnotation: String
 )
@@ -51,11 +52,14 @@ fun searchForInterproceduralThreadAnnotationViolations(callGraph: CallGraph,
   fun PsiModifierListOwner.isAnnotatedWith(annotation: String) =
       AnnotationUtil.isAnnotated(this, annotation, /*inHierarchy*/ true, /*skipExternal*/ false)
 
-  fun UElement?.isAnnotatedWith(annotation: String) = (this?.psi as? PsiModifierListOwner)?.isAnnotatedWith(annotation) ?: false
-
   fun CallGraph.nodesAnnotatedWith(annotation: String) = nodes.filter {
-    with(it.caller.element) {
-      isAnnotatedWith(annotation) || getParentOfType<UClass>(/*strict*/ false).isAnnotatedWith(annotation)
+    val target = it.caller
+    when (target) {
+      is CallTarget.Method -> {
+        target.element.isAnnotatedWith(annotation) || target.element.containingClass?.isAnnotatedWith(annotation) ?: false
+      }
+      is CallTarget.Lambda -> target.element.annotations.any { it.qualifiedName == annotation }
+      is CallTarget.DefaultConstructor -> target.element.isAnnotatedWith(annotation)
     }
   }
 
@@ -125,15 +129,19 @@ class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner
 
   override fun afterCheckProject(context: Context) {
     val badPaths = searchForInterproceduralThreadAnnotationViolations(callGraphVisitor.callGraph, nonContextualReceiverEval)
-    for ((nodes, sourceAnnotation, sinkAnnotation) in badPaths) {
-      val (first, second) = nodes
-      val firstEdge = first.findEdge(second) ?: throw Error("Missing edge in call path")
-      val uElement = firstEdge.call ?: first.caller.element
-      val containingFile = uElement.getContainingFile() ?: continue
+    for ((searchNodes, sourceAnnotation, sinkAnnotation) in badPaths) {
+      if (searchNodes.size == 1) {
+        // This means that a node in the graph was annotated with both UiThread and WorkerThread.
+        // This can happen if an overriding method changes the annotation.
+        continue
+      }
+      val (_, second) = searchNodes
+      val pathBeginning = second.cause
+      val containingFile = pathBeginning.getContainingFile() ?: continue
       val javaContext = fileContexts[containingFile] ?: continue
       javaContext.setJavaFile(containingFile.psi) // Needed for getLocation.
-      val location = javaContext.getLocation(uElement)
-      val pathStr = nodes.joinToString(separator = " -> ") { it.shortName }
+      val location = javaContext.getLocation(pathBeginning)
+      val pathStr = searchNodes.joinToString(separator = " -> ") { it.node.shortName }
       val sourceStr = sourceAnnotation.substringAfterLast('.')
       val sinkStr = sinkAnnotation.substringAfterLast('.')
       val message = "Interprocedural thread annotation violation (${sourceStr} to ${sinkStr}):\n${pathStr}"

@@ -69,6 +69,14 @@ class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
   private val mutableCallGraph: MutableCallGraph = MutableCallGraph()
   val callGraph: CallGraph get() = mutableCallGraph
 
+  override fun visitElement(node: UElement): Boolean {
+    when (node) {
+      // Eagerly add nodes to the graph, even if they have no edges; edges may materialize during contextual call path analysis.
+      is UMethod, is ULambdaExpression -> mutableCallGraph.getNode(node)
+    }
+    return super.visitElement(node)
+  }
+
   override fun visitClass(node: UClass): Boolean {
     // Check for an implicit call to a super constructor.
     val superClass = node.superClass
@@ -139,9 +147,6 @@ class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
       return earlyReturn()
     }
 
-    // Always add the base method.
-    addEdge(baseCallee, BASE)
-
     // TODO: Searching for overriding methods can be slow; may need to add caching or pre-computation.
     val overrides = OverridingMethodsSearch.search(baseCallee).findAll().map { it.toUElement() as? UMethod }.filterNotNull()
 
@@ -154,11 +159,15 @@ class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
     when {
       cannotOverride || throughSuper -> addEdge(baseCallee, DIRECT)
       uniqueBase -> addEdge(baseCallee, UNIQUE)
-      uniqueOverride -> addEdge(overrides.first(), UNIQUE)
+      uniqueOverride -> {
+        addEdge(baseCallee, BASE) // We don't want to lose an edge to the base callee.
+        addEdge(overrides.first(), UNIQUE)
+      }
       else -> {
         // Use static analyses to try to indicate which overriding methods are likely targets.
         val evidencedTargets = node.getTargets(receiverEval).map { it.element }
         evidencedTargets.forEach { addEdge(it, TYPE_EVIDENCED) }
+        if (baseCallee !in evidencedTargets) addEdge(baseCallee, BASE) // We don't want to lose the edge to the base callee.
         overrides.filter { it !in evidencedTargets }.forEach { addEdge(it, NON_UNIQUE_OVERRIDE) }
       }
     }

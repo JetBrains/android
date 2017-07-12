@@ -43,7 +43,7 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     fun String.findPath(callee: String): List<String>? {
       val source = nodeMap.getValue(this)
       val sink = nodeMap.getValue(callee)
-      return graph.searchForPaths(listOf(source), listOf(sink), receiverEval).firstOrNull()?.map { it.shortName }
+      return graph.searchForPaths(listOf(source), listOf(sink), receiverEval).firstOrNull()?.map { (node, _) -> node.shortName }
     }
 
     fun String.assertReaches(callee: String) = TestCase.assertNotNull("${this} should reach ${callee}", this.findPath(callee))

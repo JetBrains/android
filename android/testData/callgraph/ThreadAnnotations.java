@@ -42,4 +42,32 @@ class ThreadAnnotations {
     ThreadAnnotations instance = new ThreadAnnotations();
     instance.uiThread();
   }
+
+
+  interface It {
+    void run(Runnable r);
+  }
+
+  class A implements It {
+    @UiThread
+    public void run(Runnable r) { r.run(); }
+  }
+
+  class B implements It {
+    @WorkerThread
+    public void run(Runnable r) { r.run(); }
+  }
+
+  @UiThread
+  void a() {}
+
+  @WorkerThread
+  void b() {}
+
+  void runWithIt(It it, Runnable r) { it.run(r); }
+
+  void f() {
+    runWithIt(new A(), this::b);
+    runWithIt(new B(), this::a);
+  }
 }

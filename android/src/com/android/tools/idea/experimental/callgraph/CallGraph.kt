@@ -45,8 +45,6 @@ interface CallGraph {
     val edges: Collection<Edge>
     val likelyEdges: Collection<Edge> get() = edges.filter { it.isLikely }
 
-    fun findEdge(other: Node) = edges.find { it.node == other }
-
     /** Describes this node in a form like class#method, using "anon" for anonymous classes and lambdas. */
     val shortName: String get() {
       val containingClass = caller.element.getContainingUClass()?.name ?: "anon"
@@ -68,7 +66,7 @@ interface CallGraph {
       DIRECT, // A statically dispatched call.
       UNIQUE, // A call that appears to have a single implementation.
       TYPE_EVIDENCED, // A call evidenced by runtime type estimates.
-      BASE, // The base method of a call (always added).
+      BASE, // The base method of a call (always added unless the base method is also direct, unique, or type-evidenced).
       NON_UNIQUE_OVERRIDE; // A call that is one of several overriding implementations.
 
       val isLikely: Boolean get() = when (this) {
@@ -162,19 +160,35 @@ fun <T : Any> searchForPaths(sources: Collection<T>,
   return res
 }
 
+/** Describes a parameter specialization tuple, mapping each parameter to a single concrete receiver. */
+data class ParamContext(val params: List<Pair<UParameter, Receiver>>, val implicitThis: Receiver?) {
+  operator fun get(param: UParameter) = params.firstOrNull { it.first == param }?.second
+  companion object {
+    val EMPTY = ParamContext(emptyList(), /*implicitReceiver*/ null)
+  }
+}
+
+/**
+ * A specialization of a call graph node on a parameter context.
+ */
+@Suppress("DataClassPrivateConstructor")
+data class SearchNode private constructor(val node: Node, val paramContext: ParamContext) {
+  // The [cause] field indicates the UAST element (usually a call expression) that led to this search node.
+  // It does not participate in the data class equality method, as in the end we only care about the path that *first*
+  // reaches a given node with a given parameter context. We want others to be preempted during the BFS.
+  lateinit var cause: UElement
+
+  constructor(node: Node, paramContext: ParamContext, cause: UElement): this(node, paramContext) {
+    this.cause = cause
+  }
+}
+
 /**
  * A context-sensitive search for paths through the call graph.
  * See "The Cartesian Product Algorithm" by Ole Agesen.
  */
 fun CallGraph.searchForPaths(sources: Collection<Node>, sinks: Collection<Node>,
-                             nonContextualReceiverEval: CallReceiverEvaluator): Collection<List<Node>> {
-
-  /** Describes a parameter specialization tuple, mapping each parameter to a single concrete receiver. */
-  data class ParamContext(val params: List<Pair<UParameter, Receiver>>, val implicitThis: Receiver?) {
-    operator fun get(param: UParameter) = params.firstOrNull { it.first == param }?.second
-  }
-
-  val emptyParamContext = ParamContext(emptyList(), /*implicitThis*/ null)
+                             nonContextualReceiverEval: CallReceiverEvaluator): Collection<List<SearchNode>> {
 
   /** Augments the non-contextual receiver evaluator with a parameter context. */
   class ContextualReceiverEvaluator(val paramContext: ParamContext) : CallReceiverEvaluator {
@@ -188,12 +202,6 @@ fun CallGraph.searchForPaths(sources: Collection<Node>, sinks: Collection<Node>,
 
     override fun getForImplicitThis(): Collection<Receiver> = listOfNotNull(paramContext.implicitThis)
   }
-
-  /**
-   * A specialization of a call graph node on a parameter context.
-   * We use pointer equality for [node] and structural equality for [paramContext].
-   */
-  data class SearchNode(val node: Node, val paramContext: ParamContext)
 
   /**
    * Builds parameter contexts for the target of [call] by taking the Cartesian product of the call argument receivers.
@@ -240,6 +248,9 @@ fun CallGraph.searchForPaths(sources: Collection<Node>, sinks: Collection<Node>,
         else nonEmptyArgReceivers
     val numImplicitArgs = if (hasImplicitReceivers) 1 else 0
 
+    if (allReceiverLists.isEmpty())
+      return listOf(ParamContext.EMPTY) // Optimization.
+
     // Zip formal parameters with all possible argument receiver combinations.
     val cartesianProd = Lists.cartesianProduct(allReceiverLists)
     val maxNumParamContexts = 1000
@@ -248,8 +259,10 @@ fun CallGraph.searchForPaths(sources: Collection<Node>, sinks: Collection<Node>,
     val paramContexts = cartesianProd
         .take(maxNumParamContexts)
         .map { receiverTuple ->
-          ParamContext(paramsWithReceivers.zip(receiverTuple.drop(numImplicitArgs)),
-                       receiverTuple.take(numImplicitArgs).firstOrNull())
+          val zippedArgs = paramsWithReceivers.zip(receiverTuple.drop(numImplicitArgs))
+          // TODO: There is potential to also extract implicit `this` args from callable references, though may need CHA.
+          val implicitThis = receiverTuple.take(numImplicitArgs).filterIsInstance<Receiver.Class>().firstOrNull()
+          ParamContext(zippedArgs, implicitThis)
         }
     assert(paramContexts.isNotEmpty())
     return paramContexts
@@ -257,18 +270,22 @@ fun CallGraph.searchForPaths(sources: Collection<Node>, sinks: Collection<Node>,
 
   /** Examines call sites to find contextualized neighbors of a search node. */
   fun getNeighbors(searchNode: SearchNode): Collection<SearchNode> {
+    val contextualReceiverEval = ContextualReceiverEvaluator(searchNode.paramContext)
     return searchNode.node.edges.flatMap { edge ->
-      val contextualReceiverEval = ContextualReceiverEvaluator(searchNode.paramContext)
+      fun CallTarget.buildParamContextsFromThisEdge() =
+          if (edge.call == null) listOf(ParamContext.EMPTY)
+          else buildParamContextsFromCall(edge.call, contextualReceiverEval)
+      val cause = edge.call ?: searchNode.node.caller.element
       when {
-        edge.isLikely && edge.call != null -> {
-          val paramContexts = edge.node.caller.buildParamContextsFromCall(edge.call, contextualReceiverEval)
-          paramContexts.map { SearchNode(edge.node, it) }
+        edge.isLikely -> {
+          val paramContexts = edge.node.caller.buildParamContextsFromThisEdge()
+          paramContexts.map { calleeContext -> SearchNode(edge.node, calleeContext, cause) }
         }
         edge.kind == Edge.Kind.BASE && edge.call != null -> {
           // Try to refine the base method to a concrete target.
           edge.call.getTargets(contextualReceiverEval).flatMap { target ->
-            val paramContexts = target.buildParamContextsFromCall(edge.call, contextualReceiverEval)
-            paramContexts.map { SearchNode(getNode(target.element), it) }
+            val paramContexts = target.buildParamContextsFromThisEdge()
+            paramContexts.map { calleeContext -> SearchNode(getNode(target.element), calleeContext, cause) }
           }
         }
         else -> emptyList()
@@ -281,10 +298,9 @@ fun CallGraph.searchForPaths(sources: Collection<Node>, sinks: Collection<Node>,
   // on empty parameter contexts) and take note of all parameter contexts found for the source nodes.
   val sourceSet = sources.toSet()
   val searchSources = ArrayList<SearchNode>()
-  val contextInitSources = nodes.map { SearchNode(it, emptyParamContext) }
+  val contextInitSources = nodes.map { SearchNode(it, ParamContext.EMPTY, cause = it.caller.element) }
   searchForPaths(contextInitSources, { if (it.node in sourceSet) searchSources.add(it); false }, ::getNeighbors)
-
   val sinkSet = sinks.toSet()
+
   return searchForPaths(searchSources, { it.node in sinkSet }, ::getNeighbors)
-      .map { path -> path.map { it.node } } // Strip away parameter contexts.
 }
