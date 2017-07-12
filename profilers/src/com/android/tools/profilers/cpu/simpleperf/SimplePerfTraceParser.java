@@ -277,6 +277,8 @@ public class SimplePerfTraceParser implements TraceParser {
     List<SimpleperfReport.Sample.CallChainEntry> previousCallChain = myLastCallChain.get(threadId);
     // First, identify where the call chains diverge, so we update the endTime of the nodes that are not in the call chain anymore.
     // If the last call chain is empty, there is no divergent index and no end values need to be updated.
+    // TODO: We probably can just reverse the callchain in the beginning of the method with no performance impact.
+    // Revisit that later to check that and make the change to simplify the code. Make sure to benchmark to verify the efficiency.
     int previousCallChainIndex = previousCallChain.size() - 1;
     int newCallChainIndex = callChain.size() - 1;
     CaptureNode divergentNodeParent = null;
