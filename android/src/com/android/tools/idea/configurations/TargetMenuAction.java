@@ -18,7 +18,6 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -43,19 +42,14 @@ public class TargetMenuAction extends FlatComboAction {
    * Creates a {@code TargetMenuAction}
    * @param renderContext A {@link ConfigurationHolder} instance
    * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
-   * @param classicStyle if true, use the pre Android Studio 1.5 configuration toolbar style (temporary compatibility code)
    */
-  public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget, boolean classicStyle) {
+  public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget) {
     myRenderContext = renderContext;
     myUseCompatibilityTarget = useCompatibilityTarget;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("API Version in Editor");
-    presentation.setIcon(classicStyle ? AndroidIcons.Targets : AndroidIcons.NeleIcons.Api);
+    presentation.setIcon(AndroidIcons.NeleIcons.Api);
     updatePresentation(presentation);
-  }
-
-  public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget) {
-    this(renderContext, useCompatibilityTarget, !RenderService.NELE_ENABLED);
   }
 
   public TargetMenuAction(ConfigurationHolder renderContext) {

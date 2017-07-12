@@ -65,8 +65,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService extends AndroidFacetScopedService {
-  public static final boolean NELE_ENABLED = true;
-
   /** Number of ms that we will wait for the rendering thread to return before timing out */
   private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Long.getLong("layoutlib.thread.timeout",
                                                                             TimeUnit.SECONDS.toMillis(
