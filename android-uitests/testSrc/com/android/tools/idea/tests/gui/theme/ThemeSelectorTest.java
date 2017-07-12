@@ -105,7 +105,6 @@ public class ThemeSelectorTest {
   /**
    * Tests the Show all themes dialog from the theme selector
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/63178811
   @Test
   public void testShowAllThemes() throws IOException {
     guiTest.importSimpleApplication();
@@ -223,7 +222,6 @@ public class ThemeSelectorTest {
    * Tests that we can remove AppCompat and the themes update correctly.
    * Test that we can open the simple application and the theme editor opens correctly.
    */
-  @RunIn(TestGroup.UNRELIABLE)  // b/63048046
   @Test
   public void testRemoveAppCompat() throws IOException {
     guiTest.importSimpleApplication();
