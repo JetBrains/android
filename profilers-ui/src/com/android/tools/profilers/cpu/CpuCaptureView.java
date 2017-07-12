@@ -418,27 +418,32 @@ class CpuCaptureView {
   private static class TreeChartView extends CaptureDetailsView {
     @NotNull private final JPanel myPanel;
     @Nullable private final HNode<MethodModel> myNode;
-    @NotNull private final Range mySelectionRange;
+    @NotNull private final Range myNodeRange;
 
     private AspectObserver myObserver;
 
+    // TODO: document the constructor highlighting the difference between both ranges used.
     private TreeChartView(@NotNull CpuProfilerStageView stageView,
-                          @NotNull Range selectionRange,
+                          @NotNull Range nodeRange,
                           @NotNull Range captureRange,
                           @Nullable HNode<MethodModel> node,
                           @NotNull HTreeChart.Orientation orientation) {
       myNode = node;
-      mySelectionRange = selectionRange;
+      myNodeRange = nodeRange;
 
       if (node == null) {
         myPanel = getNoDataForThread();
         return;
       }
 
-      HTreeChart<MethodModel> chart = new HTreeChart<>(selectionRange, orientation);
+      HTreeChart<MethodModel> chart = new HTreeChart<>(nodeRange, orientation);
       chart.setHRenderer(new SampledMethodUsageHRenderer());
       chart.setHTree(node);
 
+      Range selectionRange = stageView.getTimeline().getSelectionRange();
+      // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.
+      // In other words, there is a constant ratio between them. And the horizontal scrollbar represents selection range within
+      // capture range.
       RangeTimeScrollBar horizontalScrollBar = new RangeTimeScrollBar(captureRange, selectionRange, TimeUnit.MICROSECONDS);
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
@@ -462,13 +467,13 @@ class CpuCaptureView {
       myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
       myObserver = new AspectObserver();
-      selectionRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, this::selectionChanged);
-      selectionChanged();
+      nodeRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, this::nodeRangeChanged);
+      nodeRangeChanged();
     }
 
-    private void selectionChanged() {
+    private void nodeRangeChanged() {
       assert myNode != null;
-      Range intersection = mySelectionRange.getIntersection(new Range(myNode.getStart(), myNode.getEnd()));
+      Range intersection = myNodeRange.getIntersection(new Range(myNode.getStart(), myNode.getEnd()));
       switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
     }
 
