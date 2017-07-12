@@ -879,6 +879,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       Module[] modules = ModuleManager.getInstance(facet.getModule().getProject()).getModules();
       VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
       if (vFile != null) {
+        String path = file.getPath();
         Module module = ModuleUtilCore.findModuleForFile(vFile, facet.getModule().getProject());
         if (module != null) {
           if (modules.length >= 2) {
@@ -886,14 +887,22 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           }
 
           // AAR library in the project build directory?
-          if (file.getPath().contains(EXPLODED_AAR)) {
+          if (path.contains(EXPLODED_AAR)) {
             source = findSourceForFileInExplodedAar(file, facet, module);
           }
         }
         // AAR library in the build cache?
         // (e.g., ".android/build-cache/0d86e51789317f7eb0747ecb9da6162c7082982e/output/AndroidManifest.xml")
         // Since the user can change the location or name of the build cache directory, we need to detect it using the following pattern.
-        else if (file.getPath().matches(".*\\w{40}[\\\\/]output.*")) {
+        else if (path.contains("output") && path.matches(".*\\w{40}[\\\\/]output.*")) {
+          for (Module singleModule : modules) {
+            source = findSourceForFileInExplodedAar(file, facet, singleModule);
+            if (source != null) {
+              break;
+            }
+          }
+        } else if (path.contains("caches")) {
+          // Look for the Gradle cache, where AAR libraries can appear when distributed via the google() Maven repository
           for (Module singleModule : modules) {
             source = findSourceForFileInExplodedAar(file, facet, singleModule);
             if (source != null) {
