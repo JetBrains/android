@@ -37,7 +37,9 @@ import com.intellij.openapi.command.undo.DocumentReferenceProvider;
 import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,7 +86,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawActionHandle,502,210,0,0,ffc0c0c0,fafafa\n" +
                  "DrawScreenLabel,310,44,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=12],fragment1\n" +
                  "DrawAction,NORMAL,98x50x192x320,310x50x192x320,NORMAL\n" +
-                 "DrawTextRegion,570,50,100,25,0,20,true,false,4,4,14,1.0,\"navigation\"\n" +
+                 "DrawTextRegion,570,50,100,25,0,17,true,false,4,4,30,0.5,\"navigation\"\n" +
                  "DrawComponentFrame,570,50,100,25,1,true\n" +
                  "DrawAction,NORMAL,570x50x100x25,50x50x192x320,NORMAL\n" +
                  "DrawActionHandle,670,62,0,0,ffc0c0c0,fafafa\n" +
@@ -340,7 +342,12 @@ public class NavSceneTest extends NavigationTestCase {
     surface.setSize(1000, 1000);
     surface.setModel(model);
     surface.zoom(ZoomType.ACTUAL);
-
+    if (SystemInfo.isMac && UIUtil.isRetina()) {
+      surface.zoomIn();
+      surface.zoomIn();
+      surface.zoomIn();
+      surface.zoomIn();
+    }
     Scene scene = surface.getScene();
     DisplayList list = new DisplayList();
     scene.layout(0, SceneContext.get());
@@ -357,7 +364,7 @@ public class NavSceneTest extends NavigationTestCase {
                  "DrawActionHandle,484,420,0,0,ffc0c0c0,fafafa\n" +
                  "DrawScreenLabel,100,88,ffc0c0c0,java.awt.Font[family=Dialog,name=Default,style=plain,size=24],fragment2\n" +
                  "DrawAction,NORMAL,-304x100x384x640,100x100x384x640,NORMAL\n" +
-                 "DrawTextRegion,1140,100,200,50,0,20,true,false,4,4,14,1.0,\"navigation\"\n" +
+                 "DrawTextRegion,1140,100,200,50,0,35,true,false,4,4,30,1.0,\"navigation\"\n" +
                  "DrawComponentFrame,1140,100,200,50,1,true\n" +
                  "DrawAction,NORMAL,1140x100x200x50,620x100x384x640,NORMAL\n" +
                  "DrawActionHandle,1340,124,0,0,ffc0c0c0,fafafa\n" +

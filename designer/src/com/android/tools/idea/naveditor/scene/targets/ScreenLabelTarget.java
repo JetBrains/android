@@ -30,10 +30,10 @@ import java.awt.*;
  */
 public class ScreenLabelTarget extends NavBaseTarget {
   // TODO: finalize values for the following constants
-  public static final int SPACING = 6;
-  public static final String FONT_NAME = null;
-  public static final int FONT_STYLE = Font.PLAIN;
-  public static final int FONT_SIZE = 24;
+  static final int SPACING = 6;
+  static final String FONT_NAME = null;
+  static final int FONT_STYLE = Font.PLAIN;
+  static final int FONT_SIZE = 24;
 
   public ScreenLabelTarget(@NotNull SceneComponent component) {
     super(component);
