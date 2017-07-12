@@ -189,12 +189,6 @@ public class NewProjectTest {
 
     assertThat(inspectionResults).isEqualTo(lines(
       "Project '" + guiTest.getProjectPath() + "' TestApplication",
-      // For now our offline index is not up-to-date, because 26.0.0-beta2 breaks the UI editor.
-      "    Android Lint: Correctness\n" +
-      "        Obsolete Gradle Dependency\n" +
-      "            build.gradle\n" +
-      "                A newer version of com.android.support:appcompat-v7 than 26.0.0-beta1 is available: 26.0.0-beta2\n" +
-
       // This warning is from the "foo" string we created in the Gradle resValue declaration above
       "    Android Lint: Performance",
       "        Unused resources",
