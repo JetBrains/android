@@ -17,11 +17,14 @@
 package com.android.tools.idea.testartifacts.instrumented;
 
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.TestOptions.Execution;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.testrunner.OnDeviceOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.ide.android.IdeAndroidArtifact;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
@@ -59,7 +62,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
+import com.android.annotations.VisibleForTesting;
 import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
@@ -319,7 +322,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return null;
     }
 
-    return new MyApplicationLaunchTask(runner, testPackage, waitForDebugger, runnerArguments);
+    IdeAndroidArtifact testArtifact = AndroidModuleModel.get(facet).getSelectedVariant().getAndroidTestArtifact();
+    return new MyApplicationLaunchTask(runner, testPackage, waitForDebugger, runnerArguments, testArtifact);
   }
 
   @Nullable
@@ -469,20 +473,24 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return null;
   }
 
-  private class MyApplicationLaunchTask implements LaunchTask {
+  @VisibleForTesting
+  class MyApplicationLaunchTask implements LaunchTask {
     @Nullable private final String myInstrumentationTestRunner;
     @NotNull private final String myTestApplicationId;
     private final boolean myWaitForDebugger;
     @NotNull private final Map<String, String> myInstrumentationTestRunnerArguments;
+    @NotNull private final IdeAndroidArtifact myArtifact;
 
     public MyApplicationLaunchTask(@Nullable String runner,
                                    @NotNull String testPackage,
                                    boolean waitForDebugger,
-                                   @NotNull Map<String, String> arguments) {
+                                   @NotNull Map<String, String> arguments,
+                                   @NotNull IdeAndroidArtifact artifact) {
       myInstrumentationTestRunner = runner;
       myWaitForDebugger = waitForDebugger;
       myTestApplicationId = testPackage;
       myInstrumentationTestRunnerArguments = arguments;
+      myArtifact = artifact;
     }
 
     @NotNull
@@ -496,11 +504,18 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return 2;
     }
 
+    @NotNull
+    public RemoteAndroidTestRunner getRemoteAndroidTestRunner(IdeAndroidArtifact arifact, IDevice device) {
+      return arifact.getTestOptions() != null && Execution.ANDROID_TEST_ORCHESTRATOR.equals(arifact.getTestOptions().getExecutionEnum()) ?
+        new OnDeviceOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device) :
+        new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
+    }
+
     @Override
     public boolean perform(@NotNull IDevice device, @NotNull final LaunchStatus launchStatus, @NotNull final ConsolePrinter printer) {
       printer.stdout("Running tests\n");
+      final RemoteAndroidTestRunner runner = getRemoteAndroidTestRunner(myArtifact, device);
 
-      final RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
       switch (TESTING_TYPE) {
         case TEST_ALL_IN_PACKAGE:
           runner.setTestPackageName(PACKAGE_NAME);

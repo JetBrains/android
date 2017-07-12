@@ -59,6 +59,7 @@ public final class TestProjectPaths {
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
   public static final String TEST_ARTIFACTS_BUDDY_APKS = "projects/testArtifacts/buddyApks";
   public static final String TEST_ARTIFACTS_INSTRUMENTATION_RUNNER = "projects/testArtifacts/instrumentationRunner";
+  public static final String TEST_ARTIFACTS_INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR = "projects/testArtifacts/instrumentationRunnerAndroidTestOrchestrator";
   public static final String TEST_ARTIFACTS_MULTIDEPENDENCIES = "projects/testArtifacts/multidependencies";
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";
   public static final String TEST_ARTIFACTS_OLD_TESTS = "projects/testArtifacts/oldTests";
