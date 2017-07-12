@@ -28,13 +28,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
-import org.fest.swing.fixture.JComboBoxFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -45,6 +45,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRunner.class)
 public class ThemeEditorTest {
 
+  @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   /**

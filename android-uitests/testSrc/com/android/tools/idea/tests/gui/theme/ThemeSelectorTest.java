@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
@@ -43,6 +44,7 @@ import static org.junit.Assert.*;
 @RunWith(GuiTestRunner.class)
 public class ThemeSelectorTest {
 
+  @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   /**
