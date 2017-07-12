@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 
@@ -38,6 +39,7 @@ import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEdit
 @RunWith(GuiTestRunner.class)
 public class ThemeConfigurationTest {
 
+  @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   /**

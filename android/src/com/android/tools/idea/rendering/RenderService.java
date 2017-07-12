@@ -76,6 +76,8 @@ public class RenderService extends AndroidFacetScopedService {
   /** Number of ms that we will keep the render thread alive when idle */
   private static final long RENDER_THREAD_IDLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 
+  @VisibleForTesting
+  public static long ourRenderThreadTimeoutMs = DEFAULT_RENDER_THREAD_TIMEOUT_MS;
   private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
   private static ExecutorService ourRenderingExecutor;
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
@@ -358,7 +360,7 @@ public class RenderService extends AndroidFacetScopedService {
       if (ourTimeoutExceptionCounter.get() > 3) {
         ourRenderingExecutor.submit(() -> ourTimeoutExceptionCounter.set(0)).get(50, TimeUnit.MILLISECONDS);
       }
-      T result = ourRenderingExecutor.submit(callable).get(DEFAULT_RENDER_THREAD_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      T result = ourRenderingExecutor.submit(callable).get(ourRenderThreadTimeoutMs, TimeUnit.MILLISECONDS);
       // The executor seems to be taking tasks so reset the counter
       ourTimeoutExceptionCounter.set(0);
 
