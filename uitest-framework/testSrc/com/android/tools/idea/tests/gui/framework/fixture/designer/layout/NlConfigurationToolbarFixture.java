@@ -77,6 +77,26 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     return this;
   }
 
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> chooseApiLevel(@NotNull String apiLevel) {
+    new JButtonFixture(myRobot, findToolbarButton("API Version in Editor")).click();
+    clickPopupMenuItemMatching(new ApiLevelPredicate(apiLevel), myToolBar.getComponent(), myRobot);
+    return this;
+  }
+
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> requireApiLevel(@NotNull String apiLevel) {
+    Wait.seconds(1).expecting("API level to be updated").until(() -> apiLevel.equals(getApiLevel()));
+    return this;
+  }
+
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> requireTheme(@NotNull String theme) {
+    Wait.seconds(1).expecting("theme to be updated")
+      .until(() -> theme.equals(new JButtonFixture(myRobot, findToolbarButton("Theme in Editor")).text()));
+    return this;
+  }
+
   /**
    * Returns the current API level of the toolbar's configuration as a String
    */
@@ -87,9 +107,11 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   /**
    * Selects a device matching the given label prefix in the configuration toolbar's device menu
    */
-  public void chooseDevice(@NotNull String label) {
+  @NotNull
+  public NlConfigurationToolbarFixture<ParentFixture> chooseDevice(@NotNull String label) {
     new JButtonFixture(myRobot, findToolbarButton("Device in Editor")).click();
     clickPopupMenuItemMatching(new DeviceNamePredicate(label), myToolBar.getComponent(), myRobot);
+    return this;
   }
 
   public void chooseLayoutVariant(@NotNull String layoutVariant) {
@@ -234,7 +256,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   private JButton findToolbarButton(@NotNull final String tooltip) {
-    return waitUntilShowing(myRobot, Matchers.byTooltip(JButton.class, tooltip));
+    return waitUntilShowingAndEnabled(myRobot, myToolBar.getComponent(), Matchers.byTooltip(JButton.class, tooltip));
   }
 
   private static class DeviceNamePredicate implements Predicate<String> {
@@ -254,6 +276,20 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
         return deviceName.equals(item.substring(item.lastIndexOf('(') + 1, item.lastIndexOf(')')));
       }
       return false;
+    }
+  }
+
+  private static class ApiLevelPredicate implements Predicate<String> {
+    private final String apiLevel;
+
+    ApiLevelPredicate(@NotNull String apiLevel) {
+      this.apiLevel = apiLevel;
+    }
+
+    @Override
+    public boolean test(String item) {
+      item = item.trim();
+      return item.contains(":") && apiLevel.equals(item.substring(0, item.indexOf(':')));
     }
   }
 }

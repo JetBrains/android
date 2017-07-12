@@ -19,11 +19,11 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -189,5 +189,87 @@ public class ConstraintLayoutTest {
     for (String widget: widgets) {
       assertThat(layoutXml).containsMatch("<" + widget);
     }
+  }
+
+  /**
+   * To verify that the layout preview renders appropriately with different themes and API selections
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: d45e0fa5-82d5-4d9a-9046-0437210741f0
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open layout.xml design view for the MainActivity
+   *   2. Select the rendering device and switch to another device, say N5 and repeat with N6 (Verify 1)
+   *   3. Click on the Orientation and repeat (Verify 2)
+   *   4. Select the Android version option and choose older API levels one by one (Verify 3)
+   *   5. Select the Theme option and choose a different theme to render the preview (Verify 4)
+   *   6. Select the activity option and choose a different activity (Verify 5)
+   *   Verify:
+   *   1. Preview render device changes to the newly selected device.
+   *   2. The preview layout orientation switches to landscape and then back to Portrait.
+   *   3. Preview layout renders fine on compatible API levels.
+   *   4. The selected theme is applied on the preview layout.
+   *   5. Preview layout is rendered for the selected activity.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void layoutPreviewRendering() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+
+    EditorFixture editorFixture = ideFrameFixture.getEditor()
+      .open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.DESIGN);
+
+    NlPreviewFixture preview = editorFixture
+      .getLayoutPreview(true)
+      .waitForRenderToFinish();
+
+    preview.getConfigToolbar()
+      .chooseDevice("Nexus 5")
+      .requireDevice("Nexus 5")
+      .chooseDevice("Nexus 6")
+      .requireDevice("Nexus 6");
+
+    preview.getConfigToolbar()
+      .switchOrientation()
+      .requireOrientation("Landscape")
+      .switchOrientation()
+      .requireOrientation("Portrait");
+
+    preview.getConfigToolbar()
+      .chooseApiLevel("API 23")
+      .requireApiLevel("N")
+      .chooseApiLevel("API 24")
+      .requireApiLevel("24")
+      .chooseApiLevel("API 25")
+      .requireApiLevel("O");
+
+    preview.getConfigToolbar()
+      .openThemeSelectionDialog()
+      .selectsTheme("Material Light", "android:Theme.Material.Light")
+      .clickOk();
+    preview.getConfigToolbar()
+      .requireTheme("Light");
+    preview.getConfigToolbar()
+      .openThemeSelectionDialog()
+      .selectsTheme("Material Dark", "android:Theme.Material")
+      .clickOk();
+    preview.getConfigToolbar()
+      .requireTheme("Material");
+
+    editorFixture = ideFrameFixture.getEditor()
+      .open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.DESIGN);
+
+    preview = editorFixture
+      .getLayoutPreview(true)
+      .waitForRenderToFinish();
+
+    preview.getConfigToolbar()
+      .requireDevice("Nexus 6")
+      .requireOrientation("Portrait")
+      .requireApiLevel("O")
+      .requireTheme("AppTheme");
   }
 }
