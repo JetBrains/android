@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -94,5 +95,13 @@ public class NavScreenDecorator extends SceneDecorator {
                                sceneContext.getSwingDimension(component.getDrawWidth()) - 1,
                                sceneContext.getSwingDimension(component.getDrawHeight()) - 1,
                                image, component.isSelected()));
+  }
+
+  @Override
+  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    DisplayList displayList = new DisplayList();
+    super.buildList(displayList, time, sceneContext, component);
+
+    list.add(displayList.getCommand(component.isSelected() ? DrawCommand.COMPONENT_SELECTED_LEVEL : DrawCommand.COMPONENT_LEVEL));
   }
 }

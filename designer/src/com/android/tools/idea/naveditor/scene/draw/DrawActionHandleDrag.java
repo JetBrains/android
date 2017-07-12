@@ -17,8 +17,6 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -29,7 +27,7 @@ import java.awt.*;
  * where the action handle usually is as well as a line from the center
  * of the circle to the current mouse position.
  */
-public class DrawActionHandleDrag implements DrawCommand {
+public class DrawActionHandleDrag extends NavBaseDrawCommand {
   public static final Stroke STROKE = new BasicStroke(3.0f);
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
@@ -46,15 +44,13 @@ public class DrawActionHandleDrag implements DrawCommand {
 
   @Override
   public int getLevel() {
-    return DrawCommand.TARGET_LEVEL;
+    return DRAW_ACTION_HANDLE_DRAG;
   }
 
   @Override
-  public
   @NotNull
-  String serialize() {
-    return Joiner.on(',').join(this.getClass().getSimpleName(),
-                               myX, myY, String.format("%x", myColor.getRGB()));
+  protected Object[] getProperties() {
+    return new Object[]{myX, myY, String.format("%x", myColor.getRGB())};
   }
 
   @Override

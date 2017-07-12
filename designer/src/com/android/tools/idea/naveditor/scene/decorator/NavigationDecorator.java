@@ -23,13 +23,14 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
-import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawComponentFrame;
-import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
+import com.android.tools.idea.uibuilder.scene.draw.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.ArrayList;
+
 
 /**
  * {@link SceneDecorator} for the whole of a navigation flow (that is, the root component).
@@ -68,8 +69,27 @@ public class NavigationDecorator extends SceneDecorator {
   protected void addFrame(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     DesignSurface surface = sceneContext.getSurface();
     NavDesignSurface navSurface = (NavDesignSurface)surface;
-    if (navSurface != null && component.getNlComponent() != navSurface.getCurrentNavigation()) {
+    if (navSurface != null && !isRoot(navSurface, component)) {
       DrawComponentFrame.add(list, sceneContext, component.fillRect(null), component.getDrawState().ordinal(), true);
     }
+  }
+
+  @Override
+  public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    DesignSurface surface = sceneContext.getSurface();
+    NavDesignSurface navSurface = (NavDesignSurface)surface;
+    if (navSurface != null && isRoot(navSurface, component)) {
+      super.buildList(list, time, sceneContext, component);
+      return;
+    }
+
+    DisplayList displayList = new DisplayList();
+    super.buildList(displayList, time, sceneContext, component);
+
+    list.add(displayList.getCommand(component.isSelected() ? DrawCommand.COMPONENT_SELECTED_LEVEL : DrawCommand.COMPONENT_LEVEL));
+  }
+
+  private static boolean isRoot(@NotNull NavDesignSurface navSurface, @NotNull SceneComponent component) {
+    return component.getNlComponent() == navSurface.getCurrentNavigation();
   }
 }
