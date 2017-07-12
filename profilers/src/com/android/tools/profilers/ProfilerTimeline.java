@@ -169,7 +169,9 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     }
     double minUs = myViewRangeUs.getMin() - deltaUs * percent;
     double maxUs = myViewRangeUs.getMax() + deltaUs * (1 - percent);
-    if (minUs < myDataRangeUs.getMin()) {
+    // When the view range is not fully covered, reset minUs to data range could change zoomLeft from zero to a large number.
+    boolean isDataRangeCoverViewRange = myDataRangeUs.getMin() <= myViewRangeUs.getMin();
+    if (isDataRangeCoverViewRange && minUs < myDataRangeUs.getMin()) {
       maxUs += myDataRangeUs.getMin() - minUs;
       minUs = myDataRangeUs.getMin();
     }
@@ -178,7 +180,9 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
       maxUs = myDataRangeUs.getMax();
     }
     // minUs could have gone past again.
-    minUs = Math.max(minUs, myDataRangeUs.getMin());
+    if (isDataRangeCoverViewRange) {
+      minUs = Math.max(minUs, myDataRangeUs.getMin());
+    }
     myViewRangeUs.set(minUs, maxUs);
   }
 
