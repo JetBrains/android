@@ -68,7 +68,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
   private static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
 
-  private AndroidFacet myFacet;
+  private final AndroidFacet myFacet;
   private List<FileResourceRepository> myLibraries;
   private long myIdsModificationCount;
 
@@ -318,7 +318,6 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @Override
   public void dispose() {
-    myFacet = null;
     super.dispose();
   }
 
