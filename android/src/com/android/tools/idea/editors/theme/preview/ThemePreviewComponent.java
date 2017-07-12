@@ -63,8 +63,8 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new OrientationMenuAction(myPreviewPanel));
     group.add(new DeviceMenuAction(myPreviewPanel));
-    group.add(new TargetMenuAction(myPreviewPanel, true, false));
-    group.add(new LocaleMenuAction(myPreviewPanel, false));
+    group.add(new TargetMenuAction(myPreviewPanel, true));
+    group.add(new LocaleMenuAction(myPreviewPanel));
 
     ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);

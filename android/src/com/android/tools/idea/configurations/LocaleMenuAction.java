@@ -42,15 +42,9 @@ import java.util.Set;
 
 public class LocaleMenuAction extends FlatComboAction {
   private final ConfigurationHolder myRenderContext;
-  private final boolean myClassicStyle;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
-    this(renderContext, !RenderService.NELE_ENABLED);
-  }
-
-  public LocaleMenuAction(@NotNull ConfigurationHolder renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
-    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Locale in Editor");
     updatePresentation(presentation);
@@ -71,16 +65,16 @@ public class LocaleMenuAction extends FlatComboAction {
 
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null && !locales.isEmpty()) {
-      group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false, myClassicStyle), Locale.ANY));
+      group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
       group.addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
-        String title = getLocaleLabel(locale, false, myClassicStyle);
+        String title = getLocaleLabel(locale, false);
 
         VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
         if (better != null) {
-          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true, myClassicStyle), better, configuration.getFile());
+          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true), better, configuration.getFile());
         }
 
         group.add(new SetLocaleAction(myRenderContext, title, locale));
@@ -185,16 +179,8 @@ public class LocaleMenuAction extends FlatComboAction {
       //Locale locale = configuration.isLocaleSpecificLayout()
       //                ? configuration.getLocale() : configuration.getConfigurationManager().getLocale();
       Locale locale = configuration.getLocale();
-      if (!myClassicStyle) {
-        presentation.setIcon(AndroidIcons.NeleIcons.Language);
-      }
-      else if (locale == Locale.ANY) {
-        presentation.setIcon(AndroidIcons.Globe);
-      }
-      else {
-        presentation.setIcon(locale.getFlagImage());
-      }
-      String brief = getLocaleLabel(locale, true, myClassicStyle);
+      presentation.setIcon(AndroidIcons.NeleIcons.Language);
+      String brief = getLocaleLabel(locale, true);
       presentation.setText(brief);
     }
     else {
@@ -213,44 +199,18 @@ public class LocaleMenuAction extends FlatComboAction {
   /**
    * Returns a suitable label to use to display the given locale
    *
-   * @param locale the locale to look up a label for
-   * @param brief  if true, generate a brief label (suitable for a toolbar
-   *               button), otherwise a fuller name (suitable for a menu item)
-   * @return the label
-   */
-  @NotNull
-  public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
-    return getLocaleLabel(locale, brief, !RenderService.NELE_ENABLED);
-  }
-
-  /**
-   * Returns a suitable label to use to display the given locale
-   *
    * @param locale       the locale to look up a label for
    * @param brief        if true, generate a brief label (suitable for a toolbar
    *                     button), otherwise a fuller name (suitable for a menu item)
-   * @param classicStyle if true, use the pre Android Studio 1.5 configuration toolbar style (temporary compatibility code)
    * @return the label
    */
-  public static String getLocaleLabel(@Nullable Locale locale, boolean brief, boolean classicStyle) {
+  public static String getLocaleLabel(@Nullable Locale locale, boolean brief) {
     if (locale == null) {
-      if (!classicStyle) {
-        return "Language";
-      }
-      return "";
+      return "Language";
     }
 
     if (!locale.hasLanguage()) {
-      if (!classicStyle) {
-        return "Language";
-      }
-
-      if (brief) {
-        // Just use the icon
-        return "";
-      }
-
-      return "Default";
+      return "Language";
     }
 
     String languageCode = locale.qualifier.getLanguage();
