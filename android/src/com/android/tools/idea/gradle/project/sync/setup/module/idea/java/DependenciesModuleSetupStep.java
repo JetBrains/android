@@ -134,4 +134,9 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     }
     return DEFAULT_DEPENDENCY_SCOPE;
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
+  }
 }
