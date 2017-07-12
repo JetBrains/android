@@ -35,6 +35,9 @@ import java.awt.*;
  * {@link SceneDecorator} for the whole of a navigation flow (that is, the root component).
  */
 public class NavigationDecorator extends SceneDecorator {
+  static final int BASELINE_OFFSET = 35;
+  static final int FONT_SIZE = 30;
+
   @Override
   protected void addBackground(@NotNull DisplayList list, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     // TODO: nothing?
@@ -54,9 +57,10 @@ public class NavigationDecorator extends SceneDecorator {
       if (label == null) {
         label = "navigation";
       }
-      list.add(new DrawTextRegion(bounds.x, bounds.y, bounds.width, bounds.height, DecoratorUtilities.ViewStates.NORMAL.getVal(), 20,
-                                  label, true, false,
-                                  DrawTextRegion.TEXT_ALIGNMENT_CENTER, DrawTextRegion.TEXT_ALIGNMENT_CENTER, 14, 1));
+      double scale = sceneContext.getScale();
+      list.add(new DrawTextRegion(bounds.x, bounds.y, bounds.width, bounds.height, DecoratorUtilities.ViewStates.NORMAL.getVal(),
+                                  (int)(scale * BASELINE_OFFSET), label, true, false, DrawTextRegion.TEXT_ALIGNMENT_CENTER,
+                                  DrawTextRegion.TEXT_ALIGNMENT_CENTER, FONT_SIZE, (float)scale));
     }
   }
 
