@@ -67,10 +67,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
@@ -466,6 +463,14 @@ public class AvdManagerConnection {
 
     if (netSpeed != null) {
       commandLine.addParameters("-netspeed", netSpeed);
+    }
+
+    // Control fast boot
+    if (AvdWizardUtils.emulatorSupportsFastBoot()) {
+      if ("yes".equals(properties.get(AvdWizardUtils.USE_COLD_BOOT))) {
+        commandLine.addParameter("-no-snapstorage");
+      }
+      // We could use "-snapstorage" for the "no" case, but don't bother. It is the default.
     }
 
     writeParameterFile(commandLine);
