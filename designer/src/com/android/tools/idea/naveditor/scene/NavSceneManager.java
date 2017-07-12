@@ -24,6 +24,7 @@ import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -32,6 +33,7 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -130,13 +132,44 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
-  private static void updateRootBounds(@NotNull SceneComponent root) {
+  private void updateRootBounds(@NotNull SceneComponent root) {
     Rectangle bounds = new Rectangle(0, 0, -1, -1);
     Rectangle temp = new Rectangle();
+    Rectangle rootBounds = root.fillRect(null);
     // TODO: include targets
-    root.flatten().filter(c -> c != root).forEach(component -> bounds.add(component.fillDrawRect(0, temp)));
-    root.setPosition(bounds.x - 50, bounds.y - 50);
-    root.setSize(bounds.width + 100, bounds.height + 100, false);
+    root.flatten().filter(c -> c != root).forEach(component -> {
+      if (component.isDragging()) {
+        // If we're dragging, don't shrink
+        if (bounds.width < 0) {
+          bounds.setBounds(rootBounds);
+        }
+        else {
+          bounds.add(rootBounds);
+        }
+        // Add the center of the component, so you have to actually drag it properly outside the current bounds to have an effect.
+        bounds.add(component.getCenterX(), component.getCenterY());
+      }
+      else {
+        Rectangle componentBounds = component.fillDrawRect(0, temp);
+        componentBounds.setLocation(componentBounds.x - 50, componentBounds.y - 50);
+        componentBounds.setSize(componentBounds.width + 100, componentBounds.height + 100);
+        if (bounds.width < 0) {
+          bounds.setBounds(componentBounds);
+        }
+        else {
+          bounds.add(componentBounds);
+        }
+      }
+    });
+    NavDesignSurface surface = getDesignSurface();
+    SceneView view = surface.getCurrentSceneView();
+    if (view != null) {
+      // If the origin of the root has shifted, offset the view so the screen doesn't jump around
+      surface.getCurrentSceneView().setLocation(Math.max(0, Coordinates.getSwingXDip(view, bounds.x)),
+                                                Math.max(0, Coordinates.getSwingYDip(view, bounds.y)));
+    }
+    root.setPosition(bounds.x, bounds.y);
+    root.setSize(bounds.width, bounds.height, false);
   }
 
   @Override

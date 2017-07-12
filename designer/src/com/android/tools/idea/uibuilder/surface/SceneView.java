@@ -43,6 +43,8 @@ import java.util.List;
 public abstract class SceneView {
   protected final DesignSurface mySurface;
   protected final NlModel myModel;
+  @SwingCoordinate private int x;
+  @SwingCoordinate private int y;
 
   public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
@@ -179,14 +181,19 @@ public abstract class SceneView {
     return mySurface.getScale();
   }
 
+  public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
+    x = screenX;
+    y = screenY;
+  }
+
   @SwingCoordinate
   public int getX() {
-    return 0;
+    return x;
   }
 
   @SwingCoordinate
   public int getY() {
-    return 0;
+    return y;
   }
 
   /**

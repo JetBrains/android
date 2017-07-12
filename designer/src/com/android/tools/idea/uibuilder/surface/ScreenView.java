@@ -45,9 +45,6 @@ public class ScreenView extends SceneView {
 
   public enum ScreenViewType {NORMAL, BLUEPRINT}
 
-  @SwingCoordinate private int x;
-  @SwingCoordinate private int y;
-
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
     super(surface, model);
     myType = type;
@@ -95,24 +92,6 @@ public class ScreenView extends SceneView {
 
     return dimension;
   }
-
-  public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
-    x = screenX;
-    y = screenY;
-  }
-
-  @Override
-  @SwingCoordinate
-  public int getX() {
-    return x;
-  }
-
-  @Override
-  @SwingCoordinate
-  public int getY() {
-    return y;
-  }
-
 
   @Override
   public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
