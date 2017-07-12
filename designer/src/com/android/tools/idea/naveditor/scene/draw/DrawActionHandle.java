@@ -17,8 +17,6 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -29,7 +27,7 @@ import java.awt.*;
  * concentric circles. It supports a size changing animation defined by the initial
  * and final sizes and the duration of the size change.
  */
-public class DrawActionHandle implements DrawCommand {
+public class DrawActionHandle extends NavBaseDrawCommand {
   public static final int BACKGROUND_RADIUS = 6;
   public static final int SMALL_RADIUS = 8;
   public static final int LARGE_RADIUS = 12;
@@ -61,16 +59,14 @@ public class DrawActionHandle implements DrawCommand {
 
   @Override
   public int getLevel() {
-    return DrawCommand.TARGET_LEVEL;
+    return DRAW_ACTION_HANDLE;
   }
 
   @Override
-  public
   @NotNull
-  String serialize() {
-    return Joiner.on(',').join(this.getClass().getSimpleName(),
-                               myX, myY, myInitialRadius, myFinalRadius, String.format("%x", myBorderColor.getRGB()),
-                               String.format("%x", myFillColor.getRGB()));
+  protected Object[] getProperties() {
+    return new Object[]{myX, myY, myInitialRadius, myFinalRadius, String.format("%x", myBorderColor.getRGB()),
+      String.format("%x", myFillColor.getRGB())};
   }
 
   @Override

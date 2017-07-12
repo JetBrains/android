@@ -34,7 +34,7 @@ import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SE
 /**
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
  */
-public class DrawAction implements DrawCommand {
+public class DrawAction extends NavBaseDrawCommand {
   public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
     RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
     RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
@@ -52,9 +52,9 @@ public class DrawAction implements DrawCommand {
   public enum DrawMode {NORMAL, SELECTED}
 
   @Override
-  public String serialize() {
-    return "DrawAction," + myConnectionType + "," + rectToString(mySource) + "," +
-           rectToString(myDest) + "," + myMode;
+  @NotNull
+  protected Object[] getProperties() {
+    return new Object[]{myConnectionType, rectToString(mySource), rectToString(myDest), myMode};
   }
 
   private static String rectToString(@NotNull Rectangle r) {
@@ -83,7 +83,7 @@ public class DrawAction implements DrawCommand {
 
   @Override
   public int getLevel() {
-    return CONNECTION_LEVEL;
+    return DRAW_ACTION;
   }
 
   @Override

@@ -17,8 +17,6 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-import com.google.common.base.Joiner;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -26,7 +24,7 @@ import java.awt.*;
 /**
  * {@linkplain DrawScreenLabel} draws the name of the screen above the frame.
  */
-public class DrawScreenLabel implements DrawCommand {
+public class DrawScreenLabel extends NavBaseDrawCommand {
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
   private final Color myColor;
@@ -47,14 +45,15 @@ public class DrawScreenLabel implements DrawCommand {
 
   @Override
   public int getLevel() {
-    return DrawCommand.COMPONENT_LEVEL;
+    return DRAW_SCREEN_LABEL;
   }
 
-  @Override @NotNull
-  public String serialize() {
-    return Joiner.on(',').join(this.getClass().getSimpleName(),
-                               myX, myY, String.format("%x", myColor.getRGB()), myFont, myText);
+  @Override
+  @NotNull
+  protected Object[] getProperties() {
+    return new Object[]{myX, myY, String.format("%x", myColor.getRGB()), myFont, myText};
   }
+
 
   @Override
   public void paint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {

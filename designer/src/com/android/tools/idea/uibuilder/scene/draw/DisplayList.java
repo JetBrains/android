@@ -373,9 +373,15 @@ public class DisplayList {
 
   static class CommandSet implements DrawCommand {
     private ArrayList<DrawCommand> myCommands = new ArrayList<>();
+    private int myLevel;
+
+    public CommandSet(DrawCommand[] commands, int start, int end) {
+      this(commands, start, end, COMPONENT_LEVEL);
+    }
 
     @SuppressWarnings("ManualArrayToCollectionCopy")
-    public CommandSet(DrawCommand[] commands, int start, int end) {
+    public CommandSet(DrawCommand[] commands, int start, int end, int level) {
+      myLevel = level;
       if (commands.length == 0) {
         return;
       }
@@ -456,7 +462,7 @@ public class DisplayList {
 
     @Override
     public int getLevel() {
-      return COMPONENT_LEVEL;
+      return myLevel;
     }
 
     @SuppressWarnings("ForLoopReplaceableByForEach")
@@ -536,6 +542,11 @@ public class DisplayList {
       str += command.serialize() + "\n";
     }
     return str;
+  }
+
+  public DrawCommand getCommand(int level) {
+    DrawCommand[] array = myCommands.toArray(new DrawCommand[myCommands.size()]);
+    return new CommandSet(array, 0, array.length - 1, level);
   }
 
   static HashMap<String, Function<String, ? extends DrawCommand>> ourBuildMap = new HashMap<>();

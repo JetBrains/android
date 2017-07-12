@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +28,7 @@ import java.util.Map;
 /**
  * {@link DrawCommand} that draws a screen in the navigation editor.
  */
-public class DrawNavScreen implements DrawCommand {
+public class DrawNavScreen extends NavBaseDrawCommand {
   public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HITS = ImmutableMap.of(
     RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
     RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
@@ -55,7 +54,7 @@ public class DrawNavScreen implements DrawCommand {
 
   @Override
   public int getLevel() {
-    return 30;
+    return DRAW_NAV_SCREEN;
   }
 
   @Override
@@ -68,14 +67,9 @@ public class DrawNavScreen implements DrawCommand {
     g.setClip(previousClip);
   }
 
-  @NotNull
   @Override
-  public String serialize() {
-    return Joiner.on(',').join(
-      this.getClass().getSimpleName(),
-      myX,
-      myY,
-      myWidth,
-      myHeight);
+  @NotNull
+  protected Object[] getProperties() {
+    return new Object[]{myX, myY, myWidth, myHeight};
   }
 }
