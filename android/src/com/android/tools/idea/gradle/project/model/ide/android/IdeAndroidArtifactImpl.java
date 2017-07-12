@@ -45,6 +45,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
   @Nullable private final String mySigningConfigName;
   @Nullable private final Set<String> myAbiFilters;
   @Nullable private final Collection<NativeLibrary> myNativeLibraries;
+  @Nullable private final IdeTestOptions myTestOptions;
   private final boolean mySigned;
   private final int myHashCode;
 
@@ -65,6 +66,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
     myNativeLibraries = copy(modelCache, artifact.getNativeLibraries());
     mySigned = artifact.isSigned();
     myAdditionalRuntimeApks = copyNewProperty(artifact::getAdditionalRuntimeApks, Collections.emptySet());
+    myTestOptions = copyNewProperty(modelCache, artifact::getTestOptions, testOptions -> new IdeTestOptions(testOptions, modelCache), null);
 
     myHashCode = calculateHashCode();
   }
@@ -127,6 +129,12 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
 
   @Override
   @Nullable
+  public TestOptions getTestOptions() {
+    return myTestOptions;
+  }
+
+  @Override
+  @Nullable
   public String getSigningConfigName() {
     return mySigningConfigName;
   }
@@ -172,7 +180,8 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
            Objects.equals(mySigningConfigName, artifact.mySigningConfigName) &&
            Objects.equals(myAbiFilters, artifact.myAbiFilters) &&
            Objects.equals(myAdditionalRuntimeApks, artifact.myAdditionalRuntimeApks) &&
-           Objects.equals(myNativeLibraries, artifact.myNativeLibraries);
+           Objects.equals(myNativeLibraries, artifact.myNativeLibraries) &&
+           Objects.equals(myTestOptions, artifact.myTestOptions);
   }
 
   @Override
@@ -189,7 +198,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
   protected int calculateHashCode() {
     return Objects.hash(super.calculateHashCode(), myOutputs, myApplicationId, mySourceGenTaskName,
                         myGeneratedResourceFolders, myBuildConfigFields, myResValues, myInstantRun,
-                        mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned, myAdditionalRuntimeApks);
+                        mySigningConfigName, myAbiFilters, myNativeLibraries, mySigned, myAdditionalRuntimeApks, myTestOptions);
   }
 
   @Override
@@ -207,6 +216,7 @@ public final class IdeAndroidArtifactImpl extends IdeBaseArtifactImpl implements
            ", myAbiFilters=" + myAbiFilters +
            ", myNativeLibraries=" + myNativeLibraries +
            ", mySigned=" + mySigned +
+           ", myTestOptions=" + myTestOptions +
            "}";
   }
 }
