@@ -126,6 +126,23 @@ public class ProfilerTimelineTest {
   }
 
   @Test
+  public void testZoomOutWhenDataNotFullyCoverView() {
+    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    Range dataRange = timeline.getDataRange();
+    Range viewRange = timeline.getViewRange();
+    dataRange.set(50, 100);
+    viewRange.set(30, 100);
+
+    timeline.zoom(20, 1);
+    assertEquals(10, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
+
+    timeline.zoom(-20, 1);
+    assertEquals(30, viewRange.getMin(), DELTA);
+    assertEquals(100, viewRange.getMax(), DELTA);
+  }
+
+  @Test
   public void testPan() throws Exception {
     ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
     Range dataRange = timeline.getDataRange();
