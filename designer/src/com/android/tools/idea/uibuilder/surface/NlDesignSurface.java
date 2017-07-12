@@ -388,35 +388,6 @@ public class NlDesignSurface extends DesignSurface {
     return new NlActionManager(this);
   }
 
-  /**
-   * <p>
-   * If type is {@link ZoomType#IN}, zoom toward the given x and y coordinates
-   * (relative to {@link #getLayeredPane()})
-   * </p><p>
-   * If x or y are negative, zoom toward the selected component if there is one otherwise
-   * zoom toward the center of the viewport.
-   * </p><p>
-   * For all other types of zoom see {@link DesignSurface#zoom(ZoomType, int, int)}
-   * </p>
-   *
-   * @param type Type of zoom to execute
-   * @param x    Coordinate where the zoom will be centered
-   * @param y    Coordinate where the zoom will be centered
-   * @see DesignSurface#zoom(ZoomType, int, int)
-   */
-  @Override
-  public void zoom(@NotNull ZoomType type, int x, int y) {
-    if (type == ZoomType.IN && (x < 0 || y < 0)
-        && myScreenView != null && !myScreenView.getSelectionModel().isEmpty()) {
-      NlComponent component = myScreenView.getSelectionModel().getPrimary();
-      if (component != null) {
-        x = Coordinates.getSwingX(myScreenView, NlComponentHelperKt.getMidpointX(component));
-        y = Coordinates.getSwingY(myScreenView, NlComponentHelperKt.getMidpointY(component));
-      }
-    }
-    super.zoom(type, x, y);
-  }
-
   @Override
   protected void layoutContent() {
     if (myScreenView == null) {

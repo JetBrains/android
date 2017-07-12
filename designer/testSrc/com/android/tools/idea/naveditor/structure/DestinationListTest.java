@@ -56,6 +56,7 @@ public class DestinationListTest extends NavigationTestCase {
     myList = (DestinationList)def.getFactory().create();
     DesignSurface surface = myModel.getSurface();
     SceneView sceneView = mock(SceneView.class);
+    when(sceneView.getConfiguration()).thenReturn(myModel.getConfiguration());
     when(surface.getCurrentSceneView()).thenReturn(sceneView);
     when(sceneView.getModel()).thenReturn(myModel);
     myList.setToolContext(surface);
@@ -132,6 +133,7 @@ public class DestinationListTest extends NavigationTestCase {
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
     SceneView sceneView = mock(SceneView.class);
+    when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
     when(model.getSurface().getCurrentSceneView()).thenReturn(sceneView);
     when(sceneView.getModel()).thenReturn(myModel);
     when(sceneView.getPreferredSize()).thenReturn(new Dimension(100, 100));

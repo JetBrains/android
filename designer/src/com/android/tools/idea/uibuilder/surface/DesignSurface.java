@@ -298,7 +298,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (dimension == null) {
       return null;
     }
-    myLayeredPane.setBounds(0, 0, dimension.width, dimension.height);
+    myLayeredPane.setSize(dimension.width, dimension.height);
     myLayeredPane.setPreferredSize(dimension);
     myScrollPane.revalidate();
     SceneView view = getCurrentSceneView();
@@ -417,7 +417,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param x    Coordinate where the zoom will be centered
    * @param y    Coordinate where the zoom will be centered
    */
-  public void zoom(@NotNull ZoomType type, int x, int y) {
+  public void zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
+    SceneView view = getCurrentSceneView();
+    if (type == ZoomType.IN && (x < 0 || y < 0)
+        && view != null && !getSelectionModel().isEmpty()) {
+      Scene scene = getScene();
+      if (scene != null) {
+        SceneComponent component = scene.getSceneComponent(getSelectionModel().getPrimary());
+        if (component != null) {
+          x = Coordinates.getSwingXDip(view, component.getCenterX());
+          y = Coordinates.getSwingYDip(view, component.getCenterY());
+        }
+      }
+    }
     switch (type) {
       case IN: {
         double currentScale = myScale;

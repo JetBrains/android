@@ -23,7 +23,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
-import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
@@ -45,10 +44,11 @@ import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
-import static com.android.annotations.VisibleForTesting.*;
+import static com.android.annotations.VisibleForTesting.Visibility;
 
 /**
  * {@link DesignSurface} for the navigation editor.
@@ -57,10 +57,38 @@ public class NavDesignSurface extends DesignSurface {
   private NavView myNavView;
   private NavigationSchema mySchema;
   private NlComponent myCurrentNavigation;
+  private double myOldScale = 0;
 
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable);
     zoomActual();
+
+    // If we've previously offset the view or expanded the scrollable area size beyond the root, we want to undo that offset as we scroll
+    // back toward the content instead of actually scrolling.
+    getScrollPane().getHorizontalScrollBar().addAdjustmentListener(event -> {
+      if (myNavView != null && myNavView.getX() > 0) {
+        JViewport viewport = getScrollPane().getViewport();
+        int viewX = (int)viewport.getViewPosition().getX();
+        myNavView.setLocation(myNavView.getX() - viewX, myNavView.getY());
+        viewport.setViewPosition(new Point(0, (int)viewport.getViewPosition().getY()));
+        if (getScene() != null) {
+          getScene().needsRebuildList();
+        }
+      }
+      updateScrolledAreaSize();
+    });
+    getScrollPane().getVerticalScrollBar().addAdjustmentListener(event -> {
+      if (myNavView != null && myNavView.getY() > 0) {
+        JViewport viewport = getScrollPane().getViewport();
+        int viewY = (int)viewport.getViewPosition().getY();
+        myNavView.setLocation(myNavView.getX(), myNavView.getY() - viewY);
+        viewport.setViewPosition(new Point((int)viewport.getViewPosition().getX(), 0));
+        if (getScene() != null) {
+          getScene().needsRebuildList();
+        }
+        updateScrolledAreaSize();
+      }
+    });
   }
 
   @NotNull
@@ -150,7 +178,23 @@ public class NavDesignSurface extends DesignSurface {
   @Nullable
   @Override
   public Dimension getScrolledAreaSize() {
-    return getContentSize(null);
+    Dimension content = getContentSize(null);
+    SceneView view = getCurrentSceneView();
+
+    if (myOldScale != myScale || view == null) {
+      // If we've changed scale, just fit to the content.
+      myOldScale = myScale;
+      return content;
+    }
+
+    // Otherwise, ensure that the content stays where it is in the view.
+    Dimension viewExtents = getScrollPane().getViewport().getExtentSize();
+    Point viewPosition = getScrollPosition();
+
+    return new Dimension((int)Math.max(viewPosition.getX() + viewExtents.getWidth(),
+                                       getCurrentSceneView().getX() + content.getWidth()),
+                         (int)Math.max(viewPosition.getY() + viewExtents.getHeight(),
+                                       getCurrentSceneView().getY() + content.getHeight()));
   }
 
   @Nullable
