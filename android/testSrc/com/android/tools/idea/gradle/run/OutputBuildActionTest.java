@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.ProjectBuildOutput;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.truth.Truth;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
@@ -26,7 +26,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
@@ -70,9 +74,16 @@ public class OutputBuildActionTest {
     ProjectBuildOutput buildOutputB = mock(ProjectBuildOutput.class);
     when(myBuildController.findModel(moduleB, ProjectBuildOutput.class)).thenReturn(buildOutputB);
 
-    ImmutableMap<String, ProjectBuildOutput> model = myAction.execute(myBuildController);
-    assertSame(buildOutputA, model.get("a"));
-    assertSame(buildOutputB, model.get("b"));
-    assertNull(model.get("c"));
+    List<OutputBuildAction.ModuleBuildOutput> outputs = myAction.execute(myBuildController);
+    assertThat(outputs).hasSize(2); // Outputs only for 'a' and 'b'
+
+    Map<String, ProjectBuildOutput> outputsByGradlePath = new HashMap<>();
+    for (OutputBuildAction.ModuleBuildOutput output : outputs) {
+      outputsByGradlePath.put(output.getModulePath(), output.getOutput());
+    }
+
+    assertSame(buildOutputA, outputsByGradlePath.get("a"));
+    assertSame(buildOutputB, outputsByGradlePath.get("b"));
+    assertNull(outputsByGradlePath.get("c"));
   }
 }

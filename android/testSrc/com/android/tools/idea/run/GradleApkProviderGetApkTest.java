@@ -159,6 +159,6 @@ public class GradleApkProviderGetApkTest extends IdeaTestCase {
     ProjectBuildOutput projectBuildOutput = mock(ProjectBuildOutput.class);
     when(projectBuildOutput.getVariantsBuildOutput()).thenReturn(Collections.singleton(variantBuildOutput));
 
-    when(myPostBuildModel.getOutputModelForFacet(facet)).thenReturn(projectBuildOutput);
+    when(myPostBuildModel.findOutputModel(facet)).thenReturn(projectBuildOutput);
   }
 }

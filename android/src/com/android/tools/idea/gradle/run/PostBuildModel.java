@@ -22,6 +22,8 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 /**
@@ -30,22 +32,26 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 public class PostBuildModel {
   @NotNull private final ImmutableMap<String, ProjectBuildOutput> myOutputs;
 
-  PostBuildModel(@NotNull ImmutableMap<String, ProjectBuildOutput> outputs) {
-    myOutputs = outputs;
+  PostBuildModel(@NotNull List<OutputBuildAction.ModuleBuildOutput> outputs) {
+    ImmutableMap.Builder<String, ProjectBuildOutput> outputsBuilder = ImmutableMap.builder();
+    for (OutputBuildAction.ModuleBuildOutput output : outputs) {
+      outputsBuilder.put(output.getModulePath(), output.getOutput());
+    }
+    myOutputs = outputsBuilder.build();
   }
 
   @Nullable
-  public ProjectBuildOutput getOutputModelForGradlePath(@Nullable String gradlePath) {
+  public ProjectBuildOutput findOutputModel(@Nullable String gradlePath) {
     return myOutputs.get(gradlePath);
   }
 
   @Nullable
-  public ProjectBuildOutput getOutputModelForModule(@NotNull Module module) {
-    return getOutputModelForGradlePath(getGradlePath(module));
+  public ProjectBuildOutput findOutputModel(@NotNull Module module) {
+    return findOutputModel(getGradlePath(module));
   }
 
   @Nullable
-  public ProjectBuildOutput getOutputModelForFacet(@NotNull AndroidFacet facet) {
-    return getOutputModelForModule(facet.getModule());
+  public ProjectBuildOutput findOutputModel(@NotNull AndroidFacet facet) {
+    return findOutputModel(facet.getModule());
   }
 }

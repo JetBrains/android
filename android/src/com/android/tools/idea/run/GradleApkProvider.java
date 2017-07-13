@@ -160,7 +160,7 @@ public class GradleApkProvider implements ApkProvider {
       return getApkFromPreBuildSync(variant, device, fromTestArtifact);
     }
 
-    ProjectBuildOutput outputModel = outputModels.getOutputModelForFacet(facet);
+    ProjectBuildOutput outputModel = outputModels.findOutputModel(facet);
     if (outputModel == null) {
       return getApkFromPreBuildSync(variant, device, fromTestArtifact);
     }
