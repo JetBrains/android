@@ -1170,8 +1170,8 @@ public class ChooseResourceDialog extends DialogWrapper {
       int height = size;
 
       RenderTask renderTask = getRenderTask();
-      renderTask.setOverrideRenderSize(width, height);
-      renderTask.setMaxRenderSize(width, height);
+      renderTask.setOverrideRenderSize(width, height)
+        .setMaxRenderSize(width, height);
       return Futures.transform(renderTask.renderDrawable(resourceValue), (Function<BufferedImage, ResourceChooserImageIcon>)drawable -> {
         if (drawable != null) {
           return new ResourceChooserImageIcon(size, drawable, checkerboardSize, interpolate);

@@ -26,6 +26,8 @@ import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -34,9 +36,32 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.*;
 
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.*;
 
 public class RenderTaskTest extends RenderTestBase {
+  @Language("XML")
+  private static final String SIMPLE_LAYOUT = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "    android:layout_height=\"match_parent\"\n" +
+                                              "    android:layout_width=\"match_parent\"\n" +
+                                              "    android:orientation=\"vertical\">\n" +
+                                              "\n" +
+                                              "    <LinearLayout\n" +
+                                              "        android:layout_width=\"50dp\"\n" +
+                                              "        android:layout_height=\"50dp\"\n" +
+                                              "        android:background=\"#F00\"/>\n" +
+                                              "    <LinearLayout\n" +
+                                              "        android:layout_width=\"50dp\"\n" +
+                                              "        android:layout_height=\"50dp\"\n" +
+                                              "        android:background=\"#0F0\"/>\n" +
+                                              "    <LinearLayout\n" +
+                                              "        android:layout_width=\"50dp\"\n" +
+                                              "        android:layout_height=\"50dp\"\n" +
+                                              "        android:background=\"#00F\"/>\n" +
+                                              "    \n" +
+                                              "\n" +
+                                              "</LinearLayout>";
+
   public void testCrashReport() throws Exception {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
@@ -83,44 +108,57 @@ public class RenderTaskTest extends RenderTestBase {
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 
+  /**
+   * Asserts that the given result matches the {@link #SIMPLE_LAYOUT} structure
+   */
+  private static void checkSimpleLayoutResult(@NotNull RenderResult result) {
+    assertEquals(Result.Status.SUCCESS, result.getRenderResult().getStatus());
+
+    List<ViewInfo> views = result.getRootViews().get(0).getChildren();
+    assertEquals(3, views.size());
+    String previousCoordinates = "";
+    for (int i = 0; i < 3; i++) {
+      ViewInfo view = views.get(i);
+      assertEquals("android.widget.LinearLayout", view.getClassName());
+      // Check the coordinates are different for each box
+      String currentCoordinates = String.format("%dx%d - %dx%d", view.getTop(), view.getLeft(), view.getBottom(), view.getRight());
+      assertNotEquals(previousCoordinates, currentCoordinates);
+      previousCoordinates = currentCoordinates;
+    }
+  }
+
+  private static void checkSimpleLayoutResult(@NotNull ListenableFuture<RenderResult> futureResult) {
+    checkSimpleLayoutResult(Futures.getUnchecked(futureResult));
+  }
+
   public void testRender() throws Exception {
-    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml",
-                                                          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                                                          "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                                          "    android:layout_height=\"match_parent\"\n" +
-                                                          "    android:layout_width=\"match_parent\"\n" +
-                                                          "    android:orientation=\"vertical\">\n" +
-                                                          "\n" +
-                                                          "    <LinearLayout\n" +
-                                                          "        android:layout_width=\"50dp\"\n" +
-                                                          "        android:layout_height=\"50dp\"\n" +
-                                                          "        android:background=\"#F00\"/>\n" +
-                                                          "    <LinearLayout\n" +
-                                                          "        android:layout_width=\"50dp\"\n" +
-                                                          "        android:layout_height=\"50dp\"\n" +
-                                                          "        android:background=\"#0F0\"/>\n" +
-                                                          "    <LinearLayout\n" +
-                                                          "        android:layout_width=\"50dp\"\n" +
-                                                          "        android:layout_height=\"50dp\"\n" +
-                                                          "        android:background=\"#00F\"/>\n" +
-                                                          "    \n" +
-                                                          "\n" +
-                                                          "</LinearLayout>").getVirtualFile();
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
     Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID);
     RenderLogger logger = mock(RenderLogger.class);
 
     RenderTask task = createRenderTask(file, configuration, logger);
-    ListenableFuture<RenderResult> resultFuture = task.render();
-    RenderResult result = Futures.getUnchecked(resultFuture);
+    checkSimpleLayoutResult(task.render());
+    // Try a second render
+    checkSimpleLayoutResult(task.render());
+    // Try layout
+    checkSimpleLayoutResult(task.layout());
+    task.dispose().get(5, TimeUnit.SECONDS);
 
-    assertNotNull(result);
-    assertEquals(Result.Status.SUCCESS, result.getRenderResult().getStatus());
-    List<ViewInfo> views = result.getRootViews().get(0).getChildren();
-    assertEquals(3, views.size());
-    for (int i = 0; i < 3; i++) {
-      assertEquals("android.widget.LinearLayout", views.get(0).getClassName());
-    }
+    // Now call inflate and check
+    task = createRenderTask(file, configuration, logger);
+    checkSimpleLayoutResult(task.inflate());
+    checkSimpleLayoutResult(task.render());
+    task.dispose().get(5, TimeUnit.SECONDS);
 
+    // Now call inflate and layout
+    task = createRenderTask(file, configuration, logger);
+    checkSimpleLayoutResult(task.inflate());
+    checkSimpleLayoutResult(task.layout());
+    task.dispose().get(5, TimeUnit.SECONDS);
+
+    // layout without inflate should return null
+    task = createRenderTask(file, configuration, logger);
+    assertNull(Futures.getUnchecked((task.layout())));
     task.dispose().get(5, TimeUnit.SECONDS);
   }
 

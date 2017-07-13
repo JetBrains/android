@@ -45,10 +45,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -136,9 +133,8 @@ public class LayoutPullParserFactory {
     switch (folderType) {
       case LAYOUT: {
         IRenderLogger logger = renderTask.getLogger();
-        Set<XmlTag> expandNodes = renderTask.getExpandNodes();
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
-        return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
+        return LayoutPsiPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity());
       }
       case DRAWABLE:
       case MIPMAP:
@@ -158,9 +154,8 @@ public class LayoutPullParserFactory {
           }
           else if (tag.equals(TAG_PREFERENCE_SCREEN)) {
             IRenderLogger logger = renderTask.getLogger();
-            Set<XmlTag> expandNodes = renderTask.getExpandNodes();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
-            return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
+            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity());
           }
         }
         return null;
