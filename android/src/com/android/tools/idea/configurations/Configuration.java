@@ -1193,6 +1193,7 @@ public class Configuration implements Disposable, ModificationTracker {
       Device device = getDevice();
       ResourceResolverCache resolverCache = myManager.getResolverCache();
       if (device != null && CUSTOM_DEVICE_ID.equals(device.getId())) {
+        // Remove the old custom device configuration only if it's different from the new one
         resolverCache.replaceCustomConfig(theme, getFullConfig());
       }
       return resolverCache.getResourceResolver(getTarget(), theme, getFullConfig());
