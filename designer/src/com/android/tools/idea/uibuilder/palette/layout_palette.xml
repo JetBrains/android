@@ -417,7 +417,7 @@
   <group name="Images">
     <item tag="ImageButton"/>
     <item tag="ImageView"/>
-    <item tag="com.google.android.exoplayer2.ui.SimpleExoPlayerView"/>
+    <item tag="VideoView"/>
   </group>
   <group name="Date">
     <item tag="TimePicker" render-separately="true"/>

@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.*;
 import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.exoplayer.SimpleExoPlayerViewHandler;
 import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapViewHandler;
@@ -259,8 +258,6 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ConstraintHelperHandler();
       case CLASS_CONSTRAINT_LAYOUT_LAYER:
         return new ConstraintLayoutLayerHandler();
-      case SIMPLE_EXO_PLAYER_VIEW:
-        return new SimpleExoPlayerViewHandler();
       case FLEXBOX_LAYOUT:
         if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
           return new FlexboxLayoutHandler();
