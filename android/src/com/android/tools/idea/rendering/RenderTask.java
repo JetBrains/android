@@ -24,6 +24,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -66,11 +67,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -130,9 +132,6 @@ public class RenderTask implements IImageFactory {
   private long myTimeout;
 
   @Nullable
-  private Set<XmlTag> myExpandNodes;
-
-  @Nullable
   private EditorDesignSurface mySurface;
 
   @NotNull
@@ -145,7 +144,6 @@ public class RenderTask implements IImageFactory {
   private boolean myProvideCookiesForIncludedViews = false;
   private RenderSession myRenderSession;
   private IImageFactory myImageFactoryDelegate;
-  /** Cached {@link BufferedImage} that will be returned when direct rendering is not used. See {@link #render(Graphics2D)} */
   private SoftReference<BufferedImage> myCachedImageReference;
 
   private boolean isSecurityManagerEnabled = true;
@@ -177,7 +175,10 @@ public class RenderTask implements IImageFactory {
     myAssetRepository = new AssetRepositoryImpl(facet);
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
-    myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
+    ScreenOrientation orientation = configuration.getFullConfig().getScreenOrientationQualifier() != null ?
+                                    configuration.getFullConfig().getScreenOrientationQualifier().getValue() :
+                                    ScreenOrientation.PORTRAIT;
+    myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
     AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
@@ -240,11 +241,6 @@ public class RenderTask implements IImageFactory {
     return myLogger;
   }
 
-  @Nullable
-  public Set<XmlTag> getExpandNodes() {
-    return myExpandNodes;
-  }
-
   @NotNull
   public HardwareConfigHelper getHardwareConfigHelper() {
     return myHardwareConfigHelper;
@@ -268,7 +264,7 @@ public class RenderTask implements IImageFactory {
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
-    FutureTask<Void> disposeTask = new FutureTask<Void>(() -> {
+    FutureTask<Void> disposeTask = new FutureTask<>(() -> {
       try {
         ImmutableList<ListenableFuture<?>> currentRunningFutures;
         synchronized (myRunningFutures) {
@@ -279,7 +275,8 @@ public class RenderTask implements IImageFactory {
         Futures.successfulAsList(currentRunningFutures).get(5, TimeUnit.SECONDS);
       }
       catch (InterruptedException | ExecutionException e) {
-        LOG.warn(e);
+        // We do not care about these exceptions since we are disposing the task anyway
+        LOG.debug(e);
       }
       myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
       myLayoutlibCallback.setResourceResolver(null);
@@ -311,6 +308,8 @@ public class RenderTask implements IImageFactory {
    * @param overrideRenderHeight the height in pixels of the layout to be rendered
    * @return this (such that chains of setters can be stringed together)
    */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
   public RenderTask setOverrideRenderSize(int overrideRenderWidth, int overrideRenderHeight) {
     myHardwareConfigHelper.setOverrideRenderSize(overrideRenderWidth, overrideRenderHeight);
     return this;
@@ -327,6 +326,8 @@ public class RenderTask implements IImageFactory {
    * @param maxRenderHeight the max height in pixels of the layout to be rendered
    * @return this (such that chains of setters can be stringed together)
    */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
   public RenderTask setMaxRenderSize(int maxRenderWidth, int maxRenderHeight) {
     myHardwareConfigHelper.setMaxRenderSize(maxRenderWidth, maxRenderHeight);
     return this;
@@ -339,17 +340,15 @@ public class RenderTask implements IImageFactory {
    * @param renderingMode the rendering mode to be used
    * @return this (such that chains of setters can be stringed together)
    */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
   public RenderTask setRenderingMode(@NotNull RenderingMode renderingMode) {
     myRenderingMode = renderingMode;
     return this;
   }
 
-  /** Returns the {@link RenderingMode} to be used */
+  @SuppressWarnings("UnusedReturnValue")
   @NotNull
-  public RenderingMode getRenderingMode() {
-    return myRenderingMode;
-  }
-
   public RenderTask setTimeout(long timeout) {
     myTimeout = timeout;
     return this;
@@ -363,6 +362,7 @@ public class RenderTask implements IImageFactory {
    *                        in the form of a AARRGGBB bitmask, or null to use no custom background.
    * @return this (such that chains of setters can be stringed together)
    */
+  @SuppressWarnings("UnusedReturnValue")
   @NotNull
   public RenderTask setOverrideBgColor(@Nullable Integer overrideBgColor) {
     myOverrideBgColor = overrideBgColor;
@@ -376,6 +376,8 @@ public class RenderTask implements IImageFactory {
    * @param showDecorations true if the rendering should include system bars etc.
    * @return this (such that chains of setters can be stringed together)
    */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
   public RenderTask setDecorations(boolean showDecorations) {
     myShowDecorations = showDecorations;
     return this;
@@ -399,57 +401,16 @@ public class RenderTask implements IImageFactory {
    * @param surface the design surface
    * @return this, for constructor chaining
    */
-  @Nullable
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
   public RenderTask setDesignSurface(@Nullable EditorDesignSurface surface) {
     mySurface = surface;
     return this;
   }
 
-  /**
-   * Sets the nodes to expand during rendering. These will be padded with approximately
-   * 20 pixels. The default is null.
-   *
-   * @param nodesToExpand the nodes to be expanded
-   * @return this (such that chains of setters can be stringed together)
-   */
-  @NotNull
-  public RenderTask setNodesToExpand(@Nullable Set<XmlTag> nodesToExpand) {
-    myExpandNodes = nodesToExpand;
-    return this;
-  }
-
-  /**
-   * Sets the {@link IncludeReference} to an outer layout that this layout should be rendered
-   * within. The outer layout <b>must</b> contain an include tag which points to this
-   * layout. If not set explicitly to {@link IncludeReference#NONE}, it will look at the
-   * root tag of the rendered layout and if {@link SdkConstants#ATTR_RENDER_IN} has
-   * been set it will use that layout.
-   *
-   * @param includedWithin a reference to an outer layout to render this layout within
-   * @return this (such that chains of setters can be stringed together)
-   */
-  @NotNull
-  public RenderTask setIncludedWithin(@Nullable IncludeReference includedWithin) {
-    myIncludedWithin = includedWithin;
-    return this;
-  }
-
-  /**
-   * Returns the layout to be included
-   */
-  @NotNull
-  public IncludeReference getIncludedWithin() {
-    return myIncludedWithin != null ? myIncludedWithin : IncludeReference.NONE;
-  }
-
   /** Returns whether this parser will provide view cookies for included views. */
   public boolean getProvideCookiesForIncludedViews() {
     return myProvideCookiesForIncludedViews;
-  }
-
-  /** Sets whether this parser will provide view cookies for included views. */
-  public void setProvideCookiesForIncludedViews(boolean provideCookiesForIncludedViews) {
-    myProvideCookiesForIncludedViews = provideCookiesForIncludedViews;
   }
 
   /**
@@ -582,28 +543,7 @@ public class RenderTask implements IImageFactory {
       }
 
       try {
-        int retries = 0;
-        RenderSession session = null;
-        while (retries < 10) {
-          if (session != null) {
-            session.dispose();
-          }
-          session = myLayoutLib.createSession(params);
-          Result result = session.getResult();
-          if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
-            // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
-            if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
-              // Added this assertion to check if we can remove this retries loop. I suspect this is not happening anymore.
-              // TODO: Remove assertion and retries loop
-              assert false : "createSession time";
-
-              retries++;
-              continue;
-            }
-            break;
-          }
-          retries++;
-        }
+        RenderSession session = myLayoutLib.createSession(params);
 
         if (session.getResult().isSuccess()) {
           long now = System.nanoTime();
@@ -613,7 +553,7 @@ public class RenderTask implements IImageFactory {
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
         RenderResult result =
-          RenderResult.create(RenderTask.this, session, myPsiFile, myLogger, myImagePool.copyOf(session.getImage()));
+          RenderResult.create(this, session, myPsiFile, myLogger, myImagePool.copyOf(session.getImage()));
         myRenderSession = session;
         addDiagnostics(result.getRenderResult());
         return result;
@@ -626,7 +566,7 @@ public class RenderTask implements IImageFactory {
     }
     catch (RuntimeException t) {
       // Exceptions from the bridge
-      myLogger.error(null, t.getLocalizedMessage(), t, null);
+      myLogger.error(null, t.getLocalizedMessage(), t, null, null);
       throw t;
     }
   }
@@ -677,10 +617,11 @@ public class RenderTask implements IImageFactory {
         return topParser;
       }
       catch (IOException e) {
-        myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()),  null, e);
+        myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()), e, null, e);
       }
       catch (XmlPullParserException e) {
-        myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), null, e.getDetail() != null ? e.getDetail() : e);
+        myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), e, null,
+                       e.getDetail() != null ? e.getDetail() : e);
       }
     }
 
@@ -692,7 +633,7 @@ public class RenderTask implements IImageFactory {
    * wait until all the async actions have finished running.
    * See {@link RenderService#runAsyncRenderAction(Callable)}.
    */
-  @VisibleForTesting(visibility = PRIVATE)
+  @VisibleForTesting
   @NotNull
   <V> ListenableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
     if (isDisposed.get()) {
@@ -703,14 +644,14 @@ public class RenderTask implements IImageFactory {
       ListenableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
       Futures.addCallback(newFuture, new FutureCallback<V>() {
         @Override
-        public void onSuccess(@javax.annotation.Nullable V result) {
+        public void onSuccess(@Nullable V result) {
           synchronized (myRunningFutures) {
             myRunningFutures.remove(newFuture);
           }
         }
 
         @Override
-        public void onFailure(Throwable ignored) {
+        public void onFailure(@Nullable Throwable ignored) {
           synchronized (myRunningFutures) {
             myRunningFutures.remove(newFuture);
           }
@@ -741,6 +682,7 @@ public class RenderTask implements IImageFactory {
           return myImageFactoryDelegate.getImage(width, height);
         }
 
+        //noinspection UndesirableClassUsage
         return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
       }));
     }
@@ -762,10 +704,15 @@ public class RenderTask implements IImageFactory {
     if (myRenderSession == null) {
       return Futures.immediateFuture(null);
     }
+
+    assert myPsiFile != null;
     try {
+      // runAsyncRenderAction might not run immediately so we need to capture the current myRenderSession and myPsiFile values
+      final RenderSession renderSession = myRenderSession;
+      final PsiFile psiFile = myPsiFile;
       return runAsyncRenderAction(() -> {
         myRenderSession.measure();
-        return RenderResult.create(this, myRenderSession, myPsiFile, myLogger, ImagePool.NULL_POOLED_IMAGE);
+        return RenderResult.create(this, renderSession, psiFile, myLogger, ImagePool.NULL_POOLED_IMAGE);
       });
     }
     catch (final Exception e) {
@@ -1030,22 +977,18 @@ public class RenderTask implements IImageFactory {
     if (file == null) {
       return;
     }
-    String tagName = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Nullable
-      @Override
-      public String compute() {
-        if (file instanceof XmlFile) {
-          XmlTag root = ((XmlFile)file).getRootTag();
+    ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+      if (file instanceof XmlFile) {
+        XmlTag root = ((XmlFile)file).getRootTag();
+        if (root != null) {
+          root = LayoutPsiPullParser.getRootTag(root);
           if (root != null) {
-            root = LayoutPsiPullParser.getRootTag(root);
-            if (root != null) {
-              return root.getName();
-            }
+            return root.getName();
           }
         }
-
-        return null;
       }
+
+      return null;
     });
   }
 
@@ -1139,6 +1082,7 @@ public class RenderTask implements IImageFactory {
       myMinSdkVersion.getApiLevel(),
       myTargetSdkVersion.getApiLevel(),
       myLogger);
+    //noinspection deprecation We want to measure while creating the session. RenderSession.measure would require a second call
     params.setLayoutOnly();
     params.setForceNoDecor();
     params.setExtendedViewInfoMode(true);
@@ -1156,32 +1100,11 @@ public class RenderTask implements IImageFactory {
       myLayoutlibCallback.setLogger(myLogger);
       myLayoutlibCallback.setResourceResolver(resolver);
 
-      int retries = 0;
-      while (retries < 10) {
-        RenderSession session = myLayoutLib.createSession(params);
-        Result result = session.getResult();
-        if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
-          // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
-          if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
-            // Added this assertion to check if we can remove this retries loop. I suspect this is not happening anymore.
-            // TODO: Remove assertion and retries loop
-            assert false : "createSession time";
-
-            retries++;
-            session.dispose();
-            continue;
-          }
-
-          return session;
-        }
-        retries++;
-      }
-
-      return null;
+      return myLayoutLib.createSession(params);
     }
     catch (RuntimeException t) {
       // Exceptions from the bridge
-      myLogger.error(null, t.getLocalizedMessage(), t, null);
+      myLogger.error(null, t.getLocalizedMessage(), t, null, null);
       throw t;
     }
   }
@@ -1194,12 +1117,12 @@ public class RenderTask implements IImageFactory {
   /**
    * Bazel has its own security manager. We allow rendering tests to disable the security manager by calling this method.
    */
-  @VisibleForTesting(visibility = PRIVATE)
+  @VisibleForTesting
   public void disableSecurityManager() {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       throw new IllegalStateException("This method can only be called in unit test mode");
     }
-    LOG.warn("Security manager was disabled");
+    LOG.debug("Security manager was disabled");
     isSecurityManagerEnabled = false;
   }
 
