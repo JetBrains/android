@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -27,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.android.tools.idea.npw.FormFactor.*;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.UNRELIABLE)  // b/63508325 @RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
@@ -35,13 +37,27 @@ public class NewProjectMultiModuleTest {
 
   @Test
   public void createAllModule() {
-    create(MOBILE, WEAR, TV, CAR, THINGS);
+    create(false, MOBILE, WEAR, TV, CAR, THINGS);
+  }
+
+  @Test
+  public void createAllModuleWithIApp() {
+    create(true, MOBILE, WEAR, TV, CAR, THINGS);
+
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    String appBuildGradle = editor.open("app/build.gradle").getCurrentFileContents();
+    assertThat(appBuildGradle).contains("wearApp project(':wear')");
+    assertThat(appBuildGradle).contains("implementation 'com.google.android.gms:play-services-wearable");
+
+    String featureBuildGradle = editor.open("feature/build.gradle").getCurrentFileContents();
+    assertThat(featureBuildGradle).doesNotContain("wearApp");
+    assertThat(featureBuildGradle).doesNotContain("play-services-wearable");
   }
 
   /**
    * Creates a new project for the specified {@link FormFactor}
    */
-  private void create(@NotNull FormFactor... formFactors) {
+  private void create(boolean selectInstantApp, @NotNull FormFactor... formFactors) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
@@ -53,6 +69,11 @@ public class NewProjectMultiModuleTest {
 
     for (FormFactor formFactor : formFactors) {
         newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(formFactor, "25");
+    }
+
+    if (selectInstantApp) {
+      newProjectWizard.getConfigureFormFactorStep().selectInstantAppSupport(MOBILE);
+      newProjectWizard.clickNext(); // Skip "Configure the Feature" step
     }
 
     for (FormFactor formFactor : formFactors) {
