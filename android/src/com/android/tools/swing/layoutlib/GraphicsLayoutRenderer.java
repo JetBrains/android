@@ -328,19 +328,17 @@ public class GraphicsLayoutRenderer {
       Result result = null;
 
       try {
-        result = RenderService.runRenderAction(new Callable<Result>() {
-          @Override
-          public Result call() {
+        final RenderSession renderSession = myRenderSession;
+        result = RenderService.runRenderAction(() -> {
+          if (mySecurityManager != null) {
+            mySecurityManager.setActive(true, myCredential);
+          }
+          try {
+            return renderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
+          }
+          finally {
             if (mySecurityManager != null) {
-              mySecurityManager.setActive(true, myCredential);
-            }
-            try {
-              return myRenderSession.render(RenderParams.DEFAULT_TIMEOUT, myInvalidate);
-            }
-            finally {
-              if (mySecurityManager != null) {
-                mySecurityManager.setActive(false, myCredential);
-              }
+              mySecurityManager.setActive(false, myCredential);
             }
           }
         });
