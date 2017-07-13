@@ -115,4 +115,8 @@ public class ScrollInteraction extends Interaction {
     myHandler.commit(myScrolledAmount);
     myScrolledAmount = 0;
   }
+
+  public boolean canScroll(int scrollAmount) {
+    return myHandler.canScroll(scrollAmount);
+  }
 }

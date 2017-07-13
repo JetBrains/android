@@ -45,4 +45,9 @@ final class ListViewScrollHandler implements ScrollHandler {
   public void commit(int scrollAmount) {
     update(scrollAmount);
   }
+
+  @Override
+  public boolean canScroll(int scrollAmount) {
+    return true;
+  }
 }

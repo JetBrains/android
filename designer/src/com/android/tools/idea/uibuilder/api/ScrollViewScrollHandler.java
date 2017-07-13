@@ -147,6 +147,17 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
     //}.execute();
   }
 
+  @Override
+  public boolean canScroll(int scrollAmount) {
+    if (myScrollGetter.getAsInt() == 0 && scrollAmount < 0) {
+      return false;
+    }
+    if (myScrollGetter.getAsInt() == myMaxScrollableSize && scrollAmount > 0) {
+      return false;
+    }
+    return true;
+  }
+
   /**
    * Scroll orientation
    */
