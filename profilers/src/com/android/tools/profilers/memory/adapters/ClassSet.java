@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
  * Classifies {@link InstanceObject}s based on their {@link Class}.
  */
 public class ClassSet extends ClassifierSet {
+  public static final ClassSet EMPTY_SET = new ClassSet(new ClassDb.ClassEntry("null"));
+
   @NotNull private final ClassDb.ClassEntry myClassEntry;
 
   @NotNull

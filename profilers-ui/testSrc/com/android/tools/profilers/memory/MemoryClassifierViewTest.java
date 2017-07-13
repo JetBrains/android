@@ -901,7 +901,7 @@ public class MemoryClassifierViewTest {
 
     // No path is selected and selected ClassSet is set to EMPTY_CLASS_SET
     assertThat(tree.getSelectionPath()).isNull();
-    assertThat(myStage.getSelectedClassSet()).isEqualTo(MemoryClassSetView.EMPTY_CLASS_SET);
+    assertThat(myStage.getSelectedClassSet()).isEqualTo(ClassSet.EMPTY_SET);
     assertThat(myStage.getSelectedInstanceObject()).isNull();
   }
 

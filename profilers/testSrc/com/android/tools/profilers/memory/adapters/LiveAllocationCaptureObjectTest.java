@@ -249,6 +249,19 @@ public class LiveAllocationCaptureObjectTest {
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, expected_4_to_4, 0);
 
+    expected_2_to_4 = new LinkedList<>();
+    expected_2_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 2, 2, 4, 2, true));
+    expected_2_to_4.add(" " + String.format(NODE_FORMAT, "This", 1, 1, 2, 2, true));
+    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Is", 0, 1, 1, 1, true));
+    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Foo", 0, 1, 1, 0, true));
+    expected_2_to_4.add(" " + String.format(NODE_FORMAT, "That", 1, 1, 2, 2, true));
+    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Also", 1, 0, 1, 1, true));
+    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+    expected_2_to_4.add("  " + String.format(NODE_FORMAT, "Is", 0, 1, 1, 1, true));
+    expected_2_to_4.add("   " + String.format(NODE_FORMAT, "Bar", 0, 1, 1, 0, true));
+
     // Restore selection back to {2,4}
     loadSuccess[0] = false;
     loadRange.setMin(CAPTURE_START_TIME + 2);
