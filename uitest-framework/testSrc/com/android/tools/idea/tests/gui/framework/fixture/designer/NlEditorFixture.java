@@ -255,6 +255,12 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return this;
   }
 
+  public NlEditorFixture mouseWheelScroll(int amount) {
+    robot().click(myDesignSurfaceFixture.target());
+    robot().rotateMouseWheel(myDesignSurfaceFixture.target(), amount);
+    return this;
+  }
+
   public NlEditorFixture dragMouseFromCenter(int dx, int dy, MouseButton mouseButton, int modifiers) {
     DesignSurface surface = myDesignSurfaceFixture.target();
     robot().moveMouse(surface);

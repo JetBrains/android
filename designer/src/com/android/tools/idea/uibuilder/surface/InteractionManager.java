@@ -912,18 +912,6 @@ public class InteractionManager {
           e.getComponent().getParent().dispatchEvent(e);
           return;
         }
-        else {
-          // If the design surface is zoomed in we should be panning it rather than the
-          // designed view
-          JScrollPane scrollPane = mySurface.getScrollPane();
-          JViewport viewport = scrollPane.getViewport();
-          Dimension extentSize = viewport.getExtentSize();
-          Dimension viewSize = viewport.getViewSize();
-          if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
-            e.getComponent().getParent().dispatchEvent(e);
-            return;
-          }
-        }
 
         // Start a scroll interaction and a timer to bundle all the scroll events
         startInteraction(x, y, scrollInteraction, 0);
@@ -932,6 +920,17 @@ public class InteractionManager {
       }
       else {
         isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
+      }
+
+      if (isScrollInteraction && !((ScrollInteraction)myCurrentInteraction).canScroll(scrollAmount)) {
+        JScrollPane scrollPane = mySurface.getScrollPane();
+        JViewport viewport = scrollPane.getViewport();
+        Dimension extentSize = viewport.getExtentSize();
+        Dimension viewSize = viewport.getViewSize();
+        if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
+          e.getComponent().getParent().dispatchEvent(e);
+          return;
+        }
       }
       myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import android.view.View;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -38,6 +39,7 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(GuiTestRunner.class)
@@ -246,5 +248,34 @@ public class NlEditorTest {
     finally {
       settings.setEditorTabPlacement(placement);
     }
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void scrollWhileZoomed() throws Exception {
+    NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
+      .getEditor()
+      .open("app/src/main/res/layout/scroll.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true);
+    Point surfacePosition = layoutEditor
+      .showOnlyDesignView()
+      .waitForRenderToFinish()
+      .mouseWheelZoomIn(-10)
+      .getScrollPosition();
+    View  view = (View)layoutEditor.findView("android.support.v4.widget.NestedScrollView", 0).getViewObject();
+    assertThat(view.getScrollY()).isEqualTo(0);
+
+    // Scroll a little bit: the ScrollView moves, the Surface stays.
+    layoutEditor.mouseWheelScroll(10)
+      .waitForRenderToFinish();
+    int viewScroll = view.getScrollY();
+    assertThat(viewScroll).isGreaterThan(0);
+    assertThat(layoutEditor.getScrollPosition()).isEqualTo(surfacePosition);
+
+    // Scroll a lot more so that the ScrollView reaches the bottom: the ScrollView moves, and the Surface moves as well.
+    layoutEditor.mouseWheelScroll(1000)
+      .waitForRenderToFinish();
+    assertThat(view.getScrollY()).isGreaterThan(viewScroll);
+    assertThat(layoutEditor.getScrollPosition().getY()).isGreaterThan(surfacePosition.getY());
   }
 }
