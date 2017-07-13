@@ -138,7 +138,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
     iterator = images.getItems().iterator();
     assertImageButton(iterator.next());
     assertImageView(iterator.next());
-    assertExoPlayerView(iterator.next());
+    assertVideoView(iterator.next());
     assertFalse(iterator.hasNext());
 
     iterator = times.getItems().iterator();

@@ -497,8 +497,6 @@ public class AndroidIcons {
     public static final Icon SeekBarDiscreteLarge = load("/icons/palette/seek-bar-discrete_large.png"); // 24x24
     public static final Icon SeekBar = load("/icons/palette/seek-bar.png"); // 16x16
     public static final Icon SeekBarLarge = load("/icons/palette/seek-bar_large.png"); // 24x24
-    public static final Icon SimpleExoPlayerView = load("/icons/palette/simple-exo-player-view.png"); // 16x16
-    public static final Icon SimpleExoPlayerViewLarge = load("/icons/palette/simple-exo-player-view_large.png"); // 24x24
     public static final Icon Space = load("/icons/palette/space.png"); // 16x16
     public static final Icon SpaceLarge = load("/icons/palette/space_large.png"); // 24x24
     public static final Icon Spinner = load("/icons/palette/spinner.png"); // 16x16
