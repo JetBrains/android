@@ -32,6 +32,7 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.SparseArray;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ReadAction;
@@ -58,7 +59,8 @@ public class ResourceResolverCache {
   private final ConfigurationManager myManager;
 
   /** Map from theme and full configuration to the corresponding resource resolver */
-  private final Map<String, ResourceResolver> myResolverMap;
+  @VisibleForTesting
+  final Map<String, ResourceResolver> myResolverMap;
 
   /**
    * Map of configured app resources. These are cached separately from the final resource
@@ -66,13 +68,15 @@ public class ResourceResolverCache {
    * Note that they key here is only the full configuration, whereas the map for the
    * resolvers also includes the theme.
    */
-  private final Map<String, Map<ResourceType, ResourceValueMap>> myAppResourceMap;
+  @VisibleForTesting
+  final Map<String, Map<ResourceType, ResourceValueMap>> myAppResourceMap;
 
   /**
    * Map of configured framework resources. These are cached separately from the final resource
    * resolver since they can be shared between different layouts that only vary by theme
    */
-  private final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap;
+  @VisibleForTesting
+  final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap;
 
   /** The generation timestamp of our most recently cached app resources, used to invalidate on edits */
   private long myCachedGeneration;
@@ -311,7 +315,21 @@ public class ResourceResolverCache {
     myResolverMap.clear();
   }
 
+  /**
+   * Replaces the custom configuration value in the resource resolver and removes the old custom configuration from the cache. If the new
+   * configuration is the same as the old, this method will do nothing.
+   * @param themeStyle new theme
+   * @param fullConfiguration new full configuration
+   */
   public void replaceCustomConfig(@NotNull String themeStyle, @NotNull final FolderConfiguration fullConfiguration) {
+    String newCustomConfigurationKey = fullConfiguration.getUniqueKey();
+    String newCustomResolverKey = themeStyle + newCustomConfigurationKey;
+
+    if (newCustomResolverKey.equals(myCustomResolverKey)) {
+      // The new key is the same as this one, no need to remove it
+      return;
+    }
+
     if (myCustomConfigurationKey != null) {
       myFrameworkResourceMap.remove(myCustomConfigurationKey);
       myAppResourceMap.remove(myCustomConfigurationKey);
@@ -319,7 +337,7 @@ public class ResourceResolverCache {
     if (myCustomResolverKey != null) {
       myResolverMap.remove(myCustomResolverKey);
     }
-    myCustomConfigurationKey = fullConfiguration.getUniqueKey();
-    myCustomResolverKey = themeStyle + myCustomConfigurationKey;
+    myCustomConfigurationKey = newCustomConfigurationKey;
+    myCustomResolverKey = newCustomResolverKey;
   }
 }
