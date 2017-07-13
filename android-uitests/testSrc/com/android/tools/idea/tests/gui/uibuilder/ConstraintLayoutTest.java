@@ -248,11 +248,11 @@ public class ConstraintLayoutTest {
 
     preview.getConfigToolbar()
       .chooseApiLevel("API 23")
-      .requireApiLevel("N")
+      .requireApiLevel("23")
       .chooseApiLevel("API 24")
       .requireApiLevel("24")
       .chooseApiLevel("API 25")
-      .requireApiLevel("O");
+      .requireApiLevel("25");
 
     preview.getConfigToolbar()
       .openThemeSelectionDialog()
@@ -277,7 +277,7 @@ public class ConstraintLayoutTest {
     preview.getConfigToolbar()
       .requireDevice("Nexus 6")
       .requireOrientation("Portrait")
-      .requireApiLevel("O")
+      .requireApiLevel("25")
       .requireTheme("AppTheme");
   }
 }
