@@ -234,8 +234,16 @@ public class ConstraintLayoutTest {
 
     preview.getConfigToolbar()
       .switchOrientation()
-      .requireOrientation("Landscape")
+      .leaveConfigToolbar()
+      .waitForRenderToFinish()
+      .getConfigToolbar()
+      .requireOrientation("Landscape");
+
+    preview.getConfigToolbar()
       .switchOrientation()
+      .leaveConfigToolbar()
+      .waitForRenderToFinish()
+      .getConfigToolbar()
       .requireOrientation("Portrait");
 
     preview.getConfigToolbar()
