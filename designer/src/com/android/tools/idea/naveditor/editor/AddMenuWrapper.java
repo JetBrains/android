@@ -15,22 +15,32 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.CollectionListModel;
+import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IconUtil;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,27 +49,299 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.android.SdkConstants.*;
 import static com.android.dvlib.DeviceSchema.ATTR_NAME;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType.*;
+import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_INCLUDE;
 
 /**
  * "Add" popup menu in the navigation editor.
  */
 class AddMenuWrapper extends DropDownAction {
 
+  private static final JLabel RENDERER_COMPONENT = new JLabel();
+  private static final String NEW_PANEL_NAME = "new";
+  private static final String SELECTION_PANEL_NAME = "selection";
   private final NavDesignSurface mySurface;
   private final List<NavActionManager.Destination> myDestinations;
+  @VisibleForTesting
+  ComboBox<String> myKindPopup;
+  @VisibleForTesting
+  JTextField myLabelField;
+  @VisibleForTesting
+  JTextField myIdField;
+  @VisibleForTesting
+  JLabel myClassLabel;
+  @VisibleForTesting
+  ComboBox<String> myClassPopup;
+  @VisibleForTesting
+  JLabel mySourceLabel;
+  @VisibleForTesting
+  ComboBox<PsiFile> mySourcePopup;
+  @VisibleForTesting
+  JLabel myValidationLabel;
+  private NavigationSchema mySchema;
 
   AddMenuWrapper(@NotNull NavDesignSurface surface, @NotNull List<NavActionManager.Destination> destinations) {
     super("", "Add Destination", IconUtil.getAddIcon());
     mySurface = surface;
+    mySchema = mySurface.getSchema();
     myDestinations = destinations;
+  }
+
+  @VisibleForTesting
+  void addElement(@NotNull NavActionManager.Destination destination, @NotNull NavDesignSurface surface) {
+    String tagName = destination.getTag();
+    String qName = destination.getQualifiedName();
+    Consumer<NlComponent> extraActions = component -> {
+      XmlFile layout = destination.getLayoutFile();
+      if (layout != null) {
+        // TODO: do this the right way
+        String layoutId = "@" + ResourceType.LAYOUT.getName() + "/" + FileUtil.getNameWithoutExtension(layout.getName());
+        component.setAttribute(TOOLS_URI, ATTR_LAYOUT, layoutId);
+      }
+    };
+    addElement(surface, tagName, qName, qName, extraActions);
+  }
+
+  @VisibleForTesting
+  void addElement(@NotNull NavDesignSurface surface,
+                         @NotNull String tagName,
+                         @NotNull String idBase,
+                         @NotNull String name,
+                         @Nullable Consumer<NlComponent> extraActions) {
+    new WriteCommandAction(surface.getProject(), "Create Fragment", surface.getModel().getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        NlComponent parent = surface.getCurrentNavigation();
+        XmlTag tag = parent.getTag().createChildTag(tagName, null, null, true);
+        NlComponent newComponent = surface.getModel().createComponent(tag, parent, null);
+        newComponent.assignId(idBase);
+        newComponent.setAttribute(ANDROID_URI, ATTR_NAME, name);
+        if (extraActions != null) {
+          extraActions.accept(newComponent);
+        }
+      }
+    }.execute();
   }
 
   @Nullable
   @Override
   protected JPanel createCustomComponentPopup() {
+    JPanel mainPanel = new JPanel(new JBCardLayout());
+
+    mainPanel.add(createSelectionPanel(mainPanel), SELECTION_PANEL_NAME);
+    mainPanel.add(createNewPanel(mainPanel), NEW_PANEL_NAME);
+
+    return mainPanel;
+  }
+
+  @NotNull
+  private JPanel createNewPanel(@NotNull JPanel mainPanel) {
+    JPanel newPanel = new JPanel(new VerticalLayout(10));
+    JLabel destinationLabel = new JLabel("New Destination");
+    newPanel.add(destinationLabel);
+    newPanel.add(new JSeparator());
+    JPanel selectionGrid = createAddControls();
+    newPanel.add(selectionGrid);
+
+    myValidationLabel = new JLabel("", AllIcons.General.Error, SwingConstants.LEFT);
+    myValidationLabel.setVisible(false);
+    newPanel.add(myValidationLabel, VerticalLayout.BOTTOM);
+
+    JPanel buttons = new JPanel(new HorizontalLayout(2, SwingConstants.CENTER));
+    JButton backButton = new JButton("Back");
+    backButton.addActionListener(
+      event -> ((JBCardLayout)mainPanel.getLayout()).swipe(mainPanel, SELECTION_PANEL_NAME, JBCardLayout.SwipeDirection.BACKWARD));
+    buttons.add(backButton);
+
+    JButton createButton = new JButton("Create");
+    createButton.addActionListener(event -> {
+      if (validate()) {
+        createDestination();
+      }
+    });
+    buttons.add(createButton);
+    JPanel bottomRow = new JPanel();
+    bottomRow.add(buttons);
+    newPanel.add(bottomRow, VerticalLayout.BOTTOM);
+    newPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    return newPanel;
+  }
+
+  @VisibleForTesting
+  void createDestination() {
+    if (TAG_INCLUDE.equals(myKindPopup.getSelectedItem())) {
+      String filename;
+      if (mySourcePopup.getSelectedItem() == null) {
+        // TODO: implement "new graph"
+        filename = "dummy.xml";
+      }
+      else {
+        filename = ((PsiFile)mySourcePopup.getSelectedItem()).getName();
+      }
+      addElement(mySurface, TAG_INCLUDE, myIdField.getText(), myLabelField.getText(),
+                 component -> component.setAttribute(AUTO_URI, "graph", filename));
+      return;
+    }
+    NavigationSchema.DestinationType type = mySchema.getDestinationType((String)myKindPopup.getSelectedItem());
+    if (type == ACTIVITY || type == FRAGMENT) {
+      String className = (String)myClassPopup.getSelectedItem();
+      NavActionManager.Destination dest =
+        new NavActionManager.Destination(null, className.substring(className.lastIndexOf('.') + 1), className,
+                                         (String)myKindPopup.getSelectedItem(), null);
+      addElement(dest, mySurface);
+    }
+    else if (type == NAVIGATION) {
+      addElement(mySurface, (String)myKindPopup.getSelectedItem(), myIdField.getText(), myLabelField.getText(), null);
+    }
+    closePopup();
+  }
+
+  @VisibleForTesting
+  boolean validate() {
+    String error = null;
+    String kind = (String)myKindPopup.getSelectedItem();
+    NavigationSchema.DestinationType type = mySchema.getDestinationType(kind);
+    if (myLabelField.getText().isEmpty()) {
+      error = "Label must be set";
+    }
+    else if (myIdField.getText().isEmpty()) {
+      error = "ID must be set";
+    }
+    else if (myClassPopup.getSelectedItem() == null && (type == ACTIVITY || type == FRAGMENT)) {
+      // TODO: validate class?
+      error = "Class must be set";
+    }
+    if (error != null) {
+      myValidationLabel.setText(error);
+      myValidationLabel.setVisible(true);
+      return false;
+    }
+    else {
+      myValidationLabel.setVisible(false);
+      return true;
+    }
+  }
+
+  @NotNull
+  private JPanel createAddControls() {
+    TabularLayout layout = new TabularLayout("Fit,20px,*");
+    layout.setVGap(3);
+    JPanel selectionGrid = new JPanel(layout);
+    selectionGrid.add(new JLabel("Kind"), new TabularLayout.Constraint(0, 0));
+
+    selectionGrid.add(new JLabel("Label"), new TabularLayout.Constraint(1, 0));
+    // TODO: uniqification
+    myLabelField = new JTextField("Dest 0", 40);
+    selectionGrid.add(myLabelField, new TabularLayout.Constraint(1, 2));
+    selectionGrid.add(new JLabel("ID"), new TabularLayout.Constraint(2, 0));
+    // TODO: uniqification
+    myIdField = new JTextField("dest_0", 40);
+    selectionGrid.add(myIdField, new TabularLayout.Constraint(2, 2));
+
+    myClassLabel = new JLabel("Class");
+    selectionGrid.add(myClassLabel, new TabularLayout.Constraint(3, 0));
+    createClassPopup();
+    selectionGrid.add(myClassPopup, new TabularLayout.Constraint(3, 2));
+
+    mySourceLabel = new JLabel("Source");
+    selectionGrid.add(mySourceLabel, new TabularLayout.Constraint(3, 0));
+    createSourcePopup();
+
+    selectionGrid.add(mySourcePopup, new TabularLayout.Constraint(3, 2));
+
+    createKindPopup();
+    selectionGrid.add(myKindPopup, new TabularLayout.Constraint(0, 2));
+
+    myKindPopup.setSelectedItem(mySchema.getTag(FRAGMENT));
+    return selectionGrid;
+  }
+
+  private void createClassPopup() {
+    // TODO: not clear what should be in here yet...
+    myClassPopup = new ComboBox<>();
+    myClassPopup.setEditable(true);
+  }
+
+  private void createSourcePopup() {
+    // TODO: add tests for this when the nav type is created
+    mySourcePopup = new ComboBox<>();
+    mySourcePopup.addItem(null);
+    ResourceManager resourceManager = LocalResourceManager.getInstance(mySurface.getModel().getModule());
+    for (PsiFile navPsi : resourceManager.findResourceFiles(ResourceFolderType.NAVIGATION)) {
+      if (mySurface.getModel().getFile().equals(navPsi)) {
+        continue;
+      }
+      mySourcePopup.addItem(navPsi);
+    }
+    mySourcePopup.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
+      if (value == null) {
+        RENDERER_COMPONENT.setText("New...");
+      }
+      else {
+        RENDERER_COMPONENT.setText(value.getName());
+      }
+      return RENDERER_COMPONENT;
+    });
+  }
+
+  private void createKindPopup() {
+    myKindPopup = new ComboBox<>();
+
+    myKindPopup.setRenderer((list, value, index, isSelected, cellHasFocus) -> {
+      // TODO: print different text for different (custom) navigators?
+      NavigationSchema.DestinationType type = mySchema.getDestinationType(value);
+      String text;
+      if (type == NAVIGATION) {
+        text = "Nested Graph";
+      }
+      else if (type == FRAGMENT) {
+        text = "Fragment (default)";
+      }
+      else if (type == ACTIVITY) {
+        text = "Activity";
+      }
+      else if (TAG_INCLUDE.equals(value)) {
+        text = "Include Graph";
+      }
+      else {
+        text = value;
+      }
+      RENDERER_COMPONENT.setText(text);
+      return RENDERER_COMPONENT;
+    });
+    for (NavigationSchema.DestinationType type : values()) {
+      for (String tag : mySchema.getDestinationClassByTagMap(type).keySet()) {
+        if (tag != null) {
+          myKindPopup.addItem(tag);
+        }
+      }
+    }
+    myKindPopup.addItem(TAG_INCLUDE);
+
+    myKindPopup.addItemListener(itemEvent -> {
+      myClassLabel.setVisible(false);
+      myClassPopup.setVisible(false);
+      mySourceLabel.setVisible(false);
+      mySourcePopup.setVisible(false);
+      String item = (String)itemEvent.getItem();
+      NavigationSchema.DestinationType type = mySchema.getDestinationType(item);
+      if (type == ACTIVITY || type == FRAGMENT) {
+        myClassLabel.setVisible(true);
+        myClassPopup.setVisible(true);
+      }
+      else if (TAG_INCLUDE.equals(item)) {
+        mySourceLabel.setVisible(true);
+        mySourcePopup.setVisible(true);
+      }
+    });
+  }
+
+  @NotNull
+  private JPanel createSelectionPanel(@NotNull JPanel mainPanel) {
     CollectionListModel<NavActionManager.Destination> listModel = new CollectionListModel<>(myDestinations);
     ASGallery<NavActionManager.Destination> destinations = new ASGallery<NavActionManager.Destination>(
       listModel, NavActionManager.Destination::getThumbnail, NavActionManager.Destination::getName, new Dimension(96, 96), null) {
@@ -99,23 +381,20 @@ class AddMenuWrapper extends DropDownAction {
       }
     });
 
-    JPanel panel = new JPanel(new VerticalLayout(5));
+    JPanel selectionPanel = new JPanel(new VerticalLayout(5));
     // TODO: hook up search
-    panel.add(new SearchTextField());
+    selectionPanel.add(new SearchTextField());
 
     JBScrollPane scrollPane = new JBScrollPane(destinations);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
-    panel.add(scrollPane);
+    selectionPanel.add(scrollPane);
 
-    // TODO: implement "details" screen
     JButton createButton = new JButton("New Destination");
     JPanel createButtonPanel = new JPanel();
     createButtonPanel.add(createButton);
-    panel.add(createButtonPanel);
-
+    selectionPanel.add(createButtonPanel);
     createButton.addActionListener(event -> {
-      addElement(null, mySurface);
-      closePopup();
+      ((JBCardLayout)mainPanel.getLayout()).swipe(mainPanel, "new", JBCardLayout.SwipeDirection.FORWARD);
     });
     destinations.addMouseListener(new MouseAdapter() {
       @Override
@@ -126,35 +405,11 @@ class AddMenuWrapper extends DropDownAction {
         }
       }
     });
-    return panel;
+    return selectionPanel;
   }
 
-  static void addElement(@Nullable NavActionManager.Destination destination, @NotNull NavDesignSurface surface) {
-    new WriteCommandAction(surface.getProject(), "Create Fragment", surface.getModel().getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        String tagName = surface.getSchema().getTag(NavigationSchema.DestinationType.FRAGMENT);
-        if (destination != null) {
-          tagName = destination.getTag();
-        }
-        NlComponent parent = surface.getCurrentNavigation();
-        XmlTag tag = parent.getTag().createChildTag(tagName, null, null, true);
-        String idBase = tagName;
-        if (destination != null) {
-          idBase = destination.getQualifiedName();
-        }
-        NlComponent newComponent = surface.getModel().createComponent(tag, parent, null);
-        newComponent.assignId(idBase);
-        if (destination != null) {
-          newComponent.setAttribute(ANDROID_URI, ATTR_NAME, destination.getQualifiedName());
-          XmlFile layout = destination.getLayoutFile();
-          if (layout != null) {
-            // TODO: do this the right way
-            String layoutId = "@" + ResourceType.LAYOUT.getName() + "/" + FileUtil.getNameWithoutExtension(layout.getName());
-            newComponent.setAttribute(TOOLS_URI, ATTR_LAYOUT, layoutId);
-          }
-        }
-      }
-    }.execute();
+  @Override
+  protected boolean updateActions() {
+    return true;
   }
 }
