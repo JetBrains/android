@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestedTargetVariant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
@@ -47,7 +46,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
@@ -280,7 +278,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
       if (configuration instanceof AndroidRunConfigurationBase) {
         //noinspection unchecked
-        ImmutableMap<String, ProjectBuildOutput> model = (ImmutableMap<String, ProjectBuildOutput>)runner.getModel();
+        List<OutputBuildAction.ModuleBuildOutput> model = (List<OutputBuildAction.ModuleBuildOutput>)runner.getModel();
         if (model != null) {
           ((AndroidRunConfigurationBase)configuration).setOutputModel(new PostBuildModel(model));
         }

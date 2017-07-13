@@ -168,7 +168,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     @NotNull private final PostBuildModel myPostBuildModel = mock(PostBuildModel.class);
 
     void setProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull ProjectBuildOutput projectBuildOutput) {
-      when(myPostBuildModel.getOutputModelForFacet(facet)).thenReturn(projectBuildOutput);
+      when(myPostBuildModel.findOutputModel(facet)).thenReturn(projectBuildOutput);
     }
 
     @Override
