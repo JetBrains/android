@@ -301,45 +301,48 @@ public class MemoryClassifierViewTest {
     final String CLASS_NAME_0 = "com.android.studio.Foo";
     final String CLASS_NAME_1 = "com.google.Bar";
     final String CLASS_NAME_2 = "int[]";
-
-    CodeLocation codeLocation1 = new CodeLocation.Builder(CLASS_NAME_0).setMethodName("fooMethod1").setLineNumber(5).build();
-    CodeLocation codeLocation2 = new CodeLocation.Builder(CLASS_NAME_0).setMethodName("fooMethod2").setLineNumber(10).build();
-    CodeLocation codeLocation3 = new CodeLocation.Builder(CLASS_NAME_0).setMethodName("fooMethod3").setLineNumber(15).build();
-    CodeLocation codeLocation4 = new CodeLocation.Builder(CLASS_NAME_1).setMethodName("barMethod1").setLineNumber(20).build();
+    final String METHOD_NAME_0 = "fooMethod0";
+    final String METHOD_NAME_1 = "fooMethod1";
+    final String METHOD_NAME_2 = "fooMethod2";
+    final String METHOD_NAME_3 = "barMethod0";
+    final int LINE_NUMBER_0 = 5;
+    final int LINE_NUMBER_1 = 10;
+    final int LINE_NUMBER_2 = 15;
+    final int LINE_NUMBER_3 = 20;
 
     //noinspection ConstantConditions
     AllocationStack callstack1 = AllocationStack.newBuilder()
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation2.getClassName())
-          .setMethodName(codeLocation2.getMethodName())
-          .setLineNumber(codeLocation2.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_0)
+          .setMethodName(METHOD_NAME_1)
+          .setLineNumber(LINE_NUMBER_1 + 1))
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation1.getClassName())
-          .setMethodName(codeLocation1.getMethodName())
-          .setLineNumber(codeLocation1.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_0)
+          .setMethodName(METHOD_NAME_0)
+          .setLineNumber(LINE_NUMBER_0 + 1))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstack2 = AllocationStack.newBuilder()
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation3.getClassName())
-          .setMethodName(codeLocation3.getMethodName())
-          .setLineNumber(codeLocation3.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_0)
+          .setMethodName(METHOD_NAME_2)
+          .setLineNumber(LINE_NUMBER_2 + 1))
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation1.getClassName())
-          .setMethodName(codeLocation1.getMethodName())
-          .setLineNumber(codeLocation1.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_0)
+          .setMethodName(METHOD_NAME_0)
+          .setLineNumber(LINE_NUMBER_0 + 1))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstack3 = AllocationStack.newBuilder()
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation4.getClassName())
-          .setMethodName(codeLocation4.getMethodName())
-          .setLineNumber(codeLocation4.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_1)
+          .setMethodName(METHOD_NAME_3)
+          .setLineNumber(LINE_NUMBER_3 + 1))
       .build();
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
@@ -420,45 +423,58 @@ public class MemoryClassifierViewTest {
     final String CLASS_NAME_0 = "com.android.studio.Foo";
     final String CLASS_NAME_1 = "com.google.Bar";
     final String CLASS_NAME_2 = "int[]";
-
-    CodeLocation codeLocation1 = new CodeLocation.Builder("Foo").setMethodName("fooMethod1").setLineNumber(5).build();
-    CodeLocation codeLocation2 = new CodeLocation.Builder("Foo").setMethodName("fooMethod2").setLineNumber(10).build();
-    CodeLocation codeLocation3 = new CodeLocation.Builder("Foo").setMethodName("fooMethod3").setLineNumber(15).build();
-    CodeLocation codeLocation4 = new CodeLocation.Builder("Bar").setMethodName("barMethod1").setLineNumber(20).build();
+    final String METHOD_NAME_0 = "fooMethod0";
+    final String METHOD_NAME_1 = "fooMethod1";
+    final String METHOD_NAME_2 = "fooMethod2";
+    final String METHOD_NAME_3 = "barMethod0";
+    final int LINE_NUMBER_0 = 5;
+    final int LINE_NUMBER_1 = 10;
+    final int LINE_NUMBER_2 = 15;
+    final int LINE_NUMBER_3 = 20;
+    final int LINE_NUMBER_4 = 25;
 
     //noinspection ConstantConditions
     AllocationStack callstack1 = AllocationStack.newBuilder()
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation2.getClassName())
-          .setMethodName(codeLocation2.getMethodName())
-          .setLineNumber(codeLocation2.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_0)
+          .setMethodName(METHOD_NAME_1)
+          .setLineNumber(LINE_NUMBER_1 + 1))
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation1.getClassName())
-          .setMethodName(codeLocation1.getMethodName())
-          .setLineNumber(codeLocation1.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_0)
+          .setMethodName(METHOD_NAME_0)
+          .setLineNumber(LINE_NUMBER_0 + 1))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstack2 = AllocationStack.newBuilder()
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation3.getClassName())
-          .setMethodName(codeLocation3.getMethodName())
-          .setLineNumber(codeLocation3.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_0)
+          .setMethodName(METHOD_NAME_2)
+          .setLineNumber(LINE_NUMBER_2 + 1))
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation1.getClassName())
-          .setMethodName(codeLocation1.getMethodName())
-          .setLineNumber(codeLocation1.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_0)
+          .setMethodName(METHOD_NAME_0)
+          .setLineNumber(LINE_NUMBER_0 + 1))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstack3 = AllocationStack.newBuilder()
       .addStackFrames(
         AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocation4.getClassName())
-          .setMethodName(codeLocation4.getMethodName())
-          .setLineNumber(codeLocation4.getLineNumber() + 1))
+          .setClassName(CLASS_NAME_1)
+          .setMethodName(METHOD_NAME_3)
+          .setLineNumber(LINE_NUMBER_3 + 1))
+      .build();
+    // Check that callstacks only differs by line numbers are still grouped together in the same node.
+    //noinspection ConstantConditions
+    AllocationStack callstack4 = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(CLASS_NAME_1)
+          .setMethodName(METHOD_NAME_3)
+          .setLineNumber(LINE_NUMBER_4 + 1))
       .build();
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
@@ -486,8 +502,11 @@ public class MemoryClassifierViewTest {
     InstanceObject instance8 =
       new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2).setRetainedSize(8)
         .build();
+    InstanceObject instance9 =
+      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar9").setAllocationStack(callstack4).setDepth(2)
+        .setShallowSize(2).setRetainedSize(16).build();
     Set<InstanceObject> instanceObjects =
-      new HashSet<>(Arrays.asList(instance1, instance2, instance3, instance4, instance5, instance6, instance7, instance8));
+      new HashSet<>(Arrays.asList(instance1, instance2, instance3, instance4, instance5, instance6, instance7, instance8, instance9));
     captureObject.addInstanceObjects(instanceObjects);
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
@@ -524,42 +543,43 @@ public class MemoryClassifierViewTest {
     rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
     assertThat(rootNode.getChildCount()).isEqualTo(3);
 
-    MemoryObjectTreeNode<? extends MemoryObject> codeLocation1Node = findChildWithPredicate(
+    MemoryObjectTreeNode<? extends MemoryObject> methodSet1Node = findChildWithPredicate(
       rootNode,
-      classifierSet -> classifierSet instanceof MethodSet && codeLocation1.equals(((MethodSet)classifierSet).getCodeLocation()));
-    assertThat(codeLocation1Node.getChildCount()).isEqualTo(2);
+      classifierSet -> classifierSet instanceof MethodSet && verifyMethodSet((MethodSet)classifierSet, CLASS_NAME_0, METHOD_NAME_0));
+    assertThat(methodSet1Node.getChildCount()).isEqualTo(2);
 
-    MemoryObjectTreeNode<? extends MemoryObject> codeLocation2Node = findChildWithPredicate(
-      codeLocation1Node,
-      classifierSet -> classifierSet instanceof MethodSet && codeLocation2.equals(((MethodSet)classifierSet).getCodeLocation()));
-    ClassSet callstack1FooClassSet = findChildClassSetWithName((ClassifierSet)codeLocation2Node.getAdapter(), CLASS_NAME_0);
+    MemoryObjectTreeNode<? extends MemoryObject> methodSet2Node = findChildWithPredicate(
+      methodSet1Node,
+      classifierSet -> classifierSet instanceof MethodSet && verifyMethodSet((MethodSet)classifierSet, CLASS_NAME_0, METHOD_NAME_1));
+    ClassSet callstack1FooClassSet = findChildClassSetWithName((ClassifierSet)methodSet2Node.getAdapter(), CLASS_NAME_0);
     assertThat(callstack1FooClassSet.findContainingClassifierSet(instance1)).isEqualTo(callstack1FooClassSet);
     assertThat(callstack1FooClassSet.findContainingClassifierSet(instance2)).isEqualTo(callstack1FooClassSet);
     assertThat(callstack1FooClassSet.findContainingClassifierSet(instance3)).isEqualTo(callstack1FooClassSet);
 
-    MemoryObjectTreeNode<? extends MemoryObject> codeLocation3Node = findChildWithPredicate(
-      codeLocation1Node,
-      classifierSet -> classifierSet instanceof MethodSet && codeLocation3.equals(((MethodSet)classifierSet).getCodeLocation()));
-    ClassSet callstack2FooClassSet = findChildClassSetWithName((ClassifierSet)codeLocation3Node.getAdapter(), CLASS_NAME_0);
+    MemoryObjectTreeNode<? extends MemoryObject> methodSet3Node = findChildWithPredicate(
+      methodSet1Node,
+      classifierSet -> classifierSet instanceof MethodSet && verifyMethodSet((MethodSet)classifierSet, CLASS_NAME_0, METHOD_NAME_2));
+    ClassSet callstack2FooClassSet = findChildClassSetWithName((ClassifierSet)methodSet3Node.getAdapter(), CLASS_NAME_0);
     assertThat(callstack2FooClassSet.findContainingClassifierSet(instance4)).isEqualTo(callstack2FooClassSet);
     assertThat(callstack2FooClassSet.findContainingClassifierSet(instance5)).isEqualTo(callstack2FooClassSet);
 
-    MemoryObjectTreeNode<? extends MemoryObject> codeLocation4Node = findChildWithPredicate(
+    MemoryObjectTreeNode<? extends MemoryObject> methodSet4Node = findChildWithPredicate(
       rootNode,
-      classifierSet -> classifierSet instanceof MethodSet && codeLocation4.equals(((MethodSet)classifierSet).getCodeLocation()));
-    assertThat(codeLocation4Node.getChildCount()).isEqualTo(2);
-    ClassSet callstack3FooClassSet = findChildClassSetWithName((ClassifierSet)codeLocation4Node.getAdapter(), CLASS_NAME_0);
+      classifierSet -> classifierSet instanceof MethodSet && verifyMethodSet((MethodSet)classifierSet, CLASS_NAME_1, METHOD_NAME_3));
+    assertThat(methodSet4Node.getChildCount()).isEqualTo(2);
+    ClassSet callstack3FooClassSet = findChildClassSetWithName((ClassifierSet)methodSet4Node.getAdapter(), CLASS_NAME_0);
     assertThat(callstack3FooClassSet.findContainingClassifierSet(instance6)).isEqualTo(callstack3FooClassSet);
-    ClassSet callstack3BarClassSet = findChildClassSetWithName((ClassifierSet)codeLocation4Node.getAdapter(), CLASS_NAME_1);
+    ClassSet callstack3BarClassSet = findChildClassSetWithName((ClassifierSet)methodSet4Node.getAdapter(), CLASS_NAME_1);
     assertThat(callstack3BarClassSet.findContainingClassifierSet(instance7)).isEqualTo(callstack3BarClassSet);
+    assertThat(callstack3BarClassSet.findContainingClassifierSet(instance9)).isEqualTo(callstack3BarClassSet);
 
     ClassSet noStackIntArrayClassSet = findChildClassSetWithName(rootNode.getAdapter(), CLASS_NAME_2);
     assertThat(noStackIntArrayClassSet.getAllocatedCount()).isEqualTo(1);
 
     //noinspection unchecked
     MemoryObjectTreeNode<? extends ClassifierSet> nodeToSelect =
-      findChildClassSetNodeWithClassName((MemoryObjectTreeNode<ClassifierSet>)codeLocation4Node, CLASS_NAME_0);
-    classifierTree.setSelectionPath(new TreePath(new Object[]{root, codeLocation4Node, nodeToSelect}));
+      findChildClassSetNodeWithClassName((MemoryObjectTreeNode<ClassifierSet>)methodSet4Node, CLASS_NAME_0);
+    classifierTree.setSelectionPath(new TreePath(new Object[]{root, methodSet4Node, nodeToSelect}));
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
 
     tableColumnModel = myClassifierView.getTableColumnModel();
@@ -916,6 +936,10 @@ public class MemoryClassifierViewTest {
       }
     }
     return classSetCount;
+  }
+
+  private static boolean verifyMethodSet(@NotNull MethodSet methodSet, @NotNull String className, @NotNull String methodName) {
+    return className.equals(methodSet.getClassName()) && methodName.equals(methodSet.getMethodName());
   }
 
   /**

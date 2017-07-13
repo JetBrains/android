@@ -202,6 +202,13 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
+  public void getStackFrameInfo(StackFrameInfoRequest request,
+                                StreamObserver<StackFrameInfoResponse> responseObserver) {
+    responseObserver.onNext(myAllocationsTable.getStackFrameInfo(request.getProcessId(), request.getSession(), request.getMethodId()));
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
                                         StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
     LegacyAllocationEventsResponse.Builder builder = LegacyAllocationEventsResponse.newBuilder();

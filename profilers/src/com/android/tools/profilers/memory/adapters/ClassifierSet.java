@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,9 +29,10 @@ import java.util.stream.Stream;
  * A general base class for classifying/filtering objects into categories.
  */
 public abstract class ClassifierSet implements MemoryObject {
-  @NotNull private final String myName;
+  @NotNull private String myName;
+  @NotNull private Supplier<String> myNameSupplier = null;
 
-  @NotNull protected final Set<InstanceObject> myInstances;
+  @NotNull protected final Set<InstanceObject> myInstances = new LinkedHashSet<>(0);
 
   // Lazily create the Classifier, as it is configurable and isn't necessary until nodes under this node needs to be classified.
   @Nullable protected Classifier myClassifier = null;
@@ -43,12 +45,21 @@ public abstract class ClassifierSet implements MemoryObject {
 
   public ClassifierSet(@NotNull String name) {
     myName = name;
-    myInstances = new LinkedHashSet<>(0);
+  }
+
+  // Supports lazy-loading the ClassifierSet's name in case it is expensive. The name is fetched and cached the first time
+  // getName() is called.
+  public ClassifierSet(@NotNull Supplier<String> nameSupplier) {
+    myNameSupplier = nameSupplier;
   }
 
   @Override
   @NotNull
   public String getName() {
+    if (myName == null) {
+      assert myNameSupplier != null;
+      myName = myNameSupplier.get();
+    }
     return myName;
   }
 
@@ -120,8 +131,10 @@ public abstract class ClassifierSet implements MemoryObject {
       myDeallocatedCount++;
     }
 
-    myTotalShallowSize +=  (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
-    myTotalRetainedSize += (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
+    myTotalShallowSize +=
+      (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
+    myTotalRetainedSize +=
+      (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
 
     if (instanceAdded && instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) {
       myInstancesWithStackInfoCount++;
@@ -149,8 +162,10 @@ public abstract class ClassifierSet implements MemoryObject {
     else {
       myDeallocatedCount--;
     }
-    myTotalShallowSize -= (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
-    myTotalRetainedSize -= (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
+    myTotalShallowSize -=
+      (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
+    myTotalRetainedSize -=
+      (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
     if (instanceRemoved && instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) {
       myInstancesWithStackInfoCount--;
     }

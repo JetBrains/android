@@ -15,26 +15,35 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LiveAllocationInstanceObject implements InstanceObject {
+  @NotNull private final LiveAllocationCaptureObject myCaptureObject;
   @NotNull private final ClassDb.ClassEntry myClassEntry;
   @Nullable private final LiveAllocationInstanceObject myClassObject;
   @NotNull private final ValueType myValueType;
   private long myAllocTime = Long.MIN_VALUE;
   private long myDeallocTime = Long.MAX_VALUE;
   private final long mySize;
-  @Nullable private MemoryProfiler.AllocationStack myCallstack;
+  @Nullable private AllocationStack myCallstack;
   @Nullable private final ThreadId myThreadId;
 
-  public LiveAllocationInstanceObject(@NotNull ClassDb.ClassEntry classEntry,
+  public LiveAllocationInstanceObject(@NotNull LiveAllocationCaptureObject captureObject,
+                                      @NotNull ClassDb.ClassEntry classEntry,
                                       @Nullable LiveAllocationInstanceObject classObject,
                                       @Nullable ThreadId threadId,
-                                      @Nullable MemoryProfiler.AllocationStack callstack,
+                                      @Nullable AllocationStack callstack,
                                       long size) {
+    myCaptureObject = captureObject;
     myClassEntry = classEntry;
     myClassObject = classObject;
     mySize = size;
@@ -105,8 +114,28 @@ public class LiveAllocationInstanceObject implements InstanceObject {
 
   @Nullable
   @Override
-  public MemoryProfiler.AllocationStack getCallStack() {
+  public AllocationStack getCallStack() {
     return myCallstack;
+  }
+
+  @NotNull
+  @Override
+  public List<CodeLocation> getCodeLocations() {
+    List<CodeLocation> codeLocations = new ArrayList<>();
+    if (myCallstack != null) {
+      for (AllocationStack.StackFrame frame : myCallstack.getStackFramesList()) {
+        StackFrameInfoResponse frameInfo =
+          myCaptureObject.getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setProcessId(myCaptureObject.getProcessId())
+                                                          .setSession(myCaptureObject.getSession())
+                                                          .setMethodId(frame.getMethodId()).build());
+        CodeLocation.Builder builder = new CodeLocation.Builder(frameInfo.getClassName())
+          .setMethodName(frameInfo.getMethodName())
+          .setLineNumber(frame.getLineNumber() - 1);
+        codeLocations.add(builder.build());
+      }
+    }
+
+    return codeLocations;
   }
 
   @NotNull

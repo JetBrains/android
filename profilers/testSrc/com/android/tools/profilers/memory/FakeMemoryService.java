@@ -246,10 +246,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       MemoryProfiler.AllocationStack.Builder stackBuilder = MemoryProfiler.AllocationStack.newBuilder();
       stackBuilder.setStackId(iAdjusted + 1);
       for (int j = 0; j < 2; j++) {
-        String klass = CONTEXT_CLASS_NAMES.get((iAdjusted + j) % ALLOC_CONTEXT_NUM);
-        String method = CONTEXT_METHOD_NAMES.get((iAdjusted + j) % ALLOC_CONTEXT_NUM);
-        stackBuilder.addStackFrames(
-          MemoryProfiler.AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(-1));
+        int id = (iAdjusted + j) % ALLOC_CONTEXT_NUM + 1; // valid method Id starts at 1
+        stackBuilder.addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().setMethodId(id).setLineNumber(-1));
       }
       contextBuilder.addAllocationStacks(stackBuilder);
 
@@ -258,6 +256,17 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
     contextBuilder.setTimestamp(timestamp);
     responseObserver.onNext(contextBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getStackFrameInfo(StackFrameInfoRequest request,
+                                StreamObserver<StackFrameInfoResponse> responseObserver) {
+    int id = (int)request.getMethodId() - 1;  // compensate for +1 offset in method Id to get the correct index.
+    StackFrameInfoResponse.Builder methodBuilder = StackFrameInfoResponse.newBuilder()
+      .setClassName(CONTEXT_CLASS_NAMES.get(id))
+      .setMethodName(CONTEXT_METHOD_NAMES.get(id));
+    responseObserver.onNext(methodBuilder.build());
     responseObserver.onCompleted();
   }
 

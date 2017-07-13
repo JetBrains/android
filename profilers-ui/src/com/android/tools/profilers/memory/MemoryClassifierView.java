@@ -288,7 +288,8 @@ final class MemoryClassifierView extends AspectObserver {
         else {
           myClassifierSet = null;
         }
-      } else {
+      }
+      else {
         myClassifierSet = null;
       }
     }
@@ -469,12 +470,11 @@ final class MemoryClassifierView extends AspectObserver {
           setIcon(PlatformIcons.METHOD_ICON);
 
           MethodSet methodObject = (MethodSet)node.getAdapter();
-          String name = methodObject.getCodeLocation().getMethodName();
-          int lineNumber = methodObject.getCodeLocation().getLineNumber();
-          String className = methodObject.getCodeLocation().getClassName();
+          String name = methodObject.getMethodName();
+          String className = methodObject.getClassName();
 
           if (name != null) {
-            String nameAndLine = name + "()" + (lineNumber == CodeLocation.INVALID_LINE_NUMBER ? "" : ":" + lineNumber);
+            String nameAndLine = name + "()";
             append(nameAndLine, SimpleTextAttributes.REGULAR_ATTRIBUTES, nameAndLine);
           }
           else {
