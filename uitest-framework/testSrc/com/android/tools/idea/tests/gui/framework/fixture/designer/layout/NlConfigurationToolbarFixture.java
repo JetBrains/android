@@ -287,9 +287,9 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     }
 
     @Override
-    public boolean test(String item) {
+    public boolean test(@NotNull String item) {
       item = item.trim();
-      return item.contains(":") && apiLevel.equals(item.substring(0, item.indexOf(':')));
+      return item.endsWith(apiLevel);
     }
   }
 }
