@@ -176,8 +176,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
 
         String deviceDir = "/data/local/tmp/perfd/";
-        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir, true);
-        copyFileToDevice("libperfa.so", "plugins/android/resources/perfa", "../../bazel-bin/tools/base/profiler/native/perfa/android", deviceDir, true);
+        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir,
+                         true);
+        copyFileToDevice("libperfa.so", "plugins/android/resources/perfa", "../../bazel-bin/tools/base/profiler/native/perfa/android",
+                         deviceDir, true);
         copyFileToDevice("perfa.jar", "plugins/android/resources", "../../bazel-genfiles/tools/base/profiler/app", deviceDir, false);
         // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
         pushSimpleperfIfSupported(deviceDir);
@@ -295,8 +297,15 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private void pushAgentConfig(@NotNull String fileName, @NotNull String devicePath)
       throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
       // TODO: remove profiler.jvmti after agent uses only JVMTI to instrument bytecode on O+ devices.
+      Agent.SocketType socketType = StudioFlags.PROFILER_USE_JVMTI.get() && isAtLeastO(myDevice)
+                                    ? Agent.SocketType.ABSTRACT_SOCKET
+                                    : Agent.SocketType.UNSPECIFIED_SOCKET;
       Agent.AgentConfig agentConfig = Agent.AgentConfig.newBuilder().setUseJvmti(StudioFlags.PROFILER_USE_JVMTI.get())
-        .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get()).build();
+        .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
+        .setSocketType(socketType)
+        .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
+        // Using "@" to indicate an abstract socket in unix.
+        .setServiceSocketName("@" + DEVICE_SOCKET_NAME).build();
 
       File configFile = FileUtil.createTempFile(fileName, null, true);
       OutputStream oStream = new FileOutputStream(configFile);
