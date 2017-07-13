@@ -51,7 +51,8 @@ public class NavActionManagerTest extends NavigationTestCase {
     PsiClass psiClass =
       JavaPsiFacade.getInstance(getProject()).findClass("mytest.navtest.MainActivity", GlobalSearchScope.allScope(getProject()));
 
-    AddMenuWrapper.addElement(Destination.Companion.create(null, psiClass, "activity", mock(Image.class)), surface);
+    new AddMenuWrapper(surface, ImmutableList.of())
+      .addElement(Destination.Companion.create(null, psiClass, "activity", mock(Image.class)), surface);
 
     assertEquals("NlComponent{tag=<navigation>, instance=0}\n" +
                  "    NlComponent{tag=<fragment>, instance=1}\n" +

@@ -106,7 +106,7 @@ class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurfa
 
   @VisibleForTesting
   data class Destination(val layoutFile: XmlFile?, private val className: String, val qualifiedName: String,
-                                            val tag: String, val thumbnail: Image) {
+                                            val tag: String, val thumbnail: Image?) {
 
     val name: String
       get() {

@@ -39,6 +39,8 @@ public class NavigationSchema implements Disposable {
   public static final String TAG_ACTION = "action";
   public static final String ATTR_DESTINATION = "destination";
 
+  public static final String TAG_INCLUDE = "include";
+
   public static final String NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.Navigator";
   public static final String NAV_GRAPH_NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.NavGraphNavigator";
   public static final String FRAGMENT_NAVIGATOR_CLASS_NAME = "android.support.navigation.app.nav.FragmentNavigator";
