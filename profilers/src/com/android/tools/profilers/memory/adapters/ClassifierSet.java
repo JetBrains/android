@@ -157,6 +157,16 @@ public abstract class ClassifierSet implements MemoryObject {
     return instanceRemoved;
   }
 
+  public void clearClassifierSets() {
+    myInstances.clear();
+    myClassifier = createSubClassifier();
+    myAllocatedCount = 0;
+    myDeallocatedCount = 0;
+    myTotalShallowSize = 0;
+    myTotalRetainedSize = 0;
+    myInstancesWithStackInfoCount = 0;
+  }
+
   public int getInstancesCount() {
     if (myClassifier == null) {
       return myInstances.size();

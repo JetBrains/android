@@ -44,7 +44,6 @@ import java.util.stream.Stream;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 
 final class MemoryClassSetView extends AspectObserver {
-  @VisibleForTesting static final ClassSet EMPTY_CLASS_SET = new ClassSet(new ClassDb.ClassEntry("null"));
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
@@ -499,7 +498,7 @@ final class MemoryClassSetView extends AspectObserver {
     }
 
     if (myClassSet.isEmpty()) {
-      myStage.selectClassSet(EMPTY_CLASS_SET);
+      myStage.selectClassSet(ClassSet.EMPTY_SET);
       return;
     }
 

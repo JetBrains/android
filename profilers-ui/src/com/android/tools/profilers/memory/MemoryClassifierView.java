@@ -279,7 +279,7 @@ final class MemoryClassifierView extends AspectObserver {
     if (myClassifierSet != null) {
       if (!myClassifierSet.isEmpty()) {
         MemoryObjectTreeNode nodeToSelect = findSmallestSuperSetNode(myTreeRoot, myClassifierSet);
-        if (nodeToSelect.getAdapter().equals(myClassifierSet)) {
+        if (nodeToSelect != null && nodeToSelect.getAdapter().equals(myClassifierSet)) {
           TreePath treePath = new TreePath(nodeToSelect.getPathToRoot().toArray());
           myTree.expandPath(treePath.getParentPath());
           myTree.setSelectionPath(treePath);

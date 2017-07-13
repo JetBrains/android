@@ -273,6 +273,14 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
         // Split the two ranges into three segments by sorting their end points and analyzing segments with adjacent points
         long[] timestamps = {myPreviousQueryStartTimeNs, myPreviousQueryEndTimeNs, newStartTimeNs, newEndTimeNs};
+        // Clear myDefaultHeapSet If previous range does not intersect with the new one
+        boolean clear = myPreviousQueryEndTimeNs <= newStartTimeNs || newEndTimeNs <= myPreviousQueryStartTimeNs;
+        if (clear) {
+          long[] newTimeStamps = {newStartTimeNs, newEndTimeNs};
+          timestamps = newTimeStamps;
+          myInstanceMap.clear();
+        }
+
         Arrays.sort(timestamps);
         List<InstanceObject> setAllocationList = new ArrayList<>();
         List<InstanceObject> resetAllocationList = new ArrayList<>();
@@ -339,8 +347,14 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         myPreviousQueryStartTimeNs = newStartTimeNs;
         myPreviousQueryEndTimeNs = newEndTimeNs;
 
-        if (setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
+        if (clear || setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
           joiner.execute(() -> {
+            if (clear) {
+              myDefaultHeapSet.clearClassifierSets();
+              if (myStage.getSelectedClassSet() != null) {
+                myStage.selectClassSet(ClassSet.EMPTY_SET);
+              }
+            }
             setAllocationList.forEach(instance -> {
               myDefaultHeapSet.addInstanceObject(instance);
             });
