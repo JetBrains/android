@@ -16,17 +16,17 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -55,9 +55,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   @VisibleForTesting final ExecutorService myExecutorService;
   private final ClassDb myClassDb;
   private final Map<ClassDb.ClassEntry, LiveAllocationInstanceObject> myClassMap;
-  private final Map<Integer, LiveAllocationInstanceObject> myInstanceMap;
-  private final Map<Integer, AllocationStack> myCallstackMap;
-  private final Map<Integer, ThreadInfo> myThreadInfoMap;
+  private final TIntObjectHashMap<LiveAllocationInstanceObject> myInstanceMap;
+  private final TIntObjectHashMap<AllocationStack> myCallstackMap;
+  private final TIntObjectHashMap<ThreadId> myThreadIdMap;
 
   private final MemoryServiceBlockingStub myClient;
   private final Common.Session mySession;
@@ -90,9 +90,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
     myClassDb = new ClassDb();
     myClassMap = new HashMap<>();
-    myInstanceMap = new HashMap<>();
-    myCallstackMap = new HashMap<>();
-    myThreadInfoMap = new HashMap<>();
+    myInstanceMap = new TIntObjectHashMap<>();
+    myCallstackMap = new TIntObjectHashMap<>();
+    myThreadIdMap = new TIntObjectHashMap<>();
 
     myClient = client;
     mySession = session;
@@ -224,8 +224,16 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // TODO figure out what to do with java.lang.Class instance objects
       }
     }
-    contextsResponse.getAllocationStacksList().forEach(callStack -> myCallstackMap.putIfAbsent(callStack.getStackId(), callStack));
-    contextsResponse.getAllocationThreadsList().forEach(thread -> myThreadInfoMap.putIfAbsent(thread.getThreadId(), thread));
+    contextsResponse.getAllocationStacksList().forEach(callStack -> {
+      if (!myCallstackMap.contains(callStack.getStackId())) {
+        myCallstackMap.put(callStack.getStackId(), callStack);
+      }
+    });
+    contextsResponse.getAllocationThreadsList().forEach(thread -> {
+      if (!myThreadIdMap.contains(thread.getThreadId())) {
+        myThreadIdMap.put(thread.getThreadId(), new ThreadId(thread.getThreadName()));
+      }
+    });
     myContextEndTimeNs = Math.max(myContextEndTimeNs, contextsResponse.getTimestamp());
   }
 
@@ -295,21 +303,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           for (AllocationEvent event : sampleResponse.getEventsList()) {
             if (event.getEventCase() == AllocationEvent.EventCase.ALLOC_DATA) {
               AllocationEvent.Allocation allocation = event.getAllocData();
-              LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(allocation.getTag(), tag -> {
-                ClassDb.ClassEntry entry = myClassDb.getEntry(allocation.getClassTag());
-                assert myClassMap.containsKey(entry);
-                AllocationStack callstack = null;
-                if (allocation.getStackId() != 0) {
-                  assert myCallstackMap.containsKey(allocation.getStackId());
-                  callstack = myCallstackMap.get(allocation.getStackId());
-                }
-                ThreadInfo threadInfo = null;
-                if (allocation.getThreadId() != 0) {
-                  assert myThreadInfoMap.containsKey(allocation.getThreadId());
-                  threadInfo = myThreadInfoMap.get(allocation.getThreadId());
-                }
-                return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), threadInfo, callstack, allocation.getSize());
-              });
+              LiveAllocationInstanceObject instance =
+                getOrCreateInstanceObject(allocation.getTag(), allocation.getClassTag(), allocation.getStackId(), allocation.getThreadId(),
+                                          allocation.getSize());
               if (insideCurrentRange) {
                 instance.setAllocationTime(event.getTimestamp());
                 setAllocationList.add(instance);
@@ -321,22 +317,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             }
             else if (event.getEventCase() == AllocationEvent.EventCase.FREE_DATA) {
               AllocationEvent.Deallocation deallocation = event.getFreeData();
-              LiveAllocationInstanceObject instance = myInstanceMap.computeIfAbsent(deallocation.getTag(), tag -> {
-                ClassDb.ClassEntry entry = myClassDb.getEntry(deallocation.getClassTag());
-                assert myClassMap.containsKey(entry);
-                AllocationStack callstack = null;
-                if (deallocation.getStackId() != 0) {
-                  assert myCallstackMap.containsKey(deallocation.getStackId());
-                  callstack = myCallstackMap.get(deallocation.getStackId());
-                }
-                ThreadInfo threadInfo = null;
-                if (deallocation.getThreadId() != 0) {
-                  assert myThreadInfoMap.containsKey(deallocation.getThreadId());
-                  threadInfo = myThreadInfoMap.get(deallocation.getThreadId());
-                }
-                return new LiveAllocationInstanceObject(entry, myClassMap.get(entry), threadInfo, callstack, deallocation.getSize());
-              });
-
+              LiveAllocationInstanceObject instance =
+                getOrCreateInstanceObject(deallocation.getTag(), deallocation.getClassTag(), deallocation.getStackId(),
+                                          deallocation.getThreadId(),
+                                          deallocation.getSize());
               if (insideCurrentRange) {
                 instance.setDeallocTime(event.getTimestamp());
                 setDeallocationList.add(instance);
@@ -378,5 +362,28 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     catch (RejectedExecutionException e) {
       getLogger().debug(e);
     }
+  }
+
+  @NotNull
+  private LiveAllocationInstanceObject getOrCreateInstanceObject(int tag, int classTag, int stackId, int threadId, long size) {
+    LiveAllocationInstanceObject instance = myInstanceMap.get(tag);
+    if (instance == null) {
+      ClassDb.ClassEntry entry = myClassDb.getEntry(classTag);
+      assert myClassMap.containsKey(entry);
+      AllocationStack callstack = null;
+      if (stackId != 0) {
+        assert myCallstackMap.containsKey(stackId);
+        callstack = myCallstackMap.get(stackId);
+      }
+      ThreadId thread = null;
+      if (threadId != 0) {
+        assert myThreadIdMap.containsKey(threadId);
+        thread = myThreadIdMap.get(threadId);
+      }
+      instance = new LiveAllocationInstanceObject(entry, myClassMap.get(entry), thread, callstack, size);
+      myInstanceMap.put(tag, instance);
+    }
+
+    return instance;
   }
 }

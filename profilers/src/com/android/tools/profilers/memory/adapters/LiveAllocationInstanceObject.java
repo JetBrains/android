@@ -28,19 +28,17 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   private long myDeallocTime = Long.MAX_VALUE;
   private final long mySize;
   @Nullable private MemoryProfiler.AllocationStack myCallstack;
-  @Nullable private MemoryProfiler.ThreadInfo myThreadInfo;
-  @NotNull private final ThreadId myThreadId;
+  @Nullable private final ThreadId myThreadId;
 
   public LiveAllocationInstanceObject(@NotNull ClassDb.ClassEntry classEntry,
                                       @Nullable LiveAllocationInstanceObject classObject,
-                                      @Nullable MemoryProfiler.ThreadInfo threadInfo,
+                                      @Nullable ThreadId threadId,
                                       @Nullable MemoryProfiler.AllocationStack callstack,
                                       long size) {
     myClassEntry = classEntry;
     myClassObject = classObject;
     mySize = size;
-    myThreadInfo = threadInfo;
-    myThreadId = myThreadInfo == null ? ThreadId.INVALID_THREAD_ID : new ThreadId(myThreadInfo.getThreadName());
+    myThreadId = threadId == null ? ThreadId.INVALID_THREAD_ID : threadId;
     myCallstack = callstack;
     if ("java.lang.String".equals(classEntry.getClassName())) {
       myValueType = ValueType.STRING;
