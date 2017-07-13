@@ -199,21 +199,19 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       while (stackResult.next()) {
         AllocationStack.Builder stackBuilder = AllocationStack.newBuilder();
 
-        // First retrieve the encoded allocation stack proto.
+        // Retrieve the EncodedAllocationStack proto and convert it into the AllocationStack format.
         // Note that we are not accounting for the timestamp recorded in the stack, as stack entries from each batched allocation sample
         // are inserted first into the database. So class data with an earlier timestamp can be inserted later.
         EncodedAllocationStack encodedStack = EncodedAllocationStack.parseFrom(stackResult.getBytes(1));
-
-        // Then retrieve the full method info for each method id in the encoded stack.
-        // TODO: The current SQLite JDBC driver in IJ does not support the createArrayOf operation which prevents this to do a bulk
-        // select and only hit the database once. Alternative is ugly (e.g. manually formatting a string and pass to the IN clause).
-        // We can revisit at a later time.
         stackBuilder.setStackId(encodedStack.getStackId());
         assert encodedStack.getMethodIdsCount() == encodedStack.getLineNumbersCount();
         for (int i = 0; i < encodedStack.getMethodIdsCount(); i++) {
-          AllocationStack.StackFrame frame = queryMethodInfo(pid, session, encodedStack.getMethodIds(i));
-          // Fill in line number info which is stored with the EncodedAllocationStack.
-          stackBuilder.addStackFrames(frame.toBuilder().setLineNumber(encodedStack.getLineNumbers(i)));
+          // Note that we don't return the class + method names here, as they are expensive to query and can incur huge memory footprint.
+          // Instead, they will be fetched on demand as needed by the UI.
+          AllocationStack.StackFrame frame =
+            AllocationStack.StackFrame.newBuilder().setMethodId(encodedStack.getMethodIds(i)).setLineNumber(encodedStack.getLineNumbers(i))
+              .build();
+          stackBuilder.addStackFrames(frame);
         }
 
         resultBuilder.addAllocationStacks(stackBuilder);
@@ -316,12 +314,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   @NotNull
-  AllocationStack.StackFrame queryMethodInfo(int pid, Common.Session session, long methodId) {
-    AllocationStack.StackFrame.Builder methodBuilder = AllocationStack.StackFrame.newBuilder();
+  public StackFrameInfoResponse getStackFrameInfo(int pid, Common.Session session, long methodId) {
+    StackFrameInfoResponse.Builder methodBuilder = StackFrameInfoResponse.newBuilder();
     try {
       ResultSet result = executeQuery(QUERY_METHOD_INFO, pid, session, methodId);
       if (result.next()) {
-        methodBuilder.setMethodId(methodId).setMethodName(result.getString(1)).setClassName(result.getString(2));
+        methodBuilder.setMethodName(result.getString(1)).setClassName(result.getString(2));
       }
     }
     catch (SQLException ex) {

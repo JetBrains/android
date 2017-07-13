@@ -16,10 +16,16 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +34,7 @@ import java.util.stream.Stream;
  * if there's no stack, then the instances are classified under {@link ClassSet.ClassClassifier}s.
  */
 public class MethodSet extends ClassifierSet {
-  @NotNull private final CodeLocation myCodeLocation;
+  @NotNull private final MethodSetInfo myMethodInfo;
   @NotNull private final CaptureObject myCaptureObject;
   private final int myCallstackDepth;
 
@@ -37,16 +43,11 @@ public class MethodSet extends ClassifierSet {
     return new MethodClassifier(captureObject, 0);
   }
 
-  public MethodSet(@NotNull CaptureObject captureObject, @NotNull CodeLocation codeLocation, int callstackDepth) {
-    super(convertCodeLocationToString(codeLocation));
+  public MethodSet(@NotNull CaptureObject captureObject, @NotNull MethodSetInfo methodInfo, int callstackDepth) {
+    super(() -> methodInfo.getName());
     myCaptureObject = captureObject;
+    myMethodInfo = methodInfo;
     myCallstackDepth = callstackDepth;
-    myCodeLocation = codeLocation;
-  }
-
-  @NotNull
-  public CodeLocation getCodeLocation() {
-    return myCodeLocation;
   }
 
   @NotNull
@@ -55,28 +56,19 @@ public class MethodSet extends ClassifierSet {
     return new MethodClassifier(myCaptureObject, myCallstackDepth);
   }
 
-  private static String convertCodeLocationToString(@NotNull CodeLocation codeLocation) {
-    String name = codeLocation.getMethodName();
-    int lineNumber = codeLocation.getLineNumber();
-    String className = codeLocation.getClassName();
-    StringBuilder builder = new StringBuilder();
+  @NotNull
+  public String getClassName() {
+    return myMethodInfo.getClassName();
+  }
 
-    if (name != null) {
-      builder.append(name).append("()");
-      if (lineNumber != CodeLocation.INVALID_LINE_NUMBER) {
-        builder.append(":").append(lineNumber);
-      }
-    }
-    else {
-      builder.append("<unknown method>");
-    }
-    builder.append(" (").append(className).append(")");
-    return builder.toString();
+  @NotNull
+  public String getMethodName() {
+    return myMethodInfo.getMethodName();
   }
 
   private static final class MethodClassifier extends Classifier {
     @NotNull private final CaptureObject myCaptureObject;
-    @NotNull private final Map<CodeLocation, MethodSet> myStackLineMap = new LinkedHashMap<>();
+    @NotNull private final Map<MethodSetInfo, MethodSet> myStackLineMap = new LinkedHashMap<>();
     @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new LinkedHashMap<>();
     private final int myDepth;
 
@@ -90,8 +82,15 @@ public class MethodSet extends ClassifierSet {
     public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
       AllocationStack allocationStack = instance.getCallStack();
       if (allocationStack != null && allocationStack.getStackFramesCount() > 0 && myDepth < allocationStack.getStackFramesCount()) {
-        CodeLocation codeLocation = AllocationStackConverter.getCodeLocation(allocationStack.getStackFrames(allocationStack.getStackFramesCount() - myDepth - 1));
-        return myStackLineMap.computeIfAbsent(codeLocation, cl -> new MethodSet(myCaptureObject, cl, myDepth + 1));
+        AllocationStack.StackFrame stackFrame = allocationStack.getStackFrames(allocationStack.getStackFramesCount() - myDepth - 1);
+        if (stackFrame.getMethodId() == 0) {
+          MethodSetInfo methodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
+          return myStackLineMap.computeIfAbsent(methodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
+        }
+        else {
+          MethodSetInfo methodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getMethodId());
+          return myStackLineMap.computeIfAbsent(methodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
+        }
       }
       else {
         return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
@@ -101,7 +100,100 @@ public class MethodSet extends ClassifierSet {
     @NotNull
     @Override
     public List<ClassifierSet> getClassifierSets() {
-      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).filter(child -> !child.isEmpty()).collect(Collectors.toList());
+      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).filter(child -> !child.isEmpty())
+        .collect(Collectors.toList());
+    }
+  }
+
+  private static final class MethodSetInfo {
+    static final long INVALID_METHOD_ID = -1;
+
+    @NotNull private final CaptureObject myCaptureObject;
+
+    private long myMethodId;
+    @Nullable private String myClassName;
+    @Nullable private String myMethodName;
+
+    private boolean myResolvedNames;
+    private int myHashCode;
+
+    MethodSetInfo(@NotNull CaptureObject captureObject, @NotNull String className, @NotNull String methodName) {
+      myCaptureObject = captureObject;
+      myClassName = className;
+      myMethodName = methodName;
+      myMethodId = INVALID_METHOD_ID;
+      myHashCode = Arrays.hashCode(new int[]{myClassName.hashCode(), myMethodName.hashCode()});
+      myResolvedNames = true;
+    }
+
+    MethodSetInfo(@NotNull CaptureObject captureObject, long methodId) {
+      myCaptureObject = captureObject;
+      myMethodId = methodId;
+      myHashCode = Long.hashCode(myMethodId);
+      myResolvedNames = false;
+    }
+
+    @Override
+    public int hashCode() {
+      return myHashCode;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof MethodSetInfo)) {
+        return false;
+      }
+
+      MethodSetInfo other = (MethodSetInfo)obj;
+      if (myMethodId == INVALID_METHOD_ID) {
+        return StringUtil.equals(myClassName, other.myClassName) && StringUtil.equals(myMethodName, other.myMethodName);
+      }
+      else {
+        return myMethodId == other.myMethodId;
+      }
+    }
+
+    @NotNull
+    String getName() {
+      resolveNames();
+
+      StringBuilder builder = new StringBuilder();
+      if (myMethodName != null) {
+        builder.append(myMethodName).append("()");
+      }
+      else {
+        builder.append("<unknown method>");
+      }
+      builder.append(" (").append(myClassName).append(")");
+      return builder.toString();
+    }
+
+    @NotNull
+    String getClassName() {
+      resolveNames();
+      return myClassName;
+    }
+
+    @NotNull
+    String getMethodName() {
+      resolveNames();
+      return myMethodName;
+    }
+
+    private void resolveNames() {
+      if (myResolvedNames) {
+        return;
+      }
+
+      assert myMethodId != INVALID_METHOD_ID;
+      StackFrameInfoResponse frameInfo = myCaptureObject.getClient().getStackFrameInfo(
+        StackFrameInfoRequest.newBuilder().setProcessId(myCaptureObject.getProcessId()).setSession(myCaptureObject.getSession())
+          .setMethodId(myMethodId).build()
+      );
+
+      myClassName = frameInfo.getClassName();
+      myMethodName = frameInfo.getMethodName();
+      myResolvedNames = true;
     }
   }
 }

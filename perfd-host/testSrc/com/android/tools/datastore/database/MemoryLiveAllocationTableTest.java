@@ -177,8 +177,9 @@ public class MemoryLiveAllocationTableTest {
     myAllocationTable.insertMethodInfo(VALID_PID, VALID_SESSION, methodsToInsert);
 
     // Valid cases
-    StackFrame convertedMethod1 = method1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
-    assertEquals(convertedMethod1, myAllocationTable.queryMethodInfo(VALID_PID, VALID_SESSION, METHOD1));
+    StackFrameInfoResponse convertedMethod1 =
+      StackFrameInfoResponse.newBuilder().setMethodName(METHOD1_NAME).setClassName(JAVA_KLASS1_NAME).build();
+    assertEquals(convertedMethod1, myAllocationTable.getStackFrameInfo(VALID_PID, VALID_SESSION, METHOD1));
   }
 
   @Test
@@ -192,15 +193,17 @@ public class MemoryLiveAllocationTableTest {
     myAllocationTable.insertMethodInfo(VALID_PID, VALID_SESSION, methodsToInsert);
 
     // Valid cases
-    StackFrame convertedMethod1 = method1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
-    StackFrame convertedMethod2 = method2.toBuilder().setClassName(JAVA_KLASS2_NAME).build();
-    assertEquals(convertedMethod1, myAllocationTable.queryMethodInfo(VALID_PID, VALID_SESSION, METHOD1));
-    assertEquals(convertedMethod2, myAllocationTable.queryMethodInfo(VALID_PID, VALID_SESSION, METHOD2));
+    StackFrameInfoResponse convertedMethod1 =
+      StackFrameInfoResponse.newBuilder().setMethodName(METHOD1_NAME).setClassName(JAVA_KLASS1_NAME).build();
+    StackFrameInfoResponse convertedMethod2 =
+      StackFrameInfoResponse.newBuilder().setMethodName(METHOD2_NAME).setClassName(JAVA_KLASS2_NAME).build();
+    assertEquals(convertedMethod1, myAllocationTable.getStackFrameInfo(VALID_PID, VALID_SESSION, METHOD1));
+    assertEquals(convertedMethod2, myAllocationTable.getStackFrameInfo(VALID_PID, VALID_SESSION, METHOD2));
 
     // Non-existent methods / invalid pid
-    assertEquals(StackFrame.getDefaultInstance(), myAllocationTable.queryMethodInfo(INVALID_PID, VALID_SESSION, METHOD1));
-    assertEquals(StackFrame.getDefaultInstance(), myAllocationTable.queryMethodInfo(VALID_PID, INVALID_SESSION, METHOD2));
-    assertEquals(StackFrame.getDefaultInstance(), myAllocationTable.queryMethodInfo(VALID_PID, VALID_SESSION, METHOD3));
+    assertEquals(StackFrameInfoResponse.getDefaultInstance(), myAllocationTable.getStackFrameInfo(INVALID_PID, VALID_SESSION, METHOD1));
+    assertEquals(StackFrameInfoResponse.getDefaultInstance(), myAllocationTable.getStackFrameInfo(VALID_PID, INVALID_SESSION, METHOD2));
+    assertEquals(StackFrameInfoResponse.getDefaultInstance(), myAllocationTable.getStackFrameInfo(VALID_PID, VALID_SESSION, METHOD3));
   }
 
   @Test
@@ -357,10 +360,8 @@ public class MemoryLiveAllocationTableTest {
 
     AllocatedClass expectedKlass1 = class1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
     AllocationStack expectedStack1 = AllocationStack.newBuilder().setStackId(STACK1)
-      .addStackFrames(
-        StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setLineNumber(LINE1).setClassName(JAVA_KLASS1_NAME))
-      .addStackFrames(
-        StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setLineNumber(LINE2).setClassName(JAVA_KLASS2_NAME))
+      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
+      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
       .build();
     ThreadInfo expectedThread = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).build();
 
@@ -414,16 +415,12 @@ public class MemoryLiveAllocationTableTest {
     AllocatedClass expectedKlass1 = class1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
     AllocatedClass expectedKlass2 = class2.toBuilder().setClassName(JAVA_KLASS2_NAME).build();
     AllocationStack expectedStack1 = AllocationStack.newBuilder().setStackId(STACK1)
-      .addStackFrames(
-        StackFrame.newBuilder().setMethodId(METHOD1).setMethodName(METHOD1_NAME).setLineNumber(LINE1).setClassName(JAVA_KLASS1_NAME))
-      .addStackFrames(
-        StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setLineNumber(LINE2).setClassName(JAVA_KLASS2_NAME))
+      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
+      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
       .build();
     AllocationStack expectedStack2 = AllocationStack.newBuilder().setStackId(STACK2)
-      .addStackFrames(
-        StackFrame.newBuilder().setMethodId(METHOD2).setMethodName(METHOD2_NAME).setLineNumber(LINE2).setClassName(JAVA_KLASS2_NAME))
-      .addStackFrames(
-        StackFrame.newBuilder().setMethodId(METHOD3).setMethodName(METHOD3_NAME).setLineNumber(LINE3).setClassName(JAVA_KLASS3_NAME))
+      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
+      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD3).setLineNumber(LINE3))
       .build();
     ThreadInfo expectedThread1 = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).build();
     ThreadInfo expectedThread2 = ThreadInfo.newBuilder().setThreadId(THREAD2).setThreadName(THREAD2_NAME).build();

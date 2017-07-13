@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.FakeGrpcChannel;
@@ -32,9 +31,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject.DEFAULT_HEAP_NAME;
@@ -396,6 +393,41 @@ public class LiveAllocationCaptureObjectTest {
     loadRange.set(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
     assertThat(loadSuccess[0]).isTrue();
     verifyClassifierResult(heapSet, new LinkedList<>(expected_0_to_4), 0);
+  }
+
+  // Class + method names in each StackFrame are lazy-loaded. Check that the method info are fetched correctly.
+  @Test
+  public void testLazyLoadedCallStack() throws Exception {
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(myGrpcChannel.getClient().getMemoryClient(),
+                                                                          ProfilersTestData.SESSION_DATA,
+                                                                          APP_ID,
+                                                                          CAPTURE_START_TIME,
+                                                                          LOAD_SERVICE,
+                                                                          myStage);
+
+    // Heap set should start out empty.
+    HeapSet heapSet = capture.getHeapSet(LiveAllocationCaptureObject.DEFAULT_HEAP_ID);
+    assertThat(heapSet.getChildrenClassifierSets().size()).isEqualTo(0);
+    heapSet.setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK);
+
+    Queue<String> expected_0_to_4 = new LinkedList<>();
+    expected_0_to_4.add(String.format(NODE_FORMAT, DEFAULT_HEAP_NAME, 4, 2, 4, 4, true));
+    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "BarMethodA() (That.Is.Bar)", 1, 1, 1, 1, true));
+    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "FooMethodA() (This.Is.Foo)", 1, 1, 1, 1, true));
+    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Foo", 1, 1, 1, 0, true));
+    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "FooMethodB() (This.Also.Foo)", 1, 1, 1, 1, true));
+    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "BarMethodA() (That.Is.Bar)", 1, 1, 1, 1, true));
+    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Bar", 1, 1, 1, 0, true));
+    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, true));
+    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "FooMethodB() (This.Also.Foo)", 1, 0, 1, 1, true));
+    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Foo", 1, 0, 1, 0, true));
+    expected_0_to_4.add(String.format(" " + NODE_FORMAT, "FooMethodA() (This.Is.Foo)", 1, 0, 1, 1, true));
+    expected_0_to_4.add(String.format("  " + NODE_FORMAT, "BarMethodB() (That.Also.Bar)", 1, 0, 1, 1, true));
+    expected_0_to_4.add(String.format("   " + NODE_FORMAT, "Bar", 1, 0, 1, 0, true));
+
+    Range loadRange = new Range(CAPTURE_START_TIME, CAPTURE_START_TIME + 4);
+    capture.load(loadRange, LOAD_JOINER);
+    verifyClassifierResult(heapSet, expected_0_to_4, 0);
   }
 
   /**

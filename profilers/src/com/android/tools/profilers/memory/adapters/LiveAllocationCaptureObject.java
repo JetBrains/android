@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.stacktrace.ThreadId;
@@ -106,6 +107,23 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     myContextEndTimeNs = Long.MIN_VALUE;
     myPreviousQueryStartTimeNs = Long.MIN_VALUE;
     myPreviousQueryEndTimeNs = Long.MIN_VALUE;
+  }
+
+  @Override
+  @NotNull
+  public Common.Session getSession() {
+    return mySession;
+  }
+
+  @Override
+  public int getProcessId() {
+    return myProcessId;
+  }
+
+  @Override
+  @NotNull
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getClient() {
+    return myClient;
   }
 
   @NotNull
@@ -218,7 +236,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         // TODO remove creation of instance object through the CLASS_DATA path. This should be handled by ALLOC_DATA.
         // TODO pass in proper allocation time once this is handled via ALLOC_DATA.
         LiveAllocationInstanceObject instance =
-          new LiveAllocationInstanceObject(entry, null, null, null, MemoryObject.INVALID_VALUE);
+          new LiveAllocationInstanceObject(this, entry, null, null, null, MemoryObject.INVALID_VALUE);
         instance.setAllocationTime(myCaptureStartTime);
         myClassMap.put(entry, instance);
         // TODO figure out what to do with java.lang.Class instance objects
@@ -394,7 +412,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         assert myThreadIdMap.containsKey(threadId);
         thread = myThreadIdMap.get(threadId);
       }
-      instance = new LiveAllocationInstanceObject(entry, myClassMap.get(entry), thread, callstack, size);
+      instance = new LiveAllocationInstanceObject(this, entry, myClassMap.get(entry), thread, callstack, size);
       myInstanceMap.put(tag, instance);
     }
 

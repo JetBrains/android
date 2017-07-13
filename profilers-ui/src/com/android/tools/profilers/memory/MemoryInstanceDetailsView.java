@@ -19,7 +19,6 @@ import com.android.tools.adtui.FlatTabbedPane;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.RelativeTimeConverter;
@@ -45,7 +44,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
@@ -258,12 +256,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     // Populate Callstacks
-    AllocationStack callStack = instance.getCallStack();
-    if (callStack != null && !callStack.getStackFramesList().isEmpty()) {
-      List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
-        .map(AllocationStackConverter::getCodeLocation)
-        .collect(Collectors.toList());
-      myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), stackFrames);
+    List<CodeLocation> callStack = instance.getCodeLocations();
+    if (!callStack.isEmpty()) {
+      myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), callStack);
       JComponent stackTraceView = myStackTraceView.getComponent();
       stackTraceView.setBorder(DEFAULT_TOP_BORDER);
       myTabsPanel.addTab(TITLE_TAB_CALLSTACK, stackTraceView);

@@ -16,12 +16,14 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface InstanceObject extends ValueObject {
   int getHeapId();
@@ -60,9 +62,29 @@ public interface InstanceObject extends ValueObject {
     return Long.MAX_VALUE;
   }
 
+  /**
+   * @return The callstack proto associated with the Instance's allocation event.
+   */
   @Nullable
   default AllocationStack getCallStack() {
     return null;
+  }
+
+  /**
+   * @return The IJ-friendly callstack which can be used to navigate to the user code using the StackTraceView.
+   */
+  @NotNull
+  default List<CodeLocation> getCodeLocations() {
+    AllocationStack callStack = getCallStack();
+    if (callStack != null && !callStack.getStackFramesList().isEmpty()) {
+      List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
+        .map(AllocationStackConverter::getCodeLocation)
+        .collect(Collectors.toList());
+
+      return stackFrames;
+    }
+
+    return Collections.emptyList();
   }
 
   @NotNull

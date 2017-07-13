@@ -16,6 +16,8 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,6 +95,20 @@ public interface CaptureObject extends MemoryObject {
     public SortOrder getSortOrder() {
       return mySortOrder;
     }
+  }
+
+  @Nullable
+  default Common.Session getSession() {
+    return null;
+  }
+
+  default int getProcessId() {
+    return -1;
+  }
+
+  @Nullable
+  default MemoryServiceGrpc.MemoryServiceBlockingStub getClient() {
+    return null;
   }
 
   @Nullable
