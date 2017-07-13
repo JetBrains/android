@@ -106,7 +106,7 @@ public class TemplateValueInjectorTest{
     assertThat(templateValues).isNotEmpty();
     assertThat(templateValues.get(TemplateMetadata.ATTR_BUILD_API)).isEqualTo(PREVIEW_VERSION);
     assertThat(templateValues.get(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION)).isEqualTo("26.0.0 rc1");
-    assertThat(templateValues.get(TemplateMetadata.ATTR_KOTLIN_VERSION)).isEqualTo(TestUtils.KOTLIN_VERSION_FOR_TESTS);
+    assertThat(templateValues.get(TemplateMetadata.ATTR_KOTLIN_VERSION)).isNotNull();
   }
 
   private static void recordBuildTool26rc1(MockFileOp fop) {
