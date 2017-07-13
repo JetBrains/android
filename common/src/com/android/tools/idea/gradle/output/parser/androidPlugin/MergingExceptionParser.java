@@ -15,15 +15,19 @@ import java.util.List;
 /**
  * A parser for errors that happen during resource merging, usually via
  * a {@link com.android.ide.common.res2.MergingException}
+ * This parser also catches C/C++ errors from the ninja process.
  * <p/>
  * The error will be in one of these formats:
  * <pre>
  * path: Error: message
  * path: error: message
+ * path: fatal error: message
  * path:line: Error: message
  * path:line: error: message
+ * path:line: fatal error: message
  * path:line:column: Error: message
  * path:line:column: error: message
+ * path:line:column: fatal error: message
  * path: Warning: message
  * path: warning: message
  * path:line: Warning: message
@@ -45,7 +49,10 @@ public class MergingExceptionParser implements PatternAwareOutputParser {
       if (messageIndex == -1) {
         messageIndex = line.indexOf(": error: ");
         if (messageIndex == -1) {
-          return false;
+          messageIndex = line.indexOf(": fatal error: ");
+          if (messageIndex == -1) {
+            return false;
+          }
         }
       }
       kind = Message.Kind.ERROR;
