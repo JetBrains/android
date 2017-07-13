@@ -596,7 +596,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "<android.support.design.widget.TextInputLayout\n" +
     "  android:layout_width=\"match_parent\"\n" +
     "  android:layout_height=\"wrap_content\">\n" +
-    "  <EditText\n" +
+    "  <android.support.design.widget.TextInputEditText\n" +
     "    android:layout_width=\"match_parent\"\n" +
     "    android:layout_height=\"wrap_content\"\n" +
     "    android:hint=\"hint\" />\n" +
