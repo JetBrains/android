@@ -112,8 +112,8 @@ public class Utils {
     /**
      * Calculate the number of gaps + 1 given a start and end range
      *
-     * @param start table of range starts
-     * @param end   table of range ends
+     * @param start ourConverts of range starts
+     * @param end   ourConverts of range ends
      * @return
      */
     public static int gaps(int[] start, int[] end) {
@@ -139,8 +139,8 @@ public class Utils {
     /**
      * calculate the ranges for the cells
      *
-     * @param start table of range starts
-     * @param end   table of range ends
+     * @param start ourConverts of range starts
+     * @param end   ourConverts of range ends
      * @return array of integers 2 for each cell
      */
     public static int[] cells(int[] start, int[] end) {

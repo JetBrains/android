@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import android.support.constraint.solver.widgets.ConstraintWidget;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
@@ -25,6 +25,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;
+
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.*;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.pixelToDP;
 
 /**
  * Main Wrapper class for Constraint Widgets
@@ -38,6 +42,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   private int mHeight;
   private int mBaseLine;
   private ScoutWidget mParent;
+  boolean mCheckedForChain;
+  private DimensionInfo mPreConvertDimension;
   private float mRootDistance;
   private float[] mDistToRootCache = new float[]{-1, -1, -1, -1};
   NlComponent mNlComponent;
@@ -69,6 +75,12 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   private static final Direction[] DIR_BOTTOM = {Direction.TOP, Direction.BOTTOM};
   private static final Direction[] DIR_BASE = {Direction.BASELINE};
   static final Direction[][] ATTR_DIR_CONNECT = {DIR_TOP, DIR_BOTTOM, DIR_LEFT, DIR_RIGHT, DIR_BASE};
+  /**
+   * Define how the widget will resize
+   */
+  public enum DimensionBehaviour {
+    FIXED, WRAP_CONTENT, MATCH_CONSTRAINT, MATCH_PARENT
+  }
 
   public ScoutWidget(NlComponent component, ScoutWidget parent) {
     this.mNlComponent = component;
@@ -125,7 +137,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
   @Override
   public String toString() {
-    return mNlComponent.toString() + "[ " + mX + " , " + mY + " ] " + mWidth + " x " + mHeight;
+    return mNlComponent.toString() +"("+ mNlComponent.getId()+ ") [ " + mX + " , " + mY + " ] " + mWidth + " x " + mHeight;
   }
 
   boolean isRoot() {
@@ -174,12 +186,56 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   /**
+   * Class to contain information from built during conversion.
+   * When converting layouts an intermediate set of attributes are created
+   * This provides information about wrap content size and original size
+   */
+  static class DimensionInfo {
+    int myHeight;
+    int myWidth;
+    int myWrapWidth;
+    int myWrapHeight;
+
+    public DimensionInfo(NlComponent component, ScoutWidget widget) {
+      // Record the bounds for use by Scout
+      myWidth = convert(component, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH);
+      myHeight = convert(component, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT);
+      String ww = component.getLiveAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH);
+      String wh = component.getLiveAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT);
+      if (DEBUG) {
+        if (ww == null) {
+          System.out.println("WARNING ! why no wrap ? " + component);
+        }
+      }
+      int wrapWidth = (ww == null) ? 0 : Integer.parseInt(ww);
+      int wrapHeight = (wh == null) ? 0 : Integer.parseInt(wh);
+      wrapWidth = pixelToDP(component, wrapWidth);
+      wrapHeight = pixelToDP(component, wrapHeight);
+      myWrapWidth = ConstraintComponentUtilities.getDpWidth(component);
+      myWrapHeight = ConstraintComponentUtilities.getDpHeight(component);
+      if (DEBUG) {
+        if (myWrapWidth != wrapWidth || myHeight != myWrapHeight) {
+          System.out.print(component.getId() + " width = " + myWidth + "(>>:" + myWrapWidth + "<<) ");
+          System.out.println("height = " + myHeight + "(>>:" + myWrapHeight + "<<) ");
+        }
+      }
+      widget.mWidth = myWidth;
+      widget.mHeight = myHeight;
+    }
+
+    private int convert(NlComponent component, String attr) {
+      String s = component.getAttribute(TOOLS_URI, attr);
+      return Integer.parseInt(s.substring(0, s.length() - 2));
+    }
+  }
+
+  /**
    * Wrap an array of NlComponent into an array of ScoutWidget
    *
    * @param array
    * @return
    */
-  public static ScoutWidget[] create(NlComponent[] array) {
+  public static ScoutWidget[] create(NlComponent[] array, boolean fromConvert) {
     ScoutWidget[] ret = new ScoutWidget[array.length];
     NlComponent root = null;
     if (array.length == 0) {
@@ -210,7 +266,11 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     int count = 1;
     for (int i = 0; i < ret.length; i++) {
       if (array[i] != root) {
-        ret[count++] = new ScoutWidget(array[i], rootWidget);
+        ScoutWidget current;
+        ret[count++] = current = new ScoutWidget(array[i], rootWidget);
+        if (fromConvert) {
+          current.mPreConvertDimension = new DimensionInfo(array[i], current);
+        }
       }
     }
     rootWidget.mX = 0;
@@ -329,7 +389,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     ConstraintComponentUtilities.setScoutAbsoluteDpWidth(mNlComponent, value, true);
   }
 
-  public void setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour behaviour) {
+  public void setHorizontalDimensionBehaviour(DimensionBehaviour behaviour) {
     switch (behaviour) {
       case FIXED: {
         setDpWidth(mWidth);
@@ -352,7 +412,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     }
   }
 
-  public void setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour behaviour) {
+  public void setVerticalDimensionBehaviour(DimensionBehaviour behaviour) {
     switch (behaviour) {
       case FIXED: {
         setDpHeight(mHeight);
@@ -387,7 +447,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   static ScoutWidget[] getWidgetArray(NlComponent base) {
     ArrayList<NlComponent> list = new ArrayList<>(base.getChildren());
     list.add(0, base);
-    return create(list.toArray(new NlComponent[list.size()]));
+    return create(list.toArray(new NlComponent[list.size()]), false);
   }
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -566,7 +626,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
           float stretchRatio = (gap * 2) / (float)height;
           if (isCandidateResizable(dir) && stretchRatio < MAXIMUM_STRETCH_GAP) {
             setVerticalDimensionBehaviour(
-              ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
+              DimensionBehaviour.MATCH_CONSTRAINT);
           }
           else {
             gap = 0;
@@ -577,7 +637,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
           float stretchRatio = (gap * 2) / (float)width;
           if (isCandidateResizable(dir) && stretchRatio < MAXIMUM_STRETCH_GAP) {
             setHorizontalDimensionBehaviour(
-              ConstraintWidget.DimensionBehaviour.MATCH_CONSTRAINT);
+              DimensionBehaviour.MATCH_CONSTRAINT);
           }
           else {
             gap = 0;
@@ -596,7 +656,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         connect(cDir2, to2, cDir2, (int)gap);
       }
       else {
-
         float pos1 = to1.getLocation(cDir1);
         float pos2 = to2.getLocation(cDir2);
         Direction c1 = (pos1 < pos2) ? (ori) : (ori.getOpposite());
@@ -615,7 +674,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       return true;
     }
     else {
-
       return false;
     }
   }
@@ -872,6 +930,29 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    * @return true if the widget is a good candidate for resize
    */
   public boolean isCandidateResizable(int dimension) {
+    {
+      boolean ret;
+      if (mPreConvertDimension != null) {
+        if (dimension == 0) {
+          ret =  mHeight != mPreConvertDimension.myWrapHeight;
+        } else {
+          ret = mWidth != mPreConvertDimension.myWrapWidth;
+        }
+      } else {
+        if (dimension == 0) {
+          ret = ConstraintComponentUtilities.hasUserResizedVertically(mNlComponent);
+        } else {
+          ret = ConstraintComponentUtilities.hasUserResizedHorizontally(mNlComponent);
+        }
+      }
+    }
+    if (mPreConvertDimension != null) {
+      if (dimension == 0) {
+        return mHeight != mPreConvertDimension.myWrapHeight;
+      }
+      return mWidth != mPreConvertDimension.myWrapWidth;
+    }
+
     if (dimension == 0) {
       return ConstraintComponentUtilities.hasUserResizedVertically(mNlComponent);
     }

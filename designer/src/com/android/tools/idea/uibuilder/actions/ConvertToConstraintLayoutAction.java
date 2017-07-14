@@ -20,11 +20,9 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scout.Scout;
+import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
@@ -41,6 +39,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.*;
 import com.intellij.refactoring.rename.RenameProcessor;
@@ -48,9 +47,11 @@ import com.intellij.usageView.UsageInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static java.util.Locale.ROOT;
@@ -68,10 +69,10 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   public static final String TITLE = "Convert to ConstraintLayout";
   public static final boolean ENABLED = true;
 
-  public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_X = "layout_conversion_absoluteX"; //$NON-NLS-1$
-  public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y = "layout_conversion_absoluteY"; //$NON-NLS-1$
   public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH = "layout_conversion_absoluteWidth"; //$NON-NLS-1$
   public static final String ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT = "layout_conversion_absoluteHeight"; //$NON-NLS-1$
+  public static final String ATTR_LAYOUT_CONVERSION_WRAP_WIDTH = "layout_conversion_wrapWidth"; //$NON-NLS-1$
+  public static final String ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT = "layout_conversion_wrapHeight"; //$NON-NLS-1$
 
   private final NlDesignSurface mySurface;
 
@@ -96,7 +97,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       tagName = tagName.substring(tagName.lastIndexOf('.') + 1);
       presentation.setText("Convert " + tagName + " to ConstraintLayout");
       presentation.setEnabled(true);
-    } else {
+    }
+    else {
       presentation.setText(TITLE);
       presentation.setEnabled(false);
       presentation.setVisible(true);
@@ -161,11 +163,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   private static void inferConstraints(@NotNull NlComponent target) {
     try {
-
-      Scout.inferConstraints(target);
+      Scout.inferConstraintsFromConvert(target);
       ArrayList<NlComponent> list = new ArrayList<>(target.getChildren());
       list.add(0, target);
-
       for (NlComponent component : list) {
         AttributesTransaction transaction = component.startAttributeTransaction();
         transaction.commit();
@@ -177,19 +177,26 @@ public class ConvertToConstraintLayoutAction extends AnAction {
     }
   }
 
-  /** Removes absolute x/y/width/height conversion attributes */
+  /**
+   * Removes absolute x/y/width/height conversion attributes
+   */
   private static void removeAbsolutePositionAndSizes(NlComponent component) {
     // Work bottom up to ensure the children aren't invalidated when processing the parent
     for (NlComponent child : component.getChildren()) {
-      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_X, null);
-      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y, null);
       child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, null);
       child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, null);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, null);
+      child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, null);
+
+
       removeAbsolutePositionAndSizes(child);
     }
   }
 
   private static class ConstraintLayoutConverter extends WriteCommandAction {
+    private static final boolean DIRECT_INFERENCE = true;
     private final ScreenView myScreenView;
     private final boolean myFlatten;
     private final boolean myIncludeIds;
@@ -220,23 +227,25 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       if (myLayout == null) {
         return;
       }
+      NlComponentHelperKt.ensureId(myLayout);
+
+      boolean directConvert = true;
+      if (myFlatten) {
+        for (NlComponent child : myLayout.getChildren()) {
+          if (isLayout(child)) {
+            directConvert = false;
+          }
+        }
+      }
+      if (directConvert && ScoutDirectConvert.directProcess(myLayout)) {
+        return;
+      }
 
       myToBeFlattened = Lists.newArrayList();
       processComponent(myLayout);
 
-      String[] toDelete =
-        {ATTR_PADDING, ATTR_PADDING_LEFT, ATTR_PADDING_RIGHT, ATTR_PADDING_START, ATTR_PADDING_END, ATTR_PADDING_TOP, ATTR_PADDING_BOTTOM,
-          ATTR_ORIENTATION};
-      // TODO: This should walk the attributes and remove ones that do not apply but it may have unintended side effects
-
-      // We should also remove padding attributes on the root element - these confuse the constraint layout handler (issue #209905)
-      for (int i = 0; i < toDelete.length; i++) {
-        myLayout.setAttribute(ANDROID_URI, toDelete[i], null);
-      }
-
       flatten();
-      myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
-
+      PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
       //((NlComponentMixin)myLayout.getMixin()).getData$production_sources_for_module_designer().
 
       NlModel model = myLayout.getModel();
@@ -247,10 +256,60 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
       myRoot = model.findViewByTag(rootTag);
       myLayout = model.findViewByTag(layoutTag);
-      inferConstraints(myLayout);
+
+      tag = CodeStyleManager.getInstance(getProject()).reformat(tag);
+      myLayout.getModel().syncWithPsi((XmlTag)tag, Collections.emptyList());
+
+      if (DIRECT_INFERENCE) { // Let's run Scout after the flattening. Ideally we should run this after the model got a chance to update.
+        final String id = myLayout.getId();
+        myScreenView.getModel().addListener(new ModelListener() {
+          @Override
+          public void modelRendered(@NotNull NlModel model) {
+            final ModelListener listner = this;
+            ApplicationManager.getApplication().invokeLater(new Runnable() {
+              @Override
+              public void run() {
+
+                WriteCommandAction<Void> action =
+                  new WriteCommandAction<Void>(myLayout.getModel().getProject(), "Infer Constraints", myLayout.getModel().getFile()) {
+                    @Override
+                    protected void run(Result<Void> result) throws Throwable {
+                      NlComponent layout = myScreenView.getModel().find(id);
+                      if (layout != null) {
+                        Map<NlComponent, Dimension> sizes = myEditor.measureChildren(layout, null);
+
+                        for (NlComponent component : sizes.keySet()) {
+                          Dimension d = sizes.get(component);
+                          component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
+                          component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT, Integer.toString(d.height));
+                        }
+
+                        inferConstraints(layout);
+                        myScreenView.getModel().removeListener(listner);
+                      }
+                    }
+                  };
+                action.execute();
+              }
+            });
+          }
+
+          @Override
+          public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+
+          }
+        });
+
+
+        //});
+        //t.setRepeats(false);
+        // t.start();
+      }
     }
 
-    /** Add bounds to components and record components to be flattened into {@link #myToBeFlattened} */
+    /**
+     * Add bounds to components and record components to be flattened into {@link #myToBeFlattened}
+     */
     private void processComponent(NlComponent component) {
       // Work bottom up to ensure the children aren't invalidated when processing the parent
       for (NlComponent child : component.getChildren()) {
@@ -258,12 +317,17 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         int dpy = myEditor.pxToDp(NlComponentHelperKt.getY(child) - NlComponentHelperKt.getY(myRoot));
         int dpw = myEditor.pxToDp(NlComponentHelperKt.getW(child));
         int dph = myEditor.pxToDp(NlComponentHelperKt.getH(child));
-
-        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
-        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
-        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, String.format(ROOT, VALUE_N_DP, dpw));
-        child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, String.format(ROOT, VALUE_N_DP, dph));
-
+        AttributesTransaction transaction = child.startAttributeTransaction();
+        // Record the bounds for use by Scout
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, String.format(ROOT, VALUE_N_DP, dpw));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, String.format(ROOT, VALUE_N_DP, dph));
+        // position in absolute coordinates
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
+        //* Set to wrap Scout can use
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+        transaction.commit();
         // First gather attributes to delete; can delete during iteration (concurrent modification exceptions will ensure)
         List<String> toDelete = null;
         for (AttributeSnapshot attribute : child.getAttributes()) {
@@ -289,10 +353,12 @@ public class ConvertToConstraintLayoutAction extends AnAction {
           if (myFlatten) {
             if (shouldFlatten(child)) {
               myToBeFlattened.add(child);
-            } else {
+            }
+            else {
               continue;
             }
-          } else {
+          }
+          else {
             continue;
           }
         }
@@ -370,7 +436,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       List<NlComponent> children = component.getChildren();
       if (children.size() > 1) {
         return true;
-      } else if (children.size() == 1) {
+      }
+      else if (children.size() == 1) {
         NlComponent child = children.get(0);
         if (!REQUEST_FOCUS.equals(child.getTagName())) {
           // Some child *other* than <requestFocus> - must be a layout

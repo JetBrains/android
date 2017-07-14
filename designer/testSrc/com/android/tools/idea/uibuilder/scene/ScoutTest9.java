@@ -42,12 +42,12 @@ public class ScoutTest9 extends SceneTest {
                    .children(
                      component(TEXT_VIEW)
                        .withBounds(32, 416, 98, 34)
-                       .width("49dp")
-                       .height("17dp"),
+                       .width("wrap_content")
+                       .height("wrap_content"),
                      component(TEXT_VIEW)
                        .withBounds(32, 512, 98, 34)
-                       .width("49dp")
-                       .height("17dp")
+                       .width("wrap_content")
+                       .height("wrap_content")
                    ));
   }
 
@@ -59,12 +59,12 @@ public class ScoutTest9 extends SceneTest {
                  "  android:layout_height=\"512dp\">\n" +
                  "\n" +
                  "  <TextView\n" +
-                 "    android:layout_width=\"49dp\"\n" +
-                 "    android:layout_height=\"17dp\"/>\n" +
+                 "    android:layout_width=\"wrap_content\"\n" +
+                 "    android:layout_height=\"wrap_content\"/>\n" +
                  "\n" +
                  "  <TextView\n" +
-                 "    android:layout_width=\"49dp\"\n" +
-                 "    android:layout_height=\"17dp\"/>\n" +
+                 "    android:layout_width=\"wrap_content\"\n" +
+                 "    android:layout_height=\"wrap_content\"/>\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
@@ -79,22 +79,22 @@ public class ScoutTest9 extends SceneTest {
                  "  android:layout_height=\"512dp\">\n" +
                  "\n" +
                  "  <TextView\n" +
-                 "    android:layout_width=\"0dp\"\n" +
-                 "    android:layout_height=\"17dp\"\n" +
+                 "    android:layout_width=\"wrap_content\"\n" +
+                 "    android:layout_height=\"wrap_content\"\n" +
                  "      android:id=\"@+id/textView\"\n" +
-                 "      app:layout_constraintStart_toStartOf=\"@+id/textView2\"\n" +
-                 "      app:layout_constraintEnd_toEndOf=\"@+id/textView2\"\n" +
-                 "      android:layout_marginBottom=\"31dp\"\n" +
-                 "      app:layout_constraintBottom_toTopOf=\"@+id/textView2\" />\n" +
-                 "\n" +
-                 "  <TextView\n" +
-                 "    android:layout_width=\"49dp\"\n" +
-                 "    android:layout_height=\"17dp\"\n" +
-                 "      android:id=\"@+id/textView2\"\n" +
                  "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "      android:layout_marginTop=\"208dp\"\n" +
                  "      android:layout_marginStart=\"16dp\" />\n" +
+                 "\n" +
+                 "  <TextView\n" +
+                 "    android:layout_width=\"wrap_content\"\n" +
+                 "    android:layout_height=\"wrap_content\"\n" +
+                 "      android:id=\"@+id/textView2\"\n" +
+                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "      android:layout_marginTop=\"31dp\"\n" +
+                 "      android:layout_marginStart=\"16dp\"\n" +
+                 "      app:layout_constraintTop_toBottomOf=\"@+id/textView\" />\n" +
                  "\n" +
                  "</android.support.constraint.ConstraintLayout>");
   }
