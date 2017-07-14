@@ -33,10 +33,20 @@ public class BrowsePanelTest extends PropertyTestCase {
 
   public void testGetResourceTypes() {
     Map<String, NlProperty> props = getPropertyMap(Collections.singletonList(myTextView));
-    assertThat(BrowsePanel.hasResourceChooser(props.get(SdkConstants.ATTR_ID))).isFalse();
-    assertThat(BrowsePanel.hasResourceChooser(props.get(SdkConstants.ATTR_TEXT))).isTrue();
-    assertThat(BrowsePanel.hasResourceChooser(props.get(SdkConstants.ATTR_BACKGROUND))).isTrue();
-    assertThat(BrowsePanel.hasResourceChooser(props.get(SdkConstants.ATTR_TYPEFACE))).isFalse();
+    assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_ID))).isFalse();
+    assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_TEXT))).isTrue();
+    assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_BACKGROUND))).isTrue();
+    assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_TYPEFACE))).isFalse();
+  }
+
+  public void testGetResourceTypesForView() {
+    Map<String, NlProperty> props = getPropertyMap(Collections.singletonList(myViewTag));
+    assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_CLASS))).isTrue();
+  }
+
+  public void testGetResourceTypesForFragment() {
+    Map<String, NlProperty> props = getPropertyMap(Collections.singletonList(myFragment));
+    assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_NAME))).isTrue();
   }
 
   public void testMouseMovedLeftOfButtons() {

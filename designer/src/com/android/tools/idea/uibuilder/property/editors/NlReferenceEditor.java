@@ -114,7 +114,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myIconLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
-        displayResourcePicker();
+        showBrowseDialog();
       }
     });
     myIconLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
@@ -226,7 +226,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       return EnumSet.noneOf(ResourceType.class);
     }
 
-    EnumSet<ResourceType> resourceTypes = BrowsePanel.getResourceTypes(property.getName(), definition);
+    EnumSet<ResourceType> resourceTypes = BrowsePanel.getResourceTypes(property);
     if (TOOLS_URI.equals(property.getNamespace())) {
       // Tools attributes can use sample data as source
       resourceTypes.add(ResourceType.SAMPLE_DATA);
