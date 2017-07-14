@@ -75,6 +75,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myImageViewInCollapsingToolbarLayout;
   protected NlComponent myTabLayout;
   protected NlComponent myRelativeLayout;
+  protected NlComponent myViewTag;
+  protected NlComponent myFragment;
   protected SyncNlModel myModel;
   protected DesignSurface myDesignSurface;
   protected ScreenView myScreenView;
@@ -109,6 +111,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
     myTabLayout = myComponentMap.get("tabLayout");
     myRelativeLayout = myComponentMap.get("relativeLayout");
+    myViewTag = myComponentMap.get("viewTag");
+    myFragment = myComponentMap.get("fragmentTag");
     myDesignSurface = myModel.getSurface();
     myScreenView = createScreen(myModel);
     myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
@@ -297,6 +301,16 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                        .id("@id/relativeLayout")
                                        .width("700dp")
                                        .height("1000dp"),
+                                     component(VIEW_TAG)
+                                       .withBounds(400, 0, 100, 100)
+                                       .id("@id/viewTag")
+                                       .width("100dp")
+                                       .height("100dp"),
+                                     component(VIEW_FRAGMENT)
+                                       .withBounds(400, 100, 100, 100)
+                                       .id("@id/fragmentTag")
+                                       .width("100dp")
+                                       .height("100dp"),
                                      component(LINEAR_LAYOUT)
                                        .withBounds(300, 0, 700, 1000)
                                        .id("@id/linearlayout")

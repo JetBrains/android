@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.assetstudiolib.MaterialDesignIcons;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -304,8 +303,7 @@ public class ViewEditorImpl extends ViewEditor {
     return ChooseClassDialog.openDialog(module, "Classes", true, psiFilter, superTypesArray);
   }
 
-  @VisibleForTesting
-  static boolean isRestricted(@NotNull PsiClass psiClass) {
+  public static boolean isRestricted(@NotNull PsiClass psiClass) {
     PsiModifierList modifiers = psiClass.getModifierList();
     if (modifiers == null) {
       return false;
