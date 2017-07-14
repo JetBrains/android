@@ -17,21 +17,18 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.vfs.VfsUtil;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JButtonFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import java.awt.Container;
 import java.io.File;
 
 /**
- * <p>Fixture for working with the {@link LibraryEditorForm} that shows up
- * for adding debug symbols for native libraries. This form also shows up
- * when mapping path to source code given in the debug symbols to the local
- * filesystem paths containing the same source.</p>
- * Created by afwang on 7/17/17.
+ * Fixture to work with {@link LibraryEditorForm} to add debug symbols.
  */
 public class LibraryEditorFixture extends EditorFixture {
 
@@ -43,21 +40,37 @@ public class LibraryEditorFixture extends EditorFixture {
   }
 
   public static LibraryEditorFixture find(@NotNull IdeFrameFixture ideFrame) {
-    Container target = ideFrame.robot().finder().findByName(ideFrame.target(), "nativeLibraryDebugSymbolsContainer", JPanel.class, true);
+    Container target = ideFrame
+      .robot()
+      .finder()
+      .findByName(
+        ideFrame.target(),
+        "nativeLibraryDebugSymbolsContainer",
+        JPanel.class,
+        true);
     return new LibraryEditorFixture(ideFrame, target);
   }
 
   @NotNull
   public LibraryEditorFixture addDebugSymbols(@NotNull File debugSymbols) {
-    JButton addButton = robot.finder().findByName(libraryContainer, "addDebugSymbolsButton", JButton.class, true);
+    JButton addButton = robot
+      .finder()
+      .findByName(
+        libraryContainer,
+        "addDebugSymbolsButton",
+        JButton.class,
+        true);
     new JButtonFixture(robot, addButton).click();
 
-    FileChooserDialogFixture debugSymbolsDialog = FileChooserDialogFixture.findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@Nonnull JDialog component) {
-        return "Debug Symbols".equals(component.getTitle());
-      }
-    });
+    FileChooserDialogFixture debugSymbolsDialog =
+      FileChooserDialogFixture.findDialog(
+        robot,
+        new GenericTypeMatcher<JDialog>(JDialog.class) {
+          @Override
+          protected boolean isMatching(@Nonnull JDialog component) {
+            return "Debug Symbols".equals(component.getTitle());
+         }
+        });
 
     debugSymbolsDialog.select(VfsUtil.findFileByIoFile(debugSymbols, true));
     debugSymbolsDialog.clickOk();

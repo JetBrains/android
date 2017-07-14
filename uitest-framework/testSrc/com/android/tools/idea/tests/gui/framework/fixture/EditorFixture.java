@@ -716,7 +716,8 @@ public class EditorFixture {
     return ApkViewerFixture.find(getIdeFrame());
   }
 
-  public LibraryEditorFixture getLibrarySymbolsFixture(String libraryName) {
+  @NotNull
+  public LibraryEditorFixture getLibrarySymbolsFixture(@NotNull String libraryName) {
     switchToTab(libraryName);
     return LibraryEditorFixture.find(getIdeFrame());
   }
