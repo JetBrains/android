@@ -56,8 +56,10 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
+import java.awt.Component;
+import java.awt.Container;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -192,7 +194,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     private NodeFixture findApkNode() {
-      final AbstractTreeStructure treeStructure = getTreeStructure();
+      AbstractTreeStructure treeStructure = getTreeStructure();
 
       ApkModuleNode apkNode = GuiQuery.getNonNull(() -> {
         for (Object child : treeStructure.getChildElements(treeStructure.getRootElement())) {
@@ -218,12 +220,11 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     public NodeFixture findNativeLibraryNodeFor(@NotNull String libraryName) {
-      NodeFixture nativeLibs = findNativeLibrariesNode(findApkNode());
+      List<NodeFixture> nativeLibs = findNativeLibrariesNode(findApkNode()).getChildren();
 
-      for (NodeFixture child : nativeLibs.getChildren()) {
+      for (NodeFixture child : nativeLibs) {
         if (child.myNode instanceof LibraryNode) {
-          LibraryNode lib = (LibraryNode) child.myNode;
-          String libName = lib.toTestString(null);
+          String libName = child.myNode.toTestString(null);
           if(libName != null) {
             if(libraryName.equals(libName)) {
               return child;
@@ -294,8 +295,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
         throw new IllegalStateException("The node in this NodeFixture is not a SourceFolderNode");
       }
 
-      SourceFolderNode node = (SourceFolderNode) myNode;
-      PsiDirectory folder = node.getValue();
+      PsiDirectory folder = ((SourceFolderNode) myNode).getValue();
       if(folder == null) {
         return "";
       }
