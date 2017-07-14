@@ -16,15 +16,23 @@
 package com.android.tools.datastore;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.service.*;
 import com.android.tools.profiler.proto.*;
+import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
@@ -33,6 +41,17 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
  */
 public class DataStoreService {
+
+  /**
+   * DB report timings are set to occur relatively infrequently, as they include a fair amount of
+   * data (~100 bytes). Ideally, we would just send a single reporting event, when the user stopped
+   * profiling, but in that case, we'd possibly lose some data when a user's application crashed,
+   * and we'd almost never count users who leave their IDE open forever. So, instead, we adopt a
+   * slow but steady sampling strategy.
+   */
+  private static final long REPORT_INITIAL_DELAY = TimeUnit.MINUTES.toMillis(15);
+  private static final long REPORT_PERIOD = TimeUnit.HOURS.toMillis(1);
+
   public static class BackingNamespace {
     public static final BackingNamespace DEFAULT_SHARED_NAMESPACE = new BackingNamespace("default.sql", DURABLE);
 
@@ -72,6 +91,8 @@ public class DataStoreService {
   private final ServerInterceptor myInterceptor;
   private final Map<Common.Session, DataStoreClient> myConnectedClients = new HashMap<>();
 
+  private final Timer myReportTimer;
+
   /**
    * @param fetchExecutor A callback which is given a {@link Runnable} for each datastore service.
    *                      The runnable, when run, begins polling the target service. You probably
@@ -97,6 +118,9 @@ public class DataStoreService {
     catch (IOException ex) {
       LOG.error(ex.getMessage());
     }
+
+    myReportTimer = new Timer("DataStoreReportTimer");
+    myReportTimer.schedule(new ReportTimerTask(), REPORT_INITIAL_DELAY, REPORT_PERIOD);
   }
 
   /**
@@ -164,6 +188,7 @@ public class DataStoreService {
   }
 
   public void shutdown() {
+    myReportTimer.cancel();
     myServer.shutdownNow();
     for (DataStoreClient client : myConnectedClients.values()) {
       client.shutdownNow();
@@ -202,7 +227,6 @@ public class DataStoreService {
   public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(Common.Session session) {
     return myConnectedClients.containsKey(session) ? myConnectedClients.get(session).getProfilerClient() : null;
   }
-
 
   /**
    * This class is used to manage the stub to each service per device.
@@ -258,6 +282,49 @@ public class DataStoreService {
       // The check is needed because the test replace the channel with a PassthroughChannel instead of a managed channel.
       if (myChannel instanceof ManagedChannel) {
         ((ManagedChannel)myChannel).shutdownNow();
+      }
+    }
+  }
+
+  private final class ReportTimerTask extends TimerTask {
+    private long myStartTime = System.nanoTime();
+
+    @Override
+    public void run() {
+      AndroidProfilerDbStats.Builder dbStats = AndroidProfilerDbStats.newBuilder();
+      // Cast to int. Unlikely we'll ever have more than 2 billion seconds (e.g. ~60 years) here...
+      dbStats.setAgeSec((int)TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - myStartTime));
+      collectReport(dbStats);
+
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER_DB_STATS)
+        .setAndroidProfilerDbStats(dbStats);
+
+      UsageTracker.getInstance().log(event);
+    }
+
+    private void collectReport(AndroidProfilerDbStats.Builder dbStats) {
+      try {
+        File dbFile = new File(myDatastoreDirectory, BackingNamespace.DEFAULT_SHARED_NAMESPACE.myNamespace);
+        dbStats.setTotalDiskMb((int)(dbFile.length() / 1024 / 1024)); // Bytes -> MB
+
+        for (DataStoreDatabase db : myDatabases.values()) {
+          try (
+            Statement tableStatement = db.getConnection().createStatement();
+            ResultSet tableResults = tableStatement.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
+            while (tableResults.next()) {
+              String tableName = tableResults.getString(1);
+              try (
+                Statement sizeStatement = db.getConnection().createStatement();
+                ResultSet sizeResult = sizeStatement.executeQuery(String.format("SELECT COUNT(*) FROM %s", tableName))) {
+                int tableSize = sizeResult.getInt(1);
+                dbStats.addTablesBuilder().setName(tableName).setNumRecords(tableSize).build();
+              }
+            }
+          }
+        }
+      }
+      catch (SQLException ignored) {
       }
     }
   }
