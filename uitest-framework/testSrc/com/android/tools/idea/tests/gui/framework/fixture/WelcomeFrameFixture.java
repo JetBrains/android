@@ -57,6 +57,12 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
   }
 
   @NotNull
+  public WelcomeFrameFixture profileDebugApk() {
+    findActionLinkByActionId("WelcomeScreen.AndroidStudio.apkProfilingAndDebugging").click();
+    return this;
+  }
+
+  @NotNull
   public BrowseSamplesWizardFixture importCodeSample() {
     findActionLinkByActionId("WelcomeScreen.GoogleCloudTools.SampleImport").click();
     return BrowseSamplesWizardFixture.find(robot());

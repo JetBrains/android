@@ -16,6 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.SourceFolderNode;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
@@ -38,6 +42,7 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -185,6 +190,50 @@ public class ProjectViewFixture extends ToolWindowFixture {
       return new NodeFixture(node, treeStructure);
     }
 
+    @NotNull
+    private NodeFixture findApkNode() {
+      final AbstractTreeStructure treeStructure = getTreeStructure();
+
+      ApkModuleNode apkNode = GuiQuery.getNonNull(() -> {
+        for (Object child : treeStructure.getChildElements(treeStructure.getRootElement())) {
+          if(child instanceof ApkModuleNode) {
+            return (ApkModuleNode)child;
+          }
+        }
+        throw new IllegalStateException("Unable to find 'APK module' node");
+      });
+
+      return new NodeFixture(apkNode, treeStructure);
+    }
+
+    @NotNull
+    private NodeFixture findNativeLibrariesNode(@NotNull NodeFixture parentNode) {
+      for (NodeFixture child : parentNode.getChildren()) {
+        if (child.myNode instanceof LibFolderNode) {
+          return child;
+        }
+      }
+      throw new IllegalStateException("Unable to find the child native library node under given parent node");
+    }
+
+    @NotNull
+    public NodeFixture findNativeLibraryNodeFor(@NotNull String libraryName) {
+      NodeFixture nativeLibs = findNativeLibrariesNode(findApkNode());
+
+      for (NodeFixture child : nativeLibs.getChildren()) {
+        if (child.myNode instanceof LibraryNode) {
+          LibraryNode lib = (LibraryNode) child.myNode;
+          String libName = lib.toTestString(null);
+          if(libName != null) {
+            if(libraryName.equals(libName)) {
+              return child;
+            }
+          }
+        }
+      }
+      throw new IllegalStateException("Unable to find native library node for " + libraryName);
+    }
+
     public IdeFrameFixture clickPath(@NotNull final String... paths) {
       return clickPath(MouseButton.LEFT_BUTTON, paths);
     }
@@ -233,6 +282,24 @@ public class ProjectViewFixture extends ToolWindowFixture {
         }
       }
       return false;
+    }
+
+    public boolean isSourceFolder() {
+      return myNode instanceof SourceFolderNode;
+    }
+
+    @NotNull
+    public String getSourceFolderName() {
+      if(!isSourceFolder()) {
+        throw new IllegalStateException("The node in this NodeFixture is not a SourceFolderNode");
+      }
+
+      SourceFolderNode node = (SourceFolderNode) myNode;
+      PsiDirectory folder = node.getValue();
+      if(folder == null) {
+        return "";
+      }
+      return folder.getName();
     }
 
     @NotNull
