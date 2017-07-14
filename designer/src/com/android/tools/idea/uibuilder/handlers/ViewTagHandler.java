@@ -75,7 +75,7 @@ public class ViewTagHandler extends ViewHandler {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
       String src = editor.displayClassInput(Sets.newHashSet(CLASS_VIEW), qualifiedName -> {
         // Don't include builtin views (these are already in the palette and likely not what the user is looking for)
-        return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) || qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
+        return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) && !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
       }, null);
       if (src != null) {
         newChild.setAttribute(null, ATTR_CLASS, src);
