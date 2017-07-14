@@ -24,7 +24,8 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -107,15 +108,29 @@ public class MemoryMonitor extends ProfilerMonitor {
     Profiler.Process process = myProfilers.getProcess();
     assert session != null;
     assert process != null;
+
+    AllocationInfosDataSeries allocationSeries =
+      new AllocationInfosDataSeries(myProfilers.getClient().getMemoryClient(), session, process.getPid(),
+                                    myProfilers.getRelativeTimeConverter(), myProfilers.getIdeServices().getFeatureTracker(), null);
+    // Only starts live tracking if an existing one is not available.
+    if (allocationSeries.getDataForXRange(myProfilers.getTimeline().getViewRange()).size() > 0) {
+      return;
+    }
+
+
     Profiler.TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
       .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build());
     long timeNs = timeResponse.getTimestampNs();
-
     try {
-      com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse response = myProfilers.getClient().getMemoryClient()
-        .trackAllocations(MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                            .setSession(session).setProcessId(process.getPid())
-                            .setEnabled(true).build());
+      // Attempts to stop an existing tracking session first. This should only happen if we are restarting Studio and reconnecting
+      // to an app that already has an agent attached.
+      myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
+                                                                   .setSession(session).setProcessId(process.getPid())
+                                                                   .setEnabled(false).build());
+      TrackAllocationsResponse response =
+        myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
+                                                                     .setSession(session).setProcessId(process.getPid())
+                                                                     .setEnabled(true).build());
       switch (response.getStatus()) {
         case IN_PROGRESS:
           getLogger().info("Allocation tracking is already enabled.");

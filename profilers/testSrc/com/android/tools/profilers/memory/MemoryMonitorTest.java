@@ -15,7 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.cpu.FakeCpuService;
@@ -29,7 +32,7 @@ import static org.junit.Assert.*;
 
 public class MemoryMonitorTest {
 
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(true);
+  private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
   private final FakeMemoryService myMemoryService = new FakeMemoryService();
 
   @Rule
@@ -55,7 +58,74 @@ public class MemoryMonitorTest {
   @Test
   public void testLiveAllocationTrackingOnAgentAttach() {
     FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
+    ideProfilerServices.enableLiveAllocationTracking(true);
     FakeTimer timer = new FakeTimer();
+
+    // Device needs to be O+.
+    Profiler.Device device = Profiler.Device.newBuilder()
+      .setSerial("FakeDevice")
+      .setState(Profiler.Device.State.ONLINE)
+      .setFeatureLevel(AndroidVersion.VersionCodes.O)
+      .build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    myProfilerService.addDevice(device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process);
+
+    // Note that MemoryMonitor is created by StudioMonitorStage when the process gets selected after the fake timer tick.
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, timer);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    assertTrue(profilers.getStage() instanceof StudioMonitorStage);
+    assertFalse(profilers.isAgentAttached());
+    assertEquals(0, myMemoryService.getTrackAllocationCount());
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertTrue(profilers.isAgentAttached());
+    // Expecting a stop/start trackAllocations request pair.
+    assertEquals(2, myMemoryService.getTrackAllocationCount());
+  }
+
+  @Test
+  public void testAllocationTrackingNotStartedIfInfoExists() {
+    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
+    ideProfilerServices.enableLiveAllocationTracking(true);
+    FakeTimer timer = new FakeTimer();
+
+    // Device needs to be O+.
+    Profiler.Device device = Profiler.Device.newBuilder()
+      .setSerial("FakeDevice")
+      .setState(Profiler.Device.State.ONLINE)
+      .setFeatureLevel(AndroidVersion.VersionCodes.O)
+      .build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    myProfilerService.addDevice(device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process);
+
+    // AllocationsInfo should exist for tracking to not restart.
+    myMemoryService.setMemoryData(MemoryProfiler.MemoryData.newBuilder().addAllocationsInfo(
+      MemoryProfiler.AllocationsInfo.newBuilder()
+        .setStatus(MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS)
+        .setStartTime(Long.MIN_VALUE)
+        .setEndTime(Long.MAX_VALUE)
+        .setLegacy(false).build()
+    ).build());
 
     // Note that MemoryMonitor is created by StudioMonitorStage when the process gets selected after the fake timer tick.
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, timer);
