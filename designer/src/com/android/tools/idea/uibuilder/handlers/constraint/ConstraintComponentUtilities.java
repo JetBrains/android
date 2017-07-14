@@ -63,7 +63,6 @@ public final class ConstraintComponentUtilities {
   public static final ArrayList<String> ourBaselineAttributes;
   public static final ArrayList<String> ourHorizontalAttributes;
   public static final ArrayList<String> ourVerticalAttributes;
-  public static final ArrayList<String> ourCreatorAttributes;
 
   public static final HashMap<String, String> ourLayoutUriToPrefix = new HashMap<>();
   static {
@@ -341,15 +340,6 @@ public final class ConstraintComponentUtilities {
     ourVerticalAttributes.add(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     ourVerticalAttributes.add(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
 
-    ourCreatorAttributes = new ArrayList<>();
-    ourCreatorAttributes.add(ATTR_LAYOUT_LEFT_CREATOR);
-    ourCreatorAttributes.add(ATTR_LAYOUT_TOP_CREATOR);
-    ourCreatorAttributes.add(ATTR_LAYOUT_RIGHT_CREATOR);
-    ourCreatorAttributes.add(ATTR_LAYOUT_BOTTOM_CREATOR);
-    ourCreatorAttributes.add(ATTR_LAYOUT_BASELINE_CREATOR);
-    ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_CREATOR);
-    ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_X_CREATOR);
-    ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_Y_CREATOR);
   }
 
   /**
@@ -1153,6 +1143,11 @@ public final class ConstraintComponentUtilities {
     return (int)(0.5f + NlComponentHelperKt.getH(component) / dpiFactor);
   }
 
+  public static int pixelToDP(@NotNull NlComponent component, int size) {
+    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+    return (int)(0.5f + size / dpiFactor);
+  }
+
   public static int getDpBaseline(@NotNull NlComponent component) {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
     return (int)(0.5f + NlComponentHelperKt.getBaseline(component) / dpiFactor);
@@ -1446,7 +1441,7 @@ public final class ConstraintComponentUtilities {
     int srcIndex = sourceDirection.ordinal();
     String attrib = ATTRIB_MATRIX[srcIndex][targetDirection.ordinal()];
     if (attrib == null) {
-      System.err.println("cannot connect " + sourceDirection + " to " + targetDirection);
+      throw new RuntimeException("cannot connect " + sourceDirection + " to " + targetDirection);
     }
     ArrayList<String> list = new ArrayList<String>();
     for (int i = 0; i < ATTRIB_CLEAR[srcIndex].length; i++) {
@@ -1476,10 +1471,72 @@ public final class ConstraintComponentUtilities {
       case LEFT: str = DecoratorUtilities.LEFT_CONNECTION; break;
       case RIGHT: str = DecoratorUtilities.RIGHT_CONNECTION; break;
       case TOP: str = DecoratorUtilities.TOP_CONNECTION; break;
+
     }
     if (str != null) {
       DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.INFERRED, DecoratorUtilities.ViewStates.SELECTED);
     }
+  }
+
+  /**
+   * Used by ScoutChains to create chains
+   * @param source component to add to chain link
+   * @param sourceDirection direction of chain link
+   * @param target target target to link to
+   * @param targetDirection direction of target link
+   * @param attrList additional attributes to add during transaction
+   */
+  public static void scoutChainConnect(NlComponent source, Direction sourceDirection, NlComponent target, Direction targetDirection,
+                                       ArrayList<String[]> attrList) {
+    int srcIndex = sourceDirection.ordinal();
+    String attrib = ATTRIB_MATRIX[srcIndex][targetDirection.ordinal()];
+    if (attrib == null) {
+      throw new RuntimeException("cannot connect " + sourceDirection + " to " + targetDirection);
+    }
+    ArrayList<String> list = new ArrayList<String>();
+    for (int i = 0; i < ATTRIB_CLEAR[srcIndex].length; i++) {
+      String clr_attr = ATTRIB_CLEAR[srcIndex][i];
+      if (!attrib.equals(clr_attr)) {
+        list.add(clr_attr);
+      }
+    }
+    final AttributesTransaction transaction = source.startAttributeTransaction();
+    clearAttributes(SHERPA_URI, list, transaction);
+    String targetId = null;
+    if (target == source.getParent()) {
+      targetId = ATTR_PARENT;
+    }
+    else {
+      targetId = NEW_ID_PREFIX + NlComponentHelperKt.ensureLiveId(target);
+    }
+    transaction.setAttribute(SHERPA_URI, attrib, targetId);
+    for (int i = 0; i < attrList.size(); i++) {
+      String[] bundle = attrList.get(i);
+      transaction.setAttribute(bundle[0], bundle[1], bundle[2]);
+    }
+
+    transaction.apply();
+    String str = null;
+    switch (sourceDirection) {
+      case BASELINE:
+        str = DecoratorUtilities.BASELINE_CONNECTION;
+        break;
+      case BOTTOM:
+        str = DecoratorUtilities.BOTTOM_CONNECTION;
+        break;
+      case LEFT:
+        str = DecoratorUtilities.LEFT_CONNECTION;
+        break;
+      case RIGHT:
+        str = DecoratorUtilities.RIGHT_CONNECTION;
+        break;
+      case TOP:
+        str = DecoratorUtilities.TOP_CONNECTION;
+        break;
+    }
+
+    DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.INFERRED, DecoratorUtilities.ViewStates.SELECTED);
+
   }
 
   public static boolean wouldCreateLoop(NlComponent source, Direction sourceDirection, NlComponent target) {

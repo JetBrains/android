@@ -30,12 +30,26 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_PADDING_BOTTOM;
+
 /**
  * Main entry for the Scout Inference engine.
  * All external access should be through this class
- * TODO support Stash / merge constraints table etc.
+ * TODO support Stash / merge constraints ourConverts etc.
  */
 public class Scout {
+  private static final String[] ourAttrsToDelete = {
+    ATTR_PADDING,
+    ATTR_PADDING_LEFT,
+    ATTR_PADDING_RIGHT,
+    ATTR_PADDING_START,
+    ATTR_PADDING_END,
+    ATTR_PADDING_TOP,
+    ATTR_PADDING_BOTTOM,
+    ATTR_ORIENTATION
+  };
 
   public enum Arrange {
     AlignVerticallyTop, AlignVerticallyMiddle, AlignVerticallyBottom, AlignHorizontallyLeft,
@@ -60,7 +74,6 @@ public class Scout {
     ScoutArrange.align(type, widgets, applyConstraint);
     commit(widgets, type.toString());
   }
-
 
   /**
    * Detect if any component under the tree overlap.
@@ -111,6 +124,15 @@ public class Scout {
       }
     }
   }
+  /**
+   * Infer constraints will only set the attributes via a transaction; a separate
+   * commit need to be done to save them.
+   *
+   * @param root the root element to infer from
+   */
+  public static void inferConstraintsFromConvert(NlComponent root) {
+    inferConstraints(root, true, true);
+  }
 
   /**
    * Infer constraints will only set the attributes via a transaction; a separate
@@ -119,7 +141,7 @@ public class Scout {
    * @param root the root element to infer from
    */
   public static void inferConstraints(NlComponent root) {
-    inferConstraints(root, true);
+    inferConstraints(root, true, false);
   }
 
   /**
@@ -129,7 +151,7 @@ public class Scout {
    * @param root
    * @param rejectOverlaps if true will not infer if views overlap
    */
-  public static void inferConstraints(NlComponent root, boolean rejectOverlaps) {
+  private static void inferConstraints(NlComponent root, boolean rejectOverlaps, boolean fromConvert) {
     if (root == null) {
       return;
     }
@@ -158,7 +180,33 @@ public class Scout {
     }
 
     NlComponent[] widgets = list.toArray(new NlComponent[list.size()]);
-    ScoutWidget.computeConstraints(ScoutWidget.create(widgets));
+    ScoutWidget []scoutWidgets =  ScoutWidget.create(widgets, fromConvert);
+    ScoutWidget.computeConstraints(scoutWidgets);
+    if (fromConvert) {
+      postInferCleanupFromConvert(scoutWidgets);
+    }
+  }
+
+  private static void postInferCleanupFromConvert(ScoutWidget[] widgets) {
+    for (int i = 0; i < ourAttrsToDelete.length; i++) {
+      widgets[0].mNlComponent.setAttribute(ANDROID_URI, ourAttrsToDelete[i], null);
+    }
+
+    for (int i = 1; i < widgets.length; i++) {
+      ScoutWidget widget = widgets[i];
+      if (widget.isCandidateResizable(0)) { // vertical
+
+        if (!(widget.isConnected(Direction.TOP) && widget.isConnected(Direction.BOTTOM))) {
+          widget.setVerticalDimensionBehaviour(ScoutWidget.DimensionBehaviour.FIXED);
+        }
+      }
+      if (widget.isCandidateResizable(1)) { // horizontal
+
+        if (!(widget.isConnected(Direction.LEFT) && widget.isConnected(Direction.RIGHT))) {
+          widget.setHorizontalDimensionBehaviour(ScoutWidget.DimensionBehaviour.FIXED);
+        }
+      }
+    }
   }
 
   public static void inferConstraintsAndCommit(List<NlComponent> components) {
@@ -176,7 +224,7 @@ public class Scout {
    * @param component the root element to infer from
    */
   public static void inferConstraintsAndCommit(NlComponent component) {
-    inferConstraints(component, false);
+    inferConstraints(component, false, false);
     ArrayList<NlComponent> list = new ArrayList<>(component.getChildren());
     list.add(0, component);
     commit(list, "Infering constraints");
