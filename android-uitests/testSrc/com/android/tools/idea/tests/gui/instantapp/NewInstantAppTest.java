@@ -169,6 +169,22 @@ public class NewInstantAppTest {
       .moveBetween("android:pathPattern=", "")
       .moveBetween("android:scheme=\"https", "")
       .moveBetween("android.intent.category.", "LAUNCHER");
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+  }
+
+  @Test
+  public void newInstantAppProjectWithFullScreenActivity() throws Exception {
+    createAndOpenDefaultAIAProject("BuildApp", null, "Fullscreen Activity");
+    guiTest.ideFrame().getEditor()
+      .open("feature/src/main/res/layout/activity_fullscreen.xml")
+      .open("base/src/main/res/values/attrs.xml") // Make sure "Full Screen" themes, colors and styles are on the base module
+      .moveBetween("ButtonBarContainerTheme", "")
+      .open("base/src/main/res/values/colors.xml")
+      .moveBetween("black_overlay", "")
+      .open("base/src/main/res/values/styles.xml")
+      .moveBetween("FullscreenTheme", "")
+      .moveBetween("FullscreenActionBarStyle", "");
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
