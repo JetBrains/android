@@ -580,7 +580,7 @@ public class AndroidIcons {
 
   public static class Issue {
     public static final Icon ErrorBadge = load("/icons/nele/issue/error-badge.png"); // 8x8
-    public static final Icon ErrorSelected = IconLoader.getIcon("/icons/nele/issue/error-inline.png"); // 16x16
+    public static final Icon ErrorSelected = IconLoader.getIcon("/icons/nele/issue/error-inline-selected.png"); // 16x16
     public static final Icon Error = IconLoader.getIcon("/icons/nele/issue/error.png"); // 16x16
     public static final Icon InfoSelected = IconLoader.getIcon("/icons/nele/issue/info-inline.png"); // 16x16
     public static final Icon Info = IconLoader.getIcon("/icons/nele/issue/info.png"); // 16x16

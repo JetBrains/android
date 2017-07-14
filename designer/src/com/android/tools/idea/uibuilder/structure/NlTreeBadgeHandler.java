@@ -83,8 +83,7 @@ public class NlTreeBadgeHandler {
       return;
     }
     LintAnnotationsModel lintAnnotationsModel = myNlModel.getLintAnnotationsModel();
-    Icon unlockIcon = AndroidIcons.SherpaIcons.UnlockConstraints;
-    Icon lockIcon = AndroidIcons.SherpaIcons.LockConstraints;
+
     for (int i = 0; i < tree.getRowCount(); i++) {
       TreePath path = tree.getPathForRow(i);
       Object last = path.getLastPathComponent();
@@ -93,39 +92,41 @@ public class NlTreeBadgeHandler {
       }
       NlComponent component = (NlComponent)last;
       Rectangle pathBounds = tree.getPathBounds(path);
-      int y = pathBounds.y + pathBounds.height / 2;
-      Icon firstIcon = null;
-      if (lintAnnotationsModel != null) {
-        firstIcon = lintAnnotationsModel.getIssueIcon(component, false, tree.isRowSelected(i));
-        if (firstIcon != null && pathBounds != null) {
-          int x = tree.getWidth() - firstIcon.getIconWidth() - BADGE_MARGIN;
-          int iy = y - firstIcon.getIconHeight() / 2;
-          firstIcon.paintIcon(tree, g, x, iy);
-          myBadgeX = Math.min(x, myBadgeX);
-        } else {
-          firstIcon = null;
+      if(pathBounds != null) {
+        int y = pathBounds.y + pathBounds.height / 2;
+        Icon firstIcon;
+        if (lintAnnotationsModel != null) {
+          firstIcon = lintAnnotationsModel.getIssueIcon(component, false, tree.isRowSelected(i) && tree.hasFocus());
+          if (firstIcon != null) {
+            int x = tree.getWidth() - firstIcon.getIconWidth() - BADGE_MARGIN;
+            int iy = y - firstIcon.getIconHeight() / 2;
+            firstIcon.paintIcon(tree, g, x, iy);
+            myBadgeX = Math.min(x, myBadgeX);
+          }
         }
-      }
-      if (SUPPORTS_LOCKING) {
-        if (firstIcon != null) {
-          myLockIconX = myBadgeX - BADGE_MARGIN - lockIcon.getIconWidth();
+        if (SUPPORTS_LOCKING) {
+          Icon unlockIcon = AndroidIcons.SherpaIcons.UnlockConstraints;
+          Icon lockIcon = AndroidIcons.SherpaIcons.LockConstraints;
+          if (firstIcon != null) {
+            myLockIconX = myBadgeX - BADGE_MARGIN - lockIcon.getIconWidth();
+          }
+          else {
+            myLockIconX = tree.getWidth() - BADGE_MARGIN - lockIcon.getIconWidth();
+          }
+          boolean isLocked = SceneManager.isComponentLocked(component);
+          boolean isOver = myHoveredComponent == component && myHoveredIcon == LOCK_ICON;
+          if (!isOver && !isLocked) {
+            // if we are not over the icon, we only draw it when the component is invisible
+            // (as visible is the default state)
+            continue;
+          }
+          Icon lockingIcon = isLocked ? lockIcon : unlockIcon;
+          if (isOver) {
+            // in this case, show instead the icon of the state we would end up if we click on it
+            lockingIcon = isLocked ? unlockIcon : lockIcon;
+          }
+          lockingIcon.paintIcon(tree, g, myLockIconX, y - lockingIcon.getIconHeight() / 2);
         }
-        else {
-          myLockIconX = tree.getWidth() - BADGE_MARGIN - lockIcon.getIconWidth();
-        }
-        boolean isLocked = SceneManager.isComponentLocked(component);
-        boolean isOver = myHoveredComponent == component && myHoveredIcon == LOCK_ICON;
-        if (!isOver && !isLocked) {
-          // if we are not over the icon, we only draw it when the component is invisible
-          // (as visible is the default state)
-          continue;
-        }
-        Icon lockingIcon = isLocked ? lockIcon : unlockIcon;
-        if (isOver) {
-          // in this case, show instead the icon of the state we would end up if we click on it
-          lockingIcon = isLocked ? unlockIcon : lockIcon;
-        }
-        lockingIcon.paintIcon(tree, g, myLockIconX, y - lockingIcon.getIconHeight() / 2);
       }
     }
   }
