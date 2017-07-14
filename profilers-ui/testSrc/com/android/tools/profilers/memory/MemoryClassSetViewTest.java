@@ -39,8 +39,8 @@ import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.Cla
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
-import static org.junit.Assert.*;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 public class MemoryClassSetViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
@@ -181,19 +181,23 @@ public class MemoryClassSetViewTest {
 
     //noinspection ConstantConditions
     AllocationStack callstackFoo = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocationFoo.getClassName())
-          .setMethodName(codeLocationFoo.getMethodName())
-          .setLineNumber(codeLocationFoo.getLineNumber() + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(codeLocationFoo.getClassName())
+              .setMethodName(codeLocationFoo.getMethodName())
+              .setLineNumber(codeLocationFoo.getLineNumber() + 1)))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstackBar = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(codeLocationBar.getClassName())
-          .setMethodName(codeLocationBar.getMethodName())
-          .setLineNumber(codeLocationBar.getLineNumber() + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(codeLocationBar.getClassName())
+              .setMethodName(codeLocationBar.getMethodName())
+              .setLineNumber(codeLocationBar.getLineNumber() + 1)))
       .build();
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();

@@ -483,7 +483,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private static Icon getStackedIcon(@Nullable InstanceObject instance, @NotNull Icon stackedIcon, @NotNull Icon nonStackedIcon) {
-    return (instance == null || instance.getCallStack() == null || instance.getCallStack().getStackFramesCount() == 0)
+    return (instance == null || instance.getCallStackDepth() == 0)
            ? nonStackedIcon
            : stackedIcon;
   }

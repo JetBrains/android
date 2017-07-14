@@ -359,9 +359,11 @@ public class MemoryLiveAllocationTableTest {
     myAllocationTable.insertAllocationData(VALID_PID, VALID_SESSION, classesBuilder.build());
 
     AllocatedClass expectedKlass1 = class1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
-    AllocationStack expectedStack1 = AllocationStack.newBuilder().setStackId(STACK1)
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
+    AllocationStack expectedStack1 = AllocationStack.newBuilder()
+      .setStackId(STACK1)
+      .setSmallStack(AllocationStack.SmallFrameWrapper.newBuilder()
+                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
+                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2)))
       .build();
     ThreadInfo expectedThread = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).build();
 
@@ -414,13 +416,18 @@ public class MemoryLiveAllocationTableTest {
 
     AllocatedClass expectedKlass1 = class1.toBuilder().setClassName(JAVA_KLASS1_NAME).build();
     AllocatedClass expectedKlass2 = class2.toBuilder().setClassName(JAVA_KLASS2_NAME).build();
-    AllocationStack expectedStack1 = AllocationStack.newBuilder().setStackId(STACK1)
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
+
+    AllocationStack expectedStack1 = AllocationStack.newBuilder()
+      .setStackId(STACK1)
+      .setSmallStack(AllocationStack.SmallFrameWrapper.newBuilder()
+                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD1).setLineNumber(LINE1))
+                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2)))
       .build();
-    AllocationStack expectedStack2 = AllocationStack.newBuilder().setStackId(STACK2)
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
-      .addStackFrames(StackFrame.newBuilder().setMethodId(METHOD3).setLineNumber(LINE3))
+    AllocationStack expectedStack2 = AllocationStack.newBuilder()
+      .setStackId(STACK2)
+      .setSmallStack(AllocationStack.SmallFrameWrapper.newBuilder()
+                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD2).setLineNumber(LINE2))
+                       .addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(METHOD3).setLineNumber(LINE3)))
       .build();
     ThreadInfo expectedThread1 = ThreadInfo.newBuilder().setThreadId(THREAD1).setThreadName(THREAD1_NAME).build();
     ThreadInfo expectedThread2 = ThreadInfo.newBuilder().setThreadId(THREAD2).setThreadName(THREAD2_NAME).build();

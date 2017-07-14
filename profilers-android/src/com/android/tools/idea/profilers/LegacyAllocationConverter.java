@@ -55,11 +55,13 @@ public class LegacyAllocationConverter {
     @NotNull
     public AllocationStack getAllocationStack() {
       AllocationStack.Builder builder = AllocationStack.newBuilder().setStackId(hashCode());
+      AllocationStack.StackFrameWrapper.Builder frameBuilder = AllocationStack.StackFrameWrapper.newBuilder();
       for (StackTraceElement frame : myCallStackFrames) {
-        builder.addStackFrames(
+        frameBuilder.addFrames(
           AllocationStack.StackFrame.newBuilder().setClassName(frame.getClassName()).setMethodName(frame.getMethodName())
             .setFileName(frame.getFileName()).setLineNumber(frame.getLineNumber()).build());
       }
+      builder.setFullStack(frameBuilder);
       return builder.build();
     }
   }

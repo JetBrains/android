@@ -136,7 +136,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myTotalRetainedSize +=
       (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
 
-    if (instanceAdded && instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) {
+    if (instanceAdded && instanceObject.getCallStackDepth() > 0) {
       myInstancesWithStackInfoCount++;
     }
     return instanceAdded;
@@ -166,7 +166,7 @@ public abstract class ClassifierSet implements MemoryObject {
       (isAllocation ? 1 : -1) * (instanceObject.getShallowSize() == INVALID_VALUE ? 0 : instanceObject.getShallowSize());
     myTotalRetainedSize -=
       (isAllocation ? 1 : -1) * (instanceObject.getRetainedSize() == INVALID_VALUE ? 0 : instanceObject.getRetainedSize());
-    if (instanceRemoved && instanceObject.getCallStack() != null && instanceObject.getCallStack().getStackFramesCount() > 0) {
+    if (instanceRemoved && instanceObject.getCallStackDepth() > 0) {
       myInstancesWithStackInfoCount--;
     }
     return instanceRemoved;
