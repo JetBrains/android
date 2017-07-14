@@ -65,7 +65,6 @@ public class NlPropertyTableTest {
       .openAsInspector()
       .adjustIdeFrameHeightFor(4, "ID")
       .focusAndWaitForFocusGainInProperty("ID", null)
-      .assertPropertyShowing("text", null)
       .assertPropertyShowing("ID", null)
       .assertPropertyNotShowing("visibility", null)
       .tab() // width
@@ -105,7 +104,6 @@ public class NlPropertyTableTest {
       .tab() // minimize button
       .tab().assertFocusInProperty("ID", null)
       .assertPropertyShowing("ID", null)
-      .assertPropertyShowing("text", null)
       .assertPropertyNotShowing("visibility", null)
       .tabBack() // minimize button
       .tabBack() // wheel button
