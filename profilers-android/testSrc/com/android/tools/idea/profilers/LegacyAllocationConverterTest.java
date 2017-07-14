@@ -54,9 +54,11 @@ public class LegacyAllocationConverterTest {
     assertThat(allocated.size()).isEqualTo(1);
     for (MemoryProfiler.AllocationStack allocation : allocated) {
       assertThat(allocation).isEqualTo(callStack.getAllocationStack());
-      assertThat(allocation.getStackFramesCount()).isEqualTo(stackTraceElementList.size());
-      for (int i = 0; i < allocation.getStackFramesCount(); i++) {
-        MemoryProfiler.AllocationStack.StackFrame frame = allocation.getStackFrames(i);
+      assertThat(allocation.getFrameCase()).isEqualTo(MemoryProfiler.AllocationStack.FrameCase.FULL_STACK);
+      MemoryProfiler.AllocationStack.StackFrameWrapper fullStack = allocation.getFullStack();
+      assertThat(fullStack.getFramesCount()).isEqualTo(stackTraceElementList.size());
+      for (int i = 0; i < fullStack.getFramesCount(); i++) {
+        MemoryProfiler.AllocationStack.StackFrame frame = fullStack.getFrames(i);
         assertThat(frame.getClassName()).isEqualTo(stackTraceElementList.get(i).getClassName());
         assertThat(frame.getMethodName()).isEqualTo(stackTraceElementList.get(i).getMethodName());
         assertThat(frame.getFileName()).isEqualTo(stackTraceElementList.get(i).getFileName());

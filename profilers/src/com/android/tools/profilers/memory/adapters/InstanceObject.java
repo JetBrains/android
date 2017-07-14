@@ -70,18 +70,37 @@ public interface InstanceObject extends ValueObject {
     return null;
   }
 
+  default int getCallStackDepth() {
+    AllocationStack callStack = getCallStack();
+    if (callStack == null) {
+      return 0;
+    }
+
+    switch (callStack.getFrameCase()) {
+      case FULL_STACK:
+        return callStack.getFullStack().getFramesCount();
+      case SMALL_STACK:
+        return callStack.getSmallStack().getFramesCount();
+      default:
+        return 0;
+    }
+  }
+
   /**
    * @return The IJ-friendly callstack which can be used to navigate to the user code using the StackTraceView.
    */
   @NotNull
   default List<CodeLocation> getCodeLocations() {
     AllocationStack callStack = getCallStack();
-    if (callStack != null && !callStack.getStackFramesList().isEmpty()) {
-      List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
-        .map(AllocationStackConverter::getCodeLocation)
-        .collect(Collectors.toList());
+    if (callStack != null && callStack.getFrameCase() == AllocationStack.FrameCase.FULL_STACK) {
+      AllocationStack.StackFrameWrapper fullStack = callStack.getFullStack();
+      if (!fullStack.getFramesList().isEmpty()) {
+        List<CodeLocation> stackFrames = fullStack.getFramesList().stream()
+          .map(AllocationStackConverter::getCodeLocation)
+          .collect(Collectors.toList());
 
-      return stackFrames;
+        return stackFrames;
+      }
     }
 
     return Collections.emptyList();

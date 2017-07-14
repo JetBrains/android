@@ -80,21 +80,25 @@ public class MethodSet extends ClassifierSet {
     @NotNull
     @Override
     public ClassifierSet getOrCreateClassifierSet(@NotNull InstanceObject instance) {
-      AllocationStack allocationStack = instance.getCallStack();
-      if (allocationStack != null && allocationStack.getStackFramesCount() > 0 && myDepth < allocationStack.getStackFramesCount()) {
-        AllocationStack.StackFrame stackFrame = allocationStack.getStackFrames(allocationStack.getStackFramesCount() - myDepth - 1);
-        if (stackFrame.getMethodId() == 0) {
-          MethodSetInfo methodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
-          return myStackLineMap.computeIfAbsent(methodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
-        }
-        else {
-          MethodSetInfo methodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getMethodId());
-          return myStackLineMap.computeIfAbsent(methodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
+      AllocationStack stack = instance.getCallStack();
+      int stackDepth = instance.getCallStackDepth();
+      if (stack != null && stackDepth > 0 && myDepth < stackDepth) {
+        switch (stack.getFrameCase()) {
+          case FULL_STACK:
+            AllocationStack.StackFrameWrapper fullStack = stack.getFullStack();
+            AllocationStack.StackFrame stackFrame = fullStack.getFrames(fullStack.getFramesCount() - myDepth - 1);
+            MethodSetInfo fullMethodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
+            return myStackLineMap.computeIfAbsent(fullMethodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
+          case SMALL_STACK:
+            AllocationStack.SmallFrameWrapper smallStack = stack.getSmallStack();
+            AllocationStack.SmallFrame smallFrame = smallStack.getFrames(smallStack.getFramesCount() - myDepth - 1);
+            MethodSetInfo lazyMethodInfo = new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
+            return myStackLineMap.computeIfAbsent(lazyMethodInfo, info -> new MethodSet(myCaptureObject, info, myDepth + 1));
+          default:
+            break;
         }
       }
-      else {
-        return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
-      }
+      return myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new);
     }
 
     @NotNull

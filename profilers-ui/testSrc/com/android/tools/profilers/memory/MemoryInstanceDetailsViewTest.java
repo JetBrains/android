@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
@@ -75,8 +74,9 @@ public class MemoryInstanceDetailsViewTest {
     Component component = myDetailsView.getComponent();
     FakeInstanceObject fakeInstanceObject = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(fakeInstanceObject));
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
-                                  null);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+      null);
     myStage.selectInstanceObject(fakeInstanceObject);
     assertFalse(component.isVisible());
   }
@@ -91,8 +91,9 @@ public class MemoryInstanceDetailsViewTest {
         .build();
     referer.setFieldValue("mField", OBJECT, referee);
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(referee, referer));
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
-                                  null);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+      null);
     myStage.selectInstanceObject(referee);
     assertTrue(component.isVisible());
   }
@@ -101,13 +102,15 @@ public class MemoryInstanceDetailsViewTest {
   public void SelectionWithCallstackVisibilityTest() throws Exception {
     // Selection with callstack information
     Component component = myDetailsView.getComponent();
-    MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder().addStackFrames(
-      MemoryProfiler.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1))
+    MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder().setFullStack(
+      MemoryProfiler.AllocationStack.StackFrameWrapper.newBuilder().addFrames(
+        MemoryProfiler.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1)))
       .build();
     FakeInstanceObject instance = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setAllocationStack(stack).build();
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(instance));
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
-                                  null);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+      null);
     myStage.selectInstanceObject(instance);
     assertTrue(component.isVisible());
   }
@@ -155,8 +158,9 @@ public class MemoryInstanceDetailsViewTest {
     myFakeCaptureObject
       .addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2, fakeInstance3, fakeInstance4, fakeInstance5, fakeRootObject));
 
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
-                                  null);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+      null);
     JTree tree = myDetailsView.buildTree(fakeRootObject);
     DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
     assertNotNull(treeModel);
@@ -166,10 +170,16 @@ public class MemoryInstanceDetailsViewTest {
     // Check the initialize tree structure is correctly populated
     assertEquals(fakeRootObject, treeRoot.getAdapter());
     assertEquals(2, treeRoot.getChildCount());
-    MemoryObjectTreeNode ref1 = treeRoot.getChildren().stream().filter(child -> child.getAdapter() instanceof ReferenceObject && "fake1".equals(((ReferenceObject)child.getAdapter()).getReferenceInstance().getName())).findFirst().orElse(null);
+    MemoryObjectTreeNode ref1 = treeRoot.getChildren().stream().filter(child -> child.getAdapter() instanceof ReferenceObject &&
+                                                                                "fake1".equals(((ReferenceObject)child.getAdapter())
+                                                                                                 .getReferenceInstance().getName()))
+      .findFirst().orElse(null);
     assertNotNull(ref1);
     assertEquals(fakeInstance1, ((ReferenceObject)ref1.getAdapter()).getReferenceInstance());
-    MemoryObjectTreeNode ref5 = treeRoot.getChildren().stream().filter(child -> child.getAdapter() instanceof ReferenceObject && "fake5".equals(((ReferenceObject)child.getAdapter()).getReferenceInstance().getName())).findFirst().orElse(null);
+    MemoryObjectTreeNode ref5 = treeRoot.getChildren().stream().filter(child -> child.getAdapter() instanceof ReferenceObject &&
+                                                                                "fake5".equals(((ReferenceObject)child.getAdapter())
+                                                                                                 .getReferenceInstance().getName()))
+      .findFirst().orElse(null);
     assertNotNull(ref5);
     assertEquals(fakeInstance5, ((ReferenceObject)ref5.getAdapter()).getReferenceInstance());
 
@@ -196,8 +206,9 @@ public class MemoryInstanceDetailsViewTest {
     referer.setFieldValue("mField", OBJECT, referee);
     myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(referer, referee));
 
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
-                                  null);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+      null);
     assertNotNull(myStage.getSelectedCapture());
     myStage
       .selectClassSet((ClassSet)myFakeCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID).findContainingClassifierSet(referee));
@@ -253,8 +264,9 @@ public class MemoryInstanceDetailsViewTest {
     myFakeCaptureObject
       .addInstanceObjects(ImmutableSet.of(fake1, fake2, fake3, fakeRootObject));
 
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
-                                  null);
+    myStage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
+      null);
     myStage.selectInstanceObject(fakeRootObject);
 
     JTree tree = myDetailsView.getReferenceTree();

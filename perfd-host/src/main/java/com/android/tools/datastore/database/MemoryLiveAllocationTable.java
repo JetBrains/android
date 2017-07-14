@@ -204,16 +204,17 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         // are inserted first into the database. So class data with an earlier timestamp can be inserted later.
         EncodedAllocationStack encodedStack = EncodedAllocationStack.parseFrom(stackResult.getBytes(1));
         stackBuilder.setStackId(encodedStack.getStackId());
+        AllocationStack.SmallFrameWrapper.Builder frameBuilder = AllocationStack.SmallFrameWrapper.newBuilder();
         assert encodedStack.getMethodIdsCount() == encodedStack.getLineNumbersCount();
         for (int i = 0; i < encodedStack.getMethodIdsCount(); i++) {
           // Note that we don't return the class + method names here, as they are expensive to query and can incur huge memory footprint.
           // Instead, they will be fetched on demand as needed by the UI.
-          AllocationStack.StackFrame frame =
-            AllocationStack.StackFrame.newBuilder().setMethodId(encodedStack.getMethodIds(i)).setLineNumber(encodedStack.getLineNumbers(i))
+          AllocationStack.SmallFrame frame =
+            AllocationStack.SmallFrame.newBuilder().setMethodId(encodedStack.getMethodIds(i)).setLineNumber(encodedStack.getLineNumbers(i))
               .build();
-          stackBuilder.addStackFrames(frame);
+          frameBuilder.addFrames(frame);
         }
-
+        stackBuilder.setSmallStack(frameBuilder);
         resultBuilder.addAllocationStacks(stackBuilder);
       }
 

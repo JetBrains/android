@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -67,19 +66,19 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private int myAppId;
 
   @Override
-  public void startMonitoringApp(MemoryProfiler.MemoryStartRequest request,
-                                 StreamObserver<MemoryProfiler.MemoryStartResponse> responseObserver) {
+  public void startMonitoringApp(MemoryStartRequest request,
+                                 StreamObserver<MemoryStartResponse> responseObserver) {
 
     myAppId = request.getProcessId();
-    responseObserver.onNext(MemoryProfiler.MemoryStartResponse.newBuilder().build());
+    responseObserver.onNext(MemoryStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
   @Override
-  public void stopMonitoringApp(MemoryProfiler.MemoryStopRequest request,
-                                StreamObserver<MemoryProfiler.MemoryStopResponse> responseObserver) {
+  public void stopMonitoringApp(MemoryStopRequest request,
+                                StreamObserver<MemoryStopResponse> responseObserver) {
     myAppId = request.getProcessId();
-    responseObserver.onNext(MemoryProfiler.MemoryStopResponse.newBuilder().build());
+    responseObserver.onNext(MemoryStopResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
@@ -88,8 +87,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
-  public void trackAllocations(MemoryProfiler.TrackAllocationsRequest request,
-                               StreamObserver<MemoryProfiler.TrackAllocationsResponse> response) {
+  public void trackAllocations(TrackAllocationsRequest request,
+                               StreamObserver<TrackAllocationsResponse> response) {
     myTrackAllocationCount++;
     TrackAllocationsResponse.Builder builder = TrackAllocationsResponse.newBuilder();
     if (myExplicitAllocationsStatus != null) {
@@ -103,9 +102,9 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
-  public void getData(MemoryProfiler.MemoryRequest request, StreamObserver<MemoryProfiler.MemoryData> response) {
+  public void getData(MemoryRequest request, StreamObserver<MemoryData> response) {
     response.onNext(myMemoryData != null ? myMemoryData
-                                         : MemoryProfiler.MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
+                                         : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
     response.onCompleted();
   }
 
@@ -137,8 +136,8 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
-  public void listHeapDumpInfos(MemoryProfiler.ListDumpInfosRequest request,
-                                StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> response) {
+  public void listHeapDumpInfos(ListDumpInfosRequest request,
+                                StreamObserver<ListHeapDumpInfosResponse> response) {
     response.onNext(myHeapDumpInfoBuilder.build());
     response.onCompleted();
   }
@@ -172,20 +171,20 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
    * {5,7}, tag = 5, class tag = 2, stack id = 2
    */
   @Override
-  public void getAllocations(MemoryProfiler.AllocationSnapshotRequest request,
-                             StreamObserver<MemoryProfiler.BatchAllocationSample> responseObserver) {
+  public void getAllocations(AllocationSnapshotRequest request,
+                             StreamObserver<BatchAllocationSample> responseObserver) {
     long startTime = Math.max(0, request.getStartTime());
     startTime = (long)Math.ceil(startTime / (float)US_TO_NS) * US_TO_NS;
     long endTime = request.getEndTime();
     long timestamp = Long.MIN_VALUE;
 
-    MemoryProfiler.BatchAllocationSample.Builder sampleBuilder = MemoryProfiler.BatchAllocationSample.newBuilder();
+    BatchAllocationSample.Builder sampleBuilder = BatchAllocationSample.newBuilder();
     for (long i = startTime; i < endTime; i += US_TO_NS) {
       int tag = (int)(i / US_TO_NS);
       int contextId = tag % ALLOC_CONTEXT_NUM + 1;
-      MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+      AllocationEvent event = AllocationEvent.newBuilder()
         .setAllocData(
-          MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(tag).setSize(ALLOC_SIZE).setClassTag(contextId)
+          AllocationEvent.Allocation.newBuilder().setTag(tag).setSize(ALLOC_SIZE).setClassTag(contextId)
             .setStackId(contextId).build())
         .setTimestamp(i).build();
       sampleBuilder.addEvents(event);
@@ -200,9 +199,9 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       }
       int tag = (int)((i - ALLOC_EVENT_DURATION_NS) / US_TO_NS);
       int contextId = tag % ALLOC_CONTEXT_NUM + 1;
-      MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+      AllocationEvent event = AllocationEvent.newBuilder()
         .setFreeData(
-          MemoryProfiler.AllocationEvent.Deallocation.newBuilder().setTag(tag).setSize(ALLOC_SIZE).setClassTag(contextId)
+          AllocationEvent.Deallocation.newBuilder().setTag(tag).setSize(ALLOC_SIZE).setClassTag(contextId)
             .setStackId(contextId).build())
         .setTimestamp(i).build();
       sampleBuilder.addEvents(event);
@@ -226,9 +225,9 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
    * t = 3, class tag = 4 (CONTEXT_CLASS_NAMES[3]) stack id = 4 ({CONTEXT_METHOD_NAMES[3], CONTEXT_METHOD_NAMES[0]})
    */
   @Override
-  public void getAllocationContexts(MemoryProfiler.AllocationContextsRequest request,
-                                    StreamObserver<MemoryProfiler.AllocationContextsResponse> responseObserver) {
-    MemoryProfiler.AllocationContextsResponse.Builder contextBuilder = MemoryProfiler.AllocationContextsResponse.newBuilder();
+  public void getAllocationContexts(AllocationContextsRequest request,
+                                    StreamObserver<AllocationContextsResponse> responseObserver) {
+    AllocationContextsResponse.Builder contextBuilder = AllocationContextsResponse.newBuilder();
     long timestamp = Long.MIN_VALUE;
     long endTime = request.getEndTime();
     for (int i = 0; i < endTime; i += TimeUnit.MICROSECONDS.toNanos(1)) {
@@ -238,17 +237,19 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       }
 
       // Add class.
-      MemoryProfiler.AllocatedClass allocClass =
-        MemoryProfiler.AllocatedClass.newBuilder().setClassId(iAdjusted + 1).setClassName(CONTEXT_CLASS_NAMES.get(iAdjusted)).build();
+      AllocatedClass allocClass =
+        AllocatedClass.newBuilder().setClassId(iAdjusted + 1).setClassName(CONTEXT_CLASS_NAMES.get(iAdjusted)).build();
       contextBuilder.addAllocatedClasses(allocClass);
 
       // Add stack.
-      MemoryProfiler.AllocationStack.Builder stackBuilder = MemoryProfiler.AllocationStack.newBuilder();
+      AllocationStack.Builder stackBuilder = AllocationStack.newBuilder();
       stackBuilder.setStackId(iAdjusted + 1);
+      AllocationStack.SmallFrameWrapper.Builder frameBuilder = AllocationStack.SmallFrameWrapper.newBuilder();
       for (int j = 0; j < 2; j++) {
         int id = (iAdjusted + j) % ALLOC_CONTEXT_NUM + 1; // valid method Id starts at 1
-        stackBuilder.addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().setMethodId(id).setLineNumber(-1));
+        frameBuilder.addFrames(AllocationStack.SmallFrame.newBuilder().setMethodId(id).setLineNumber(-1));
       }
+      stackBuilder.setSmallStack(frameBuilder);
       contextBuilder.addAllocationStacks(stackBuilder);
 
       timestamp = i;
@@ -318,9 +319,10 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, int stackId) {
-    myAllocationContextBuilder.addAllocationStacks(AllocationStack.newBuilder().setStackId(stackId).addStackFrames(
-      AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
-    ));
+    myAllocationContextBuilder.addAllocationStacks(AllocationStack.newBuilder().setStackId(stackId).setFullStack(
+      AllocationStack.StackFrameWrapper.newBuilder().addFrames(
+        AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
+      )));
     return this;
   }
 

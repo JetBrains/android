@@ -122,8 +122,9 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public List<CodeLocation> getCodeLocations() {
     List<CodeLocation> codeLocations = new ArrayList<>();
-    if (myCallstack != null) {
-      for (AllocationStack.StackFrame frame : myCallstack.getStackFramesList()) {
+    if (myCallstack != null && myCallstack.getFrameCase() == AllocationStack.FrameCase.SMALL_STACK) {
+      AllocationStack.SmallFrameWrapper smallFrames = myCallstack.getSmallStack();
+      for (AllocationStack.SmallFrame frame : smallFrames.getFramesList()) {
         StackFrameInfoResponse frameInfo =
           myCaptureObject.getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setProcessId(myCaptureObject.getProcessId())
                                                           .setSession(myCaptureObject.getSession())

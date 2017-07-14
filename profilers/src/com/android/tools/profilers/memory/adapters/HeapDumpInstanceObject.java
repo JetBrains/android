@@ -282,13 +282,15 @@ class HeapDumpInstanceObject implements InstanceObject {
     }
 
     AllocationStack.Builder builder = AllocationStack.newBuilder();
+    AllocationStack.StackFrameWrapper.Builder frameBuilder = AllocationStack.StackFrameWrapper.newBuilder();
     for (StackFrame stackFrame : myInstance.getStack().getFrames()) {
       String fileName = stackFrame.getFilename();
       String guessedClassName = fileName.endsWith(".java") ? fileName.substring(0, fileName.length() - ".java".length()) : fileName;
-      builder.addStackFrames(
+      frameBuilder.addFrames(
         AllocationStack.StackFrame.newBuilder().setClassName(guessedClassName).setMethodName(stackFrame.getMethodName())
           .setLineNumber(stackFrame.getLineNumber()).setFileName(fileName).build());
     }
+    builder.setFullStack(frameBuilder);
     return builder.build();
   }
 

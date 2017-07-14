@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.StudioProfilers;
@@ -96,8 +95,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     assertView(null, null, null, null, false);
 
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
-                                  null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
+                             null);
     assertView(fakeCapture1, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
@@ -111,8 +111,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     // Tests selecting a capture which loads immediately.
     myMockLoader.setReturnImmediateFuture(true);
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
-                                  null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
+                             null);
     classifierTree = classifierView.getTree();
     assertNotNull(classifierTree);
     selectedHeap = myStage.getSelectedHeapSet();
@@ -163,14 +164,16 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
         .setRetainedSize(6).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance1));
 
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
-                                  null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
+                             null);
     assertView(fakeCapture1, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     // Select a new capture before the first is loaded.
-    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
-                                  null);
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
+                             null);
     assertView(fakeCapture2, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
@@ -260,9 +263,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     MemoryObjectTreeNode<InstanceObject> selectedInstanceObject = (MemoryObjectTreeNode<InstanceObject>)selectedInstanceNode;
     assertEquals(expectedInstanceObject, selectedInstanceObject.getAdapter());
 
-    boolean detailsViewVisible = (expectedInstanceObject.getCallStack() != null &&
-                                  expectedInstanceObject.getCallStack().getStackFramesCount() > 0) ||
-                                 !expectedInstanceObject.getReferences().isEmpty();
+    boolean detailsViewVisible = expectedInstanceObject.getCallStackDepth() > 0 || !expectedInstanceObject.getReferences().isEmpty();
     assertEquals(detailsViewVisible, stageView.getInstanceDetailsView().getComponent().isVisible());
   }
 }

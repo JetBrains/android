@@ -312,37 +312,43 @@ public class MemoryClassifierViewTest {
 
     //noinspection ConstantConditions
     AllocationStack callstack1 = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_0)
-          .setMethodName(METHOD_NAME_1)
-          .setLineNumber(LINE_NUMBER_1 + 1))
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_0)
-          .setMethodName(METHOD_NAME_0)
-          .setLineNumber(LINE_NUMBER_0 + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_0)
+              .setMethodName(METHOD_NAME_1)
+              .setLineNumber(LINE_NUMBER_1 + 1))
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_0)
+              .setMethodName(METHOD_NAME_0)
+              .setLineNumber(LINE_NUMBER_0 + 1)))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstack2 = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_0)
-          .setMethodName(METHOD_NAME_2)
-          .setLineNumber(LINE_NUMBER_2 + 1))
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_0)
-          .setMethodName(METHOD_NAME_0)
-          .setLineNumber(LINE_NUMBER_0 + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_0)
+              .setMethodName(METHOD_NAME_2)
+              .setLineNumber(LINE_NUMBER_2 + 1))
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_0)
+              .setMethodName(METHOD_NAME_0)
+              .setLineNumber(LINE_NUMBER_0 + 1)))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstack3 = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_1)
-          .setMethodName(METHOD_NAME_3)
-          .setLineNumber(LINE_NUMBER_3 + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_1)
+              .setMethodName(METHOD_NAME_3)
+              .setLineNumber(LINE_NUMBER_3 + 1)))
       .build();
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
@@ -435,46 +441,54 @@ public class MemoryClassifierViewTest {
 
     //noinspection ConstantConditions
     AllocationStack callstack1 = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_0)
-          .setMethodName(METHOD_NAME_1)
-          .setLineNumber(LINE_NUMBER_1 + 1))
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_0)
-          .setMethodName(METHOD_NAME_0)
-          .setLineNumber(LINE_NUMBER_0 + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_0)
+              .setMethodName(METHOD_NAME_1)
+              .setLineNumber(LINE_NUMBER_1 + 1))
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_0)
+              .setMethodName(METHOD_NAME_0)
+              .setLineNumber(LINE_NUMBER_0 + 1)))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstack2 = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_0)
-          .setMethodName(METHOD_NAME_2)
-          .setLineNumber(LINE_NUMBER_2 + 1))
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_0)
-          .setMethodName(METHOD_NAME_0)
-          .setLineNumber(LINE_NUMBER_0 + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_0)
+              .setMethodName(METHOD_NAME_2)
+              .setLineNumber(LINE_NUMBER_2 + 1))
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_0)
+              .setMethodName(METHOD_NAME_0)
+              .setLineNumber(LINE_NUMBER_0 + 1)))
       .build();
     //noinspection ConstantConditions
     AllocationStack callstack3 = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_1)
-          .setMethodName(METHOD_NAME_3)
-          .setLineNumber(LINE_NUMBER_3 + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_1)
+              .setMethodName(METHOD_NAME_3)
+              .setLineNumber(LINE_NUMBER_3 + 1)))
       .build();
     // Check that callstacks only differs by line numbers are still grouped together in the same node.
     //noinspection ConstantConditions
     AllocationStack callstack4 = AllocationStack.newBuilder()
-      .addStackFrames(
-        AllocationStack.StackFrame.newBuilder()
-          .setClassName(CLASS_NAME_1)
-          .setMethodName(METHOD_NAME_3)
-          .setLineNumber(LINE_NUMBER_4 + 1))
+      .setFullStack(
+        AllocationStack.StackFrameWrapper.newBuilder()
+          .addFrames(
+            AllocationStack.StackFrame.newBuilder()
+              .setClassName(CLASS_NAME_1)
+              .setMethodName(METHOD_NAME_3)
+              .setLineNumber(LINE_NUMBER_4 + 1)))
       .build();
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
