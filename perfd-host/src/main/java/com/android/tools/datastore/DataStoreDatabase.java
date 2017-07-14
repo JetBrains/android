@@ -61,7 +61,7 @@ public class DataStoreDatabase {
           connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", dbFile.getPath()));
           break;
         default:
-          throw new RuntimeException("Characteristic not hadled!");
+          throw new RuntimeException("Characteristic not handled!");
       }
 
       // Performance optimization.
