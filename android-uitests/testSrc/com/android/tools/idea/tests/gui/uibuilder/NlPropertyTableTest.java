@@ -124,6 +124,7 @@ public class NlPropertyTableTest {
       .assertPropertyShowing("visibility", null);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/73115220
   @Test
   public void testSimpleKeyboardEditingInTable() throws Exception {
     // If this UI test should fail, this is the intention with the test.
