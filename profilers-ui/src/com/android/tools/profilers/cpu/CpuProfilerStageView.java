@@ -28,9 +28,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.UpdatableManager;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
@@ -502,11 +500,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void capture() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       myStage.stopCapturing();
-
-      FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
-      ProfilingConfiguration profilingConfiguration = myStage.getProfilingConfiguration();
-
-      featureTracker.trackTraceCpu(profilingConfiguration);
     }
     else {
       myStage.startCapturing();
