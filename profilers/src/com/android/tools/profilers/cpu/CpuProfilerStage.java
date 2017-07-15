@@ -398,6 +398,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       setCaptureState(CaptureState.PARSING);
       handleCaptureParsing(response.getTraceId(), response.getTrace());
     }
+
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackTraceCpu(getProfilingConfiguration());
   }
 
   /**
