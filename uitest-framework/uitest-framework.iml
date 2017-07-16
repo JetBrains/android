@@ -11,8 +11,7 @@
     <orderEntry type="module" module-name="android" scope="TEST" />
     <orderEntry type="module" module-name="platform-api" scope="TEST" />
     <orderEntry type="module" module-name="platform-impl" scope="TEST" />
-    <orderEntry type="module" module-name="fest-swing" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
+    <orderEntry type="library" scope="TEST" name="fest" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
     <orderEntry type="module" module-name="gradle" scope="TEST" />
