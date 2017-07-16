@@ -27,7 +27,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.ApplicationUtils;
@@ -46,9 +45,8 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.util.ProgressWindow;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,16 +99,16 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     components.add(new AndroidSdk(stateStore, myInstallUpdates));
 
     DynamicWizard wizard = getWizard();
-    ProgressWindow progressWindow = new ProgressWindow(false, false, null);
 
-    if (wizard != null) {
-      Disposer.register(wizard.getDisposable(), progressWindow);
-    }
-
-    com.android.repository.api.ProgressIndicator progress = new RepoProgressIndicatorAdapter(progressWindow);
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress,
-                                 new StudioDownloader(progressWindow), StudioSettingsController.getInstance());
+    new Task.Modal(null, "Installing Components...", false) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        com.android.repository.api.ProgressIndicator ps = adoptIndicator(indicator);
+        sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, ps,
+                                     new StudioDownloader(indicator), StudioSettingsController.getInstance());
+      }
+    }.queue();
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
     if (platforms != null) {
@@ -126,6 +124,84 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       components.add(new AndroidVirtualDevice(stateStore, remotePackages, myInstallUpdates, myFileOp));
     }
     return new ComponentCategory("Root", "Root node that is not supposed to appear in the UI", components);
+  }
+
+  private com.android.repository.api.ProgressIndicator adoptIndicator(@NotNull ProgressIndicator indicator) {
+    return new com.android.repository.api.ProgressIndicator() {
+      @Override
+      public void setText(String s) {
+        indicator.getText();
+      }
+
+      @Override
+      public boolean isCanceled() {
+        return false;
+      }
+
+      @Override
+      public void cancel() {
+
+      }
+
+      @Override
+      public void setCancellable(boolean cancellable) {
+
+      }
+
+      @Override
+      public boolean isCancellable() {
+        return false;
+      }
+
+      @Override
+      public void setIndeterminate(boolean indeterminate) {
+
+      }
+
+      @Override
+      public boolean isIndeterminate() {
+        return false;
+      }
+
+      @Override
+      public void setFraction(double v) {
+        indicator.setFraction(v);
+      }
+
+      @Override
+      public double getFraction() {
+        return indicator.getFraction();
+      }
+
+      @Override
+      public void setSecondaryText(String s) {
+        indicator.setText2(s);
+      }
+
+      @Override
+      public void logWarning(String s) {
+      }
+
+      @Override
+      public void logWarning(String s, Throwable e) {
+
+      }
+
+      @Override
+      public void logError(String s) {
+
+      }
+
+      @Override
+      public void logError(String s, Throwable e) {
+
+      }
+
+      @Override
+      public void logInfo(String s) {
+
+      }
+    };
   }
 
   private static File createTempDir() throws WizardException {

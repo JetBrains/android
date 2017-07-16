@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.repository.api.Downloader;
 import com.android.repository.api.ProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.io.HttpRequests;
@@ -34,6 +35,8 @@ import java.net.URL;
 public class StudioDownloader implements Downloader {
   private com.intellij.openapi.progress.ProgressIndicator myStudioProgressIndicator;
 
+  Logger LOG = Logger.getInstance("#" + this.getClass().getName());
+
   /**
    * Creates a new {@code StudioDownloader}. The current {@link com.intellij.openapi.progress.ProgressIndicator} will be picked up
    * when downloads are run.
@@ -42,6 +45,7 @@ public class StudioDownloader implements Downloader {
 
   /**
    * Like {@link #StudioDownloader()}}, but will run downloads using the given {@link com.intellij.openapi.progress.ProgressIndicator}.
+   *
    * @param progress
    */
   public StudioDownloader(@Nullable com.intellij.openapi.progress.ProgressIndicator progress) {
@@ -68,6 +72,7 @@ public class StudioDownloader implements Downloader {
   @Override
   public void downloadFully(@NotNull URL url, @NotNull File target, @Nullable String checksum, @NotNull ProgressIndicator indicator)
     throws IOException {
+
     if (target.exists() && checksum != null) {
       if (checksum.equals(Downloader.hash(new BufferedInputStream(new FileInputStream(target)), target.length(), indicator))) {
         return;
@@ -78,12 +83,23 @@ public class StudioDownloader implements Downloader {
     indicator.logInfo("Downloading " + url);
     indicator.setText("Downloading...");
     indicator.setSecondaryText(url.toString());
-    com.intellij.openapi.progress.ProgressIndicator studioProgress = myStudioProgressIndicator;
-    if (studioProgress == null) {
-      studioProgress = ProgressManager.getInstance().getProgressIndicator();
-    }
-    HttpRequests.request(url.toExternalForm())
-      .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, studioProgress));
+    final com.intellij.openapi.progress.ProgressIndicator studioProgress =
+      (myStudioProgressIndicator == null ? ProgressManager.getInstance().getProgressIndicator() : myStudioProgressIndicator);
+    //Ref<IOException> ioExceptionRef = new Ref<>();
+    //new Task.Modal(null, "Downloading...", false) {
+    //  @Override
+    //  public void run(@NotNull com.intellij.openapi.progress.ProgressIndicator progressIndicator) {
+    //    try {
+        HttpRequests.request(url.toExternalForm())
+          //        .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, progressIndicator));
+          .saveToFile(target, new StudioProgressIndicatorAdapter(indicator, myStudioProgressIndicator));
+    //}
+        //catch (IOException e) {
+        //  ioExceptionRef.set(e);
+        //}
+      //}
+    //}.queue();
+    //if (ioExceptionRef.get() != null) throw ioExceptionRef.get();
   }
 
   @Nullable
