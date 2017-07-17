@@ -39,7 +39,7 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
     StudioFlags.NELE_TARGET_RELATIVE.clearOverride()
   }
 
-  fun testDragBottomRight() {
+  fun testResizeFromBottomRight() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.RIGHT_BOTTOM)
     myInteraction.mouseRelease(220f, 230f)
@@ -52,6 +52,103 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
             "    android:layout_toRightOf=\"@id/button\"\n" +
             "    android:layout_marginLeft=\"100dp\"\n" +
             "    android:layout_marginTop=\"100dp\"/>")
+  }
+
+  fun testDragComponentToLeftTopSide() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(150f, 150f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "    android:id=\"@id/checkbox\"\n" +
+            "    android:layout_width=\"20dp\"\n" +
+            "    android:layout_height=\"20dp\"\n" +
+            "      android:layout_marginTop=\"145dp\"\n" +
+            "      android:layout_alignParentStart=\"true\"\n" +
+            "      android:layout_marginStart=\"145dp\"\n" +
+            "      android:layout_alignParentTop=\"true\" />")
+  }
+
+  fun testDragComponentToRightBottomSide() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(400f, 400f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "    android:id=\"@id/checkbox\"\n" +
+            "    android:layout_width=\"20dp\"\n" +
+            "    android:layout_height=\"20dp\"\n" +
+            "      android:layout_alignParentEnd=\"true\"\n" +
+            "      android:layout_marginEnd=\"95dp\"\n" +
+            "      android:layout_alignParentBottom=\"true\"\n" +
+            "      android:layout_marginBottom=\"95dp\" />")
+  }
+
+  fun testDragComponentOverLeftTopEdges() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(-100f, -100f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "    android:id=\"@id/checkbox\"\n" +
+            "    android:layout_width=\"20dp\"\n" +
+            "    android:layout_height=\"20dp\"\n" +
+            "      android:layout_alignParentStart=\"true\"\n" +
+            "      android:layout_alignParentTop=\"true\" />")
+  }
+
+  fun testDragComponentOverRightBottomEdges() {
+    // FIXME: The actual XML has weired format.
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(500f, 500f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "    android:id=\"@id/checkbox\"\n" +
+            "    android:layout_width=\"20dp\"\n" +
+            "    android:layout_height=\"20dp\"\n" +
+            "      android:layout_alignParentEnd=\"true\"\n" +
+            "      android:layout_alignParentBottom=\"true\" />")
+  }
+
+  fun testDragComponentCenterHorizontal() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(250f, 50f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "    android:id=\"@id/checkbox\"\n" +
+            "    android:layout_width=\"20dp\"\n" +
+            "    android:layout_height=\"20dp\"\n" +
+            "      android:layout_marginTop=\"45dp\"\n" +
+            "      android:layout_centerHorizontal=\"true\"\n" +
+            "      android:layout_alignParentTop=\"true\" />")
+  }
+
+  fun testDragComponentCenterVertical() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(50f, 250f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "    android:id=\"@id/checkbox\"\n" +
+            "    android:layout_width=\"20dp\"\n" +
+            "    android:layout_height=\"20dp\"\n" +
+            "      android:layout_alignParentStart=\"true\"\n" +
+            "      android:layout_centerVertical=\"true\"\n" +
+            "      android:layout_marginStart=\"45dp\" />")
+  }
+
+  fun testDragComponentToCenterOfParent() {
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox")
+    myInteraction.mouseRelease(250f, 250f)
+    myScreen.get("@id/checkbox")
+        .expectXml("<CheckBox\n" +
+            "    android:id=\"@id/checkbox\"\n" +
+            "    android:layout_width=\"20dp\"\n" +
+            "    android:layout_height=\"20dp\"\n" +
+            "      android:layout_centerInParent=\"true\" />")
   }
 
   override fun createModel(): ModelBuilder {
@@ -82,25 +179,13 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
                     .withAttribute("android:layout_below", "@id/button")
                     .withAttribute("android:layout_toRightOf", "@id/button")
                     .withAttribute("android:layout_marginLeft", "100dp")
-                    .withAttribute("android:layout_marginTop", "100dp"),
-
-                component(TEXT_VIEW)
-                    .withBounds(400, 400, 100, 100)
-                    .viewObject(mockViewWithBaseline(70))
-                    .id("@id/textView")
-                    .width("100dp")
-                    .height("100dp")
-                    .withAttribute("android:layout_below", "@id/checkbox")
-                    .withAttribute("android:layout_toRightOf", "@id/checkbox")
-                    .withAttribute("android:layout_marginLeft", "80dp")
-                    .withAttribute("android:layout_marginTop", "80dp")
+                    .withAttribute("android:layout_marginTop", "100dp")
             ))
     val model = builder.build()
     assertEquals(1, model.components.size)
     assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
-        "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}\n" +
-        "    NlComponent{tag=<TextView>, bounds=[400,400:100x100}",
+        "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}",
         NlTreeDumper.dumpTree(model.components))
 
     format(model.file)
@@ -127,15 +212,6 @@ class RelativeLayoutHandlerKtTest : SceneTest() {
         "        android:layout_toRightOf=\"@id/button\"\n" +
         "        android:layout_marginLeft=\"100dp\"\n" +
         "        android:layout_marginTop=\"100dp\" />\n" +
-        "\n" +
-        "    <TextView\n" +
-        "        android:id=\"@id/textView\"\n" +
-        "        android:layout_width=\"100dp\"\n" +
-        "        android:layout_height=\"100dp\"\n" +
-        "        android:layout_below=\"@id/checkbox\"\n" +
-        "        android:layout_toRightOf=\"@id/checkbox\"\n" +
-        "        android:layout_marginLeft=\"80dp\"\n" +
-        "        android:layout_marginTop=\"80dp\" />\n" +
         "\n" +
         "</RelativeLayout>\n", model.file.text)
     return builder
