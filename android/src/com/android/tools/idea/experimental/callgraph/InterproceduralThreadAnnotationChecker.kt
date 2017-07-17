@@ -53,23 +53,50 @@ fun searchForInterproceduralThreadAnnotationViolations(callGraph: CallGraph,
   fun PsiModifierListOwner.isAnnotatedWith(annotation: String) =
       AnnotationUtil.isAnnotated(this, annotation, /*inHierarchy*/ true, /*skipExternal*/ false)
 
-  fun CallGraph.nodesAnnotatedWith(annotation: String) = nodes.filter {
-    val target = it.caller
-    when (target) {
-      is CallTarget.Method -> {
-        target.element.isAnnotatedWith(annotation) || target.element.containingClass?.isAnnotatedWith(annotation) ?: false
-      }
-      is CallTarget.Lambda -> target.element.annotations.any { it.qualifiedName == annotation }
-      is CallTarget.DefaultConstructor -> target.element.isAnnotatedWith(annotation)
+  fun CallTarget.isAnnotatedWith(annotation: String) = when (this) {
+    is CallTarget.Method -> {
+      element.isAnnotatedWith(annotation) || element.containingClass?.isAnnotatedWith(annotation) ?: false
     }
+    is CallTarget.Lambda -> element.annotations.any { it.qualifiedName == annotation }
+    is CallTarget.DefaultConstructor -> element.isAnnotatedWith(annotation)
   }
 
-  val uiNodes = callGraph.nodesAnnotatedWith(UI_THREAD_ANNOTATION)
-  val workerNodes = callGraph.nodesAnnotatedWith(WORKER_THREAD_ANNOTATION)
-  val uiPaths = callGraph.searchForPaths(uiNodes, workerNodes, nonContextualReceiverEval)
+  val allSearchNodes = callGraph.buildAllReachableSearchNodes(nonContextualReceiverEval)
+  val uiSearchNodes = allSearchNodes.filter { it.node.caller.isAnnotatedWith(UI_THREAD_ANNOTATION) }
+  val workerSearchNodes = allSearchNodes.filter { it.node.caller.isAnnotatedWith(WORKER_THREAD_ANNOTATION) }
+
+  // Some methods take in a lambda (say) and run it on a different thread.
+  // By default our analysis would see that there is no direct call through the parameter, and correctly end the corresponding call path.
+  // But we would also like to check that the parameter is able to run on the new thread.
+  // To do this we find each parameter with a thread annotation, and treat all contextual receivers for that parameters as if they
+  // had the thread annotation directly.
+  fun invokeLaterSearchNodes(annotation: String) = allSearchNodes
+      .flatMap { searchNode ->
+        searchNode.paramContext.params
+            .filter { (param, _) ->
+              // Unwrapping the psi parameter is important for equality checks during annotation lookup.
+              param.psi.isAnnotatedWith(annotation)
+            }
+            .map { it.second } // Pulls out receivers.
+      }
+      .mapNotNull { receiver ->
+        val target = when (receiver) {
+          is Receiver.Class -> null
+          is Receiver.Lambda -> receiver.toTarget()
+          is Receiver.CallableReference -> receiver.toTarget()
+        }
+        // We use an empty parameter context for the lambda (say) that will be invoked on the new thread,
+        // as we don't know what arguments will be used when it is invoked later.
+        target?.let { SearchNode(callGraph.getNode(it.element), ParamContext.EMPTY, cause = it.element) }
+      }
+
+  val allUiSearchNodes = uiSearchNodes + invokeLaterSearchNodes(UI_THREAD_ANNOTATION)
+  val allWorkerSearchNodes = workerSearchNodes + invokeLaterSearchNodes(WORKER_THREAD_ANNOTATION)
+  val uiPaths = callGraph.searchForPathsFromSearchNodes(allUiSearchNodes, allWorkerSearchNodes, nonContextualReceiverEval)
       .map { AnnotatedCallPath(it, UI_THREAD_ANNOTATION, WORKER_THREAD_ANNOTATION) }
-  val workerPaths = callGraph.searchForPaths(workerNodes, uiNodes, nonContextualReceiverEval)
+  val workerPaths = callGraph.searchForPathsFromSearchNodes(allWorkerSearchNodes, allUiSearchNodes, nonContextualReceiverEval)
       .map { AnnotatedCallPath(it, WORKER_THREAD_ANNOTATION, UI_THREAD_ANNOTATION) }
+
   return uiPaths + workerPaths
 }
 

@@ -18,7 +18,6 @@ package com.android.tools.idea.experimental.callgraph
 import com.google.common.collect.HashMultimap
 import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClassType
-import com.intellij.psi.PsiMethod
 import org.jetbrains.uast.*
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 
@@ -48,6 +47,13 @@ sealed class Receiver(open val element: UElement) {
   data class Lambda(override val element: ULambdaExpression) : Receiver(element)
   data class CallableReference(override val element: UCallableReferenceExpression) : Receiver(element)
 }
+
+/** Refines the given method to the overriding method that would appear in the virtual method table of this class. */
+fun Receiver.Class.refineToTarget(method: UMethod) =
+    element.findMethodBySignature(method, /*checkBases*/ true)?.toUElementOfType<UMethod>()?.let { CallTarget.Method(it) }
+
+fun Receiver.Lambda.toTarget() = CallTarget.Lambda(element)
+fun Receiver.CallableReference.toTarget() = (element.resolveToUElement() as? UMethod)?.let { CallTarget.Method(it) }
 
 /** Tries to map expressions to receivers without relying on any context. */
 class SimpleExpressionReceiverEvaluator : CallReceiverEvaluator {
@@ -104,15 +110,12 @@ fun UCallExpression.getTargets(receiverEval: CallReceiverEvaluator): Collection<
   if (resolved.isStatic)
     return listOf(CallTarget.Method(resolved))
   val receivers = receiver?.let { receiverEval[it] } ?: receiverEval.getForImplicitThis()
-  fun refine(method: UMethod, clazz: UClass): PsiMethod? = clazz.findMethodBySignature(method, /*checkBases*/ true)
   fun isFunctionalCall() = resolved.psi == LambdaUtil.getFunctionalInterfaceMethod(receiverType)
-  fun ULambdaExpression.toLambdaTarget() = CallTarget.Lambda(this)
-  fun UCallableReferenceExpression.toMethodTarget() = (resolveToUElement() as? UMethod)?.let { CallTarget.Method(it) }
   return receivers.mapNotNull { receiver ->
     when (receiver) {
-      is Receiver.Class -> refine(resolved, receiver.element)?.toUElementOfType<UMethod>()?.let { CallTarget.Method(it) }
-      is Receiver.Lambda -> if (isFunctionalCall()) receiver.element.toLambdaTarget() else null
-      is Receiver.CallableReference -> if (isFunctionalCall()) receiver.element.toMethodTarget() else null
+      is Receiver.Class -> receiver.refineToTarget(resolved)
+      is Receiver.Lambda -> if (isFunctionalCall()) receiver.toTarget() else null
+      is Receiver.CallableReference -> if (isFunctionalCall()) receiver.toTarget() else null
     }
   }
 }

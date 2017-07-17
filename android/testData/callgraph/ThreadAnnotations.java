@@ -15,15 +15,18 @@
  */
 package android.support.annotation;
 
-@interface UiThread {}
-@interface WorkerThread {}
+@Target({METHOD,CONSTRUCTOR,TYPE,PARAMETER})
+public @interface UiThread {}
+
+@Target({METHOD,CONSTRUCTOR,TYPE,PARAMETER})
+public @interface WorkerThread {}
 
 @FunctionalInterface
 public interface Runnable {
   public abstract void run();
 }
 
-class ThreadAnnotations {
+class Test {
   @UiThread static void uiThreadStatic() { unannotatedStatic(); }
   static void unannotatedStatic() { workerThreadStatic(); }
   @WorkerThread static void workerThreadStatic() {}
@@ -39,7 +42,7 @@ class ThreadAnnotations {
   }
 
   public static void main(String[] args) {
-    ThreadAnnotations instance = new ThreadAnnotations();
+    Test instance = new Test();
     instance.uiThread();
   }
 
@@ -69,5 +72,25 @@ class ThreadAnnotations {
   void f() {
     runWithIt(new A(), this::b);
     runWithIt(new B(), this::a);
+  }
+
+  public static void invokeLater(@UiThread Runnable runnable) { /* place on queue to invoke on UiThread */ }
+
+  public static void invokeInBackground(@WorkerThread Runnable runnable) { /* place on queue to invoke on background thread */ }
+
+  @WorkerThread
+  void c() {}
+
+  @UiThread
+  void d() {}
+
+  void callInvokeLater() {
+    invokeLater(() -> c());
+    invokeLater(() -> d()); // Ok.
+  }
+
+  void callInvokeInBackground() {
+    invokeInBackground(() -> d());
+    invokeInBackground(() -> c()); // Ok.
   }
 }
