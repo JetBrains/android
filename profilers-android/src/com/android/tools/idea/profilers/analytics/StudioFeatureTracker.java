@@ -22,6 +22,7 @@ import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -129,6 +130,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackTraceCpu(@NotNull ProfilingConfiguration cpuConfig) {
     newTracker(AndroidProfilerEvent.Type.TRACE_CPU).setCpuConfig(cpuConfig).track();
+  }
+
+  @Override
+  public void trackCaptureTrace(@NotNull CpuCaptureMetadata cpuCaptureMetadata) {
+    newTracker(AndroidProfilerEvent.Type.TRACE_CPU).setDevice(myActiveDevice).setCpuCaptureMetadata(cpuCaptureMetadata);
   }
 
   @Override
@@ -248,6 +254,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull private final AndroidProfilerEvent.Stage myCurrStage;
     @Nullable private Profiler.Device myDevice;
     @Nullable private ProfilingConfiguration myCpuConfig;
+    @Nullable private CpuCaptureMetadata myCpuCaptureMetadata;
 
     public Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
       myEventType = eventType;
@@ -263,6 +270,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull Tracker setCpuConfig(@Nullable ProfilingConfiguration cpuConfig) {
       this.myCpuConfig = cpuConfig;
       return this;
+    }
+
+    public void setCpuCaptureMetadata(@Nullable CpuCaptureMetadata cpuCaptureMetadata) {
+      myCpuCaptureMetadata = cpuCaptureMetadata;
     }
 
     public void track() {
@@ -311,6 +322,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
             .setBuildApiLevelFull(new AndroidVersion(myDevice.getApiLevel(), myDevice.getCodename()).getApiString())
             .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
             .build());
+      }
+
+      if (myCpuCaptureMetadata != null) {
+        // TODO: send metadata information to tracker
       }
 
       UsageTracker.getInstance().log(event);

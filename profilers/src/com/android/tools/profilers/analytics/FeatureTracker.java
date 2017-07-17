@@ -17,6 +17,7 @@ package com.android.tools.profilers.analytics;
 
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,8 +104,15 @@ public interface FeatureTracker {
 
   /**
    * Track the user taking a method trace using some configuration.
+   * TODO: remove it when {@link #trackCaptureTrace(CpuCaptureMetadata)} is fully operational.
    */
+  @Deprecated
   void trackTraceCpu(@NotNull ProfilingConfiguration config);
+
+  /**
+   * Track the user capturing a method trace.
+   */
+  void trackCaptureTrace(@NotNull CpuCaptureMetadata cpuCaptureMetadata);
 
   /**
    * Track the user clicking on one of the threads in the thread list.
