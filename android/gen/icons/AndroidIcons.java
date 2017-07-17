@@ -179,7 +179,7 @@ public class AndroidIcons {
 
   public static class NeleIcons {
     // All 16x16 and 32x32 in Retina mode
-    public static final Icon Api = load("/icons/nele/api.png");
+    public static final Icon Api = load("/icons/nele/android-api.png");
     public static final Icon Language = load("/icons/nele/language.png");
     public static final Icon Preview = load("/icons/nele/preview.png");
     public static final Icon Rotate = load("/icons/nele/rotate-button.png");
@@ -188,8 +188,7 @@ public class AndroidIcons {
     public static final Icon Tablet = load("/icons/nele/tablet.png");
     public static final Icon Wear = load("/icons/nele/wear.png");
     public static final Icon Tv = load("/icons/nele/tv.png");
-    public static final Icon Theme = load("/icons/nele/theme.png");
-    public static final Icon Variants = load("/icons/nele/variants.png");
+    public static final Icon Theme = load("/icons/nele/theme-button.png");
     public static final Icon DeviceScreen = load("/icons/nele/DeviceScreen.png");
 
     public static final Icon ZoomIn = load("/icons/nele/zoom-in.png");
@@ -293,7 +292,7 @@ public class AndroidIcons {
     public static final Icon BarrierHorizontal = load("/icons/sherpa/barrier_horizontal.png");
     public static final Icon Layer = load("/icons/sherpa/switch_blueprint_off.png");
     public static final Icon Hide = load("/icons/sherpa/hide.png");
-    public static final Icon Checked =  load("/actions/checked.png");
+    public static final Icon Checked = load("/actions/checked.png");
     public static final Icon Unchecked = load("/icons/sherpa/unchecked.png");
 
     public static final Icon HorizontalCenterB = load("/icons/sherpa/center-constraint-horizontally.png");
