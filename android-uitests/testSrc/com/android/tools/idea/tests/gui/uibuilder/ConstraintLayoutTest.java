@@ -15,20 +15,32 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
+import com.android.tools.idea.tests.gui.theme.ThemeEditorGuiTestUtils;
+import com.android.tools.idea.ui.TextAccessors;
+import com.intellij.BundleBase;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.data.TableCell;
+import org.fest.swing.fixture.JTableCellFixture;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 
-
 import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.data.TableCell.row;
 
 /**
  * UI tests for the constraint layout
@@ -279,5 +291,79 @@ public class ConstraintLayoutTest {
       .requireOrientation("Portrait")
       .requireApiLevel("25")
       .requireTheme("AppTheme");
+  }
+
+  /**
+   * To verify that the layout preview renders appropriately with different themes and API selections
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 7ba5466f-78b0-43fa-8739-602f35c444d8
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio and import a simple application
+   *   2. Open Theme Editor (Verify 1) (Tools > Android > Theme Editor)
+   *   3. From the right pane, select a different theme from the list , say a dark theme like Material Dark .(Verify 2)
+   *   4. Choose a different API from the list, say Android 5.0 or Android 4.0.3 (Verify 3)
+   *   5. Choose a different device from the list, say N5 or N6 (Verify 4)
+   *   6. Switch between portrait and landscape modes (Verify 5)
+   *   7. Select Theme and then click on New Theme and enter a name and choose a parent theme from the list and click OK (Verify 6)
+   *   8. On the newly created theme, click on a resource , say android:colorBackground and select a different color from the color picker (Verify 7)
+   *   9. Repeat step 8 with a default system theme, like Material Light (Verify 8)
+   *   Verify:
+   *   1. Preview is displayed with the default theme selection (App Theme)
+   *   2. Preview is updated with the newly selected theme
+   *   3. Preview is updated for the other API's and there are no rendering errors
+   *   4. Preview is updated for the other devices and there are no rendering errors
+   *   5. Preview is updated appropriately without any errors
+   *   6. New theme is created and is displayed as the selected theme for the module.
+   *   7. Preview is updated with the newly selected color for the background
+   *   8. A prompt will be displayed to the user mentioning that that the selected system theme is ready-only
+   *   and that they need to create a new theme with the selected background color.
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void themeEditor() throws Exception {
+    guiTest.importSimpleApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+    ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
+
+    themeEditor.chooseTheme("Theme.AppCompat.NoActionBar")
+      .chooseApiLevel("API 25", "25")
+      .chooseDevice("Nexus 5", "Nexus 5")
+      .switchOrientation("Landscape")
+      .switchOrientation("Portrait")
+      .createNewTheme("NewTheme", "Theme.AppCompat.NoActionBar");
+
+    TableCell cell = row(1).column(0);
+    JTableCellFixture colorCell = themeEditorTable.cell(cell);
+
+    ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)colorCell.editor());
+    colorCell.startEditing();
+    resourceComponent.getSwatchButton().click();
+    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    Color color = new Color(255, 235, 59, 255);
+    dialog.getColorPicker().setColorWithIntegers(color);
+    dialog.clickOK();
+    colorCell.stopEditing();
+
+    themeEditor.chooseTheme("Theme.AppCompat.NoActionBar");
+    colorCell.startEditing();
+    resourceComponent.getSwatchButton().click();
+    dialog = ChooseResourceDialogFixture.find(guiTest.robot());
+    dialog.clickOK();
+    NewThemeDialogFixture newThemeDialog = NewThemeDialogFixture.findDialog(guiTest.robot());
+    GuiTests.waitUntilShowing(guiTest.robot(), newThemeDialog.target(), new GenericTypeMatcher<JLabel>(JLabel.class) {
+      @Override
+      protected boolean isMatching(@NotNull JLabel component) {
+        String componentText = TextAccessors.getTextAccessor(component).getText();
+        componentText = componentText == null ? "" : componentText.replaceAll(Character.toString(BundleBase.MNEMONIC), "");
+        return componentText.contains("Read-Only");
+      }
+    });
+    newThemeDialog.clickCancel();
+    colorCell.stopEditing();
   }
 }
