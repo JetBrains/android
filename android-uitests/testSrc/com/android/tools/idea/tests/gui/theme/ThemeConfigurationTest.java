@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.AndroidThemePreviewPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
@@ -29,7 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -73,9 +73,9 @@ public class ThemeConfigurationTest {
     AndroidThemePreviewPanelFixture themePreviewPanel = themeEditor.getPreviewComponent().getThemePreviewPanel();
     themePreviewPanel.requirePreviewPanel();
 
-    JButton apiButton = themeEditor.findToolbarButton("API Version in Editor");
-    guiTest.robot().click(apiButton);
-    clickPopupMenuItem("API 19", "19", apiButton, guiTest.robot());
+    ActionButtonFixture button = themeEditor.findToolbarButton("API Version in Editor");
+    button.click();
+    clickPopupMenuItem("API 19", "19", button.target(), guiTest.robot());
 
     themePreviewPanel.requireErrorPanel();
 
