@@ -333,16 +333,12 @@ public class IssuePanel extends JPanel implements Disposable {
 
   @Override
   public void doLayout() {
-    // Compute the Category and source column size so they take the minimum space
-    int categoryColumnSize = 0;
     int sourceColumnSize = 0;
     Collection<IssueView> values = myDisplayedError.values();
     for (IssueView view : values) {
-      categoryColumnSize = Math.max(categoryColumnSize, view.getCategoryLabelWidth());
       sourceColumnSize = Math.max(sourceColumnSize, view.getSourceLabelWidth());
     }
     for (IssueView view : values) {
-      view.setCategoryLabelSize(categoryColumnSize);
       view.setSourceLabelSize(sourceColumnSize);
     }
     super.doLayout();

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.utils.HtmlBuilder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
@@ -47,7 +48,8 @@ public class IssueView extends JPanel {
   private static final String SUGGESTED_FIXES = "Suggested Fixes";
   private static final int BORDER_THICKNESS = 1;
   private static final RoundedLineBorder SELECTED_BORDER = IdeBorderFactory.createRoundedBorder(BORDER_THICKNESS);
-  private static final Border UNSELECTED_BORDER = JBUI.Borders.empty(BORDER_THICKNESS);
+  private static final Border UNSELECTED_BORDER = IdeBorderFactory.createEmptyBorder(SELECTED_BORDER.getThickness());
+  private static final JBColor SELECTED_BG_COLOR = new JBColor(UIUtil.getPanelBackground(), new Color(0x232425));
 
   static {
     SELECTED_BORDER.setColor(UIUtil.getTreeSelectionBorderColor());
@@ -57,7 +59,6 @@ public class IssueView extends JPanel {
   private JPanel myContent;
   private JBLabel myExpandIcon;
   private JLabel myErrorIcon;
-  private JBLabel myCategoryLabel;
   private JLabel mySourceLabel;
   private JTextPane myErrorDescription;
   private JBLabel myErrorTitle;
@@ -90,7 +91,6 @@ public class IssueView extends JPanel {
     myErrorIcon.setIcon(getSeverityIcon(issue.getSeverity()));
     myExpandIcon.setIcon(UIUtil.getTreeCollapsedIcon());
     myErrorTitle.setText(issue.getSummary());
-    myCategoryLabel.setText(issue.getCategory());
     NlComponent source = issue.getSource();
     if (source != null) {
       String id = source.getId();
@@ -109,6 +109,9 @@ public class IssueView extends JPanel {
         mySuggestedFixLabel.setText(SUGGESTED_FIXES);
       }
     }
+    else {
+      myFixPanel.setVisible(false);
+    }
   }
 
   private void setupDescriptionPanel(@NotNull NlIssue issue) {
@@ -117,6 +120,7 @@ public class IssueView extends JPanel {
     myErrorDescription.setEditorKit(UIUtil.getHTMLEditorKit());
     myErrorDescription.addHyperlinkListener(issue.getHyperlinkListener());
     myErrorDescription.setText(formattedText);
+    myErrorDescription.setFont(UIUtil.getToolTipFont());
     myErrorDescription.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -188,12 +192,8 @@ public class IssueView extends JPanel {
 
   void setSelected(boolean selected) {
     setOpaque(selected);
-    setBackground(selected ? UIUtil.getPanelBackground() : UIUtil.getEditorPaneBackground());
+    setBackground(selected ? SELECTED_BG_COLOR : UIUtil.getEditorPaneBackground());
     setFocused(myContainerIssuePanel.hasFocus() && selected);
-  }
-
-  int getCategoryLabelWidth() {
-    return myCategoryLabel.getFontMetrics(myCategoryLabel.getFont()).stringWidth(myCategoryLabel.getText());
   }
 
   int getSourceLabelWidth() {
@@ -212,20 +212,6 @@ public class IssueView extends JPanel {
     Dimension size = mySourceLabel.getPreferredSize();
     size.width = sourceLabelSize;
     mySourceLabel.setPreferredSize(size);
-  }
-
-  /**
-   * Set size of the category {@link JLabel}
-   *
-   * The method is used my the {@link IssuePanel} to ensure that every {@link IssueView}'s category
-   * label has the same size.
-   *
-   * @param categoryLabelSize
-   */
-  void setCategoryLabelSize(int categoryLabelSize) {
-    Dimension size = myCategoryLabel.getPreferredSize();
-    size.width = categoryLabelSize;
-    myCategoryLabel.setPreferredSize(size);
   }
 
   @VisibleForTesting
