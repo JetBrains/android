@@ -17,14 +17,10 @@ package com.android.tools.idea.uibuilder.adaptiveicon;
 
 import com.android.resources.Density;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.configurations.FlatComboAction;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 
 public class DensityMenuAction extends DropDownAction {

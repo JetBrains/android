@@ -16,17 +16,12 @@
 package com.android.tools.idea.naveditor.editor;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.FlatComboAction;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -45,36 +40,26 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT;
-import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.*;
 import static com.android.dvlib.DeviceSchema.ATTR_NAME;
 
 /**
  * "Add" popup menu in the navigation editor.
  */
-class AddMenuWrapper extends FlatComboAction {
+class AddMenuWrapper extends DropDownAction {
 
   private final NavDesignSurface mySurface;
   private final List<NavActionManager.Destination> myDestinations;
 
   AddMenuWrapper(@NotNull NavDesignSurface surface, @NotNull List<NavActionManager.Destination> destinations) {
+    super("", "Add Destination", IconUtil.getAddIcon());
     mySurface = surface;
     myDestinations = destinations;
-    Presentation presentation = getTemplatePresentation();
-    presentation.setIcon(IconUtil.getAddIcon());
-    presentation.setDescription("Add Destination");
   }
 
-  @NotNull
+  @Nullable
   @Override
-  protected DefaultActionGroup createPopupActionGroup() {
-    return new DefaultActionGroup();
-  }
-
-  @NotNull
-  @Override
-  protected JBPopup createPopup(@Nullable Runnable onDispose, @Nullable DataContext context) {
+  protected JPanel createCustomComponentPopup() {
     CollectionListModel<NavActionManager.Destination> listModel = new CollectionListModel<>(myDestinations);
     ASGallery<NavActionManager.Destination> destinations = new ASGallery<NavActionManager.Destination>(
       listModel, NavActionManager.Destination::getThumbnail, NavActionManager.Destination::getName, new Dimension(96, 96), null) {
@@ -128,34 +113,20 @@ class AddMenuWrapper extends FlatComboAction {
     createButtonPanel.add(createButton);
     panel.add(createButtonPanel);
 
-    JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(panel, panel)
-      .setRequestFocus(true)
-      .setCancelOnClickOutside(true)
-      .setLocateWithinScreenBounds(true)
-      .setShowShadow(true)
-      .setCancelOnWindowDeactivation(true)
-      .setCancelCallback(() -> {
-        if (onDispose != null) {
-          onDispose.run();
-        }
-        return true;
-      })
-      .createPopup();
-
     createButton.addActionListener(event -> {
       addElement(null, mySurface);
-      popup.closeOk(null);
+      closePopup();
     });
     destinations.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(@NotNull MouseEvent event) {
         if (destinations.getSelectedIndex() != -1) {
           addElement(destinations.getSelectedElement(), mySurface);
-          popup.closeOk(null);
+          closePopup();
         }
       }
     });
-    return popup;
+    return panel;
   }
 
   static void addElement(@Nullable NavActionManager.Destination destination, @NotNull NavDesignSurface surface) {
