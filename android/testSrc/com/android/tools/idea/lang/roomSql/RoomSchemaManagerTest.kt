@@ -44,12 +44,10 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
   fun testEntities_tableNameOverride() {
     myFixture.addRoomEntity("com.example.Address", tableNameOverride = "addresses")
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
-        RoomSchema(
-            entities = setOf(
-                Entity(myFixture.findClass("com.example.Address"), "addresses")),
-            databases = emptySet(),
-            daos = emptySet()))
+    val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
+    assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
+    assertThat(entity.tableName).isEqualTo("addresses")
+    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testEntities_tableNameOverride_expression() {
@@ -65,12 +63,10 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
         }
         """.trimIndent())
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
-        RoomSchema(
-            entities = setOf(
-                Entity(myFixture.findClass("com.example.Address"), "addresses_table")),
-            databases = emptySet(),
-            daos = emptySet()))
+    val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
+    assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
+    assertThat(entity.tableName).isEqualTo("addresses_table")
+    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testEntities_addEntity() {
@@ -126,12 +122,10 @@ class RoomSchemaManagerTest : LightRoomTestCase() {
 
     PsiDocumentManager.getInstance(project).commitAllDocuments()
 
-    assertThat(RoomSchemaManager.getInstance(myModule)!!.getSchema()).isEqualTo(
-        RoomSchema(
-            entities = setOf(
-                Entity(myFixture.findClass("com.example.Address"), "addresses")),
-            databases = emptySet(),
-            daos = emptySet()))
+    val entity = RoomSchemaManager.getInstance(myModule)!!.getSchema()!!.entities.single()
+    assertThat(entity.psiClass).isSameAs(myFixture.findClass("com.example.Address"))
+    assertThat(entity.tableName).isEqualTo("addresses")
+    assertThat(entity.tableNameElement).isNotSameAs(entity.psiClass)
   }
 
   fun testDatabases_single() {

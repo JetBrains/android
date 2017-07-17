@@ -18,10 +18,7 @@ package com.android.tools.idea.lang.roomSql
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiArrayInitializerMemberValue
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiClassObjectAccessExpression
+import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.CachedValueProvider
@@ -43,10 +40,19 @@ data class Database(
     val entities: Set<PsiClass>)
 
 data class Entity(
+
     /** Annotated class. */
     val psiClass: PsiClass,
+
     /** Name of the table: take from the class name or the annotation parameter. */
-    val tableName: String)
+    val tableName: String,
+
+    /**
+     * [PsiElement] that determines the table name and should be the destination of references from SQL.
+     *
+     * This can be either the class itself or the annotation element.
+     */
+    val tableNameElement: PsiElement = psiClass)
 
 data class Dao(val psiClass: PsiClass)
 
@@ -89,16 +95,17 @@ class RoomSchemaManager(val module: Module) {
   }
 
   private fun createEntity(psiClass: PsiClass): Entity? {
-    val tableNameOverride =
-        psiClass.modifierList
-            ?.findAnnotation(ENTITY_ANNOTATION_NAME)
-            ?.findDeclaredAttributeValue("tableName")
-            ?.let { JavaPsiFacade.getInstance(psiClass.project).constantEvaluationHelper.computeConstantExpression(it) }
-            ?.toString()
+    val tableNameElement: PsiElement? = psiClass.modifierList
+        ?.findAnnotation(ENTITY_ANNOTATION_NAME)
+        ?.findDeclaredAttributeValue("tableName")
 
-    val tableName = tableNameOverride ?: psiClass.name ?: return null
+    val tableName = tableNameElement
+        ?.let { JavaPsiFacade.getInstance(psiClass.project).constantEvaluationHelper.computeConstantExpression(it) }
+        ?.toString()
+        ?: psiClass.name
+        ?: return null
 
-    return Entity(psiClass, tableName)
+    return Entity(psiClass, tableName, tableNameElement ?: psiClass)
   }
 
   private fun createDatabase(psiClass: PsiClass): Database? {

@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.roomSql
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.ResolveResult
 
 class ReferencesTest : LightRoomTestCase() {
@@ -95,7 +96,9 @@ class ReferencesTest : LightRoomTestCase() {
         }
     """.trimIndent())
 
-    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.User"))
+    val referenceTarget = myFixture.elementAtCaret
+    assertThat(referenceTarget).isInstanceOf(PsiLiteralExpression::class.java)
+    assertThat(referenceTarget.text).isEqualTo("\"people\"")
   }
 
   fun testMultiResolve() {
@@ -149,6 +152,38 @@ class ReferencesTest : LightRoomTestCase() {
     """.trimIndent())
 
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.Person"))
+  }
+
+  fun testRename_fromSql_quoted() {
+    myFixture.addRoomEntity("com.example.Order")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public class OrderDao {
+          @Query("SELECT * FROM 'O<caret>rder'") List<Order> getAll();
+        }
+    """.trimIndent())
+
+    myFixture.renameElementAtCaret("OrderItem")
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public class OrderDao {
+          @Query("SELECT * FROM OrderItem") List<OrderItem> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.OrderItem"))
   }
 
   fun testRename_fromJava() {
@@ -308,5 +343,118 @@ class ReferencesTest : LightRoomTestCase() {
           @Query("SELECT * FROM 'funny people'") List<User> getAll();
         }
     """.trimIndent())
+  }
+
+  fun testUsages() {
+    myFixture.addRoomEntity("com.example.User")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public class UserDao {
+          @Query("SELECT * FROM U<caret>ser") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.findUsages(myFixture.elementAtCaret).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!).isNotNull()
+  }
+
+  fun testUsages_caseInsensitive() {
+    myFixture.addRoomEntity("com.example.User")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public class UserDao {
+          @Query("SELECT * FROM user") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+        .isNotNull()
+  }
+
+  fun testUsages_tableNameOverride() {
+    myFixture.addRoomEntity("com.example.User", tableNameOverride = "people")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public class UserDao {
+          @Query("SELECT * FROM people") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+        .isNotNull()
+  }
+
+  fun testUsages_tableNameOverride_escaping() {
+    myFixture.addRoomEntity("com.example.User", tableNameOverride = "foo'bar")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public class UserDao {
+          @Query("SELECT * FROM 'foo''bar'") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+        .isNotNull()
+  }
+
+  fun testUsages_tableNameOverride_spaces() {
+    myFixture.addRoomEntity("com.example.User", tableNameOverride = "foo bar")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public class UserDao {
+          @Query("SELECT * FROM 'foo bar'") List<User> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.User")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+        .isNotNull()
+  }
+
+  fun testUsages_keyword() {
+    myFixture.addRoomEntity("com.example.Order")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import android.arch.persistence.room.Dao;
+        import android.arch.persistence.room.Query;
+
+        @Dao
+        public class OrderDao {
+          @Query("SELECT * FROM 'Order'") List<Order> getAll();
+        }
+    """.trimIndent())
+
+    assertThat(myFixture.findUsages(myFixture.findClass("com.example.Order")).find { it.file!!.language == ROOM_SQL_LANGUAGE }!!)
+        .isNotNull()
   }
 }
