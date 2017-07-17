@@ -56,7 +56,8 @@ public class LintTest {
     EditorFixture editor = ideFrameFixture
       .waitForGradleProjectSyncToFinish()
       .getEditor()
-      .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java", EditorFixture.Tab.EDITOR);
+      .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java", EditorFixture.Tab.EDITOR)
+      .waitUntilErrorAnalysisFinishes();
 
     Wait.seconds(5)
       .expecting("Unnecessary conditional statements are detected")
