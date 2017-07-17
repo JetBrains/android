@@ -23,6 +23,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.IdeaTestCase;
 
+import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
@@ -54,8 +55,8 @@ public class SourceFolderNodeTest extends IdeaTestCase {
   public void testUpdateImpl() throws Exception {
     myNode.updateImpl(myPresentation);
 
-    String expectedPath = toSystemDependentPath(myFolder.getPath()).getPath();
-    assertEquals(expectedPath, myPresentation.getTooltip());
+    File expectedFile = toSystemDependentPath(myFolder.getPath());
+    assertThat(myPresentation.getTooltip()).isEqualTo(expectedFile.getPath());
 
     List<PresentableNodeDescriptor.ColoredFragment> allText = myPresentation.getColoredText();
     assertThat(allText).hasSize(2);
@@ -65,10 +66,7 @@ public class SourceFolderNodeTest extends IdeaTestCase {
     assertEquals(REGULAR_ATTRIBUTES, folderName.getAttributes());
 
     PresentableNodeDescriptor.ColoredFragment path = allText.get(1);
-    String pathValue = path.getText();
-    assertThat(pathValue).startsWith("(...");
-    pathValue = pathValue.substring(4, pathValue.length() - 1);
-    assertThat(expectedPath).contains(pathValue);
+    assertThat(path.getText()).contains(expectedFile.getParentFile().getName());
     assertEquals(GRAY_ATTRIBUTES, path.getAttributes());
   }
 }
