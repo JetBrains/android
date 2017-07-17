@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.ImmutableList;
+import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.lookup.LookupAdapter;
 import com.intellij.codeInsight.lookup.LookupEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -33,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -191,6 +193,16 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
           if (property == myProperty) {
             myTextEditorWithAutoCompletion.updateCompletions(completions);
             myCompletionsUpdated = true;
+
+            // Auto completions may have failed to load because the completions were not computed yet.
+            // Display them now to make auto completions more predictable.
+            // This also allows us to test this consistently in a ui test see NlPropertyTableTest.
+            UIUtil.invokeLaterIfNeeded(() -> {
+              if (!getText().equals(StringUtil.notNullize(property.getValue()))) {
+                Project project = property.getModel().getProject();
+                AutoPopupController.getInstance(project).scheduleAutoPopup(myTextEditorWithAutoCompletion.getEditor());
+              }
+            });
           }
         });
       }

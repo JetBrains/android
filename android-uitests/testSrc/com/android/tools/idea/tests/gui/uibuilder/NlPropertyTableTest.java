@@ -143,11 +143,10 @@ public class NlPropertyTableTest {
     table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
     table.type('a');
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
-    Thread.sleep(2000);
     type(textEditor, "b");
-    waitForLookupToShow(project, Wait.seconds(3));
+    waitForLookupToShow(project);
     textEditor.pressAndReleaseKeys(VK_ESCAPE);
-    waitForLookupToHide(project, Wait.seconds(3));
+    waitForLookupToHide(project);
     textEditor.pressAndReleaseKeys(VK_DOWN);
 
     assertThat(textView.getTextAttribute()).isEqualTo("ab");
@@ -181,7 +180,7 @@ public class NlPropertyTableTest {
     table.type('s');
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
     type(textEditor, "tring/copy");
-    waitForLookupToShow(project, Wait.seconds(3));
+    waitForLookupToShow(project);
 
     textEditor.pressAndReleaseKeys(VK_ENTER);
 
@@ -286,14 +285,14 @@ public class NlPropertyTableTest {
     table.requireSelectedRows(0);
   }
 
-  private static void waitForLookupToShow(@NotNull Project project, @NotNull Wait waitForLookup) {
+  private static void waitForLookupToShow(@NotNull Project project) {
     LookupManager manager = LookupManager.getInstance(project);
-    waitForLookup.expecting("lookup to show").until(() -> manager.getActiveLookup() != null);
+    Wait.seconds(8).expecting("lookup to show").until(() -> manager.getActiveLookup() != null);
   }
 
-  private static void waitForLookupToHide(@NotNull Project project, @NotNull Wait waitForLookup) {
+  private static void waitForLookupToHide(@NotNull Project project) {
     LookupManager manager = LookupManager.getInstance(project);
-    waitForLookup.expecting("lookup to hide").until(() -> manager.getActiveLookup() == null);
+    Wait.seconds(8).expecting("lookup to hide").until(() -> manager.getActiveLookup() == null);
   }
 
   private JTextComponentFixture waitForEditorToShow(@NotNull Wait waitForEditor) {
