@@ -19,19 +19,14 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.error.IssueModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
-import com.intellij.icons.AllIcons;
-import com.intellij.notification.impl.ui.NotificationsUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.LayeredIcon;
-import com.intellij.ui.TextIcon;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.IconUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * Action which shows the current number of warnings in the layout
@@ -40,19 +35,15 @@ import java.awt.*;
 public class IssueNotificationAction extends AnAction {
   public static final String NO_ISSUE = "No Issue";
   public static final String SHOW_ISSUE = "Show Warnings and Errors";
-  private static final String ERROR_MORE_THAN_9 = "9+";
-  private static final String EMPTY_STRING = "";
+  private static final Icon DISABLED_ICON = IconUtil.desaturate(AndroidIcons.Issue.Error);
   private final DesignSurface mySurface;
-  private int myCount = -1;
-  private LayeredIcon myIcon = new LayeredIcon(2);
-  private TextIcon myTextIcon = new TextIcon("", JBColor.white, null, 2);
+  //private TextIcon myTextIcon = new TextIcon("", JBColor.white, null, 2);
 
   public IssueNotificationAction(@NotNull DesignSurface surface) {
     super(NO_ISSUE, NO_ISSUE, null);
     mySurface = surface;
     setDefaultIcon(false);
-    getTemplatePresentation().setIcon(myIcon);
-    myTextIcon.setFont(new Font(NotificationsUtil.getFontName(), Font.BOLD, JBUI.scale(9)));
+    getTemplatePresentation().setIcon(getIssueTypeIcon(mySurface.getIssueModel()));
   }
 
   @Override
@@ -60,14 +51,9 @@ public class IssueNotificationAction extends AnAction {
     Presentation presentation = event.getPresentation();
     IssueModel issueModel = mySurface.getIssueModel();
     int markerCount = issueModel.getIssueCount();
-    updateIssueTypeIcon(issueModel);
-    if (markerCount != myCount) {
-      myCount = markerCount;
-      updateCountIcon(markerCount);
-      presentation.setText(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
-      presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
-    }
-    presentation.setIcon(myIcon);
+    presentation.setText(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
+    presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
+    presentation.setIcon(getIssueTypeIcon(issueModel));
   }
 
   @Override
@@ -76,33 +62,21 @@ public class IssueNotificationAction extends AnAction {
     mySurface.setShowIssuePanel(true);
   }
 
-  private void updateIssueTypeIcon(@NotNull IssueModel issueModel) {
+  @NotNull
+  private static Icon getIssueTypeIcon(@NotNull IssueModel issueModel) {
     Icon icon;
     if (issueModel.getErrorCount() > 0) {
-      icon = AllIcons.Ide.Notification.ErrorEvents;
+      icon = AndroidIcons.Issue.Error;
     }
     else if (issueModel.getWarningCount() > 0) {
-      icon = AllIcons.Ide.Notification.WarningEvents;
+      icon = AndroidIcons.Issue.Warning;
     }
     else if (issueModel.getIssueCount() > 0) {
-      icon = AllIcons.Ide.Notification.InfoEvents;
+      icon = AndroidIcons.Issue.Info;
     }
     else {
-      icon = AllIcons.Ide.Notification.NoEvents;
+      icon = DISABLED_ICON;
     }
-    myIcon.setIcon(icon, 0);
-  }
-
-  private void updateCountIcon(int markerCount) {
-    if (markerCount > 9) {
-      myTextIcon.setText(ERROR_MORE_THAN_9);
-    }
-    else if (markerCount > 1) {
-      myTextIcon.setText(String.valueOf(markerCount));
-    }
-    else {
-      myTextIcon.setText(EMPTY_STRING);
-    }
-    myIcon.setIcon(myTextIcon, 1, SwingConstants.CENTER);
+    return icon;
   }
 }
