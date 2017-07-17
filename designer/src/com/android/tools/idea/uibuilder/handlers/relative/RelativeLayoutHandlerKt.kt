@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.relative
 import com.android.tools.idea.uibuilder.api.DragType
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTarget
+import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeParentTarget
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeResizeTarget
 import com.android.tools.idea.uibuilder.model.NlComponent
 import com.android.tools.idea.uibuilder.scene.SceneComponent
@@ -34,15 +36,22 @@ import java.awt.Graphics2D
  * Current progress:
  * 1. Delegate all non target related functions to RelativeLayoutHandler.java
  * 2. Resizing target for widgets
+ * 3. Dragging a widget inside RelativeLayout
  *
  * TBD
- * - Limit the resizing options
- * - Create Draggable Target (positions related to parent and other components)
- *   - Snap and tips when Dragging
+ * - Drag to other widgets
  * - Decoration of relationships between widgets.
+ * - Handle the case of multiple dragging component.
  * - Handle the case of dragging from palette?
  */
 class RelativeLayoutHandlerKt : ViewGroupHandler() {
+
+  companion object {
+    /**
+     * The width of every edges which provide by RelativeLayout
+     */
+    const private val EDGE_WIDTH = 3
+  }
 
   // TODO: Remove this and migrate all delegated functions when this class is ready.
   private val myLegacyHandler = RelativeLayoutHandler()
@@ -58,21 +67,39 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
   override fun createInteraction(screenView: ScreenView, layout: NlComponent) = SceneInteraction(screenView)
 
   override fun createTargets(sceneComponent: SceneComponent, isParent: Boolean): List<Target> {
+    val listBuilder = ImmutableList.Builder<Target>()
     if (isParent) {
-      // RelativeLayout case
-      return super.createTargets(sceneComponent, isParent)
+      // RelativeLayout cases, create the target related to attributes of parent
+      createParentTargets(listBuilder, sceneComponent)
     }
     else {
       // children components cases
-      val listBuilder = ImmutableList.builder<Target>()
-      createDragTargets(listBuilder)
+      listBuilder.add(RelativeDragTarget())
       createResizeTarget(listBuilder)
-      return listBuilder.build()
+
+      // create related target of this component.
+      createRelativeTargets(listBuilder, sceneComponent)
     }
+    return listBuilder.build()
   }
 
-  private fun createDragTargets(listBuilder: ImmutableList.Builder<Target>) {
-    // TODO create the drag target for component
+  private fun createParentTargets(listBuilder: ImmutableList.Builder<Target>, relativeSceneComponent: SceneComponent) {
+    val x1 = relativeSceneComponent.drawX
+    val y1 = relativeSceneComponent.drawY
+    val x2 = x1 + relativeSceneComponent.drawWidth
+    val y2 = y1 + relativeSceneComponent.drawHeight
+
+    listBuilder.add(RelativeParentTarget(RelativeParentTarget.Type.LEFT, x1, y1, x1 + EDGE_WIDTH, y2))
+    listBuilder.add(RelativeParentTarget(RelativeParentTarget.Type.TOP, x1, y1, x2, y1 + EDGE_WIDTH))
+    listBuilder.add(RelativeParentTarget(RelativeParentTarget.Type.RIGHT, x2 - EDGE_WIDTH, y1, x2, y2))
+    listBuilder.add(RelativeParentTarget(RelativeParentTarget.Type.BOTTOM, x1, y2 - EDGE_WIDTH, x2, y2))
+
+    // center horizontal create vertical line
+    listBuilder.add(
+        RelativeParentTarget(RelativeParentTarget.Type.CENTER_HORIZONTAL,(x1 + x2 - EDGE_WIDTH) / 2, y1, (x1 + x2 + EDGE_WIDTH) / 2, y2))
+    // center vertical create horizontal line
+    listBuilder.add(
+        RelativeParentTarget(RelativeParentTarget.Type.CENTER_VERTICAL, x1, (y1 + y2 - EDGE_WIDTH) / 2, x2, (y1 + y2 + EDGE_WIDTH) / 2))
   }
 
   private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) {
@@ -86,5 +113,9 @@ class RelativeLayoutHandlerKt : ViewGroupHandler() {
         .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
         .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT))
         .add(RelativeResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
+  }
+
+  private fun createRelativeTargets(listBuilder: ImmutableList.Builder<Target>, sceneComponent: SceneComponent) {
+    // TODO: create target related to the component. (aboveTo, belowTo, ... etc)
   }
 }
