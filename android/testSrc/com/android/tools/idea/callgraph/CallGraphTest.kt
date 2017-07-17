@@ -31,7 +31,8 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     myFixture.copyFileToProject(file)
     val files = buildUFiles(project, AnalysisScope(project))
     val receiverEval = buildIntraproceduralReceiverEval(files)
-    val graph = buildCallGraph(files, receiverEval)
+    val classHierarchy = buildClassHierarchy(files)
+    val graph = buildCallGraph(files, receiverEval, classHierarchy)
     val nodeMap = graph.nodes.associateBy({ it.shortName })
 
     fun String.assertCalls(vararg callees: String) {

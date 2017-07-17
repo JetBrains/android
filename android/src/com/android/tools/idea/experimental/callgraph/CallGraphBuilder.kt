@@ -26,7 +26,6 @@ import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiAnonymousClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifier
-import com.intellij.psi.search.searches.OverridingMethodsSearch
 import org.jetbrains.uast.*
 import org.jetbrains.uast.util.isConstructorCall
 import org.jetbrains.uast.visitor.AbstractUastVisitor
@@ -56,15 +55,24 @@ fun buildIntraproceduralReceiverEval(files: Collection<UFile>): CallReceiverEval
   return receiverEval
 }
 
-fun buildCallGraph(files: Collection<UFile>, receiverEval: CallReceiverEvaluator,
+fun buildClassHierarchy(files: Collection<UFile>): ClassHierarchy {
+  val classHierarchyVisitor = ClassHierarchyVisitor()
+  files.forEach { it.accept(classHierarchyVisitor) }
+  return classHierarchyVisitor.classHierarchy
+}
+
+fun buildCallGraph(files: Collection<UFile>,
+                   receiverEval: CallReceiverEvaluator,
+                   classHierarchy: ClassHierarchy,
                    vararg edgeKinds: Edge.Kind = defaultCallGraphEdges): CallGraph {
-  val callGraphVisitor = CallGraphVisitor(receiverEval, *edgeKinds)
+  val callGraphVisitor = CallGraphVisitor(receiverEval, classHierarchy, *edgeKinds)
   files.forEach { it.accept(callGraphVisitor) }
   LOG.info("${callGraphVisitor.callGraph}")
   return callGraphVisitor.callGraph
 }
 
 class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
+                       private val classHierarchy: ClassHierarchy,
                        private vararg val edgeKinds: Edge.Kind = defaultCallGraphEdges) : AbstractUastVisitor() {
   private val mutableCallGraph: MutableCallGraph = MutableCallGraph()
   val callGraph: CallGraph get() = mutableCallGraph
@@ -147,8 +155,7 @@ class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
       return earlyReturn()
     }
 
-    // TODO: Searching for overriding methods can be slow; may need to add caching or pre-computation.
-    val overrides = OverridingMethodsSearch.search(baseCallee).findAll().map { it.toUElement() as? UMethod }.filterNotNull()
+    val overrides = classHierarchy.allOverridesOf(baseCallee).toList()
 
     // Create an edge based on the type of call.
     val cannotOverride = !baseCallee.canBeOverriden()

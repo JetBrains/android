@@ -36,6 +36,7 @@ import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.getContainingFile
+import java.util.*
 import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance(InterproceduralThreadAnnotationChecker::class.java)
@@ -87,7 +88,7 @@ class InterproceduralThreadAnnotationChecker : BaseAnalysisAction(ANALYSIS_NAME,
         scope.accept { files.add(it) }
         val modules = ModuleManager.getInstance(project).modules.toList()
         val request = LintIdeRequest(client, project, files, modules, /*incremental*/ false)
-        request.setScope(Scope.JAVA_FILE_SCOPE)
+        request.setScope(InterproceduralThreadAnnotationDetector.SCOPE)
         val issue = object : IssueRegistry() {
           override fun getIssues() = listOf(InterproceduralThreadAnnotationDetector.ISSUE)
         }
@@ -105,10 +106,16 @@ class AndroidLintInterproceduralThreadAnnotationInspection : AndroidLintInspecti
     AndroidBundle.message("android.lint.inspections.wrong.thread"),
     InterproceduralThreadAnnotationDetector.ISSUE)
 
+// This could also implement Detector.ClassScanner in order to analyze byte code, at least
+// for building a more complete class hierarchy.
 class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner {
   private val nonContextualReceiverEval = IntraproceduralReceiverVisitor()
-  private val callGraphVisitor: CallGraphVisitor = CallGraphVisitor(nonContextualReceiverEval)
+  private val classHierarchyVisitor = ClassHierarchyVisitor()
+  private val callGraphVisitor = CallGraphVisitor(nonContextualReceiverEval, classHierarchyVisitor.classHierarchy)
   private val fileContexts = HashMap<UFile, JavaContext>()
+
+  enum class State { GatheringContext, BuildingCallGraph }
+  private var state = State.GatheringContext
 
   override fun getApplicableUastTypes() = listOf(UFile::class.java)
 
@@ -122,12 +129,26 @@ class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner
   override fun createUastHandler(context: JavaContext): UElementHandler =
       object : UElementHandler() {
         override fun visitFile(uFile: UFile) {
-          uFile.accept(nonContextualReceiverEval)
-          uFile.accept(callGraphVisitor)
+          when (state) {
+            State.GatheringContext -> {
+              LOG.info("Gathering context from ${uFile.psi.name}")
+              uFile.accept(nonContextualReceiverEval)
+              uFile.accept(classHierarchyVisitor)
+            }
+            State.BuildingCallGraph -> {
+              LOG.info("Building call graph for ${uFile.psi.name}")
+              uFile.accept(callGraphVisitor)
+            }
+          }
         }
       }
 
   override fun afterCheckProject(context: Context) {
+    if (state == State.GatheringContext) {
+      context.driver.requestRepeat(this, SCOPE)
+      state = State.BuildingCallGraph
+      return
+    }
     val badPaths = searchForInterproceduralThreadAnnotationViolations(callGraphVisitor.callGraph, nonContextualReceiverEval)
     for ((searchNodes, sourceAnnotation, sinkAnnotation) in badPaths) {
       if (searchNodes.size == 1) {
@@ -148,18 +169,18 @@ class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner
       context.report(ISSUE, location, message, null)
       LOG.info(message)
     }
-    super.afterCheckProject(context)
   }
 
   companion object {
-    val ISSUE: Issue = Issue.create(
-        "InterproceduralThreadAnnotationDetector",
+    val SCOPE: EnumSet<Scope> = EnumSet.of(Scope.JAVA_FILE)
+    val ISSUE = Issue.create(
+        "InterproceduralThreadAnnotationInspection",
         "Wrong Thread",
         "This lint check searches for interprocedural call paths that violate thread annotations in the program.",
         Category.CORRECTNESS,
         /*priority*/ 6,
         Severity.ERROR,
-        Implementation(InterproceduralThreadAnnotationDetector::class.java, Scope.JAVA_FILE_SCOPE)
+        Implementation(InterproceduralThreadAnnotationDetector::class.java, SCOPE)
     )
   }
 }
