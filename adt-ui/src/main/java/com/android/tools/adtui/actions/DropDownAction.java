@@ -36,6 +36,8 @@ import java.awt.*;
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
 
+  @Nullable private JPopupMenu myCurrentPopup = null;
+
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
     super(title, true);
     Presentation presentation = getTemplatePresentation();
@@ -60,10 +62,12 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
         button.revalidate();
         button.repaint();
         menu.removePopupMenuListener(this);
+        ((DropDownAction)button.getAction()).myCurrentPopup = null;
       }
     };
     menu.addPopupMenuListener(listener);
     menu.show(invoker, 0, invoker.getHeight());
+    ((DropDownAction)button.getAction()).myCurrentPopup = menu;
   }
 
   @Override
@@ -127,5 +131,12 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @Override
   public boolean canBePerformed(@Nullable DataContext context) {
     return true;
+  }
+
+  public void closePopup() {
+    if (myCurrentPopup != null) {
+      myCurrentPopup.setVisible(false);
+      myCurrentPopup = null;
+    }
   }
 }
