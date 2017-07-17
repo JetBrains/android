@@ -17,7 +17,7 @@ package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;

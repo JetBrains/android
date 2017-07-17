@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.rendering.ImagePool;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.google.common.collect.ImmutableMap;
