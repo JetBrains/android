@@ -20,6 +20,7 @@ import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
+import com.android.sdklib.FileOpFileWrapper;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.devices.Storage.Unit;
@@ -45,7 +46,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.JBFont;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -324,14 +324,15 @@ public class AvdWizardUtils {
    * @return true if the feature is "on" in the Emulator
    */
 
-   public static boolean emulatorSupportsFeature(@NotNull String theFeature) {
+  public static boolean emulatorSupportsFeature(@NotNull String theFeature, @Nullable AndroidSdkHandler sdkHandler) {
     if (ourEmuAdvFeatures == null) {
-      AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+      if (sdkHandler == null) return false; // 'False' is the safer guess
       LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdWizardUtils.class));
       if (emulatorPackage != null) {
         File emuAdvFeaturesFile = new File(emulatorPackage.getLocation(), FD_LIB + File.separator + FN_ADVANCED_FEATURES);
-        if (emuAdvFeaturesFile.isFile()) {
-          ourEmuAdvFeatures = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(emuAdvFeaturesFile),
+        FileOp fop = sdkHandler.getFileOp();
+        if (fop.exists(emuAdvFeaturesFile)) {
+          ourEmuAdvFeatures = ProjectProperties.parsePropertyFile(new FileOpFileWrapper(emuAdvFeaturesFile, fop, false),
                                                                   new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
         }
       }
@@ -344,8 +345,8 @@ public class AvdWizardUtils {
    *
    * @return true if Fast Boot is supported
    */
-  public static boolean emulatorSupportsFastBoot() {
-    return emulatorSupportsFeature(FEATURE_FAST_BOOT);
+  public static boolean emulatorSupportsFastBoot(@Nullable AndroidSdkHandler sdkHandler) {
+    return emulatorSupportsFeature(FEATURE_FAST_BOOT, sdkHandler);
   }
 
   /**

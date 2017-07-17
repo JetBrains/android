@@ -19,18 +19,26 @@ import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
+import com.android.sdklib.FileOpFileWrapper;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.testutils.MockLog;
 import com.android.utils.NullLogger;
 
-import junit.framework.TestCase;
+import com.google.common.base.Charsets;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
+import java.io.OutputStreamWriter;
+import java.util.Map;
 
-public class AvdManagerConnectionTest extends TestCase {
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
+
+public class AvdManagerConnectionTest extends AndroidTestCase {
 
   private static final File ANDROID_HOME = new File("/android-home");
 
@@ -118,6 +126,82 @@ public class AvdManagerConnectionTest extends TestCase {
     assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(24, 1, 1)));
   }
 
+  public void testAddParameters() throws Exception {
+    MockLog log = new MockLog();
+
+    // Create an AVD. Let it default to Fast Boot.
+    final String fastBootName = "fastBootAvd";
+    final File fastBootFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, fastBootName, mFileOp, false);
+    AvdInfo fastBootAvd = mAvdManager.createAvd(
+      fastBootFolder,
+      fastBootName,
+      mSystemImage,
+      null,
+      null,
+      null,
+      null,
+      null,
+      false,
+      false,
+      true,
+      false,
+      log);
+
+    // Create another AVD
+    final String coldBootName = "coldBootAvd";
+    final File coldBootFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, coldBootName, mFileOp, false);
+    AvdInfo coldBootAvd = mAvdManager.createAvd(
+      coldBootFolder,
+      coldBootName,
+      mSystemImage,
+      null,
+      null,
+      null,
+      null,
+      null,
+      false,
+      false,
+      true,
+      false,
+      log);
+
+    // Modify the second AVD's config.ini file so the AVD does a cold boot
+    File coldConfigIniFile = new File(coldBootFolder, "config.ini");
+    final FileOpFileWrapper configIniWrapper = new FileOpFileWrapper(coldConfigIniFile,
+                                                                     mFileOp, false);
+    Map<String, String> iniProperties = ProjectProperties.parsePropertyFile(configIniWrapper, log);
+    iniProperties.put(AVD_INI_FORCE_COLD_BOOT_MODE, "yes");
+
+    try (OutputStreamWriter iniWriter = new OutputStreamWriter(mFileOp.newFileOutputStream(coldConfigIniFile), Charsets.UTF_8)) {
+      for (Map.Entry<String, String> mapEntry : iniProperties.entrySet()) {
+        iniWriter.write(String.format("%1$s=%2$s\n", mapEntry.getKey(), mapEntry.getValue()));
+      }
+    }
+    coldBootAvd = mAvdManager.reloadAvd(coldBootAvd, log);
+
+    // Test both AVDs using an Emulator that does not support fast boot
+    final String COLD_BOOT_COMMAND = "-no-snapstorage";
+    GeneralCommandLine cmdLine = new GeneralCommandLine();
+    mAvdManagerConnection.addParameters(fastBootAvd, cmdLine);
+    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
+
+    cmdLine = new GeneralCommandLine();
+    mAvdManagerConnection.addParameters(coldBootAvd, cmdLine);
+    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
+
+    // Mark the Emulator as supporting fast boot
+    recordEmulatorSupportsFastBoot(mFileOp);
+
+    // Re-test both AVDs using an Emulator that DOES support fast boot
+    cmdLine = new GeneralCommandLine();
+    mAvdManagerConnection.addParameters(fastBootAvd, cmdLine);
+    assertFalse(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
+
+    cmdLine = new GeneralCommandLine();
+    mAvdManagerConnection.addParameters(coldBootAvd, cmdLine);
+    assertTrue(cmdLine.getCommandLineString().contains(COLD_BOOT_COMMAND));
+  }
+
 
   private static void recordGoogleApisSysImg23(MockFileOp fop) {
     fop.recordExistingFile("/sdk/system-images/android-23/google_apis/x86_64/system.img");
@@ -126,32 +210,32 @@ public class AvdManagerConnectionTest extends TestCase {
     fop.recordExistingFile("/sdk/system-images/android-23/google_apis/x86_64/package.xml",
                            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
                            + "<ns3:sdk-sys-img "
-                           + "xmlns:ns2=\"http://schemas.android.com/sdk/android/repo/repository2/01\" "
-                           + "xmlns:ns3=\"http://schemas.android.com/sdk/android/repo/sys-img2/01\" "
-                           + "xmlns:ns4=\"http://schemas.android.com/repository/android/common/01\" "
-                           + "xmlns:ns5=\"http://schemas.android.com/sdk/android/repo/addon2/01\">"
-                           + "<license id=\"license-9A5C00D5\" type=\"text\">Terms and Conditions\n"
-                           + "</license><localPackage "
-                           + "path=\"system-images;android-23;google_apis;x86_64\" "
-                           + "obsolete=\"false\"><type-details "
-                           + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+                           + "xmlns:ns3=\"http://schemas.android.com/sdk/android/repo/sys-img2/01\">"
+                           + "<localPackage path=\"system-images;android-23;google_apis;x86_64\">"
+                           + "<type-details xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
                            + "xsi:type=\"ns3:sysImgDetailsType\"><api-level>23</api-level>"
                            + "<tag><id>google_apis</id><display>Google APIs</display></tag>"
                            + "<vendor><id>google</id><display>Google Inc.</display></vendor>"
                            + "<abi>x86_64</abi></type-details><revision><major>9</major></revision>"
                            + "<display-name>Google APIs Intel x86 Atom_64 System Image</display-name>"
-                           + "<uses-license ref=\"license-9A5C00D5\"/></localPackage>"
-                           + "</ns3:sdk-sys-img>\n");
+                           + "</localPackage></ns3:sdk-sys-img>\n");
   }
 
   private static void recordEmulatorVersion_23_4_5(MockFileOp fop) {
-    fop.recordExistingFile("/sdk/tools/source.properties",
-                           "Pkg.UserSrc=false\n"
-                           + "Pkg.Revision=23.4.5\n"
-                           + "Platform.MinPlatformToolsRev=20\n"
-                           + "Pkg.Dependencies=emulator\n"
-                           + "Pkg.Path=tools\n"
-                           + "Pkg.Desc=Android SDK Tools\n");
+    fop.recordExistingFile("/sdk/emulator/package.xml",
+                           "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+                           + "<ns2:repository xmlns:ns2=\"http://schemas.android.com/repository/android/common/01\""
+                           + "                xmlns:ns3=\"http://schemas.android.com/repository/android/generic/01\">"
+                           + "  <localPackage path=\"emulator\">"
+                           + "    <type-details xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                           + "        xsi:type=\"ns3:genericDetailsType\"/>"
+                           + "    <revision><major>23</major><minor>4</minor><micro>5</micro></revision>"
+                           + "  </localPackage>"
+                           + "</ns2:repository>");
+  }
 
+  private static void recordEmulatorSupportsFastBoot(MockFileOp fop) {
+    fop.recordExistingFile("/sdk/emulator/lib/advancedFeatures.ini",
+                           "FastSnapshotV1=on\n");
   }
 }
