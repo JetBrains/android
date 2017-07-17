@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.callgraph
 
-import com.android.tools.idea.experimental.callgraph.buildCallGraph
-import com.android.tools.idea.experimental.callgraph.buildIntraproceduralReceiverEval
-import com.android.tools.idea.experimental.callgraph.buildUFiles
-import com.android.tools.idea.experimental.callgraph.searchForInterproceduralThreadAnnotationViolations
+import com.android.tools.idea.experimental.callgraph.*
 import com.intellij.analysis.AnalysisScope
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
@@ -31,7 +28,8 @@ class InterproceduralThreadAnnotationTest : AndroidTestCase() {
     myFixture.copyFileToProject("callgraph/ThreadAnnotations" + ext)
     val files = buildUFiles(project, AnalysisScope(project))
     val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files)
-    val callGraph = buildCallGraph(files, nonContextualReceiverEval)
+    val classHierarchy = buildClassHierarchy(files)
+    val callGraph = buildCallGraph(files, nonContextualReceiverEval, classHierarchy)
     val paths = searchForInterproceduralThreadAnnotationViolations(callGraph, nonContextualReceiverEval)
     val namedPathSet = paths.map { (searchNodes, _, _) -> searchNodes.map { (node, _) -> node.shortName } }.toSet()
     val prefix = "ThreadAnnotations#"
