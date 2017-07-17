@@ -129,8 +129,6 @@ public class IdeTestApplication implements Disposable {
     ourInstance = this;
 
     pluginManagerStart(args);
-    mainMain();
-
     myIdeClassLoader = createClassLoader();
 
     WindowsCommandLineProcessor.ourMirrorClass = Class.forName(WindowsCommandLineProcessor.class.getName(), true, myIdeClassLoader);
@@ -235,7 +233,7 @@ public class IdeTestApplication implements Disposable {
 
   private static void mainMain() {
     // Duplicates what Main#main does.
-    method("installPatch").withParameterTypes(String.class).in(Main.class).invoke(Main.PATCHER_MAIN);
+    //method("installPatch").withParameterTypes(String.class).in(Main.class).invoke(Main.PATCHER_MAIN);
   }
 
   @NotNull
