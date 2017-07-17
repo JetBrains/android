@@ -18,14 +18,17 @@ package com.android.tools.idea.tests.gui.framework.fixture.theme;
 import com.android.tools.idea.editors.theme.AttributesPanel;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HyperlinkLabelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.ui.TextAccessors;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SearchTextField;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.timing.Wait;
@@ -89,8 +92,8 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
   }
 
   @NotNull
-  public JButton findToolbarButton(@NotNull final String tooltip) {
-    return waitUntilFound(robot(), Matchers.byTooltip(JButton.class, tooltip));
+  public ActionButtonFixture findToolbarButton(@NotNull final String tooltip) {
+    return new ActionButtonFixture(robot(), waitUntilFound(robot(), Matchers.byTooltip(ActionButton.class, tooltip)));
   }
 
   @NotNull
@@ -99,10 +102,14 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
       .findByType(target(), ThemePreviewComponent.class));
   }
 
-  public static void clickPopupMenuItem(@NotNull String labelPrefix, @NotNull final String expectedLabel, @NotNull final JButton button, @NotNull org.fest.swing.core.Robot robot) {
-    com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItem(labelPrefix, button, robot);
-
-    Wait.seconds(1).expecting("UI update").until(() -> expectedLabel.equals(button.getText()));
+  public static void clickPopupMenuItem(@NotNull String labelPrefix,
+                                        @NotNull final String expectedLabel,
+                                        @NotNull final ActionButton button,
+                                        @NotNull org.fest.swing.core.Robot robot) {
+    GuiTests.clickPopupMenuItem(labelPrefix, button, robot);
+    Wait.seconds(1)
+      .expecting("UI update")
+      .until(() -> expectedLabel.equals(TextAccessors.getTextAccessor(button).getText()));
   }
 
   public HyperlinkLabelFixture getThemeWarningLabel() {
