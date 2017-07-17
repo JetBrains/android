@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 public class AndroidStudioUsageTracker {
 
   private static final String ANONYMIZATION_ERROR = "*ANONYMIZATION_ERROR*";
-  public static ILogger LOGGER = new IntelliJLogger(AndroidStudioUsageTracker.class);
+  public static final ILogger LOGGER = new IntelliJLogger(AndroidStudioUsageTracker.class);
 
   public static void setup(ScheduledExecutorService scheduler) {
     // Send initial report immediately, daily from then on.
@@ -118,6 +118,7 @@ public class AndroidStudioUsageTracker {
       .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
       .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
       .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
+      .setDeviceType(device.isEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
       .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build();
   }
 
