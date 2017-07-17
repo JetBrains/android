@@ -31,15 +31,24 @@ class InterproceduralThreadAnnotationTest : AndroidTestCase() {
     val classHierarchy = buildClassHierarchy(files)
     val callGraph = buildCallGraph(files, nonContextualReceiverEval, classHierarchy)
     val paths = searchForInterproceduralThreadAnnotationViolations(callGraph, nonContextualReceiverEval)
-    val namedPathSet = paths.map { (searchNodes, _, _) -> searchNodes.map { (node, _) -> node.shortName } }.toSet()
-    val prefix = "ThreadAnnotations#"
-    val expectedPathSet = setOf(
-        arrayListOf("${prefix}uiThreadStatic", "${prefix}unannotatedStatic", "${prefix}workerThreadStatic"),
-        arrayListOf("${prefix}uiThread", "${prefix}unannotated", "${prefix}workerThread"),
-        arrayListOf("${prefix}callRunIt", "${prefix}runIt", "${prefix}callRunIt#lambda", "${prefix}runUi"),
-        arrayListOf("A#run", "${prefix}b"),
-        arrayListOf("B#run", "${prefix}a")
-    )
-    TestCase.assertEquals(expectedPathSet, namedPathSet)
+
+    val pathStrs = paths
+        .map { (searchNodes, _, _) -> searchNodes.joinToString(separator = " -> ") { (node, _) -> node.shortName } }
+        .toSortedSet()
+        .joinToString(separator = "\n")
+
+    val expectedPathStrs = listOf(
+        "Test#uiThreadStatic -> Test#unannotatedStatic -> Test#workerThreadStatic",
+        "Test#uiThread -> Test#unannotated -> Test#workerThread",
+        "Test#callRunIt -> Test#runIt -> Test#callRunIt#lambda -> Test#runUi",
+        "A#run -> Test#b",
+        "B#run -> Test#a",
+        "Test#callInvokeLater#lambda -> Test#c",
+        "Test#callInvokeInBackground#lambda -> Test#d")
+        .toSortedSet()
+        .joinToString(separator = "\n")
+
+    // Comparing the results as multiline strings helps with diff readability.
+    TestCase.assertEquals(expectedPathStrs, pathStrs)
   }
 }

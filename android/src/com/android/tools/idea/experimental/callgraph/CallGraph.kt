@@ -163,6 +163,7 @@ fun <T : Any> searchForPaths(sources: Collection<T>,
 /** Describes a parameter specialization tuple, mapping each parameter to a single concrete receiver. */
 data class ParamContext(val params: List<Pair<UParameter, Receiver>>, val implicitThis: Receiver?) {
   operator fun get(param: UParameter) = params.firstOrNull { it.first == param }?.second
+
   companion object {
     val EMPTY = ParamContext(emptyList(), /*implicitReceiver*/ null)
   }
@@ -178,129 +179,158 @@ data class SearchNode private constructor(val node: Node, val paramContext: Para
   // reaches a given node with a given parameter context. We want others to be preempted during the BFS.
   lateinit var cause: UElement
 
-  constructor(node: Node, paramContext: ParamContext, cause: UElement): this(node, paramContext) {
+  constructor(node: Node, paramContext: ParamContext, cause: UElement) : this(node, paramContext) {
     this.cause = cause
   }
 }
 
+/** Augments the non-contextual receiver evaluator with a parameter context. */
+class ContextualReceiverEvaluator(val paramContext: ParamContext,
+                                  val nonContextualReceiverEval: CallReceiverEvaluator) : CallReceiverEvaluator {
+
+  override fun get(element: UElement): Collection<Receiver> = when (element) {
+    is UThisExpression -> getForImplicitThis() // TODO: Qualified `this` not yet supported in UAST.
+    is UParameter -> nonContextualReceiverEval[element] + listOfNotNull(paramContext[element])
+    is USimpleNameReferenceExpression -> element.resolveToUElement()?.let { this[it] } ?: emptyList() // Recurse when resolved.
+    else -> nonContextualReceiverEval[element]
+  }
+
+  override fun getForImplicitThis(): Collection<Receiver> = listOfNotNull(paramContext.implicitThis)
+}
+
 /**
- * A context-sensitive search for paths through the call graph.
+ * Builds parameter contexts for the target of [call] by taking the Cartesian product of the call argument receivers.
+ * Returns an empty parameter context if there are no call argument receivers.
  * See "The Cartesian Product Algorithm" by Ole Agesen.
  */
-fun CallGraph.searchForPaths(sources: Collection<Node>, sinks: Collection<Node>,
-                             nonContextualReceiverEval: CallReceiverEvaluator): Collection<List<SearchNode>> {
+fun CallTarget.buildParamContextsFromCall(call: UCallExpression, receiverEval: CallReceiverEvaluator): Collection<ParamContext> {
+  val params = when (this) {
+    is Method -> element.uastParameters
+    is Lambda -> element.valueParameters
+    is DefaultConstructor -> emptyList()
+  }
+  val args = call.valueArguments
+  if (args.size != params.size) {
+    LOG.warn("Number of arguments does not match number of parameters")
+    return emptyList()
+  }
+  val argReceivers = args.map { receiverEval[it].toList() }
 
-  /** Augments the non-contextual receiver evaluator with a parameter context. */
-  class ContextualReceiverEvaluator(val paramContext: ParamContext) : CallReceiverEvaluator {
+  // We will take a Cartesian product, so filter out empty receiver sets.
+  val (paramsWithReceivers, nonEmptyArgReceivers) = params.zip(argReceivers)
+      .filter { it.second.isNotEmpty() }
+      .unzip()
 
-    override fun get(element: UElement): Collection<Receiver> = when (element) {
-      is UThisExpression -> getForImplicitThis() // TODO: Qualified `this` not yet supported in UAST.
-      is UParameter -> nonContextualReceiverEval[element] + listOfNotNull(paramContext[element])
-      is USimpleNameReferenceExpression -> element.resolveToUElement()?.let { this[it] } ?: emptyList() // Recurse when resolved.
-      else -> nonContextualReceiverEval[element]
-    }
+  // The potential for an implicit receiver argument to the callee complicates the logic here.
+  // When creating the Cartesian product we include the implicit receiver argument as a "normal" call argument, then
+  // pull it out again when creating parameter contexts.
 
-    override fun getForImplicitThis(): Collection<Receiver> = listOfNotNull(paramContext.implicitThis)
+  val callHasReceiver = when (this) {
+    is Method -> !element.isStatic
+    is Lambda -> false // TODO: Kotlin lambdas can have receivers, but this seems to not be reflected in UAST (yet?).
+    is DefaultConstructor -> false // Constructors technically take in a pointer to `this`, but it doesn't help this analysis.
   }
 
-  /**
-   * Builds parameter contexts for the target of [call] by taking the Cartesian product of the call argument receivers.
-   * Returns an empty parameter context if there are no call argument receivers.
-   */
-  fun CallTarget.buildParamContextsFromCall(call: UCallExpression, receiverEval: CallReceiverEvaluator): Collection<ParamContext> {
-    val params = when (this) {
-      is Method -> element.uastParameters
-      is Lambda -> element.valueParameters
-      is DefaultConstructor -> emptyList()
-    }
-    val args = call.valueArguments
-    if (args.size != params.size) {
-      LOG.warn("Number of arguments does not match number of parameters")
-      return emptyList()
-    }
-    val argReceivers = args.map { receiverEval[it].toList() }
+  val callReceiver = call.receiver
+  val implicitReceiverReceivers = when {
+    callHasReceiver && callReceiver != null -> receiverEval[callReceiver].toList()
+    callHasReceiver && callReceiver == null -> receiverEval.getForImplicitThis().toList()
+    else -> emptyList()
+  }
 
-    // We will take a Cartesian product, so filter out empty receiver sets.
-    val (paramsWithReceivers, nonEmptyArgReceivers) = params.zip(argReceivers)
-        .filter { it.second.isNotEmpty() }
-        .unzip()
+  val hasImplicitReceivers = implicitReceiverReceivers.isNotEmpty()
+  val allReceiverLists =
+      if (hasImplicitReceivers) listOf(implicitReceiverReceivers) + nonEmptyArgReceivers
+      else nonEmptyArgReceivers
+  val numImplicitArgs = if (hasImplicitReceivers) 1 else 0
 
-    // The potential for an implicit receiver argument to the callee complicates the logic here.
-    // When creating the Cartesian product we include the implicit receiver argument as a "normal" call argument, then
-    // pull it out again when creating parameter contexts.
+  if (allReceiverLists.isEmpty())
+    return listOf(ParamContext.EMPTY) // Optimization.
 
-    val callHasReceiver = when (this) {
-      is Method -> !element.isStatic
-      is Lambda -> false // TODO: Kotlin lambdas can have receivers, but this seems to not be reflected in UAST (yet?).
-      is DefaultConstructor -> false // Constructors technically take in a pointer to `this`, but it doesn't help this analysis.
-    }
+  // Zip formal parameters with all possible argument receiver combinations.
+  val cartesianProd = Lists.cartesianProduct(allReceiverLists)
+  val maxNumParamContexts = 1000
+  if (cartesianProd.size > maxNumParamContexts)
+    LOG.warn("Combinatorial explosion for call: ${call.methodName}")
+  val paramContexts = cartesianProd
+      .take(maxNumParamContexts)
+      .map { receiverTuple ->
+        val zippedArgs = paramsWithReceivers.zip(receiverTuple.drop(numImplicitArgs))
+        // TODO: There is potential to also extract implicit `this` args from callable references, though may need CHA.
+        val implicitThis = receiverTuple.take(numImplicitArgs).filterIsInstance<Receiver.Class>().firstOrNull()
+        ParamContext(zippedArgs, implicitThis)
+      }
+  assert(paramContexts.isNotEmpty())
+  return paramContexts
+}
 
-    val callReceiver = call.receiver
-    val implicitReceiverReceivers = when {
-      callHasReceiver && callReceiver != null -> receiverEval[callReceiver].toList()
-      callHasReceiver && callReceiver == null -> receiverEval.getForImplicitThis().toList()
+/** Examines call sites to find contextualized neighbors of a search node. */
+fun SearchNode.getNeighbors(callGraph: CallGraph,
+                            nonContextualReceiverEval: CallReceiverEvaluator): Collection<SearchNode> {
+  val contextualReceiverEval = ContextualReceiverEvaluator(paramContext, nonContextualReceiverEval)
+  return node.edges.flatMap { edge ->
+    fun CallTarget.buildParamContextsFromThisEdge() =
+        if (edge.call == null) listOf(ParamContext.EMPTY)
+        else buildParamContextsFromCall(edge.call, contextualReceiverEval)
+
+    val cause = edge.call ?: node.caller.element
+    when {
+      edge.isLikely -> {
+        val paramContexts = edge.node.caller.buildParamContextsFromThisEdge()
+        paramContexts.map { calleeContext -> SearchNode(edge.node, calleeContext, cause) }
+      }
+      edge.kind == Edge.Kind.BASE && edge.call != null -> {
+        // Try to refine the base method to a concrete target.
+        edge.call.getTargets(contextualReceiverEval).flatMap { target ->
+          val paramContexts = target.buildParamContextsFromThisEdge()
+          paramContexts.map { calleeContext -> SearchNode(callGraph.getNode(target.element), calleeContext, cause) }
+        }
+      }
       else -> emptyList()
     }
-
-    val hasImplicitReceivers = implicitReceiverReceivers.isNotEmpty()
-    val allReceiverLists =
-        if (hasImplicitReceivers) listOf(implicitReceiverReceivers) + nonEmptyArgReceivers
-        else nonEmptyArgReceivers
-    val numImplicitArgs = if (hasImplicitReceivers) 1 else 0
-
-    if (allReceiverLists.isEmpty())
-      return listOf(ParamContext.EMPTY) // Optimization.
-
-    // Zip formal parameters with all possible argument receiver combinations.
-    val cartesianProd = Lists.cartesianProduct(allReceiverLists)
-    val maxNumParamContexts = 1000
-    if (cartesianProd.size > maxNumParamContexts)
-      LOG.warn("Combinatorial explosion for call: ${call.methodName}")
-    val paramContexts = cartesianProd
-        .take(maxNumParamContexts)
-        .map { receiverTuple ->
-          val zippedArgs = paramsWithReceivers.zip(receiverTuple.drop(numImplicitArgs))
-          // TODO: There is potential to also extract implicit `this` args from callable references, though may need CHA.
-          val implicitThis = receiverTuple.take(numImplicitArgs).filterIsInstance<Receiver.Class>().firstOrNull()
-          ParamContext(zippedArgs, implicitThis)
-        }
-    assert(paramContexts.isNotEmpty())
-    return paramContexts
   }
+}
 
-  /** Examines call sites to find contextualized neighbors of a search node. */
-  fun getNeighbors(searchNode: SearchNode): Collection<SearchNode> {
-    val contextualReceiverEval = ContextualReceiverEvaluator(searchNode.paramContext)
-    return searchNode.node.edges.flatMap { edge ->
-      fun CallTarget.buildParamContextsFromThisEdge() =
-          if (edge.call == null) listOf(ParamContext.EMPTY)
-          else buildParamContextsFromCall(edge.call, contextualReceiverEval)
-      val cause = edge.call ?: searchNode.node.caller.element
-      when {
-        edge.isLikely -> {
-          val paramContexts = edge.node.caller.buildParamContextsFromThisEdge()
-          paramContexts.map { calleeContext -> SearchNode(edge.node, calleeContext, cause) }
-        }
-        edge.kind == Edge.Kind.BASE && edge.call != null -> {
-          // Try to refine the base method to a concrete target.
-          edge.call.getTargets(contextualReceiverEval).flatMap { target ->
-            val paramContexts = target.buildParamContextsFromThisEdge()
-            paramContexts.map { calleeContext -> SearchNode(getNode(target.element), calleeContext, cause) }
-          }
-        }
-        else -> emptyList()
-      }
-    }
-  }
+/**
+ * To find initial parameter contexts, we employ a nice trick: we do a BFS from *all* nodes in the
+ * call graph (specialized on empty parameter contexts) and take note of all parameter contexts discovered for each node.
+ * These parameter contexts are used to form search nodes that can be used to better initialize a subsequent path search.
+ *
+ * This is useful, e.g., for thread annotation checking. When a method is annotated with @UiThread and takes a lambda as an argument,
+ * we want to make sure that we take note of all the lambdas passed to this method, as one of the lambdas may lead to
+ * a @WorkerThread method. If we instead initialized the path search with empty parameter contexts,
+ * then we would never see evidenced thread violations through the lambda parameter.
+ */
+fun CallGraph.buildAllReachableSearchNodes(nonContextualReceiverEval: CallReceiverEvaluator): Collection<SearchNode> {
+  val res = ArrayList<SearchNode>()
+  val allSources = nodes.map { SearchNode(it, ParamContext.EMPTY, cause = it.caller.element) }
+  searchForPaths(
+      sources = allSources,
+      isSink = { res.add(it); false },
+      getNeighbors = { it.getNeighbors(this, nonContextualReceiverEval) })
+  return res
+}
 
-  // We need to initialize the search with all possible parameter contexts for the source nodes.
-  // To do this we employ a nice trick: we search for paths from *all* nodes in the call graph (specialized
-  // on empty parameter contexts) and take note of all parameter contexts found for the source nodes.
+/** A context-sensitive search for paths from contextualized [searchSources] to [searchSinks]. */
+fun CallGraph.searchForPathsFromSearchNodes(searchSources: Collection<SearchNode>,
+                                            searchSinks: Collection<SearchNode>,
+                                            nonContextualReceiverEval: CallReceiverEvaluator): Collection<List<SearchNode>> {
+  val sinkSet = searchSinks.toSet()
+  return searchForPaths(
+      sources = searchSources,
+      isSink = { it in sinkSet },
+      getNeighbors = { it.getNeighbors(this, nonContextualReceiverEval) })
+}
+
+/** A context-sensitive search for paths from [sources] to [sinks]. */
+fun CallGraph.searchForPaths(sources: Collection<Node>,
+                             sinks: Collection<Node>,
+                             nonContextualReceiverEval: CallReceiverEvaluator): Collection<List<SearchNode>> {
+
+  val allSearchNodes = buildAllReachableSearchNodes(nonContextualReceiverEval)
   val sourceSet = sources.toSet()
-  val searchSources = ArrayList<SearchNode>()
-  val contextInitSources = nodes.map { SearchNode(it, ParamContext.EMPTY, cause = it.caller.element) }
-  searchForPaths(contextInitSources, { if (it.node in sourceSet) searchSources.add(it); false }, ::getNeighbors)
   val sinkSet = sinks.toSet()
-
-  return searchForPaths(searchSources, { it.node in sinkSet }, ::getNeighbors)
+  val searchSources = allSearchNodes.filter { it.node in sourceSet }
+  val searchSinks = allSearchNodes.filter { it.node in sinkSet }
+  return searchForPathsFromSearchNodes(searchSources, searchSinks, nonContextualReceiverEval)
 }
