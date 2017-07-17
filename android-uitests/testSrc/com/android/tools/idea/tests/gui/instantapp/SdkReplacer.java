@@ -30,10 +30,10 @@ import static org.junit.Assert.assertSame;
  * This is necessary for the moment because Instant App Sdk isn't available in the published SDK yet.
  * Should be deleted one AIA sdk becomes public.
  */
-class SdkReplacer {
+public class SdkReplacer {
   private static InstantAppSdks original = null;
 
-  static void replaceSdkLocationAndActivate(@Nullable String sdkLocation, boolean activate) {
+  public static void replaceSdkLocationAndActivate(@Nullable String sdkLocation, boolean activate) {
     if (original == null) {
       original = InstantAppSdks.getInstance();
     }
@@ -59,7 +59,7 @@ class SdkReplacer {
     });
   }
 
-  static void putBack() {
+  public static void putBack() {
     if (original != null) {
       replaceService(original);
     }

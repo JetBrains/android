@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.instantapp.SdkReplacer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,7 +43,13 @@ public class NewProjectMultiModuleTest {
 
   @Test
   public void createAllModuleWithIApp() {
-    create(true, MOBILE, WEAR, TV, CAR, THINGS);
+    try {
+      SdkReplacer.replaceSdkLocationAndActivate(null, true);
+      create(true, MOBILE, WEAR, TV, CAR, THINGS);
+    }
+    finally {
+      SdkReplacer.putBack();
+    }
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     String appBuildGradle = editor.open("app/build.gradle").getCurrentFileContents();
