@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.tools.adtui.ImageUtils;
 import com.google.common.base.Verify;
 import com.intellij.util.ImageLoader;
 import com.intellij.util.ui.UIUtil;

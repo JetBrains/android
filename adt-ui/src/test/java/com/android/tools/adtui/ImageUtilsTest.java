@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.adtui;
 
+import com.android.testutils.TestResources;
 import junit.framework.TestCase;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -68,19 +69,17 @@ public class ImageUtilsTest extends TestCase {
   }
 
   public void testRotation() throws IOException {
-    String path = AndroidTestCase.getAbsoluteTestDataPath() + File.separator + "render" + File.separator + "imageutils";
-
-    BufferedImage srcImage = readImage(path, "0.png");
-    BufferedImage expected90 = readImage(path, "90.png");
-    BufferedImage expected180 = readImage(path, "180.png");
-    BufferedImage expected270 = readImage(path, "270.png");
+    BufferedImage srcImage = readImage("/imageutils/0.png");
+    BufferedImage expected90 = readImage("/imageutils/90.png");
+    BufferedImage expected180 = readImage("/imageutils/180.png");
+    BufferedImage expected270 = readImage("/imageutils/270.png");
 
     assertEqualsImage(expected90, ImageUtils.rotateByRightAngle(srcImage, 90));
     assertEqualsImage(expected180, ImageUtils.rotateByRightAngle(srcImage, 180));
     assertEqualsImage(expected270, ImageUtils.rotateByRightAngle(srcImage, 270));
 
     // verify that rotating the image 4 times by 90 degrees doesn't lose any data
-    BufferedImage img = readImage(path, "0.png");
+    BufferedImage img = readImage("/imageutils/0.png");
     for (int i = 0; i < 4; i++) {
       img = ImageUtils.rotateByRightAngle(img, 90);
     }
@@ -114,8 +113,8 @@ public class ImageUtilsTest extends TestCase {
     return image;
   }
 
-  private static BufferedImage readImage(String folder, String fileName) throws IOException {
-    File f = new File(folder, fileName);
+  private static BufferedImage readImage(@NotNull String fileName) throws IOException {
+    File f = TestResources.getFile(ImageUtilsTest.class, fileName);
     return ImageIO.read(f);
   }
 

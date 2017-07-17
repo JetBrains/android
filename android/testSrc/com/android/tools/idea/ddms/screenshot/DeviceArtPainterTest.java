@@ -20,7 +20,7 @@ import com.android.dvlib.DeviceSchemaTest;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.io.Files;

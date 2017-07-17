@@ -16,11 +16,9 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.RawImage;
 import com.android.resources.ScreenOrientation;
-import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.adtui.ImageUtils;
 import com.android.tools.pixelprobe.color.Colors;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
@@ -64,7 +62,6 @@ import javax.imageio.stream.ImageOutputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.color.ICC_ColorSpace;
-import java.awt.color.ICC_Profile;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -76,7 +73,6 @@ import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Base64;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
