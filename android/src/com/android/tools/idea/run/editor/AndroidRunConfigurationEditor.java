@@ -121,7 +121,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
         DeployTargetProvider target = (DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem();
-        myDeployTargetConfigurableCardPanel.select(myDeployTargetConfigurables.get(target.getId()), true);
+        if (target != null) {
+          myDeployTargetConfigurableCardPanel.select(myDeployTargetConfigurables.get(target.getId()), true);
+        }
       }
     });
 
@@ -136,6 +138,13 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     mySkipNoOpApkInstallation.addActionListener(actionListener);
 
     AndroidDebuggerContext androidDebuggerContext = config.getAndroidDebuggerContext();
+    myModulesComboBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        androidDebuggerContext.setDebuggeeModule(myModulesComboBox.getSelectedModule());
+      }
+    });
+
     if (androidDebuggerContext.getAndroidDebuggers().size() > 1) {
       myAndroidDebuggerPanel = new AndroidDebuggerPanel(config, androidDebuggerContext);
       myTabbedPane.add("Debugger", myAndroidDebuggerPanel.getComponent());
@@ -213,7 +222,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     deployTargetContext.setTargetSelectionMode((DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem());
     for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
       DeployTargetState state = deployTargetContext.getDeployTargetState(target);
-      myDeployTargetConfigurables.get(target.getId()).applyTo(state, configuration.getUniqueID());
+      if (target != null) {
+        myDeployTargetConfigurables.get(target.getId()).applyTo(state, configuration.getUniqueID());
+      }
     }
 
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
