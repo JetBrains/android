@@ -17,14 +17,16 @@ package com.android.tools.adtui.actions;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
-import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.ui.PopupMenuListenerAdapter;
+import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupAdapter;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
 import java.awt.*;
 
 /**
@@ -36,7 +38,7 @@ import java.awt.*;
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
 
-  @Nullable private JPopupMenu myCurrentPopup = null;
+  @Nullable private JBPopup myCurrentPopup = null;
 
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
     super(title, true);
@@ -51,36 +53,39 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     return true;
   }
 
-  private static void showPopup(@NotNull Component invoker, @NotNull DropDownActionButton button) {
-    button.setSelected(true);
-    JPopupMenu menu = button.getComponentPopupMenu();
-    PopupMenuListenerAdapter listener = new PopupMenuListenerAdapter() {
-
-      @Override
-      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-        button.setSelected(false);
-        button.revalidate();
-        button.repaint();
-        menu.removePopupMenuListener(this);
-        ((DropDownAction)button.getAction()).myCurrentPopup = null;
-      }
-    };
-    menu.addPopupMenuListener(listener);
-    menu.show(invoker, 0, invoker.getHeight());
-    ((DropDownAction)button.getAction()).myCurrentPopup = menu;
-  }
-
   @Override
   public void actionPerformed(@NotNull AnActionEvent eve) {
-    DropDownActionButton button =
-      (DropDownActionButton)eve.getPresentation().getClientProperty(CustomComponentAction.CUSTOM_COMPONENT_PROPERTY);
+    DropDownActionButton button = getActionButton(eve);
     if (button == null) {
       return;
     }
-    if (updateActions()) {
-      button.setComponentPopupMenu(createPopupMenu());
+    updateActions();
+    JPanel componentPopup = createCustomComponentPopup();
+    if (componentPopup == null) {
+      showPopupMenu(eve, button);
     }
-    showPopup(eve.getInputEvent().getComponent(), button);
+    else {
+      showJBPopup(eve, button, componentPopup);
+    }
+  }
+
+  private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull DropDownActionButton button) {
+    ActionManagerImpl am = (ActionManagerImpl)ActionManager.getInstance();
+    am.createActionPopupMenu(eve.getPlace(), this).getComponent().show(button, 0, button.getHeight());
+  }
+
+  private void showJBPopup(@NotNull AnActionEvent eve, @NotNull DropDownActionButton button, @NotNull JPanel componentPopup) {
+    JBPopup popup = createJBPopup(componentPopup);
+    Component owner = eve.getInputEvent().getComponent();
+    Point location = owner.getLocationOnScreen();
+    location.translate(0, owner.getHeight());
+    popup.showInScreenCoordinates(owner, location);
+    button.setSelected(true);
+    ((DropDownAction)button.getAction()).myCurrentPopup = popup;
+  }
+
+  private static DropDownActionButton getActionButton(@NotNull AnActionEvent eve) {
+    return (DropDownActionButton)eve.getPresentation().getClientProperty(CustomComponentAction.CUSTOM_COMPONENT_PROPERTY);
   }
 
   @Override
@@ -88,21 +93,26 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   public JComponent createCustomComponent(@NotNull Presentation presentation) {
     DropDownActionButton button = new DropDownActionButton(this, presentation, ActionPlaces.TOOLBAR);
     updateActions();
-    button.setComponentPopupMenu(createPopupMenu());
     return button;
   }
 
   @NotNull
-  private JPopupMenu createPopupMenu() {
-    JPanel customPanel = createCustomComponentPopup();
-    JPopupMenu popupMenu;
-    if (customPanel != null) {
-      popupMenu = new JBPopupMenu();
-      popupMenu.add(customPanel);
-    }
-    else {
-      popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLBAR, this).getComponent();
-    }
+  private JBPopup createJBPopup(@NotNull JPanel content) {
+    JBPopup popupMenu;
+    JBPopupFactory popupFactory = JBPopupFactory.getInstance();
+    popupMenu = popupFactory.createComponentPopupBuilder(content, content).createPopup();
+    popupMenu.addListener(new JBPopupAdapter() {
+      @Override
+      public void onClosed(LightweightWindowEvent event) {
+        super.onClosed(event);
+        DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
+        button.setSelected(false);
+        button.revalidate();
+        button.repaint();
+        event.asPopup().removeListener(this);
+        ((DropDownAction)button.getAction()).myCurrentPopup = null;
+      }
+    });
     return popupMenu;
   }
 
@@ -135,7 +145,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
 
   public void closePopup() {
     if (myCurrentPopup != null) {
-      myCurrentPopup.setVisible(false);
+      myCurrentPopup.closeOk(null);
       myCurrentPopup = null;
     }
   }
