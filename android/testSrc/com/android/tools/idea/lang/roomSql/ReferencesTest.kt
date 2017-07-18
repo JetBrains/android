@@ -20,7 +20,7 @@ import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.ResolveResult
 
-class RoomTablePsiReferenceTest : LightRoomTestCase() {
+class ReferencesTest : LightRoomTestCase() {
 
   fun testDefaultTableName() {
     myFixture.addClass("package com.example; public class NotAnEntity {}")
