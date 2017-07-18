@@ -55,6 +55,7 @@ public class DesignerTestSuite {
     symbolicLinkInTmpDir("prebuilts/studio/layoutlib");
     symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
     symbolicLinkInTmpDir("tools/adt/idea/android/lib/androidWidgets");
+    symbolicLinkInTmpDir("tools/adt/idea/android/lib/sampleData");
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
     symbolicLinkInTmpDir("tools/base/templates");

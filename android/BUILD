@@ -117,6 +117,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android:device-art-resources",
         "//tools/adt/idea/android/lib:androidWidgets",
+        "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/lib/libwebp",
         "//tools/adt/idea/android/testData",
         "//tools/base/bazel:offline_repo_repo.zip",

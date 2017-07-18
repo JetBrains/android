@@ -87,11 +87,9 @@ public class SampleDataResourceRepository extends LocalResourceRepository {
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem", new LoremIpsumGenerator(false)),
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "lorem/random", new LoremIpsumGenerator(true)),
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "avatars",
-                                                   ResourceContent.fromDirectory(SampleDataResourceRepository.class.getClassLoader()
-                                                                                   .getResource("sampleData/avatars"))),
+                                                   ResourceContent.fromDirectory("avatars")),
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "backgrounds/scenic",
-                                                   ResourceContent.fromDirectory(SampleDataResourceRepository.class.getClassLoader()
-                                                                                   .getResource("sampleData/backgrounds/scenic"))),
+                                                   ResourceContent.fromDirectory("backgrounds/scenic")),
 
     // TODO: Delegate path parsing to the data source to avoid all these declarations
     SampleDataResourceItem.getFromStaticDataSource(TOOLS_NS_NAME_PREFIX + "date/day_of_week",
