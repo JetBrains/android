@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
@@ -204,6 +205,10 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   private Component findFocusablePropertyComponent(@NotNull String name, @Nullable Icon icon) {
     Component component = findPropertyComponent(name, icon);
     if (component == null || component.isFocusable()) {
+      if (component instanceof EditorTextField) {
+        // If this is a TextField editor the underlying editor component is expected to receive focus (eventually)
+        component = ((EditorTextField)component).getEditor().getContentComponent();
+      }
       return component;
     }
     if (component instanceof Container) {
