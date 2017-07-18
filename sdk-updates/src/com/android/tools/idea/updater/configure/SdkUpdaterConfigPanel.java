@@ -22,7 +22,6 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.ValidationResult;
@@ -33,7 +32,6 @@ import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.adapters.AdapterProperty;
 import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
-import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
@@ -218,35 +216,29 @@ public class SdkUpdaterConfigPanel implements Disposable {
     Collection<File> sdkLocations = getSdkLocations();
     mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
     mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
-      setUpSingleSdkChooser();
-      myBindingsManager.bindTwoWay(
-        mySelectedSdkLocation,
-        new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
-          @Nullable
-          @Override
-          protected Optional<File> convertFromSourceType(@NotNull String value) {
-            if (value.isEmpty()) {
-              return Optional.empty();
-            }
-            return Optional.of(new File(value));
-          }
 
-          @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-          @NotNull
-          @Override
-          protected String convertFromDestType(@NotNull Optional<File> value) {
-            return value.isPresent() ? value.get().getPath() : "";
+    ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
+    setUpSingleSdkChooser();
+    myBindingsManager.bindTwoWay(
+      mySelectedSdkLocation,
+      new AdapterProperty<String, Optional<File>>(new TextProperty(mySdkLocationTextField), mySelectedSdkLocation.get()) {
+        @Nullable
+        @Override
+        protected Optional<File> convertFromSourceType(@NotNull String value) {
+          if (value.isEmpty()) {
+            return Optional.empty();
           }
-        });
-    }
-    else {
-      ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "MultiSdk");
-      sdkLocations.forEach(location -> mySdkLocationChooser.addItem(location));
-      myBindingsManager.bindTwoWay(mySelectedSdkLocation,
-                                   new SelectedItemProperty<>(mySdkLocationChooser));
-    }
+          return Optional.of(new File(value));
+        }
+
+        @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+        @NotNull
+        @Override
+        protected String convertFromDestType(@NotNull Optional<File> value) {
+          return value.isPresent() ? value.get().getPath() : "";
+        }
+      });
+
     myChannelLink.setHyperlinkText("Preview packages available! ", "Switch", " to Preview Channel to see them");
     myChannelLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
