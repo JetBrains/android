@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -61,14 +62,22 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public LoadingPanel createLoadingPanel() {
+  public LoadingPanel createLoadingPanel(int delayMs) {
     return new LoadingPanel() {
-      private final JBLoadingPanel myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject);
+      private final JBLoadingPanel myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject, delayMs);
 
       @NotNull
       @Override
       public JComponent getComponent() {
         return myLoadingPanel;
+      }
+
+      @Override
+      public void setChildComponent(@Nullable Component comp) {
+        myLoadingPanel.getContentPanel().removeAll();
+        if (comp != null) {
+          myLoadingPanel.add(comp);
+        }
       }
 
       @Override

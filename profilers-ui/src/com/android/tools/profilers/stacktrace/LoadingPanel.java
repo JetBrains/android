@@ -16,14 +16,18 @@
 package com.android.tools.profilers.stacktrace;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 
 public interface LoadingPanel {
   @NotNull
   JComponent getComponent();
 
   void setLoadingText(@NotNull String loadingText);
+
+  void setChildComponent(@Nullable Component comp);
 
   void startLoading();
 

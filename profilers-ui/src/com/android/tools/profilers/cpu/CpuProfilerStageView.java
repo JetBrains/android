@@ -283,7 +283,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myCaptureStatus.setBorder(new EmptyBorder(0, 5, 0, 0));
     myCaptureStatus.setForeground(ProfilerColors.CPU_CAPTURE_STATUS);
 
-    myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
+    myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
     myCaptureViewLoading.setLoadingText("Parsing capture...");
 
     updateCaptureState();

@@ -17,8 +17,10 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.stacktrace.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.function.Consumer;
@@ -26,8 +28,11 @@ import java.util.function.Supplier;
 
 public interface IdeProfilerComponents {
 
+  /**
+   * @param delayMs Amount of delay when the loading panel should show up. value <= 0 indicates no delay.
+   */
   @NotNull
-  LoadingPanel createLoadingPanel();
+  LoadingPanel createLoadingPanel(int delayMs);
 
   @NotNull
   StackTraceView createStackView(@NotNull StackTraceModel model);

@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.collect.ImmutableList;
@@ -272,6 +273,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
           return null;
         }
 
+        joiner.execute(() -> myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING));
         updateAllocationContexts(newEndTimeNs);
 
         // myEventEndTimeNs represents latest timestamp we have event data
@@ -365,8 +367,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         myPreviousQueryStartTimeNs = newStartTimeNs;
         myPreviousQueryEndTimeNs = newEndTimeNs;
 
-        if (clear || setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
-          joiner.execute(() -> {
+        joiner.execute(() -> {
+          myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
+          if (clear ||
+              setAllocationList.size() + setDeallocationList.size() + resetAllocationList.size() + resetDeallocationList.size() > 0) {
             if (clear) {
               myDefaultHeapSet.clearClassifierSets();
               if (myStage.getSelectedClassSet() != null) {
@@ -386,8 +390,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
               myDefaultHeapSet.removeFreeingInstanceObject(instance);
             });
             myStage.refreshSelectedHeap();
-          });
-        }
+          }
+        });
         return null;
       });
     }

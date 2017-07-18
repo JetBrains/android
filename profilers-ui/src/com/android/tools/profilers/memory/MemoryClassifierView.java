@@ -23,6 +23,7 @@ import com.android.tools.profilers.ProfilerIcons;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -49,6 +50,7 @@ import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.Cla
 final class MemoryClassifierView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 800;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
+  private static final int HEAP_UPDATING_DELAY_MS = 250;
 
   @NotNull private final MemoryProfilerStage myStage;
 
@@ -66,6 +68,8 @@ final class MemoryClassifierView extends AspectObserver {
 
   @NotNull private final JPanel myPanel = new JPanel(new BorderLayout());
 
+  @NotNull private final LoadingPanel myLoadingPanel;
+
   @Nullable private JComponent myColumnTree;
 
   @Nullable private JTree myTree;
@@ -81,11 +85,14 @@ final class MemoryClassifierView extends AspectObserver {
   public MemoryClassifierView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myIdeProfilerComponents = ideProfilerComponents;
+    myLoadingPanel = myIdeProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
 
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
       .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping);
@@ -262,6 +269,27 @@ final class MemoryClassifierView extends AspectObserver {
     builder.setBorder(DEFAULT_TOP_BORDER);
     myColumnTree = builder.build();
     myPanel.add(myColumnTree, BorderLayout.CENTER);
+  }
+
+  private void startHeapLoadingUi() {
+    if (myColumnTree == null) {
+      return;
+    }
+    myPanel.remove(myColumnTree);
+    myPanel.add(myLoadingPanel.getComponent(), BorderLayout.CENTER);
+    myLoadingPanel.setChildComponent(myColumnTree);
+    myLoadingPanel.startLoading();
+  }
+
+  private void stopHeapLoadingUi() {
+    if (myColumnTree == null) {
+      return;
+    }
+    myPanel.remove(myLoadingPanel.getComponent());
+    myPanel.add(myColumnTree, BorderLayout.CENTER);
+    // Loading panel is registered with the project. Be extra careful not have it reference anything when we are done with it.
+    myLoadingPanel.setChildComponent(null);
+    myLoadingPanel.stopLoading();
   }
 
   private void refreshTree() {
