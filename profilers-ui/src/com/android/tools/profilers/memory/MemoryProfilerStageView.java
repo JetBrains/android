@@ -412,7 +412,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     else {
       myAllocationButton.setEnabled(false);
       myHeapDumpButton.setEnabled(false);
-      myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
+      myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
       myCaptureLoadingPanel.setLoadingText("Fetching results");
       myCaptureLoadingPanel.startLoading();
       myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());

@@ -41,7 +41,7 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public LoadingPanel createLoadingPanel() {
+  public LoadingPanel createLoadingPanel(int delayMs) {
     return new LoadingPanel() {
       @NotNull
       @Override
@@ -51,6 +51,10 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
       @Override
       public void setLoadingText(@NotNull String loadingText) {
+      }
+
+      @Override
+      public void setChildComponent(@Nullable Component comp) {
       }
 
       @Override
