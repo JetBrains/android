@@ -89,7 +89,6 @@ public class Scene implements SelectionListener {
 
   private int myLastMouseX;
   private int myLastMouseY;
-  private boolean myDidPreviousRepaint = true;
 
   private HitListener myHoverListener = new HitListener();
   private HitListener myHitListener = new HitListener();
@@ -358,15 +357,14 @@ public class Scene implements SelectionListener {
    * @return true if we need to repaint the screen
    */
   public boolean layout(long time, SceneContext sceneContext) {
-    boolean needsRepaint = false;
+    boolean needsToRebuildDisplayList = false;
     if (myRoot != null) {
-      needsRepaint = myRoot.layout(sceneContext, time);
+      needsToRebuildDisplayList = myRoot.layout(sceneContext, time);
+      if (needsToRebuildDisplayList) {
+        needsRebuildList();
+      }
     }
-    if (myDidPreviousRepaint) {
-      myDidPreviousRepaint = needsRepaint;
-      needsRepaint = true;
-    }
-    return needsRepaint;
+    return needsToRebuildDisplayList;
   }
 
   /**
