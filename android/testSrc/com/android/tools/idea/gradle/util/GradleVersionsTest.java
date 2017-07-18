@@ -31,6 +31,7 @@ import static com.intellij.util.ThreeState.YES;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -39,12 +40,24 @@ import static org.mockito.Mockito.when;
 public class GradleVersionsTest extends AndroidGradleTestCase {
   private GradleProjectSettingsFinder mySettingsFinder;
   private GradleVersions myGradleVersions;
+  private IdeComponents myIdeComponents;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySettingsFinder = mock(GradleProjectSettingsFinder.class);
     myGradleVersions = new GradleVersions(mySettingsFinder);
+    myIdeComponents = new IdeComponents(getProject());
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      myIdeComponents.restore();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testReadGradleVersionFromGradleSyncState() throws Exception {
@@ -97,6 +110,33 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
     GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
     assertEquals(expected, gradleVersion.toString());
+  }
+
+  public void testIsGradle4OrNewer() throws Exception {
+    loadSimpleApplication();
+    Project project = getProject();
+
+    // Check exactly 4
+    GradleVersions spyVersions = spy(myGradleVersions);
+    myIdeComponents.replaceService(GradleVersions.class, spyVersions);
+    when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0,0));
+    assertTrue(GradleVersions.isGradle4OrNewer(project));
+
+    // Check by component
+    when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(5,0,0));
+    assertTrue(GradleVersions.isGradle4OrNewer(project));
+    when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,1,0));
+    assertTrue(GradleVersions.isGradle4OrNewer(project));
+    when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0,1));
+    assertTrue(GradleVersions.isGradle4OrNewer(project));
+
+    // lower
+    when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(3,5));
+    assertFalse(GradleVersions.isGradle4OrNewer(project));
+
+    // Null
+    when(spyVersions.getGradleVersion(project)).thenReturn(null);
+    assertFalse(GradleVersions.isGradle4OrNewer(project));
   }
 
   @NotNull
