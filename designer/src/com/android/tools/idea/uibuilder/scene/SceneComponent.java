@@ -140,7 +140,6 @@ public class SceneComponent {
     int target;
     long startTime;
     int duration = ANIMATION_DURATION;
-    boolean animating = false;
 
     /**
      * Set the value directly without animating
@@ -151,7 +150,6 @@ public class SceneComponent {
       value = v;
       target = v;
       startTime = 0;
-      animating = false;
     }
 
     /**
@@ -163,12 +161,10 @@ public class SceneComponent {
      */
     public void setTarget(int v, long time) {
       if (target == v) {
-        animating = false;
         return;
       }
       startTime = time;
       target = v;
-      animating = true;
     }
 
     /**
@@ -181,20 +177,22 @@ public class SceneComponent {
      */
     public int getValue(long time) {
       if (startTime == 0) {
-        animating = false;
+        target = value;
         return value;
       }
       float progress = (time - startTime) / (float)duration;
-      if (progress > 1) {
+      if (progress >= 1) {
         value = target;
-        animating = false;
         return value;
       }
       else if (progress <= 0) {
         return value;
       }
-      animating = true;
       return (int)(0.5f + EaseInOutInterpolator(progress, value, target));
+    }
+
+    public boolean isAnimating() {
+      return value != target;
     }
 
     /**
@@ -741,26 +739,41 @@ public class SceneComponent {
   /////////////////////////////////////////////////////////////////////////////
 
   public boolean layout(@NotNull SceneContext sceneTransform, long time) {
-    boolean needsRepaint;
-    myCurrentLeft = myAnimatedDrawX.getValue(time);
-    myCurrentTop = myAnimatedDrawY.getValue(time);
-    myCurrentRight = myCurrentLeft + myAnimatedDrawWidth.getValue(time);
-    myCurrentBottom = myCurrentTop + myAnimatedDrawHeight.getValue(time);
-    needsRepaint = myAnimatedDrawX.animating;
-    needsRepaint |= myAnimatedDrawY.animating;
-    needsRepaint |= myAnimatedDrawWidth.animating;
-    needsRepaint |= myAnimatedDrawHeight.animating;
+    boolean needsRebuildDisplayList = false;
+    int left = myAnimatedDrawX.getValue(time);
+    int top = myAnimatedDrawY.getValue(time);
+    int right = left + myAnimatedDrawWidth.getValue(time);
+    int bottom = top + myAnimatedDrawHeight.getValue(time);
+
+    needsRebuildDisplayList |= (myCurrentLeft != left);
+    needsRebuildDisplayList |= (myCurrentTop != top);
+    needsRebuildDisplayList |= (myCurrentRight != right);
+    needsRebuildDisplayList |= (myCurrentBottom != bottom);
+
+    myCurrentLeft = left;
+    myCurrentTop = top;
+    myCurrentRight = right;
+    myCurrentBottom = bottom;
+
+    boolean animating = false;
+    animating |= myAnimatedDrawX.isAnimating();
+    animating |= myAnimatedDrawY.isAnimating();
+    animating |= myAnimatedDrawWidth.isAnimating();
+    animating |= myAnimatedDrawHeight.isAnimating();
+
+    needsRebuildDisplayList |= animating;
+
     int num = myTargets.size();
     for (int i = 0; i < num; i++) {
       Target target = myTargets.get(i);
-      needsRepaint |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
+      needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
     }
     int childCount = myChildren.size();
     for (int i = 0; i < childCount; i++) {
       SceneComponent child = myChildren.get(i);
-      needsRepaint |= child.layout(sceneTransform, time);
+      needsRebuildDisplayList |= child.layout(sceneTransform, time);
     }
-    return needsRepaint;
+    return needsRebuildDisplayList;
   }
 
   public Rectangle fillRect(@Nullable Rectangle rectangle) {
