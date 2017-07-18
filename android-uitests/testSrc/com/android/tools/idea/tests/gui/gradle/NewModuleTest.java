@@ -152,6 +152,7 @@ public class NewModuleTest {
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "library-module")).isDirectory();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63816536
   @Test
   public void createNewCloudModule() throws Exception {
     guiTest.importSimpleApplication()
