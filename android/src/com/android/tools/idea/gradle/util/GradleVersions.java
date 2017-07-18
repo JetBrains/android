@@ -138,4 +138,13 @@ public class GradleVersions {
     }
     return gradleVersion;
   }
+
+  /**
+   * Verifies if Gradle version used by project is 4.0 or newer
+   * @return {@code true} if version is 4.0 or newer, {@code false} if version is lower or it is {@code null}
+   */
+  public static boolean isGradle4OrNewer(@NotNull Project project) {
+    GradleVersion gradleVersion = getInstance().getGradleVersion(project);
+    return gradleVersion != null && gradleVersion.compareIgnoringQualifiers("4.0") >= 0;
+  }
 }
