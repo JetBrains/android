@@ -163,11 +163,6 @@ public final class TranslationsEditorFixture {
   }
 
   @NotNull
-  public JTextComponentFixture getKeyTextField() {
-    return new JTextComponentFixture(myRobot, (JTextComponent)myRobot.finder().findByName(myTranslationsEditor, "keyTextField"));
-  }
-
-  @NotNull
   public JTextComponentFixture getDefaultValueTextField() {
     TextFieldWithBrowseButton field = (TextFieldWithBrowseButton)myRobot.finder().findByName(myTranslationsEditor, "defaultValueTextField");
     return new JTextComponentFixture(myRobot, field.getTextField());
