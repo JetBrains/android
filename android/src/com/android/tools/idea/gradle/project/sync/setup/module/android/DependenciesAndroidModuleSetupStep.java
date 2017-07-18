@@ -19,9 +19,9 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
@@ -104,17 +104,18 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     }
   }
 
-  private void updateModuleDependency(@NotNull Module module,
-                                      @NotNull IdeModifiableModelsProvider modelsProvider,
-                                      @NotNull ModuleDependency dependency,
-                                      @NotNull AndroidProject androidProject) {
+  @VisibleForTesting
+  void updateModuleDependency(@NotNull Module module,
+                              @NotNull IdeModifiableModelsProvider modelsProvider,
+                              @NotNull ModuleDependency dependency,
+                              @NotNull AndroidProject androidProject) {
     Module moduleDependency = dependency.getModule(modelsProvider);
     LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {
       ModuleOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addModuleOrderEntry(moduleDependency);
       orderEntry.setScope(dependency.getScope());
-      orderEntry.setExported(true);
+      orderEntry.setExported(false);
       return;
     }
 

@@ -110,6 +110,6 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
       }
     }
 
-    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider);
+    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider, false);
   }
 }

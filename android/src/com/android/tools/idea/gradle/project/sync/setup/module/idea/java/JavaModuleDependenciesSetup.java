@@ -56,7 +56,10 @@ class JavaModuleDependenciesSetup extends ModuleDependenciesSetup {
       updateLibraryRootPath(library, JavadocOrderRootType.getInstance(), modelsProvider, documentationPath);
     }
 
-    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider);
+    // Always export dependencies for java modules.
+    // Because current JavaProject model doesn't contain transitive dependencies.
+    // Change to false once b/63819274 is fixed.
+    addLibraryAsDependency(library, libraryName, scope, module, modelsProvider, true);
   }
 
   private void updateLibraryRootPath(@NotNull Library library,
