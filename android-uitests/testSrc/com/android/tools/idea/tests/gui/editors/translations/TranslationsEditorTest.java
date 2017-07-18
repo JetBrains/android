@@ -46,7 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableColumn;
 import javax.swing.text.DefaultEditorKit;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -55,7 +55,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
@@ -345,23 +348,29 @@ public final class TranslationsEditorTest {
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63507900
   @Test
   public void keyColumnWidthDoesntResetWhenAddingKey() throws IOException {
     importSimpleApplication();
+    JTableFixture table = myTranslationsEditor.getTable();
 
-    TableColumnModel model = myTranslationsEditor.getTable().target().getColumnModel();
-    int width = new Random().nextInt(700);
+    // A new width not equal to the current one
+    int width = 127;
 
-    GuiTask.execute(() -> model.getColumn(KEY_COLUMN).setPreferredWidth(width));
+    GuiTask.execute(() -> {
+      TableColumn column = table.target().getColumnModel().getColumn(KEY_COLUMN);
+
+      assert width >= column.getMinWidth() && width != column.getPreferredWidth();
+      column.setPreferredWidth(width);
+    });
 
     myTranslationsEditor.getAddKeyButton().click();
+
     AddKeyDialogFixture dialog = myTranslationsEditor.getAddKeyDialog();
     dialog.getDefaultValueTextField().enterText("key_1");
     dialog.getKeyTextField().enterText("key_1");
     dialog.getOkButton().click();
 
-    assertEquals(width, (long)GuiQuery.getNonNull(() -> model.getColumn(KEY_COLUMN).getPreferredWidth()));
+    assertEquals(width, (long)GuiQuery.getNonNull(() -> table.target().getColumnModel().getColumn(KEY_COLUMN).getPreferredWidth()));
   }
 
   @Test
