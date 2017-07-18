@@ -130,7 +130,11 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
     assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
 
-    Library library = libraryOrderEntries.get(0).getLibrary();
+    // Check that library entry is not exported. b/62265305.
+    LibraryOrderEntry orderEntry = libraryOrderEntries.get(0);
+    assertFalse(orderEntry.isExported());
+
+    Library library = orderEntry.getLibrary();
     assertNotNull(library);
     assertEquals(libraryName, library.getName());
 
