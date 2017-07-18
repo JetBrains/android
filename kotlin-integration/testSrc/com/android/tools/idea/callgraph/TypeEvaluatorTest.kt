@@ -16,6 +16,7 @@
 package com.android.tools.idea.callgraph
 
 import com.android.tools.idea.experimental.callgraph.StandardTypeEvaluator
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
@@ -29,10 +30,11 @@ class TypeEvaluatorTest : AndroidTestCase() {
 
   fun testJavaTypeEstimates() = doTest(".java")
 
-  // TODO: fun testKotlinTypeEstimates() = doTest(".kt")
+  fun testKotlinTypeEstimates() = doTest(".kt")
 
   private fun doTest(ext: String) {
-    val virtualFile = myFixture.copyFileToProject("callgraph/TypeEstimates" + ext)
+    myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
+    val virtualFile = myFixture.copyFileToProject("callgraph/TypeEstimates" + ext, "src/TypeEstimates" + ext)
     val uastContext = ServiceManager.getService(project, UastContext::class.java)
     val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
     val file = uastContext.convertWithParent<UFile>(psiFile) ?: throw Error("Failed to convert PsiFile to UFile")
