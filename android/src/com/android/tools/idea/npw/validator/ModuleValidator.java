@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.validator;
 
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;

@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.validation.validators;
+package com.android.tools.adtui.validation.validators;
 
-import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.adtui.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A validator that returns valid when the boolean value it is testing against is true.
+ * A validator that returns valid when the boolean value it is testing against is false.
  */
-public final class TrueValidator implements Validator<Boolean> {
+public final class FalseValidator implements Validator<Boolean> {
   private final Result myInvalidResult;
 
-  public TrueValidator(@NotNull  String errorMessage) {
+  public FalseValidator(@NotNull  String errorMessage) {
     this(Severity.ERROR, errorMessage);
   }
 
-  public TrueValidator(@NotNull Severity severity, @NotNull String message) {
+  public FalseValidator(@NotNull Severity severity, @NotNull String message) {
     myInvalidResult = new Result(severity, message);
   }
 
   @NotNull
   @Override
   public Result validate(@NotNull Boolean value) {
-    return value ? Result.OK : myInvalidResult;
+    // returns failure when true
+    return value ? myInvalidResult : Result.OK;
   }
 }

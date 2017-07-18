@@ -19,7 +19,7 @@ package com.android.tools.idea.npw.importing;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.ui.properties.BatchInvoker;
 import com.android.tools.idea.ui.properties.TestInvokeStrategy;
-import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.adtui.validation.Validator;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.util.AndroidBundle;

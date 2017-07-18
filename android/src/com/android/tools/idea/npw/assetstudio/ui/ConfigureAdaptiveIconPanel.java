@@ -36,8 +36,8 @@ import com.android.tools.idea.ui.properties.expressions.optional.AsOptionalExpre
 import com.android.tools.idea.ui.properties.expressions.string.FormatExpression;
 import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.ui.properties.swing.*;
-import com.android.tools.idea.ui.validation.Validator;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;

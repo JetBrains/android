@@ -21,5 +21,7 @@
     <orderEntry type="library" name="mockito" level="project" />
     <orderEntry type="module" module-name="adt-ui-model" />
     <orderEntry type="module" module-name="testFramework" scope="TEST" />
+    <orderEntry type="library" name="jcip" level="project" />
+    <orderEntry type="module" module-name="observable" />
   </component>
 </module>
