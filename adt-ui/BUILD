@@ -20,6 +20,8 @@ iml_module(
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito",
         "//tools/adt/idea/adt-ui-model[module]",
+        "//tools/idea/.idea/libraries:jcip",
+        "//tools/adt/idea/observable[module]",
     ],
 )
 

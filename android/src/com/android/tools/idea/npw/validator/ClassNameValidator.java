@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.validator;
 
-import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.adtui.validation.Validator;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;

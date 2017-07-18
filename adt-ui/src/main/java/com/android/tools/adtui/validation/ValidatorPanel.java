@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.validation;
+package com.android.tools.adtui.validation;
 
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
-import com.android.tools.idea.ui.validation.validators.TrueValidator;
+import com.android.tools.adtui.validation.validators.TrueValidator;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.intellij.openapi.Disposable;

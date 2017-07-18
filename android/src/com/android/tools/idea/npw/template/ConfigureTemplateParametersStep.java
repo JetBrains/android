@@ -37,7 +37,7 @@ import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;

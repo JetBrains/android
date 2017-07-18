@@ -20,7 +20,7 @@ import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;

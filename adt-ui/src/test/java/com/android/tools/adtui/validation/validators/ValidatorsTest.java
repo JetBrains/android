@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.validation.validators;
+package com.android.tools.adtui.validation.validators;
 
-import com.android.tools.idea.ui.validation.Validator;
+import com.android.tools.adtui.validation.Validator;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;

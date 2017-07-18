@@ -42,7 +42,7 @@ import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;

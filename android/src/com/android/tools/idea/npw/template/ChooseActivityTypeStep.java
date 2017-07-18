@@ -28,7 +28,7 @@ import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;

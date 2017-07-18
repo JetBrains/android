@@ -32,7 +32,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <nested-form id="ca9d1" form-file="com/android/tools/idea/ui/validation/ValidatorPanel.form" binding="myValidatorPanel" custom-create="true">
+          <nested-form id="ca9d1" form-file="com/android/tools/adtui/validation/ValidatorPanel.form" binding="myValidatorPanel" custom-create="true">
             <constraints border-constraint="Center"/>
           </nested-form>
         </children>
