@@ -21,6 +21,7 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
+import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
@@ -42,6 +43,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   private static final BackingNamespace LIVE_ALLOCATION_NAMESPACE = new BackingNamespace("LiveAllocations", PERFORMANT);
 
   private final Map<Integer, PollRunner> myRunners = new HashMap<>();
+  private final Map<Integer, PollRunner> myJvmtiRunners = new HashMap<>();
   private final MemoryStatsTable myStatsTable;
   private final MemoryLiveAllocationTable myAllocationsTable;
   private final Consumer<Runnable> myFetchExecutor;
@@ -65,8 +67,11 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       observer.onCompleted();
       int processId = request.getProcessId();
       Common.Session session = request.getSession();
-      myRunners.put(processId, new MemoryDataPoller(processId, session, myStatsTable, myAllocationsTable, client, myFetchExecutor));
+      myJvmtiRunners.put(processId, new MemoryJvmtiDataPoller(processId, session, myAllocationsTable, client));
+      myRunners.put(processId, new MemoryDataPoller(processId, session, myStatsTable, client, myFetchExecutor));
+      myFetchExecutor.accept(myJvmtiRunners.get(processId));
       myFetchExecutor.accept(myRunners.get(processId));
+
     }
     else {
       observer.onNext(MemoryStartResponse.getDefaultInstance());
@@ -78,6 +83,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> observer) {
     int processId = request.getProcessId();
     PollRunner runner = myRunners.remove(processId);
+    if (runner != null) {
+      runner.stop();
+    }
+    runner = myJvmtiRunners.remove(processId);
     if (runner != null) {
       runner.stop();
     }
@@ -121,6 +130,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
         byte[] data = myStatsTable.getHeapDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
         assert data != null;
         responseBuilder.setData(ByteString.copyFrom(data));
+        responseBuilder.setStatus(status);
+        break;
       case NOT_READY:
       case FAILURE_UNKNOWN:
       case NOT_FOUND:

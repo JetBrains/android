@@ -571,6 +571,13 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
       responseObserver.onCompleted();
     }
 
+    // Return empty data
+    @Override
+    public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
+      responseObserver.onNext(MemoryData.newBuilder().build());
+      responseObserver.onCompleted();
+    }
+
     @Override
     public void triggerHeapDump(TriggerHeapDumpRequest request,
                                 StreamObserver<TriggerHeapDumpResponse> responseObserver) {

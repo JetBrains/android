@@ -15,6 +15,24 @@
         <functionCalled>profiler.proto.MemoryService/StartMonitoringApp</functionCalled>
         <message></message>
     </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetJvmtiData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
+        <Message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetJvmtiData</functionCalled>
+        <message>process_id: 1234
+start_time: -9223372036854775808
+end_time: 9223372036854775807
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetJvmtiData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.MemoryProfiler$MemoryData</clazz>
+        <functionCalled>profiler.proto.MemoryService/GetJvmtiData</functionCalled>
+        <message></message>
+    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryRequest">
         <Message>process_id: 1234
 start_time: -9223372036854775808
