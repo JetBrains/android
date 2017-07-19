@@ -18,7 +18,9 @@ package com.android.tools.datastore.database;
 import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.profiler.proto.Common;
 import org.jetbrains.annotations.NotNull;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.sql.Connection;
@@ -28,7 +30,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 

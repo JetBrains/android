@@ -16,13 +16,16 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
+import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.CpuService;
-import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profiler.proto.*;
 import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
 

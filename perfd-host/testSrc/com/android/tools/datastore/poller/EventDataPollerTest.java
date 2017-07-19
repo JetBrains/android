@@ -16,11 +16,11 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
-import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.TestGrpcService;
+import com.android.tools.datastore.service.EventService;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import com.android.tools.datastore.TestGrpcService;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
@@ -33,7 +33,8 @@ import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class EventDataPollerTest extends DataStorePollerTest {
 

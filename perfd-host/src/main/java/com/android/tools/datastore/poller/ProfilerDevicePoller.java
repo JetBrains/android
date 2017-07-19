@@ -22,7 +22,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.Device;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 
 import java.util.HashMap;
