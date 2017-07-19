@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
@@ -44,8 +45,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
@@ -178,9 +178,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         String deviceDir = "/data/local/tmp/perfd/";
         copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir,
                          true);
-        copyFileToDevice("libperfa.so", "plugins/android/resources/perfa", "../../bazel-bin/tools/base/profiler/native/perfa/android",
-                         deviceDir, true);
-        copyFileToDevice("perfa.jar", "plugins/android/resources", "../../bazel-genfiles/tools/base/profiler/app", deviceDir, false);
+        if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
+          copyFileToDevice("perfa.jar", "plugins/android/resources", "../../bazel-genfiles/tools/base/profiler/app", deviceDir, false);
+          pushJvmtiAgentNativeLibraries(deviceDir);
+        }
         // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
         pushSimpleperfIfSupported(deviceDir);
         pushAgentConfig(AGENT_CONFIG_FILE, deviceDir);
@@ -227,30 +228,34 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
      */
     private void copyFileToDevice(String fileName, String hostReleaseDir, String hostDevDir, String deviceDir, boolean executable)
       throws AdbCommandRejectedException, IOException {
-      try {
-        File dir = new File(PathManager.getHomePath(), hostReleaseDir);
-        if (!dir.exists()) {
-          // Development mode
-          dir = new File(PathManager.getHomePath(), hostDevDir);
-        }
+      File dir = new File(PathManager.getHomePath(), hostReleaseDir);
+      if (!dir.exists()) {
+        // Development mode
+        dir = new File(PathManager.getHomePath(), hostDevDir);
+      }
 
-        File file = null;
-        if (executable) {
-          for (String abi : myDevice.getAbis()) {
-            File candidate = new File(dir, abi + "/" + fileName);
-            if (candidate.exists()) {
-              file = candidate;
-              break;
-            }
-          }
-        }
-        else {
-          File candidate = new File(dir, fileName);
+      File file = null;
+      if (executable) {
+        for (String abi : myDevice.getAbis()) {
+          File candidate = new File(dir, abi + "/" + fileName);
           if (candidate.exists()) {
             file = candidate;
+            break;
           }
         }
+      }
+      else {
+        File candidate = new File(dir, fileName);
+        if (candidate.exists()) {
+          file = candidate;
+        }
+      }
+      pushFileToDevice(file, fileName, deviceDir, executable);
+    }
 
+    private void pushFileToDevice(File file, String fileName, String deviceDir, boolean executable)
+      throws AdbCommandRejectedException, IOException {
+      try {
         // TODO: Handle the case where we don't have file for this platform.
         // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
         assert file != null;
@@ -277,6 +282,29 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       }
       catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
         throw new RuntimeException(e);
+      }
+    }
+
+    /**
+     * Push Jvmti agent binary to device. The native library is to be attached to app's thread. It needs to be consistent with app's abi.
+     * Push one binary for each supported abi cpu arch, i.e. cpu family. Abi of same cpu family can share, like "armeabi" and "armeabi-v7a".
+     */
+    private void pushJvmtiAgentNativeLibraries(String devicePath) throws AdbCommandRejectedException, IOException {
+      File dir = new File(PathManager.getHomePath(),"plugins/android/resources/perfa");
+      if (!dir.exists()) {
+        dir = new File(PathManager.getHomePath(),"../../bazel-bin/tools/base/profiler/native/perfa/android");
+      }
+      // Multiple abis of same cpu arch need only one binary to push, for example, "armeabi" and "armeabi-v7a" abis' cpu arch is "arm".
+      Set<String> cpuArchSet = new HashSet<>();
+      for (String abi : myDevice.getAbis()) {
+        File candidate = new File(dir, abi + "/" + "libperfa.so");
+        if (candidate.exists()) {
+          String abiCpuArch = Abi.getEnum(abi).getCpuArch();
+          if (!cpuArchSet.contains(abiCpuArch)) {
+            pushFileToDevice(candidate, String.format("libperfa_%s.so", abiCpuArch), devicePath, true);
+            cpuArchSet.add(abiCpuArch);
+          }
+        }
       }
     }
 

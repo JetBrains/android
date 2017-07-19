@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
@@ -258,9 +259,21 @@ public class ProfilerServiceProxy extends PerfdProxyService
         continue; // Process is still starting up and not ready yet
       }
 
+      // Parse cpu arch from client abi info, for example, "arm64" from "64-bit (arm64)". Abi string indicates whether application is
+      // 64-bit or 32-bit and its cpu arch. Old devices of 32-bit do not have the application data, fall back to device's abi cpu arch.
+      // TODO: Remove when moving process discovery.
+      String abi = client.getClientData().getAbi();
+      String abiCpuArch;
+      if (abi != null && abi.contains(")")) {
+        abiCpuArch = abi.substring(abi.indexOf("(") + 1, abi.indexOf(")"));
+      } else {
+        abiCpuArch = Abi.getEnum(myDevice.getAbis().get(0)).getCpuArch();
+      }
+
       // TODO: Set this to the applications actual start time.
       myCachedProcesses.put(client, Profiler.Process.newBuilder().setName(client.getClientData().getClientDescription())
         .setPid(client.getClientData().getPid()).setState(Profiler.Process.State.ALIVE).setStartTimestampNs(times.getTimestampNs())
+        .setAbiCpuArch(abiCpuArch)
         .build());
     }
   }
