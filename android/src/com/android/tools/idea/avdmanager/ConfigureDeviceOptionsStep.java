@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.resources.Navigation;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.ui.TooltipLabel;
+import com.android.tools.adtui.TooltipLabel;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.adapters.StringToDoubleAdapterProperty;
