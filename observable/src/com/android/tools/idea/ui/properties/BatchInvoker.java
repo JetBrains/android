@@ -16,8 +16,6 @@
 package com.android.tools.idea.ui.properties;
 
 import com.google.common.collect.Queues;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
@@ -36,13 +34,6 @@ import java.util.Queue;
  * the same frame, you only want to run the calculation once.
  */
 public final class BatchInvoker {
-
-  /**
-   * Useful invoke strategy when developing an IDEA Plugin.
-   */
-  public static final Strategy APPLICATION_INVOKE_LATER_STRATEGY =
-    runnableBatch -> ApplicationManager.getApplication().invokeLater(runnableBatch, ModalityState.any());
-
   /**
    * Useful invoke strategy when working on a Swing application.
    */
@@ -80,9 +71,8 @@ public final class BatchInvoker {
   private boolean myUpdateInProgress;
 
   public BatchInvoker() {
-    this(ourOverrideStrategy != null
-         ? ourOverrideStrategy
-         : ApplicationManager.getApplication() != null ? APPLICATION_INVOKE_LATER_STRATEGY : SWING_INVOKE_LATER_STRATEGY);
+
+    this(ourOverrideStrategy != null ? ourOverrideStrategy : SWING_INVOKE_LATER_STRATEGY);
   }
 
   public BatchInvoker(@NotNull Strategy strategy) {

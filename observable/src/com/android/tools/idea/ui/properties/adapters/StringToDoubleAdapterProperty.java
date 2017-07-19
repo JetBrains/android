@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.properties.adapters;
 
 import com.android.tools.idea.ui.properties.AbstractProperty;
-import com.intellij.openapi.util.text.StringUtil;
+import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +50,7 @@ public final class StringToDoubleAdapterProperty extends AdapterProperty<String,
     if (maxDecimals < numDecimals) {
       throw new IllegalArgumentException("maxDecimals must be larger or equal to numDecimals");
     }
-    myFormat = new DecimalFormat("0." + StringUtil.repeat("0", numDecimals) + StringUtil.repeat("#", maxDecimals - numDecimals),
+    myFormat = new DecimalFormat("0." + Strings.repeat("0", numDecimals) + Strings.repeat("#", maxDecimals - numDecimals),
                                  new DecimalFormatSymbols());
   }
 

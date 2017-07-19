@@ -66,35 +66,27 @@ public final class ObservableValueTest {
     assertThat(listener.getCount()).isEqualTo(0);
   }
 
-  /**
-   * This test works but is slow (2 seconds) and almost certainly dependent on GC implementation.
-   * Therefore, it is commented out, but you can run it locally to see it work.
-   */
-  //@Test
+  @Test
   public void weakListenerIsRemovedAutomaticallyByGc() throws Exception {
     final MutableInt strongCount = new MutableInt();
     final MutableInt weakCount = new MutableInt();
     MockObservableValue mockValue = new MockObservableValue();
-    mockValue.addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        strongCount.value++;
-      }
-    });
-    mockValue.addWeakListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        weakCount.value++;
-      }
-    });
+    mockValue.addListener(sender -> strongCount.value++);
+    {
+      InvalidationListener scopedListener = sender -> weakCount.value++;
+      mockValue.addWeakListener(scopedListener);
 
-    assertThat(strongCount.value).isEqualTo(0);
-    assertThat(weakCount.value).isEqualTo(0);
+      assertThat(strongCount.value).isEqualTo(0);
+      assertThat(weakCount.value).isEqualTo(0);
 
-    mockValue.fireInvalidated();
-    assertThat(strongCount.value).isEqualTo(1);
-    assertThat(weakCount.value).isEqualTo(1);
-
+      mockValue.fireInvalidated();
+      assertThat(strongCount.value).isEqualTo(1);
+      assertThat(weakCount.value).isEqualTo(1);
+    }
+    // If the next line isn't here, the GC does not clean up the scopedListener, likely as an
+    // optimization. See: https://stackoverflow.com/a/25960828
+    //noinspection unused
+    Object forceGcToCleanUpScopedListener = null;
     GCUtil.tryForceGC();
 
     mockValue.fireInvalidated();

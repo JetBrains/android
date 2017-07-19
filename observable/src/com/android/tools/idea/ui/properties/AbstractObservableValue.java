@@ -19,9 +19,10 @@ import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.expressions.bool.IsEqualToExpression;
 import com.google.common.collect.Lists;
-import com.intellij.util.containers.UnsafeWeakList;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
@@ -30,7 +31,7 @@ import java.util.function.Function;
  */
 public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
   private final List<InvalidationListener> myListeners = Lists.newArrayListWithCapacity(0);
-  private final UnsafeWeakList<InvalidationListener> myWeakListeners = new UnsafeWeakList<>(0);
+  private final List<WeakReference<InvalidationListener>> myWeakListeners = Lists.newArrayListWithCapacity(0);
   private boolean myNotificationsEnabled = true;
 
   @Override
@@ -41,12 +42,18 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
   @Override
   public final void removeListener(@NotNull InvalidationListener listener) {
     myListeners.remove(listener);
-    myWeakListeners.remove(listener);
+    Iterator<WeakReference<InvalidationListener>> it = myWeakListeners.iterator();
+    while (it.hasNext()) {
+      InvalidationListener l = it.next().get();
+      if (l == null || l == listener) {
+        it.remove();
+      }
+    }
   }
 
   @Override
   public final void addWeakListener(@NotNull InvalidationListener listener) {
-    myWeakListeners.add(listener);
+    myWeakListeners.add(new WeakReference<>(listener));
   }
 
   @NotNull
@@ -80,8 +87,15 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
       listener.onInvalidated(this);
     }
 
-    for (InvalidationListener listener : myWeakListeners) {
-      listener.onInvalidated(this);
+    Iterator<WeakReference<InvalidationListener>> it = myWeakListeners.iterator();
+    while (it.hasNext()) {
+      InvalidationListener listener = it.next().get();
+      if (listener != null) {
+        listener.onInvalidated(this);
+      }
+      else {
+        it.remove();
+      }
     }
   }
 
