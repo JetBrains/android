@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.tools.adtui.GotItMessage;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.fd.actions.HotswapAction;
-import com.android.tools.idea.ui.GotItMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.BrowserUtil;
@@ -37,7 +37,6 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Optional;
 
 public class InstantRunPrompt {
   private final Project myProject;
