@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
+import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
@@ -33,9 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -88,6 +87,7 @@ public class ProfilerServiceProxyTest {
     assertThat(cachedProcess.getValue().getPid()).isEqualTo(1);
     assertThat(cachedProcess.getValue().getName()).isEqualTo("testClientDescription");
     assertThat(cachedProcess.getValue().getState()).isEqualTo(Profiler.Process.State.ALIVE);
+    assertThat(cachedProcess.getValue().getAbiCpuArch()).isEqualTo(SdkConstants.CPU_ARCH_ARM);
   }
 
   /**
@@ -111,6 +111,7 @@ public class ProfilerServiceProxyTest {
     when(mockDevice.isOnline()).thenReturn(true);
     when(mockDevice.getClients()).thenReturn(clients);
     when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
+    when(mockDevice.getAbis()).thenReturn(Collections.singletonList("armeabi"));
     return mockDevice;
   }
 

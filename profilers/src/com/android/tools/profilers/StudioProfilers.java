@@ -353,7 +353,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
           // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
           myClient.getProfilerClient()
-            .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid()).build());
+            .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid())
+                           .setAgentLibFileName(String.format("libperfa_%s.so", myProcess.getAbiCpuArch())).build());
         }
 
         myIdeServices.getFeatureTracker().trackProfilingStarted();
