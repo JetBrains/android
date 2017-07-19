@@ -21,7 +21,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.assetstudiolib.MaterialDesignIcons;
 import com.android.ide.common.vectordrawable.VdIcon;
-import com.android.tools.idea.ui.SearchField;
+import com.android.tools.adtui.SearchField;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
