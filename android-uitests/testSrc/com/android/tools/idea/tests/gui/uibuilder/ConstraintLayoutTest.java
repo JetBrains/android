@@ -24,7 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import com.android.tools.idea.tests.gui.theme.ThemeEditorGuiTestUtils;
-import com.android.tools.idea.ui.TextAccessors;
+import com.android.tools.adtui.TextAccessors;
 import com.intellij.BundleBase;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;

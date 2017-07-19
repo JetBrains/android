@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.matcher;
 
-import com.android.tools.idea.ui.TextAccessors;
+import com.android.tools.adtui.TextAccessors;
 import com.intellij.BundleBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

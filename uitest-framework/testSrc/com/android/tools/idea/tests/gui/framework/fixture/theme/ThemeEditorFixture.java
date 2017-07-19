@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.theme;
 
 import com.android.sdklib.devices.State;
+import com.android.tools.adtui.TextAccessors;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.AttributesPanel;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
@@ -26,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HyperlinkLabelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.ui.TextAccessors;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.ui.HyperlinkLabel;
