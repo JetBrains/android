@@ -67,9 +67,12 @@ public class GoogleApiIntegrationTest {
 
     ProjectStructureDialogFixture projectStructureDialog =
         ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
-    projectStructureDialog.selectAdsDeveloperService().toggleCheckBox();
-    projectStructureDialog.selectAuthenticationDeveloperService().toggleCheckBox();
-    projectStructureDialog.selectNotificationsDeveloperService().toggleCheckBox();
+    projectStructureDialog.selectAdsDeveloperService()
+      .toggleCheckBox();
+    projectStructureDialog.selectAuthenticationDeveloperService()
+      .toggleCheckBox();
+    projectStructureDialog.selectNotificationsDeveloperService()
+      .toggleCheckBox();
     projectStructureDialog.clickOk();
     ideFrame.waitForGradleProjectSyncToFinish();
 
@@ -79,11 +82,16 @@ public class GoogleApiIntegrationTest {
 
     projectStructureDialog =
         ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");
-    projectStructureDialog.selectAdsDeveloperService().toggleCheckBox();
+    projectStructureDialog.selectAdsDeveloperService()
+      .toggleCheckBox();
     ConfirmUninstallServiceDialogFixture.find(ideFrame).clickYes();
-    projectStructureDialog.selectAuthenticationDeveloperService().toggleCheckBox();
+    ideFrame.waitForGradleProjectSyncToFinish();
+    projectStructureDialog.selectAuthenticationDeveloperService()
+      .toggleCheckBox();
     ConfirmUninstallServiceDialogFixture.find(ideFrame).clickYes();
-    projectStructureDialog.selectNotificationsDeveloperService().toggleCheckBox();
+    ideFrame.waitForGradleProjectSyncToFinish();
+    projectStructureDialog.selectNotificationsDeveloperService()
+      .toggleCheckBox();
     ConfirmUninstallServiceDialogFixture.find(ideFrame).clickYes();
     projectStructureDialog.clickOk();
     ideFrame.waitForGradleProjectSyncToFinish();
