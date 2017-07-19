@@ -15,7 +15,6 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
@@ -31,14 +30,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class MemoryDataPoller extends PollRunner {
-
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
 
   private AllocationsInfo myPendingAllocationSample = null;
   private HeapDumpInfo myPendingHeapDumpSample = null;
   private final MemoryServiceGrpc.MemoryServiceBlockingStub myPollingService;
   private final MemoryStatsTable myMemoryStatsTable;
-  private final MemoryLiveAllocationTable myLiveAllocationTable;
 
   private int myProcessId = -1;
   private final Common.Session mySession;
@@ -47,14 +44,12 @@ public class MemoryDataPoller extends PollRunner {
   public MemoryDataPoller(int processId,
                           Common.Session session,
                           MemoryStatsTable statsTable,
-                          MemoryLiveAllocationTable liveAllocationTable,
                           MemoryServiceGrpc.MemoryServiceBlockingStub pollingService,
                           Consumer<Runnable> fetchExecutor) {
     super(POLLING_DELAY_NS);
     myProcessId = processId;
     mySession = session;
     myMemoryStatsTable = statsTable;
-    myLiveAllocationTable = liveAllocationTable;
     myPollingService = pollingService;
     myFetchExecutor = fetchExecutor;
   }
@@ -96,13 +91,6 @@ public class MemoryDataPoller extends PollRunner {
     myMemoryStatsTable.insertMemory(myProcessId, mySession, response.getMemSamplesList());
     myMemoryStatsTable.insertAllocStats(myProcessId, mySession, response.getAllocStatsSamplesList());
     myMemoryStatsTable.insertGcStats(myProcessId, mySession, response.getGcStatsSamplesList());
-
-    for (BatchAllocationSample sample : response.getAllocationSamplesList()) {
-      myLiveAllocationTable.insertMethodInfo(myProcessId, mySession, sample.getMethodsList());
-      myLiveAllocationTable.insertStackInfo(myProcessId, mySession, sample.getStacksList());
-      myLiveAllocationTable.insertThreadInfo(myProcessId, mySession, sample.getThreadInfosList());
-      myLiveAllocationTable.insertAllocationData(myProcessId, mySession, sample);
-    }
 
     List<AllocationsInfo> allocDumpsToFetch = new ArrayList<>();
     for (int i = 0; i < response.getAllocationsInfoCount(); i++) {
@@ -194,7 +182,8 @@ public class MemoryDataPoller extends PollRunner {
         // Also save out raw dump
         DumpDataResponse allocDumpResponse = myPollingService.getLegacyAllocationDump(
           DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
-        myMemoryStatsTable.updateLegacyAllocationDump(myProcessId, mySession, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
+        myMemoryStatsTable
+          .updateLegacyAllocationDump(myProcessId, mySession, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
       }
 
       // Note: the class/stack information are saved first to the table to avoid the events referencing yet-to-exist data
@@ -204,7 +193,7 @@ public class MemoryDataPoller extends PollRunner {
           .addAllStackIds(stacksToFetch).build();
       AllocationContextsResponse contextsResponse = myPollingService.getLegacyAllocationContexts(contextRequest);
       myMemoryStatsTable.insertLegacyAllocationContext(myProcessId, mySession, contextsResponse.getAllocatedClassesList(),
-                                                  contextsResponse.getAllocationStacksList());
+                                                       contextsResponse.getAllocationStacksList());
       eventsToSave
         .forEach((startTime, response) -> myMemoryStatsTable.updateLegacyAllocationEvents(myProcessId, mySession, startTime, response));
     };
