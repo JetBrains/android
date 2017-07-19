@@ -97,12 +97,15 @@ public class RadioButtonDecorator extends SceneDecorator {
       super.paint(g, sceneContext);
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
+        Shape original = g.getClip();
+        g.clipRect(x, y, width, height);
         Stroke stroke = g.getStroke();
         g.setStroke(new BasicStroke(2));
         g.setColor(colorSet.getFakeUI());
         int side = height - margin * 2;
         g.drawRoundRect(x + margin, y + margin, side, side, side, side);
         g.setStroke(stroke);
+        g.setClip(original);
       }
     }
   }
