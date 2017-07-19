@@ -18,9 +18,11 @@ android {
     flavorDimensions 'foo'
     productFlavors {
         basic {
-          applicationId "com.example.dependentmodules.app"
+            dimension 'foo'
+            applicationId "com.example.dependentmodules.app"
         }
         paid {
+            dimension 'foo'
             applicationId "com.example.dependentmodules.app.paid"
         }
     }

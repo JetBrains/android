@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Finds an asset in all the asset directories and returns the input stream.
@@ -61,8 +64,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
   public InputStream openAsset(@NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
-    // mode is currently ignored. It can help in optimizing read performance, but it shouldn't matter here.
-    List<IdeaSourceProvider> sourceProviders = IdeaSourceProvider.getAllIdeaSourceProviders(myFacet);
+    List<IdeaSourceProvider> sourceProviders = getAllAndroidSourceProviders();
     for (int i = sourceProviders.size() - 1; i >= 0; i--) {
       for (VirtualFile assetDir : sourceProviders.get(i).getAssetsDirectories()) {
         VirtualFile asset = assetDir.findFileByRelativePath(path);
@@ -107,8 +109,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
       return null;
     }
 
-    // mode is currently ignored. It can help in optimizing read performance, but it shouldn't matter here.
-    List<IdeaSourceProvider> sourceProviders = IdeaSourceProvider.getAllIdeaSourceProviders(myFacet);
+    List<IdeaSourceProvider> sourceProviders = getAllAndroidSourceProviders();
     for (int i = sourceProviders.size() - 1; i >= 0; i--) {
       // Verify that the file at least contained in one of the resource directories
       for (VirtualFile resDir : sourceProviders.get(i).getResDirectories()) {
@@ -123,6 +124,22 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
     }
 
     return null;
+  }
+
+  /**
+   * Get all SourceProviders of current and dependent Android modules.
+   * It is sorted according to the dependency path(s).
+   * The most far one in dependency path is at the first of list, and the current facet one is at the end.
+   *
+   * @return The SourceProviders of Android module relate to {@link #myFacet}
+   */
+  private List<IdeaSourceProvider> getAllAndroidSourceProviders() {
+    // mode is currently ignored. It can help in optimizing read performance, but it shouldn't matter here.
+
+    return Stream.concat(AndroidUtils.getAllAndroidDependencies(myFacet.getModule(), true).stream(), Stream.of(myFacet))
+      .flatMap(facet -> IdeaSourceProvider.getAllIdeaSourceProviders(facet).stream())
+      .distinct()
+      .collect(Collectors.toList());
   }
 
   @Override
