@@ -98,6 +98,8 @@ public class CheckBoxDecorator extends SceneDecorator {
       super.paint(g, sceneContext);
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
+        Shape original = g.getClip();
+        g.clipRect(x, y, width, height);
         Stroke stroke = g.getStroke();
         g.setStroke(new BasicStroke(2));
         g.setColor(colorSet.getFakeUI());
@@ -114,6 +116,7 @@ public class CheckBoxDecorator extends SceneDecorator {
         yp[2] = yv;
         g.drawPolyline(xp, yp, 3);
         g.setStroke(stroke);
+        g.setClip(original);
       }
     }
   }
