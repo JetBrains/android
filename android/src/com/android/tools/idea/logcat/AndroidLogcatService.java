@@ -120,7 +120,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       ExecutorService executor = myExecutors.get(device);
       executor.submit((() -> {
         try {
-          executeCommandOnDevice(device, "logcat -v long", receiver, true);
+          executeCommandOnDevice(device, "logcat -v long", receiver, 0, true);
         }
         catch (Exception e) {
           getLog().info(String.format(
@@ -197,7 +197,8 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
         executor.submit(() -> {
           try {
-            executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(getLog()), false);
+            long timeoutMs = 5000; // should require less than a second to complete, 5s is just being very conservative
+            executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(getLog()), timeoutMs, false);
           }
           catch (final Exception e) {
             getLog().info(e);
@@ -304,16 +305,14 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private static void executeCommandOnDevice(@NotNull IDevice device,
                                              @NotNull String command,
                                              @NotNull AndroidOutputReceiver receiver,
-                                             boolean infinite)
+                                             long timeoutMs,
+                                             boolean retry)
     throws IOException, TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException {
     final int MAX_RETRIES = 5;
 
-    long timeout = infinite ? 0 : AndroidUtils.TIMEOUT;
-    for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      device.executeShellCommand(command, receiver, timeout, TimeUnit.MILLISECONDS);
+    for (int attempt = 0; retry && attempt < MAX_RETRIES; attempt++) {
+      device.executeShellCommand(command, receiver, timeoutMs, TimeUnit.MILLISECONDS);
       if (receiver.isCancelled()) break;
-      boolean retry = infinite || receiver.isTryAgain();
-      if (!retry) break;
       receiver.invalidate();
     }
   }
