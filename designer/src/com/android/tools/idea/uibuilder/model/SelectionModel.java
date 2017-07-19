@@ -173,7 +173,7 @@ public class SelectionModel {
   }
 
   public Transferable getTransferable(long modelId) {
-    List<DnDTransferComponent> components = new ArrayList<DnDTransferComponent>(mySelection.size());
+    List<DnDTransferComponent> components = new ArrayList<>(mySelection.size());
     for (NlComponent component : mySelection) {
       components.add(new DnDTransferComponent(component.getTagName(), component.getTag().getText(),
                                               NlComponentHelperKt.getW(component), NlComponentHelperKt.getH(component)));

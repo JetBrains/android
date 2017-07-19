@@ -123,6 +123,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Notify model that it's active. A model is active by default.
+   *
    * @param source caller used to keep track of the references to this model. See {@link #deactivate(Object)}
    */
   public void activate(@NotNull Object source) {
@@ -170,6 +171,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Notify model that it's not active. This means it can stop watching for events etc. It may be activated again in the future.
+   *
    * @param source the source is used to keep track of the references that are using this model. Only when all the sources have called
    *               {@link #deactivate(Object)}, the model will be really deactivated.
    */
@@ -847,9 +849,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <p/>
    * Note: The caller is responsible for calling {@link #notifyModified(ChangeType)} if the creation completes successfully.
    *
-   * @param tag        The XmlTag for the component.
-   * @param parent     The parent to add this component to.
-   * @param before     The sibling to insert immediately before, or null to append
+   * @param tag    The XmlTag for the component.
+   * @param parent The parent to add this component to.
+   * @param before The sibling to insert immediately before, or null to append
    */
   public NlComponent createComponent(@NotNull XmlTag tag,
                                      @Nullable NlComponent parent,

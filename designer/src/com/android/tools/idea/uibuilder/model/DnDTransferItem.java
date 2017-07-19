@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;

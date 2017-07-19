@@ -20,6 +20,9 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -38,6 +41,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.File;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -51,7 +55,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
-/** Fixture for building up models for tests */
+/**
+ * Fixture for building up models for tests
+ */
 public class ModelBuilder {
   private final ComponentDescriptor myRoot;
   private final AndroidFacet myFacet;
@@ -142,7 +148,8 @@ public class ModelBuilder {
         assertThat(document).isNotNull();
         document.setText(xml);
         PsiDocumentManager.getInstance(project).commitAllDocuments();
-      } else {
+      }
+      else {
         xmlFile = (XmlFile)myFixture.addFileToProject(relativePath, xml);
       }
       XmlTag rootTag = xmlFile.getRootTag();
@@ -164,13 +171,36 @@ public class ModelBuilder {
       when(surface.createInteractionOnClick(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
       when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
-      //TODO: handle calls to surface.getCurrentSceneView
+      SceneView sceneView;
+      if(mySurfaceClass.equals(NlDesignSurface.class)) {
+        sceneView = mockSceneView(model, surface);
+        when(surface.getCurrentSceneView()).thenReturn(sceneView);
+      }
 
       return model;
     });
   }
 
-  /** Update the given model to reflect the componentHierarchy in the given builder */
+  @NotNull
+  private static ScreenView mockSceneView(SyncNlModel model, DesignSurface surface) {
+    return new ScreenView(((NlDesignSurface)surface), ScreenView.ScreenViewType.NORMAL, model) {
+      @NotNull
+      @Override
+      public Dimension getPreferredSize(@Nullable Dimension dimension) {
+        return new Dimension(1000, 1000);
+      }
+
+      @NotNull
+      @Override
+      public Color getBgColor() {
+        return Color.BLACK;
+      }
+    };
+  }
+
+  /**
+   * Update the given model to reflect the componentHierarchy in the given builder
+   */
   public void updateModel(NlModel model) {
     assertThat(model).isNotNull();
     NlModel newModel = build();
