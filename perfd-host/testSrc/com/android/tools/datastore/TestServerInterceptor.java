@@ -17,9 +17,7 @@ package com.android.tools.datastore;
 
 import io.grpc.*;
 
-import java.io.*;
-
-import static org.junit.Assert.assertEquals;
+import java.io.FileNotFoundException;
 
 public class TestServerInterceptor implements ServerInterceptor {
 

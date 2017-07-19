@@ -15,9 +15,6 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.annotations.VisibleForTesting;
-import com.intellij.openapi.diagnostic.Logger;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
 import java.util.concurrent.CountDownLatch;
