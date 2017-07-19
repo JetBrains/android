@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.structure;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.SyncNlModel;
@@ -153,5 +154,52 @@ public class DestinationListTest extends NavigationTestCase {
     myModel.getSelectionModel().setSelection(ImmutableList.of(nlComponent));
     myList.myList.dispatchEvent(new MouseEvent(myList.myList, MouseEvent.MOUSE_CLICKED, 1, 0, 0, 0, 2, false));
     verify((NavDesignSurface)myModel.getSurface()).notifyComponentActivate(nlComponent);
+  }
+
+  public void testBack() throws Exception {
+    SyncNlModel model = model("nav.xml",
+                    component(TAG_NAVIGATION).unboundedChildren(
+                      component(TAG_NAVIGATION)
+                        .id("@id/subnav")
+                        .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "sub nav")
+                        .unboundedChildren(component(TAG_NAVIGATION)
+                                             .id("@id/subsubnav")
+                                             .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL, "sub sub nav"))))
+      .build();
+
+    DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
+    DestinationList list = (DestinationList)def.getFactory().create();
+    NavDesignSurface surface = (NavDesignSurface)model.getSurface();
+    SceneView sceneView = mock(SceneView.class);
+    when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
+    when(surface.getCurrentSceneView()).thenReturn(sceneView);
+    when(sceneView.getModel()).thenReturn(model);
+    list.setToolContext(surface);
+
+    NlComponent root = model.getComponents().get(0);
+    when(surface.getCurrentNavigation()).thenReturn(root);
+    model.getSelectionModel().setSelection(ImmutableList.of(root));
+    model.getSelectionModel().clear();
+
+    assertFalse(list.myBackPanel.isVisible());
+
+    root = root.getChild(0);
+    when(surface.getCurrentNavigation()).thenReturn(root);
+    model.getSelectionModel().setSelection(ImmutableList.of(root));
+    model.getSelectionModel().clear();
+
+    assertTrue(list.myBackPanel.isVisible());
+    assertEquals(DestinationList.ROOT_NAME, list.myBackLabel.getText());
+
+    list.goBack();
+    verify(surface).setCurrentNavigation(root.getParent());
+
+    root = root.getChild(0);
+    when(surface.getCurrentNavigation()).thenReturn(root);
+    model.getSelectionModel().setSelection(ImmutableList.of(root));
+    model.getSelectionModel().clear();
+
+    assertTrue(list.myBackPanel.isVisible());
+    assertEquals("sub nav", list.myBackLabel.getText());
   }
 }

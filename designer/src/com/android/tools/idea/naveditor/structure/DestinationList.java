@@ -54,6 +54,8 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
  */
 public class DestinationList implements ToolContent<DesignSurface> {
 
+  @VisibleForTesting
+  static final String ROOT_NAME = "Root";
   private final JPanel myPanel;
 
   @VisibleForTesting
@@ -72,8 +74,10 @@ public class DestinationList implements ToolContent<DesignSurface> {
   private NlModel myModel;
   private ListSelectionListener myListSelectionListener;
   private MouseListener myMouseListener;
-  private JLabel myBackLabel;
-  private JPanel myBackPanel;
+  @VisibleForTesting
+  JLabel myBackLabel;
+  @VisibleForTesting
+  JPanel myBackPanel;
   private NavDesignSurface myDesignSurface;
 
   private DestinationList() {
@@ -219,7 +223,8 @@ public class DestinationList implements ToolContent<DesignSurface> {
     }
     else {
       myBackPanel.setVisible(true);
-      myBackLabel.setText(NavComponentHelperKt.getUiName(myDesignSurface.getCurrentNavigation()));
+      NlComponent parent = myDesignSurface.getCurrentNavigation().getParent();
+      myBackLabel.setText(parent.getParent() == null ? ROOT_NAME : NavComponentHelperKt.getUiName(parent));
     }
   }
 
@@ -236,13 +241,18 @@ public class DestinationList implements ToolContent<DesignSurface> {
     myBackLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        //noinspection ConstantConditions This is only shown in the case where the current navigation has a parent.
-        myDesignSurface.setCurrentNavigation(myDesignSurface.getCurrentNavigation().getParent());
-        updateComponentList(myDesignSurface);
-        updateBackLabel();
+        goBack();
       }
     });
     return myBackPanel;
+  }
+
+  @VisibleForTesting
+  void goBack() {
+    //noinspection ConstantConditions This is only shown in the case where the current navigation has a parent.
+    myDesignSurface.setCurrentNavigation(myDesignSurface.getCurrentNavigation().getParent());
+    updateComponentList(myDesignSurface);
+    updateBackLabel();
   }
 
   private void updateComponentList(@Nullable DesignSurface toolContext) {
