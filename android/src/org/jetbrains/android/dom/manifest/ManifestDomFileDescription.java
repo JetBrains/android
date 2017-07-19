@@ -72,7 +72,7 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
 
   public static boolean isManifestFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     return file.getName().equals(FN_ANDROID_MANIFEST_XML) ||
-           facet.requiresAndroidModel() && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
+           facet.requiresAndroidModel() && file.getVirtualFile() != null && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
   }
 
   @Override

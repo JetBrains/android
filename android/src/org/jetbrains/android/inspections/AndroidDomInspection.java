@@ -16,6 +16,10 @@
 package org.jetbrains.android.inspections;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Consumer;
@@ -29,6 +33,8 @@ import org.jetbrains.android.dom.converters.AndroidPermissionConverter;
 import org.jetbrains.android.dom.converters.ConstantFieldConverter;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.dom.resources.DeclareStyleableNameConverter;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -67,7 +73,22 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
 
   @Override
   protected boolean shouldCheckResolveProblems(GenericDomValue value) {
-    final Converter realConverter = WrappingConverter.getDeepestConverter(value.getConverter(), value);
+    PsiFile psiFile = value.getXmlTag().getContainingFile();
+    if (psiFile != null) {
+      VirtualFile virtualFile = psiFile.getVirtualFile();
+      if (virtualFile != null) {
+        Module module = ModuleUtilCore.findModuleForFile(virtualFile, psiFile.getProject());
+        if (module != null) {
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet != null && IdeaSourceProvider.isTestFile(facet, virtualFile)) {
+            // Don't highlight resolve problems in test files, the whole resolve machinery doesn't know how to handle test files.
+            return false;
+          }
+        }
+      }
+    }
+
+    Converter realConverter = WrappingConverter.getDeepestConverter(value.getConverter(), value);
     return !(realConverter instanceof AndroidPackageConverter) &&
            !(realConverter instanceof DeclareStyleableNameConverter) &&
            !(realConverter instanceof OnClickConverter) &&
