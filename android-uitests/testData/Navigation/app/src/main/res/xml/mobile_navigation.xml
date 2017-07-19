@@ -21,7 +21,7 @@
               app:navType="primary"
               android:name="google.navigation.MainActivity"
               tools:layout="@layout/activity_main" >
-        <default-argument app:argname="myarg" app:argvalue="Home" />
+        <default-argument app:name="myarg" app:defaultValue="Home" />
         <action android:id="@+id/next" app:destination="@+id/main_fragment"/>
     </activity>
     <fragment android:id="@+id/main_fragment"
@@ -30,25 +30,25 @@
               app:navType="primary"
               android:name="google.navigation.MyFragment"
               tools:layout="@layout/fragment_my">
-        <default-argument app:argname="myarg" app:argvalue="Android!" />
+        <default-argument app:name="myarg" app:defaultValue="Android!" />
         <action android:id="@+id/next2" app:destination="@+id/first_screen"/>
     </fragment>
     <activity android:id="@+id/first_screen"
               android:name="google.navigation.FirstScreen"
               tools:layout="@layout/activity_first_screen">
-        <default-argument app:argname="myarg" app:argvalue="one" />
+        <default-argument app:name="myarg" app:defaultValue="one" />
     </activity>
     <fragment android:id="@+id/next_fragment"
               android:name="google.navigation.NextFragment"
               tools:layout="@layout/fragment_next">
-        <default-argument app:argname="myarg" app:argvalue="two" />
+        <default-argument app:name="myarg" app:defaultValue="two" />
         <action android:id="@+id/next4" app:destination="@id/subnav"/>
     </fragment>
     <navigation app:startDestination="@id/next_fragment2" android:label="sub nav" android:id="@+id/subnav">
         <fragment android:id="@+id/next_fragment2"
                   android:name="google.navigation.NextFragment"
                   tools:layout="@layout/fragment_next">
-            <default-argument app:argname="myarg" app:argvalue="two" />
+            <default-argument app:name="myarg" app:defaultValue="two" />
             <action android:id="@+id/out_of_nav" app:destination="@id/first_screen"/>
         </fragment>
     </navigation>
