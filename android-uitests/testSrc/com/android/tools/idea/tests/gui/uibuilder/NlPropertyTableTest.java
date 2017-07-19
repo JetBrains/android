@@ -19,13 +19,13 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.CompletionFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyTableFixture;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
-import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.data.TableCellInSelectedRow;
@@ -115,7 +115,6 @@ public class NlPropertyTableTest {
       .assertPropertyShowing("visibility", null);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63726618
   @Test
   public void testSimpleKeyboardEditingInTable() throws Exception {
     // If this UI test should fail, this is the intention with the test.
@@ -129,7 +128,6 @@ public class NlPropertyTableTest {
     // Verify that the text value is now "ab" and the selected row is indeed "accessibilityLiveRegion"
 
     IdeFrameFixture frame = guiTest.importSimpleApplication();
-    Project project = frame.getProject();
     NlEditorFixture layout = frame
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
@@ -142,11 +140,12 @@ public class NlPropertyTableTest {
     table.waitForMinimumRowCount(10, Wait.seconds(5));
     table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
     table.type('a');
+    CompletionFixture completions = new CompletionFixture(frame);
+    completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
     type(textEditor, "b");
-    waitForLookupToShow(project);
     textEditor.pressAndReleaseKeys(VK_ESCAPE);
-    waitForLookupToHide(project);
+    completions.waitForCompletionsToHide();
     textEditor.pressAndReleaseKeys(VK_DOWN);
 
     assertThat(textView.getTextAttribute()).isEqualTo("ab");
@@ -165,7 +164,6 @@ public class NlPropertyTableTest {
     // Verify that the text value is now the chosen value and the focus is back on the table (we are not editing anymore).
 
     IdeFrameFixture frame = guiTest.importSimpleApplication();
-    Project project = frame.getProject();
     NlEditorFixture layout = frame
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
@@ -178,9 +176,10 @@ public class NlPropertyTableTest {
 
     table.selectRows(7);
     table.type('s');
+    CompletionFixture completions = new CompletionFixture(frame);
+    completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
     type(textEditor, "tring/copy");
-    waitForLookupToShow(project);
 
     textEditor.pressAndReleaseKeys(VK_ENTER);
 
@@ -283,16 +282,6 @@ public class NlPropertyTableTest {
       .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(0, 0));
     table.pressAndReleaseKeys(VK_HOME);
     table.requireSelectedRows(0);
-  }
-
-  private static void waitForLookupToShow(@NotNull Project project) {
-    LookupManager manager = LookupManager.getInstance(project);
-    Wait.seconds(8).expecting("lookup to show").until(() -> manager.getActiveLookup() != null);
-  }
-
-  private static void waitForLookupToHide(@NotNull Project project) {
-    LookupManager manager = LookupManager.getInstance(project);
-    Wait.seconds(8).expecting("lookup to hide").until(() -> manager.getActiveLookup() == null);
   }
 
   private JTextComponentFixture waitForEditorToShow(@NotNull Wait waitForEditor) {
