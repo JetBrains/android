@@ -148,7 +148,6 @@ public class AndroidUtils {
   @NonNls public static final String PROVIDER_CLASS_NAME = SdkConstants.CLASS_CONTENTPROVIDER;
 
   public static final int TIMEOUT = 3000000;
-  public static final int MAX_RETRIES = 5;
 
   private static final Key<ConsoleView> CONSOLE_VIEW_KEY = new Key<>("AndroidConsoleView");
 
@@ -250,22 +249,6 @@ public class AndroidUtils {
 
   public static boolean isAbstract(@NotNull PsiClass c) {
     return (c.isInterface() || c.hasModifierProperty(PsiModifier.ABSTRACT));
-  }
-
-  public static void executeCommandOnDevice(@NotNull IDevice device,
-                                            @NotNull String command,
-                                            @NotNull AndroidOutputReceiver receiver,
-                                            boolean infinite)
-    throws IOException, TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException {
-
-    long timeout = infinite ? 0 : TIMEOUT;
-    for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      device.executeShellCommand(command, receiver, timeout, TimeUnit.MILLISECONDS);
-      if (receiver.isCancelled()) break;
-      boolean retry = infinite || receiver.isTryAgain();
-      if (!retry) break;
-      receiver.invalidate();
-    }
   }
 
   @Nullable
