@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.assetstudio;
 
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.adtui.ImageComponent;
 import com.google.common.collect.Lists;
 import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.Robot;

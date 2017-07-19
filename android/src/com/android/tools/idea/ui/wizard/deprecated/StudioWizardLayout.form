@@ -15,7 +15,7 @@
           <size top="20" left="10" bottom="20" right="10"/>
         </border>
         <children>
-          <component id="780db" class="com.android.tools.idea.ui.ImageComponent" binding="myIcon">
+          <component id="780db" class="com.android.tools.adtui.ImageComponent" binding="myIcon">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>

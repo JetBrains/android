@@ -22,7 +22,7 @@ import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
-import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.adtui.ImageComponent;
 import com.android.utils.Pair;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;

@@ -20,7 +20,7 @@
           <text value="ImageTitle"/>
         </properties>
       </component>
-      <component id="d0265" class="com.android.tools.idea.ui.ImageComponent" binding="myImage">
+      <component id="d0265" class="com.android.tools.adtui.ImageComponent" binding="myImage">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
