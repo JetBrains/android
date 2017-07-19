@@ -112,19 +112,6 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     }
   }
 
-  public static boolean canDdmsBeCorrupted(@NotNull AndroidDebugBridge bridge) {
-    return isDdmsCorrupted(bridge) || allDevicesAreEmpty(bridge);
-  }
-
-  private static boolean allDevicesAreEmpty(@NotNull AndroidDebugBridge bridge) {
-    for (IDevice device : bridge.getDevices()) {
-      if (device.getClients().length > 0) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   public static boolean isDdmsCorrupted(@NotNull AndroidDebugBridge bridge) {
     // TODO: find other way to check if debug service is available
 
@@ -258,29 +245,22 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
                                                          @NotNull final TimeUnit unit) {
     final SettableFuture<AndroidDebugBridge> future = SettableFuture.create();
 
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          BridgeConnectionResult value = delegate.get(timeout, unit);
-          if (value.error != null) {
-            future.setException(new RuntimeException("Unable to create Debug Bridge: " + value.error));
-          }
-          else {
-            future.set(value.bridge);
-          }
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      try {
+        BridgeConnectionResult value = delegate.get(timeout, unit);
+        if (value.error != null) {
+          future.setException(new RuntimeException("Unable to create Debug Bridge: " + value.error));
         }
-        catch (ExecutionException e) {
-          future.setException(e.getCause());
+        else {
+          future.set(value.bridge);
         }
-        catch (InterruptedException e) {
-          delegate.cancel(true);
-          future.setException(e);
-        }
-        catch (TimeoutException e) {
-          delegate.cancel(true);
-          future.setException(e);
-        }
+      }
+      catch (ExecutionException e) {
+        future.setException(e.getCause());
+      }
+      catch (InterruptedException | TimeoutException e) {
+        delegate.cancel(true);
+        future.setException(e);
       }
     });
 
