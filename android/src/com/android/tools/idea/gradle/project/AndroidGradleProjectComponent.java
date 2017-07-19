@@ -133,7 +133,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       configureGradleProject();
     }
     else if (ideInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_LOADED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED, null);
     }
   }
 

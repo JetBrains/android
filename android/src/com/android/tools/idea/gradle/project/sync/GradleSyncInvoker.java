@@ -97,8 +97,8 @@ public class GradleSyncInvoker {
   }
 
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
-                                                    @Nullable GradleSyncListener listener,
-                                                    GradleSyncStats.Trigger trigger) {
+                                                    @NotNull GradleSyncStats.Trigger trigger,
+                                                    @Nullable GradleSyncListener listener) {
     requestProjectSync(project, new GradleSyncInvoker.Request().setTrigger(trigger), listener);
   }
 

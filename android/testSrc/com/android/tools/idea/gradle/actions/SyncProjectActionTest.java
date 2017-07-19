@@ -61,7 +61,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
     myAction.doPerform(myEvent, project);
 
     assertTrue(myPresentation.isEnabled());
-    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST);
+    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null);
     verify(buildVariantView).projectImportStarted();
   }
 

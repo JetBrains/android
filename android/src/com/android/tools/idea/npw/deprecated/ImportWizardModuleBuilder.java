@@ -170,7 +170,7 @@ public class ImportWizardModuleBuilder
     WizardPath path = myWizardState.getActiveWizardPath();
     path.createModule();
     if (performGradleSync && myProject != null) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
     }
   }
 

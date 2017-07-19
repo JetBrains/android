@@ -213,7 +213,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
           }
         }
       });
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
 
       super.doOKAction();
     }
