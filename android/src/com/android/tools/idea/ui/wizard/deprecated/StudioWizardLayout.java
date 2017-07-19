@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.wizard.deprecated;
 
-import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.adtui.ImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;

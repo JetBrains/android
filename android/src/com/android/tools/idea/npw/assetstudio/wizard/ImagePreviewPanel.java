@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.adtui.ImageComponent;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

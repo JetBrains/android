@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui;
 
 import com.android.ide.common.util.AssetUtil;
+import com.android.tools.adtui.ImageComponent;
 import com.android.tools.swing.util.GraphicsUtil;
 import com.intellij.ui.Gray;
 import org.jetbrains.annotations.NotNull;

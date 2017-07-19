@@ -25,7 +25,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.npw.template.GenerateIconsStep;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.ui.ApiComboBoxItem;
-import com.android.tools.idea.ui.ImageComponent;
+import com.android.tools.adtui.ImageComponent;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.RadioButtonGroupBinding;
