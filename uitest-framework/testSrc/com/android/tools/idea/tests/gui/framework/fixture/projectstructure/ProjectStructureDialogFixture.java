@@ -24,8 +24,9 @@ import com.intellij.ui.components.JBList;
 import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.*;
+import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTabbedPaneFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,32 +71,32 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
 
   @NotNull
   public ProjectStructureDialogFixture selectConfigurable(@NotNull String item) {
-    JBList list = myRobot.finder().findByType(myDialog, JBList.class);
+    JBList list = GuiTests.waitUntilShowing(robot(), myDialog, Matchers.byType(JBList.class));
     JListFixture jListFixture = new JListFixture(robot(), list);
     jListFixture.replaceCellReader(CONFIGURATION_CELL_READER);
-    JListItemFixture itemFixture = jListFixture.item(item);
-    int itemIndex = itemFixture.index();
-    GuiTask.execute(() -> jListFixture.target().getSelectionModel().setSelectionInterval(itemIndex, itemIndex));
-    jListFixture.requireSelection(item);
+    jListFixture.selectItem(item);
     return this;
   }
 
   @NotNull
-  public DeveloperServicesFixture selectAdsDeveloperService() {
-    selectConfigurable("Ads");
+  private DeveloperServicesFixture selectDeveloperService(@NotNull String service) {
+    selectConfigurable(service);
     return new DeveloperServicesFixture(myDialog, myIdeFrameFixture);
+  }
+
+  @NotNull
+  public DeveloperServicesFixture selectAdsDeveloperService() {
+    return selectDeveloperService("Ads");
   }
 
   @NotNull
   public DeveloperServicesFixture selectAuthenticationDeveloperService() {
-    selectConfigurable("Authentication");
-    return new DeveloperServicesFixture(myDialog, myIdeFrameFixture);
+    return selectDeveloperService("Authentication");
   }
 
   @NotNull
   public DeveloperServicesFixture selectNotificationsDeveloperService() {
-    selectConfigurable("Notifications");
-    return new DeveloperServicesFixture(myDialog, myIdeFrameFixture);
+    return selectDeveloperService("Notifications");
   }
 
   @NotNull

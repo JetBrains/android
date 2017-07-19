@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.projectstructure;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +30,7 @@ public class DeveloperServicesFixture extends ProjectStructureDialogFixture {
   }
 
   public void toggleCheckBox() {
-    JCheckBoxFixture checkBoxFixture = new JCheckBoxFixture(robot(), getCheckBox());
-    checkBoxFixture.click();
-  }
-
-  @NotNull
-  private JCheckBox getCheckBox() {
-    return robot().finder().findByType(target(), JCheckBox.class, true);
+    JCheckBox checkBox = GuiTests.waitUntilShowingAndEnabled(robot(), this.target(), Matchers.byType(JCheckBox.class));
+    new JCheckBoxFixture(robot(), checkBox).click();
   }
 }
