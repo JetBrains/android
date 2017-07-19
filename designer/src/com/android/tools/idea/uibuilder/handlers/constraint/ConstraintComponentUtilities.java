@@ -687,6 +687,15 @@ public final class ConstraintComponentUtilities {
   }
 
   private static void clearAllAttributes(NlComponent component, AttributesTransaction transaction) {
+    if (isWidthConstrained(component) && isHorizontalResizable(component)) {
+      String fixedWidth = String.format(VALUE_N_DP, getDpWidth(component));
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, fixedWidth);
+    }
+
+    if (isHeightConstrained(component) && isVerticalResizable(component)) {
+      String fixedHeight = String.format(VALUE_N_DP, getDpHeight(component));
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, fixedHeight);
+    }
     clearAttributes(SHERPA_URI, ourConstraintLayoutAttributesToClear, transaction);
     clearAttributes(ANDROID_URI, ourLayoutAttributesToClear, transaction);
     component = getOriginalComponent(component);
@@ -1249,6 +1258,43 @@ public final class ConstraintComponentUtilities {
       }
     }
     return false;
+  }
+
+  /**
+   * Test if the height is constrained by constraints on both sides
+   * @param component view to be tested
+   * @return true if constrained on both sides
+   */
+  public static boolean isHeightConstrained(@NotNull NlComponent component) {
+    String tb = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
+    String tt = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_TOP_TO_TOP_OF);
+    if (!(tt != null || tb != null)) { // efficiency short cut
+      return false;
+    }
+    String bb = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    String bt = component.getAttribute(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
+    return ((tt != null || tb != null) && (bt != null || bb != null));
+  }
+
+  /**
+   * Test if the width is constrained by constraints on both sides
+   * Test adheres to the rule that if start or end is used left & right are ignored
+   * @param component view to be tested
+   * @return true if constrained on both sides
+   */
+  public static boolean isWidthConstrained(@NotNull NlComponent component) {
+    String se = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_START_TO_END_OF);
+    String ss = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_START_TO_START_OF);
+    String ee = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_END_TO_END_OF);
+    String es = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_END_TO_START_OF);
+     if (ee != null || es != null || se != null || ss != null) { // if you use any start end ignore left root
+       return ((ee != null || es != null) && (se != null || ss != null));
+    }
+    String ll = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_LEFT_TO_LEFT_OF);
+    String lr = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
+    String rr = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
+    String rl = component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
+    return ((ll != null || lr != null) && (rl != null || rr != null));
   }
 
   public static boolean isHorizontalResizable(@NotNull NlComponent component) {
