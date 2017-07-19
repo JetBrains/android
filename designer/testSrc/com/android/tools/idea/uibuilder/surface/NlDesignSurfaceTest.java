@@ -20,14 +20,16 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
+import org.mockito.Mockito;
 
-import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
-import static com.android.SdkConstants.FRAME_LAYOUT;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.*;
 
 public class NlDesignSurfaceTest extends LayoutTestCase {
   private NlDesignSurface mySurface;
@@ -171,6 +173,176 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Horizontal stack
     assertTrue(screenView.getY() == blueprintView.getY());
     mySurface.removeNotify();
+  }
+
+  /**
+   * Copy a component and check that the id of the new component has the same
+   * base and an incremented number
+   */
+  public void testCopyPasteWithId() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(BUTTON)
+          .id("@+id/cuteLittleButton")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DataContext dataContext = Mockito.mock(DataContext.class);
+    NlComponent button = model.find("cuteLittleButton");
+    model.getSelectionModel().setSelection(ImmutableList.of(button));
+    handler.performCopy(dataContext);
+    handler.performPaste(dataContext);
+    NlComponent button2 = model.find("cuteLittleButton2");
+    assertNotNull(button2);
+    model.getSelectionModel().setSelection(ImmutableList.of(button2));
+    handler.performCopy(dataContext);
+    handler.performPaste(dataContext);
+    NlComponent button3 = model.find("cuteLittleButton3");
+    assertNotNull(button3);
+  }
+
+  /**
+   * Cut a component and check that the id of the new component has been conserved
+   */
+  public void testCutPasteWithId() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(BUTTON)
+          .id("@+id/cuteLittleButton")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DataContext dataContext = Mockito.mock(DataContext.class);
+    NlComponent button = model.find("cuteLittleButton");
+    model.getSelectionModel().setSelection(ImmutableList.of(button));
+    handler.performCut(dataContext);
+    handler.performPaste(dataContext);
+    NlComponent button2 = model.find("cuteLittleButton");
+    assertNotNull(button2);
+  }
+
+  /**
+   * Cut a component and check that the id of the new component has been conserved
+   */
+  public void testMultipleCutPasteWithId() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(BUTTON)
+          .id("@+id/cuteLittleButton")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp"),
+        component(BUTTON)
+          .id("@+id/cuteLittleButton2")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp"),
+        component(BUTTON)
+          .id("@+id/cuteLittleButton3")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DataContext dataContext = Mockito.mock(DataContext.class);
+    NlComponent button = model.find("cuteLittleButton");
+    NlComponent button2 = model.find("cuteLittleButton2");
+    NlComponent button3 = model.find("cuteLittleButton3");
+    model.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
+    handler.performCut(dataContext);
+    handler.performPaste(dataContext);
+    assertNotNull(model.find("cuteLittleButton"));
+    assertNotNull(model.find("cuteLittleButton2"));
+    assertNotNull(model.find("cuteLittleButton3"));
+  }
+
+  /**
+   * Cut a component and check that the id of the new component has been conserved
+   */
+  public void testMultipleCopyPasteWithId() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(BUTTON)
+          .id("@+id/cuteLittleButton")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp"),
+        component(BUTTON)
+          .id("@+id/cuteLittleButton2")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp"),
+        component(BUTTON)
+          .id("@+id/cuteLittleButton3")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DataContext dataContext = Mockito.mock(DataContext.class);
+    NlComponent button = model.find("cuteLittleButton");
+    NlComponent button2 = model.find("cuteLittleButton2");
+    NlComponent button3 = model.find("cuteLittleButton3");
+    model.getSelectionModel().setSelection(ImmutableList.of(button, button2, button3));
+    handler.performCopy(dataContext);
+    handler.performPaste(dataContext);
+    assertNotNull(model.find("cuteLittleButton4"));
+    assertNotNull(model.find("cuteLittleButton5"));
+    assertNotNull(model.find("cuteLittleButton6"));
+  }
+
+  public void testCutThenCopyWithId() {
+    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(BUTTON)
+          .id("@+id/cuteLittleButton")
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DataContext dataContext = Mockito.mock(DataContext.class);
+    NlComponent button = model.find("cuteLittleButton");
+    model.getSelectionModel().setSelection(ImmutableList.of(button));
+    handler.performCut(dataContext);
+    handler.performPaste(dataContext);
+    NlComponent button2 = model.find("cuteLittleButton");
+    assertNotNull("Component should have been pasted with the id cuteLittleButton", button2);
+
+    model.getSelectionModel().setSelection(ImmutableList.of(button2));
+    handler.performCopy(dataContext);
+    handler.performPaste(dataContext);
+    NlComponent button3 = model.find("cuteLittleButton2");
+    assertNotNull(button3);
   }
 
   public void testZoom() {

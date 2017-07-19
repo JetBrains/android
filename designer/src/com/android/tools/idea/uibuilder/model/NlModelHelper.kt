@@ -36,15 +36,14 @@ import com.android.tools.idea.uibuilder.editor.NlEditor
 import com.android.tools.idea.uibuilder.editor.NlEditorProvider
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.util.XmlTagUtil.createTag
 import com.android.tools.idea.uibuilder.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneView
+import com.android.tools.idea.uibuilder.util.XmlTagUtil.createTag
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Sets
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
@@ -55,6 +54,7 @@ import java.util.*
  */
 
 const val CUSTOM_DENSITY_ID = "Custom Density"
+val BASE_ID_PATTERN = Regex("(.*[^0-9])([0-9]+)?")
 
 /**
  * Returns true if the current module depends on the specified library.
@@ -319,10 +319,17 @@ fun NlModel.handleAddition(added: List<NlComponent>, receiver: NlComponent, inse
     if (insertType.isMove) {
       realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
     }
-    if (component.needsDefaultId() && (StringUtil.isEmpty(component.id) || !realInsertType.isMove)) {
-      ids.add(component.assignId(ids))
+    if (component.needsDefaultId() && !realInsertType.isMove) {
+      val id = component.id
+      if (id.isNullOrBlank()) {
+        ids.add(component.assignId(ids))
+      }
+      else {
+        BASE_ID_PATTERN.find(id!!)?.groups?.get(1)?.value?.let {
+          ids.add(component.assignId(it, ids))
+        }
+      }
     }
-
     groupHandler.onChildInserted(editor, receiver, component, realInsertType)
   }
 }
