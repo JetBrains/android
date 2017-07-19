@@ -147,12 +147,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private List<ProfilingConfiguration> myProfilingConfigurations;
 
   /**
-   * Stores the {@link CpuProfiler.CpuProfilerType} that should be passed to the next stopProfiling call.
-   * This field is required because we need to pass the same profiler to stopProfiling as the one passed to startProfiling.
-   * We can't use {@link #myProfilingConfiguration} to get this information because it would be lost when we exit the Stage.
-   * Using a separate field, we can retrieve the Profiler information from device in {@link #updateProfilingState()}.
+   * {@link ProfilingConfiguration} object that stores the data (profiler type, profiling mode, sampling interval and buffer size limit)
+   * that should be used in the next stopProfiling call. This field is required because stopProfiling should receive the same profiler type
+   * as the one passed to startProfiling. Also, in stopProfiling we track the configurations used to capture.
+   * We can't use {@link #myProfilingConfiguration} because it can be changed when we exit the Stage or change its value using the combobox.
+   * Using a separate field, we can retrieve the relevant data from device in {@link #updateProfilingState()}.
    */
-  private CpuProfiler.CpuProfilerType myProfilerType;
+  private ProfilingConfiguration myActiveConfig;
 
   @NotNull
   private final UpdatableManager myUpdatableManager;
@@ -348,16 +349,16 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     setCaptureState(CaptureState.STARTING);
     CompletableFuture.supplyAsync(
       () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
-      .thenAcceptAsync(response -> this.startCapturingCallback(response, request.getProfilerType()),
+      .thenAcceptAsync(response -> this.startCapturingCallback(response, myProfilingConfiguration),
                        getStudioProfilers().getIdeServices().getMainExecutor());
   }
 
   private void startCapturingCallback(CpuProfiler.CpuProfilingAppStartResponse response,
-                                      CpuProfiler.CpuProfilerType profilerType) {
+                                      ProfilingConfiguration profilingConfiguration) {
     if (response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
-      myProfilerType = profilerType;
+      setActiveConfig(profilingConfiguration.getProfilerType(), profilingConfiguration.getMode(),
+                      profilingConfiguration.getProfilingBufferSizeInMb(), profilingConfiguration.getProfilingSamplingIntervalUs());
       setCaptureState(CaptureState.CAPTURING);
-
       myCaptureStartTimeNs = currentTimeNs();
       myInProgressTraceSeries.clear();
       myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
@@ -373,7 +374,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStopRequest request = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
       .setProcessId(getStudioProfilers().getProcessId())
-      .setProfilerType(myProfilerType)
+      .setProfilerType(myActiveConfig.getProfilerType())
       .setSession(getStudioProfilers().getSession())
       .build();
 
@@ -399,7 +400,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       handleCaptureParsing(response.getTraceId(), response.getTrace());
     }
 
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackTraceCpu(getProfilingConfiguration());
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackTraceCpu(myActiveConfig);
   }
 
   /**
@@ -411,7 +412,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     CompletableFuture<CpuCapture> capture = myCaptureParser.getCapture(traceId);
     if (capture == null) {
       // Parser doesn't have any information regarding the capture. It needs to be parsed.
-      capture = myCaptureParser.parse(traceId, traceBytes, myProfilerType);
+      capture = myCaptureParser.parse(traceId, traceBytes, myActiveConfig.getProfilerType());
     }
 
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
@@ -454,7 +455,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       .setTraceId(traceId)
       .setFromTimestamp(captureFrom)
       .setToTimestamp(captureTo)
-      .setProfilerType(myProfilerType)
+      .setProfilerType(myActiveConfig.getProfilerType())
       .addAllThreads(threads).build();
 
     CpuProfiler.SaveTraceInfoRequest request = CpuProfiler.SaveTraceInfoRequest.newBuilder()
@@ -487,15 +488,32 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       long elapsedTime = response.getCheckTimestamp() - response.getStartTimestamp();
       myCaptureStartTimeNs = currentTimeNs() - elapsedTime;
       myCaptureState = CaptureState.CAPTURING;
-      myProfilerType = response.getStartRequest().getProfilerType();
       myInProgressTraceSeries.clear();
       myInProgressTraceSeries.add(TimeUnit.NANOSECONDS.toMicros(myCaptureStartTimeNs), new DefaultDurationData(Long.MAX_VALUE));
+
+      // Sets the properties of myActiveConfig
+      CpuProfiler.CpuProfilingAppStartRequest startRequest = response.getStartRequest();
+      setActiveConfig(startRequest.getProfilerType(), startRequest.getMode(), startRequest.getBufferSizeInMb(),
+                      startRequest.getSamplingIntervalUs());
     }
     else {
       // otherwise, invalidate capture start time
       myCaptureStartTimeNs = INVALID_CAPTURE_START_TIME;
       myCaptureState = CaptureState.IDLE;
     }
+  }
+
+
+  public void setActiveConfig(CpuProfiler.CpuProfilerType profilerType, CpuProfiler.CpuProfilingAppStartRequest.Mode mode,
+                              int bufferSizeLimitMb, int samplingIntervalUs) {
+    // The configuration name field is not actually used when retrieving the active configuration. The reason behind that is configurations,
+    // including their name, can be edited when a capture is still in progress. We only need to store the parameters used when starting
+    // the capture (i.e. buffer size, profiler type, profiling mode and sampling interval). The capture name is not used on the server side
+    // when starting a capture, so we simply ignore it here as well.
+    String anyConfigName = "Current config";
+    myActiveConfig = new ProfilingConfiguration(anyConfigName, profilerType, mode);
+    myActiveConfig.setProfilingBufferSizeInMb(bufferSizeLimitMb);
+    myActiveConfig.setProfilingSamplingIntervalUs(samplingIntervalUs);
   }
 
   private void selectionChanged() {

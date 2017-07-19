@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Dummy implementation of {@link CpuServiceGrpc.CpuServiceImplBase}.
@@ -89,6 +88,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     } else {
       myLastSuccessfulStartRequest = request;
       myIsAppBeingProfiled = true;
+      myProfilerType = request.getProfilerType();
     }
 
     responseObserver.onNext(response.build());
@@ -100,7 +100,6 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
                                StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStopResponse.Builder response = CpuProfiler.CpuProfilingAppStopResponse.newBuilder();
     response.setStatus(myStopProfilingStatus);
-    myProfilerType = request.getProfilerType();
     if (!myStopProfilingStatus.equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       response.setErrorMessage("StopProfilingApp error");
     } else {
@@ -137,6 +136,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     response.setBeingProfiled(myIsAppBeingProfiled);
     if (myIsAppBeingProfiled) {
       response.setStartRequest(myLastSuccessfulStartRequest);
+      myProfilerType = myLastSuccessfulStartRequest.getProfilerType();
     }
 
     responseObserver.onNext(response.build());
