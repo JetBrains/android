@@ -23,5 +23,9 @@ import com.android.tools.idea.uibuilder.model.NlComponent
  */
 
 val NlComponent.uiName: String
-  get() = NlComponent.stripId(getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL)) ?: "navigation"
+  get() = getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL) ?:
+      getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME) ?:
+      NlComponent.stripId(getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)) ?:
+      tagName
+
 
