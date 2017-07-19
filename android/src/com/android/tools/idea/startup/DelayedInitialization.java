@@ -85,7 +85,7 @@ public class DelayedInitialization {
       case BUILDING:
         break;
       case BUILD_NEEDED:
-        mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+        mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
         break;
       case BUILD_ERROR:
         if (buildFailure != null) {

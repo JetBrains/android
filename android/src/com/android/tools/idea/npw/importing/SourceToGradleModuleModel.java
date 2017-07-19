@@ -55,7 +55,7 @@ public final class SourceToGradleModuleModel extends WizardModel {
   protected void handleFinished() {
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModuleImporter.getImporter(myWizardContext).importProjects(myModulesToImport);
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED, null);
     });
   }
 

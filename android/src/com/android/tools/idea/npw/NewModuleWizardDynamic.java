@@ -160,12 +160,12 @@ public class NewModuleWizardDynamic extends DynamicWizard {
       return;
     }
 
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, new PostStartupGradleSyncListener(() -> {
-      Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
-      assert filesToOpen != null;
-
-      TemplateUtils.openEditors(project, filesToOpen, true);
-    }), TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.getInstance()
+      .requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED, new PostStartupGradleSyncListener(() -> {
+        Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
+        assert filesToOpen != null;
+        TemplateUtils.openEditors(project, filesToOpen, true);
+      }));
   }
 
   @NotNull

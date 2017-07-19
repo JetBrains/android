@@ -766,7 +766,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
               buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
               buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
 
-              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null, TRIGGER_PROJECT_MODIFIED);
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(),
+                                                                                    TRIGGER_PROJECT_MODIFIED, null);
             }
           }.execute();
         }
@@ -788,7 +789,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
             buildFile.setValue(BuildFileKey.FLAVORS, flavors);
 
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null, TRIGGER_PROJECT_MODIFIED);
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), TRIGGER_PROJECT_MODIFIED,
+                                                                                  null);
           }
         }.execute();
       }

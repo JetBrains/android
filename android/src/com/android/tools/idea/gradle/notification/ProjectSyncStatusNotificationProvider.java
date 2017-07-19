@@ -161,7 +161,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       super(type, text);
 
       createActionLabel("Sync Now",
-                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST));
+                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null));
     }
   }
 
@@ -170,7 +170,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       super(type, text);
 
       createActionLabel("Try Again",
-                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, TRIGGER_USER_REQUEST));
+                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST, null));
 
       createActionLabel("Open 'Messages' View",
                         () -> ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC));

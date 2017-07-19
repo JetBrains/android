@@ -70,7 +70,7 @@ public class GradleBuildSystemService extends BuildSystemService {
   }
 
   private static void syncAndGenerateSources(@NotNull Project project, GradleSyncStats.Trigger trigger) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null, trigger);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, trigger, null);
   }
 
   /**

@@ -132,7 +132,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup.setUpProject(request, myProgressIndicator);
 
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp);
-    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), null, TRIGGER_PROJECT_LOADED);
+    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_LOADED, null);
     verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
 
     verify(myGradleProjectInfo, times(1)).setNewOrImportedProject(false);
