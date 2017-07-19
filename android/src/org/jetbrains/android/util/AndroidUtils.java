@@ -16,33 +16,22 @@
 package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
-import com.android.tools.idea.run.util.LaunchUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
@@ -76,11 +65,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
 import com.intellij.psi.search.ProjectScope;
@@ -88,14 +72,12 @@ import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.graph.Graph;
 import com.intellij.util.graph.GraphAlgorithms;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
@@ -111,12 +93,9 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * @author yole, coyote
@@ -148,8 +127,6 @@ public class AndroidUtils {
   @NonNls public static final String PROVIDER_CLASS_NAME = SdkConstants.CLASS_CONTENTPROVIDER;
 
   public static final int TIMEOUT = 3000000;
-
-  private static final Key<ConsoleView> CONSOLE_VIEW_KEY = new Key<>("AndroidConsoleView");
 
   // Properties
   @NonNls public static final String ANDROID_LIBRARY_PROPERTY = SdkConstants.ANDROID_LIBRARY;
@@ -371,51 +348,6 @@ public class AndroidUtils {
     }
 
     return qualifiedName.substring(start + 1);
-  }
-
-  public static void printMessageToConsole(@NotNull Project project, @NotNull String s, @NotNull ConsoleViewContentType contentType) {
-    final ConsoleView consoleView = project.getUserData(CONSOLE_VIEW_KEY);
-
-    if (consoleView != null) {
-      consoleView.print(s + '\n', contentType);
-    }
-  }
-
-  public static void activateConsoleToolWindow(@NotNull Project project, @NotNull final Runnable runAfterActivation) {
-    final ToolWindowManager manager = ToolWindowManager.getInstance(project);
-    final String toolWindowId = AndroidBundle.message("android.console.tool.window.title");
-
-    ToolWindow toolWindow = manager.getToolWindow(toolWindowId);
-    if (toolWindow != null) {
-      runAfterActivation.run();
-      return;
-    }
-
-    toolWindow = manager.registerToolWindow(toolWindowId, true, ToolWindowAnchor.BOTTOM);
-    final ConsoleView console = new ConsoleViewImpl(project, false);
-    project.putUserData(CONSOLE_VIEW_KEY, console);
-    toolWindow.getContentManager().addContent(new ContentImpl(console.getComponent(), "", false));
-
-    final ToolWindowManagerListener listener = new ToolWindowManagerListener() {
-      @Override
-      public void toolWindowRegistered(@NotNull String id) {
-      }
-
-      @Override
-      public void stateChanged() {
-        ToolWindow window = manager.getToolWindow(toolWindowId);
-        if (window != null && !window.isVisible()) {
-          ((ToolWindowManagerEx)manager).removeToolWindowManagerListener(this);
-
-          getApplication().invokeLater(() -> manager.unregisterToolWindow(toolWindowId));
-        }
-      }
-    };
-
-    toolWindow.show(() -> {
-      runAfterActivation.run();
-      ((ToolWindowManagerEx)manager).addToolWindowManagerListener(listener);
-    });
   }
 
   @NotNull
