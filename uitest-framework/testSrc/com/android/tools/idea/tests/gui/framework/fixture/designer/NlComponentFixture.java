@@ -47,12 +47,14 @@ public class NlComponentFixture {
   private final DesignSurface mySurface;
   private final ComponentDragAndDrop myDragAndDrop;
   private final ComponentDriver<DesignSurface> myComponentDriver;
+  private final SceneComponent mySceneComponent;
 
   public NlComponentFixture(@NotNull Robot robot,
                             @NotNull NlComponent component,
                             @NotNull DesignSurface surface) {
     myRobot = robot;
     myComponent = component;
+    mySceneComponent = surface.getScene().getSceneComponent(myComponent);
     mySurface = surface;
     myDragAndDrop = new ComponentDragAndDrop(myRobot);
     myComponentDriver = new ComponentDriver<>(myRobot);
@@ -64,8 +66,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getMidPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int midX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent) + NlComponentHelperKt.getW(myComponent) / 2);
-    int midY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent) + NlComponentHelperKt.getH(myComponent) / 2);
+    int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
+    int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
     return new Point(midX, midY);
   }
 
@@ -75,8 +77,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getBottomCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int midX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent) + NlComponentHelperKt.getW(myComponent) / 2);
-    int bottomY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent) + NlComponentHelperKt.getH(myComponent));
+    int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
+    int bottomY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY() + mySceneComponent.getDrawHeight());
     return new Point(midX, bottomY);
   }
 
@@ -86,8 +88,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getTopCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int midX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent) + NlComponentHelperKt.getW(myComponent) / 2);
-    int topY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent));
+    int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
+    int topY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY());
     return new Point(midX, topY);
   }
 
@@ -97,8 +99,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getLeftCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int leftX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent));
-    int midY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent) + NlComponentHelperKt.getH(myComponent) / 2);
+    int leftX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX());
+    int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
     return new Point(leftX, midY);
   }
 
@@ -108,8 +110,8 @@ public class NlComponentFixture {
   @NotNull
   private Point getRightCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int rightX = Coordinates.getSwingX(sceneView, NlComponentHelperKt.getX(myComponent) + NlComponentHelperKt.getW(myComponent));
-    int midY = Coordinates.getSwingY(sceneView, NlComponentHelperKt.getY(myComponent) + NlComponentHelperKt.getH(myComponent) / 2);
+    int rightX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX() + mySceneComponent.getDrawWidth());
+    int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
     return new Point(rightX, midY);
   }
 
