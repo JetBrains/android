@@ -22,6 +22,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class FakeFeatureTracker implements FeatureTracker {
+
+  /**
+   * Stores the last {@link ProfilingConfiguration} passed to the tracker.
+   */
+  private ProfilingConfiguration myLastTrackedConfig;
+
   @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
 
@@ -89,7 +95,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceCpu(@NotNull ProfilingConfiguration config) {
+    myLastTrackedConfig = config;
+  }
 
+  public ProfilingConfiguration getLastTrackedConfig() {
+    return myLastTrackedConfig;
   }
 
   @Override

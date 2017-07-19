@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -702,6 +701,11 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Stop profiler should be the same as the one passed in the start request
     assertThat(myCpuService.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+
+    // Make sure we tracked the correct configuration
+    ProfilingConfiguration trackedConfig = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastTrackedConfig();
+    assertThat(trackedConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.SIMPLE_PERF);
+    assertThat(trackedConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
   }
 
   @Test
