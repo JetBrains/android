@@ -124,7 +124,7 @@
           <size top="6" left="6" bottom="6" right="6"/>
         </border>
         <children>
-          <component id="f2de7" class="com.android.tools.idea.ui.SearchField" binding="mySearchField" custom-create="true">
+          <component id="f2de7" class="com.android.tools.adtui.SearchField" binding="mySearchField" custom-create="true">
             <constraints border-constraint="West"/>
             <properties/>
           </component>

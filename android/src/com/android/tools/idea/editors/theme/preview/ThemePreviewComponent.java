@@ -19,7 +19,7 @@ import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.ui.SearchField;
+import com.android.tools.adtui.SearchField;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;

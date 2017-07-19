@@ -19,7 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.ui.SearchField;
+import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.StateListPicker;

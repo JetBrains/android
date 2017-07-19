@@ -38,7 +38,7 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.idea.ui.SearchField;
+import com.android.tools.adtui.SearchField;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.swing.ui.SwatchComponent;
 import com.android.utils.HtmlBuilder;
