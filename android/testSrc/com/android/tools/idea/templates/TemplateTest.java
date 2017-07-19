@@ -367,6 +367,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewProjectWithTabbedActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "TabbedActivity", true, withKotlin);
+  }
+
+  @TemplateCheck
   public void testNewBlankWearActivity() throws Exception {
     checkCreateTemplate("activities", "BlankWearActivity", false);
   }
