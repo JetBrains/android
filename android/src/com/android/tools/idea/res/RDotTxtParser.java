@@ -84,9 +84,10 @@ class RDotTxtParser {
   static Integer[] getDeclareStyleableArray(File r, final List<AttrResourceValue> attrs, final String styleableName) {
     try {
       return Files.readLines(r, Charsets.UTF_8, new LineProcessor<Integer[]>() {
+        private static final String ARRAY_STYLEABLE = "int[] styleable ";
         private static final String INT_STYLEABLE = "int styleable ";
 
-        private final String myArrayStart = "int[] styleable " + styleableName + " { ";
+        private final String myArrayStart = ARRAY_STYLEABLE + styleableName + " { ";
         private final String myEntryStart = INT_STYLEABLE + styleableName + "_";
 
         private Integer[] myValuesList;
@@ -114,9 +115,7 @@ class RDotTxtParser {
               myValuesList[idx++] = Integer.decode(s);
             }
             return true;
-          } else if (line.startsWith(myEntryStart)) {
-            assert myValuesList != null : "Entries for a declare-styleable should be after the array declaration.";
-            // line must be of the form "int styleable name value"
+          } else if (myValuesList != null && line.startsWith(myEntryStart)) {
             int lastSpace = line.lastIndexOf(' ');
             String name = line.substring(INT_STYLEABLE.length(), lastSpace);
             int index = Integer.parseInt(line.substring(lastSpace + 1));
