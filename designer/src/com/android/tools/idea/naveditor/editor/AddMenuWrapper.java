@@ -59,15 +59,17 @@ import static org.jetbrains.android.dom.navigation.NavigationSchema.TAG_INCLUDE;
 /**
  * "Add" popup menu in the navigation editor.
  */
-class AddMenuWrapper extends DropDownAction {
+@VisibleForTesting
+public class AddMenuWrapper extends DropDownAction {
 
   private static final JLabel RENDERER_COMPONENT = new JLabel();
   private static final String NEW_PANEL_NAME = "new";
   private static final String SELECTION_PANEL_NAME = "selection";
   private final NavDesignSurface mySurface;
-  private final List<NavActionManager.Destination> myDestinations;
   @VisibleForTesting
-  ComboBox<String> myKindPopup;
+  public final List<NavActionManager.Destination> myDestinations;
+  @VisibleForTesting
+  public ComboBox<String> myKindPopup;
   @VisibleForTesting
   JTextField myLabelField;
   @VisibleForTesting
@@ -83,6 +85,15 @@ class AddMenuWrapper extends DropDownAction {
   @VisibleForTesting
   JLabel myValidationLabel;
   private NavigationSchema mySchema;
+  private JPanel myMainPanel;
+  @VisibleForTesting
+  public JButton myNewDestinationButton;
+  @VisibleForTesting
+  public JButton myBackButton;
+  @VisibleForTesting
+  public JButton myCreateButton;
+  @VisibleForTesting
+  public ASGallery<NavActionManager.Destination> myDestinationsGallery;
 
   AddMenuWrapper(@NotNull NavDesignSurface surface, @NotNull List<NavActionManager.Destination> destinations) {
     super("", "Add Destination", IconUtil.getAddIcon());
@@ -112,7 +123,7 @@ class AddMenuWrapper extends DropDownAction {
                          @NotNull String idBase,
                          @NotNull String name,
                          @Nullable Consumer<NlComponent> extraActions) {
-    new WriteCommandAction(surface.getProject(), "Create Fragment", surface.getModel().getFile()) {
+    new WriteCommandAction(surface.getProject(), "Create " + name, surface.getModel().getFile()) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         NlComponent parent = surface.getCurrentNavigation();
@@ -130,16 +141,22 @@ class AddMenuWrapper extends DropDownAction {
   @Nullable
   @Override
   protected JPanel createCustomComponentPopup() {
-    JPanel mainPanel = new JPanel(new JBCardLayout());
+    myMainPanel = new JPanel(new JBCardLayout());
 
-    mainPanel.add(createSelectionPanel(mainPanel), SELECTION_PANEL_NAME);
-    mainPanel.add(createNewPanel(mainPanel), NEW_PANEL_NAME);
+    myMainPanel.add(createSelectionPanel(), SELECTION_PANEL_NAME);
+    myMainPanel.add(createNewPanel(), NEW_PANEL_NAME);
 
-    return mainPanel;
+    return myMainPanel;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public JPanel getMainPanel() {
+    return myMainPanel;
   }
 
   @NotNull
-  private JPanel createNewPanel(@NotNull JPanel mainPanel) {
+  private JPanel createNewPanel() {
     JPanel newPanel = new JPanel(new VerticalLayout(10));
     JLabel destinationLabel = new JLabel("New Destination");
     newPanel.add(destinationLabel);
@@ -152,18 +169,18 @@ class AddMenuWrapper extends DropDownAction {
     newPanel.add(myValidationLabel, VerticalLayout.BOTTOM);
 
     JPanel buttons = new JPanel(new HorizontalLayout(2, SwingConstants.CENTER));
-    JButton backButton = new JButton("Back");
-    backButton.addActionListener(
-      event -> ((JBCardLayout)mainPanel.getLayout()).swipe(mainPanel, SELECTION_PANEL_NAME, JBCardLayout.SwipeDirection.BACKWARD));
-    buttons.add(backButton);
+    myBackButton = new JButton("Back");
+    myBackButton.addActionListener(
+      event -> ((JBCardLayout)myMainPanel.getLayout()).swipe(myMainPanel, SELECTION_PANEL_NAME, JBCardLayout.SwipeDirection.BACKWARD));
+    buttons.add(myBackButton);
 
-    JButton createButton = new JButton("Create");
-    createButton.addActionListener(event -> {
+    myCreateButton = new JButton("Create");
+    myCreateButton.addActionListener(event -> {
       if (validate()) {
         createDestination();
       }
     });
-    buttons.add(createButton);
+    buttons.add(myCreateButton);
     JPanel bottomRow = new JPanel();
     bottomRow.add(buttons);
     newPanel.add(bottomRow, VerticalLayout.BOTTOM);
@@ -341,9 +358,10 @@ class AddMenuWrapper extends DropDownAction {
   }
 
   @NotNull
-  private JPanel createSelectionPanel(@NotNull JPanel mainPanel) {
+  private JPanel createSelectionPanel() {
     CollectionListModel<NavActionManager.Destination> listModel = new CollectionListModel<>(myDestinations);
-    ASGallery<NavActionManager.Destination> destinations = new ASGallery<NavActionManager.Destination>(
+    // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
+    myDestinationsGallery = new ASGallery<NavActionManager.Destination>(
       listModel, NavActionManager.Destination::getThumbnail, NavActionManager.Destination::getName, new Dimension(96, 96), null) {
       @Override
       @NotNull
@@ -366,17 +384,17 @@ class AddMenuWrapper extends DropDownAction {
         }
       }
     };
-    destinations.setBackground(null);
-    destinations.addMouseMotionListener(new MouseAdapter() {
+    myDestinationsGallery.setBackground(null);
+    myDestinationsGallery.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(@NotNull MouseEvent event) {
-        int index = destinations.locationToIndex(event.getPoint());
+        int index = myDestinationsGallery.locationToIndex(event.getPoint());
         if (index != -1) {
-          destinations.setSelectedIndex(index);
-          destinations.requestFocusInWindow();
+          myDestinationsGallery.setSelectedIndex(index);
+          myDestinationsGallery.requestFocusInWindow();
         }
         else {
-          destinations.clearSelection();
+          myDestinationsGallery.clearSelection();
         }
       }
     });
@@ -385,22 +403,22 @@ class AddMenuWrapper extends DropDownAction {
     // TODO: hook up search
     selectionPanel.add(new SearchTextField());
 
-    JBScrollPane scrollPane = new JBScrollPane(destinations);
+    JBScrollPane scrollPane = new JBScrollPane(myDestinationsGallery);
     scrollPane.setBorder(BorderFactory.createEmptyBorder());
     selectionPanel.add(scrollPane);
 
-    JButton createButton = new JButton("New Destination");
+    myNewDestinationButton = new JButton("New Destination");
     JPanel createButtonPanel = new JPanel();
-    createButtonPanel.add(createButton);
+    createButtonPanel.add(myNewDestinationButton);
     selectionPanel.add(createButtonPanel);
-    createButton.addActionListener(event -> {
-      ((JBCardLayout)mainPanel.getLayout()).swipe(mainPanel, "new", JBCardLayout.SwipeDirection.FORWARD);
+    myNewDestinationButton.addActionListener(event -> {
+      ((JBCardLayout)myMainPanel.getLayout()).swipe(myMainPanel, "new", JBCardLayout.SwipeDirection.FORWARD);
     });
-    destinations.addMouseListener(new MouseAdapter() {
+    myDestinationsGallery.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(@NotNull MouseEvent event) {
-        if (destinations.getSelectedIndex() != -1) {
-          addElement(destinations.getSelectedElement(), mySurface);
+        if (myDestinationsGallery.getSelectedIndex() != -1) {
+          addElement(myDestinationsGallery.getSelectedElement(), mySurface);
           closePopup();
         }
       }

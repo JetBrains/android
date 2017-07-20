@@ -28,6 +28,8 @@ import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
@@ -38,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -46,20 +49,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.awt.event.KeyEvent.VK_BACK_SPACE;
+import static java.awt.event.KeyEvent.VK_DELETE;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 /**
  * Left panel for the nav editor, showing a list of available destinations.
  */
-public class DestinationList implements ToolContent<DesignSurface> {
+public class DestinationList extends JPanel implements ToolContent<DesignSurface> {
 
   @VisibleForTesting
   static final String ROOT_NAME = "Root";
-  private final JPanel myPanel;
 
   @VisibleForTesting
-  final List<NlComponent> myComponentList = new ArrayList<>();
+  final DefaultListModel<NlComponent> myListModel = new DefaultListModel<>();
   private NavigationSchema mySchema;
   private ResourceResolver myResourceResolver;
 
@@ -67,7 +71,7 @@ public class DestinationList implements ToolContent<DesignSurface> {
   SelectionModel mySelectionModel;
 
   @VisibleForTesting
-  final JBList<NlComponent> myList;
+  public final JBList<NlComponent> myList;
   private boolean mySelectionUpdating;
   private SelectionListener mySelectionModelListener;
   private ModelListener myModelListener;
@@ -75,14 +79,15 @@ public class DestinationList implements ToolContent<DesignSurface> {
   private ListSelectionListener myListSelectionListener;
   private MouseListener myMouseListener;
   @VisibleForTesting
-  JLabel myBackLabel;
+  public JLabel myBackLabel;
   @VisibleForTesting
   JPanel myBackPanel;
   private NavDesignSurface myDesignSurface;
 
   private DestinationList() {
-    myPanel = new JPanel(new BorderLayout());
-    myList = new JBList<>(new DestinationListModel());
+    setLayout(new BorderLayout());
+    myList = new JBList<>(myListModel);
+    myList.setName("DestinationList");
     myList.setCellRenderer(new DefaultListCellRenderer() {
       @Override
       public Component getListCellRendererComponent(final JList list,
@@ -108,9 +113,30 @@ public class DestinationList implements ToolContent<DesignSurface> {
         return result;
       }
     });
+    InputMap inputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+    final String deleteDestinationKey = "deleteDestination";
+    inputMap.put(KeyStroke.getKeyStroke(VK_DELETE, 0), deleteDestinationKey);
+    inputMap.put(KeyStroke.getKeyStroke(VK_BACK_SPACE, 0), deleteDestinationKey);
+    getActionMap().put(deleteDestinationKey, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent event) {
+          List<NlComponent> toDelete = myList.getSelectedValuesList();
+          if (!toDelete.isEmpty()) {
+            new WriteCommandAction(myDesignSurface.getProject(), "Delete Destination" + (toDelete.size() > 1 ? "s" : ""),
+                                   myDesignSurface.getModel().getFile()) {
+              @Override
+              protected void run(@NotNull Result result) throws Throwable {
+                myDesignSurface.getModel().delete(toDelete);
+              }
+            }.execute();
+          }
+      }
+    });
+
     JScrollPane pane = ScrollPaneFactory.createScrollPane(myList, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
     pane.setBorder(null);
-    myPanel.add(pane, BorderLayout.CENTER);
+    add(pane, BorderLayout.CENTER);
   }
 
   @Override
@@ -127,7 +153,7 @@ public class DestinationList implements ToolContent<DesignSurface> {
     if (mySelectionModel != null && mySelectionModelListener != null) {
       mySelectionModel.removeListener(mySelectionModelListener);
     }
-    if (myList != null && myListSelectionListener != null) {
+    if (myListSelectionListener != null) {
       myList.removeListSelectionListener(myListSelectionListener);
     }
     if (myModel != null && myModelListener != null) {
@@ -135,7 +161,7 @@ public class DestinationList implements ToolContent<DesignSurface> {
     }
 
     if (toolContext != null) {
-      myPanel.add(createBackPanel(toolContext), BorderLayout.NORTH);
+      add(createBackPanel(toolContext), BorderLayout.NORTH);
       myModel = toolContext.getModel();
       mySelectionModel = toolContext.getSelectionModel();
       mySelectionModelListener = (model, selection) -> {
@@ -145,13 +171,11 @@ public class DestinationList implements ToolContent<DesignSurface> {
         try {
           mySelectionUpdating = true;
           Set<NlComponent> components = new HashSet<>(mySelectionModel.getSelection());
-          int i = 0;
           List<Integer> selectedIndices = new ArrayList<>();
-          for (NlComponent component : myComponentList) {
-            if (components.contains(component)) {
+          for (int i = 0; i < myListModel.size(); i++) {
+            if (components.contains(myListModel.get(i))) {
               selectedIndices.add(i);
             }
-            i++;
           }
           myList.setSelectedIndices(ArrayUtil.toIntArray(selectedIndices));
 
@@ -256,34 +280,21 @@ public class DestinationList implements ToolContent<DesignSurface> {
   }
 
   private void updateComponentList(@Nullable DesignSurface toolContext) {
-    myComponentList.clear();
+    myListModel.clear();
     if (toolContext != null) {
       NlComponent root = myDesignSurface.getCurrentNavigation();
       for (NlComponent child : root.getChildren()) {
         if (getSchema().getDestinationType(child.getTagName()) != null) {
-          myComponentList.add(child);
+          myListModel.addElement(child);
         }
       }
     }
-  }
+ }
 
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myPanel;
-  }
-
-  private class DestinationListModel extends AbstractListModel<NlComponent> {
-
-    @Override
-    public int getSize() {
-      return myComponentList.size();
-    }
-
-    @Override
-    public NlComponent getElementAt(int index) {
-      return myComponentList.get(index);
-    }
+    return this;
   }
 
   public static class DestinationListDefinition extends ToolWindowDefinition<DesignSurface> {

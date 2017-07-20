@@ -30,10 +30,9 @@ import com.google.common.collect.ImmutableList;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link DestinationList}
@@ -133,6 +132,7 @@ public class DestinationListTest extends NavigationTestCase {
     SyncNlModel model = modelBuilder.build();
     DestinationList.DestinationListDefinition def = new DestinationList.DestinationListDefinition();
     DestinationList list = (DestinationList)def.getFactory().create();
+
     SceneView sceneView = mock(SceneView.class);
     when(sceneView.getConfiguration()).thenReturn(model.getConfiguration());
     when(model.getSurface().getCurrentSceneView()).thenReturn(sceneView);
@@ -140,13 +140,18 @@ public class DestinationListTest extends NavigationTestCase {
     when(sceneView.getPreferredSize()).thenReturn(new Dimension(100, 100));
     list.setToolContext(model.getSurface());
 
-    assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2")), list.myComponentList);
+    //noinspection AssertEqualsBetweenInconvertibleTypes
+    assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2")), Collections.list(list.myListModel.elements()));
+
 
     root.addChild(component(TAG_FRAGMENT).id("@id/fragment3"), null);
     modelBuilder.updateModel(model);
     model.notifyModified(NlModel.ChangeType.EDIT);
 
-    assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2"), model.find("fragment3")), list.myComponentList);
+    //noinspection AssertEqualsBetweenInconvertibleTypes
+    assertEquals(ImmutableList.of(model.find("fragment1"), model.find("fragment2"), model.find("fragment3")),
+                 Collections.list(list.myListModel.elements()));
+
   }
 
   public void testDoubleClickActivity() throws Exception {
