@@ -28,10 +28,7 @@ import com.intellij.util.xml.highlighting.BasicDomElementsInspection;
 import com.intellij.util.xml.reflect.AbstractDomChildrenDescription;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.AndroidXmlExtension;
-import org.jetbrains.android.dom.converters.AndroidPackageConverter;
-import org.jetbrains.android.dom.converters.AndroidPermissionConverter;
-import org.jetbrains.android.dom.converters.ConstantFieldConverter;
-import org.jetbrains.android.dom.converters.OnClickConverter;
+import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.resources.DeclareStyleableNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -73,6 +70,17 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
 
   @Override
   protected boolean shouldCheckResolveProblems(GenericDomValue value) {
+    Converter realConverter = WrappingConverter.getDeepestConverter(value.getConverter(), value);
+
+    return !(realConverter instanceof ResourceReferenceConverter && isInTestFile(value)) && // b/63877007
+           !(realConverter instanceof AndroidPackageConverter) &&
+           !(realConverter instanceof DeclareStyleableNameConverter) &&
+           !(realConverter instanceof OnClickConverter) &&
+           !(realConverter instanceof ConstantFieldConverter) &&
+           !(realConverter instanceof AndroidPermissionConverter);
+  }
+
+  private static boolean isInTestFile(GenericDomValue value) {
     PsiFile psiFile = value.getXmlTag().getContainingFile();
     if (psiFile != null) {
       VirtualFile virtualFile = psiFile.getVirtualFile();
@@ -82,18 +90,12 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null && IdeaSourceProvider.isTestFile(facet, virtualFile)) {
             // Don't highlight resolve problems in test files, the whole resolve machinery doesn't know how to handle test files.
-            return false;
+            return true;
           }
         }
       }
     }
-
-    Converter realConverter = WrappingConverter.getDeepestConverter(value.getConverter(), value);
-    return !(realConverter instanceof AndroidPackageConverter) &&
-           !(realConverter instanceof DeclareStyleableNameConverter) &&
-           !(realConverter instanceof OnClickConverter) &&
-           !(realConverter instanceof ConstantFieldConverter) &&
-           !(realConverter instanceof AndroidPermissionConverter);
+    return false;
   }
 
   @Override
