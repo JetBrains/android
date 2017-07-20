@@ -17,8 +17,11 @@ package com.android.tools.idea.uibuilder.statelist;
 
 import android.R;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
 
 enum State {
   PRESSED("Pressed", R.attr.state_pressed),
@@ -52,5 +55,14 @@ enum State {
   @Override
   public final String toString() {
     return "state_" + myText.toLowerCase(Locale.ROOT).replace(' ', '_');
+  }
+
+  @Nullable
+  static State valueOfString(@NotNull String string) {
+    Optional<State> optionalValue = Arrays.stream(values())
+      .filter(value -> value.toString().equals(string))
+      .findFirst();
+
+    return optionalValue.orElse(null);
   }
 }

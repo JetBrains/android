@@ -40,6 +40,8 @@ import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.statelist.ItemHandler;
+import com.android.tools.idea.uibuilder.statelist.SelectorHandler;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -113,7 +115,13 @@ public class ViewHandlerManager implements ProjectComponent {
 
     switch (tag) {
       case TAG_ITEM:
-        return MenuViewHandlerManager.getHandler(component);
+        ViewHandler handler = MenuViewHandlerManager.getHandler(component);
+
+        if (handler != null) {
+          return handler;
+        }
+
+        return new ItemHandler();
       case VIEW_MERGE:
         String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
         return getHandler(parentTag == null ? tag : parentTag);
@@ -208,15 +216,15 @@ public class ViewHandlerManager implements ProjectComponent {
   private ViewHandler createHandler(@NotNull String viewTag) {
     // Builtin view. Don't bother with reflection for the common cases.
     switch (viewTag) {
-      case ABS_LIST_VIEW:
-      case ADAPTER_VIEW_FLIPPER:
-      case ADAPTER_VIEW_ANIMATOR:
-      case GRID_VIEW:
-      case VIEW_GROUP:
-        return new ViewGroupHandler();
       case ABSOLUTE_LAYOUT:
       case WEB_VIEW:
         return new AbsoluteLayoutHandler();
+      case ABS_LIST_VIEW:
+      case ADAPTER_VIEW_ANIMATOR:
+      case ADAPTER_VIEW_FLIPPER:
+      case GRID_VIEW:
+      case VIEW_GROUP:
+        return new ViewGroupHandler();
       case ACTION_MENU_VIEW:
         return new ActionMenuViewHandler();
       case ADAPTER_VIEW:
@@ -228,45 +236,31 @@ public class ViewHandlerManager implements ProjectComponent {
         return new AppBarLayoutHandler();
       case AUTO_COMPLETE_TEXT_VIEW:
         return new AutoCompleteTextViewHandler();
-      case EDIT_TEXT:
-        return new EditTextHandler();
-      case MULTI_AUTO_COMPLETE_TEXT_VIEW:
-      case TEXT_VIEW:
-        return TEXT_HANDLER;
       case BROWSE_FRAGMENT:
         return new BrowseFragmentHandler();
       case BUTTON:
         return new ButtonHandler();
       case CARD_VIEW:
         return new CardViewHandler();
+      case CHECKED_TEXT_VIEW:
+        return new CheckedTextViewHandler();
       case CHECK_BOX:
       case RADIO_BUTTON:
         return new CheckBoxHandler();
-      case CHECKED_TEXT_VIEW:
-        return new CheckedTextViewHandler();
       case CHRONOMETER:
         return new ChronometerHandler();
-      case TEXT_CLOCK:
-        return STANDARD_HANDLER;
-      case COLLAPSING_TOOLBAR_LAYOUT:
-        return new CollapsingToolbarLayoutHandler();
-      case CONSTRAINT_LAYOUT:
-        return new ConstraintLayoutHandler();
-      case CLASS_CONSTRAINT_LAYOUT_CHAIN:
-        return new ConstraintLayoutChainHandler();
       case CLASS_CONSTRAINT_LAYOUT_BARRIER:
         return new ConstraintLayoutBarrierHandler();
+      case CLASS_CONSTRAINT_LAYOUT_CHAIN:
+        return new ConstraintLayoutChainHandler();
       case CLASS_CONSTRAINT_LAYOUT_HELPER:
         return new ConstraintHelperHandler();
       case CLASS_CONSTRAINT_LAYOUT_LAYER:
         return new ConstraintLayoutLayerHandler();
-      case FLEXBOX_LAYOUT:
-        if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
-          return new FlexboxLayoutHandler();
-        }
-        else {
-          return NONE;
-        }
+      case COLLAPSING_TOOLBAR_LAYOUT:
+        return new CollapsingToolbarLayoutHandler();
+      case CONSTRAINT_LAYOUT:
+        return new ConstraintLayoutHandler();
       case COORDINATOR_LAYOUT:
         return new CoordinatorLayoutHandler();
       case DETAILS_FRAGMENT:
@@ -277,9 +271,18 @@ public class ViewHandlerManager implements ProjectComponent {
         return StudioFlags.NELE_TARGET_RELATIVE.get() ? new RelativeLayoutHandlerKt() : new RelativeLayoutHandler();
       case DRAWER_LAYOUT:
         return new DrawerLayoutHandler();
+      case EDIT_TEXT:
+        return new EditTextHandler();
       case EXPANDABLE_LIST_VIEW:
         // TODO: Find out why this fails to load by class name
         return new ListViewHandler();
+      case FLEXBOX_LAYOUT:
+        if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
+          return new FlexboxLayoutHandler();
+        }
+        else {
+          return NONE;
+        }
       case FLOATING_ACTION_BUTTON:
         return new FloatingActionButtonHandler();
       case FQCN_LINEAR_LAYOUT:
@@ -301,13 +304,16 @@ public class ViewHandlerManager implements ProjectComponent {
         return new HorizontalScrollViewHandler();
       case IMAGE_BUTTON:
         return new ImageButtonHandler();
+      case IMAGE_SWITCHER:
+        return new ImageSwitcherHandler();
       case IMAGE_VIEW:
       case QUICK_CONTACT_BADGE:
         return new ImageViewHandler();
-      case IMAGE_SWITCHER:
-        return new ImageSwitcherHandler();
       case MAP_VIEW:
         return new MapViewHandler();
+      case MULTI_AUTO_COMPLETE_TEXT_VIEW:
+      case TEXT_VIEW:
+        return TEXT_HANDLER;
       case NAVIGATION_VIEW:
         return new NavigationViewHandler();
       case NESTED_SCROLL_VIEW:
@@ -348,12 +354,12 @@ public class ViewHandlerManager implements ProjectComponent {
         return STANDARD_HANDLER;
       case SPACE:
         return new SpaceHandler();
+      case SPINNER:
+        return new SpinnerHandler();
       case SURFACE_VIEW:
       case TEXTURE_VIEW:
       case VIDEO_VIEW:
         return NO_PREVIEW_HANDLER;
-      case SPINNER:
-        return new SpinnerHandler();
       case SWITCH:
         return new SwitchHandler();
       case TABLE_CONSTRAINT_LAYOUT:
@@ -372,6 +378,10 @@ public class ViewHandlerManager implements ProjectComponent {
         return new GroupHandler();
       case TAG_MENU:
         return new MenuHandler();
+      case TAG_SELECTOR:
+        return new SelectorHandler();
+      case TEXT_CLOCK:
+        return STANDARD_HANDLER;
       case TEXT_INPUT_LAYOUT:
         return new TextInputLayoutHandler();
       case TOGGLE_BUTTON:

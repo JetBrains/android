@@ -102,7 +102,7 @@ public enum NlLayoutType {
     }
   },
 
-  STATE_LIST(false) {
+  STATE_LIST(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return FileDescriptionUtils.isResourceOfType(file, ResourceFolderType.DRAWABLE, Collections.singleton(SdkConstants.TAG_SELECTOR));
