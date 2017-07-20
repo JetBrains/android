@@ -126,8 +126,6 @@ public class AndroidUtils {
   @NonNls public static final String RECEIVER_CLASS_NAME = SdkConstants.CLASS_BROADCASTRECEIVER;
   @NonNls public static final String PROVIDER_CLASS_NAME = SdkConstants.CLASS_CONTENTPROVIDER;
 
-  public static final int TIMEOUT = 3000000;
-
   // Properties
   @NonNls public static final String ANDROID_LIBRARY_PROPERTY = SdkConstants.ANDROID_LIBRARY;
   @NonNls public static final String ANDROID_PROJECT_TYPE_PROPERTY = "project.type";

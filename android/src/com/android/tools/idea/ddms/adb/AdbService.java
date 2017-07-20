@@ -27,7 +27,6 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +49,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener {
   private static final Logger LOG = Logger.getInstance(AdbService.class);
+  public static final int TIMEOUT = 3000000;
 
   @GuardedBy("this")
   @Nullable private ListenableFuture<AndroidDebugBridge> myFuture;
@@ -68,7 +68,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
 
   private AdbService() {
     DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
-    DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
+    DdmPreferences.setTimeOut(TIMEOUT);
 
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
 
@@ -91,7 +91,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
 
     if (myFuture == null) {
       Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb));
-      // TODO: expose connection timeout in some settings UI? Also see AndroidUtils.TIMEOUT which is way too long
+      // TODO: expose connection timeout in some settings UI? Also see TIMEOUT which is way too long
       myFuture = makeTimedFuture(future, 20, TimeUnit.SECONDS);
     }
 
