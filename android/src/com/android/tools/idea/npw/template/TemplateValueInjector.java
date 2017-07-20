@@ -308,7 +308,7 @@ public final class TemplateValueInjector {
 
   public TemplateValueInjector setInstantAppSupport() {
     myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
-    myTemplateValues.put(ATTR_INSTANT_APP_API_MIN_VERSION, InstantApps.getMinTargetSdk());
+    myTemplateValues.put(ATTR_INSTANT_APP_API_MIN_VERSION, InstantApps.getCompatApiMinVersion());
     return this;
   }
 

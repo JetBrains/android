@@ -175,6 +175,16 @@ public class InstantApps {
     return 21; // If there is any exception return the default value
   }
 
+  public static long getCompatApiMinVersion() {
+    try {
+      return InstantAppSdks.getInstance().getCompatApiMinVersion();
+    }
+    catch (InstantAppSdkException ex) {
+      getLogger().error(ex);
+    }
+    return 1; // If there is any exception return the default value
+  }
+
   public static boolean isInstantAppApplicationModule(@NotNull Module module) {
     AndroidModuleModel model = AndroidModuleModel.get(module);
     return model != null && model.getAndroidProject().getProjectType() == PROJECT_TYPE_INSTANTAPP;

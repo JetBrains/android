@@ -153,7 +153,8 @@ public class NewInstantAppTest {
       .moveBetween("implementation project(':feature')", "")
       .moveBetween("implementation project(':base')", "")
       .open("base/src/main/AndroidManifest.xml")
-      .moveBetween("android:name=\"aia-compat-api-min-version\"", "");
+      .moveBetween("android:name=\"aia-compat-api-min-version\"", "")
+      .moveBetween("android:value=\"1\"", "");
 
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
