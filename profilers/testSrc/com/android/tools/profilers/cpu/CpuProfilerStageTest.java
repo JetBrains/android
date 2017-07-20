@@ -27,6 +27,7 @@ import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -894,6 +895,39 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Trace was generated, so trace size should be greater than 0
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
     // Trace was not parsed correctly, so parsing time, recording duration and capture duration should be -1
+    assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
+    assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
+    assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);
+  }
+
+  @Test
+  public void cpuMetadataFailureUserAbort() throws InterruptedException, IOException {
+    // Try to parse a simpleperf trace with ART config. Parsing should fail.
+    ProfilingConfiguration config = new ProfilingConfiguration("My Config",
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    config.setProfilingSamplingIntervalUs(10);
+    config.setProfilingBufferSizeInMb(15);
+    myCpuService.setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS);
+    ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
+    myCpuService.setTrace(largeTraceFile);
+    myCpuService.setValidTrace(true);
+    myStage.setProfilingConfiguration(config);
+    myServices.setShouldParseLongTraces(false);
+
+    startCapturingSuccess();
+    stopCapturing();
+    CpuCaptureMetadata metadata = ((FakeFeatureTracker)myServices.getFeatureTracker()).getLastCpuCaptureMetadata();
+    assertThat(metadata.getStatus()).isEqualTo(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
+    // Profiling Configurations should remain the same.
+    ProfilingConfiguration metadataConfig = metadata.getProfilingConfiguration();
+    assertThat(metadataConfig.getProfilingSamplingIntervalUs()).isEqualTo(10);
+    assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
+    assertThat(metadataConfig.getProfilerType()).isEqualTo(CpuProfiler.CpuProfilerType.ART);
+    assertThat(metadataConfig.getMode()).isEqualTo(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+    // Trace was generated, so trace size should be greater than 0
+    assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);
+    // Trace was not parsed at all, so parsing time, recording duration and capture duration should be -1
     assertThat(metadata.getParsingTimeMs()).isEqualTo(-1);
     assertThat(metadata.getRecordDurationMs()).isEqualTo(-1);
     assertThat(metadata.getCaptureDurationMs()).isEqualTo(-1);

@@ -32,6 +32,7 @@ import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -175,6 +176,23 @@ public class IntellijProfilerServices implements IdeProfilerServices {
                                                                                    dialogCallback,
                                                                                    myFeatureTracker);
     dialog.show();
+  }
+
+  @Override
+  public void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
+    int dialogResult = Messages.showYesNoDialog(myProject,
+                                                "The trace file generated is large, and Android Studio may become unresponsive while " +
+                                                "it parses the data. Do you want to continue?\n\n" +
+                                                "Warning: If you select \"No\", Android Studio discards the trace data and you will need " +
+                                                "to capture a new method trace.",
+                                                "Trace File Too Large",
+                                                Messages.getWarningIcon());
+    if (dialogResult == Messages.YES) {
+      yesCallback.run();
+    }
+    else {
+      noCallback.run();
+    }
   }
 
   @Override

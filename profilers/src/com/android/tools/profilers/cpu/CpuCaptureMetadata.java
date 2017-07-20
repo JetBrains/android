@@ -28,7 +28,9 @@ public class CpuCaptureMetadata {
     /** There was a failure when trying to stop the capture. */
     STOP_CAPTURING_FAILURE,
     /** There was a failure when trying to parse the capture. */
-    PARSING_FAILURE
+    PARSING_FAILURE,
+    /** User aborted parsing the trace after being notified it was too large. */
+    USER_ABORTED_PARSING
   }
 
   /**
