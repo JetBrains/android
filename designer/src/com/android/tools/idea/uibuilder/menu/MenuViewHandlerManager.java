@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,10 @@ public final class MenuViewHandlerManager {
 
   @Nullable
   public static ViewHandler getHandler(@NotNull NlComponent component) {
+    if (!component.getModel().getType().equals(NlLayoutType.MENU)) {
+      return null;
+    }
+
     if (CastButtonHandler.handles(component)) {
       return new CastButtonHandler();
     }

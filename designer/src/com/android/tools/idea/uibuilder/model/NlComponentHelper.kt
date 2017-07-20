@@ -235,7 +235,11 @@ fun NlComponent.isGroup(): Boolean {
   }
 
   when (tagName) {
-    TAG_MENU, TAG_GROUP, PreferenceTags.PREFERENCE_SCREEN, PreferenceTags.PREFERENCE_CATEGORY -> return true
+    PreferenceTags.PREFERENCE_CATEGORY,
+    PreferenceTags.PREFERENCE_SCREEN,
+    TAG_GROUP,
+    TAG_MENU,
+    TAG_SELECTOR -> return true
     else -> return false
   }
 }
