@@ -16,17 +16,28 @@
 package com.android.tools.idea.callgraph
 
 import com.android.tools.idea.experimental.callgraph.*
-import com.intellij.analysis.AnalysisScope
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.ServiceManager
+import com.intellij.psi.PsiManager
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.uast.UFile
+import org.jetbrains.uast.UastContext
+import org.jetbrains.uast.convertWithParent
 
 class InterproceduralThreadAnnotationTest : AndroidTestCase() {
 
   fun testJavaThreadAnnotations() = doTest(".java")
 
+  fun testKotlinThreadAnnotations() = doTest(".kt")
+
   private fun doTest(ext: String) {
-    myFixture.copyFileToProject("callgraph/ThreadAnnotations" + ext)
-    val files = buildUFiles(project, AnalysisScope(project))
+    myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
+    val virtualFile = myFixture.copyFileToProject("callgraph/ThreadAnnotations" + ext, "src/ThreadAnnotations" + ext)
+    val uastContext = ServiceManager.getService(project, UastContext::class.java)
+    val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
+    val file = uastContext.convertWithParent<UFile>(psiFile) ?: throw Error("Failed to convert PsiFile to UFile")
+    val files = listOf(file)
     val classHierarchy = buildClassHierarchy(files)
     val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files, classHierarchy)
     val callGraph = buildCallGraph(files, nonContextualReceiverEval, classHierarchy)

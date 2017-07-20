@@ -44,13 +44,13 @@ class MutableClassHierarchy : ClassHierarchy {
 
   fun addClass(subClass: UClass) {
     subClass.supers
-        .mapNotNull { it.toUElementOfType<UClass>() }
+        .mapNotNull { it.navigationElement.toUElementOfType<UClass>() }
         .forEach { directInheritors.put(it, subClass) }
   }
 
   fun addMethod(subMethod: UMethod) {
     subMethod.findSuperMethods()
-        .mapNotNull { it.toUElementOfType<UMethod>() }
+        .mapNotNull { it.navigationElement.toUElementOfType<UMethod>() }
         .forEach { directOverrides.put(it, subMethod) }
   }
 }

@@ -195,7 +195,7 @@ class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner
       val pathStr = searchNodes.joinToString(separator = " -> ") { it.node.shortName }
       val sourceStr = sourceAnnotation.substringAfterLast('.')
       val sinkStr = sinkAnnotation.substringAfterLast('.')
-      val message = "Interprocedural thread annotation violation (${sourceStr} to ${sinkStr}):\n${pathStr}"
+      val message = "Interprocedural thread annotation violation ($sourceStr to $sinkStr):\n$pathStr"
       context.report(ISSUE, location, message, null)
       LOG.info(message)
     }

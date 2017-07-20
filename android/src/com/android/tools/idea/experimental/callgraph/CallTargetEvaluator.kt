@@ -16,11 +16,18 @@
 package com.android.tools.idea.experimental.callgraph
 
 import com.google.common.collect.HashMultimap
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClassType
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifier
 import org.jetbrains.uast.*
 import org.jetbrains.uast.visitor.AbstractUastVisitor
+import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
+
+private val LOG = Logger.getInstance(CallReceiverEvaluator::class.java)
 
 /**
  * Maps expressions and variables to likely receivers, including classes and lambdas, using static analysis.
@@ -51,10 +58,12 @@ sealed class Receiver(open val element: UElement) {
 
 /** Refines the given method to the overriding method that would appear in the virtual method table of this class. */
 fun Receiver.Class.refineToTarget(method: UMethod) =
-    element.findMethodBySignature(method, /*checkBases*/ true)?.toUElementOfType<UMethod>()?.let { CallTarget.Method(it) }
+    element.findMethodBySignature(method, /*checkBases*/ true)
+        ?.navigationElement?.toUElementOfType<UMethod>()
+        ?.let { CallTarget.Method(it) }
 
 fun Receiver.Lambda.toTarget() = CallTarget.Lambda(element)
-fun Receiver.CallableReference.toTarget() = (element.resolveToUElement() as? UMethod)?.let { CallTarget.Method(it) }
+fun Receiver.CallableReference.toTarget() = (element.resolve()?.navigationElement.toUElement() as? UMethod)?.let { CallTarget.Method(it) }
 
 /** Tries to map expressions to receivers without relying on any context. */
 class SimpleExpressionReceiverEvaluator(private val cha: ClassHierarchy) : CallReceiverEvaluator {
@@ -66,13 +75,13 @@ class SimpleExpressionReceiverEvaluator(private val cha: ClassHierarchy) : CallR
     element is UCallExpression && element.kind == UastCallKind.CONSTRUCTOR_CALL -> {
       // Constructor calls always return an exact type.
       val instantiatedClass = (element.returnType as? PsiClassType)
-          ?.resolve()?.toUElementOfType<UClass>()
+          ?.resolve()?.navigationElement.toUElementOfType<UClass>()
           ?.let { Receiver.Class(it) }
       listOfNotNull(instantiatedClass)
     }
     element is UExpression -> {
       // Use class hierarchy analysis to try to refine a static type to a unique runtime class type.
-      val baseClass = (element.getExpressionType() as? PsiClassType)?.resolve()?.toUElementOfType<UClass>()
+      val baseClass = (element.getExpressionType() as? PsiClassType)?.resolve()?.navigationElement.toUElementOfType<UClass>()
       if (baseClass == null) emptyList()
       else {
         fun UClass.isInstantiable() = !isInterface && !hasModifierProperty(PsiModifier.ABSTRACT)
@@ -100,8 +109,12 @@ class IntraproceduralReceiverVisitor(cha: ClassHierarchy) : AbstractUastVisitor(
   override fun get(element: UElement): Collection<Receiver> {
     val ours: Collection<Receiver> = when (element) {
       is UVariable -> varMap[element]
-      is USimpleNameReferenceExpression -> (element.resolve()?.toUElementOfType<UVariable>())?.let { varMap[it] } ?: emptyList()
-      is UCallExpression -> (element.resolve()?.toUElementOfType<UMethod>())?.let { methodMap[it] } ?: emptyList()
+      is USimpleNameReferenceExpression -> {
+        (element.resolve()?.navigationElement.toUElementOfType<UVariable>())?.let { varMap[it] } ?: emptyList()
+      }
+      is UCallExpression -> {
+        (element.resolve()?.navigationElement.toUElementOfType<UMethod>())?.let { methodMap[it] } ?: emptyList()
+      }
       else -> emptyList()
     }
     val theirs = simpleExprReceiverEval[element]
@@ -124,8 +137,8 @@ class IntraproceduralReceiverVisitor(cha: ClassHierarchy) : AbstractUastVisitor(
   }
 
   override fun afterVisitCallExpression(node: UCallExpression) {
-    // Try to visit the resolved method first.
-    val resolved = node.resolve().toUElementOfType<UMethod>() ?: return
+    // Try to visit the resolved method first in order to get evidenced return values.
+    val resolved = node.resolve()?.navigationElement.toUElementOfType<UMethod>() ?: return
     resolved.accept(this)
   }
 
@@ -136,7 +149,7 @@ class IntraproceduralReceiverVisitor(cha: ClassHierarchy) : AbstractUastVisitor(
   override fun afterVisitBinaryExpression(node: UBinaryExpression) {
     val (left, op, right) = node
     if (op == UastBinaryOperator.ASSIGN && left is USimpleNameReferenceExpression) {
-      (left.resolveToUElement() as? UVariable)?.let { handleAssign(it, right) }
+      (left.resolve()?.navigationElement.toUElement() as? UVariable)?.let { handleAssign(it, right) }
     }
   }
 
@@ -147,15 +160,59 @@ class IntraproceduralReceiverVisitor(cha: ClassHierarchy) : AbstractUastVisitor(
 
 /** Convert this call expression into a list of likely targets given a call receiver evaluator. */
 fun UCallExpression.getTargets(receiverEval: CallReceiverEvaluator): Collection<CallTarget> {
-  // TODO: Need to test with Kotlin to make sure lambda calls are handled correctly (since they don't go through functional interfaces)
-  val resolved = this.resolveToUElement() as? UMethod ?: return emptyList()
-  if (resolved.isStatic)
-    return listOf(CallTarget.Method(resolved))
+
+  // TODO(kotlin-uast-cleanup)
+  // Kotlin variable function calls require some special care.
+  // In particular, there seems to be no way (through the UAST interface) of resolving a callable variable
+  // to its declaration; only a UIdentifier is available. So we use reflection to access the resolved variable
+  // from the Kotlin compiler frontend.
+  //
+  // Note that the nullity check for [classReference] is there as an extra heuristic for
+  // for determining whether this is a function expression invocation rather than a normal method call.
+  if (methodName == "invoke" && classReference != null) {
+    val directLambda = methodIdentifier?.psi?.navigationElement.toUElement() as? ULambdaExpression
+    if (directLambda != null)
+      return listOf(CallTarget.Lambda(directLambda))
+
+    fun Any.getProperty(name: String) =
+        javaClass.kotlin.memberProperties.find { it.name == name }
+            ?.apply { isAccessible = true }
+            ?.get(this)
+
+    fun Any.invokeMemberFunction(name: String, vararg args: Any?) =
+        javaClass.kotlin.memberFunctions.find { it.name == name }
+            ?.apply { isAccessible = true }
+            ?.call(this, *args)
+
+    val ktDecl = getProperty("resolvedCall")
+        ?.getProperty("variableCall")
+        ?.getProperty("candidateDescriptor")
+        ?.invokeMemberFunction("getSource")
+        ?.getProperty("psi")
+        as? PsiElement
+
+    val uDecl = ktDecl.toUElementOfType<UDeclarationsExpression>()?.declarations?.singleOrNull()
+        ?: ktDecl.toUElement()
+        ?: return emptyList()
+
+    return receiverEval[uDecl].mapNotNull { receiver ->
+      when (receiver) {
+        is Receiver.Class -> null
+        is Receiver.Lambda -> receiver.toTarget()
+        is Receiver.CallableReference -> receiver.toTarget()
+      }
+    }
+  }
+
+  // "Normal" method calls.
+  val method = resolve()?.navigationElement.toUElement() as? UMethod ?: return emptyList()
+  if (method.isStatic)
+    return listOf(CallTarget.Method(method))
   val receivers = receiver?.let { receiverEval[it] } ?: receiverEval.getForImplicitThis()
-  fun isFunctionalCall() = resolved.psi == LambdaUtil.getFunctionalInterfaceMethod(receiverType)
+  fun isFunctionalCall() = method.psi == LambdaUtil.getFunctionalInterfaceMethod(receiverType)
   return receivers.mapNotNull { receiver ->
     when (receiver) {
-      is Receiver.Class -> receiver.refineToTarget(resolved)
+      is Receiver.Class -> receiver.refineToTarget(method)
       is Receiver.Lambda -> if (isFunctionalCall()) receiver.toTarget() else null
       is Receiver.CallableReference -> if (isFunctionalCall()) receiver.toTarget() else null
     }

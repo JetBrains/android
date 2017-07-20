@@ -105,7 +105,7 @@ class StandardTypeEvaluator : TypeEvaluator, AbstractUastVisitor() {
   override fun visitBinaryExpression(node: UBinaryExpression): Boolean {
     val (left, op, right) = node
     if (op == UastBinaryOperator.ASSIGN && left is USimpleNameReferenceExpression) {
-      (left.resolveToUElement() as? UVariable)?.let { handleAssign(it, right) }
+      (left.resolve()?.navigationElement.toUElement() as? UVariable)?.let { handleAssign(it, right) }
     }
     return super<AbstractUastVisitor>.visitBinaryExpression(node)
   }

@@ -172,7 +172,7 @@ class Return {
   RetAmbigIt evidenced3() { return new RetAmbigA(); }
   RetAmbigIt evidenced2() { return evidenced3(); }
   RetAmbigIt evidenced1() { return evidenced2(); }
-  RetAmbigIt evidenced()  {
+  void evidenced()  {
     RetAmbigIt it = evidenced1();
     it.f();
   }
