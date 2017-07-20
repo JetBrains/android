@@ -20,6 +20,8 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
@@ -293,6 +295,7 @@ public final class TranslationsEditorTest {
     assertEquals("<string name=\"app_name\">app_name_main_iw</string>", line);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/63894383
   @Test
   public void rename() throws IOException {
     importSimpleApplication();
