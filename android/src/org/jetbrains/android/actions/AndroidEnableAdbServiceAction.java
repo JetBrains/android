@@ -31,11 +31,13 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.android.facet.AndroidFacet;
 import com.android.tools.idea.run.AndroidSessionInfo;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,7 +92,11 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
     boolean oldState = isAdbServiceEnabled();
     PropertiesComponent.getInstance().setValue(ENABLE_ADB_SERVICE_PROPERTY_NAME, Boolean.toString(state));
     if (oldState != state) {
-      AdbService.getInstance().restartDdmlib(project);
+      File adb = AndroidSdkUtils.getAdb(project);
+      if (adb == null) {
+        throw new RuntimeException("Unable to locate Android SDK used by project: " + project.getName());
+      }
+      AdbService.getInstance().restartDdmlib(adb);
     }
   }
 

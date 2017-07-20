@@ -26,9 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -129,12 +127,9 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     return false;
   }
 
-  public synchronized ListenableFuture<AndroidDebugBridge> restartDdmlib(@NotNull Project project) {
+  @NotNull
+  public synchronized ListenableFuture<AndroidDebugBridge> restartDdmlib(@NotNull File adb) {
     terminateDdmlib();
-    File adb = AndroidSdkUtils.getAdb(project);
-    if (adb == null) {
-      throw new RuntimeException("Unable to locate Android SDK used by project: " + project.getName());
-    }
     return getDebugBridge(adb);
   }
 
