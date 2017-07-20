@@ -18,18 +18,13 @@ package com.android.tools.idea.uibuilder.model
 import com.android.SdkConstants.*
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.resources.ResourceFolderType
-import com.android.tools.idea.res.ResourceHelper
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
-import com.intellij.lang.LanguageNamesValidation
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.util.text.StringUtil
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -84,16 +79,6 @@ fun NlComponent.containsX(@AndroidCoordinate x: Int): Boolean {
 
 fun NlComponent.containsY(@AndroidCoordinate y: Int): Boolean {
   return Ranges.contains(this.y, this.y + h, y)
-}
-
-@AndroidCoordinate
-fun NlComponent.getMidpointX(): Int {
-  return x + w / 2
-}
-
-@AndroidCoordinate
-fun NlComponent.getMidpointY(): Int {
-  return y + h / 2
 }
 
 /**
@@ -169,44 +154,6 @@ fun NlComponent.getBaseline(): Int {
   }
 
   return -1
-}
-
-fun NlComponent.getMinimumWidth(): Int {
-  try {
-    val viewObject = viewInfo?.viewObject ?: return 0
-    return viewObject.javaClass.getMethod("getMinimumWidth").invoke(viewObject) as Int
-  }
-  catch (ignore: Throwable) {
-  }
-
-  return 0
-}
-
-fun NlComponent.getMinimumHeight(): Int {
-  try {
-    val viewObject = viewInfo?.viewObject ?: return 0
-    return viewObject.javaClass.getMethod("getMinimumHeight").invoke(viewObject) as Int
-  }
-  catch (ignore: Throwable) {
-  }
-
-  return 0
-}
-
-/**
- * Return the current view visibility from layout lib
-
- * @return the view visibility, or 0 (visible) if impossible to get
- */
-fun NlComponent.getAndroidViewVisibility(): Int {
-  try {
-    val viewObject = viewInfo?.viewObject ?: 0
-    return viewObject.javaClass.getMethod("getVisibility").invoke(viewObject) as Int
-  }
-  catch (ignore: Throwable) {
-  }
-
-  return 0
 }
 
 private fun fixDefault(value: Int): Int {
@@ -446,7 +393,7 @@ object NlComponentHelper {
   }
 
   // TODO Add a needsId method to the handler classes
-  val TAGS_THAT_DONT_NEED_DEFAULT_IDS = ImmutableSet.Builder<String>()
+  val TAGS_THAT_DONT_NEED_DEFAULT_IDS: Collection<String> = ImmutableSet.Builder<String>()
       .add(REQUEST_FOCUS)
       .add(SPACE)
       .add(TAG_ITEM)
