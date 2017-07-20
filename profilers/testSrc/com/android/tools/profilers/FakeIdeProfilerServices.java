@@ -65,6 +65,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
    */
   private boolean isLiveTrackingEnabled = false;
 
+  /**
+   * Whether long trace files should be parsed.
+   */
+  private boolean myShouldParseLongTraces = false;
+
   @NotNull
   @Override
   public Executor getMainExecutor() {
@@ -138,6 +143,20 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void openCpuProfilingConfigurationsDialog(ProfilingConfiguration configuration, boolean isDeviceAtLeastO,
                                                    Consumer<ProfilingConfiguration> callbackDialog) {
     // No-op.
+  }
+
+  @Override
+  public void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
+    if (myShouldParseLongTraces) {
+      yesCallback.run();
+    }
+    else {
+      noCallback.run();
+    }
+  }
+
+  public void setShouldParseLongTraces(boolean shouldParseLongTraces) {
+    myShouldParseLongTraces = shouldParseLongTraces;
   }
 
   @Override

@@ -212,7 +212,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCaptureModel = new CaptureModel(this);
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
-    myCaptureParser = new CpuCaptureParser(getStudioProfilers().getIdeServices().getPoolExecutor());
+    myCaptureParser = new CpuCaptureParser(getStudioProfilers().getIdeServices());
   }
 
   private static Logger getLogger() {
@@ -415,11 +415,14 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    * corresponding to the capture after parsing is finished (successfully or not).
    */
   private void handleCaptureParsing(int traceId, ByteString traceBytes, CpuCaptureMetadata captureMetadata) {
-    long beforeParsingTime = System.currentTimeMillis();
-    CompletableFuture<CpuCapture> capture = myCaptureParser.getCapture(traceId);
+      long beforeParsingTime = System.currentTimeMillis();
+    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceId, traceBytes, myActiveConfig.getProfilerType());
     if (capture == null) {
-      // Parser doesn't have any information regarding the capture. It needs to be parsed.
-      capture = myCaptureParser.parse(traceId, traceBytes, myActiveConfig.getProfilerType());
+      // Capture parsing was cancelled. Return to IDLE state and don't change the current capture.
+      setCaptureState(CaptureState.IDLE);
+      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
+      getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
+      return;
     }
 
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
