@@ -45,7 +45,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
     this(text, description, icon, IdeInfo.getInstance().isAndroidStudio());
   }
 
-  private AndroidStudioGradleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon, boolean androidStudio) {
+  protected AndroidStudioGradleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon, boolean androidStudio) {
     super(text, description, icon);
     myAndroidStudio = androidStudio;
   }
