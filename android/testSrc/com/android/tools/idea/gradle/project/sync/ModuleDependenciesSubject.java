@@ -44,20 +44,12 @@ public class ModuleDependenciesSubject extends DependenciesSubject<ModuleOrderEn
   protected void collectDependencies(@NotNull Module module) {
     ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
 
-    // Collect direct dependencies first.
     for (OrderEntry orderEntry : rootManager.getOrderEntries()) {
       if (orderEntry instanceof ModuleOrderEntry) {
         ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
-        if (moduleOrderEntry.isExported()) {
-          DependencyScope scope = moduleOrderEntry.getScope();
-          getOrCreateMappingFor(scope).put(moduleOrderEntry.getModuleName(), moduleOrderEntry);
-        }
+        DependencyScope scope = moduleOrderEntry.getScope();
+        getOrCreateMappingFor(scope).put(moduleOrderEntry.getModuleName(), moduleOrderEntry);
       }
-    }
-
-    // Collect transitive library dependencies.
-    for (Module dependency : rootManager.getModuleDependencies()) {
-      collectDependencies(dependency);
     }
   }
 }
