@@ -22,17 +22,8 @@
               android:name="google.navigation.MainActivity"
               tools:layout="@layout/activity_main" >
         <default-argument app:name="myarg" app:defaultValue="Home" />
-        <action android:id="@+id/next" app:destination="@+id/main_fragment"/>
+        <action android:id="@+id/next" app:destination="@+id/first_screen"/>
     </activity>
-    <fragment android:id="@+id/main_fragment"
-              android:icon="@mipmap/ic_launcher"
-              android:label="MainFragment"
-              app:navType="primary"
-              android:name="google.navigation.MyFragment"
-              tools:layout="@layout/fragment_my">
-        <default-argument app:name="myarg" app:defaultValue="Android!" />
-        <action android:id="@+id/next2" app:destination="@+id/first_screen"/>
-    </fragment>
     <activity android:id="@+id/first_screen"
               android:name="google.navigation.FirstScreen"
               tools:layout="@layout/activity_first_screen">

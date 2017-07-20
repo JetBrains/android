@@ -21,12 +21,15 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * UI tests for {@link NlEditor} as used in the navigation editor.
@@ -53,5 +56,28 @@ public class NavNlEditorTest {
     screen.click();
 
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
+  }
+
+  @Test
+  public void testCreateAndDelete() throws Exception {
+    IdeFrameFixture frame = guiTest.importProject("Navigation");
+    // Open file as XML and switch to design tab, wait for successful render
+    EditorFixture editor = guiTest.ideFrame().getEditor();
+    editor.open("app/src/main/res/xml/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layout = editor.getLayoutEditor(true);
+
+    // This is separate to catch the case where we have a problem opening the file before sync is complete.
+    frame.waitForGradleProjectSyncToFinish();
+    layout.waitForRenderToFinish();
+
+    ((NavDesignSurfaceFixture)layout.getSurface()).openAddMenu().selectDestination("google.navigation.MyFragment");
+
+    DestinationListFixture.Companion.create(guiTest.robot()).selectItem("Main Activity");
+    assertEquals(1, layout.getSelection().size());
+    assertEquals("main_activity", layout.getSelection().get(0).getId());
+
+    guiTest.robot().type('\b');
+
+    layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
   }
 }

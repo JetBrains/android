@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor;
 
+import com.android.tools.idea.naveditor.editor.AddMenuWrapper;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
 public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfaceFixture, NavDesignSurface> {
   public NavDesignSurfaceFixture(@NotNull Robot robot,
@@ -48,5 +56,20 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
     assert component != null;
 
     return createComponentFixture(component);
+  }
+
+  @Nullable
+  public AddMenuFixture openAddMenu() {
+    waitForRenderToFinish();
+    ActionToolbarImpl toolbar = robot().finder().findByName(target().getParent(), "NlLayoutToolbar", ActionToolbarImpl.class);
+    ActionButton button = waitUntilShowing(robot(), toolbar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton component) {
+        return component.getAction() instanceof AddMenuWrapper;
+      }
+    });
+    new ActionButtonFixture(robot(), button).click();
+    AddMenuWrapper menu = (AddMenuWrapper)button.getAction();
+    return new AddMenuFixture(robot(), menu);
   }
 }
