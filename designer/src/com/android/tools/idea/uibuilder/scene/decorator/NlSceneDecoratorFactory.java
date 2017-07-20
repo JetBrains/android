@@ -44,6 +44,7 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       ourConstructorMap.put(SdkConstants.RADIO_BUTTON, RadioButtonDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.SEEK_BAR, SeekBarDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.SWITCH, SwitchDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.LINEAR_LAYOUT, LinearLayoutDecorator.class.getConstructor());
     }
     catch (NoSuchMethodException e) {
       // ignore invalid component

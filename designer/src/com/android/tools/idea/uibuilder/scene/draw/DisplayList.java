@@ -563,6 +563,7 @@ public class DisplayList {
     addListElementConstructor(DrawComponentBackground.class);
     addListElementConstructor(DrawNlComponentFrame.class);
     addListElementConstructor(ProgressBarDecorator.DrawProgressBar.class);
+    addListElementConstructor(LinearLayoutDecorator.DrawLinearLayout.class);
 
     addListElementConstructor(ImageViewDecorator.DrawImageView.class);
     addListElementConstructor(SeekBarDecorator.DrawSeekBar.class);
