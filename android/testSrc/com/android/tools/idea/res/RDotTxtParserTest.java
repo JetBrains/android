@@ -73,4 +73,40 @@ public class RDotTxtParserTest {
     assertEquals(2130771969, r[0].intValue());
     assertEquals(2130771971, r[1].intValue());
   }
+
+  // Regression test for http://b/62578429#comment66
+  @Test
+  public void testNameCollision() throws IOException {
+    final String blockA = "int[] styleable CollapsingToolbarLayout_Layout { 0x7f0400b8, 0x7f0400b9 }\n" +
+                          "int styleable CollapsingToolbarLayout_Layout_layout_collapseMode 0\n" +
+                          "int styleable CollapsingToolbarLayout_Layout_layout_collapseParallaxMultiplier 1\n";
+    final String blockB = "int[] styleable CollapsingToolbarLayout { 0x7f040052, 0x7f040053, 0x7f040067 }\n" +
+                          "int styleable CollapsingToolbarLayout_collapsedTitleGravity 0\n" +
+                          "int styleable CollapsingToolbarLayout_collapsedTitleTextAppearance 1\n" +
+                          "int styleable CollapsingToolbarLayout_contentScrim 2\n";
+
+    File rFile = FileUtil.createTempFile("R", ".txt");
+
+    // Check that the parser does not get confused for different orderings
+    for (String content : new String[]{blockA + blockB, blockB + blockA}) {
+      FileUtil.writeToFile(rFile, content);
+
+      List<AttrResourceValue> attributes = ImmutableList.of(
+        new AttrResourceValue(ResourceUrl.parse("@styleable/layout_collapseMode"), null),
+        new AttrResourceValue(ResourceUrl.parse("@styleable/layout_collapseParallaxMultiplier"), null));
+      Integer[] r = RDotTxtParser.getDeclareStyleableArray(rFile, attributes, "CollapsingToolbarLayout_Layout");
+      assertEquals(0x7f0400b8, r[0].intValue());
+      assertEquals(0x7f0400b9, r[1].intValue());
+
+      attributes = ImmutableList.of(
+        new AttrResourceValue(ResourceUrl.parse("@styleable/collapsedTitleGravity"), null),
+        new AttrResourceValue(ResourceUrl.parse("@styleable/collapsedTitleTextAppearance"), null),
+        new AttrResourceValue(ResourceUrl.parse("@styleable/contentScrim"), null));
+      r = RDotTxtParser.getDeclareStyleableArray(rFile, attributes, "CollapsingToolbarLayout");
+      assertEquals(0x7f040052, r[0].intValue());
+      assertEquals(0x7f040053, r[1].intValue());
+      assertEquals(0x7f040067, r[2].intValue());
+    }
+  }
+
 }
