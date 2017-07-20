@@ -143,4 +143,8 @@ public class InstantAppSdks {
   public int getMinTargetSdk() throws InstantAppSdkException {
     return Metadata.getInstance(getInstantAppSdk(false)).getMinApiLevelSupported();
   }
+
+  public long getCompatApiMinVersion() throws InstantAppSdkException {
+    return Metadata.getInstance(getInstantAppSdk(false)).getAiaCompatApiMinVersion();
+  }
 }
