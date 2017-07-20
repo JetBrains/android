@@ -43,21 +43,12 @@ public class LibraryDependenciesSubject extends DependenciesSubject<LibraryOrder
   @Override
   protected void collectDependencies(@NotNull Module module) {
     ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-
-    // Collect direct dependencies first.
     for (OrderEntry orderEntry : rootManager.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
         LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
-        if (libraryOrderEntry.isExported()) {
-          DependencyScope scope = libraryOrderEntry.getScope();
-          getOrCreateMappingFor(scope).put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
-        }
+        DependencyScope scope = libraryOrderEntry.getScope();
+        getOrCreateMappingFor(scope).put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
       }
-    }
-
-    // Collect transitive library dependencies.
-    for (Module dependency : rootManager.getModuleDependencies()) {
-      collectDependencies(dependency);
     }
   }
 }
