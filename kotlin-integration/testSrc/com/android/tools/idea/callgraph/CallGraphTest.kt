@@ -16,20 +16,28 @@
 package com.android.tools.idea.callgraph
 
 import com.android.tools.idea.experimental.callgraph.*
-import com.intellij.analysis.AnalysisScope
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.components.ServiceManager
+import com.intellij.psi.PsiManager
 import junit.framework.TestCase
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.uast.UFile
+import org.jetbrains.uast.UastContext
+import org.jetbrains.uast.convertWithParent
 
-// TODO: This should be an AndroidTestCase, but that breaks overriding method search (for unknown reasons).
-class CallGraphTest : LightCodeInsightFixtureTestCase() {
+class CallGraphTest : AndroidTestCase() {
 
-  override fun getBasePath(): String = "adt/idea/android/testData/"
+  fun testJavaCallGraph() = doTest(".java")
 
-  fun testJavaCallGraph() = doTest("callgraph/CallGraph.java")
+  fun testKotlinCallGraph() = doTest(".kt")
 
-  private fun doTest(file: String) {
-    myFixture.copyFileToProject(file)
-    val files = buildUFiles(project, AnalysisScope(project))
+  private fun doTest(ext: String) {
+    myFixture.testDataPath = PathManager.getHomePath() + "/../adt/idea/kotlin-integration/testData"
+    val virtualFile = myFixture.copyFileToProject("callgraph/CallGraph" + ext, "src/CallGraph" + ext)
+    val uastContext = ServiceManager.getService(project, UastContext::class.java)
+    val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: throw Error("Failed to find PsiFile")
+    val file = uastContext.convertWithParent<UFile>(psiFile) ?: throw Error("Failed to convert PsiFile to UFile")
+    val files = listOf(file)
     val classHierarchy = buildClassHierarchy(files)
     val receiverEval = buildIntraproceduralReceiverEval(files, classHierarchy)
     val graph = buildCallGraph(files, receiverEval, classHierarchy)
@@ -47,13 +55,13 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
       return graph.searchForPaths(listOf(source), listOf(sink), receiverEval).firstOrNull()?.map { (node, _) -> node.shortName }
     }
 
-    fun String.assertReaches(callee: String) = TestCase.assertNotNull("${this} should reach ${callee}", this.findPath(callee))
-    fun String.assertDoesNotReach(callee: String) = TestCase.assertNull("${this} should not reach ${callee}", this.findPath(callee))
+    fun String.assertReaches(callee: String) = TestCase.assertNotNull("${this} should reach $callee", this.findPath(callee))
+    fun String.assertDoesNotReach(callee: String) = TestCase.assertNull("${this} should not reach $callee", this.findPath(callee))
 
     // Check simple call chains.
     "Trivial#empty".assertCalls(/*nothing*/)
     for (kind in listOf("static", "private", "public")) {
-      val prefix = "Trivial#${kind}"
+      val prefix = "Trivial#$kind"
       "${prefix}1".assertCalls("${prefix}2")
       "${prefix}2".assertCalls("${prefix}3")
       "${prefix}3".assertCalls(/*nothing*/)
@@ -64,9 +72,9 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     // Check calls relying on call hierarchy analysis and type estimates for local variables.
     "SimpleLocal#notUnique".assertCalls(/*nothing*/)
     "SimpleLocal#unique".assertCalls("Impl#implUnique")
-    "SimpleLocal#typeEvidencedSubImpl".assertCalls("SubImpl#f", "SubImpl#defaultCtor")
-    "SimpleLocal#typeEvidencedImpl".assertCalls("Impl#f", "Impl#defaultCtor")
-    "SimpleLocal#typeEvidencedBoth".assertCalls("SubImpl#f", "Impl#f", "SubImpl#defaultCtor", "Impl#defaultCtor")
+    "SimpleLocal#typeEvidencedSubImpl".assertCalls("SubImpl#f", "SubImpl#SubImpl")
+    "SimpleLocal#typeEvidencedImpl".assertCalls("Impl#f", "Impl#Impl")
+    "SimpleLocal#typeEvidencedBoth".assertCalls("SubImpl#f", "Impl#f", "SubImpl#SubImpl", "Impl#Impl")
 
     // Check calls through fields.
     "SimpleField#notUnique".assertCalls(/*nothing*/)
@@ -77,17 +85,16 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
 
     // Test special calls through super.
     "Special#Special".assertCalls("Special#h", "Object#Object")
-    "SubSpecial#defaultCtor".assertCalls("Special#Special")
+    "SubSpecial#SubSpecial".assertCalls("Special#Special")
     "SubSpecial#f".assertCalls("Special#f")
-    "SubSubSpecial#SubSubSpecial".assertCalls("SubSpecial#defaultCtor")
+    "SubSubSpecial#SubSubSpecial".assertCalls("SubSpecial#SubSpecial")
     "SubSubSpecial#g".assertCalls("Special#g")
     "SubSubSubSpecial#SubSubSubSpecial".assertCalls("SubSubSpecial#SubSubSpecial")
 
     // Test class and field initializers.
-    "Initializers#defaultCtor".assertCalls("Object#Object", "Nested#f", "Empty#defaultCtor", "Inner#Inner", "Nested#g")
-    "Inner#defaultCtor".assertCalls(/*nothing*/)
+    "Initializers#Initializers".assertCalls("Object#Object", "Nested#f", "Empty#Empty", "Inner#Inner", "Nested#g")
+    "Inner#Inner".assertCalls("Object#Object")
     "Nested#Nested".assertCalls("Nested#h", "Object#Object")
-    assert("Nested#defaultCtor" !in nodeMap)
 
     // Test return values.
     "Return#unique".assertCalls("Return#createRetUniqueIt", "RetUnique#f")
@@ -130,5 +137,16 @@ class CallGraphTest : LightCodeInsightFixtureTestCase() {
     "Contextual#c".assertDoesNotReach("Contextual#g")
     "Contextual#run3".assertReaches("Contextual#f")
     "Contextual#run3".assertDoesNotReach("Contextual#g")
+
+    // Kotlin-specific (e.g., top-level functions).
+    if (ext == ".kt") {
+      "CallGraphKt#topLevelA".assertCalls("CallGraphKt#topLevelB")
+      "CallGraphKt#topLevelB".assertCalls("CallGraphKt#topLevelC")
+      "CallGraphKt#topLevelA".assertReaches("CallGraphKt#topLevelC")
+      "CallGraphKt#topLevelC".assertDoesNotReach("CallGraphKt#topLevelA")
+    }
+    else {
+      assert(ext == ".java")
+    }
   }
 }

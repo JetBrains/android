@@ -18,7 +18,6 @@ package com.android.tools.idea.experimental.callgraph
 import com.android.tools.idea.experimental.callgraph.CallGraph.Edge
 import com.android.tools.idea.experimental.callgraph.CallGraph.Edge.Kind.*
 import com.intellij.analysis.AnalysisScope
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -32,10 +31,7 @@ import org.jetbrains.uast.visitor.AbstractUastVisitor
 
 private val LOG = Logger.getInstance("#com.android.tools.idea.experimental.callgraph.CallGraphBuilder")
 
-// TODO: Handle unexpected conditions differently.
-fun Logger.debugError(msg: String) = if (ApplicationManager.getApplication().isUnitTestMode) error(msg) else warn(msg)
-
-val defaultCallGraphEdges = Edge.Kind.values().filter { it.isLikely || it == BASE }.toTypedArray()
+val defaultCallGraphEdges = Edge.Kind.values().filter { it.isLikely || it == BASE || it == INVOKE }.toTypedArray()
 
 fun buildUFiles(project: Project, scope: AnalysisScope): Collection<UFile> {
   val res = ArrayList<UFile>()
@@ -87,7 +83,7 @@ class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
 
   override fun visitClass(node: UClass): Boolean {
     // Check for an implicit call to a super constructor.
-    val superClass = node.superClass
+    val superClass = node.superClass?.psi?.navigationElement.toUElementOfType<UClass>()
     if (superClass != null) {
       val constructors = node.constructors()
       val thoseWithoutExplicitSuper = constructors.filter {
@@ -107,58 +103,67 @@ class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
 
   override fun visitCallExpression(node: UCallExpression): Boolean {
 
-    // The code below uses early returns liberally.
-    // TODO: Clean up style, possibly by using ControlFlowException.
-    fun earlyReturn(error: String? = null): Boolean {
-      error?.let { LOG.debugError(error) }
-      return super.visitCallExpression(node)
-    }
-
-    // Find the caller(s) based on surrounding context.
+    // Find surrounding context.
     val parent = node.getParentOfType(
         /*strict*/ true,
-        UMethod::class.java, // Method caller.
-        ULambdaExpression::class.java, // Lambda caller.
-        UClassInitializer::class.java, // Implicit constructor caller due to class initializer.
-        UClass::class.java) // Implicit constructor caller due to field initializer.
+        UMethod::class.java,
+        ULambdaExpression::class.java,
+        UClassInitializer::class.java,
+        UField::class.java)
+
+    // Find the caller(s) based on surrounding context.
     val callers: Collection<UElement> = when (parent) {
-      is UMethod, is ULambdaExpression -> listOf(parent)
-      is UClassInitializer -> {
-        if (parent.isStatic) return earlyReturn() // Ignore static initializers for now.
-        val containingClass = parent as? UClass ?: parent.getContainingUClass() ?: return earlyReturn("Expected containing class")
-        val constructors = containingClass.constructors()
-        if (constructors.isNotEmpty()) constructors else listOf(containingClass) // Use class if no explicit constructor exists.
+      is UMethod, is ULambdaExpression -> {
+        // Method or lambda caller.
+        listOf(parent)
       }
-      is UClass -> {
-        val decl = node.getParentOfType<UDeclaration>() ?: return earlyReturn("Expected to be inside field initializer")
-        if (decl.isStatic) return earlyReturn() // Ignore static field initializers for now.
-        val constructors = parent.constructors()
-        if (constructors.isNotEmpty()) constructors else listOf(parent)
+      is UClassInitializer, is UField -> {
+        // Implicit constructor callers due to class initializer.
+        val decl = parent as UDeclaration
+        if (decl.isStatic) // Ignore static initializers for now.
+          return super.visitCallExpression(node)
+        val containingClass = decl.getContainingUClass()
+            ?: run {
+          LOG.warn("Expected containing class for call within class initializer: ${node.asSourceString()}")
+          return super.visitCallExpression(node)
+        }
+        // When necessary we use the containing class as the caller, indicating a default constructor.
+        val ctors = containingClass.constructors()
+        if (ctors.isNotEmpty()) ctors else listOf(containingClass)
       }
-      else -> return earlyReturn("Could not find a caller for call expression")
+      else -> {
+        // No caller found; this can happen for, e.g., annotation instantiations.
+        return super.visitCallExpression(node)
+      }
     }
 
     val callerNodes = callers.map { mutableCallGraph.getNode(it) }
-    fun addEdge(callee: UElement, kind: Edge.Kind) {
+    fun addEdge(callee: UElement?, kind: Edge.Kind) {
       if (kind !in edgeKinds) return // Filter out unwanted edges.
-      val edge = Edge(mutableCallGraph.getNode(callee), node, kind)
+      val edge = Edge(callee?.let { mutableCallGraph.getNode(it) }, node, kind)
       callerNodes.forEach { it.edges.add(edge) }
     }
 
-    val baseCallee = node.resolveToUElement() as? UMethod
+    val baseCallee = node.resolve().toUElementOfType<UMethod>()
     if (baseCallee == null) {
       if (node.isConstructorCall()) {
         // Found a call to a default constructor; create an edge to the instantiated class.
-        val constructedClass = node.classReference?.resolveToUElement() as? UClass ?: return earlyReturn("Expected class for constructor")
+        val constructedClass = node.classReference?.resolve()?.navigationElement.toUElement() as? UClass
+            ?: return super.visitCallExpression(node) // Unable to resolve class.
         addEdge(constructedClass, DIRECT)
       }
-      return earlyReturn()
+      else {
+        // This is likely an invocation of a function expression, such as a Kotlin lambda.
+        addEdge(null, INVOKE)
+        node.getTargets(receiverEval).forEach { addEdge(it.element, TYPE_EVIDENCED) }
+      }
+      return super.visitCallExpression(node)
     }
 
     val overrides = classHierarchy.allOverridesOf(baseCallee).toList()
 
     // Create an edge based on the type of call.
-    val cannotOverride = !baseCallee.canBeOverriden()
+    val cannotOverride = !baseCallee.canBeOverridden()
     val throughSuper = node.receiver is USuperExpression
     val isFunctionalCall = baseCallee.psi == LambdaUtil.getFunctionalInterfaceMethod(node.receiverType)
     val uniqueBase = overrides.isEmpty() && !isFunctionalCall
@@ -192,7 +197,7 @@ class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
   }
 
   // TODO: Verify functionality for Kotlin.
-  private fun UMethod.canBeOverriden(): Boolean {
+  private fun UMethod.canBeOverridden(): Boolean {
     val parentClass = containingClass
     return parentClass != null
         && !isConstructor
@@ -211,7 +216,8 @@ class CallGraphVisitor(private val receiverEval: CallReceiverEvaluator,
       if (node.methodName == "super") {
         foundExplicitCall = true
         return true
-      } else {
+      }
+      else {
         return false
       }
     }

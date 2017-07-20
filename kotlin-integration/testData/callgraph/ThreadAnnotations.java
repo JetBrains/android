@@ -15,10 +15,8 @@
  */
 package android.support.annotation;
 
-@Target({METHOD,CONSTRUCTOR,TYPE,PARAMETER})
 public @interface UiThread {}
 
-@Target({METHOD,CONSTRUCTOR,TYPE,PARAMETER})
 public @interface WorkerThread {}
 
 @FunctionalInterface

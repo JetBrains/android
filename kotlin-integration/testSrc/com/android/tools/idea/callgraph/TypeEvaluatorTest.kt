@@ -47,13 +47,13 @@ class TypeEvaluatorTest : AndroidTestCase() {
     val varMap = HashMap<String, UVariable>()
     file.accept(object : AbstractUastVisitor() {
       override fun visitClass(node: UClass): Boolean {
-        val name = node.psi.getName() ?: throw Error("Failed to get name of class")
+        val name = node.psi.name ?: throw Error("Failed to get name of class")
         classMap[name] = node
         return super.visitClass(node)
       }
 
       override fun visitVariable(node: UVariable): Boolean {
-        val name = node.psi.getName() ?: throw Error("Failed to get name of variable")
+        val name = node.psi.name ?: throw Error("Failed to get name of variable")
         varMap[name] = node
         return super.visitVariable(node)
       }
