@@ -250,7 +250,6 @@ public class NlEditorTest {
     }
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void scrollWhileZoomed() throws Exception {
     NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
