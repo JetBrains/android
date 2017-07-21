@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.module;
 
+import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ui.JBColor;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.tools.swing.util.GraphicsUtil;
+import com.android.tools.adtui.util.GraphicsUtil;
 import com.intellij.ui.Gray;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
