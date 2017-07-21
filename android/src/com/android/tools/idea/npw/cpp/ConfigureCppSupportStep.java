@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.cpp;
 
+import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -26,7 +27,6 @@ import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.base.Joiner;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBLabel;

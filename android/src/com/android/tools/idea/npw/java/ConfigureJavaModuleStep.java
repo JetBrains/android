@@ -16,6 +16,9 @@
 package com.android.tools.idea.npw.java;
 
 import com.android.tools.adtui.LabelWithEditButton;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.validator.ClassNameValidator;
 import com.android.tools.idea.npw.validator.ModuleValidator;
@@ -28,13 +31,10 @@ import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import com.android.tools.swing.util.FormScalingUtil;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

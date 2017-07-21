@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
-import com.android.tools.swing.util.SwingUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
-import com.intellij.ui.ColorUtil;
-import com.intellij.ui.ComboboxSpeedSearch;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
