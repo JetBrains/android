@@ -97,6 +97,7 @@ import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME
 import static com.google.common.truth.Truth.assertWithMessage;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static java.lang.annotation.ElementType.METHOD;
+import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -1255,8 +1256,9 @@ public class TemplateTest extends AndroidGradleTestCase {
       // and has only kotlin files.
       if (getTestName(false).endsWith("WithKotlin")) {
         Path rootPath = projectDir.toPath();
-        assertFalse(Files.walk(rootPath).anyMatch(path -> path.toString().endsWith(".java")));
-        assertTrue(Files.walk(rootPath).anyMatch(path -> path.toString().endsWith(".kt")));
+        // Note: Files.walk() stream needs to be closed (or consumed completly), otherwise it will leave locked directories on Windows
+        assertFalse(Files.walk(rootPath).collect(toList()).stream().anyMatch(path -> path.toString().endsWith(".java")));
+        assertTrue(Files.walk(rootPath).collect(toList()).stream().anyMatch(path -> path.toString().endsWith(".kt")));
       }
 
       GradleConnector connector = GradleConnector.newConnector();
