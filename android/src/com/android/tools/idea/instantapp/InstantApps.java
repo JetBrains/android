@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.instantapp.sdk.InstantAppSdkException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.google.common.base.Splitter;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,8 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
@@ -195,39 +189,6 @@ public class InstantApps {
 
     // Previews of O have api level 25, so comparing with #isGreaterOrEqualThan(apiLevel) doesn't work here.
     return version.compareTo(25, "O") >= 0;
-  }
-
-  public static boolean isLoggedInGoogleAccount(@NotNull IDevice device, boolean showDialog) throws Exception {
-    // TODO: delete this when Google accounts are not needed anymore
-
-    CountDownLatch latch = new CountDownLatch(1);
-    CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
-    try {
-      device.executeShellCommand("dumpsys account", receiver);
-      latch.await(500, TimeUnit.MILLISECONDS);
-    }
-    catch (Exception e) {
-      throw new Exception("Couldn't get account in device", e);
-    }
-
-    String output = receiver.getOutput();
-
-    Iterable<String> lines = Splitter.on("\n").split(output);
-    for (String line : lines) {
-      line = line.trim();
-      if (line.startsWith("Account {")) {
-        if (line.contains("type=com.google")) {
-          return true;
-        }
-      }
-    }
-
-    if (showDialog) {
-      ApplicationManager.getApplication().invokeLater(
-        () -> Messages.showMessageDialog("Device not logged in a Google account", "Instant App", null));
-    }
-
-    return false;
   }
 
   private static Logger getLogger() {
