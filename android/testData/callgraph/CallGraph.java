@@ -207,7 +207,7 @@ class Contextual {
   void g() {}
   void a() { run(() -> f()); }
   void b() { run(() -> g()); }
-  void run(Runnable r) { r.run(); }
+  void run(Runnable r, Object... ignoredVarArg) { r.run(); }
 
   // Test paths relying on multiple arguments at once.
   interface MultiArg {

@@ -210,11 +210,10 @@ fun CallTarget.buildParamContextsFromCall(call: UCallExpression, receiverEval: C
     is DefaultConstructor -> emptyList()
   }
   val args = call.valueArguments
-  if (args.size != params.size) {
-    LOG.warn("Number of arguments does not match number of parameters")
-    return emptyList()
-  }
   val argReceivers = args.map { receiverEval[it].toList() }
+
+  // Note that the size of params may not match the size of args when there is
+  // a variadic parameter; in that case the variadic parameter is ignored.
 
   // We will take a Cartesian product, so filter out empty receiver sets.
   val (paramsWithReceivers, nonEmptyArgReceivers) = params.zip(argReceivers)
