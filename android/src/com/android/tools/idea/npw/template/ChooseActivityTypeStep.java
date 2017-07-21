@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.template;
 
 
+import com.android.tools.adtui.ASGallery;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.npw.ActivityGalleryStep;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.NewModuleModel;
@@ -23,12 +25,10 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
-import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
