@@ -17,12 +17,11 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,8 +31,7 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-
-import static org.junit.Assert.assertEquals;
+import java.util.Objects;
 
 @RunWith(GuiTestRunner.class)
 public final class NavigationViewTest {
@@ -56,23 +54,20 @@ public final class NavigationViewTest {
     myLayoutEditor.showOnlyDesignView();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/63547131
   @Test
   public void doubleClickHeaderLayout() {
     myLayoutEditor.getSurface().doubleClick(new Point(230, 170));
-    assertCurrentPathEquals(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "nav_header_main.xml"));
+    waitUntilEditorCurrentFileEquals(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "nav_header_main.xml"));
   }
 
   @Test
   public void doubleClickMenu() {
     myLayoutEditor.getSurface().doubleClick(new Point(150, 410));
-    assertCurrentPathEquals(FileSystems.getDefault().getPath("app", "src", "main", "res", "menu", "activity_main_drawer.xml"));
+    waitUntilEditorCurrentFileEquals(FileSystems.getDefault().getPath("app", "src", "main", "res", "menu", "activity_main_drawer.xml"));
   }
 
-  private void assertCurrentPathEquals(@NotNull Path path) {
-    VirtualFile file = myEditor.getCurrentFile();
-    assert file != null;
-
-    assertEquals(myGuiTest.getProjectPath().toPath().resolve(path).toString(), file.getPath());
+  private void waitUntilEditorCurrentFileEquals(@NotNull Path path) {
+    Object file = LocalFileSystem.getInstance().findFileByIoFile(myGuiTest.getProjectPath().toPath().resolve(path).toFile());
+    Wait.seconds(2).expecting("editor current file to equal " + file).until(() -> Objects.equals(myEditor.getCurrentFile(), file));
   }
 }
