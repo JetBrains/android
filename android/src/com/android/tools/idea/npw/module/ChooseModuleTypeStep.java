@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.ui.ASGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;

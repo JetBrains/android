@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui;
+package com.android.tools.idea.ui;
 
 import com.google.common.base.Function;
-import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.AndroidTestCase;
 
 import javax.accessibility.Accessible;
 import javax.swing.*;
@@ -27,7 +27,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 
-public final class ASGalleryTest extends PlatformTestCase {
+public final class ASGalleryTest extends AndroidTestCase {
   public static final Dimension THUMBNAIL_SIZE = new Dimension(128, 128);
   public static final int COLUMNS = 5;
   public static final Border BORDER = BorderFactory.createEmptyBorder(COLUMNS, 10, 20, 40);

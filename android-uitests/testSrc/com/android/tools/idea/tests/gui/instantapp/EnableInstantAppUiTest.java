@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
-import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -23,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.ui.ASGallery;
 import org.fest.swing.fixture.JListFixture;
 import org.junit.Rule;
 import org.junit.Test;
