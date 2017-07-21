@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.ui.ASGallery;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -39,7 +40,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Optional;
 
-import static com.android.tools.idea.wizard.WizardConstants.*;
+import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
+import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.IS_LIBRARY_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
