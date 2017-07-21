@@ -124,7 +124,7 @@ public class DependenciesAndroidModuleSetupStepTest extends IdeaTestCase {
   }
 
   public void testUpdateModuleDependency() throws IOException {
-    String libModulePath = ":lib";
+    String libModulePath = "mylib";
     // Create a lib module.
     Module libModule = createModule(libModulePath);
     GradleFacet facet = createAndAddGradleFacet(libModule);
