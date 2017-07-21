@@ -18,6 +18,7 @@ package com.android.tools.idea.experimental.callgraph
 import com.google.common.collect.HashMultimap
 import com.intellij.psi.LambdaUtil
 import com.intellij.psi.PsiClassType
+import com.intellij.psi.PsiModifier
 import org.jetbrains.uast.*
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 
@@ -56,15 +57,32 @@ fun Receiver.Lambda.toTarget() = CallTarget.Lambda(element)
 fun Receiver.CallableReference.toTarget() = (element.resolveToUElement() as? UMethod)?.let { CallTarget.Method(it) }
 
 /** Tries to map expressions to receivers without relying on any context. */
-class SimpleExpressionReceiverEvaluator : CallReceiverEvaluator {
+class SimpleExpressionReceiverEvaluator(private val cha: ClassHierarchy) : CallReceiverEvaluator {
 
   override fun get(element: UElement): Collection<Receiver> = when {
     element is ULambdaExpression -> listOf(Receiver.Lambda(element))
     element is UCallableReferenceExpression -> listOf(Receiver.CallableReference(element))
     element is UObjectLiteralExpression -> listOf(Receiver.Class(element.declaration))
     element is UCallExpression && element.kind == UastCallKind.CONSTRUCTOR_CALL -> {
-      val instantiatedClass = (element.returnType as? PsiClassType)?.resolve()?.toUElementOfType<UClass>()
-      listOfNotNull(instantiatedClass?.let { Receiver.Class(it) })
+      // Constructor calls always return an exact type.
+      val instantiatedClass = (element.returnType as? PsiClassType)
+          ?.resolve()?.toUElementOfType<UClass>()
+          ?.let { Receiver.Class(it) }
+      listOfNotNull(instantiatedClass)
+    }
+    element is UExpression -> {
+      // Use class hierarchy analysis to try to refine a static type to a unique runtime class type.
+      val baseClass = (element.getExpressionType() as? PsiClassType)?.resolve()?.toUElementOfType<UClass>()
+      if (baseClass == null) emptyList()
+      else {
+        fun UClass.isInstantiable() = !isInterface && !hasModifierProperty(PsiModifier.ABSTRACT)
+        val subtypes = cha.allInheritorsOf(baseClass) + baseClass
+        val uniqueReceiverClass = subtypes
+            .filter { it.isInstantiable() }
+            .singleOrNull()
+            ?.let { Receiver.Class(it) }
+        listOfNotNull(uniqueReceiverClass)
+      }
     }
     else -> emptyList()
   }
@@ -73,29 +91,53 @@ class SimpleExpressionReceiverEvaluator : CallReceiverEvaluator {
 }
 
 /** Uses a flow-insensitive UAST traversal to map variables to potential receivers based on local context. */
-class IntraproceduralReceiverVisitor : AbstractUastVisitor(), CallReceiverEvaluator {
-  private val simpleExprReceiverEval = SimpleExpressionReceiverEvaluator()
+class IntraproceduralReceiverVisitor(cha: ClassHierarchy) : AbstractUastVisitor(), CallReceiverEvaluator {
+  private val simpleExprReceiverEval = SimpleExpressionReceiverEvaluator(cha)
   private val varMap = HashMultimap.create<UVariable, Receiver>()
+  private val methodMap = HashMultimap.create<UMethod, Receiver>()
+  private val methodsVisited = HashSet<UMethod>()
 
-  override fun get(element: UElement): Collection<Receiver> = when (element) {
-    is UVariable -> varMap[element]
-    is USimpleNameReferenceExpression -> element.resolveToUElement()?.let { this[it] } ?: emptyList() // Recurse when resolved.
-    else -> simpleExprReceiverEval[element]
+  override fun get(element: UElement): Collection<Receiver> {
+    val ours: Collection<Receiver> = when (element) {
+      is UVariable -> varMap[element]
+      is USimpleNameReferenceExpression -> (element.resolve()?.toUElementOfType<UVariable>())?.let { varMap[it] } ?: emptyList()
+      is UCallExpression -> (element.resolve()?.toUElementOfType<UMethod>())?.let { methodMap[it] } ?: emptyList()
+      else -> emptyList()
+    }
+    val theirs = simpleExprReceiverEval[element]
+    return ours + theirs
   }
 
   override fun getForImplicitThis(): Collection<Receiver> = emptyList()
 
-  override fun visitVariable(node: UVariable): Boolean {
-    node.uastInitializer?.let { handleAssign(node, it) }
-    return super.visitVariable(node)
+  override fun visitMethod(node: UMethod): Boolean {
+    if (methodsVisited.contains(node))
+      return true // Avoids infinite recursion.
+    methodsVisited.add(node)
+    return super.visitMethod(node)
   }
 
-  override fun visitBinaryExpression(node: UBinaryExpression): Boolean {
+  override fun afterVisitReturnExpression(node: UReturnExpression) {
+    // Map methods to returned receivers.
+    val method = node.getContainingUMethod() ?: return
+    node.returnExpression?.let { methodMap.putAll(method, this[it]) }
+  }
+
+  override fun afterVisitCallExpression(node: UCallExpression) {
+    // Try to visit the resolved method first.
+    val resolved = node.resolve().toUElementOfType<UMethod>() ?: return
+    resolved.accept(this)
+  }
+
+  override fun afterVisitVariable(node: UVariable) {
+    node.uastInitializer?.let { handleAssign(node, it) }
+  }
+
+  override fun afterVisitBinaryExpression(node: UBinaryExpression) {
     val (left, op, right) = node
     if (op == UastBinaryOperator.ASSIGN && left is USimpleNameReferenceExpression) {
       (left.resolveToUElement() as? UVariable)?.let { handleAssign(it, right) }
     }
-    return super.visitBinaryExpression(node)
   }
 
   private fun handleAssign(v: UVariable, expr: UExpression): Unit {

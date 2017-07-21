@@ -136,13 +136,13 @@ class AndroidLintInterproceduralThreadAnnotationInspection : AndroidLintInspecti
 // This could also implement Detector.ClassScanner in order to analyze byte code, at least
 // for building a more complete class hierarchy.
 class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner {
-  private val nonContextualReceiverEval = IntraproceduralReceiverVisitor()
   private val classHierarchyVisitor = ClassHierarchyVisitor()
+  private val nonContextualReceiverEval = IntraproceduralReceiverVisitor(classHierarchyVisitor.classHierarchy)
   private val callGraphVisitor = CallGraphVisitor(nonContextualReceiverEval, classHierarchyVisitor.classHierarchy)
   private val fileContexts = HashMap<UFile, JavaContext>()
 
-  enum class State { GatheringContext, BuildingCallGraph }
-  private var state = State.GatheringContext
+  enum class State { BuildingClassHierarchy, EvaluatingReceivers, BuildingCallGraph }
+  private var state = State.EvaluatingReceivers
 
   override fun getApplicableUastTypes() = listOf(UFile::class.java)
 
@@ -157,23 +157,26 @@ class InterproceduralThreadAnnotationDetector : Detector(), Detector.UastScanner
       object : UElementHandler() {
         override fun visitFile(uFile: UFile) {
           when (state) {
-            State.GatheringContext -> {
-              LOG.info("Gathering context from ${uFile.psi.name}")
-              uFile.accept(nonContextualReceiverEval)
-              uFile.accept(classHierarchyVisitor)
-            }
-            State.BuildingCallGraph -> {
-              LOG.info("Building call graph for ${uFile.psi.name}")
-              uFile.accept(callGraphVisitor)
-            }
+            State.BuildingClassHierarchy -> uFile.accept(classHierarchyVisitor)
+            State.EvaluatingReceivers -> uFile.accept(nonContextualReceiverEval)
+            State.BuildingCallGraph -> uFile.accept(callGraphVisitor)
           }
         }
       }
 
+  /** Advance the analysis state, returning false when there are no more state changes left. */
+  private fun advanceState(): Boolean {
+    when (state) {
+      State.BuildingClassHierarchy -> state = State.EvaluatingReceivers
+      State.EvaluatingReceivers -> state = State.BuildingCallGraph
+      State.BuildingCallGraph -> return false
+    }
+    return true
+  }
+
   override fun afterCheckProject(context: Context) {
-    if (state == State.GatheringContext) {
+    if (advanceState()) {
       context.driver.requestRepeat(this, SCOPE)
-      state = State.BuildingCallGraph
       return
     }
     val badPaths = searchForInterproceduralThreadAnnotationViolations(callGraphVisitor.callGraph, nonContextualReceiverEval)

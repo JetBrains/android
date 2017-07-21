@@ -26,8 +26,8 @@ class CallGraphAction : BaseAnalysisAction("Call Graph", "Call Graph") {
 
   override fun analyze(project: Project, scope: AnalysisScope) {
     val files = buildUFiles(project, scope)
-    val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files)
     val classHierarchy = buildClassHierarchy(files)
+    val nonContextualReceiverEval = buildIntraproceduralReceiverEval(files, classHierarchy)
     val callGraph = buildCallGraph(files, nonContextualReceiverEval, classHierarchy)
     LOG.info(callGraph.toString())
     LOG.info(callGraph.dump())
